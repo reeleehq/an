@@ -71,14 +71,15 @@ False
 
 ### Module Attributes
 
-| [`HOLD_VERSION`](#an.stage.hold.HOLD_VERSION)       | bump it when the same declarations can compile to other keys.                                                                                   |
-|---------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`HOLDS_REPORT`](#an.stage.hold.HOLDS_REPORT)       | The key of the hold report inside `meta.extensions.solve`.                                                                                      |
-| [`ON_OVERRIDE`](#an.stage.hold.ON_OVERRIDE)        | what holds an item when the shot opens (`ground`, a body's point, `world@x,y`).                                                                 |
-| [`AIM_OVERRIDE`](#an.stage.hold.AIM_OVERRIDE)       | the stage angle it is held at, as a place's `rotation` (a shot that opens on a musket already aimed at someone, continuing the shot before it). |
-| [`GRASP_TOLERANCE_PX`](#an.stage.hold.GRASP_TOLERANCE_PX) | A reach that ends farther than this from its goal did not arrive (scene px).                                                                    |
-| [`DFLT_FALL_GRAVITY`](#an.stage.hold.DFLT_FALL_GRAVITY)  | Gravity for a released item when neither the shot nor the style pack says (scene px / s², down the screen).                                     |
-| [`HOLD_PLAN_PASSES`](#an.stage.hold.HOLD_PLAN_PASSES)   | How many times the gestures are planned (each from the solve the previous plan made).                                                           |
+| [`HOLD_VERSION`](#an.stage.hold.HOLD_VERSION)       | bump it when the same declarations can compile to other keys.                                                                                       |
+|---------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`HOLDS_REPORT`](#an.stage.hold.HOLDS_REPORT)       | The key of the hold report inside `meta.extensions.solve`.                                                                                          |
+| [`ON_OVERRIDE`](#an.stage.hold.ON_OVERRIDE)        | what holds an item when the shot opens (`ground`, a body's point, `world@x,y`).                                                                     |
+| [`AIM_OVERRIDE`](#an.stage.hold.AIM_OVERRIDE)       | the stage angle it is held at, as a place's `rotation` (a shot that opens on a musket already aimed at someone, continuing the shot before it).     |
+| [`GRASP_TOLERANCE_PX`](#an.stage.hold.GRASP_TOLERANCE_PX) | A reach that ends farther than this from its goal did not arrive (scene px).                                                                        |
+| [`DFLT_FALL_GRAVITY`](#an.stage.hold.DFLT_FALL_GRAVITY)  | Gravity for a released item when neither the shot nor the style pack says (scene px / s², down the screen).                                         |
+| [`HOLD_PLAN_PASSES`](#an.stage.hold.HOLD_PLAN_PASSES)   | How many times the gestures are planned (each from the solve the previous plan made).                                                               |
+| [`SURFACE_BONES`](#an.stage.hold.SURFACE_BONES)      | The bones a body declares its supporting surface by (an#536), its two ends in the art's terms (left, right): what `<body>@surface` lays an item on. |
 
 ### Functions
 
@@ -177,6 +178,12 @@ what holds an item when the shot opens
 
 * **Type:**
   `AssetRef.overrides` key
+
+### an.stage.hold.SURFACE_BONES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= ('surface_l', 'surface_r')*
+
+The bones a body declares its supporting surface by (an#536), its two ends
+in the art’s terms (left, right): what `<body>@surface` lays an item on.
+Undeclared, the surface is the top edge of the part’s ink.
 
 ### an.stage.hold.declares_holds(shot)
 

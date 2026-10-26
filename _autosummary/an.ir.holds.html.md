@@ -50,15 +50,16 @@ shelf needs them without saying character), registered when [`an.ir`](an.ir.html
 
 ### Module Attributes
 
-| [`DFLT_REACH`](#an.ir.holds.DFLT_REACH)        | a deliberate reach at arm's length, about two thirds of a second there and back.                                            |
-|--------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|
-| [`DFLT_RETRACT`](#an.ir.holds.DFLT_RETRACT)      | How long the hand takes to come back to where the shot has it (s).                                                          |
-| [`DFLT_LEAN_DEG`](#an.ir.holds.DFLT_LEAN_DEG)     | a figure bent well over at the hip.                                                                                         |
-| [`DFLT_TOSS_ARC`](#an.ir.holds.DFLT_TOSS_ARC)     | How high a toss rises above the higher of its two ends (scene px).                                                          |
-| [`DFLT_SWAP_LAG`](#an.ir.holds.DFLT_SWAP_LAG)     | In a `swap`, how long after the taking hand starts the giving hand starts (s): it arrives a beat after the socket is empty. |
-| [`GROUND`](#an.ir.holds.GROUND)            | The name of the floor in a target (`ground`, `ground@x`).                                                                   |
-| [`HOLD_ACTION_KINDS`](#an.ir.holds.HOLD_ACTION_KINDS) | The kinds' names.                                                                                                           |
-| [`GESTURE_KINDS`](#an.ir.holds.GESTURE_KINDS)     | The kinds that move a hand (a reach and a retract), as flattened leaves.                                                    |
+| [`DFLT_REACH`](#an.ir.holds.DFLT_REACH)        | a deliberate reach at arm's length, about two thirds of a second there and back.                                                                                                                                     |
+|--------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`DFLT_RETRACT`](#an.ir.holds.DFLT_RETRACT)      | How long the hand takes to come back to where the shot has it (s).                                                                                                                                                   |
+| [`DFLT_LEAN_DEG`](#an.ir.holds.DFLT_LEAN_DEG)     | a figure bent well over at the hip.                                                                                                                                                                                  |
+| [`DFLT_TOSS_ARC`](#an.ir.holds.DFLT_TOSS_ARC)     | How high a toss rises above the higher of its two ends (scene px).                                                                                                                                                   |
+| [`DFLT_SWAP_LAG`](#an.ir.holds.DFLT_SWAP_LAG)     | In a `swap`, how long after the taking hand starts the giving hand starts (s): it arrives a beat after the socket is empty.                                                                                          |
+| [`GROUND`](#an.ir.holds.GROUND)            | The name of the floor in a target (`ground`, `ground@x`).                                                                                                                                                            |
+| [`SURFACE`](#an.ir.holds.SURFACE)           | The point name of a body's supporting surface in a target (an#536): `crate@surface` (below the hand), `crate@surface@0.3` (that fraction of the way along it), as on the ground but on the body's top, following it. |
+| [`HOLD_ACTION_KINDS`](#an.ir.holds.HOLD_ACTION_KINDS) | The kinds' names.                                                                                                                                                                                                    |
+| [`GESTURE_KINDS`](#an.ir.holds.GESTURE_KINDS)     | The kinds that move a hand (a reach and a retract), as flattened leaves.                                                                                                                                             |
 
 ### Functions
 
@@ -171,13 +172,17 @@ The hand holding `item` puts it `onto` a target and lets it go.
 
 `onto` is `ground` (straight down, at floor height), `ground@x` (at
 stage `x`), a body’s point (a socket: the item’s grip goes there, its
-frame aligned with the socket’s) or `world@x,y` (hung on a point).
+frame aligned with the socket’s), a body’s surface (`crate@surface`, or
+`crate@surface@f` at that fraction along it: lying on its top as on the
+ground, held by that body from then on, an#536) or `world@x,y` (hung on
+a point).
 `item@<point>` names the item’s point that touches the target (default:
 its grip on a socket, its lowest point on the ground). `rotation`: the
-item’s rotation where it rests (radians, the stage’s; default: the angle it
-last rested at on the ground, else the nearest quarter turn; in a socket,
-the socket’s own). In a socket it is the angle the item comes to rest at
-(a musket aimed at someone, a sabre raised), held relative to the socket
+item’s rotation where it rests (radians, the stage’s; on a surface, relative
+to the surface, whose tilt is added; default: the angle it last rested at,
+else the nearest quarter turn; in a socket, the socket’s own). In a socket
+it is the angle the item comes to rest at (a musket aimed at someone, a
+sabre raised), held relative to the socket
 from then on, so it turns with it.
 
 ```pycon
@@ -205,6 +210,12 @@ True
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### an.ir.holds.SURFACE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'surface'*
+
+The point name of a body’s supporting surface in a target (an#536):
+`crate@surface` (below the hand), `crate@surface@0.3` (that fraction of
+the way along it), as on the ground but on the body’s top, following it.
 
 ### *class* an.ir.holds.SwapAction(, name=None, kind='swap', holder, take, give, by, lag=0.25, rotation=None, reach=0.4, retract=0.35, lean=60.0, align=True, \*\*extra_data)
 

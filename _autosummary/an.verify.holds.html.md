@@ -12,8 +12,9 @@ did in `meta.extensions.solve.holds`):
 - `unreachable_hold` (error): a hand does not arrive where it takes or puts
   its item (even bending as far as its `lean` allows), with how far it
   stays short and which way to move the carrier;
-- `floating_item` (warning): an item that a hand takes from the floor
-  hovers above it (or sinks into it) before it is taken, and a released item
+- `floating_item` (warning): an item that a hand takes from the floor (or
+  from a body’s surface the holds name: `crate@surface`, an#536) hovers
+  above it (or sinks into it) before it is taken, and a released item
   with no ground below it or no gravity, that stays in the air.
 
 All three are silent for a shot that holds nothing.

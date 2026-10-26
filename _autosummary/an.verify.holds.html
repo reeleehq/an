@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=45cd7f8d"></script>
+    <script src="../_static/documentation_options.js?v=e1b5fb94"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.276" />
+  <meta name="docsearch:version" content="0.1.277" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -643,8 +643,9 @@ once, a verb names an item that is not in the shot;</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">unreachable_hold</span></code> (error): a hand does not arrive where it takes or puts
 its item (even bending as far as its <code class="docutils literal notranslate"><span class="pre">lean</span></code> allows), with how far it
 stays short and which way to move the carrier;</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">floating_item</span></code> (warning): an item that a hand takes from the floor
-hovers above it (or sinks into it) before it is taken, and a released item
+<li><p><code class="docutils literal notranslate"><span class="pre">floating_item</span></code> (warning): an item that a hand takes from the floor (or
+from a body’s surface the holds name: <code class="docutils literal notranslate"><span class="pre">crate&#64;surface</span></code>, an#536) hovers
+above it (or sinks into it) before it is taken, and a released item
 with no ground below it or no gravity, that stays in the air.</p></li>
 </ul>
 <p>All three are silent for a shot that holds nothing.</p>

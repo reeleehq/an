@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=45cd7f8d"></script>
+    <script src="../_static/documentation_options.js?v=e1b5fb94"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.276" />
+  <meta name="docsearch:version" content="0.1.277" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -722,6 +722,9 @@ holders, what <code class="docutils literal notranslate"><span class="pre">an</s
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.hold.HOLD_PLAN_PASSES" title="an.stage.hold.HOLD_PLAN_PASSES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HOLD_PLAN_PASSES</span></code></a></p></td>
 <td><p>How many times the gestures are planned (each from the solve the previous plan made).</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.hold.SURFACE_BONES" title="an.stage.hold.SURFACE_BONES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SURFACE_BONES</span></code></a></p></td>
+<td><p>The bones a body declares its supporting surface by (an#536), its two ends in the art's terms (left, right): what <code class="docutils literal notranslate"><span class="pre">&lt;body&gt;&#64;surface</span></code> lays an item on.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -876,6 +879,14 @@ the shot: what <code class="docutils literal notranslate"><span class="pre">an</
 <dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">AssetRef.overrides</span></code> key</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.hold.SURFACE_BONES">
+<span class="sig-prename descclassname"><span class="pre">an.stage.hold.</span></span><span class="sig-name descname"><span class="pre">SURFACE_BONES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('surface_l',</span> <span class="pre">'surface_r')</span></span><a class="headerlink" href="#an.stage.hold.SURFACE_BONES" title="Link to this definition">#</a></dt>
+<dd><p>The bones a body declares its supporting surface by (an#536), its two ends
+in the art’s terms (left, right): what <code class="docutils literal notranslate"><span class="pre">&lt;body&gt;&#64;surface</span></code> lays an item on.
+Undeclared, the surface is the top edge of the part’s ink.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -1043,6 +1054,7 @@ held item’s <code class="docutils literal notranslate"><span class="pre">paint
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.hold.HoldError"><code class="docutils literal notranslate"><span class="pre">HoldError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.hold.HoldVerb"><code class="docutils literal notranslate"><span class="pre">HoldVerb</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.hold.ON_OVERRIDE"><code class="docutils literal notranslate"><span class="pre">ON_OVERRIDE</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.hold.SURFACE_BONES"><code class="docutils literal notranslate"><span class="pre">SURFACE_BONES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.hold.declares_holds"><code class="docutils literal notranslate"><span class="pre">declares_holds()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.hold.hold_declarations"><code class="docutils literal notranslate"><span class="pre">hold_declarations()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.hold.ink_box"><code class="docutils literal notranslate"><span class="pre">ink_box()</span></code></a></li>

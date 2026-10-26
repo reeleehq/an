@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=45cd7f8d"></script>
+    <script src="../../../_static/documentation_options.js?v=e1b5fb94"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.276" />
+  <meta name="docsearch:version" content="0.1.277" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -789,7 +789,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">lru_cache</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.holds</span><span class="w"> </span><span class="kn">import</span> <span class="n">GESTURE_KINDS</span><span class="p">,</span> <span class="n">GROUND</span><span class="p">,</span> <span class="n">HOLD_ACTION_KINDS</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.holds</span><span class="w"> </span><span class="kn">import</span> <span class="n">GESTURE_KINDS</span><span class="p">,</span> <span class="n">GROUND</span><span class="p">,</span> <span class="n">HOLD_ACTION_KINDS</span><span class="p">,</span> <span class="n">SURFACE</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.compile</span><span class="w"> </span><span class="kn">import</span> <span class="n">CutoutCompileError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.solve</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">REACH_SOURCE</span><span class="p">,</span>
@@ -818,6 +818,7 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"GRASP_TOLERANCE_PX"</span><span class="p">,</span>
     <span class="s2">"DFLT_FALL_GRAVITY"</span><span class="p">,</span>
     <span class="s2">"HOLD_PLAN_PASSES"</span><span class="p">,</span>
+    <span class="s2">"SURFACE_BONES"</span><span class="p">,</span>
     <span class="s2">"HoldError"</span><span class="p">,</span>
     <span class="s2">"HoldVerb"</span><span class="p">,</span>
     <span class="s2">"HoldDeclarations"</span><span class="p">,</span>
@@ -859,6 +860,10 @@ window.runMermaid = runMermaid;</script>
 <span class="n">LEAN_ROUNDS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span>
 <span class="c1">#: Samples of a lean's range searched when no angle brings the goal in reach.</span>
 <span class="n">LEAN_SAMPLES</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">721</span>
+<span class="c1">#: The bones a body declares its supporting surface by (an#536), its two ends</span>
+<span class="c1">#: in the art's terms (left, right): what ``&lt;body&gt;@surface`` lays an item on.</span>
+<span class="c1">#: Undeclared, the surface is the top edge of the part's ink.</span>
+<span class="n">SURFACE_BONES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"surface_l"</span><span class="p">,</span> <span class="s2">"surface_r"</span><span class="p">)</span>
 <span class="c1">#: The alpha (0-255) above which a pixel is ink, not margin.</span>
 <span class="n">INK_ALPHA</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span>
 <span class="n">_EPS</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-9</span>
@@ -958,6 +963,33 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">head</span> <span class="ow">in</span> <span class="p">(</span><span class="n">GROUND</span><span class="p">,</span> <span class="n">WORLD_REF</span><span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_is_surface_target</span><span class="p">(</span><span class="n">ref</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``&lt;body&gt;@surface`` and ``&lt;body&gt;@surface@f``: a body's top, not a socket.</span>
+
+<span class="sd">    &gt;&gt;&gt; _is_surface_target("crate@surface"), _is_surface_target("crate/lid@surface@0.3")</span>
+<span class="sd">    (True, True)</span>
+<span class="sd">    &gt;&gt;&gt; _is_surface_target("crate@top"), _is_surface_target("ground")</span>
+<span class="sd">    (False, False)</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">ref</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">"@"</span><span class="p">)[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">"@"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">SURFACE</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_holder_ref</span><span class="p">(</span><span class="n">ref</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The reference the solve resolves for a holder: a surface's body (its</span>
+<span class="sd">    pivot: only its body and frame are read), any other point as named.</span>
+
+<span class="sd">    &gt;&gt;&gt; _holder_ref("crate/lid@surface@0.3"), _holder_ref("stand@hand")</span>
+<span class="sd">    ('crate/lid', 'stand@hand')</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">ref</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">"@"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">_is_surface_target</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span> <span class="k">else</span> <span class="n">ref</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_rests_on_nothing</span><span class="p">(</span><span class="n">ref</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A target that holds an item without a hand that could give it back:</span>
+<span class="sd">    the ground, a stage point, a body's surface."""</span>
+    <span class="k">return</span> <span class="n">_is_place_target</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span> <span class="ow">or</span> <span class="n">_is_surface_target</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_entity</span><span class="p">(</span><span class="n">ref</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">ref</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">"@"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
@@ -985,7 +1017,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">out</span><span class="o">.</span><span class="n">initial</span><span class="p">[</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">on</span><span class="p">),</span> <span class="n">where</span><span class="p">)</span>
         <span class="n">out</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">where</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_place_target</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">on</span><span class="p">)):</span>
-            <span class="n">out</span><span class="o">.</span><span class="n">refs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="nb">str</span><span class="p">(</span><span class="n">on</span><span class="p">),</span> <span class="n">where</span><span class="p">,</span> <span class="s2">"socket"</span><span class="p">))</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">refs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">_holder_ref</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">on</span><span class="p">)),</span> <span class="n">where</span><span class="p">,</span> <span class="s2">"socket"</span><span class="p">))</span>
     <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">action</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">actions</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">flat</span> <span class="ow">in</span> <span class="n">flatten</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">play_extent</span><span class="o">=</span><span class="n">play_extent</span><span class="p">):</span>
             <span class="n">kind</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">flat</span><span class="o">.</span><span class="n">action</span><span class="p">,</span> <span class="s2">"kind"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
@@ -1003,12 +1035,14 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">target</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">onto</span> <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"place"</span> <span class="k">else</span> <span class="n">a</span><span class="o">.</span><span class="n">to</span>
                 <span class="n">moving</span> <span class="o">=</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"handover"</span> <span class="ow">and</span> <span class="n">a</span><span class="o">.</span><span class="n">meet</span> <span class="o">&lt;</span> <span class="mf">1.0</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_place_target</span><span class="p">(</span><span class="n">target</span><span class="p">):</span>
-                    <span class="n">out</span><span class="o">.</span><span class="n">refs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">target</span><span class="p">,</span> <span class="n">where</span><span class="p">,</span> <span class="s2">"hand"</span> <span class="k">if</span> <span class="n">moving</span> <span class="k">else</span> <span class="s2">"socket"</span><span class="p">))</span>
+                    <span class="n">out</span><span class="o">.</span><span class="n">refs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="p">(</span><span class="n">_holder_ref</span><span class="p">(</span><span class="n">target</span><span class="p">),</span> <span class="n">where</span><span class="p">,</span> <span class="s2">"hand"</span> <span class="k">if</span> <span class="n">moving</span> <span class="k">else</span> <span class="s2">"socket"</span><span class="p">)</span>
+                    <span class="p">)</span>
     <span class="n">out</span><span class="o">.</span><span class="n">verbs</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">end</span><span class="p">))</span>
     <span class="c1"># Who moves a hand: every explicit `by`, a receiver that reaches, and the</span>
     <span class="c1"># holder of an item a place, handover or release gives up without a `by`.</span>
     <span class="n">holder</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="n">item</span><span class="p">:</span> <span class="p">(</span><span class="n">on</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_place_target</span><span class="p">(</span><span class="n">on</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">item</span><span class="p">:</span> <span class="p">(</span><span class="n">on</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">_rests_on_nothing</span><span class="p">(</span><span class="n">on</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">item</span><span class="p">,</span> <span class="p">(</span><span class="n">on</span><span class="p">,</span> <span class="n">_w</span><span class="p">)</span> <span class="ow">in</span> <span class="n">out</span><span class="o">.</span><span class="n">initial</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
     <span class="p">}</span>
     <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">_by_instant</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">verbs</span><span class="p">):</span>
@@ -1023,7 +1057,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"release"</span><span class="p">:</span>
             <span class="n">holder</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">elif</span> <span class="n">a</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"place"</span><span class="p">:</span>
-            <span class="n">holder</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">_is_place_target</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">onto</span><span class="p">)</span> <span class="k">else</span> <span class="n">a</span><span class="o">.</span><span class="n">onto</span>
+            <span class="n">holder</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">_rests_on_nothing</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">onto</span><span class="p">)</span> <span class="k">else</span> <span class="n">a</span><span class="o">.</span><span class="n">onto</span>
         <span class="k">else</span><span class="p">:</span>  <span class="c1"># handover</span>
             <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">meet</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">:</span>
                 <span class="n">out</span><span class="o">.</span><span class="n">movers</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">_entity</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">to</span><span class="p">))</span>
@@ -1107,6 +1141,44 @@ window.runMermaid = runMermaid;</script>
 <span class="k">def</span><span class="w"> </span><span class="nf">_lowest</span><span class="p">(</span><span class="n">m</span><span class="p">:</span> <span class="n">Affine</span><span class="p">,</span> <span class="n">corners</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""The lowest (largest ``y``) of ``corners`` under ``m``."""</span>
     <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">_apply</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">c</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">corners</span><span class="p">)</span>
+
+
+<span class="c1">#: A support line: a point on it and its unit direction, turned so that its</span>
+<span class="c1">#: normal ``(-dy, dx)`` points DOWN the screen (into the support).</span>
+<span class="n">Line</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_ground_line</span><span class="p">(</span><span class="n">ground</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Line</span><span class="p">:</span>
+    <span class="k">return</span> <span class="p">((</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">ground</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_line_through</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">b</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Line</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The support line through ``a`` and ``b``, whichever end is named first.</span>
+
+<span class="sd">    &gt;&gt;&gt; _line_through((10.0, 5.0), (0.0, 5.0))</span>
+<span class="sd">    ((10.0, 5.0), (1.0, 0.0))</span>
+<span class="sd">    """</span>
+    <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">)</span> <span class="ow">or</span> <span class="mf">1.0</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="p">(</span><span class="n">dx</span> <span class="o">/</span> <span class="n">n</span><span class="p">,</span> <span class="n">dy</span> <span class="o">/</span> <span class="n">n</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>  <span class="c1"># its normal (-dy, dx) points down</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.0</span><span class="p">,</span> <span class="o">-</span><span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">a</span><span class="p">,</span> <span class="n">d</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_above</span><span class="p">(</span><span class="n">m</span><span class="p">:</span> <span class="n">Affine</span><span class="p">,</span> <span class="n">corners</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span> <span class="n">line</span><span class="p">:</span> <span class="n">Line</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""How far the lowest of ``corners`` under ``m`` is above ``line``, along</span>
+<span class="sd">    its normal (negative: sunk into it). On the ground, ``ground - lowest``.</span>
+
+<span class="sd">    &gt;&gt;&gt; square = [(0.0, 0.0), (2.0, 0.0), (0.0, 2.0), (2.0, 2.0)]</span>
+<span class="sd">    &gt;&gt;&gt; _above((1, 0, 0, 1, 0, 0), square, _ground_line(5.0))</span>
+<span class="sd">    3.0</span>
+<span class="sd">    """</span>
+    <span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">ay</span><span class="p">),</span> <span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">)</span> <span class="o">=</span> <span class="n">line</span>
+    <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span> <span class="o">=</span> <span class="o">-</span><span class="n">dy</span><span class="p">,</span> <span class="n">dx</span>
+    <span class="k">return</span> <span class="o">-</span><span class="nb">max</span><span class="p">(</span>
+        <span class="n">nx</span> <span class="o">*</span> <span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">ax</span><span class="p">)</span> <span class="o">+</span> <span class="n">ny</span> <span class="o">*</span> <span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">ay</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="p">(</span><span class="n">_apply</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">corners</span><span class="p">)</span>
+    <span class="p">)</span>
 
 
 <span class="c1"># -----------------------------------------------------------------------------</span>
@@ -1275,7 +1347,7 @@ window.runMermaid = runMermaid;</script>
 <span class="k">class</span><span class="w"> </span><span class="nc">Holder</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""What holds an item: a body's point, the ground, a stage point, or nothing."""</span>
 
-    <span class="n">kind</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># "body" | "ground" | "world" | "authored" | "air"</span>
+    <span class="n">kind</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># "body" | "surface" | "ground" | "world" | "authored" | "air"</span>
     <span class="n">ref</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
     <span class="n">body</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">local</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
@@ -1283,6 +1355,10 @@ window.runMermaid = runMermaid;</script>
     <span class="n">entity</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">x</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># ground@x, world@x,y</span>
     <span class="n">y</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: a surface: its two ends in ``body``'s own coordinates, and how far along</span>
+    <span class="c1">#: it (from the first) the item goes (``None``: below the hand)</span>
+    <span class="n">segment</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">along</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="c1">#: ``hand`` (a part the solve moves: one item at a time, one gesture at a</span>
     <span class="c1">#: time, whatever point of it is named) or ``socket`` (a point of a part</span>
     <span class="c1">#: held still: each point holds its own item).</span>
@@ -1389,6 +1465,30 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">times</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">-</span> <span class="n">t</span><span class="p">),</span> <span class="n">k</span><span class="p">))</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_anchors_in</span><span class="p">(</span>
+    <span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">rig</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">eid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">nodes</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">frame</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""A rig's bones as points in node ``frame``'s own coordinates, at rest</span>
+<span class="sd">    (the entity's own when ``frame`` is the entity)."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.solve</span><span class="w"> </span><span class="kn">import</span> <span class="n">_world_matrices</span>
+
+    <span class="n">owners</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">bone</span><span class="p">:</span> <span class="n">eid</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">on</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">eid</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">rig</span><span class="o">.</span><span class="n">bodies</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">on</span><span class="p">,</span><span class="w"> </span><span class="n">a</span><span class="o">.</span><span class="n">on</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+        <span class="k">for</span> <span class="n">bone</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">rig</span><span class="o">.</span><span class="n">anchors</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+    <span class="p">}</span>
+    <span class="n">paths</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">({</span><span class="n">eid</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="o">*</span><span class="p">(</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">owners</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">)})</span>
+    <span class="n">rest</span> <span class="o">=</span> <span class="n">_world_matrices</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">paths</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">nodes</span><span class="p">)</span>
+    <span class="n">inv</span> <span class="o">=</span> <span class="n">_invert</span><span class="p">(</span><span class="n">rest</span><span class="p">[</span><span class="n">frame</span><span class="p">])</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">bone</span><span class="p">,</span> <span class="n">anchor</span> <span class="ow">in</span> <span class="n">rig</span><span class="o">.</span><span class="n">anchors</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">owner</span> <span class="o">=</span> <span class="n">owners</span><span class="p">[</span><span class="n">bone</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">owner</span> <span class="o">==</span> <span class="n">frame</span><span class="p">:</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">bone</span><span class="p">]</span> <span class="o">=</span> <span class="n">anchor</span><span class="o">.</span><span class="n">offset</span>
+        <span class="k">elif</span> <span class="n">owner</span> <span class="ow">in</span> <span class="n">rest</span><span class="p">:</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">bone</span><span class="p">]</span> <span class="o">=</span> <span class="n">_apply</span><span class="p">(</span><span class="n">_compose</span><span class="p">(</span><span class="n">inv</span><span class="p">,</span> <span class="n">rest</span><span class="p">[</span><span class="n">owner</span><span class="p">]),</span> <span class="n">anchor</span><span class="o">.</span><span class="n">offset</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_item_info</span><span class="p">(</span>
     <span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
@@ -1416,19 +1516,9 @@ window.runMermaid = runMermaid;</script>
     <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">corners</span><span class="p">],</span> <span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">corners</span><span class="p">]</span>
     <span class="n">box</span> <span class="o">=</span> <span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">xs</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span><span class="n">ys</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">xs</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">ys</span><span class="p">)</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">ys</span><span class="p">))</span>
     <span class="n">centre</span> <span class="o">=</span> <span class="p">(</span><span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span>
-    <span class="n">anchors</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">entity</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">item</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
     <span class="n">rig</span> <span class="o">=</span> <span class="n">_rig_of</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">vocab</span><span class="p">)</span> <span class="k">if</span> <span class="n">entity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
-    <span class="k">if</span> <span class="n">rig</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">bone</span><span class="p">,</span> <span class="n">anchor</span> <span class="ow">in</span> <span class="n">rig</span><span class="o">.</span><span class="n">anchors</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">anchor</span><span class="o">.</span><span class="n">on</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">anchors</span><span class="p">[</span><span class="n">bone</span><span class="p">]</span> <span class="o">=</span> <span class="n">anchor</span><span class="o">.</span><span class="n">offset</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">slot_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">item</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">rig</span><span class="o">.</span><span class="n">bodies</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">anchor</span><span class="o">.</span><span class="n">on</span><span class="p">,</span><span class="w"> </span><span class="n">anchor</span><span class="o">.</span><span class="n">on</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
-                <span class="k">if</span> <span class="n">slot_path</span> <span class="ow">in</span> <span class="n">rest</span><span class="p">:</span>
-                    <span class="n">anchors</span><span class="p">[</span><span class="n">bone</span><span class="p">]</span> <span class="o">=</span> <span class="n">_apply</span><span class="p">(</span>
-                        <span class="n">_compose</span><span class="p">(</span><span class="n">inv</span><span class="p">,</span> <span class="n">rest</span><span class="p">[</span><span class="n">slot_path</span><span class="p">]),</span> <span class="n">anchor</span><span class="o">.</span><span class="n">offset</span>
-                    <span class="p">)</span>
+    <span class="n">anchors</span> <span class="o">=</span> <span class="n">_anchors_in</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">rig</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span> <span class="k">if</span> <span class="n">rig</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
     <span class="n">pivot</span> <span class="o">=</span> <span class="n">_pivot</span><span class="p">(</span><span class="n">nodes</span><span class="p">[</span><span class="n">item</span><span class="p">])</span>
     <span class="n">grip</span> <span class="o">=</span> <span class="n">anchors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"grip"</span><span class="p">,</span> <span class="n">pivot</span><span class="p">)</span>
     <span class="n">_theta</span><span class="p">,</span> <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span><span class="p">,</span> <span class="n">_m</span> <span class="o">=</span> <span class="n">_decompose</span><span class="p">(</span><span class="n">rest</span><span class="p">[</span><span class="n">item</span><span class="p">])</span>
@@ -1509,6 +1599,88 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">Holder</span><span class="p">(</span><span class="s2">"world"</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="n">ref</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">xy</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">y</span><span class="o">=</span><span class="n">xy</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_surface_holder</span><span class="p">(</span>
+    <span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">puppet</span><span class="p">:</span> <span class="n">Puppet</span><span class="p">,</span>
+    <span class="n">ref</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">vocab</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">where</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">problems</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Holder</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``&lt;body&gt;@surface[@f]`` (an#536): the body's supporting segment in its</span>
+<span class="sd">    own coordinates, from its :data:`SURFACE_BONES` when its rig declares</span>
+<span class="sd">    them, else the top edge of the part's ink."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.solve</span><span class="w"> </span><span class="kn">import</span> <span class="n">_rig_of</span>
+
+    <span class="n">head</span> <span class="o">=</span> <span class="n">_holder_ref</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span>
+    <span class="n">found</span> <span class="o">=</span> <span class="n">puppet</span><span class="o">.</span><span class="n">located</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">head</span><span class="p">,</span> <span class="s2">"socket"</span><span class="p">))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">found</span><span class="p">,</span> <span class="n">Located</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># the solve said why</span>
+    <span class="n">_name</span><span class="p">,</span> <span class="n">sep</span><span class="p">,</span> <span class="n">text</span> <span class="o">=</span> <span class="n">ref</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">"@"</span><span class="p">)[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">"@"</span><span class="p">)</span>
+    <span class="n">along</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">sep</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">along</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="n">along</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">along</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="mf">0.0</span> <span class="o">&lt;=</span> <span class="n">along</span> <span class="o">&lt;=</span> <span class="mf">1.0</span><span class="p">:</span>
+            <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">(</span>
+                    <span class="n">where</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2">: a place on a surface is `</span><span class="si">{</span><span class="n">head</span><span class="si">}</span><span class="s2">@</span><span class="si">{</span><span class="n">SURFACE</span><span class="si">}</span><span class="s2">` (below the hand) "</span>
+                    <span class="sa">f</span><span class="s2">"or `</span><span class="si">{</span><span class="n">head</span><span class="si">}</span><span class="s2">@</span><span class="si">{</span><span class="n">SURFACE</span><span class="si">}</span><span class="s2">@f`, f from 0 (its first end) to 1"</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">eid</span> <span class="o">=</span> <span class="n">_entity</span><span class="p">(</span><span class="n">head</span><span class="p">)</span>
+    <span class="n">entity</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">eid</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">rig</span> <span class="o">=</span> <span class="n">_rig_of</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">puppet</span><span class="o">.</span><span class="n">nodes</span><span class="p">,</span> <span class="n">vocab</span><span class="p">)</span> <span class="k">if</span> <span class="n">entity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">rig</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">SURFACE</span> <span class="ow">in</span> <span class="n">rig</span><span class="o">.</span><span class="n">anchors</span><span class="p">:</span>
+        <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">(</span>
+                <span class="n">where</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">eid</span><span class="si">!r}</span><span class="s2"> has a bone named </span><span class="si">{</span><span class="n">SURFACE</span><span class="si">!r}</span><span class="s2">, a reserved point name "</span>
+                <span class="sa">f</span><span class="s2">"(`&lt;body&gt;@</span><span class="si">{</span><span class="n">SURFACE</span><span class="si">}</span><span class="s2">` is the body's top, an#536): rename the bone, and "</span>
+                <span class="sa">f</span><span class="s2">"declare a surface by </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">SURFACE_BONES</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">bones</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">_anchors_in</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">rig</span><span class="p">,</span> <span class="n">eid</span><span class="p">,</span> <span class="n">puppet</span><span class="o">.</span><span class="n">nodes</span><span class="p">,</span> <span class="n">found</span><span class="o">.</span><span class="n">body</span><span class="p">)</span> <span class="k">if</span> <span class="n">rig</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
+    <span class="p">)</span>
+    <span class="n">declared</span> <span class="o">=</span> <span class="p">[</span><span class="n">b</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">SURFACE_BONES</span> <span class="k">if</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bones</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">declared</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">SURFACE_BONES</span><span class="p">):</span>
+        <span class="n">segment</span> <span class="o">=</span> <span class="p">(</span><span class="n">bones</span><span class="p">[</span><span class="n">SURFACE_BONES</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">bones</span><span class="p">[</span><span class="n">SURFACE_BONES</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
+    <span class="k">elif</span> <span class="n">declared</span><span class="p">:</span>
+        <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">(</span>
+                <span class="n">where</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">eid</span><span class="si">!r}</span><span class="s2"> declares </span><span class="si">{</span><span class="n">declared</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">!r}</span><span class="s2"> but not "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="p">[</span><span class="n">b</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">SURFACE_BONES</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">declared</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="si">!r}</span><span class="s2">: a surface is "</span>
+                <span class="s2">"two bones (its ends), or neither (the top of the part's ink)"</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">left</span><span class="p">,</span> <span class="n">top</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">_h</span> <span class="o">=</span> <span class="n">ink_box</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">puppet</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">found</span><span class="o">.</span><span class="n">node</span><span class="p">],</span> <span class="n">mall</span><span class="p">)</span>
+        <span class="n">segment</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">_apply</span><span class="p">(</span><span class="n">found</span><span class="o">.</span><span class="n">frame</span><span class="p">,</span> <span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">top</span><span class="p">)),</span>
+            <span class="n">_apply</span><span class="p">(</span><span class="n">found</span><span class="o">.</span><span class="n">frame</span><span class="p">,</span> <span class="p">(</span><span class="n">left</span> <span class="o">+</span> <span class="n">w</span><span class="p">,</span> <span class="n">top</span><span class="p">)),</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">Holder</span><span class="p">(</span>
+        <span class="s2">"surface"</span><span class="p">,</span>
+        <span class="n">ref</span><span class="o">=</span><span class="n">ref</span><span class="p">,</span>
+        <span class="n">body</span><span class="o">=</span><span class="n">found</span><span class="o">.</span><span class="n">body</span><span class="p">,</span>
+        <span class="n">frame</span><span class="o">=</span><span class="n">found</span><span class="o">.</span><span class="n">frame</span><span class="p">,</span>
+        <span class="n">entity</span><span class="o">=</span><span class="n">eid</span><span class="p">,</span>
+        <span class="n">segment</span><span class="o">=</span><span class="n">segment</span><span class="p">,</span>
+        <span class="n">along</span><span class="o">=</span><span class="n">along</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
 <span class="c1"># -----------------------------------------------------------------------------</span>
 <span class="c1"># The schedule: gestures and events, checked</span>
 <span class="c1"># -----------------------------------------------------------------------------</span>
@@ -1543,6 +1715,10 @@ window.runMermaid = runMermaid;</script>
             <span class="k">continue</span>
         <span class="k">if</span> <span class="n">_is_place_target</span><span class="p">(</span><span class="n">on</span><span class="p">):</span>
             <span class="n">h</span> <span class="o">=</span> <span class="n">_place_holder</span><span class="p">(</span><span class="n">on</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="n">where</span><span class="p">,</span> <span class="n">problems</span><span class="o">=</span><span class="n">problems</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">_is_surface_target</span><span class="p">(</span><span class="n">on</span><span class="p">):</span>
+            <span class="n">h</span> <span class="o">=</span> <span class="n">_surface_holder</span><span class="p">(</span>
+                <span class="n">doc</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">puppet</span><span class="p">,</span> <span class="n">on</span><span class="p">,</span> <span class="n">vocab</span><span class="o">=</span><span class="n">vocab</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="n">where</span><span class="p">,</span> <span class="n">problems</span><span class="o">=</span><span class="n">problems</span>
+            <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">h</span> <span class="o">=</span> <span class="n">_holder</span><span class="p">(</span><span class="n">puppet</span><span class="p">,</span> <span class="n">on</span><span class="p">,</span> <span class="s2">"socket"</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">h</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1661,6 +1837,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="n">current</span><span class="o">.</span><span class="n">kind</span> <span class="o">!=</span> <span class="s2">"body"</span><span class="p">:</span>
             <span class="n">what</span> <span class="o">=</span> <span class="p">{</span>
                 <span class="s2">"ground"</span><span class="p">:</span> <span class="s2">"on the ground"</span><span class="p">,</span>
+                <span class="s2">"surface"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"on </span><span class="si">{</span><span class="n">current</span><span class="o">.</span><span class="n">ref</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
                 <span class="s2">"world"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"at </span><span class="si">{</span><span class="n">current</span><span class="o">.</span><span class="n">ref</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
                 <span class="s2">"authored"</span><span class="p">:</span> <span class="s2">"where it is staged"</span><span class="p">,</span>
                 <span class="s2">"air"</span><span class="p">:</span> <span class="s2">"in the air"</span><span class="p">,</span>
@@ -1684,6 +1861,15 @@ window.runMermaid = runMermaid;</script>
                     <span class="p">)</span>
                 <span class="p">)</span>
                 <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"release"</span> <span class="ow">and</span> <span class="n">a</span><span class="o">.</span><span class="n">onto</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">_is_surface_target</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">onto</span><span class="p">):</span>
+            <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">(</span>
+                    <span class="n">v</span><span class="o">.</span><span class="n">where</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">"release </span><span class="si">{</span><span class="n">item</span><span class="si">!r}</span><span class="s2"> onto </span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">onto</span><span class="si">!r}</span><span class="s2">: a release falls to the floor; an "</span>
+                    <span class="sa">f</span><span class="s2">"item is put on a surface by `place` (`onto: </span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">onto</span><span class="si">}</span><span class="s2">`)"</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="k">continue</span>
         <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"release"</span><span class="p">:</span>
             <span class="n">events</span><span class="p">[</span><span class="n">item</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                 <span class="n">Event</span><span class="p">(</span><span class="n">_frame_at</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">start</span><span class="p">),</span> <span class="s2">"drop"</span><span class="p">,</span> <span class="n">release</span><span class="o">=</span><span class="n">a</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">where</span><span class="p">)</span>
@@ -1695,6 +1881,26 @@ window.runMermaid = runMermaid;</script>
         <span class="n">meet</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s2">"meet"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">_is_place_target</span><span class="p">(</span><span class="n">target_ref</span><span class="p">):</span>
             <span class="n">target</span> <span class="o">=</span> <span class="n">_place_holder</span><span class="p">(</span><span class="n">target_ref</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">where</span><span class="p">,</span> <span class="n">problems</span><span class="o">=</span><span class="n">problems</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">_is_surface_target</span><span class="p">(</span><span class="n">target_ref</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">kind</span> <span class="o">!=</span> <span class="s2">"place"</span><span class="p">:</span>
+                <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="p">(</span>
+                        <span class="n">v</span><span class="o">.</span><span class="n">where</span><span class="p">,</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">kind</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">item</span><span class="si">!r}</span><span class="s2"> to </span><span class="si">{</span><span class="n">target_ref</span><span class="si">!r}</span><span class="s2">: an item is put on a surface "</span>
+                        <span class="sa">f</span><span class="s2">"by `place` (`onto: </span><span class="si">{</span><span class="n">target_ref</span><span class="si">}</span><span class="s2">`)"</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="n">_surface_holder</span><span class="p">(</span>
+                <span class="n">doc</span><span class="p">,</span>
+                <span class="n">shot</span><span class="p">,</span>
+                <span class="n">mall</span><span class="p">,</span>
+                <span class="n">puppet</span><span class="p">,</span>
+                <span class="n">target_ref</span><span class="p">,</span>
+                <span class="n">vocab</span><span class="o">=</span><span class="n">vocab</span><span class="p">,</span>
+                <span class="n">where</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">where</span><span class="p">,</span>
+                <span class="n">problems</span><span class="o">=</span><span class="n">problems</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">target</span> <span class="o">=</span> <span class="n">_holder</span><span class="p">(</span><span class="n">puppet</span><span class="p">,</span> <span class="n">target_ref</span><span class="p">,</span> <span class="s2">"hand"</span> <span class="k">if</span> <span class="n">meet</span> <span class="o">&lt;</span> <span class="mf">1.0</span> <span class="k">else</span> <span class="s2">"socket"</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1762,7 +1968,11 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">current</span><span class="o">.</span><span class="n">text</span><span class="p">(),</span>
                 <span class="n">target</span><span class="o">=</span><span class="n">target</span><span class="p">,</span>
                 <span class="n">rotation</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s2">"rotation"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-                <span class="n">point</span><span class="o">=</span><span class="n">point</span> <span class="k">if</span> <span class="p">(</span><span class="n">target</span><span class="o">.</span><span class="n">kind</span> <span class="o">!=</span> <span class="s2">"ground"</span> <span class="ow">or</span> <span class="s2">"@"</span> <span class="ow">in</span> <span class="n">a</span><span class="o">.</span><span class="n">item</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="n">point</span><span class="o">=</span><span class="p">(</span>
+                    <span class="n">point</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">target</span><span class="o">.</span><span class="n">kind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"ground"</span><span class="p">,</span> <span class="s2">"surface"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">"@"</span> <span class="ow">in</span> <span class="n">a</span><span class="o">.</span><span class="n">item</span><span class="p">)</span>
+                    <span class="k">else</span> <span class="kc">None</span>
+                <span class="p">),</span>
             <span class="p">)</span>
             <span class="n">events</span><span class="p">[</span><span class="n">item</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Event</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">k0</span><span class="p">,</span> <span class="s2">"carry"</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">where</span><span class="p">))</span>
             <span class="n">events</span><span class="p">[</span><span class="n">item</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Event</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">kc</span><span class="p">,</span> <span class="s2">"put"</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">where</span><span class="p">))</span>
@@ -1771,7 +1981,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">occupied</span><span class="p">[</span><span class="n">target</span><span class="o">.</span><span class="n">key</span><span class="p">()]</span> <span class="o">=</span> <span class="n">item</span>
         <span class="n">holder</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">target</span>
-            <span class="k">if</span> <span class="n">target</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"body"</span>
+            <span class="k">if</span> <span class="n">target</span><span class="o">.</span><span class="n">kind</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"body"</span><span class="p">,</span> <span class="s2">"surface"</span><span class="p">)</span>
             <span class="k">else</span> <span class="n">Holder</span><span class="p">(</span><span class="n">target</span><span class="o">.</span><span class="n">kind</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="n">target</span><span class="o">.</span><span class="n">ref</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">target</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">target</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
         <span class="p">)</span>
     <span class="c1"># One hand, one gesture at a time.</span>
@@ -1939,6 +2149,60 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="o">-</span><span class="n">sx0</span> <span class="k">if</span> <span class="n">mirrored</span> <span class="k">else</span> <span class="n">sx0</span><span class="p">,</span> <span class="n">sy0</span><span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_on_line</span><span class="p">(</span>
+    <span class="n">ctx</span><span class="p">:</span> <span class="n">_Ctx</span><span class="p">,</span>
+    <span class="n">lin</span><span class="p">:</span> <span class="n">Lin</span><span class="p">,</span>
+    <span class="n">item</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">at</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+    <span class="n">line</span><span class="p">:</span> <span class="n">Line</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">about</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Affine</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The item lying with linear part ``lin``, its point ``about`` (default:</span>
+<span class="sd">    its centre) on the normal of ``line`` through ``at``, its lowest ink point</span>
+<span class="sd">    on ``line`` (the floor, or a body's surface)."""</span>
+    <span class="n">info</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">items</span><span class="p">[</span><span class="n">item</span><span class="p">]</span>
+    <span class="n">about</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">centre</span> <span class="k">if</span> <span class="n">about</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">about</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">_placed</span><span class="p">(</span><span class="n">at</span><span class="p">,</span> <span class="n">lin</span><span class="p">,</span> <span class="n">about</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_lift</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">_above</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">info</span><span class="o">.</span><span class="n">corners</span><span class="p">,</span> <span class="n">line</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_lift</span><span class="p">(</span><span class="n">m</span><span class="p">:</span> <span class="n">Affine</span><span class="p">,</span> <span class="n">line</span><span class="p">:</span> <span class="n">Line</span><span class="p">,</span> <span class="n">above</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Affine</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``m`` moved ``above`` along ``line``'s normal (down onto it when positive).</span>
+
+<span class="sd">    &gt;&gt;&gt; _lift((1, 0, 0, 1, 2.0, 3.0), _ground_line(10.0), 4.0)[4:]</span>
+<span class="sd">    (2.0, 7.0)</span>
+<span class="sd">    """</span>
+    <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">_compose</span><span class="p">(</span><span class="n">_translate</span><span class="p">(</span><span class="o">-</span><span class="n">dy</span> <span class="o">*</span> <span class="n">above</span> <span class="o">+</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">dx</span> <span class="o">*</span> <span class="n">above</span> <span class="o">+</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">m</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_on_surface</span><span class="p">(</span>
+    <span class="n">ctx</span><span class="p">:</span> <span class="n">_Ctx</span><span class="p">,</span>
+    <span class="n">run</span><span class="p">:</span> <span class="n">Run</span><span class="p">,</span>
+    <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">holder</span><span class="p">:</span> <span class="n">Holder</span><span class="p">,</span>
+    <span class="n">item</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">level</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">below</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+    <span class="n">below_k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">about</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Lin</span><span class="p">,</span> <span class="n">Affine</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The item lying on ``holder``'s surface at frame ``k``: its linear part</span>
+<span class="sd">    (``level(tilt)``: how it lies relative to the surface, turned by the</span>
+<span class="sd">    surface's tilt) and its pose, at the surface's fraction ``along``, else</span>
+<span class="sd">    at the foot of stage point ``below`` on the surface at frame ``below_k``."""</span>
+    <span class="n">line</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">_surface_at</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">run</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">holder</span><span class="p">)</span>
+    <span class="n">along</span> <span class="o">=</span> <span class="n">holder</span><span class="o">.</span><span class="n">along</span>
+    <span class="k">if</span> <span class="n">along</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_line</span><span class="p">,</span> <span class="n">a0</span><span class="p">,</span> <span class="n">b0</span> <span class="o">=</span> <span class="n">_surface_at</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">run</span><span class="p">,</span> <span class="n">below_k</span><span class="p">,</span> <span class="n">holder</span><span class="p">)</span>
+        <span class="n">along</span> <span class="o">=</span> <span class="n">_fraction_on</span><span class="p">(</span><span class="n">below</span><span class="p">,</span> <span class="n">a0</span><span class="p">,</span> <span class="n">b0</span><span class="p">)</span>
+    <span class="n">tilt</span> <span class="o">=</span> <span class="n">_tilt</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+    <span class="n">lin</span> <span class="o">=</span> <span class="n">_turned</span><span class="p">(</span><span class="n">level</span><span class="p">(</span><span class="n">tilt</span><span class="p">),</span> <span class="n">tilt</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">lin</span><span class="p">,</span> <span class="n">_on_line</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">lin</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">_lerp</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">along</span><span class="p">),</span> <span class="n">line</span><span class="p">,</span> <span class="n">about</span><span class="o">=</span><span class="n">about</span><span class="p">)</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_on_ground</span><span class="p">(</span>
     <span class="n">ctx</span><span class="p">:</span> <span class="n">_Ctx</span><span class="p">,</span>
     <span class="n">lin</span><span class="p">:</span> <span class="n">Lin</span><span class="p">,</span>
@@ -1950,10 +2214,40 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Affine</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""The item lying with linear part ``lin``, its point ``about`` (default:</span>
 <span class="sd">    its centre) at stage ``x``, its lowest ink point on ``ground``."""</span>
-    <span class="n">info</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">items</span><span class="p">[</span><span class="n">item</span><span class="p">]</span>
-    <span class="n">about</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">centre</span> <span class="k">if</span> <span class="n">about</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">about</span>
-    <span class="n">m</span> <span class="o">=</span> <span class="n">_placed</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">lin</span><span class="p">,</span> <span class="n">about</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">_compose</span><span class="p">(</span><span class="n">_translate</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">ground</span> <span class="o">-</span> <span class="n">_lowest</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">info</span><span class="o">.</span><span class="n">corners</span><span class="p">)),</span> <span class="n">m</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_on_line</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">lin</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">_ground_line</span><span class="p">(</span><span class="n">ground</span><span class="p">),</span> <span class="n">about</span><span class="o">=</span><span class="n">about</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_surface_at</span><span class="p">(</span>
+    <span class="n">ctx</span><span class="p">:</span> <span class="n">_Ctx</span><span class="p">,</span> <span class="n">run</span><span class="p">:</span> <span class="n">Run</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">holder</span><span class="p">:</span> <span class="n">Holder</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Line</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""A surface at frame ``k``: its support line and its two ends, on the stage."""</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">_body_world</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">puppet</span><span class="p">,</span> <span class="n">run</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">holder</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
+    <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="n">_apply</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">holder</span><span class="o">.</span><span class="n">segment</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_line_through</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">),</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_fraction_on</span><span class="p">(</span>
+    <span class="n">p</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">a</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">b</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""How far along ``a``-``b`` the foot of ``p`` is, kept on the segment.</span>
+
+<span class="sd">    &gt;&gt;&gt; _fraction_on((3.0, -7.0), (0.0, 0.0), (10.0, 0.0)), _fraction_on((-4.0, 0.0), (0.0, 0.0), (10.0, 0.0))</span>
+<span class="sd">    (0.3, 0.0)</span>
+<span class="sd">    """</span>
+    <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">length2</span> <span class="o">=</span> <span class="n">dx</span> <span class="o">*</span> <span class="n">dx</span> <span class="o">+</span> <span class="n">dy</span> <span class="o">*</span> <span class="n">dy</span>
+    <span class="k">if</span> <span class="n">length2</span> <span class="o">&lt;=</span> <span class="n">_EPS</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mf">0.5</span>
+    <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="p">((</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">dx</span> <span class="o">+</span> <span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">dy</span><span class="p">)</span> <span class="o">/</span> <span class="n">length2</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_tilt</span><span class="p">(</span><span class="n">line</span><span class="p">:</span> <span class="n">Line</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A support line's angle on the stage (0: level)."""</span>
+    <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">atan2</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_turned</span><span class="p">(</span><span class="n">lin</span><span class="p">:</span> <span class="n">Lin</span><span class="p">,</span> <span class="n">angle</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Lin</span><span class="p">:</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">lin</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">angle</span><span class="p">,</span> <span class="n">lin</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">lin</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_place_target</span><span class="p">(</span>
@@ -1978,6 +2272,24 @@ window.runMermaid = runMermaid;</script>
             <span class="k">else</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">rotation</span><span class="p">),</span> <span class="n">carried</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">carried</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">lin</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="n">target</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">target</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">target</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"surface"</span><span class="p">:</span>
+        <span class="c1"># As on the ground, with the surface's line (in the body's frame, at</span>
+        <span class="c1"># frame k) for the floor and the item's angles taken from its tilt.</span>
+        <span class="c1"># Below the hand when it starts to put it down.</span>
+        <span class="n">lin</span><span class="p">,</span> <span class="n">whole</span> <span class="o">=</span> <span class="n">_on_surface</span><span class="p">(</span>
+            <span class="n">ctx</span><span class="p">,</span>
+            <span class="n">run</span><span class="p">,</span>
+            <span class="n">k</span><span class="p">,</span>
+            <span class="n">target</span><span class="p">,</span>
+            <span class="n">item</span><span class="p">,</span>
+            <span class="k">lambda</span> <span class="n">tilt</span><span class="p">:</span> <span class="n">_rest_lin</span><span class="p">(</span>
+                <span class="n">ctx</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">_turned</span><span class="p">(</span><span class="n">carried</span><span class="p">,</span> <span class="o">-</span><span class="n">tilt</span><span class="p">),</span> <span class="n">g</span><span class="o">.</span><span class="n">rotation</span><span class="p">,</span> <span class="n">rests</span>
+            <span class="p">),</span>
+            <span class="n">below</span><span class="o">=</span><span class="n">_point_world</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">puppet</span><span class="p">,</span> <span class="n">run</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">k0</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">hand</span><span class="p">),</span>
+            <span class="n">below_k</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">k0</span><span class="p">,</span>
+            <span class="n">about</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">point</span> <span class="k">if</span> <span class="n">g</span><span class="o">.</span><span class="n">point</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">ctx</span><span class="o">.</span><span class="n">items</span><span class="p">[</span><span class="n">item</span><span class="p">]</span><span class="o">.</span><span class="n">centre</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">lin</span><span class="p">,</span> <span class="n">whole</span><span class="p">,</span> <span class="kc">None</span>
     <span class="n">lin</span> <span class="o">=</span> <span class="n">_rest_lin</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">carried</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">rotation</span><span class="p">,</span> <span class="n">rests</span><span class="p">)</span>
     <span class="n">ground</span> <span class="o">=</span> <span class="n">_ground_at</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">run</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">k0</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">hand</span><span class="o">.</span><span class="n">entity</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">ground</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -2030,6 +2342,23 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">state</span> <span class="o">=</span> <span class="n">_State</span><span class="p">(</span>
                     <span class="s2">"rest"</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="n">_placed</span><span class="p">((</span><span class="n">first</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">first</span><span class="o">.</span><span class="n">y</span><span class="p">),</span> <span class="n">_lin_of</span><span class="p">(</span><span class="n">m_doc</span><span class="p">),</span> <span class="n">info</span><span class="o">.</span><span class="n">grip</span><span class="p">)</span>
                 <span class="p">)</span>
+            <span class="k">elif</span> <span class="n">first</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"surface"</span><span class="p">:</span>
+                <span class="n">_lin</span><span class="p">,</span> <span class="n">m</span> <span class="o">=</span> <span class="n">_on_surface</span><span class="p">(</span>  <span class="c1"># below its staged centre</span>
+                    <span class="n">ctx</span><span class="p">,</span>
+                    <span class="n">run</span><span class="p">,</span>
+                    <span class="mi">0</span><span class="p">,</span>
+                    <span class="n">first</span><span class="p">,</span>
+                    <span class="n">item</span><span class="p">,</span>
+                    <span class="k">lambda</span> <span class="n">_tilt</span><span class="p">:</span> <span class="n">_lin_of</span><span class="p">(</span><span class="n">m_doc</span><span class="p">),</span>
+                    <span class="n">below</span><span class="o">=</span><span class="n">_apply</span><span class="p">(</span><span class="n">m_doc</span><span class="p">,</span> <span class="n">info</span><span class="o">.</span><span class="n">centre</span><span class="p">),</span>
+                    <span class="n">below_k</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">state</span> <span class="o">=</span> <span class="n">_State</span><span class="p">(</span>
+                    <span class="s2">"body"</span><span class="p">,</span>
+                    <span class="n">body</span><span class="o">=</span><span class="n">first</span><span class="o">.</span><span class="n">body</span><span class="p">,</span>
+                    <span class="n">local</span><span class="o">=</span><span class="n">_compose</span><span class="p">(</span><span class="n">_invert</span><span class="p">(</span><span class="n">_body_world</span><span class="p">(</span><span class="n">puppet</span><span class="p">,</span> <span class="n">run</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">first</span><span class="o">.</span><span class="n">body</span><span class="p">)),</span> <span class="n">m</span><span class="p">),</span>
+                <span class="p">)</span>
+                <span class="n">rests</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">_lin_of</span><span class="p">(</span><span class="n">m_doc</span><span class="p">)))</span>
             <span class="k">elif</span> <span class="n">first</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"body"</span><span class="p">:</span>
                 <span class="n">lin</span> <span class="o">=</span> <span class="n">_socket_lin</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">run</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">first</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
                 <span class="n">aim</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">aims</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
@@ -2217,6 +2546,20 @@ window.runMermaid = runMermaid;</script>
                 <span class="k">else</span> <span class="n">current</span>
             <span class="p">)</span>
             <span class="k">return</span> <span class="n">_State</span><span class="p">(</span><span class="s2">"rest"</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="n">m</span><span class="p">),</span> <span class="n">m</span>
+        <span class="k">if</span> <span class="n">g</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"surface"</span><span class="p">:</span>
+            <span class="c1"># Held by the surface's body from now on: it follows it.</span>
+            <span class="n">line</span><span class="p">,</span> <span class="n">_a</span><span class="p">,</span> <span class="n">_b</span> <span class="o">=</span> <span class="n">_surface_at</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">run</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">target</span><span class="p">)</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">whole</span> <span class="k">if</span> <span class="n">ideal</span> <span class="ow">and</span> <span class="n">whole</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">current</span>
+            <span class="n">above</span> <span class="o">=</span> <span class="n">_above</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">info</span><span class="o">.</span><span class="n">corners</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">ideal</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">above</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">SUPPORT_TOLERANCE_PX</span><span class="p">:</span>
+                <span class="n">m</span> <span class="o">=</span> <span class="n">_lift</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">above</span><span class="p">)</span>
+            <span class="n">rests</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">k</span><span class="p">,</span> <span class="n">_turned</span><span class="p">(</span><span class="n">_lin_of</span><span class="p">(</span><span class="n">m</span><span class="p">),</span> <span class="o">-</span><span class="n">_tilt</span><span class="p">(</span><span class="n">line</span><span class="p">))))</span>
+            <span class="n">body</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">body</span>
+            <span class="k">return</span> <span class="n">_State</span><span class="p">(</span>
+                <span class="s2">"body"</span><span class="p">,</span>
+                <span class="n">body</span><span class="o">=</span><span class="n">body</span><span class="p">,</span>
+                <span class="n">local</span><span class="o">=</span><span class="n">_compose</span><span class="p">(</span><span class="n">_invert</span><span class="p">(</span><span class="n">_body_world</span><span class="p">(</span><span class="n">puppet</span><span class="p">,</span> <span class="n">run</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">body</span><span class="p">)),</span> <span class="n">m</span><span class="p">),</span>
+            <span class="p">),</span> <span class="n">m</span>
         <span class="c1"># the ground</span>
         <span class="n">ground</span> <span class="o">=</span> <span class="n">_ground_at</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">run</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">k0</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">hand</span><span class="o">.</span><span class="n">entity</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">ground</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -2805,6 +3148,13 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">g</span><span class="o">.</span><span class="n">gap</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">there_item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">socket</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">there_item</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">socket</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
                 <span class="k">continue</span>
             <span class="n">there</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">goal</span> <span class="ow">or</span> <span class="n">hand</span>
+            <span class="k">if</span> <span class="n">g</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"surface"</span><span class="p">:</span>
+                <span class="n">before</span> <span class="o">=</span> <span class="n">walk</span><span class="o">.</span><span class="n">before</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">before</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">line</span><span class="p">,</span> <span class="n">_a</span><span class="p">,</span> <span class="n">_b</span> <span class="o">=</span> <span class="n">_surface_at</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">run</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">kc</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">target</span><span class="p">)</span>
+                    <span class="n">off</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">_above</span><span class="p">(</span><span class="n">before</span><span class="p">,</span> <span class="n">info</span><span class="o">.</span><span class="n">corners</span><span class="p">,</span> <span class="n">line</span><span class="p">))</span>
+                    <span class="n">g</span><span class="o">.</span><span class="n">gap</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">off</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">hand</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">there</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">hand</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">there</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+                    <span class="k">continue</span>
             <span class="k">if</span> <span class="n">g</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"ground"</span><span class="p">:</span>
                 <span class="n">before</span> <span class="o">=</span> <span class="n">walk</span><span class="o">.</span><span class="n">before</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
                 <span class="n">ground</span> <span class="o">=</span> <span class="n">_ground_at</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">run</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">k0</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">hand</span><span class="o">.</span><span class="n">entity</span><span class="p">)</span>
@@ -2873,7 +3223,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">host</span><span class="p">(</span><span class="n">holder</span><span class="p">:</span> <span class="n">Holder</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">holder</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">holder</span><span class="o">.</span><span class="n">kind</span> <span class="o">!=</span> <span class="s2">"body"</span> <span class="ow">or</span> <span class="n">holder</span><span class="o">.</span><span class="n">body</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">holder</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">holder</span><span class="o">.</span><span class="n">kind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"body"</span><span class="p">,</span> <span class="s2">"surface"</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">holder</span><span class="o">.</span><span class="n">body</span><span class="p">:</span>
             <span class="k">return</span> <span class="s2">""</span>
         <span class="k">return</span> <span class="n">holder</span><span class="o">.</span><span class="n">body</span>
 
@@ -2907,6 +3257,38 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="n">keys</span><span class="p">:</span>
             <span class="n">out</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">=</span> <span class="n">keys</span>
     <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_nearest_support</span><span class="p">(</span>
+    <span class="n">ctx</span><span class="p">:</span> <span class="n">_Ctx</span><span class="p">,</span> <span class="n">run</span><span class="p">:</span> <span class="n">Run</span><span class="p">,</span> <span class="n">g</span><span class="p">:</span> <span class="n">Gesture</span><span class="p">,</span> <span class="n">before</span><span class="p">:</span> <span class="n">Affine</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What a staged item taken by ``g`` rests on: ``(how far above it, its</span>
+<span class="sd">    name, the floor's y or None)``, among the ground and every surface the</span>
+<span class="sd">    shot's holds name (an#536) that is under the item. One it touches wins;</span>
+<span class="sd">    else the nearest below it; else (sunk into all) the least sunk."""</span>
+    <span class="n">corners</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">items</span><span class="p">[</span><span class="n">g</span><span class="o">.</span><span class="n">item</span><span class="p">]</span><span class="o">.</span><span class="n">corners</span>
+    <span class="n">measured</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">ground</span> <span class="o">=</span> <span class="n">_ground_at</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">run</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">k0</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">hand</span><span class="o">.</span><span class="n">entity</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ground</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">measured</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">_above</span><span class="p">(</span><span class="n">before</span><span class="p">,</span> <span class="n">corners</span><span class="p">,</span> <span class="n">_ground_line</span><span class="p">(</span><span class="n">ground</span><span class="p">)),</span> <span class="n">GROUND</span><span class="p">,</span> <span class="n">ground</span><span class="p">))</span>
+    <span class="n">surfaces</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">h</span><span class="o">.</span><span class="n">ref</span><span class="p">:</span> <span class="n">h</span>
+        <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="p">(</span><span class="o">*</span><span class="n">ctx</span><span class="o">.</span><span class="n">initial</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="o">*</span><span class="p">(</span><span class="n">o</span><span class="o">.</span><span class="n">target</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">ctx</span><span class="o">.</span><span class="n">gestures</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">h</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">h</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"surface"</span>
+    <span class="p">}</span>
+    <span class="n">centre</span> <span class="o">=</span> <span class="n">_apply</span><span class="p">(</span><span class="n">before</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">items</span><span class="p">[</span><span class="n">g</span><span class="o">.</span><span class="n">item</span><span class="p">]</span><span class="o">.</span><span class="n">centre</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">ref</span><span class="p">,</span> <span class="n">h</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">surfaces</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+        <span class="n">line</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">_surface_at</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">run</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">kc</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+        <span class="k">if</span> <span class="mf">0.0</span> <span class="o">&lt;</span> <span class="n">_fraction_on</span><span class="p">(</span><span class="n">centre</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">:</span>  <span class="c1"># over it, not past an end</span>
+            <span class="n">measured</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">_above</span><span class="p">(</span><span class="n">before</span><span class="p">,</span> <span class="n">corners</span><span class="p">,</span> <span class="n">line</span><span class="p">),</span> <span class="n">ref</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">measured</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">m</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="n">SUPPORT_TOLERANCE_PX</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">measured</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">measured</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">m</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">m</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+    <span class="n">below</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">measured</span> <span class="k">if</span> <span class="n">m</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="nb">min</span><span class="p">(</span><span class="n">below</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">m</span><span class="p">:</span> <span class="n">m</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">if</span> <span class="n">below</span> <span class="k">else</span> <span class="nb">max</span><span class="p">(</span><span class="n">measured</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">m</span><span class="p">:</span> <span class="n">m</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_report</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">_Ctx</span><span class="p">,</span> <span class="n">run</span><span class="p">:</span> <span class="n">Run</span><span class="p">,</span> <span class="n">walk</span><span class="p">:</span> <span class="n">Walk</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
@@ -2963,13 +3345,13 @@ window.runMermaid = runMermaid;</script>
             <span class="k">continue</span>
         <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">o</span><span class="o">.</span><span class="n">item</span> <span class="o">==</span> <span class="n">g</span><span class="o">.</span><span class="n">item</span> <span class="ow">and</span> <span class="n">o</span><span class="o">.</span><span class="n">start</span> <span class="o">&lt;</span> <span class="n">g</span><span class="o">.</span><span class="n">start</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">ctx</span><span class="o">.</span><span class="n">gestures</span><span class="p">):</span>
             <span class="k">continue</span>
-        <span class="n">ground</span> <span class="o">=</span> <span class="n">_ground_at</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">run</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">k0</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">hand</span><span class="o">.</span><span class="n">entity</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">ground</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">continue</span>
         <span class="n">before</span> <span class="o">=</span> <span class="n">walk</span><span class="o">.</span><span class="n">before</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">before</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">continue</span>
-        <span class="n">above</span> <span class="o">=</span> <span class="n">ground</span> <span class="o">-</span> <span class="n">_lowest</span><span class="p">(</span><span class="n">before</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">items</span><span class="p">[</span><span class="n">g</span><span class="o">.</span><span class="n">item</span><span class="p">]</span><span class="o">.</span><span class="n">corners</span><span class="p">)</span>
+        <span class="n">support</span> <span class="o">=</span> <span class="n">_nearest_support</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">run</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">before</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">support</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">above</span><span class="p">,</span> <span class="n">onto</span><span class="p">,</span> <span class="n">ground</span> <span class="o">=</span> <span class="n">support</span>
         <span class="k">if</span> <span class="p">(</span>
             <span class="n">SUPPORT_TOLERANCE_PX</span> <span class="o">&lt;</span> <span class="n">above</span> <span class="o">&lt;=</span> <span class="n">FLOAT_BAND_PX</span>
             <span class="ow">or</span> <span class="n">above</span> <span class="o">&lt;</span> <span class="o">-</span><span class="n">SUPPORT_TOLERANCE_PX</span>
@@ -2980,7 +3362,8 @@ window.runMermaid = runMermaid;</script>
                     <span class="s2">"where"</span><span class="p">:</span> <span class="n">g</span><span class="o">.</span><span class="n">where</span><span class="p">,</span>
                     <span class="s2">"above"</span><span class="p">:</span> <span class="n">r2</span><span class="p">(</span><span class="n">above</span><span class="p">),</span>
                     <span class="s2">"at"</span><span class="p">:</span> <span class="n">r2</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">contact</span><span class="p">),</span>
-                    <span class="s2">"ground"</span><span class="p">:</span> <span class="n">r2</span><span class="p">(</span><span class="n">ground</span><span class="p">),</span>
+                    <span class="s2">"ground"</span><span class="p">:</span> <span class="n">r2</span><span class="p">(</span><span class="n">ground</span><span class="p">)</span> <span class="k">if</span> <span class="n">ground</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                    <span class="s2">"onto"</span><span class="p">:</span> <span class="n">onto</span><span class="p">,</span>
                 <span class="p">}</span>
             <span class="p">)</span>
     <span class="k">return</span> <span class="p">{</span>

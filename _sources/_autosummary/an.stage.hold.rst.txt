@@ -15,6 +15,7 @@ an.stage.hold
       GRASP_TOLERANCE_PX
       DFLT_FALL_GRAVITY
       HOLD_PLAN_PASSES
+      SURFACE_BONES
    
    .. rubric:: Functions
 
