@@ -106,7 +106,7 @@ genre defined in the same process).
 | [`RegistryError`](#an.genres.RegistryError)                                | A registration is malformed or collides with one already made.         |
 | [`UnregisteredKindError`](#an.genres.UnregisteredKindError)(what, name, \*[, ...]) | A document names a kind no loaded genre registered.                    |
 
-### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 8*
+### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 9*
 
 every hook, registry
 field and moved path a genre package may rely on. Bumped by each change a
@@ -143,6 +143,9 @@ Levels (one line each; `tests/test_genre_gate.py` holds the list complete):
 
 8 = named points of a rig (an#502): `EntityKind.landmarks` (a character’s hands for
 : the hold verbs), and `an.stage.solve.end_effector`.
+
+9 = a command’s exit status (an#480): `an.cli_status.failed`, which a genre’s
+: `cli.<namespace>` functions return to make the CLI exit non-zero.
 
 * **Type:**
   The level of the genre-facing API this `an` provides
