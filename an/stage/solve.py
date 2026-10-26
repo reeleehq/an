@@ -52,6 +52,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Any
 
+from an.base import PAINT_AFTER_PROPERTY
 from an.ir.schema import JointSpec, Shot, gravity_vector
 from an.stage.compile import CutoutCompileError
 
@@ -1778,17 +1779,24 @@ def solve_pass(state: Any) -> None:
     settings = resolve_settings(shot, state.style_pack, puppet)
     times = frame_times(shot.duration, fps=state.fps, step_hz=state.step_hz)
     held_channels: dict[tuple[str, str], tuple[list[float], list[float]]] = {}
+    paint_hosts: dict[str, list[tuple[float, str]]] = {}
     holds_report = None
     if decl.holds is not None:
         from an.stage.hold import HOLDS_REPORT, solve_holds
 
-        run, held_channels, holds_report = solve_holds(
+        run, held_channels, paint_hosts, holds_report = solve_holds(
             state, doc, puppet, decl, settings, times
         )
     else:
         run = run_solve(doc, puppet, times, settings)
     overridden = _emit(
-        state, doc, puppet, run, stepped=state.step_hz is not None, extra=held_channels
+        state,
+        doc,
+        puppet,
+        run,
+        stepped=state.step_hz is not None,
+        extra=held_channels,
+        paint=paint_hosts,
     )
     report = _report(puppet, run, settings, overridden)
     if holds_report is not None:
@@ -1827,10 +1835,12 @@ def _emit(
     stepped: bool,
     extra: Mapping[tuple[str, str], tuple[Sequence[float], Sequence[float]]]
     | None = None,
+    paint: Mapping[str, Sequence[tuple[float, str]]] | None = None,
 ) -> list[dict[str, Any]]:
     """Emit the solved channels (and ``extra``: ``{(path, prop): (values, as
-    the document shows them)}``, the held items') as each entity's
-    ``__solve__`` clip; return the authored spans they replace."""
+    the document shows them)}``, the held items'; and ``paint``: ``{path:
+    [(time, host)]}``, each held item's ``paint_after`` keys, an#537) as each
+    entity's ``__solve__`` clip; return the authored spans they replace."""
     from an.stage.serialize import (
         AnimationClipJSON,
         ChannelJSON,
@@ -1895,6 +1905,17 @@ def _emit(
             )
         )
         emitted.add((path, prop))
+    for path, keys in sorted((paint or {}).items()):
+        clips.setdefault(path.split("/", 1)[0], []).append(
+            ChannelJSON(
+                target=path,
+                property=PAINT_AFTER_PROPERTY,
+                keyframes=[
+                    KeyframeJSON(time=_q(t, 1e-9), value=host, easing="step")
+                    for t, host in keys
+                ],
+            )
+        )
     overridden = _overridden(state, emitted, run)
     for root, channels in clips.items():
         name = f"{SOLVE_CLIP_PREFIX}{root}"

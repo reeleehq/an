@@ -1192,6 +1192,14 @@
      "unit": "px"
     },
     {
+     "pattern": "paint_after",
+     "spec": {
+      "kind": "discrete",
+      "switch_at": 1
+     },
+     "description": "where the node is painted: the path of the node it paints just after ('' = where the tree puts it), switched at its own key (an#537)"
+    },
+    {
      "pattern": "*@*",
      "spec": {
       "kind": "discrete",

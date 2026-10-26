@@ -59,7 +59,7 @@ A `swap` is a `grasp` (by `by`, of `take`) and a `place` (of `give`, by whicheve
 
 ## Things to know
 
-- **Draw order is the author's:** put a held item `stage.after: <carrier>` so it draws over the hand (and over the figurine it is given to, if it is drawn later).
+- **Draw order follows the holder** (an#537): while a hand or a socket holds an item, the item draws just above the part that holds it (over the arm that carries it, under whatever the carrier draws over that arm; with the figurine once it is put in its hand), and back at its staged place (its entity order, `stage.after` included) once it is on the ground or in the air. Its `stage.after` only decides where it draws while nothing holds it.
 - **Gravity for a fall** is the shot's or the style pack's (`gravity:`), else 980 px/s² down; `solve: {gravity: none}` makes a released item stay where it was let go (a warning).
 - **A catch:** a `release` and another hand's `grasp` of the same item at the same instant: the release comes first, the other hand catches it where it was let go.
 - **Two gestures that bend one body opposite ways at once** cannot both arrive; `unreachable_hold` says which other gesture bends it the other way. Do them one after the other.

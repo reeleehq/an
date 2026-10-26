@@ -194,9 +194,89 @@
             const node = nodeIndex[path];
             if (!node || !node._anDraws) continue;  // not built (missing art)
             for (const d of node._anDraws) d.renderable = false;
-            layer.addChild(new PaintProxy(node._anDraws));
+            const proxy = new PaintProxy(node._anDraws);
+            // Where this node is painted now: what paints "just after" it
+            // (an#537) goes right after this proxy, not after its container.
+            node._anPaintProxy = proxy;
+            layer.addChild(proxy);
         }
         container.addChild(layer);
+    }
+
+    // A node painted somewhere other than its place in the tree, frame by
+    // frame (an#537): the `paint_after` channel names the node it paints just
+    // after ('' = its own place). A held item is its own entity, so its
+    // transform stays its own; only its paint follows its holder's part. At
+    // load, one HeldPaint is inserted right after every node a `paint_after`
+    // key names (after its paint proxy when a global paint list paints it,
+    // with its zIndex when its container sorts); each frame, a node whose
+    // channel names a host is made non-renderable in place and that host's
+    // HeldPaint renders it with the world transform and alpha the tree just
+    // computed, exactly as a PaintProxy does. Nothing is reparented, so no
+    // transform, no alpha and no swap changes. The Python statement of the
+    // keys is an.stage.hold.paint_hosts.
+    class HeldPaint extends PIXI.Container {
+        constructor(host) {
+            super();
+            this._anHost = host;
+            this._anItems = [];
+        }
+        render(renderer) {
+            for (const item of this._anItems) {
+                if (item._anPaintAfter !== this._anHost || !item.worldVisible) continue;
+                item.renderable = true;
+                item.render(renderer);
+                item.renderable = false;
+            }
+        }
+    }
+
+    function insertHeldPaint(host) {
+        const node = nodeIndex[host];
+        if (!node) {
+            throw new Error(
+                'paint_after names unknown node ' + JSON.stringify(host) +
+                '. Known: ' + JSON.stringify(Object.keys(nodeIndex).sort())
+            );
+        }
+        const anchor = node._anPaintProxy || node;
+        const parent = anchor.parent;
+        const held = new HeldPaint(host);
+        held.name = host + '#held';
+        held.zIndex = anchor.zIndex;
+        parent.addChildAt(held, parent.getChildIndex(anchor) + 1);
+        return held;
+    }
+
+    function makeHeldPaints(sceneJson) {
+        const hosts = {};  // host path -> HeldPaint
+        const anims = sceneJson.animations || {};
+        for (const name of Object.keys(anims).sort()) {
+            for (const ch of anims[name].channels || []) {
+                if (ch.property !== PAINT_AFTER) continue;
+                const item = nodeIndex[ch.target];
+                if (!item) continue;  // applyPose names the unknown target
+                for (const kf of ch.keyframes || []) {
+                    const host = kf.value;
+                    if (!host) continue;
+                    if (!hosts[host]) hosts[host] = insertHeldPaint(host);
+                    if (!hosts[host]._anItems.includes(item)) hosts[host]._anItems.push(item);
+                    (item._anPaintHosts || (item._anPaintHosts = new Set())).add(host);
+                }
+            }
+        }
+    }
+
+    function applyPaintAfter(node, value) {
+        const host = value || '';
+        if (host && !(node._anPaintHosts && node._anPaintHosts.has(host))) {
+            throw new Error(
+                'paint_after on ' + JSON.stringify(node.name) + ' names ' +
+                JSON.stringify(host) + ', which no loaded channel prepared'
+            );
+        }
+        node._anPaintAfter = host;
+        node.renderable = !host;
     }
 
     function buildSceneTree(node, parent, pathPrefix) {
@@ -1287,6 +1367,11 @@
     }
 
     function applyProperty(node, prop, value) {
+        // Not a transform and not a swap: where the node is painted (an#537).
+        if (ORDER_PROPERTIES.has(prop)) {
+            applyPaintAfter(node, value);
+            return;
+        }
         switch (prop) {
             case 'x': node.x = value; break;
             case 'y': node.y = value; break;
@@ -1400,12 +1485,17 @@
         'rotation_x', 'perspective', 'plane_fade_start', 'plane_fade_end',
     ]);
     const SWAP_WRITE_GROUP = '<swap>';
+    // Where a node is painted (an#537): a string switched at its own key, in
+    // its own write group. Mirror of `an.base.ORDER_PROPERTIES`.
+    const PAINT_AFTER = 'paint_after';
+    const ORDER_PROPERTIES = new Set([PAINT_AFTER]);
     const SHARED_WRITES = { rotation_rad: 'rotation' };
 
     // Port of `an/timing/timeline.py::write_group`: what a property WRITES on its node.
     // Every swap set on a node swaps its one visual; `rotation_rad` is
     // `rotation`; everything else writes only itself.
     function writeGroup(prop) {
+        if (ORDER_PROPERTIES.has(prop)) return prop;
         if (RUNTIME_PROPERTIES.has(prop)) return SHARED_WRITES[prop] || prop;
         return SWAP_WRITE_GROUP;
     }
@@ -2000,6 +2090,8 @@
     // property — so the loud error stays where it was: `applyPose`, the
     // first time a clip actually writes the key.
     function captureRest(node, prop) {
+        // At rest a node paints at its own place in the tree (an#537).
+        if (ORDER_PROPERTIES.has(prop)) return () => applyPaintAfter(node, '');
         switch (prop) {
             case 'x': { const v = node.x; return () => { node.x = v; }; }
             case 'y': { const v = node.y; return () => { node.y = v; }; }
@@ -2245,6 +2337,9 @@
         // Before the rest poses: a plane node keeps its pivot (and its plane
         // properties) where the rest capture reads them.
         makePlanes(scene);
+        // After every tree and paint layer exists: a held item's paint goes
+        // right after its holder's (an#537).
+        makeHeldPaints(scene);
         indexRestPoses();
         updatePlanes();
         app.render();

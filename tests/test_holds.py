@@ -669,3 +669,69 @@ def test_an_item_that_holds_another_is_refused_by_name(tmp_path):
     )
     messages = [m for s, m in _lint(project) if s == "error"]
     assert any("is itself held" in m for m in messages), messages
+
+
+# -- draw order follows the holder (an#537) -------------------------------------------
+
+#: What each holder in the report paints the stick just after: the part that
+#: holds it, or its staged place.
+_HOSTS = {"fig/arm_r": "fig/arm_r", "stand@hand": "stand/body", "ground": "", "air": ""}
+
+
+def _paint_channels(doc):
+    return [
+        ch
+        for clip in doc.animations.values()
+        for ch in clip.channels
+        if ch.property == "paint_after"
+    ]
+
+
+def test_a_held_item_draws_just_above_the_part_that_holds_it(tmp_path):
+    """The acceptance of an#537: at every frame, the stick is painted just after
+    the part that holds it (the hand, then the stand's socket part, then the
+    hand again) and back at its staged place once it is let go, switching at
+    the frame its holder changes; its transform is not what moves its paint."""
+    doc = _compile(
+        _project(
+            tmp_path,
+            "- {kind: grasp, by: fig/arm_r, item: stick, start: 0.5}\n"
+            "- {kind: place, item: stick, onto: stand@hand, start: 1.6}\n"
+            "- {kind: grasp, by: fig/arm_r, item: stick, start: 2.4}\n"
+            "- {kind: release, item: stick, at: 3.4}",
+        )
+    )
+    timeline = _holds(doc)["holders"]["stick"]
+    assert [h for _t, h in timeline] == [
+        "ground",
+        "fig/arm_r",
+        "stand@hand",
+        "fig/arm_r",
+        "air",
+    ]
+    (channel,) = _paint_channels(doc)
+    assert channel.target == "stick"
+    for t in _times(0.0, 4.0):
+        holder = [h for at, h in timeline if round(t, 2) >= at][-1]
+        assert _pose(doc, t)[("stick", "paint_after")] == _HOSTS[holder], t
+
+
+def test_an_item_held_from_the_start_draws_with_its_holder_from_the_start(tmp_path):
+    entities = """- {kind: prop, id: fig, store: props, ref: figure, stage: {at: [-100, 200]}}
+- {kind: prop, id: stand, store: props, ref: stand, stage: {at: [40, 200]}}
+- {kind: prop, id: stick, store: props, ref: stick, stage: {at: [40, 0], scale: 0.5, after: fig}, overrides: {held_by: stand@hand}}
+"""
+    actions = "- {kind: tween, target: stand, property: rotation, from: 0.0, to: 0.3, duration: 0.5, start: 1.0}"
+    doc = _compile(make_project(tmp_path / "p", scene(actions, entities=entities)))
+    assert all(
+        _pose(doc, t)[("stick", "paint_after")] == "stand/body"
+        for t in _times(0.0, 4.0)
+    )
+
+
+def test_an_item_no_body_holds_keeps_its_staged_place_and_emits_nothing(tmp_path):
+    """Byte identity for every shot whose items no body ever holds: no channel."""
+    actions = "- {kind: tween, target: stand, property: rotation, from: 0.0, to: 0.3, duration: 0.5, start: 1.0}"
+    doc = _compile(_project(tmp_path, actions))
+    assert _holds(doc)["holders"]["stick"] == [[0.0, "ground"]]
+    assert _paint_channels(doc) == []
