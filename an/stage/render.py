@@ -70,7 +70,7 @@ from an.ir.schema import Shot, resolve_step_hz
 from an.media import mp4 as _mp4
 from an.media.supersample import NO_SUPERSAMPLE
 from an.stage import STAGE_RENDERER_NAMES
-from an.stage.raster import is_svg_content, strip_svg_prolog_comments, strip_version
+from an.stage.raster import is_svg_content, pixi_sniffable_svg, strip_version
 
 #: The engine's name: what it is, independent of the renderer names it is
 #: registered under (``cutout``, a persisted identifier, and ``stage``).
@@ -565,14 +565,17 @@ def _stage_scene_assets(
 
 
 def _copy_texture(source: Path, target: Path) -> None:
-    """Copy a texture file; an SVG is staged without its prolog comments, which
-    PixiJS's SVG sniffing cannot read (an#525)."""
-    shutil.copy2(source, target)
-    if is_svg_content(source):
-        data = target.read_bytes()
-        clean = strip_svg_prolog_comments(data)
-        if clean is not data:
-            target.write_bytes(clean)
+    """Copy a texture file; an SVG is staged with its root on a line of its own,
+    which PixiJS's SVG sniffing needs (an#525)."""
+    if not is_svg_content(source):
+        shutil.copy2(source, target)
+        return
+    data = source.read_bytes()
+    clean = pixi_sniffable_svg(data)
+    if clean == data:
+        shutil.copy2(source, target)
+    else:
+        target.write_bytes(clean)
 
 
 def _determinism_report(page: Any) -> dict[str, Any]:

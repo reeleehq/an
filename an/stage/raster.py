@@ -294,31 +294,32 @@ _PROLOG = re.compile(
     rb"\A(?:\xef\xbb\xbf)?(?:\s|<\?.*?\?>|<!--.*?-->|<!DOCTYPE(?:[^\[>]|\[.*?\])*>)*",
     re.DOTALL,
 )
-_COMMENT = re.compile(rb"<!--.*?-->", re.DOTALL)
 
 
-def strip_svg_prolog_comments(data: bytes) -> bytes:
-    r"""``data`` without the comments (and byte-order mark) before its root element.
+def pixi_sniffable_svg(data: bytes) -> bytes:
+    r"""``data`` with its root element on a line of its own, which PixiJS 7 needs.
 
-    PixiJS 7 decides whether a loaded text is an SVG with a regex that allows
-    one XML declaration and at most ONE comment whose text holds none of
-    ``( ) - >`` before the root; any other prolog is not an SVG to it, and the
-    whole shot fails at load (an#525) while `an validate` calls the file fine.
-    A comment in the prolog draws nothing, so the staged copy drops them all.
-    Anything else (declaration, DOCTYPE, the document) is kept byte for byte;
-    a file with no such comment is returned as given.
+    Pixi decides whether a loaded text is an SVG with a multiline regex that can
+    skip an XML declaration and at most one plain comment before a LINE that
+    starts the root; a root that follows a DOCTYPE, a second processing
+    instruction or a comment holding ``( ) - >`` on the same line is not an SVG
+    to it, and the whole shot fails at load (an#525) while `an validate` calls
+    the file fine. A newline between the prolog and the root changes nothing the
+    XML parser sees, so it is the whole repair; a file whose root already starts
+    a line (or has no prolog) is returned as given, the same object.
 
-    >>> strip_svg_prolog_comments(b'<!-- made by a-b (v1) --><svg/>')
-    b'<svg/>'
-    >>> strip_svg_prolog_comments(b'<?xml version="1.0"?>\n<!-- c -->\n<svg><!-- keep --></svg>')
-    b'<?xml version="1.0"?>\n\n<svg><!-- keep --></svg>'
-    >>> strip_svg_prolog_comments(b'<svg/>')
+    >>> pixi_sniffable_svg(b'<!-- made by a-b (v1) --><svg/>')
+    b'<!-- made by a-b (v1) -->\n<svg/>'
+    >>> pixi_sniffable_svg(b'<?xml version="1.0"?>\n<svg/>')
+    b'<?xml version="1.0"?>\n<svg/>'
+    >>> pixi_sniffable_svg(b'<svg/>')
     b'<svg/>'
     """
     prolog = _PROLOG.match(data)
     head = prolog.group() if prolog else b""
-    clean = _COMMENT.sub(b"", head).removeprefix(b"\xef\xbb\xbf")
-    return data if clean == head else clean + data[len(head) :]
+    if not head or head.endswith((b"\n", b"\r")):
+        return data
+    return head + b"\n" + data[len(head) :]
 
 
 def _head(source: str | Path) -> bytes:

@@ -33,6 +33,7 @@ import hashlib
 from pathlib import Path
 from typing import Any, Mapping
 
+from an.stage.raster import pixi_sniffable_svg
 from an.stage.serialize import (
     AssetJSON,
     AssetResolutionJSON,
@@ -106,10 +107,11 @@ def unit_svg(
 
 def svg_data_uri(svg: str) -> str:
     """``data:image/svg+xml;base64,…`` — the form the vendored engine's SVG
-    loader recognises by prefix."""
-    return "data:image/svg+xml;base64," + base64.b64encode(svg.encode("utf-8")).decode(
-        "ascii"
-    )
+    loader recognises by prefix. The root is put on a line of its own first
+    (:func:`~an.stage.raster.pixi_sniffable_svg`), as in a staged file: a
+    recoloured part keeps the prolog of the file it came from (an#525)."""
+    data = pixi_sniffable_svg(svg.encode("utf-8"))
+    return "data:image/svg+xml;base64," + base64.b64encode(data).decode("ascii")
 
 
 def text_document(entity: Any, props_store: Mapping) -> Mapping[str, Any] | None:
