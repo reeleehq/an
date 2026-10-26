@@ -666,7 +666,11 @@ def test_the_cli_says_the_tree_survived_however_it_was_interrupted(tmp_path, sig
             # its own guards (`test_a_sweep_with_no_root_never_writes_...`).
             "import contextlib\n"
             "M.sweep_tree = lambda src: contextlib.nullcontext(src)\n"
-            "T.bench_mutants()\n"
+            # Through the CLI's own wrapper: `bench_mutants` RETURNS its exit
+            # code (`an.cli_status.failed`, an#559) and the dispatcher exits
+            # with it, so calling the function bare would exit 0.
+            "from an.__main__ import build_app\n"
+            "build_app([T.bench_mutants], {{}})(['bench-mutants'], prog_name='an')\n"
         ).format(old=_VICTIM_OLD, new=_VICTIM_NEW),
         encoding="utf-8",
     )

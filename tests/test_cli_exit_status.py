@@ -1,4 +1,4 @@
-"""A command that reports a failure exits non-zero (an#480).
+"""A command that reports a failure exits non-zero (an#480, an#559).
 
 `an validate` and `an props validate` printed FAILED and exited 0, so no script
 or CI step could tell a failing check from a passing one by its status.
@@ -8,7 +8,9 @@ from __future__ import annotations
 
 import os
 import time
+from pathlib import Path
 
+import pytest
 from typer.testing import CliRunner
 
 from an.__main__ import build_app
@@ -68,3 +70,198 @@ def test_props_validate_exits_1_on_a_bad_descriptor_and_0_on_a_good_one(tmp_path
 def test_string_operations_drop_the_exit_code_so_failed_is_called_last():
     """The documented caveat of `failed()`: composing a report is a plain str."""
     assert exit_code_of(failed("x") + "y") == 0 and exit_code_of(f"{failed('x')}") == 0
+
+
+# ------------------------------ an#559: the remaining commands, table-driven
+
+#: How each core command ends when it fails. A new command must take a line
+#: here (`test_every_core_command_declares_how_it_fails`), so "it prints a
+#: failure and exits 0" is a decision someone wrote down, never a default.
+#: ``failed``: a report that says it failed carries exit 1 (an.cli_status);
+#: ``refuses``: a bad argument or state raises (`SystemExit`, a `_REFUSALS`
+#: type), exit 1; ``0``: always 0, for the reason given.
+EXIT_POLICY: dict[str, str] = {
+    "init": "refuses",
+    "validate": "failed: a FAILED report (an#480)",
+    "sync": "refuses: a scene file that is not there; drift is a warning",
+    "check": "0: every backend is optional to some project; the render refuses",
+    "render": "failed: an error finding, though the mp4 exists (an#559)",
+    "iterate": "failed: the instruction was not applied (an#480)",
+    "preview": "refuses",
+    "probe": "refuses",
+    "credits": "0: the inventory; the gate is `validate --strict-assets`",
+    "bench": "failed: refused arguments (an#559)",
+    "bench-compare": "failed: --strict and a bad answer (an#559)",
+    "bench-mutants": "failed: a survivor, an unknown name, rot; 130 interrupted",
+    "voices list": "0: no voices is an answer",
+    "voices rescore": "failed: no dialogue line matches (an#559)",
+    "voices reroll": "failed: no dialogue line matches (an#559)",
+    "voices design": "refuses (VoiceDesignError)",
+    "voices audition": "refuses (VoiceDesignError)",
+    "voices choose": "refuses (VoiceDesignError)",
+    "voices cast": "refuses (VoiceDesignError)",
+    "voices import": "refuses (RecordedVoicesError)",
+    "library publish": "refuses; an unknown licence is recorded on purpose: 0",
+    "library kit": "refuses",
+    "library find": "0: no match is an answer",
+    "library vocabulary": "0",
+    "library show": "refuses",
+    "library checkout": "refuses",
+    "library promote": "refuses",
+    "library retire": "refuses",
+    "library sheet": "refuses",
+    "library reindex": "refuses",
+    "cache info": "0",
+    "cache gc": "refuses",
+    "sounds add": "refuses",
+    "props validate": "failed: a FAILED report (an#480)",
+    "props contract": "0",
+    "world show": "refuses",
+}
+
+
+def test_every_core_command_declares_how_it_fails():
+    """MUTATION: add a command to `an.tools._dispatch_funcs` without a line here."""
+    from an.__main__ import command_name
+    from an.tools import _dispatch_funcs, _dispatch_namespaces
+
+    commands = {command_name(f) for f in _dispatch_funcs} | {
+        f"{group} {command_name(f)}"
+        for group, funcs in _dispatch_namespaces.items()
+        for f in funcs
+    }
+    assert commands == set(EXIT_POLICY), (
+        f"undeclared: {sorted(commands - set(EXIT_POLICY))}; "
+        f"gone: {sorted(set(EXIT_POLICY) - commands)}"
+    )
+
+
+def _unreadable_row(tmp_path):
+    p = tmp_path / "row.json"
+    p.write_text('{"schema_version": "nonsense"}', encoding="utf-8")
+    return str(p)
+
+
+#: ``(argv builder, text the output must hold, exit code)``: each a failure the
+#: command reported and, before an#559, exited 0 on (or ended a Python caller's
+#: process with `sys.exit`). The passing twin of each is in the tests above or
+#: in the command's own test module.
+_FAILING = {
+    "bench: an unknown scene": (
+        lambda tmp: ["bench", "--scenes", "no-such-scene"],
+        "unknown corpus scene(s)",
+        1,
+    ),
+    "bench: an unknown lever": (
+        lambda tmp: ["bench", "--mutation", "not-a-lever"],
+        "unknown mutation",
+        1,
+    ),
+    "bench: a refused lever": (
+        lambda tmp: ["bench", "--mutation", "pix_fmt"],
+        "is not a lever",
+        1,
+    ),
+    "bench: --bless with --mutation": (
+        lambda tmp: ["bench", "--mutation", "high_crf", "--bless", "why"],
+        "refusing --bless",
+        1,
+    ),
+    "bench-compare --strict: an unreadable row": (
+        lambda tmp: [
+            "bench-compare",
+            "--before",
+            _unreadable_row(tmp),
+            "--after",
+            _unreadable_row(tmp),
+            "--strict",
+        ],
+        "refused:",
+        1,
+    ),
+    "bench-compare: the same, not strict, is an answer": (
+        lambda tmp: [
+            "bench-compare",
+            "--before",
+            _unreadable_row(tmp),
+            "--after",
+            _unreadable_row(tmp),
+        ],
+        "refused:",
+        0,
+    ),
+    "bench-mutants: an unknown name": (
+        lambda tmp: ["bench-mutants", "--names", "no-such-mutant"],
+        "unknown mutant(s)",
+        1,
+    ),
+    "voices rescore: no line matches": (
+        lambda tmp: ["voices", "rescore", str(init(tmp / "p")), "zebra-zebra"],
+        "no dialogue line contains",
+        1,
+    ),
+}
+
+
+@pytest.mark.parametrize("case", sorted(_FAILING))
+def test_a_reported_failure_exits_with_its_code(case, tmp_path):
+    """MUTATION: return the plain text instead of `failed(text)` in any of them."""
+    argv, needle, code = _FAILING[case]
+    out = _run(*argv(tmp_path))
+    assert needle in out.output and out.exit_code == code, (case, out.output)
+
+
+def test_bench_compare_strict_returns_its_failure_to_a_python_caller(tmp_path):
+    """`--strict` used to `sys.exit(1)` from inside the function, ending the
+    process of anyone who called it from Python (an#559)."""
+    from an.tools import bench_compare
+
+    row = _unreadable_row(tmp_path)
+    out = bench_compare(before=row, after=row, strict=True)
+    assert out.startswith("refused:") and exit_code_of(out) == 1
+
+
+def _fake_render(severity):
+    """An `_render_project` that renders nothing and reports one finding."""
+
+    def render_project(project_dir, **kw):
+        from an.render import _write_render_report
+        from an.stores import build_project_mall
+        from an.verify._base import Finding
+
+        finding = Finding(severity, "timeline/0", f"a {severity} the render found")
+        _write_render_report(
+            build_project_mall(project_dir), "main", [("dialogue_fits", finding)]
+        )
+        return str(Path(project_dir) / "output" / "main.mp4")
+
+    return render_project
+
+
+@pytest.mark.parametrize("severity, code", [("error", 1), ("warning", 0)])
+def test_render_exits_1_when_its_report_lists_an_error(
+    severity, code, tmp_path, monkeypatch
+):
+    """The mp4 exists either way; an error in it must stop `an render && publish`.
+
+    MUTATION: in `an.tools.render`, return `text` whatever the findings say.
+    """
+    monkeypatch.setattr("an.tools._render_project", _fake_render(severity))
+    out = _run("render", str(init(tmp_path / "p")), "--no-cache")
+    assert f"a {severity} the render found" in out.output
+    assert out.exit_code == code, out.output
+
+
+def test_voices_rescore_exits_0_when_a_line_matches(tmp_path, monkeypatch):
+    """The passing twin of the no-match case: a matched line is not a failure,
+    whatever `retake_lines` had to say about it."""
+    from types import SimpleNamespace as NS
+
+    scene = NS(timeline=[NS(id="s", dialogue=[NS(text="He did not ask")])])
+    monkeypatch.setattr("an.project.load", lambda project: NS(scene=scene, mall={}))
+    monkeypatch.setattr(
+        "an.audio.pipeline.retake_lines",
+        lambda *a, **k: ["'He did not ask': no take recorded yet"],
+    )
+    out = _run("voices", "rescore", str(tmp_path), "did not")
+    assert "no take recorded yet" in out.output and out.exit_code == 0

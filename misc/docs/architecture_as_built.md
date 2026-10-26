@@ -731,6 +731,21 @@ the business layer carries no CLI types. Typer (MIT) replaced argh (LGPL-3.0)
 in an#45; `argcomplete` went with it, since it hooks argparse specifically —
 shell completion is now `an --install-completion`.
 
+**Exit status** (an#480, an#559). A command returns its report as a string; one
+whose report says it failed returns `an.cli_status.failed(text)` (a `str`
+carrying `exit_code`), and `_printing` exits with that code after printing it,
+so a Python caller gets the text back and its process is never ended. A refusal
+(a bad argument or state) raises `SystemExit("…")` or one of `__main__._REFUSALS`
+and exits 1. Non-zero on a reported failure: `validate` (FAILED), `iterate`
+(not applied), `render` (an `error` finding — the mp4 exists), `bench` (refused
+arguments), `bench-compare --strict` (a bad answer), `bench-mutants` (a
+survivor, an unknown name, declaration rot; 130 when interrupted), `voices
+rescore|reroll` (no line matches), `props validate` (FAILED). Always 0 by
+decision: `check` (every backend is optional to some project; the render that
+needs one refuses) and `credits` (the inventory; `validate --strict-assets` is
+the gate on rights conflicts). `tests/test_cli_exit_status.py::EXIT_POLICY`
+holds one line per core command and fails when a command has none.
+
 ---
 
 ## 9. The `scene.md` markdown contract
