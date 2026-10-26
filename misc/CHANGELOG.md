@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-10-26
+- **Draw order follows the holder** (an#537): while a body holds an item, the item is painted just after its holder's part and returns to its staged place when let go — a `paint_after` channel (`an.base.PAINT_AFTER_PROPERTY`, its own write group in `stage.node`) keyed by `an.stage.hold.paint_hosts` and painted by a `runtime.js` `PaintProxy` after the holder; `HOLD_VERSION` 2; shots whose items no body holds are byte-identical; timing contract 1.13.0 (`kinds.json` declares it).
 - **`an.genres.API_LEVEL` 9** (an#480): `an.cli_status.failed` is the genre-facing seam for a command that exits non-zero; `cutan` requires it.
 - **A command that reports a failure exits non-zero** (an#480): `an.cli_status.CommandReport` is a `str` carrying an `exit_code` (`failed(text)`); `an.__main__._printing` prints it and exits with the code. `an validate` (a FAILED report: any `[error]`) and `an props validate` (FAILED or no such folder) now exit 1; Python and MCP callers still get the same text. `cutan` adopts it for `an character new|validate` (cutan PR).
 - **An unset `meta.duration` is what the shots lay out** (an#481): reading a `scene.md` with no `duration:` filled it with the plain sum of the shots, so a scene with a dissolve or wipe always warned `meta/duration`. It is now `film_duration` (the sum minus each overlap; the plain sum when the overlaps cannot be laid out). An authored duration is untouched.

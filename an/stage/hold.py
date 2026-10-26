@@ -39,6 +39,16 @@ that the hand first goes where the item is:
   rest angle on the way down, landing on the ground exactly; ``onto:
   ground@x`` solves the throw that lands there on an arc ``arc`` px high.
 
+**Draw order.** While a body holds an item, the item is PAINTED just after
+its holder's part (an#537): a ``paint_after`` channel on the item's entity node
+(:data:`an.base.PAINT_AFTER_PROPERTY`) names that part from the frame the hold
+changes, and ``""`` (its staged place, ``stage.after`` included) once nothing
+holds it. The item keeps its own node, so its transform is untouched; the
+runtime paints it from right after the part (``runtime.js``, ``makeHeldPaints``).
+A musket in a hand draws over the arm that carries it and under whatever the
+holder draws over that arm; put in a figurine's hand, it draws with the
+figurine, not over the one who put it there.
+
 **Two passes.** The goals and the leans are planned from a solve without the
 gestures (the shot as authored), the shot is solved with them, and the plan is
 made again from that solve (an item carried after a grasp hangs where the
@@ -102,11 +112,12 @@ __all__ = [
     "solve_holds",
     "ink_box",
     "ink_points",
+    "paint_hosts",
 ]
 
 #: The hold layer's version, in the shot-cache key (``solve_knobs``): bump it
 #: when the same declarations can compile to other keys.
-HOLD_VERSION: str = "1"
+HOLD_VERSION: str = "2"
 #: The key of the hold report inside ``meta.extensions.solve``.
 HOLDS_REPORT: str = "holds"
 #: ``AssetRef.overrides`` key: what holds an item when the shot opens
@@ -137,6 +148,10 @@ LEAN_SAMPLES: int = 721
 #: The alpha (0-255) above which a pixel is ink, not margin.
 INK_ALPHA: int = 16
 _EPS: float = 1e-9
+#: How far a ``paint_after`` change key leads the frame it changes at (s): far
+#: under a frame, far over the document's time quantum, so the frame instant
+#: sees the new host whichever way its time was rounded (an#537).
+PAINT_SWITCH_LEAD_S: float = 1e-6
 #: The clip a hold's channels join (the solve's own, :data:`an.stage.solve.SOLVE_CLIP_PREFIX`).
 ITEM_CHANNELS: tuple[str, ...] = ("x", "y", "rotation", "scale_x", "scale_y")
 
@@ -1986,9 +2001,15 @@ def _gravity(shot: Any, style_pack: Any) -> tuple[float, float] | None:
 
 def solve_holds(
     state: Any, doc: Any, puppet: Puppet, decl: Any, settings: Any, times: list[float]
-) -> tuple[Run, dict[tuple[str, str], tuple[list[float], list[float]]], dict[str, Any]]:
+) -> tuple[
+    Run,
+    dict[tuple[str, str], tuple[list[float], list[float]]],
+    dict[str, list[tuple[float, str]]],
+    dict[str, Any],
+]:
     """Plan and solve a shot's holds: the final run, the items' channels
-    ``{(path, prop): (values, as the document shows them)}``, and the report."""
+    ``{(path, prop): (values, as the document shows them)}``, the keys of each
+    held item's ``paint_after`` channel (:func:`paint_hosts`), and the report."""
     from an.stage.solve import run_solve
 
     shot = state.shot
@@ -2014,7 +2035,7 @@ def solve_holds(
     walk = walk_items(ctx, run, ideal=False)
     _measure(ctx, run, walk)
     channels = _item_channels(ctx, run, walk)
-    return run, channels, _report(ctx, run, walk)
+    return run, channels, _item_hosts(ctx), _report(ctx, run, walk)
 
 
 def _measure(ctx: _Ctx, run: Run, walk: Walk) -> None:
@@ -2085,6 +2106,65 @@ def _item_channels(
                 shown[prop].append(w)
         for prop in ITEM_CHANNELS:
             out[(item, prop)] = (values[prop], shown[prop])
+    return out
+
+
+def paint_hosts(
+    holders: Sequence[tuple[int, Holder | None]],
+    times: Sequence[float],
+    *,
+    lead: float = PAINT_SWITCH_LEAD_S,
+) -> list[tuple[float, str]]:
+    """The keys of an item's ``paint_after`` channel (an#537) from its holders
+    ``[(frame, holder)]`` in the order they changed: the part it paints just
+    after (``""``: its staged place, when no body holds it), at each change; at
+    one frame the last change stands. A change key leads its frame by ``lead``
+    seconds, so the frame sees it however its time was rounded (the property is
+    ``discrete(switch_at=1)``: it switches at its own key; a space that
+    declares it otherwise must keep that). ``[]`` when no body ever holds it:
+    nothing to emit, and the shot compiles as before.
+
+    >>> hand = Holder("body", ref="fig/arm_r", body="fig/arm_r", local=(0.0, 0.0))
+    >>> times = [0.0, 0.5, 1.0, 1.5, 2.0]
+    >>> paint_hosts([(0, Holder("ground")), (2, hand), (4, None)], times, lead=0.25)
+    [(0.0, ''), (0.75, 'fig/arm_r'), (1.75, '')]
+    >>> paint_hosts([(0, Holder("ground"))], times)
+    []
+    """
+
+    def host(holder: Holder | None) -> str:
+        if holder is None or holder.kind != "body" or holder.body is None:
+            return ""
+        return holder.body
+
+    final = {k: host(h) for k, h in holders}
+    if not any(final.values()):
+        return []
+    keys: list[tuple[float, str]] = [(times[0], "")]
+    for k in sorted(final):
+        if final[k] != keys[-1][1]:
+            at = times[k] - lead if k > 0 else times[0]
+            keys = keys[:-1] if keys[-1][0] == at else keys
+            keys.append((at, final[k]))
+    return keys
+
+
+def _item_hosts(ctx: _Ctx) -> dict[str, list[tuple[float, str]]]:
+    """Each item's ``paint_after`` keys (:func:`paint_hosts`): its holder at the
+    shot's start, then at every take, put and drop (the report's timeline)."""
+    out: dict[str, list[tuple[float, str]]] = {}
+    for item in ctx.items:
+        holders: list[tuple[int, Holder | None]] = [(0, ctx.initial.get(item))]
+        for ev in ctx.events.get(item, ()):
+            if ev.kind == "take":
+                holders.append((ev.k, ev.gesture.hand))
+            elif ev.kind == "put":
+                holders.append((ev.k, ev.gesture.target))
+            elif ev.kind == "drop":
+                holders.append((ev.k, None))
+        keys = paint_hosts(holders, ctx.times)
+        if keys:
+            out[item] = keys
     return out
 
 
