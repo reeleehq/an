@@ -336,6 +336,37 @@ def test_a_pinned_prop_goes_to_the_hand_and_the_hand_stays_put(tmp_path):
         assert math.dist(hand, _hand_and_grip(ref, t)[0]) < 1e-3
 
 
+def test_a_bone_named_on_an_entity_with_several_roots_is_a_point_of_its_part(tmp_path):
+    """`puppet@fore` needs no `puppet/fore` when the rig has more than one root
+    part (cutan#104: a character's `ned@hand_r`); with one root it still means
+    that root, as it always did."""
+    project = _project(tmp_path)
+    desc_path = tmp_path / "p" / "joint_pin" / "assets" / "props" / "arm" / "prop.json"
+    desc = json.loads(desc_path.read_text(encoding="utf-8"))
+    desc["bones"].append({"name": "base", "x": 40.0, "y": 380.0})
+    desc["slots"].append(
+        {"name": "base", "bone": "base", "draw_order": 0, "attachment": "base"}
+    )
+    desc["skins"]["default"]["slots"]["base"] = {
+        "base": {"path": "parts/torso.svg", "anchor": [0.5, 1.0]}
+    }
+    desc_path.write_text(json.dumps(desc), encoding="utf-8")
+    project = load(tmp_path / "p" / "joint_pin")
+    # no part sits on `hand`: still no body to choose
+    with pytest.raises(UnknownBodyError, match="root parts"):
+        _compile(project, _shot(project, actions=[pin("puppet@hand", "wheel@grip")]))
+    named = _compile(project, _shot(project, actions=[pin("puppet@fore", "wheel@grip")]))
+    on_part = _compile(
+        project, _shot(project, actions=[pin("puppet/fore@fore", "wheel@grip")])
+    )
+    assert {k: v.model_dump() for k, v in named.animations.items()} == {
+        k: v.model_dump() for k, v in on_part.animations.items()
+    }
+    report = named.meta.extensions["solve"]
+    assert report["dropped"] == on_part.meta.extensions["solve"]["dropped"]
+    assert report["joints"][-1]["bodies"] == "puppet@fore — wheel@grip"  # as written
+
+
 def test_a_rejoin_across_a_gap_is_a_snap(tmp_path):
     project = _project(tmp_path)
     shot = _shot(

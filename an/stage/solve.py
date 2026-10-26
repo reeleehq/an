@@ -890,6 +890,18 @@ def build_puppet(
                 if "/" in head
                 else head
             )
+            # A bone named on an entity with several root parts (`ned@hand_r`)
+            # is a point of the part that bone carries: it needs no `ned/<part>`
+            # (with one root, the reference is that root's, as it always was).
+            carrier = (
+                _bone_carrier(rigs[eid], at)
+                if "/" not in head
+                and rigs.get(eid) is not None
+                and len(rigs[eid].roots) > 1
+                else None
+            )
+            if carrier is not None:
+                node_path = f"{eid}/{rigs[eid].bodies[carrier]}"
         if node_path not in nodes:
             near = sorted(p for p in nodes if p.split("/", 1)[0] == eid)
             problems.append(
@@ -1186,6 +1198,24 @@ def end_effector(
         far[0] + (near[0] - far[0]) * f + 0.0,
         far[1] + (near[1] - far[1]) * f + 0.0,
     )
+
+
+def _bone_carrier(rig: Any, bone: str) -> str | None:
+    """The slot whose part a bone is a point of: the part drawn on that bone
+    (the one named like it, else the first by name), or ``None`` for a bone no
+    part sits on (a landmark such as a prop's ``grip``) or a name that is no bone.
+
+    >>> from types import SimpleNamespace as NS
+    >>> rig = NS(anchors={"hand_r": 1, "grip": 1}, body_bone={"hand_r": "hand_r", "fist": "hand_r", "torso": "torso"})
+    >>> _bone_carrier(rig, "hand_r"), _bone_carrier(rig, "grip"), _bone_carrier(rig, "nope")
+    ('hand_r', None, None)
+    """
+    if not bone or bone not in rig.anchors:
+        return None
+    slots = sorted(slot for slot, b in rig.body_bone.items() if b == bone)
+    if not slots:
+        return None
+    return bone if bone in slots else slots[0]
 
 
 def _pivot(node: Any) -> tuple[float, float]:
