@@ -41,6 +41,16 @@ that the hand first goes where the item is:
   > rest angle on the way down, landing on the ground exactly; `onto:
   > ground@x` solves the throw that lands there on an arc `arc` px high.
 
+**Draw order.** While a body holds an item, the item is PAINTED just after
+its holder’s part (an#537): a `paint_after` channel on the item’s entity node
+([`an.base.PAINT_AFTER_PROPERTY`](an.base.html.md#an.base.PAINT_AFTER_PROPERTY)) names that part from the frame the hold
+changes, and `""` (its staged place, `stage.after` included) once nothing
+holds it. The item keeps its own node, so its transform is untouched; the
+runtime paints it from right after the part (`runtime.js`, `makeHeldPaints`).
+A musket in a hand draws over the arm that carries it and under whatever the
+holder draws over that arm; put in a figurine’s hand, it draws with the
+figurine, not over the one who put it there.
+
 **Two passes.** The goals and the leans are planned from a solve without the
 gestures (the shot as authored), the shot is solved with them, and the plan is
 made again from that solve (an item carried after a grasp hangs where the
@@ -75,9 +85,10 @@ False
 | [`declares_holds`](#an.stage.hold.declares_holds)(shot)                       | Whether `shot` has a hold verb or an item `held_by` something.                                                                                                                                                                                                                                   |
 |---------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`hold_declarations`](#an.stage.hold.hold_declarations)(shot, \*[, play_extent]) | The hold verbs of `shot` flattened to shot time, its `held_by` overrides, the holder points they name and who moves a hand.                                                                                                                                                                      |
-| [`solve_holds`](#an.stage.hold.solve_holds)(state, doc, puppet, decl, ...) | Plan and solve a shot's holds: the final run, the items' channels `{(path, prop): (values, as the document shows them)}`, and the report.                                                                                                                                                        |
+| [`solve_holds`](#an.stage.hold.solve_holds)(state, doc, puppet, decl, ...) | Plan and solve a shot's holds: the final run, the items' channels `{(path, prop): (values, as the document shows them)}`, the keys of each held item's `paint_after` channel ([`paint_hosts()`](#an.stage.hold.paint_hosts)), and the report.                                   |
 | [`ink_box`](#an.stage.hold.ink_box)(doc, node, mall)                   | The box round a node's ink ([`ink_points()`](#an.stage.hold.ink_points)), in its own frame.                                                                                                                                                                                    |
 | [`ink_points`](#an.stage.hold.ink_points)(doc, node, mall)                | A node's drawn ink as points in its own frame: the corners of the box its art is fitted into, or, for a raster the store can read, the convex hull of its painted pixels inside that box (so the lowest point of a part turned any way is the lowest painted pixel, not a corner of its margin). |
+| [`paint_hosts`](#an.stage.hold.paint_hosts)(holders, times, \*[, lead])    | The keys of an item's `paint_after` channel (an#537) from its holders `[(frame, holder)]` in the order they changed: the part it paints just after (`""`: its staged place, when no body holds it), at each change; at one frame the last change stands.                                         |
 
 ### Classes
 
@@ -117,7 +128,7 @@ The key of the hold report inside `meta.extensions.solve`.
 How many times the gestures are planned (each from the solve the previous
 plan made).
 
-### an.stage.hold.HOLD_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '1'*
+### an.stage.hold.HOLD_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '2'*
 
 bump it
 when the same declarations can compile to other keys.
@@ -218,10 +229,34 @@ turned any way is the lowest painted pixel, not a corner of its margin).
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
+### an.stage.hold.paint_hosts(holders, times, , lead=1e-06)
+
+The keys of an item’s `paint_after` channel (an#537) from its holders
+`[(frame, holder)]` in the order they changed: the part it paints just
+after (`""`: its staged place, when no body holds it), at each change; at
+one frame the last change stands. A change key leads its frame by `lead`
+seconds, so the frame sees it however its time was rounded (the property is
+`discrete(switch_at=1)`: it switches at its own key; a space that
+declares it otherwise must keep that). `[]` when no body ever holds it:
+nothing to emit, and the shot compiles as before.
+
+```pycon
+>>> hand = Holder("body", ref="fig/arm_r", body="fig/arm_r", local=(0.0, 0.0))
+>>> times = [0.0, 0.5, 1.0, 1.5, 2.0]
+>>> paint_hosts([(0, Holder("ground")), (2, hand), (4, None)], times, lead=0.25)
+[(0.0, ''), (0.75, 'fig/arm_r'), (1.75, '')]
+>>> paint_hosts([(0, Holder("ground"))], times)
+[]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
 ### an.stage.hold.solve_holds(state, doc, puppet, decl, settings, times)
 
 Plan and solve a shot’s holds: the final run, the items’ channels
-`{(path, prop): (values, as the document shows them)}`, and the report.
+`{(path, prop): (values, as the document shows them)}`, the keys of each
+held item’s `paint_after` channel ([`paint_hosts()`](#an.stage.hold.paint_hosts)), and the report.
 
 * **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[`Run`, [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)], [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[`Run`, [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)], [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]

@@ -22,6 +22,8 @@ fraction of a second so the CLI is snappy.
 | [`COLOUR_PROPERTY`](#an.base.COLOUR_PROPERTY)                    | The property names the cutout runtime animates NUMERICALLY.                                                                                                                                                                                                                                                     |
 | [`PLANE_REST_VALUES`](#an.base.PLANE_REST_VALUES)                  | a node targeted with any of them is drawn on a plane tilted away from the camera (`rotation_x`, radians, positive = the top recedes; `perspective`, the eye's distance in frame heights; `plane_fade_start`/`plane_fade_end`, the far fade, scene px up the plane from the hinge, off while the end is `<= 0`). |
 | [`TRIM_PROPERTIES`](#an.base.TRIM_PROPERTIES)                    | The path-only properties inside `TRANSFORM_PROPERTIES` (an#160; the name predates `dash_offset`, an#161): trim and the dash phase.                                                                                                                                                                              |
+| [`PAINT_AFTER_PROPERTY`](#an.base.PAINT_AFTER_PROPERTY)               | where a node is PAINTED, as the path of the node it paints just after (`""`: where the stage tree puts it).                                                                                                                                                                                                     |
+| [`ORDER_PROPERTIES`](#an.base.ORDER_PROPERTIES)                   | The non-numeric properties the runtime applies itself (outside `TRANSFORM_PROPERTIES`, which it animates numerically): a node's place in the paint order.                                                                                                                                                       |
 | [`SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS`](#an.base.SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS) | `/` would read as a path segment and `::` is the runtime's pose-key separator.                                                                                                                                                                                                                                  |
 | [`AUTHORABLE_PROPERTIES`](#an.base.AUTHORABLE_PROPERTIES)              | a compiled transform channel, or the authored colour spelling the compiler expands.                                                                                                                                                                                                                             |
 | [`PathStr`](#an.base.PathStr)                            | Slash-delimited node path, e.g. `"charlie/head/mouth"`.                                                                                                                                                                                                                                                         |
@@ -213,6 +215,25 @@ moves no number the panel reads: with `-c copy` it is a container rewrite,
 not a re-encode. Verified on ffmpeg 8.1 – elementary-stream sha256
 identical, video/audio packet totals identical, file size identical,
 decoded YUV sha256 identical, wall time unchanged.
+
+### an.base.ORDER_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'paint_after'})*
+
+The non-numeric properties the runtime applies itself (outside
+`TRANSFORM_PROPERTIES`, which it animates numerically): a node’s place
+in the paint order. `runtime.js`’s `ORDER_PROPERTIES` mirrors it (pinned by
+a test).
+
+### an.base.PAINT_AFTER_PROPERTY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'paint_after'*
+
+where a node is PAINTED, as the path of the
+node it paints just after (`""`: where the stage tree puts it). A string,
+switched at its own key like a swap key, and written to its own group. The
+node keeps its place in the transform tree, so it moves, turns and fades
+exactly as before; only its paint moves. Not authorable: the hold layer emits
+it (a held item draws just above the part that holds it, an#537).
+
+* **Type:**
+  The draw-order property (an#537)
 
 ### an.base.PLANE_REST_VALUES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= {'perspective': 1.0, 'plane_fade_end': 0.0, 'plane_fade_start': 0.0, 'rotation_x': 0.0}*
 

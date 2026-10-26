@@ -25,6 +25,7 @@ an.stage.hold
       solve_holds
       ink_box
       ink_points
+      paint_hosts
    
    .. rubric:: Classes
 
