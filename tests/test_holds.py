@@ -258,6 +258,34 @@ def test_a_place_into_a_socket_at_a_rotation_rests_aimed_and_turns_with_the_sock
     assert math.dist(_grip(doc, 3.8), socket) < GRASP_TOLERANCE_PX
 
 
+def test_an_item_held_from_the_start_can_open_aimed(tmp_path):
+    """``held_rotation`` beside ``held_by: <socket>``: a shot that continues another
+    opens on the item already aimed (the stage angle a place's ``rotation`` would
+    have left it at), grip on the socket, and it turns with the socket after."""
+    entities = """- {kind: prop, id: fig, store: props, ref: figure, stage: {at: [-100, 200]}}
+- {kind: prop, id: stand, store: props, ref: stand, stage: {at: [40, 200]}}
+- {kind: prop, id: stick, store: props, ref: stick, stage: {at: [40, 0], scale: 0.5, after: fig}, overrides: {held_by: stand@hand, held_rotation: 0.6}}
+"""
+    actions = "- {kind: tween, target: stand, property: rotation, from: 0.0, to: 0.3, duration: 0.5, start: 1.0}"
+    doc = _compile(make_project(tmp_path / "p", scene(actions, entities=entities)))
+    for t in (0.0, 0.5):
+        assert _pose(doc, t)[("stick", "rotation")] == pytest.approx(0.6, abs=1e-6)
+        socket = _stage(doc, "stand", t, point=(0.0, -250.0 * K))
+        assert math.dist(_grip(doc, t), socket) < GRASP_TOLERANCE_PX
+    assert _pose(doc, 1.8)[("stick", "rotation")] == pytest.approx(0.9, abs=1e-5)
+    socket = _stage(doc, "stand", 1.8, point=(0.0, -250.0 * K))
+    assert math.dist(_grip(doc, 1.8), socket) < GRASP_TOLERANCE_PX
+
+
+def test_held_rotation_on_an_item_on_the_ground_is_refused(tmp_path):
+    entities = """- {kind: prop, id: fig, store: props, ref: figure, stage: {at: [-100, 200]}}
+- {kind: prop, id: stick, store: props, ref: stick, stage: {at: [40, 150], scale: 0.5, after: fig}, overrides: {held_by: ground, held_rotation: 0.6}}
+"""
+    actions = "- {kind: grasp, by: fig/arm_r, item: stick, start: 0.5}"
+    with pytest.raises(Exception, match="held_rotation aims an item"):
+        _compile(make_project(tmp_path / "p", scene(actions, entities=entities)))
+
+
 def test_a_swap_gives_at_the_rotation_it_is_given(tmp_path):
     entities = """- {kind: prop, id: fig, store: props, ref: figure, stage: {at: [-100, 200]}}
 - {kind: prop, id: stand, store: props, ref: stand, stage: {at: [40, 200]}}

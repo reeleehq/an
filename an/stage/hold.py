@@ -89,6 +89,7 @@ from an.stage.solve import (
 __all__ = [
     "HOLD_VERSION",
     "HOLDS_REPORT",
+    "AIM_OVERRIDE",
     "ON_OVERRIDE",
     "GRASP_TOLERANCE_PX",
     "DFLT_FALL_GRAVITY",
@@ -111,6 +112,10 @@ HOLDS_REPORT: str = "holds"
 #: ``AssetRef.overrides`` key: what holds an item when the shot opens
 #: (``ground``, a body's point, ``world@x,y``).
 ON_OVERRIDE: str = "held_by"
+#: The override that aims an item a socket holds from the start: the stage angle it
+#: is held at, as a place's ``rotation`` (a shot that opens on a musket already
+#: aimed at someone, continuing the shot before it).
+AIM_OVERRIDE: str = "held_rotation"
 #: A reach that ends farther than this from its goal did not arrive (scene px).
 GRASP_TOLERANCE_PX: float = 0.5
 #: An item put down this close to the floor is on it (scene px); farther, it
@@ -176,6 +181,8 @@ class HoldDeclarations:
 
     verbs: list[HoldVerb] = field(default_factory=list)
     initial: dict[str, tuple[str, str]] = field(default_factory=dict)
+    #: ``held_rotation`` overrides: ``id -> (stage angle, where)``
+    aims: dict[str, tuple[float, str]] = field(default_factory=dict)
     refs: list[tuple[str, str, str]] = field(default_factory=list)
     items: dict[str, str] = field(default_factory=dict)
     movers: set[str] = field(default_factory=set)
@@ -225,6 +232,9 @@ def hold_declarations(shot: Any, *, play_extent: Any = None) -> HoldDeclarations
 
     out = HoldDeclarations()
     for i, entity in enumerate(shot.entities):
+        aim = (entity.overrides or {}).get(AIM_OVERRIDE)
+        if aim is not None:
+            out.aims[entity.id] = (aim, f"entities/{i}/overrides/{AIM_OVERRIDE}")
         on = (entity.overrides or {}).get(ON_OVERRIDE)
         if on is None:
             continue
@@ -613,6 +623,8 @@ class _Ctx:
     ground: float | None
     problems: list[tuple[str, str]]
     warnings: list[dict[str, Any]]
+    #: ``held_rotation``: the stage angle an item held from the start is aimed at
+    aims: dict[str, float] = field(default_factory=dict)
 
 
 def _frame_at(times: Sequence[float], t: float) -> int:
@@ -785,6 +797,24 @@ def _schedule(
             h = _holder(puppet, on, "socket")
         if h is not None:
             initial[item] = h
+    aims: dict[str, float] = {}
+    for item, (aim, where) in decl.aims.items():
+        first = initial.get(item)
+        if first is None or first.kind != "body":
+            problems.append(
+                (
+                    where,
+                    f"{AIM_OVERRIDE} aims an item a socket or a hand holds from the start "
+                    f"(`{ON_OVERRIDE}: <entity>/<part>` or `<entity>@<point>`); {item!r} is "
+                    + ("held by nothing" if first is None else f"on the {first.kind}")
+                    + ": its staged rotation is its angle",
+                )
+            )
+            continue
+        try:
+            aims[item] = float(aim)
+        except (TypeError, ValueError):
+            problems.append((where, f"{AIM_OVERRIDE} is an angle in radians, not {aim!r}"))
     gestures: list[Gesture] = []
     events: dict[str, list[Event]] = {item: [] for item in items}
     holder: dict[str, Holder] = {
@@ -1022,6 +1052,7 @@ def _schedule(
         None,
         problems,
         [],
+        aims,
     )
 
 
@@ -1249,6 +1280,9 @@ def walk_items(
                 )
             elif first.kind == "body":
                 lin = _socket_lin(ctx, run, 0, first, item)
+                aim = ctx.aims.get(item)
+                if aim is not None:  # aimed: held at this angle, then relative to the socket
+                    lin = (aim, lin[1], lin[2])
                 m = _placed(_point_world(puppet, run, 0, first), lin, info.grip)
                 state = _State(
                     "body",
