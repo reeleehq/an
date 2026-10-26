@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=add7dc4f"></script>
+    <script src="../_static/documentation_options.js?v=5fbed266"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.279" />
+  <meta name="docsearch:version" content="0.1.280" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -683,7 +683,7 @@ without touching these functions, so they stay plain Python.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="an.tools.bench">
 <span class="sig-prename descclassname"><span class="pre">an.tools.</span></span><span class="sig-name descname"><span class="pre">bench</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scenes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_render</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quiet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bless</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compare</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mutation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/tools.html#bench"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.tools.bench" title="Link to this definition">#</a></dt>
-<dd><p>Render the fixed bench corpus and write a metrics ledger.</p>
+<dd><p>Render the fixed bench corpus and write a metrics ledger. Exits 1 when it refuses the arguments.</p>
 <p>The instrument, not the verdict: it records numbers whose predicted
 direction under each deliberate degradation is declared in advance, so a
 future regression is caught by something other than someone noticing.</p>
@@ -734,7 +734,7 @@ mutation: evaluate the per-mutation predictions instead of asking whether</p>
 <dt>strict: exit nonzero when the answer is bad — a regression without a</dt><dd><p>mutation, or a direction that reverses on its own metric’s threshold
 grid (an#140: some cell of it got worse), an unmet criterion with one,
 a comparison that answered nothing, or a row that could not be read at
-all. For CI.</p>
+all (exit 1). For CI.</p>
 </dd>
 </dl>
 <p>raw: print the report as JSON instead of the human digest</p>
@@ -764,6 +764,8 @@ green while the bug they guarded was present.</p>
 <p>The WHOLE guard file runs for each mutant, never a <code class="code docutils literal notranslate"><span class="pre">-k</span></code> filter: a filter that
 happens to exclude the catching test reports “not caught” and sends you to
 write a test that already exists. Takes about forty seconds.</p>
+<p>Exits 1 when a mutant survives, a name is unknown or a declaration has rotted,
+and 130 when the sweep is interrupted (the tree is restored first).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
@@ -774,7 +776,11 @@ write a test that already exists. Takes about forty seconds.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="an.tools.check">
 <span class="sig-prename descclassname"><span class="pre">an.tools.</span></span><span class="sig-name descname"><span class="pre">check</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/tools.html#check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.tools.check" title="Link to this definition">#</a></dt>
-<dd><p>Print a status report of all backend system + Python deps.</p>
+<dd><p>Print a status report of all backend system + Python deps. Always exits 0.</p>
+<p>Every backend it lists is optional to some project (a Manim-only scene needs
+no browser, an offline voice no ElevenLabs), so a missing one is not this
+command’s failure: the render that needs it refuses, with a typed error that
+says what to install (an#559).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
@@ -790,6 +796,10 @@ write a test that already exists. Takes about forty seconds.</p>
 json_out: also write the machine-readable record to this path</p>
 <p>A licence recorded and never displayed is not compliance, so this is the
 consumer that makes the provenance field worth having.</p>
+<p>Exits 0 whatever it lists: it is the inventory, not the gate. UNVERIFIED is
+a state the report exists to show, and a rights conflict is already resolved
+(the stricter statement binds); the gate is <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span> <span class="pre">--strict-assets</span></code>,
+which reports a rights conflict as an error and exits 1 (an#559).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
@@ -893,7 +903,7 @@ scene: the scene file to read, inside the project (default scene.md; for example
 <dl class="py function">
 <dt class="sig sig-object py" id="an.tools.render">
 <span class="sig-prename descclassname"><span class="pre">an.tools.</span></span><span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scene</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lipsync</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'offline'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parallel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict_assets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">supersample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pix_fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_hz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">language</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'en'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_render</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_frames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/tools.html#render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.tools.render" title="Link to this definition">#</a></dt>
-<dd><p>Render the project at <code class="docutils literal notranslate"><span class="pre">project_dir</span></code> to a single mp4.</p>
+<dd><p>Render the project at <code class="docutils literal notranslate"><span class="pre">project_dir</span></code> to a single mp4. Exits 1 when the render reports an error finding.</p>
 <p>Incremental: a shot whose inputs (its compiled document, its art’s bytes,
 its audio, the runtime, the render settings, this machine’s browser and
 ffmpeg) are unchanged since a previous render is reused from the shot cache
@@ -901,7 +911,9 @@ rather than rendered again, and the summary line says which were which.</p>
 <p>Then what the render learned, grouped, each with its fix: a synthesized line
 that runs past its shot or into a dissolve, a stand-in or a substitution,
 a library pin out of date (artifacts/render_reports/&lt;output_name&gt;.json
-holds them all).</p>
+holds them all). An <code class="docutils literal notranslate"><span class="pre">error</span></code> among them exits 1 although the mp4 exists:
+something the checks call wrong is in the film, so <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span> <span class="pre">&amp;&amp;</span> <span class="pre">publish</span></code>
+must not go on (an#559).</p>
 <p>project_dir: path to an an project (must contain scene.md / ir/scene.json)
 output_name: filename stem under output/ (default: “main”, or the scene file’s stem when –scene names one)
 scene: the scene file to read, inside the project (default scene.md; for example scene.studio.md, whose JSON twin is ir/scene.studio.json)

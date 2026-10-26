@@ -9,6 +9,7 @@ an.cli\_status
    .. autosummary::
    
       FAILURE_EXIT_CODE
+      EXIT_POLICY
    
    .. rubric:: Functions
 

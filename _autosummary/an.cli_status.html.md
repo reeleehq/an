@@ -20,6 +20,7 @@ dispatcher (`an.__main__._printing`) exits with the code after printing it.
 
 | [`FAILURE_EXIT_CODE`](#an.cli_status.FAILURE_EXIT_CODE)   | The status of a command that reports a failure.   |
 |----------------------------------------------------------------------|---------------------------------------------------|
+| [`EXIT_POLICY`](#an.cli_status.EXIT_POLICY)         | How each core command ends when it fails.         |
 
 ### Functions
 
@@ -40,6 +41,15 @@ A command’s text with the exit status it asks the CLI to end with.
 
 * **Return type:**
   [*CommandReport*](#an.cli_status.CommandReport)
+
+### an.cli_status.EXIT_POLICY *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'bench': 'failed: refused arguments (an#559)', 'bench-compare': 'failed: --strict and a bad answer (an#559)', 'bench-mutants': 'failed: a survivor, an unknown name, rot; 130 interrupted', 'cache gc': 'refuses', 'cache info': '0', 'check': '0: every backend is optional to some project; the render refuses', 'credits': '0: the inventory; the gate is \`validate --strict-assets\`', 'init': 'refuses', 'iterate': 'failed: the instruction was not applied (an#480)', 'library checkout': 'refuses', 'library find': '0: no match is an answer', 'library kit': 'refuses', 'library promote': 'refuses', 'library publish': 'refuses; an unknown licence is recorded on purpose: 0', 'library reindex': 'refuses', 'library retire': 'refuses', 'library sheet': 'refuses', 'library show': 'refuses', 'library vocabulary': '0', 'preview': 'refuses', 'probe': 'refuses', 'props contract': '0', 'props validate': 'failed: a FAILED report (an#480)', 'render': 'failed: an error finding, though the mp4 exists (an#559)', 'sounds add': 'refuses', 'sync': 'refuses: a scene file that is not there; drift is a warning', 'validate': 'failed: a FAILED report (an#480)', 'voices audition': 'refuses (VoiceDesignError)', 'voices cast': 'refuses (VoiceDesignError)', 'voices choose': 'refuses (VoiceDesignError)', 'voices design': 'refuses (VoiceDesignError)', 'voices import': 'refuses (RecordedVoicesError)', 'voices list': '0: no voices is an answer', 'voices reroll': 'failed: no dialogue line matches (an#559)', 'voices rescore': 'failed: no dialogue line matches (an#559)', 'world show': 'refuses'}*
+
+How each core command ends when it fails. A new command must take a line
+here (`tests/test_cli_exit_status.py` holds the list complete), so “it prints a
+failure and exits 0” is a decision someone wrote down, never a default.
+`failed`: a report that says it failed carries exit 1 (an.cli_status);
+`refuses`: a bad argument or state raises (`SystemExit`, a `_REFUSALS`
+type), exit 1; `0`: always 0, for the reason given.
 
 ### an.cli_status.FAILURE_EXIT_CODE *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 1*
 

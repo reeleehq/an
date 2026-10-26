@@ -95,7 +95,8 @@ Release the recorded takes of the lines of `project` containing `line`.
 
 The plain-function core of `an voices rescore` / `an voices reroll`: see
 [`an.audio.pipeline.retake_lines()`](an.audio.pipeline.html.md#an.audio.pipeline.retake_lines). `tts` must be the provider the
-line is rendered with (its takes are keyed by it).
+line is rendered with (its takes are keyed by it). When no dialogue line
+contains `line` nothing was released, and the CLI exits 1 (an#559).
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

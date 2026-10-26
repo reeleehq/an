@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=add7dc4f"></script>
+    <script src="../../../_static/documentation_options.js?v=5fbed266"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.279" />
+  <meta name="docsearch:version" content="0.1.280" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -840,14 +840,17 @@ window.runMermaid = runMermaid;</script>
 
 <span class="sd">    The plain-function core of ``an voices rescore`` / ``an voices reroll``: see</span>
 <span class="sd">    :func:`an.audio.pipeline.retake_lines`. ``tts`` must be the provider the</span>
-<span class="sd">    line is rendered with (its takes are keyed by it).</span>
+<span class="sd">    line is rendered with (its takes are keyed by it). When no dialogue line</span>
+<span class="sd">    contains ``line`` nothing was released, and the CLI exits 1 (an#559).</span>
 <span class="sd">    """</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">retake_lines</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">lines_matching</span><span class="p">,</span> <span class="n">retake_lines</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.cli_status</span><span class="w"> </span><span class="kn">import</span> <span class="n">failed</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.project</span><span class="w"> </span><span class="kn">import</span> <span class="n">load</span>
 
     <span class="n">proj</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">project</span><span class="p">)</span>
     <span class="n">messages</span> <span class="o">=</span> <span class="n">retake_lines</span><span class="p">(</span><span class="n">proj</span><span class="o">.</span><span class="n">scene</span><span class="p">,</span> <span class="n">proj</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">tts</span><span class="o">=</span><span class="n">make</span><span class="p">(</span><span class="n">tts</span><span class="p">),</span> <span class="n">rescore</span><span class="o">=</span><span class="n">rescore</span><span class="p">)</span>
-    <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span></div>
+    <span class="n">text</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">text</span> <span class="k">if</span> <span class="n">lines_matching</span><span class="p">(</span><span class="n">proj</span><span class="o">.</span><span class="n">scene</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span> <span class="k">else</span> <span class="n">failed</span><span class="p">(</span><span class="n">text</span><span class="p">)</span></div>
 
 
 

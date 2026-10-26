@@ -27,7 +27,7 @@ without touching these functions, so they stay plain Python.
 
 ### an.tools.bench(scenes='', out='', keep_render='', quiet=False, bless='', compare='', mutation='')
 
-Render the fixed bench corpus and write a metrics ledger.
+Render the fixed bench corpus and write a metrics ledger. Exits 1 when it refuses the arguments.
 
 The instrument, not the verdict: it records numbers whose predicted
 direction under each deliberate degradation is declared in advance, so a
@@ -78,7 +78,7 @@ strict: exit nonzero when the answer is bad — a regression without a
 : mutation, or a direction that reverses on its own metric’s threshold
   grid (an#140: some cell of it got worse), an unmet criterion with one,
   a comparison that answered nothing, or a row that could not be read at
-  all. For CI.
+  all (exit 1). For CI.
 
 raw: print the report as JSON instead of the human digest
 
@@ -109,12 +109,20 @@ The WHOLE guard file runs for each mutant, never a `-k` filter: a filter that
 happens to exclude the catching test reports “not caught” and sends you to
 write a test that already exists. Takes about forty seconds.
 
+Exits 1 when a mutant survives, a name is unknown or a declaration has rotted,
+and 130 when the sweep is interrupted (the tree is restored first).
+
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.tools.check()
 
-Print a status report of all backend system + Python deps.
+Print a status report of all backend system + Python deps. Always exits 0.
+
+Every backend it lists is optional to some project (a Manim-only scene needs
+no browser, an offline voice no ElevenLabs), so a missing one is not this
+command’s failure: the render that needs it refuses, with a typed error that
+says what to install (an#559).
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
@@ -128,6 +136,11 @@ json_out: also write the machine-readable record to this path
 
 A licence recorded and never displayed is not compliance, so this is the
 consumer that makes the provenance field worth having.
+
+Exits 0 whatever it lists: it is the inventory, not the gate. UNVERIFIED is
+a state the report exists to show, and a rights conflict is already resolved
+(the stricter statement binds); the gate is `an validate --strict-assets`,
+which reports a rights conflict as an error and exits 1 (an#559).
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
@@ -214,7 +227,7 @@ True
 
 ### an.tools.render(project_dir, output_name='', scene='', tts='', lipsync='offline', parallel='', strict_assets=False, supersample=1, pix_fmt='', step_hz=0.0, language='en', capture='', force_render=False, no_cache=False, cache_frames=False)
 
-Render the project at `project_dir` to a single mp4.
+Render the project at `project_dir` to a single mp4. Exits 1 when the render reports an error finding.
 
 Incremental: a shot whose inputs (its compiled document, its art’s bytes,
 its audio, the runtime, the render settings, this machine’s browser and
@@ -224,7 +237,9 @@ rather than rendered again, and the summary line says which were which.
 Then what the render learned, grouped, each with its fix: a synthesized line
 that runs past its shot or into a dissolve, a stand-in or a substitution,
 a library pin out of date (artifacts/render_reports/<output_name>.json
-holds them all).
+holds them all). An `error` among them exits 1 although the mp4 exists:
+something the checks call wrong is in the film, so `an render && publish`
+must not go on (an#559).
 
 project_dir: path to an an project (must contain scene.md / ir/scene.json)
 output_name: filename stem under output/ (default: “main”, or the scene file’s stem when –scene names one)

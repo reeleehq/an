@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=add7dc4f"></script>
+    <script src="../_static/documentation_options.js?v=5fbed266"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.279" />
+  <meta name="docsearch:version" content="0.1.280" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -744,7 +744,8 @@ diarize: ask the transcriber for speaker labels (map them with –speakers)</p>
 <dd><p>Release the recorded takes of the lines of <code class="docutils literal notranslate"><span class="pre">project</span></code> containing <code class="docutils literal notranslate"><span class="pre">line</span></code>.</p>
 <p>The plain-function core of <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">voices</span> <span class="pre">rescore</span></code> / <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">voices</span> <span class="pre">reroll</span></code>: see
 <a class="reference internal" href="an.audio.pipeline.html#an.audio.pipeline.retake_lines" title="an.audio.pipeline.retake_lines"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.audio.pipeline.retake_lines()</span></code></a>. <code class="docutils literal notranslate"><span class="pre">tts</span></code> must be the provider the
-line is rendered with (its takes are keyed by it).</p>
+line is rendered with (its takes are keyed by it). When no dialogue line
+contains <code class="docutils literal notranslate"><span class="pre">line</span></code> nothing was released, and the CLI exits 1 (an#559).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>

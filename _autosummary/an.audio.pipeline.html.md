@@ -44,6 +44,7 @@ than its voice declares is a [`VoiceStandInWarning`](#an.audio.pipeline.VoiceSta
 | [`free_and_repeatable`](#an.audio.pipeline.free_and_repeatable)(provider)                     | Whether `provider` may be run where nothing may be spent or written (an#311): it DECLARES `repeatable = True` (the same request gives the same bytes: `offline`, `mac_say`) and `billed = False` — stated, never inferred from a missing method — and has no `billed_characters` hook. |
 | [`in_memory_audio_mall`](#an.audio.pipeline.in_memory_audio_mall)(mall)                        | `mall` with its audio and visemes stores behind [`InMemoryOverlay`](#an.audio.pipeline.InMemoryOverlay) s — hand it to [`stamp_from_stores()`](#an.audio.pipeline.stamp_from_stores) (`free_in_memory=True`) and then to whatever keys the stamped scene (an#311).     |
 | [`is_voice_tts`](#an.audio.pipeline.is_voice_tts)(tts)                                 | Whether `tts` means "each voice's own provider": `None`, `""` or [`VOICE_TTS`](#an.audio.pipeline.VOICE_TTS).                                                                                                                                                           |
+| [`lines_matching`](#an.audio.pipeline.lines_matching)(scene, match)                      | The `(shot, line)` pairs of `scene` whose dialogue text contains `match`, case-insensitively: the lines `an voices rescore|reroll` act on.                                                                                                                                             |
 | [`produce_audio_for_dialogue`](#an.audio.pipeline.produce_audio_for_dialogue)(dialogue[, mall, ...]) | Synthesize audio + visemes for one dialogue line.                                                                                                                                                                                                                                      |
 | [`produce_audio_for_scene`](#an.audio.pipeline.produce_audio_for_scene)(scene[, mall, tts, ...])  | Walk every dialogue line, synthesize, and stamp viseme tracks back.                                                                                                                                                                                                                    |
 | [`retake_lines`](#an.audio.pipeline.retake_lines)(scene, mall, match, \*, tts[, ...])  | Mark the recorded takes of the lines whose text contains `match` to be chosen again on the next render; one message per matching line.                                                                                                                                                 |
@@ -286,6 +287,21 @@ Whether `tts` means “each voice’s own provider”: `None`, `""` or
 
 * **Return type:**
   [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+### an.audio.pipeline.lines_matching(scene, match)
+
+The `(shot, line)` pairs of `scene` whose dialogue text contains
+`match`, case-insensitively: the lines `an voices rescore|reroll` act on.
+
+```pycon
+>>> from types import SimpleNamespace as NS
+>>> scene = NS(timeline=[NS(id="s", dialogue=[NS(text="Hello there")])])
+>>> [line.text for _, line in lines_matching(scene, "HELLO")], lines_matching(scene, "zebra")
+(['Hello there'], [])
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
 
 ### an.audio.pipeline.produce_audio_for_dialogue(dialogue, mall=None, \*, tts=None, lipsync=None, effects=None, voice_id=None, takes=<object object>, take_scorer=<function make_take_scorer>)
 

@@ -27,6 +27,7 @@ an.audio.pipeline
       free_and_repeatable
       in_memory_audio_mall
       is_voice_tts
+      lines_matching
       produce_audio_for_dialogue
       produce_audio_for_scene
       retake_lines

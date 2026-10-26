@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../_static/documentation_options.js?v=add7dc4f"></script>
+    <script src="../../_static/documentation_options.js?v=5fbed266"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.279" />
+  <meta name="docsearch:version" content="0.1.280" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -766,6 +766,52 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    :class:`CommandReport`."""</span>
     <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">exit_code</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">CommandReport</span><span class="p">)</span> <span class="k">else</span> <span class="mi">0</span></div>
 
+
+
+<span class="c1">#: How each core command ends when it fails. A new command must take a line</span>
+<span class="c1">#: here (`tests/test_cli_exit_status.py` holds the list complete), so "it prints a</span>
+<span class="c1">#: failure and exits 0" is a decision someone wrote down, never a default.</span>
+<span class="c1">#: ``failed``: a report that says it failed carries exit 1 (an.cli_status);</span>
+<span class="c1">#: ``refuses``: a bad argument or state raises (`SystemExit`, a `_REFUSALS`</span>
+<span class="c1">#: type), exit 1; ``0``: always 0, for the reason given.</span>
+<span class="n">EXIT_POLICY</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"init"</span><span class="p">:</span> <span class="s2">"refuses"</span><span class="p">,</span>
+    <span class="s2">"validate"</span><span class="p">:</span> <span class="s2">"failed: a FAILED report (an#480)"</span><span class="p">,</span>
+    <span class="s2">"sync"</span><span class="p">:</span> <span class="s2">"refuses: a scene file that is not there; drift is a warning"</span><span class="p">,</span>
+    <span class="s2">"check"</span><span class="p">:</span> <span class="s2">"0: every backend is optional to some project; the render refuses"</span><span class="p">,</span>
+    <span class="s2">"render"</span><span class="p">:</span> <span class="s2">"failed: an error finding, though the mp4 exists (an#559)"</span><span class="p">,</span>
+    <span class="s2">"iterate"</span><span class="p">:</span> <span class="s2">"failed: the instruction was not applied (an#480)"</span><span class="p">,</span>
+    <span class="s2">"preview"</span><span class="p">:</span> <span class="s2">"refuses"</span><span class="p">,</span>
+    <span class="s2">"probe"</span><span class="p">:</span> <span class="s2">"refuses"</span><span class="p">,</span>
+    <span class="s2">"credits"</span><span class="p">:</span> <span class="s2">"0: the inventory; the gate is `validate --strict-assets`"</span><span class="p">,</span>
+    <span class="s2">"bench"</span><span class="p">:</span> <span class="s2">"failed: refused arguments (an#559)"</span><span class="p">,</span>
+    <span class="s2">"bench-compare"</span><span class="p">:</span> <span class="s2">"failed: --strict and a bad answer (an#559)"</span><span class="p">,</span>
+    <span class="s2">"bench-mutants"</span><span class="p">:</span> <span class="s2">"failed: a survivor, an unknown name, rot; 130 interrupted"</span><span class="p">,</span>
+    <span class="s2">"voices list"</span><span class="p">:</span> <span class="s2">"0: no voices is an answer"</span><span class="p">,</span>
+    <span class="s2">"voices rescore"</span><span class="p">:</span> <span class="s2">"failed: no dialogue line matches (an#559)"</span><span class="p">,</span>
+    <span class="s2">"voices reroll"</span><span class="p">:</span> <span class="s2">"failed: no dialogue line matches (an#559)"</span><span class="p">,</span>
+    <span class="s2">"voices design"</span><span class="p">:</span> <span class="s2">"refuses (VoiceDesignError)"</span><span class="p">,</span>
+    <span class="s2">"voices audition"</span><span class="p">:</span> <span class="s2">"refuses (VoiceDesignError)"</span><span class="p">,</span>
+    <span class="s2">"voices choose"</span><span class="p">:</span> <span class="s2">"refuses (VoiceDesignError)"</span><span class="p">,</span>
+    <span class="s2">"voices cast"</span><span class="p">:</span> <span class="s2">"refuses (VoiceDesignError)"</span><span class="p">,</span>
+    <span class="s2">"voices import"</span><span class="p">:</span> <span class="s2">"refuses (RecordedVoicesError)"</span><span class="p">,</span>
+    <span class="s2">"library publish"</span><span class="p">:</span> <span class="s2">"refuses; an unknown licence is recorded on purpose: 0"</span><span class="p">,</span>
+    <span class="s2">"library kit"</span><span class="p">:</span> <span class="s2">"refuses"</span><span class="p">,</span>
+    <span class="s2">"library find"</span><span class="p">:</span> <span class="s2">"0: no match is an answer"</span><span class="p">,</span>
+    <span class="s2">"library vocabulary"</span><span class="p">:</span> <span class="s2">"0"</span><span class="p">,</span>
+    <span class="s2">"library show"</span><span class="p">:</span> <span class="s2">"refuses"</span><span class="p">,</span>
+    <span class="s2">"library checkout"</span><span class="p">:</span> <span class="s2">"refuses"</span><span class="p">,</span>
+    <span class="s2">"library promote"</span><span class="p">:</span> <span class="s2">"refuses"</span><span class="p">,</span>
+    <span class="s2">"library retire"</span><span class="p">:</span> <span class="s2">"refuses"</span><span class="p">,</span>
+    <span class="s2">"library sheet"</span><span class="p">:</span> <span class="s2">"refuses"</span><span class="p">,</span>
+    <span class="s2">"library reindex"</span><span class="p">:</span> <span class="s2">"refuses"</span><span class="p">,</span>
+    <span class="s2">"cache info"</span><span class="p">:</span> <span class="s2">"0"</span><span class="p">,</span>
+    <span class="s2">"cache gc"</span><span class="p">:</span> <span class="s2">"refuses"</span><span class="p">,</span>
+    <span class="s2">"sounds add"</span><span class="p">:</span> <span class="s2">"refuses"</span><span class="p">,</span>
+    <span class="s2">"props validate"</span><span class="p">:</span> <span class="s2">"failed: a FAILED report (an#480)"</span><span class="p">,</span>
+    <span class="s2">"props contract"</span><span class="p">:</span> <span class="s2">"0"</span><span class="p">,</span>
+    <span class="s2">"world show"</span><span class="p">:</span> <span class="s2">"refuses"</span><span class="p">,</span>
+<span class="p">}</span>
 </pre></div>
 
                 </article>
