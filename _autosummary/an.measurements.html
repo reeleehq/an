@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=8e44ef40"></script>
+    <script src="../_static/documentation_options.js?v=b9bc652a"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.271" />
+  <meta name="docsearch:version" content="0.1.272" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -659,7 +659,7 @@ frame for the difference, and a warning says so — or, under <code class="docut
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.measurements.accept_measured" title="an.measurements.accept_measured"><code class="xref py py-obj docutils literal notranslate"><span class="pre">accept_measured</span></code></a>(project_dir)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.measurements.accept_measured" title="an.measurements.accept_measured"><code class="xref py py-obj docutils literal notranslate"><span class="pre">accept_measured</span></code></a>(project_dir, *[, scene_file])</p></td>
 <td><p>Write each clock-owned shot's MEASURED length into the authored scene.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.measurements.clock_owner_for" title="an.measurements.clock_owner_for"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clock_owner_for</span></code></a>(shot[, registry])</p></td>
@@ -706,7 +706,7 @@ when the thing to fix is an opaque source (a Manim scene file).</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.measurements.accept_measured">
-<span class="sig-prename descclassname"><span class="pre">an.measurements.</span></span><span class="sig-name descname"><span class="pre">accept_measured</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/measurements.html#accept_measured"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.measurements.accept_measured" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.measurements.</span></span><span class="sig-name descname"><span class="pre">accept_measured</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">scene_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'scene.md'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/measurements.html#accept_measured"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.measurements.accept_measured" title="Link to this definition">#</a></dt>
 <dd><p>Write each clock-owned shot’s MEASURED length into the authored scene.</p>
 <p>Only stored measurements (render first); only shots whose scene duration
 differs. Each <code class="docutils literal notranslate"><span class="pre">duration:</span></code> line is patched in place through

@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=8e44ef40"></script>
+    <script src="../_static/documentation_options.js?v=b9bc652a"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.271" />
+  <meta name="docsearch:version" content="0.1.272" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -682,13 +682,13 @@ for verification, and <code class="code docutils literal notranslate"><span clas
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.init" title="an.init"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init</span></code></a>(project_dir, *[, name, force])</p></td>
 <td><p>Create a fresh an project at <code class="docutils literal notranslate"><span class="pre">project_dir</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.load" title="an.load"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load</span></code></a>(project_dir, *[, check_kinds])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.load" title="an.load"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load</span></code></a>(project_dir, *[, check_kinds, scene_file])</p></td>
 <td><p>Load an existing project.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.save" title="an.save"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save</span></code></a>(project)</p></td>
 <td><p>Persist a Project's current scene back to disk (md + json).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.build_project_mall" title="an.build_project_mall"><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_project_mall</span></code></a>(project_dir, *[, ensure])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.build_project_mall" title="an.build_project_mall"><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_project_mall</span></code></a>(project_dir, *[, ensure, ...])</p></td>
 <td><p>Build the standard project mall over <code class="docutils literal notranslate"><span class="pre">project_dir</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.check_requirements" title="an.check_requirements"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_requirements</span></code></a>()</p></td>
@@ -1273,10 +1273,11 @@ when unset, like <code class="docutils literal notranslate"><span class="pre">po
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.build_project_mall">
-<span class="sig-prename descclassname"><span class="pre">an.</span></span><span class="sig-name descname"><span class="pre">build_project_mall</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">overrides</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores.html#build_project_mall"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build_project_mall" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.</span></span><span class="sig-name descname"><span class="pre">build_project_mall</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scene_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'scene.md'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">overrides</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores.html#build_project_mall"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build_project_mall" title="Link to this definition">#</a></dt>
 <dd><p>Build the standard project mall over <code class="docutils literal notranslate"><span class="pre">project_dir</span></code>.</p>
 <p>Pass <code class="docutils literal notranslate"><span class="pre">ensure=True</span></code> to create the per-store directories on disk if they
-don’t exist. Pass keyword overrides to swap in alternate stores (e.g. an
+don’t exist. <code class="docutils literal notranslate"><span class="pre">scene_file</span></code> picks the scene the <code class="docutils literal notranslate"><span class="pre">scenes</span></code> store holds (an#539;
+<code class="docutils literal notranslate"><span class="pre">scene.md</span></code> by default). Pass keyword overrides to swap in alternate stores (e.g. an
 in-memory <code class="code docutils literal notranslate"><span class="pre">dict</span></code> for tests).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -1432,8 +1433,12 @@ did not change.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.load">
-<span class="sig-prename descclassname"><span class="pre">an.</span></span><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_kinds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/project.html#load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.load" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.</span></span><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_kinds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scene_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'scene.md'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/project.html#load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.load" title="Link to this definition">#</a></dt>
 <dd><p>Load an existing project. Reconciles scene.md / ir/scene.json first.</p>
+<p><code class="docutils literal notranslate"><span class="pre">scene_file</span></code> names another scene of the project (<code class="docutils literal notranslate"><span class="pre">scene.studio.md</span></code>, its
+JSON twin <code class="docutils literal notranslate"><span class="pre">ir/scene.studio.json</span></code>, an#539; resolved by
+<code class="xref py py-func docutils literal notranslate"><span class="pre">an.ir.sync.resolve_scene_file()</span></code>, so a bad or missing one raises
+<code class="xref py py-class docutils literal notranslate"><span class="pre">SceneFileError</span></code>); the assets are the project’s.</p>
 <p>Registers the installed genres first (<a class="reference internal" href="an.genres.html#an.genres.load" title="an.genres.load"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.genres.load()</span></code></a>, ADR 0001
 decision 3: discovery is explicit, and loading a project is one of the
 places it happens), so the scene’s genre kinds — the cut-out genre’s

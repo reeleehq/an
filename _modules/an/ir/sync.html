@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=8e44ef40"></script>
+    <script src="../../../_static/documentation_options.js?v=b9bc652a"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.271" />
+  <meta name="docsearch:version" content="0.1.272" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -754,6 +754,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
@@ -1978,18 +1979,166 @@ window.runMermaid = runMermaid;</script>
         <span class="k">raise</span> <span class="n">SceneValidationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
 
 
+<span class="c1">#: The scene file a project's commands read when none is named: ``scene.md``,</span>
+<span class="c1">#: paired with ``ir/scene.json``.</span>
+<span class="n">DEFAULT_SCENE_FILE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"scene.md"</span>
+
+<span class="c1">#: What ``output/&lt;name&gt;.mp4`` (and its render report and shot-cache root) the</span>
+<span class="c1">#: default scene file renders to. Reserved for it: another scene may not take it.</span>
+<span class="n">DEFAULT_OUTPUT_NAME</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"main"</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SceneFileError</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A scene file a command was given cannot be used: a bad name, a file</span>
+<span class="sd">    that is not there, or a name that would overwrite the default scene's</span>
+<span class="sd">    output. The message says what to do."""</span>
+
+
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SceneFile</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""One scene of a project, resolved (an#539): its name inside the project,</span>
+<span class="sd">    its markdown, its JSON twin, and the output name a render of it defaults to.</span>
+<span class="sd">    Built by :func:`resolve_scene_file`, never by hand."""</span>
+
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">md_path</span><span class="p">:</span> <span class="n">Path</span>
+    <span class="n">json_path</span><span class="p">:</span> <span class="n">Path</span>
+    <span class="n">output_name</span><span class="p">:</span> <span class="nb">str</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_default</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">DEFAULT_SCENE_FILE</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">output_for</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The output name a render of this scene writes: ``output_name`` when</span>
+<span class="sd">        given, else :attr:`output_name`. A scene other than the default one</span>
+<span class="sd">        may not write the default scene's output.</span>
+
+<span class="sd">        &gt;&gt;&gt; sf = resolve_scene_file("/p", "scene.studio.md", must_exist=False)</span>
+<span class="sd">        &gt;&gt;&gt; sf.output_for(), sf.output_for("final")</span>
+<span class="sd">        ('scene.studio', 'final')</span>
+<span class="sd">        &gt;&gt;&gt; sf.output_for("main")</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        an.ir.sync.SceneFileError: output name 'main' is the default scene's (scene.md) output; a render of scene.studio.md would overwrite it: pick another --output-name</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">output_name</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_name</span>
+        <span class="k">if</span> <span class="s2">"/"</span> <span class="ow">in</span> <span class="n">output_name</span> <span class="ow">or</span> <span class="s2">"</span><span class="se">\\</span><span class="s2">"</span> <span class="ow">in</span> <span class="n">output_name</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">SceneFileError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"output name </span><span class="si">{</span><span class="n">output_name</span><span class="si">!r}</span><span class="s2"> must be a file stem, not a path"</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_default</span> <span class="ow">and</span> <span class="n">output_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">DEFAULT_OUTPUT_NAME</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">SceneFileError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"output name </span><span class="si">{</span><span class="n">output_name</span><span class="si">!r}</span><span class="s2"> is the default scene's "</span>
+                <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="n">DEFAULT_SCENE_FILE</span><span class="si">}</span><span class="s2">) output; a render of </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> would "</span>
+                <span class="s2">"overwrite it: pick another --output-name"</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">output_name</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_scene_file_name</span><span class="p">(</span><span class="n">project_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">scene_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The name of ``scene_file`` inside ``project_dir``; raises</span>
+<span class="sd">    :class:`SceneFileError` for anything that is not a ``.md`` file directly in it."""</span>
+    <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"scene file </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">scene_file</span><span class="p">)</span><span class="si">!r}</span><span class="s2"> must be a .md file directly inside the "</span>
+        <span class="sa">f</span><span class="s2">"project directory </span><span class="si">{</span><span class="n">project_dir</span><span class="si">}</span><span class="s2"> (for example scene.studio.md)"</span>
+    <span class="p">)</span>
+    <span class="n">spelled</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">scene_file</span><span class="p">)</span>
+    <span class="c1"># A backslash is a path separator on Windows (Path sorts it out below); on</span>
+    <span class="c1"># POSIX it is a legal name character that would be a folder there.</span>
+    <span class="k">if</span> <span class="p">(</span><span class="s2">"</span><span class="se">\\</span><span class="s2">"</span> <span class="ow">in</span> <span class="n">spelled</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">!=</span> <span class="s2">"</span><span class="se">\\</span><span class="s2">"</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">spelled</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="n">SceneFileError</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">given</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">spelled</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">given</span><span class="o">.</span><span class="n">parts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># a path, not a bare name: where does it point?</span>
+        <span class="k">if</span> <span class="n">given</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span> <span class="o">!=</span> <span class="n">project_dir</span><span class="o">.</span><span class="n">resolve</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="n">SceneFileError</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">given</span><span class="o">.</span><span class="n">name</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">".md"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"."</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">SceneFileError</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="o">!=</span> <span class="n">DEFAULT_SCENE_FILE</span> <span class="ow">and</span> <span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">DEFAULT_SCENE_FILE</span><span class="p">:</span>
+        <span class="c1"># On a case-insensitive disk `Scene.md` IS scene.md (two outputs for one</span>
+        <span class="c1"># scene), on a case-sensitive one it is another file: say which you mean.</span>
+        <span class="k">raise</span> <span class="n">SceneFileError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">shape</span><span class="si">}</span><span class="s2">; did you mean </span><span class="si">{</span><span class="n">DEFAULT_SCENE_FILE</span><span class="si">}</span><span class="s2">?"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">name</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">resolve_scene_file</span><span class="p">(</span>
+    <span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">scene_file</span><span class="p">:</span> <span class="s2">"str | Path | SceneFile"</span> <span class="o">=</span> <span class="n">DEFAULT_SCENE_FILE</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">must_exist</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SceneFile</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Resolve the scene file a command was given (an#539: a project may keep</span>
+<span class="sd">    several scenes, ``scene.studio.md`` beside ``scene.md``).</span>
+
+<span class="sd">    ``scene_file`` is a name inside the project, or a path whose parent is</span>
+<span class="sd">    the project directory (``proj/scene.studio.md``, an absolute path, a path</span>
+<span class="sd">    spelled with ``..``). Its JSON twin is ``ir/&lt;stem&gt;.json``; a render of it</span>
+<span class="sd">    defaults to ``output/&lt;stem&gt;.mp4``, and to ``output/main.mp4`` for the</span>
+<span class="sd">    default ``scene.md``. Raises :class:`SceneFileError` for a name that is</span>
+<span class="sd">    not a ``.md`` file directly in the project, for another scene whose stem</span>
+<span class="sd">    is ``main`` (it would overwrite the default scene's output), and, under</span>
+<span class="sd">    ``must_exist``, for a named scene that is not there. A missing DEFAULT</span>
+<span class="sd">    scene is never an error here: a new project has none yet.</span>
+
+<span class="sd">    &gt;&gt;&gt; sf = resolve_scene_file("/p", must_exist=False)</span>
+<span class="sd">    &gt;&gt;&gt; sf.name, sf.md_path.as_posix(), sf.json_path.as_posix(), sf.output_name</span>
+<span class="sd">    ('scene.md', '/p/scene.md', '/p/ir/scene.json', 'main')</span>
+<span class="sd">    &gt;&gt;&gt; sf = resolve_scene_file("/p", "/p/../p/scene.studio.md", must_exist=False)</span>
+<span class="sd">    &gt;&gt;&gt; sf.name, sf.json_path.as_posix(), sf.output_name</span>
+<span class="sd">    ('scene.studio.md', '/p/ir/scene.studio.json', 'scene.studio')</span>
+<span class="sd">    &gt;&gt;&gt; resolve_scene_file("/p", "Scene.md", must_exist=False)  # doctest: +ELLIPSIS</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    an.ir.sync.SceneFileError: scene file 'Scene.md' must be ...; did you mean scene.md?</span>
+<span class="sd">    &gt;&gt;&gt; resolve_scene_file("/p", "sub/scene.md", must_exist=False)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    an.ir.sync.SceneFileError: scene file 'sub/scene.md' must be a .md file directly inside the project directory /p (for example scene.studio.md)</span>
+<span class="sd">    &gt;&gt;&gt; resolve_scene_file("/p", "main.md", must_exist=False)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    an.ir.sync.SceneFileError: scene file 'main.md' would render to output/main.mp4, the default scene's (scene.md) output: rename the file (for example scene.main.md)</span>
+<span class="sd">    """</span>
+    <span class="n">pdir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scene_file</span><span class="p">,</span> <span class="n">SceneFile</span><span class="p">):</span>
+        <span class="n">scene_file</span> <span class="o">=</span> <span class="n">scene_file</span><span class="o">.</span><span class="n">name</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">_scene_file_name</span><span class="p">(</span><span class="n">pdir</span><span class="p">,</span> <span class="n">scene_file</span><span class="p">)</span>
+    <span class="n">stem</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">stem</span>
+    <span class="n">is_default</span> <span class="o">=</span> <span class="n">name</span> <span class="o">==</span> <span class="n">DEFAULT_SCENE_FILE</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_default</span> <span class="ow">and</span> <span class="n">stem</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">DEFAULT_OUTPUT_NAME</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">SceneFileError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"scene file </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> would render to output/</span><span class="si">{</span><span class="n">DEFAULT_OUTPUT_NAME</span><span class="si">}</span><span class="s2">.mp4, "</span>
+            <span class="sa">f</span><span class="s2">"the default scene's (</span><span class="si">{</span><span class="n">DEFAULT_SCENE_FILE</span><span class="si">}</span><span class="s2">) output: rename the file "</span>
+            <span class="sa">f</span><span class="s2">"(for example scene.</span><span class="si">{</span><span class="n">stem</span><span class="si">}</span><span class="s2">.md)"</span>
+        <span class="p">)</span>
+    <span class="n">md_path</span> <span class="o">=</span> <span class="n">pdir</span> <span class="o">/</span> <span class="n">name</span>
+    <span class="k">if</span> <span class="n">must_exist</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_default</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">md_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="n">SceneFileError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"no scene file </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> in </span><span class="si">{</span><span class="n">pdir</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">SceneFile</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+        <span class="n">md_path</span><span class="o">=</span><span class="n">md_path</span><span class="p">,</span>
+        <span class="n">json_path</span><span class="o">=</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"ir"</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">stem</span><span class="si">}</span><span class="s2">.json"</span><span class="p">,</span>
+        <span class="n">output_name</span><span class="o">=</span><span class="n">DEFAULT_OUTPUT_NAME</span> <span class="k">if</span> <span class="n">is_default</span> <span class="k">else</span> <span class="n">stem</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
 <div class="viewcode-block" id="sync">
 <a class="viewcode-back" href="../../../_autosummary/an.ir.html#an.sync">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">sync</span><span class="p">(</span><span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SyncResult</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Reconcile ``scene.md`` and ``ir/scene.json`` inside a project directory.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">sync</span><span class="p">(</span>
+    <span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="n">scene_file</span><span class="p">:</span> <span class="s2">"str | Path | SceneFile"</span> <span class="o">=</span> <span class="n">DEFAULT_SCENE_FILE</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SyncResult</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Reconcile a scene's markdown and JSON inside a project directory</span>
+<span class="sd">    (``scene.md`` and ``ir/scene.json``, or the pair of the ``scene_file`` named;</span>
+<span class="sd">    a named scene that is not there raises :class:`SceneFileError`).</span>
 
 <span class="sd">    Strategy in v0.1: Markdown is the human SSOT; if both exist, the JSON is</span>
 <span class="sd">    regenerated from the Markdown unless mtimes show JSON is newer (which the</span>
 <span class="sd">    user is told never to do — but we warn instead of silently overwriting).</span>
 <span class="sd">    """</span>
-    <span class="n">pdir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
-    <span class="n">md_path</span> <span class="o">=</span> <span class="n">pdir</span> <span class="o">/</span> <span class="s2">"scene.md"</span>
-    <span class="n">json_path</span> <span class="o">=</span> <span class="n">pdir</span> <span class="o">/</span> <span class="s2">"ir"</span> <span class="o">/</span> <span class="s2">"scene.json"</span>
+    <span class="n">resolved</span> <span class="o">=</span> <span class="n">resolve_scene_file</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="n">scene_file</span><span class="p">)</span>
+    <span class="n">md_path</span><span class="p">,</span> <span class="n">json_path</span> <span class="o">=</span> <span class="n">resolved</span><span class="o">.</span><span class="n">md_path</span><span class="p">,</span> <span class="n">resolved</span><span class="o">.</span><span class="n">json_path</span>
     <span class="n">result</span> <span class="o">=</span> <span class="n">SyncResult</span><span class="p">()</span>
 
     <span class="n">md_exists</span> <span class="o">=</span> <span class="n">md_path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
@@ -2046,7 +2195,8 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">SyncTieWarning</span><span class="p">(</span><span class="ne">UserWarning</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""``scene.md`` and ``ir/scene.json`` had the same age and disagreed."""</span>
+<span class="w">    </span><span class="sd">"""A scene's markdown (``scene.md``) and its JSON twin (``ir/scene.json``)</span>
+<span class="sd">    had the same age and disagreed."""</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_settle_a_tie</span><span class="p">(</span><span class="n">md_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">json_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">md_mtime</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -2063,8 +2213,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
         <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">md_path</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">json_path</span><span class="si">}</span><span class="s2"> have the same modification time but say "</span>
         <span class="s2">"different things (an edit made outside `an` within half a second of "</span>
-        <span class="s2">"the other file's write); scene.md, the source of truth, was taken and "</span>
-        <span class="s2">"ir/scene.json regenerated from it."</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"the other file's write); </span><span class="si">{</span><span class="n">md_path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">, the source of truth, was taken "</span>
+        <span class="sa">f</span><span class="s2">"and ir/</span><span class="si">{</span><span class="n">json_path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> regenerated from it."</span><span class="p">,</span>
         <span class="n">SyncTieWarning</span><span class="p">,</span>
         <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
     <span class="p">)</span>

@@ -14,26 +14,26 @@ True
 
 ### Functions
 
-| [`set_`](#an.set_)(target, property, value, \*[, at])          | Discrete property set at time `at` (relative to its enclosing scope).          |
-|---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
-| [`tween`](#an.tween)(target, property, to, duration, \*[, ...]) | Animate a property from `from_` (or its current value) to `to`.                |
-| [`sequence`](#an.sequence)(\*actions)                              | Run children one after the other.                                              |
-| [`parallel`](#an.parallel)(\*actions)                              | Run all children at once.                                                      |
-| [`stagger`](#an.stagger)(lag, \*actions)                          | Start each action `lag` seconds after the previous one STARTS.                 |
-| [`crowd`](#an.crowd)(id, \*, ref, count[, kind, store, ...])    | `count` entities of one asset (`kind`/`store`/`ref`) placed in `area`.         |
-| [`fan_out`](#an.fan_out)(action, members, \*[, crowd_id])         | A copy of `action` per member, its targets moved from the crowd to the member. |
-| [`delay`](#an.delay)(duration)                                  | An empty span that consumes time.                                              |
-| [`loop`](#an.loop)(action, count)                              | Repeat `action` `count` times.                                                 |
-| [`flatten`](#an.flatten)(action, \*[, start, play_extent])        | Walk a composition tree, emitting leaf actions with absolute times.            |
-| [`validate_schema`](#an.validate_schema)(doc)                             | Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema.    |
-| [`validate_semantic`](#an.validate_semantic)(scene, \*[, ...])              | Cross-field semantic checks.                                                   |
-| [`markdown_to_ir`](#an.markdown_to_ir)(md_text)                          | Parse the structured Markdown form of a scene into a SceneIR.                  |
-| [`ir_to_markdown`](#an.ir_to_markdown)(scene)                            | Render a SceneIR back into the structured Markdown form.                       |
-| [`init`](#an.init)(project_dir, \*[, name, force])             | Create a fresh an project at `project_dir`.                                    |
-| [`load`](#an.load)(project_dir, \*[, check_kinds])             | Load an existing project.                                                      |
-| [`save`](#an.save)(project)                                    | Persist a Project's current scene back to disk (md + json).                    |
-| [`build_project_mall`](#an.build_project_mall)(project_dir, \*[, ensure])    | Build the standard project mall over `project_dir`.                            |
-| [`check_requirements`](#an.check_requirements)()                             | Return a per-tool status dict.                                                 |
+| [`set_`](#an.set_)(target, property, value, \*[, at])            | Discrete property set at time `at` (relative to its enclosing scope).          |
+|-----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| [`tween`](#an.tween)(target, property, to, duration, \*[, ...])   | Animate a property from `from_` (or its current value) to `to`.                |
+| [`sequence`](#an.sequence)(\*actions)                                | Run children one after the other.                                              |
+| [`parallel`](#an.parallel)(\*actions)                                | Run all children at once.                                                      |
+| [`stagger`](#an.stagger)(lag, \*actions)                            | Start each action `lag` seconds after the previous one STARTS.                 |
+| [`crowd`](#an.crowd)(id, \*, ref, count[, kind, store, ...])      | `count` entities of one asset (`kind`/`store`/`ref`) placed in `area`.         |
+| [`fan_out`](#an.fan_out)(action, members, \*[, crowd_id])           | A copy of `action` per member, its targets moved from the crowd to the member. |
+| [`delay`](#an.delay)(duration)                                    | An empty span that consumes time.                                              |
+| [`loop`](#an.loop)(action, count)                                | Repeat `action` `count` times.                                                 |
+| [`flatten`](#an.flatten)(action, \*[, start, play_extent])          | Walk a composition tree, emitting leaf actions with absolute times.            |
+| [`validate_schema`](#an.validate_schema)(doc)                               | Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema.    |
+| [`validate_semantic`](#an.validate_semantic)(scene, \*[, ...])                | Cross-field semantic checks.                                                   |
+| [`markdown_to_ir`](#an.markdown_to_ir)(md_text)                            | Parse the structured Markdown form of a scene into a SceneIR.                  |
+| [`ir_to_markdown`](#an.ir_to_markdown)(scene)                              | Render a SceneIR back into the structured Markdown form.                       |
+| [`init`](#an.init)(project_dir, \*[, name, force])               | Create a fresh an project at `project_dir`.                                    |
+| [`load`](#an.load)(project_dir, \*[, check_kinds, scene_file])   | Load an existing project.                                                      |
+| [`save`](#an.save)(project)                                      | Persist a Project's current scene back to disk (md + json).                    |
+| [`build_project_mall`](#an.build_project_mall)(project_dir, \*[, ensure, ...]) | Build the standard project mall over `project_dir`.                            |
+| [`check_requirements`](#an.check_requirements)()                               | Return a per-tool status dict.                                                 |
 
 ### Classes
 
@@ -480,12 +480,13 @@ when unset, like `policy`.
 
 Items held by something for a span (`Weld`); omitted when empty.
 
-### an.build_project_mall(project_dir, , ensure=False, \*\*overrides)
+### an.build_project_mall(project_dir, , ensure=False, scene_file='scene.md', \*\*overrides)
 
 Build the standard project mall over `project_dir`.
 
 Pass `ensure=True` to create the per-store directories on disk if they
-don’t exist. Pass keyword overrides to swap in alternate stores (e.g. an
+don’t exist. `scene_file` picks the scene the `scenes` store holds (an#539;
+`scene.md` by default). Pass keyword overrides to swap in alternate stores (e.g. an
 in-memory `dict` for tests).
 
 * **Return type:**
@@ -618,9 +619,14 @@ did not change.
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.load(project_dir, , check_kinds=True)
+### an.load(project_dir, , check_kinds=True, scene_file='scene.md')
 
 Load an existing project. Reconciles scene.md / ir/scene.json first.
+
+`scene_file` names another scene of the project (`scene.studio.md`, its
+JSON twin `ir/scene.studio.json`, an#539; resolved by
+`an.ir.sync.resolve_scene_file()`, so a bad or missing one raises
+`SceneFileError`); the assets are the project’s.
 
 Registers the installed genres first ([`an.genres.load()`](an.genres.html.md#an.genres.load), ADR 0001
 decision 3: discovery is explicit, and loading a project is one of the

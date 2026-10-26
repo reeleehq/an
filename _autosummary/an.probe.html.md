@@ -61,7 +61,7 @@ supersample: as `an render --supersample` (the frame is the film’s only
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)]
 
-### an.probe.probe(project_dir, shot, at, , out=None, columns=None, supersample=1, allow_private_here=False)
+### an.probe.probe(project_dir, shot, at, , out=None, columns=None, supersample=1, allow_private_here=False, scene_file='scene.md')
 
 Write shot `shot`’s frames at `at` to one PNG (a grid for several instants).
 
@@ -70,5 +70,8 @@ columns: cells per row of a grid (default: a square grid)
 allow_private_here: write not-publishable frames inside a git work tree
 
 > that does not ignore the path
+
+scene_file: probe another scene of the project (`scene.studio.md`, an#539)
+
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)

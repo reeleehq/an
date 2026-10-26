@@ -34,12 +34,12 @@ True
 
 ### Functions
 
-| [`accept_measured`](#an.measurements.accept_measured)(project_dir)                    | Write each clock-owned shot's MEASURED length into the authored scene.                                      |
-|--------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
-| [`clock_owner_for`](#an.measurements.clock_owner_for)(shot[, registry])               | The registered renderer of `shot` if it owns its clock, else `None`.                                        |
-| [`declared_duration`](#an.measurements.declared_duration)(shot)                         | The duration the AUTHOR wrote, or `None`.                                                                   |
-| [`settle_durations`](#an.measurements.settle_durations)(scene, ctx, \*, render[, ...]) | A COPY of `scene` whose clock-owned shots carry their settled length, and the findings about them.          |
-| [`warn_findings`](#an.measurements.warn_findings)(findings, \*[, stacklevel])       | Warn each finding as a [`ShotFindingWarning`](#an.measurements.ShotFindingWarning) (`location: …`). |
+| [`accept_measured`](#an.measurements.accept_measured)(project_dir, \*[, scene_file])   | Write each clock-owned shot's MEASURED length into the authored scene.                                      |
+|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
+| [`clock_owner_for`](#an.measurements.clock_owner_for)(shot[, registry])                | The registered renderer of `shot` if it owns its clock, else `None`.                                        |
+| [`declared_duration`](#an.measurements.declared_duration)(shot)                          | The duration the AUTHOR wrote, or `None`.                                                                   |
+| [`settle_durations`](#an.measurements.settle_durations)(scene, ctx, \*, render[, ...])  | A COPY of `scene` whose clock-owned shots carry their settled length, and the findings about them.          |
+| [`warn_findings`](#an.measurements.warn_findings)(findings, \*[, stacklevel])        | Warn each finding as a [`ShotFindingWarning`](#an.measurements.ShotFindingWarning) (`location: …`). |
 
 ### Exceptions
 
@@ -60,7 +60,7 @@ Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWa
 A finding about a shot, warned by `an render` — located by `file:line`
 when the thing to fix is an opaque source (a Manim scene file).
 
-### an.measurements.accept_measured(project_dir)
+### an.measurements.accept_measured(project_dir, , scene_file='scene.md')
 
 Write each clock-owned shot’s MEASURED length into the authored scene.
 

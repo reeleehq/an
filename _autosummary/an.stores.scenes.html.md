@@ -2,9 +2,10 @@
 
 Scenes store — wraps the project’s `scene.md` + `ir/scene.json` pair.
 
-Right now an an project contains exactly one scene (“main”), so this store
-exposes only the `"main"` key. Future versions can support multi-scene
-projects by promoting siblings inside a `scenes/` directory.
+The store exposes the one scene of the file pair it was opened on under the
+`"main"` key: `scene.md` and `ir/scene.json` by default, or the pair of
+the `scene_file` a command was given (`scene.studio.md` and
+`ir/scene.studio.json`, an#539), so a project can keep several scenes.
 
 Reading returns a `SceneIR`. Writing accepts a `SceneIR` (or a dict that
 validates as one) and persists the JSON and the Markdown – the Markdown UPDATED
@@ -18,10 +19,10 @@ was, and a change rewrites only the blocks it touches (`an.ir.sync.merge_markdow
 
 ### Classes
 
-| [`ScenesStore`](#an.stores.scenes.ScenesStore)(project_dir)   | `MutableMapping` exposing the scene file pair under a project root.   |
-|-----------------------------------------------------------------------------|-----------------------------------------------------------------------|
+| [`ScenesStore`](#an.stores.scenes.ScenesStore)(project_dir[, scene_file])   | `MutableMapping` exposing the scene file pair under a project root.   |
+|-------------------------------------------------------------------------------------------|-----------------------------------------------------------------------|
 
-### *class* an.stores.scenes.ScenesStore(project_dir)
+### *class* an.stores.scenes.ScenesStore(project_dir, scene_file='scene.md')
 
 Bases: [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)
 

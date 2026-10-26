@@ -44,7 +44,7 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Outcome of staging a preview’s runtime + initial compiled scene.
 
-### an.stage.preview.preview_project(project_dir, , shot_id=None, open_browser=True, poll_interval_s=0.5)
+### an.stage.preview.preview_project(project_dir, , shot_id=None, open_browser=True, poll_interval_s=0.5, scene_file='scene.md')
 
 Serve a live preview of `project_dir` from a local HTTP server.
 

@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=8e44ef40"></script>
+    <script src="../_static/documentation_options.js?v=b9bc652a"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.271" />
+  <meta name="docsearch:version" content="0.1.272" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -699,8 +699,8 @@ authoring-time DSL to canonical-form actions.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.ir_to_markdown" title="an.ir.ir_to_markdown"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ir_to_markdown</span></code></a>(scene)</p></td>
 <td><p>Render a SceneIR back into the structured Markdown form.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.sync" title="an.ir.sync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sync</span></code></a>(project_dir)</p></td>
-<td><p>Reconcile <code class="docutils literal notranslate"><span class="pre">scene.md</span></code> and <code class="docutils literal notranslate"><span class="pre">ir/scene.json</span></code> inside a project directory.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.sync" title="an.ir.sync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sync</span></code></a>(project_dir[, scene_file])</p></td>
+<td><p>Reconcile a scene's markdown and JSON inside a project directory (<code class="docutils literal notranslate"><span class="pre">scene.md</span></code> and <code class="docutils literal notranslate"><span class="pre">ir/scene.json</span></code>, or the pair of the <code class="docutils literal notranslate"><span class="pre">scene_file</span></code> named; a named scene that is not there raises <code class="xref py py-class docutils literal notranslate"><span class="pre">SceneFileError</span></code>).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.pin" title="an.ir.pin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pin</span></code></a>(point, to, *[, duration])</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">point</span></code> held at <code class="docutils literal notranslate"><span class="pre">to</span></code>.</p></td>
@@ -2141,8 +2141,10 @@ per-unit actions with holds, not a combinator.)</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.ir.sync">
-<span class="sig-prename descclassname"><span class="pre">an.ir.</span></span><span class="sig-name descname"><span class="pre">sync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/sync.html#sync"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.sync" title="Link to this definition">#</a></dt>
-<dd><p>Reconcile <code class="docutils literal notranslate"><span class="pre">scene.md</span></code> and <code class="docutils literal notranslate"><span class="pre">ir/scene.json</span></code> inside a project directory.</p>
+<span class="sig-prename descclassname"><span class="pre">an.ir.</span></span><span class="sig-name descname"><span class="pre">sync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scene_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'scene.md'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/sync.html#sync"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.sync" title="Link to this definition">#</a></dt>
+<dd><p>Reconcile a scene’s markdown and JSON inside a project directory
+(<code class="docutils literal notranslate"><span class="pre">scene.md</span></code> and <code class="docutils literal notranslate"><span class="pre">ir/scene.json</span></code>, or the pair of the <code class="docutils literal notranslate"><span class="pre">scene_file</span></code> named;
+a named scene that is not there raises <code class="xref py py-class docutils literal notranslate"><span class="pre">SceneFileError</span></code>).</p>
 <p>Strategy in v0.1: Markdown is the human SSOT; if both exist, the JSON is
 regenerated from the Markdown unless mtimes show JSON is newer (which the
 user is told never to do — but we warn instead of silently overwriting).</p>

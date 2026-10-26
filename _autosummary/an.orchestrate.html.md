@@ -26,7 +26,7 @@ True
 |---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`orchestrate`](#an.orchestrate.orchestrate)(project_dir, \*[, output_name, ...]) | Run the full pipeline.                                                                                                                                                                                                  |
 | [`render_project`](#an.orchestrate.render_project)(project_dir, \*\*kwargs)          | Render the project's scene to a single mp4 under `output/` — the orchestrator's name for [`an.render.render_project()`](an.render.html.md#an.render.render_project), every keyword forwarded. |
-| [`validate_project`](#an.orchestrate.validate_project)(project_dir, \*[, fps, ...])    | Schema + semantic validation of the scene at `project_dir`.                                                                                                                                                             |
+| [`validate_project`](#an.orchestrate.validate_project)(project_dir, \*[, fps, ...])    | Schema + semantic validation of the scene at `project_dir` (`scene.md`, or the project's other `scene_file`, an#539).                                                                                                   |
 
 ### Classes
 
@@ -115,9 +115,10 @@ rather than the leaf (an#98 review). A pass-through cannot drift.
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
-### an.orchestrate.validate_project(project_dir, , fps=None, strict_assets=False)
+### an.orchestrate.validate_project(project_dir, , fps=None, strict_assets=False, scene_file='scene.md')
 
-Schema + semantic validation of the scene at `project_dir`.
+Schema + semantic validation of the scene at `project_dir` (`scene.md`,
+or the project’s other `scene_file`, an#539).
 
 A `scene.md` that does not PARSE — a dialogue line in no accepted shape
 (an#96), a malformed YAML block — is a Finding, not a traceback: `an

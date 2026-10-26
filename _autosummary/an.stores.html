@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=8e44ef40"></script>
+    <script src="../_static/documentation_options.js?v=b9bc652a"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.271" />
+  <meta name="docsearch:version" content="0.1.272" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -654,7 +654,7 @@ sites work against filesystem, SQLite, S3, etc.</p>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.build_project_mall" title="an.stores.build_project_mall"><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_project_mall</span></code></a>(project_dir, *[, ensure])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.build_project_mall" title="an.stores.build_project_mall"><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_project_mall</span></code></a>(project_dir, *[, ensure, ...])</p></td>
 <td><p>Build the standard project mall over <code class="docutils literal notranslate"><span class="pre">project_dir</span></code>.</p></td>
 </tr>
 </tbody>
@@ -678,7 +678,7 @@ sites work against filesystem, SQLite, S3, etc.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.PropsStore" title="an.stores.PropsStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PropsStore</span></code></a>(root_dir)</p></td>
 <td><p>Per-prop directory store.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stores.ScenesStore" title="an.stores.ScenesStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ScenesStore</span></code></a>(project_dir)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stores.ScenesStore" title="an.stores.ScenesStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ScenesStore</span></code></a>(project_dir[, scene_file])</p></td>
 <td><p><code class="code docutils literal notranslate"><span class="pre">MutableMapping</span></code> exposing the scene file pair under a project root.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.SoundsStore" title="an.stores.SoundsStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SoundsStore</span></code></a>(root_dir)</p></td>
@@ -915,7 +915,7 @@ that <code class="docutils literal notranslate"><span class="pre">an</span> <spa
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.stores.ScenesStore">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stores.</span></span><span class="sig-name descname"><span class="pre">ScenesStore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores/scenes.html#ScenesStore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.ScenesStore" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stores.</span></span><span class="sig-name descname"><span class="pre">ScenesStore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scene_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'scene.md'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores/scenes.html#ScenesStore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.ScenesStore" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MutableMapping</span></code></a></p>
 <p><code class="code docutils literal notranslate"><span class="pre">MutableMapping</span></code> exposing the scene file pair under a project root.</p>
 <p>Keys: currently always <code class="docutils literal notranslate"><span class="pre">&quot;main&quot;</span></code>. The store enforces this by raising
@@ -1043,10 +1043,11 @@ take was kept, its sha256, every take’s score and the scorer (an#265).</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.stores.build_project_mall">
-<span class="sig-prename descclassname"><span class="pre">an.stores.</span></span><span class="sig-name descname"><span class="pre">build_project_mall</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">overrides</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores.html#build_project_mall"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.build_project_mall" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.stores.</span></span><span class="sig-name descname"><span class="pre">build_project_mall</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scene_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'scene.md'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">overrides</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores.html#build_project_mall"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.build_project_mall" title="Link to this definition">#</a></dt>
 <dd><p>Build the standard project mall over <code class="docutils literal notranslate"><span class="pre">project_dir</span></code>.</p>
 <p>Pass <code class="docutils literal notranslate"><span class="pre">ensure=True</span></code> to create the per-store directories on disk if they
-don’t exist. Pass keyword overrides to swap in alternate stores (e.g. an
+don’t exist. <code class="docutils literal notranslate"><span class="pre">scene_file</span></code> picks the scene the <code class="docutils literal notranslate"><span class="pre">scenes</span></code> store holds (an#539;
+<code class="docutils literal notranslate"><span class="pre">scene.md</span></code> by default). Pass keyword overrides to swap in alternate stores (e.g. an
 in-memory <code class="code docutils literal notranslate"><span class="pre">dict</span></code> for tests).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>

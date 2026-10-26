@@ -279,7 +279,7 @@ from `render_reports/<output_name>.json`; `[]` before any render.
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)
 
-### an.render.render_project(project_dir, , output_name='main', fps=None, resolution=None, tts=None, lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en', incremental=True, force_render=False, echo_warnings=True)
+### an.render.render_project(project_dir, , output_name=None, scene_file='scene.md', fps=None, resolution=None, tts=None, lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en', incremental=True, force_render=False, echo_warnings=True)
 
 Render every shot in `project_dir`’s scene and concatenate to one mp4.
 
@@ -343,6 +343,12 @@ refused under `strict_assets` (`an.library.checkout.check_pins_before_render()`)
 **What the render learned is reported** (an#254): see [`render()`](#an.render.render) — every
 finding is in `render_reports/<output_name>.json`, read back as
 `Finding` s by [`render_findings()`](#an.render.render_findings), and summarised by `an render`.
+
+`scene_file` renders another scene of the project (`scene.studio.md`,
+an#539) instead of `scene.md`; `output_name` then defaults to the file’s
+stem (`main` for `scene.md`), so the scenes never write the same file:
+another scene may not take `main`, by its file name or an explicit
+`output_name` (`SceneFileError`, before any work).
 
 Returns the absolute path of the final output file (under `output/`).
 

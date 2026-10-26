@@ -18,12 +18,12 @@ without touching these functions, so they stay plain Python.
 | [`credits`](#an.tools.credits)(project_dir[, json_out])                  | Show what third-party work is in `project_dir` and what it obliges.                   |
 | [`init`](#an.tools.init)(project_dir[, name, force, id, genre, ...])  | Create a fresh an project at `project_dir` — or, with --id, at the default location.  |
 | [`iterate`](#an.tools.iterate)(project_dir, instruction[, ...])          | Apply a free-text instruction to the scene.                                           |
-| [`preview`](#an.tools.preview)(project_dir[, shot, no_browser])          | Live-preview the project's scene in a browser; reloads on edit.                       |
+| [`preview`](#an.tools.preview)(project_dir[, shot, no_browser, scene])   | Live-preview the project's scene in a browser; reloads on edit.                       |
 | [`probe`](#an.tools.probe)(project_dir[, shot, at, out, columns, ...]) | Write a shot's frame at chosen instants to a PNG, drawn the way `an render` draws it. |
 | [`registered_namespaces`](#an.tools.registered_namespaces)()                           | The sub-namespaces installed genres added (`cli.<namespace>` services).               |
-| [`render`](#an.tools.render)(project_dir[, output_name, tts, ...])      | Render the project at `project_dir` to a single mp4.                                  |
-| [`sync`](#an.tools.sync)(project_dir[, accept_measured])              | Reconcile scene.md and ir/scene.json inside `project_dir`.                            |
-| [`validate`](#an.tools.validate)(project_dir[, fps, strict_assets])       | Validate the scene at `project_dir`.                                                  |
+| [`render`](#an.tools.render)(project_dir[, output_name, scene, ...])    | Render the project at `project_dir` to a single mp4.                                  |
+| [`sync`](#an.tools.sync)(project_dir[, accept_measured, scene])       | Reconcile scene.md and ir/scene.json inside `project_dir`.                            |
+| [`validate`](#an.tools.validate)(project_dir[, fps, strict_assets, ...])  | Validate the scene at `project_dir`.                                                  |
 
 ### an.tools.bench(scenes='', out='', keep_render='', quiet=False, bless='', compare='', mutation='')
 
@@ -162,7 +162,7 @@ model: Anthropic model id (default claude-opus-4-7)
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.tools.preview(project_dir, shot='', no_browser=False)
+### an.tools.preview(project_dir, shot='', no_browser=False, scene='')
 
 Live-preview the project’s scene in a browser; reloads on edit.
 
@@ -173,11 +173,12 @@ browser polls `scene.json` for changes and re-loads when you save
 project_dir: path to an an project (must contain scene.md / ir/scene.json)
 shot: shot id to preview (default: first shot in the timeline)
 no_browser: don’t auto-open the default browser
+scene: the scene file to preview, inside the project (default scene.md; for example scene.studio.md)
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.tools.probe(project_dir, shot='', at=None, out='', columns=0, supersample=1, allow_private_here=False)
+### an.tools.probe(project_dir, shot='', at=None, out='', columns=0, supersample=1, allow_private_here=False, scene='')
 
 Write a shot’s frame at chosen instants to a PNG, drawn the way `an render` draws it.
 
@@ -194,6 +195,7 @@ out: the PNG to write (default: <project>/artifacts/probes/<shot>@<t>.png, gitig
 columns: cells per row of a grid (default: a square grid)
 supersample: as `an render --supersample`, so the frame matches the film’s
 allow_private_here: write not-publishable frames where git would pick them up
+scene: the scene file to read, inside the project (default scene.md; for example scene.studio.md, whose JSON twin is ir/scene.studio.json)
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
@@ -210,7 +212,7 @@ True
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)]
 
-### an.tools.render(project_dir, output_name='main', tts='', lipsync='offline', parallel='', strict_assets=False, supersample=1, pix_fmt='', step_hz=0.0, language='en', capture='', force_render=False, no_cache=False, cache_frames=False)
+### an.tools.render(project_dir, output_name='', scene='', tts='', lipsync='offline', parallel='', strict_assets=False, supersample=1, pix_fmt='', step_hz=0.0, language='en', capture='', force_render=False, no_cache=False, cache_frames=False)
 
 Render the project at `project_dir` to a single mp4.
 
@@ -225,7 +227,8 @@ a library pin out of date (artifacts/render_reports/<output_name>.json
 holds them all).
 
 project_dir: path to an an project (must contain scene.md / ir/scene.json)
-output_name: filename stem under output/ (default: “main”)
+output_name: filename stem under output/ (default: “main”, or the scene file’s stem when –scene names one)
+scene: the scene file to read, inside the project (default scene.md; for example scene.studio.md, whose JSON twin is ir/scene.studio.json)
 tts: TTS provider for EVERY line — “offline” (silent), “elevenlabs” (needs
 
 > ELEVEN_API_KEY) or “mac_say”. Omitted (the default): each voice’s own
@@ -286,7 +289,7 @@ cache_frames: no longer needed, and no effect on `an render` (an#260): a
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.tools.sync(project_dir, accept_measured=False)
+### an.tools.sync(project_dir, accept_measured=False, scene='')
 
 Reconcile scene.md and ir/scene.json inside `project_dir`.
 
@@ -296,16 +299,19 @@ patched in place, so the prose around it is kept. Without it, a measured
 duration lives only in the derived `measurements` store and the scene
 says what its author wrote.
 
+scene: the scene file to reconcile (default scene.md; for example scene.studio.md with ir/scene.studio.json)
+
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.tools.validate(project_dir, fps=0.0, strict_assets=False)
+### an.tools.validate(project_dir, fps=0.0, strict_assets=False, scene='')
 
 Validate the scene at `project_dir`. Prints findings, exit 0 on pass.
 
 project_dir: the an project
 fps: the frame rate `an render --fps` will use, when not the scene’s (0: the scene’s)
 strict_assets: judge the scene as `an render --strict-assets` will: a stand-in for a missing asset is an error (a voice written in words that nobody chose is an info line here: casting comes after the check, and the render is what refuses it)
+scene: the scene file to read, inside the project (default scene.md; for example scene.studio.md, whose JSON twin is ir/scene.studio.json)
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

@@ -15,37 +15,37 @@ authoring-time DSL to canonical-form actions.
 
 ### Functions
 
-| [`lower_world`](#an.ir.lower_world)(scene, \*, extents[, ...])             | The scene with every framed shot's placements derived from the world.          |
-|-----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
-| [`set_`](#an.ir.set_)(target, property, value, \*[, at])            | Discrete property set at time `at` (relative to its enclosing scope).          |
-| [`tween`](#an.ir.tween)(target, property, to, duration, \*[, ...])   | Animate a property from `from_` (or its current value) to `to`.                |
-| [`sequence`](#an.ir.sequence)(\*actions)                                | Run children one after the other.                                              |
-| [`parallel`](#an.ir.parallel)(\*actions)                                | Run all children at once.                                                      |
-| [`stagger`](#an.ir.stagger)(lag, \*actions)                            | Start each action `lag` seconds after the previous one STARTS.                 |
-| [`crowd`](#an.ir.crowd)(id, \*, ref, count[, kind, store, ...])      | `count` entities of one asset (`kind`/`store`/`ref`) placed in `area`.         |
-| [`fan_out`](#an.ir.fan_out)(action, members, \*[, crowd_id])           | A copy of `action` per member, its targets moved from the crowd to the member. |
-| [`delay`](#an.ir.delay)(duration)                                    | An empty span that consumes time.                                              |
-| [`loop`](#an.ir.loop)(action, count)                                | Repeat `action` `count` times.                                                 |
-| [`flatten`](#an.ir.flatten)(action, \*[, start, play_extent])          | Walk a composition tree, emitting leaf actions with absolute times.            |
-| [`validate_schema`](#an.ir.validate_schema)(doc)                               | Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema.    |
-| [`validate_semantic`](#an.ir.validate_semantic)(scene, \*[, ...])                | Cross-field semantic checks.                                                   |
-| [`migrate`](#an.ir.migrate)(doc[, target_version, kind])               | Migrate a document to `target_version` (default: its kind's current).          |
-| [`register_migration`](#an.ir.register_migration)(kind, from_version, ...)        | Decorator: register a migration for one kind in `MIGRATIONS`.                  |
-| [`register_kind`](#an.ir.register_kind)(kind)                                | Register a document kind.                                                      |
-| [`kind_of`](#an.ir.kind_of)(doc, \*[, kind])                           | Resolve a document's kind, by explicit name or from its `kind` tag.            |
-| [`markdown_to_ir`](#an.ir.markdown_to_ir)(md_text)                            | Parse the structured Markdown form of a scene into a SceneIR.                  |
-| [`ir_to_markdown`](#an.ir.ir_to_markdown)(scene)                              | Render a SceneIR back into the structured Markdown form.                       |
-| [`sync`](#an.ir.sync)(project_dir)                                  | Reconcile `scene.md` and `ir/scene.json` inside a project directory.           |
-| [`pin`](#an.ir.pin)(point, to, \*[, duration])                     | `point` held at `to`.                                                          |
-| [`pull`](#an.ir.pull)(point, to, \*[, over, give])                  | `point` drawn toward `to` (a point, a body point, or a path).                  |
-| [`join`](#an.ir.join)(joint, \*[, at])                              | Rejoin the joint named `joint` at `at`.                                        |
-| [`unjoin`](#an.ir.unjoin)(joint, \*[, at])                            | Let go of the joint named `joint` at `at`.                                     |
-| [`grasp`](#an.ir.grasp)(by, item, \*[, reach, retract, lean, align]) | `by` takes `item`.                                                             |
-| [`reframe`](#an.ir.reframe)(target, \*, to[, at, keep, snap, ...])     | `target` changes to frame `to` at `at` seconds into the action.                |
-| [`place`](#an.ir.place)(item, onto, \*[, by, rotation, reach, ...])  | The hand holding `item` puts it `onto` a target.                               |
-| [`release`](#an.ir.release)(item, \*[, at, onto, arc, rotation])       | Let `item` go at `at` (a drop, or a toss `onto: ground@x`).                    |
-| [`handover`](#an.ir.handover)(item, to, \*[, by, meet, reach, ...])     | Give `item` to `to`.                                                           |
-| [`swap`](#an.ir.swap)(holder, \*, take, give, by[, lag, ...])       | `by` takes `take` from `holder`; `give` goes there in its place.               |
+| [`lower_world`](#an.ir.lower_world)(scene, \*, extents[, ...])             | The scene with every framed shot's placements derived from the world.                                                                                                                              |
+|-----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`set_`](#an.ir.set_)(target, property, value, \*[, at])            | Discrete property set at time `at` (relative to its enclosing scope).                                                                                                                              |
+| [`tween`](#an.ir.tween)(target, property, to, duration, \*[, ...])   | Animate a property from `from_` (or its current value) to `to`.                                                                                                                                    |
+| [`sequence`](#an.ir.sequence)(\*actions)                                | Run children one after the other.                                                                                                                                                                  |
+| [`parallel`](#an.ir.parallel)(\*actions)                                | Run all children at once.                                                                                                                                                                          |
+| [`stagger`](#an.ir.stagger)(lag, \*actions)                            | Start each action `lag` seconds after the previous one STARTS.                                                                                                                                     |
+| [`crowd`](#an.ir.crowd)(id, \*, ref, count[, kind, store, ...])      | `count` entities of one asset (`kind`/`store`/`ref`) placed in `area`.                                                                                                                             |
+| [`fan_out`](#an.ir.fan_out)(action, members, \*[, crowd_id])           | A copy of `action` per member, its targets moved from the crowd to the member.                                                                                                                     |
+| [`delay`](#an.ir.delay)(duration)                                    | An empty span that consumes time.                                                                                                                                                                  |
+| [`loop`](#an.ir.loop)(action, count)                                | Repeat `action` `count` times.                                                                                                                                                                     |
+| [`flatten`](#an.ir.flatten)(action, \*[, start, play_extent])          | Walk a composition tree, emitting leaf actions with absolute times.                                                                                                                                |
+| [`validate_schema`](#an.ir.validate_schema)(doc)                               | Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema.                                                                                                                        |
+| [`validate_semantic`](#an.ir.validate_semantic)(scene, \*[, ...])                | Cross-field semantic checks.                                                                                                                                                                       |
+| [`migrate`](#an.ir.migrate)(doc[, target_version, kind])               | Migrate a document to `target_version` (default: its kind's current).                                                                                                                              |
+| [`register_migration`](#an.ir.register_migration)(kind, from_version, ...)        | Decorator: register a migration for one kind in `MIGRATIONS`.                                                                                                                                      |
+| [`register_kind`](#an.ir.register_kind)(kind)                                | Register a document kind.                                                                                                                                                                          |
+| [`kind_of`](#an.ir.kind_of)(doc, \*[, kind])                           | Resolve a document's kind, by explicit name or from its `kind` tag.                                                                                                                                |
+| [`markdown_to_ir`](#an.ir.markdown_to_ir)(md_text)                            | Parse the structured Markdown form of a scene into a SceneIR.                                                                                                                                      |
+| [`ir_to_markdown`](#an.ir.ir_to_markdown)(scene)                              | Render a SceneIR back into the structured Markdown form.                                                                                                                                           |
+| [`sync`](#an.ir.sync)(project_dir[, scene_file])                    | Reconcile a scene's markdown and JSON inside a project directory (`scene.md` and `ir/scene.json`, or the pair of the `scene_file` named; a named scene that is not there raises `SceneFileError`). |
+| [`pin`](#an.ir.pin)(point, to, \*[, duration])                     | `point` held at `to`.                                                                                                                                                                              |
+| [`pull`](#an.ir.pull)(point, to, \*[, over, give])                  | `point` drawn toward `to` (a point, a body point, or a path).                                                                                                                                      |
+| [`join`](#an.ir.join)(joint, \*[, at])                              | Rejoin the joint named `joint` at `at`.                                                                                                                                                            |
+| [`unjoin`](#an.ir.unjoin)(joint, \*[, at])                            | Let go of the joint named `joint` at `at`.                                                                                                                                                         |
+| [`grasp`](#an.ir.grasp)(by, item, \*[, reach, retract, lean, align]) | `by` takes `item`.                                                                                                                                                                                 |
+| [`reframe`](#an.ir.reframe)(target, \*, to[, at, keep, snap, ...])     | `target` changes to frame `to` at `at` seconds into the action.                                                                                                                                    |
+| [`place`](#an.ir.place)(item, onto, \*[, by, rotation, reach, ...])  | The hand holding `item` puts it `onto` a target.                                                                                                                                                   |
+| [`release`](#an.ir.release)(item, \*[, at, onto, arc, rotation])       | Let `item` go at `at` (a drop, or a toss `onto: ground@x`).                                                                                                                                        |
+| [`handover`](#an.ir.handover)(item, to, \*[, by, meet, reach, ...])     | Give `item` to `to`.                                                                                                                                                                               |
+| [`swap`](#an.ir.swap)(holder, \*, take, give, by[, lag, ...])       | `by` takes `take` from `holder`; `give` goes there in its place.                                                                                                                                   |
 
 ### Classes
 
@@ -1176,9 +1176,11 @@ ValueError: stagger lag must be >= 0, got -1.0
 * **Return type:**
   [`SwapAction`](an.ir.holds.html.md#an.ir.holds.SwapAction)
 
-### an.ir.sync(project_dir)
+### an.ir.sync(project_dir, scene_file='scene.md')
 
-Reconcile `scene.md` and `ir/scene.json` inside a project directory.
+Reconcile a scene’s markdown and JSON inside a project directory
+(`scene.md` and `ir/scene.json`, or the pair of the `scene_file` named;
+a named scene that is not there raises `SceneFileError`).
 
 Strategy in v0.1: Markdown is the human SSOT; if both exist, the JSON is
 regenerated from the Markdown unless mtimes show JSON is newer (which the
