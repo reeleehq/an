@@ -75,7 +75,9 @@ pydantic’s `ValidationError`) — the compiler wraps them.
 ### an.stage.text_layout.svg_data_uri(svg)
 
 `data:image/svg+xml;base64,…` — the form the vendored engine’s SVG
-loader recognises by prefix.
+loader recognises by prefix. The root is put on a line of its own first
+(`pixi_sniffable_svg()`), as in a staged file: a
+recoloured part keeps the prolog of the file it came from (an#525).
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

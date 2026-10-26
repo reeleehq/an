@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=c9180c0b"></script>
+    <script src="../../../_static/documentation_options.js?v=2a3c6b59"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.269" />
+  <meta name="docsearch:version" content="0.1.270" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1017,6 +1017,41 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="kc">False</span>  <span class="c1"># not XML, or no element in its head</span>
     <span class="k">return</span> <span class="kc">False</span></div>
 
+
+
+<span class="c1">#: Everything an XML document may hold before its root element: whitespace,</span>
+<span class="c1">#: processing instructions (the ``&lt;?xml ?&gt;`` declaration), comments and a DOCTYPE</span>
+<span class="c1">#: (with an optional internal subset). Bytes, so any ASCII-compatible encoding.</span>
+<span class="n">_PROLOG</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+    <span class="sa">rb</span><span class="s2">"\A(?:\xef\xbb\xbf)?(?:\s|&lt;\?.*?\?&gt;|&lt;!--.*?--&gt;|&lt;!DOCTYPE(?:[^\[&gt;]|\[.*?\])*&gt;)*"</span><span class="p">,</span>
+    <span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">pixi_sniffable_svg</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">"""``data`` with its root element on a line of its own, which PixiJS 7 needs.</span>
+
+<span class="sd">    Pixi decides whether a loaded text is an SVG with a multiline regex that can</span>
+<span class="sd">    skip an XML declaration and at most one plain comment before a LINE that</span>
+<span class="sd">    starts the root; a root that follows a DOCTYPE, a second processing</span>
+<span class="sd">    instruction or a comment holding ``( ) - &gt;`` on the same line is not an SVG</span>
+<span class="sd">    to it, and the whole shot fails at load (an#525) while `an validate` calls</span>
+<span class="sd">    the file fine. A newline between the prolog and the root changes nothing the</span>
+<span class="sd">    XML parser sees, so it is the whole repair; a file whose root already starts</span>
+<span class="sd">    a line (or has no prolog) is returned as given, the same object.</span>
+
+<span class="sd">    &gt;&gt;&gt; pixi_sniffable_svg(b'&lt;!-- made by a-b (v1) --&gt;&lt;svg/&gt;')</span>
+<span class="sd">    b'&lt;!-- made by a-b (v1) --&gt;\n&lt;svg/&gt;'</span>
+<span class="sd">    &gt;&gt;&gt; pixi_sniffable_svg(b'&lt;?xml version="1.0"?&gt;\n&lt;svg/&gt;')</span>
+<span class="sd">    b'&lt;?xml version="1.0"?&gt;\n&lt;svg/&gt;'</span>
+<span class="sd">    &gt;&gt;&gt; pixi_sniffable_svg(b'&lt;svg/&gt;')</span>
+<span class="sd">    b'&lt;svg/&gt;'</span>
+<span class="sd">    """</span>
+    <span class="n">prolog</span> <span class="o">=</span> <span class="n">_PROLOG</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">head</span> <span class="o">=</span> <span class="n">prolog</span><span class="o">.</span><span class="n">group</span><span class="p">()</span> <span class="k">if</span> <span class="n">prolog</span> <span class="k">else</span> <span class="sa">b</span><span class="s2">""</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">head</span> <span class="ow">or</span> <span class="n">head</span><span class="o">.</span><span class="n">endswith</span><span class="p">((</span><span class="sa">b</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span> <span class="sa">b</span><span class="s2">"</span><span class="se">\r</span><span class="s2">"</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">data</span>
+    <span class="k">return</span> <span class="n">head</span> <span class="o">+</span> <span class="sa">b</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span> <span class="o">+</span> <span class="n">data</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">head</span><span class="p">)</span> <span class="p">:]</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_head</span><span class="p">(</span><span class="n">source</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
