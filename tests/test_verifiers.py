@@ -36,13 +36,20 @@ def test_lint_flags_duplicate_shot_id():
     assert any("duplicate" in f.description for f in report.findings)
 
 
-def test_lint_warns_on_meta_duration_mismatch():
+def test_a_meta_duration_mismatch_is_warned_once_by_validate_not_the_lint():
+    """an#557: one check, one message (``_core_meta_duration``)."""
+    from an.ir.validate import validate_semantic
+
     scene = SceneIR(
         meta=Meta(duration=10.0),
         timeline=[Shot(id="s1", duration=3.0)],
     )
     report = LayoutLintVerifier().verify(scene)
-    assert any("doesn't match" in f.description for f in report.findings)
+    assert not [f for f in report.findings if f.ir_path == "meta/duration"]
+    (found,) = [
+        f for f in validate_semantic(scene).findings if f.ir_path == "meta/duration"
+    ]
+    assert "or remove it" in found.description
 
 
 def test_lint_warns_on_dialogue_overflowing_shot():

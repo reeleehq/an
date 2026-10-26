@@ -2802,8 +2802,9 @@ def _core_meta_duration(ctx: ValidationContext) -> None:
         "meta/duration",
         f"meta.duration says {declared:g} s, but the shots lay out {laid_out:g} s "
         "(their durations, minus any dissolve overlap); the film is as long as "
-        f"its shots. Set `duration: {laid_out:g}` in the meta block, or fix the "
-        "shot whose length is not what you meant.",
+        f"its shots. Set `duration: {laid_out:g}` in the meta block, or remove "
+        "it (unset, the film is as long as its shots), or fix the shot whose "
+        "length is not what you meant.",
     )
 
 

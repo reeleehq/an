@@ -27,6 +27,7 @@ from an.ir.sync import (
     merge_markdown,
     resolve_scene_file,
     scene_from_json_doc,
+    unset_unwritten_duration,
 )
 from an.util import _read_text, _write_json, _write_text
 
@@ -64,9 +65,15 @@ class ScenesStore(MutableMapping):
         if not self.json_path.exists():
             raise KeyError(key)
         # Migrated on read (an#105): a stored document may predate this build.
-        return scene_from_json_doc(
+        scene = scene_from_json_doc(
             json.loads(_read_text(self.json_path)), source=self.json_path
         )
+        # A duration the JSON holds and scene.md does not write is a length the
+        # pre-an#557 reader derived: read it as unset, or the next write would
+        # put it in the author's file.
+        if self.md_path.exists():
+            unset_unwritten_duration(scene, _read_text(self.md_path))
+        return scene
 
     def __setitem__(self, key: str, value: SceneIR | dict) -> None:
         if key != self.SCENE_KEY:
