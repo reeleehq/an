@@ -2534,9 +2534,8 @@ def _core_cut_continuity(ctx: ValidationContext) -> None:
 def _all_placements(ctx: ValidationContext) -> list:
     """Every shot's :func:`_placements`, computed once per validation."""
     return ctx.cached(
-        "placements", lambda: [
-            _placements(ctx, shot, i) for i, shot in enumerate(ctx.shots)
-        ]
+        "placements",
+        lambda: [_placements(ctx, shot, i) for i, shot in enumerate(ctx.shots)],
     )
 
 
