@@ -135,7 +135,9 @@ class GenreError(RegistryError):
 #:     the hold verbs), and ``an.stage.solve.end_effector``.
 #: 9 = a command's exit status (an#480): ``an.cli_status.failed``, which a genre's
 #:     ``cli.<namespace>`` functions return to make the CLI exit non-zero.
-API_LEVEL: int = 9
+#: 10 = the one asset-reference rule (an#552): ``an.stores._common.asset_references``
+#:     and ``asset_ref_problems`` (``(label, message)`` pairs) a genre's validator calls.
+API_LEVEL: int = 10
 
 
 class GenreAPILevelError(GenreError, ImportError):

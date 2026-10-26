@@ -25,7 +25,7 @@ from an.ir.validate import validate_semantic
 from an.props import PropDescriptor
 from an.stage.raster import is_svg_content, svg_problems
 from an.stage.rig import part_probe
-from an.stores._common import asset_ref_problem, inside_folder
+from an.stores._common import ASSET_REF_RULE, asset_ref_problem, asset_ref_problems, inside_folder
 from an.stores.environments import EnvironmentsStore
 from an.stores.props import PropsStore
 
@@ -66,6 +66,74 @@ def test_a_reference_is_judged_by_name(rel, problem):
     assert (found is None) == (problem is None), found
     if problem:
         assert problem in found
+
+
+# -----------------------------------------------------------------------------
+# The whole-document rule a genre shares (an#552)
+# -----------------------------------------------------------------------------
+
+
+def test_asset_ref_problems_pairs_a_label_with_a_whole_sentence(tmp_path):
+    doc = {
+        "source_svg": "../x.svg",
+        "planes": [{"name": "sky", "art": {"kind": "image", "src": "sky.png"}}],
+    }
+    assert asset_ref_problems(doc, tmp_path) == [
+        (
+            "source_svg",
+            f"source_svg names '../x.svg', which leaves the asset folder (`..`): {ASSET_REF_RULE}",
+        )
+    ]
+
+
+def test_asset_ref_problems_without_a_folder_judges_names_only():
+    good = {
+        "skins": {"default": {"slots": {"body": {"body": {"path": "parts/body.svg"}}}}}
+    }
+    assert asset_ref_problems(good) == []
+    assert (
+        asset_ref_problems(good, None, file_problems=lambda f: ["is never asked"]) == []
+    )
+    bad = {
+        "skins": {"default": {"slots": {"body": {"body": {"path": "/etc/hostname"}}}}}
+    }
+    assert [label for label, _ in asset_ref_problems(bad)] == ["part body/body"]
+
+
+def test_asset_ref_problems_catches_a_link_out_of_the_folder(tmp_path):
+    folder = tmp_path / "asset"
+    folder.mkdir()
+    (tmp_path / "secret.svg").write_text(SVG, encoding="utf-8")
+    try:
+        os.symlink(tmp_path / "secret.svg", folder / "link.svg")
+    except (OSError, NotImplementedError):
+        pytest.skip("no symlinks here")
+    [(label, message)] = asset_ref_problems({"source_svg": "link.svg"}, folder)
+    assert label == "source_svg"
+    assert "resolves outside the asset's folder" in message
+    assert message.endswith(ASSET_REF_RULE)
+
+
+def test_asset_ref_problems_asks_file_problems_about_every_file_that_passed(tmp_path):
+    (tmp_path / "here.svg").write_text(SVG, encoding="utf-8")
+    asked = []
+
+    def file_problems(file):
+        asked.append(file)
+        return [] if file.is_file() else ["is not in the folder"]
+
+    doc = {"source_svg": "here.svg", "colour_roles": {"gone.svg": {}, "../out.svg": {}}}
+    assert asset_ref_problems(doc, tmp_path, file_problems=file_problems) == [
+        (
+            "colour_roles gone.svg",
+            "colour_roles gone.svg names 'gone.svg', which is not in the folder",
+        ),
+        (
+            "colour_roles ../out.svg",
+            f"colour_roles ../out.svg names '../out.svg', which leaves the asset folder (`..`): {ASSET_REF_RULE}",
+        ),
+    ]
+    assert asked == [tmp_path / "here.svg", tmp_path / "gone.svg"]  # never the bad name
 
 
 def test_a_link_out_of_the_folder_is_outside(tmp_path):

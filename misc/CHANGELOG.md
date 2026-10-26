@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-10-27
+- **One asset-reference rule, public** (an#552): `an.stores._common.asset_references(doc)` (every `(label, path)` an asset document names) and `asset_ref_problems(doc, folder=None, *, file_problems=None)` (`(label, message)` for each reference that is a bad name or resolves outside the folder; `file_problems` adds per-file checks, the core passes its SVG self-containment check), so a genre validator calls the rule `an validate` uses instead of re-implementing it. `an.ir.validate._asset_references` stays as a thin alias for `cutan`. `an.genres.API_LEVEL` 10.
 - **Put an item down on a body's surface** (an#536): `place onto: crate@surface` (below the hand) / `crate@surface@f` (a fraction along it) and `held_by:` the same lay it on the body's supporting segment as on the ground (`an.stage.hold._on_line`; `_on_ground` is its level case, byte-identical), the segment from the rig's `surface_l`/`surface_r` bones (`SURFACE_BONES`) or the top of the part's ink; the body then holds it (it follows the body and paints after its part); `floating_item` also measures against named surfaces. `an.ir.holds.SURFACE`; timing contract 1.14.0 (the `place` description in `vocabulary.json`).
 
 ## 2026-10-26
