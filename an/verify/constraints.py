@@ -244,9 +244,12 @@ def report_not_compiled(ctx: Any, error: Exception) -> None:
     :func:`compile_outcome`), at :data:`an.verify.vision.FAILURE_SEVERITY`:
     a check that could not look must never read as a check that passed. The
     check that owns the error (``unknown_body``, ``hold_conflict``, the action
-    targets) still reports the cause itself.
+    targets) still reports the cause itself; when an error on the shot is
+    already in the report, the line names the error's type only, so the
+    author's mistake is said once.
 
     >>> from an.ir.schema import SceneIR
+    >>> from dataclasses import replace
     >>> from an.ir.validate import ValidationContext, ValidationReport
     >>> ctx = ValidationContext(SceneIR(), ValidationReport(), {}, index=0)
     >>> report_not_compiled(ctx, ValueError("bad step_hz"))
@@ -255,17 +258,30 @@ def report_not_compiled(ctx: Any, error: Exception) -> None:
     [('warning', 'timeline/0')]
     >>> "did NOT run" in ctx.report.findings[0].description
     True
+    >>> ctx.report.add("error", "timeline/1/actions/0", "bad step_hz")
+    >>> report_not_compiled(replace(ctx, index=1), ValueError("bad step_hz"))
+    >>> ctx.report.findings[-1].description.endswith("(ValueError, reported above).")
+    True
     """
 
     def add():
         from an.verify.vision import FAILURE_SEVERITY
 
+        said = any(
+            f.severity == "error"
+            and (f.ir_path == ctx.path or f.ir_path.startswith(ctx.path + "/"))
+            for f in ctx.report.findings
+        )
+        why = (
+            f"{type(error).__name__}, reported above"
+            if said
+            else f"{type(error).__name__}: {error}"
+        )
         ctx.report.add(
             FAILURE_SEVERITY,
             ctx.path,
             "the compile-based checks (the constraints, joints, holds and cut "
-            "placements) did NOT run on this shot: it does not compile "
-            f"({type(error).__name__}: {error}).",
+            f"placements) did NOT run on this shot: it does not compile ({why}).",
         )
         return True
 
