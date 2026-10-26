@@ -287,6 +287,40 @@ def is_svg_content(source: str | Path | bytes) -> bool:
     return False
 
 
+#: Everything an XML document may hold before its root element: whitespace,
+#: processing instructions (the ``<?xml ?>`` declaration), comments and a DOCTYPE
+#: (with an optional internal subset). Bytes, so any ASCII-compatible encoding.
+_PROLOG = re.compile(
+    rb"\A(?:\xef\xbb\xbf)?(?:\s|<\?.*?\?>|<!--.*?-->|<!DOCTYPE(?:[^\[>]|\[.*?\])*>)*",
+    re.DOTALL,
+)
+_COMMENT = re.compile(rb"<!--.*?-->", re.DOTALL)
+
+
+def strip_svg_prolog_comments(data: bytes) -> bytes:
+    r"""``data`` without the comments (and byte-order mark) before its root element.
+
+    PixiJS 7 decides whether a loaded text is an SVG with a regex that allows
+    one XML declaration and at most ONE comment whose text holds none of
+    ``( ) - >`` before the root; any other prolog is not an SVG to it, and the
+    whole shot fails at load (an#525) while `an validate` calls the file fine.
+    A comment in the prolog draws nothing, so the staged copy drops them all.
+    Anything else (declaration, DOCTYPE, the document) is kept byte for byte;
+    a file with no such comment is returned as given.
+
+    >>> strip_svg_prolog_comments(b'<!-- made by a-b (v1) --><svg/>')
+    b'<svg/>'
+    >>> strip_svg_prolog_comments(b'<?xml version="1.0"?>\n<!-- c -->\n<svg><!-- keep --></svg>')
+    b'<?xml version="1.0"?>\n\n<svg><!-- keep --></svg>'
+    >>> strip_svg_prolog_comments(b'<svg/>')
+    b'<svg/>'
+    """
+    prolog = _PROLOG.match(data)
+    head = prolog.group() if prolog else b""
+    clean = _COMMENT.sub(b"", head).removeprefix(b"\xef\xbb\xbf")
+    return data if clean == head else clean + data[len(head) :]
+
+
 def _head(source: str | Path) -> bytes:
     with open(source, "rb") as f:
         return f.read(_SNIFF_BYTES)

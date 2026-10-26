@@ -285,3 +285,19 @@ def test_a_referenced_svg_with_a_script_is_an_error_whatever_its_suffix(tmp_path
     assert [f.severity for f in findings] == ["error"] * 4  # two problems, each on both shots
     assert "forbidden element(s): image, script" in findings[0].description
     assert "links outside the file: 'http://x/y.png'" in findings[1].description
+
+
+def test_the_staging_step_drops_prolog_comments_pixi_cannot_read(tmp_path):
+    """an#525: a comment before the root with `-` or `(` in it is not an SVG to
+    PixiJS's sniffing, and the whole shot failed at load."""
+    art = '<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4"><!-- keep --></svg>'
+    store = PropsStore(tmp_path / "props")
+    parts = tmp_path / "props" / "thing" / "parts"
+    parts.mkdir(parents=True)
+    (parts / "body.svg").write_text(f"<!-- made by a-b (v1) -->{art}", encoding="utf-8")
+    runtime = tmp_path / "runtime"
+    runtime.mkdir()
+    _stage_scene_assets(
+        _scene_json(x=AssetJSON(src="props/thing/parts/body.svg")), {"props": store}, runtime
+    )
+    assert (runtime / "props/thing/parts/body.svg").read_text(encoding="utf-8") == art
