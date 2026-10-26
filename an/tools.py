@@ -12,6 +12,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from an.check_requirements import check_requirements as _check_requirements
+from an.cli_status import failed
 from an.check_requirements import format_report
 from an.ir.sync import (
     DEFAULT_SCENE_FILE,
@@ -89,7 +90,7 @@ def init(
 def validate(
     project_dir: str, fps: float = 0.0, strict_assets: bool = False, scene: str = ""
 ) -> str:
-    """Validate the scene at ``project_dir``. Prints findings, exit 0 on pass.
+    """Validate the scene at ``project_dir``. Prints findings; exits 1 when it reports FAILED, 0 otherwise.
 
     project_dir: the an project
     fps: the frame rate `an render --fps` will use, when not the scene's (0: the scene's)
@@ -108,7 +109,8 @@ def validate(
     for f in report.findings:
         where = f" ({f.location})" if getattr(f, "location", None) else ""
         lines.append(f"  [{f.severity}] {f.ir_path}{where}: {f.description}")
-    return "\n".join(lines)
+    text = "\n".join(lines)
+    return text if report.passed else failed(text)  # exit 1 on a FAILED report (an#480)
 
 
 def sync(project_dir: str, accept_measured: bool = False, scene: str = "") -> str:

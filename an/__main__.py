@@ -61,6 +61,7 @@ from an.audio.recorded import RecordedVoicesError
 from an.audio.voice_design import VoiceDesignError
 from an.ir.migrate import DocumentMigrationError
 from an.ir.sync import SceneFileError, SceneMarkdownError, SceneValidationError
+from an.cli_status import exit_code_of
 from an.tools import _dispatch_funcs, _dispatch_namespaces, registered_namespaces
 
 
@@ -166,6 +167,9 @@ def _printing(func: Callable[..., Any]) -> Callable[..., Any]:
             raise typer.Exit(1) from e
         if result is not None:
             typer.echo(result)
+        code = exit_code_of(result)
+        if code:
+            raise typer.Exit(code)  # a report that says it failed (an#480)
 
     return run
 
