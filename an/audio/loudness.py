@@ -35,8 +35,17 @@ Without a target, :func:`loudness_report` measures the voices and
 :func:`voice_loudness_spread` says when they differ by more than
 :data:`SPREAD_WARNING_DB` — the render warns, naming each voice's level.
 
->>> float(limit_peaks(__import__("numpy").array([[0.0], [2.0], [0.0]]), ceiling=1.0).max())
-1.0
+The measuring and the limiter are the fleet's shared loudness component,
+:mod:`mixing.loudness` (an#563; ``pip install 'an[loudness]'``):
+:func:`mixing.loudness.level_group` measures a voice's lines back to back (looped
+to :data:`MIN_MEASURE_S`, channels kept when they agree) and caps the gain, with
+ffmpeg's ``ebur128`` injected as its meter (:data:`METER`) so ``an`` takes no
+scipy; :func:`mixing.loudness.limit_peaks` is the limiter, moved there unchanged
+(so :data:`LEVEL_VERSION` did not move, and a test pins the leveled bytes).
+What stays here is ``an``'s own: the voices, the offsets, the hysteresis, the
+makeup pass and the content keys. Without ``mixing`` installed, leveling raises
+:class:`LoudnessComponentMissing` naming the extra, and the render's spread
+warning is skipped (as it is without ffmpeg).
 """
 
 from __future__ import annotations
@@ -44,14 +53,10 @@ from __future__ import annotations
 import hashlib
 import io
 import json
-import re
 import shutil
-import subprocess
-import tempfile
 import wave
 from collections.abc import Mapping, MutableMapping
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any
 
 #: Bumped whenever a leveled line's bytes would change for the same inputs
@@ -83,13 +88,21 @@ MIN_MEASURE_S: float = 1.0
 #: A leveled voice that ends further than this from its target (the limiter
 #: held its peaks, or the gain was capped) is warned about.
 MISS_WARNING_DB: float = 1.0
+#: The loudness meter injected into :mod:`mixing.loudness` (one of its
+#: ``METERS``): ffmpeg's ``ebur128``, so ``an`` needs no scipy for its numpy meter.
+METER: str = "ffmpeg_ebur128"
+#: What installs the shared loudness component.
+INSTALL_HINT: str = "pip install 'an[loudness]'"
 #: 16-bit full scale.
 _INT16_FULL_SCALE: float = 32768.0
-_INTEGRATED = re.compile(r"I:\s*(-?\d+(?:\.\d+)?|-inf)\s*LUFS")
 
 
 class VoiceLoudnessError(RuntimeError):
     """The voices cannot be measured or leveled (no ffmpeg, an unreadable line)."""
+
+
+class LoudnessComponentMissing(VoiceLoudnessError, ImportError):
+    """The shared loudness component (:mod:`mixing.loudness`) is not installed."""
 
 
 class VoiceLoudnessWarning(UserWarning):
@@ -113,6 +126,27 @@ def _require_ffmpeg(doing: str) -> None:
             f"{doing} needs the ffmpeg binary on PATH (macOS: `brew install ffmpeg`; "
             "Debian/Ubuntu: `apt install ffmpeg`)"
         )
+
+
+def _component() -> Any:
+    """:mod:`mixing.loudness`, or :class:`LoudnessComponentMissing` naming the extra."""
+    try:
+        from mixing import loudness
+    except ImportError as e:
+        raise LoudnessComponentMissing(
+            f"leveling voices needs the shared loudness component "
+            f"(mixing.loudness): {INSTALL_HINT}"
+        ) from e
+    return loudness
+
+
+def component_available() -> bool:
+    """Whether :mod:`mixing.loudness` can be imported (what measuring needs)."""
+    try:
+        _component()
+    except LoudnessComponentMissing:
+        return False
+    return True
 
 
 def _decode(audio: bytes) -> _Pcm:
@@ -147,21 +181,20 @@ def _encode(pcm: _Pcm) -> bytes:
     return buf.getvalue()
 
 
-def _joined(pcms: list[_Pcm]) -> _Pcm:
-    """Lines back to back at the first line's rate (a voice's lines share a
-    provider, so a rate; another is resampled), keeping their channels when
-    they all have the same count (EBU R128 weights channels; a downmix of
-    uncorrelated stereo reads ~3 dB low), else downmixed to mono."""
+def _at_one_rate(pcms: list[_Pcm]) -> tuple[list[Any], int]:
+    """``(segments, rate)``: the lines at the first line's rate (a voice's lines
+    share a provider, so a rate; another is resampled), each keeping its
+    channels — :func:`mixing.loudness.level_group` joins them back to back,
+    keeping channels when they all agree (EBU R128 weights channels) and
+    looping a short voice to :data:`MIN_MEASURE_S`."""
     import numpy as np
 
     if not pcms:
-        return _Pcm(np.zeros((0, 1)), 48000)
+        return [], 48000
     rate = pcms[0].rate
-    channels = {p.samples.shape[1] for p in pcms}
-    keep = channels.pop() if len(channels) == 1 else None
-    parts = []
+    segments = []
     for p in pcms:
-        x = p.samples if keep else p.samples.mean(axis=1, keepdims=True)
+        x = p.samples
         if p.rate != rate and len(x):
             positions = np.arange(0, len(x), p.rate / rate)
             x = np.stack(
@@ -171,12 +204,33 @@ def _joined(pcms: list[_Pcm]) -> _Pcm:
                 ],
                 axis=1,
             )
-        parts.append(x)
-    joined = np.concatenate(parts)
-    need = int(MIN_MEASURE_S * rate)
-    if 0 < len(joined) < need:  # too short to gate: looped to a measurable length
-        joined = np.tile(joined, (-(-need // len(joined)), 1))
-    return _Pcm(joined, rate)
+        segments.append(x)
+    return segments, rate
+
+
+def _meter(data: Any, fs: int) -> float:
+    """The meter :func:`mixing.loudness.level_group` is given: this module's
+    :func:`integrated_loudness` (looked up at call time, so it can be counted)."""
+    return integrated_loudness(_Pcm(data, fs))
+
+
+def _level_group(pcms: list[_Pcm], *, target_lufs: float, max_gain_db: float):
+    """:func:`mixing.loudness.level_group` over a voice's decoded lines:
+    ``(gain_db, measured_lufs)``, measured by :data:`METER`."""
+    segments, rate = _at_one_rate(pcms)
+    return _component().level_group(
+        segments,
+        rate,
+        target_lufs=target_lufs,
+        meter=_meter,
+        max_gain_db=max_gain_db,
+        min_measure_s=MIN_MEASURE_S,
+    )
+
+
+def group_loudness(pcms: list[_Pcm]) -> float:
+    """The integrated loudness of a voice's lines, measured back to back."""
+    return _level_group(pcms, target_lufs=0.0, max_gain_db=float("inf"))[1]
 
 
 # -----------------------------------------------------------------------------
@@ -185,25 +239,16 @@ def _joined(pcms: list[_Pcm]) -> _Pcm:
 
 
 def integrated_loudness(pcm: _Pcm) -> float:
-    """EBU R128 integrated loudness (LUFS) of ``pcm``, by ffmpeg's ``ebur128``
-    (``-inf`` for silence)."""
-    _require_ffmpeg("measuring a voice's loudness")
-    with tempfile.TemporaryDirectory() as tmp:
-        path = Path(tmp) / "voice.wav"
-        path.write_bytes(_encode(pcm))
-        proc = subprocess.run(
-            ["ffmpeg", "-hide_banner", "-nostats", "-nostdin", "-i", str(path),
-             "-af", "ebur128=framelog=quiet", "-f", "null", "-"],
-            capture_output=True, text=True, check=False,
-        )  # fmt: skip
-    found = _INTEGRATED.findall(proc.stderr)
-    if proc.returncode != 0 or not found:
+    """EBU R128 integrated loudness (LUFS) of ``pcm``, by :data:`METER` through
+    :func:`mixing.loudness.integrated_lufs` (``-inf`` for silence)."""
+    component = _component()
+    try:
+        return component.integrated_lufs(pcm.samples, pcm.rate, meter=METER)
+    except RuntimeError as e:  # no ffmpeg, or ffmpeg failed
         raise VoiceLoudnessError(
-            f"ffmpeg could not measure loudness (rc={proc.returncode}): "
-            f"{proc.stderr.strip()[-400:]}"
-        )
-    value = found[-1]
-    return float("-inf") if value == "-inf" else float(value)
+            f"measuring a voice's loudness: {e} (macOS: `brew install ffmpeg`; "
+            "Debian/Ubuntu: `apt install ffmpeg`)"
+        ) from e
 
 
 # -----------------------------------------------------------------------------
@@ -211,43 +256,11 @@ def integrated_loudness(pcm: _Pcm) -> float:
 # -----------------------------------------------------------------------------
 
 
-def _sliding_min(x: Any, k: int) -> Any:
-    """The minimum of every ``k``-long window of ``x`` (``len(x) - k + 1`` of
-    them), in O(n) (van Herk / Gil-Werman: prefix and suffix minima per block)."""
-    import numpy as np
-
-    n = len(x)
-    pad = (-n) % k
-    y = np.concatenate([x, np.full(pad, np.inf)]).reshape(-1, k)
-    prefix = np.minimum.accumulate(y, axis=1).ravel()
-    suffix = np.minimum.accumulate(y[:, ::-1], axis=1)[:, ::-1].ravel()
-    i = np.arange(n - k + 1)
-    return np.minimum(suffix[i], prefix[i + k - 1])
-
-
 def limit_peaks(samples: Any, *, ceiling: float, window: int = 1) -> Any:
-    """``samples`` with no sample above ``ceiling`` (absolute, full scale 1.0).
-
-    The gain each sample needs (``ceiling / |x|``, at most 1) is spread over
-    ``window`` samples on both sides — a sliding minimum over ``2 * window + 1``,
-    then a moving average over ``window`` — so it eases into and out of a peak.
-    Every sample's gain is at most what that sample needs, so the ceiling holds
-    exactly; nothing moves in time.
-    """
-    import numpy as np
-
-    if not len(samples):
-        return samples
-    peak = np.abs(samples).max(axis=1)
-    need = np.minimum(1.0, ceiling / np.maximum(peak, 1e-12))
-    if need.min() >= 1.0:
-        return samples
-    w = max(1, int(window))
-    lows = _sliding_min(np.pad(need, (w, w), constant_values=1.0), 2 * w + 1)
-    padded = np.pad(lows, (w // 2, w - 1 - w // 2), mode="edge")
-    gain = np.convolve(padded, np.ones(w) / w, mode="valid")
-    gain = np.minimum(gain, need)  # float rounding never lets a peak through
-    return samples * gain[:, None]
+    """``samples`` with no sample above ``ceiling`` (absolute, full scale 1.0):
+    :func:`mixing.loudness.limit_peaks` (sample peak), the lookahead limiter
+    that moved there unchanged from here (an#563)."""
+    return _component().limit_peaks(samples, ceiling=ceiling, window=window)
 
 
 def leveled_audio(audio: bytes, *, gain_db: float, peak_db: float) -> bytes:
@@ -313,8 +326,8 @@ def loudness_report(scene: Any, mall: Mapping[str, Any]) -> list[VoiceLevel]:
     store = mall["audio"]
     out = []
     for voice, lines in voiced_lines(scene, mall).items():
-        pcm = _joined([_decode(store[line.audio_ref]) for line in lines])
-        out.append(VoiceLevel(voice, integrated_loudness(pcm), lines=len(lines)))
+        pcms = [_decode(store[line.audio_ref]) for line in lines]
+        out.append(VoiceLevel(voice, group_loudness(pcms), lines=len(lines)))
     return out
 
 
@@ -400,22 +413,23 @@ def level_voices(
         ):
             levels.append(VoiceLevel(voice, target - previous, previous, len(lines)))
             continue  # nothing changed since this voice was leveled: nothing to measure
-        lufs = integrated_loudness(_joined([_decode(src) for src in sources]))
+        with warnings.catch_warnings(record=True) as capped:
+            warnings.simplefilter("always")
+            gain, lufs = _level_group(
+                [_decode(src) for src in sources],
+                target_lufs=target,
+                max_gain_db=MAX_GAIN_DB,
+            )
         level = VoiceLevel(voice, lufs, lines=len(lines))
         levels.append(level)
         if not lufs > SILENCE_LUFS:
             for line in lines:
                 line.audio_ref, line.leveled = _source(line), None
             continue  # silence (the offline provider): nothing to level
-        gain = target - lufs
-        if gain > MAX_GAIN_DB:
+        for caught in capped:  # the component capped the gain: said per voice
             warnings.warn(
-                f"voice {voice!r} measures {lufs:.1f} LUFS: reaching {target:g} would "
-                f"take {gain:.1f} dB, mostly noise; capped at +{MAX_GAIN_DB:g} dB",
-                VoiceLoudnessWarning,
-                stacklevel=3,
+                f"voice {voice!r}: {caught.message}", VoiceLoudnessWarning, stacklevel=3
             )
-            gain = MAX_GAIN_DB
         if previous is not None and abs(gain - previous) < GAIN_STEP_DB:
             gain = previous  # hysteresis: a move under a step re-levels nothing
 
@@ -432,7 +446,7 @@ def level_voices(
                 made.append(store[key])
                 line.leveled = {"source": _source(line), "gain_db": level.gain_db}
                 line.audio_ref = key
-            return integrated_loudness(_joined([_decode(m) for m in made]))
+            return group_loudness([_decode(m) for m in made])
 
         reached = apply(gain)
         short = target - reached
