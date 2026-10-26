@@ -35,7 +35,7 @@ A carried item turns, mirrors and squashes with the hand that holds it (a charac
 | `reach`, `retract` | grasp, place, handover, swap | seconds out and back | 0.4, 0.35 |
 | `lean` | grasp, place, handover, swap | most degrees the body may bend | 60 |
 | `align` | grasp, handover, swap | over the retract the item turns to how the hand holds things (drawn as it is, along the hand's part, as a socket holds it); `false` keeps the angle it was taken at | true |
-| `rotation` | place, release, swap (the give) | the item's rotation where it comes to rest (radians, the stage's). Into a socket it is how the item is **aimed** there (a musket pointed at someone, a sabre raised): it arrives at that angle, grip on the socket, and from then on turns with the socket | as it last lay on the ground, else its nearest quarter turn; a socket's own |
+| `rotation` | place, release, swap (the give) | the item's rotation where it comes to rest (radians, the stage's; on a surface, relative to the surface). Into a socket it is how the item is **aimed** there (a musket pointed at someone, a sabre raised): it arrives at that angle, grip on the socket, and from then on turns with the socket | as it last lay on the ground, else its nearest quarter turn; a socket's own |
 | `arc` | release | how high a toss rises above its higher end (px) | 40 |
 | `lag` | swap | how long after the taking hand the giving hand starts | 0.25 |
 
@@ -58,7 +58,7 @@ A `swap` is a `grasp` (by `by`, of `take`) and a `place` (of `give`, by whicheve
 
 - **The segment** is the table's own, so it is declared once per prop, not per item: two bones of its rig named `surface_l` and `surface_r` (its two ends, in the art's units), or, when it declares neither, the top edge of the part's painted pixels (right for a crate or a plain table; declare the bones when something else is drawn above the top, or the surface is a shelf inside the art). A prop with several root parts is named with its part: `table/top@surface`.
 - **A tilted surface** (the table turned, a ramp) lays the item along it: its angle is the surface's tilt plus its rest angle, and `rotation` on such a place is relative to the surface.
-- Only `place` and `held_by` put an item on a surface; a `release` still falls to the floor.
+- Only `place` and `held_by` put an item on a surface; a `release onto:` a surface is refused (`hold_conflict`), and `surface` is a reserved point name: a rig with a bone called `surface` is refused there (rename it).
 
 ## What `an validate` says
 

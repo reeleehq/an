@@ -635,8 +635,6 @@ class Holder:
             if self.role == "hand":
                 return ("body", self.body)
             return ("body", self.body, round(self.local[0], 6), round(self.local[1], 6))
-        if self.kind == "surface":
-            return ("surface", self.body)
         return (self.kind,)
 
     def text(self) -> str:
@@ -886,9 +884,9 @@ def _surface_holder(
     found = puppet.located.get((head, "socket"))
     if not isinstance(found, Located):
         return None  # the solve said why
-    text = ref.partition("@")[2].partition("@")[2]
+    _name, sep, text = ref.partition("@")[2].partition("@")
     along = None
-    if text:
+    if sep:
         try:
             along = float(text)
         except ValueError:
@@ -905,6 +903,16 @@ def _surface_holder(
     eid = _entity(head)
     entity = next((e for e in shot.entities if e.id == eid), None)
     rig = _rig_of(entity, mall, puppet.nodes, vocab) if entity is not None else None
+    if rig is not None and SURFACE in rig.anchors:
+        problems.append(
+            (
+                where,
+                f"{ref!r}: {eid!r} has a bone named {SURFACE!r}, a reserved point name "
+                f"(`<body>@{SURFACE}` is the body's top, an#536): rename the bone, and "
+                f"declare a surface by {list(SURFACE_BONES)}",
+            )
+        )
+        return None
     bones = (
         _anchors_in(doc, rig, eid, puppet.nodes, found.body) if rig is not None else {}
     )
@@ -1118,6 +1126,15 @@ def _schedule(
                     )
                 )
                 continue
+        if a.kind == "release" and a.onto is not None and _is_surface_target(a.onto):
+            problems.append(
+                (
+                    v.where,
+                    f"release {item!r} onto {a.onto!r}: a release falls to the floor; an "
+                    f"item is put on a surface by `place` (`onto: {a.onto}`)",
+                )
+            )
+            continue
         if a.kind == "release":
             events[item].append(
                 Event(_frame_at(times, v.start), "drop", release=a, where=v.where)
@@ -1412,9 +1429,43 @@ def _on_line(
     info = ctx.items[item]
     about = info.centre if about is None else about
     m = _placed(at, lin, about)
-    above = _above(m, info.corners, line)
-    (_p, (dx, dy)) = line
+    return _lift(m, line, _above(m, info.corners, line))
+
+
+def _lift(m: Affine, line: Line, above: float) -> Affine:
+    """``m`` moved ``above`` along ``line``'s normal (down onto it when positive).
+
+    >>> _lift((1, 0, 0, 1, 2.0, 3.0), _ground_line(10.0), 4.0)[4:]
+    (2.0, 7.0)
+    """
+    dx, dy = line[1]
     return _compose(_translate(-dy * above + 0.0, dx * above + 0.0), m)
+
+
+def _on_surface(
+    ctx: _Ctx,
+    run: Run,
+    k: int,
+    holder: Holder,
+    item: str,
+    level: Any,
+    *,
+    below: tuple[float, float],
+    below_k: int,
+    about: tuple[float, float] | None = None,
+) -> tuple[Lin, Affine]:
+    """The item lying on ``holder``'s surface at frame ``k``: its linear part
+    (``level(tilt)``: how it lies relative to the surface, turned by the
+    surface's tilt) and its pose, at the surface's fraction ``along``, else
+    at the foot of stage point ``below`` on the surface at frame ``below_k``."""
+    line, a, b = _surface_at(ctx, run, k, holder)
+    along = holder.along
+    if along is None:
+        _line, a0, b0 = _surface_at(ctx, run, below_k, holder)
+        along = _fraction_on(below, a0, b0)
+    tilt = _tilt(line)
+    lin = _turned(level(tilt), tilt)
+    return lin, _on_line(ctx, lin, item, _lerp(a, b, along), line, about=about)
 
 
 def _on_ground(
@@ -1489,22 +1540,21 @@ def _place_target(
     if target.kind == "surface":
         # As on the ground, with the surface's line (in the body's frame, at
         # frame k) for the floor and the item's angles taken from its tilt.
-        line, a, b = _surface_at(ctx, run, k, target)
-        along = target.along
-        if along is None:  # below the hand when it starts to put it down
-            hand0 = _point_world(ctx.puppet, run, g.k0, g.hand)
-            _line0, a0, b0 = _surface_at(ctx, run, g.k0, target)
-            along = _fraction_on(hand0, a0, b0)
-        tilt = _tilt(line)
-        lin = _turned(
-            _rest_lin(ctx, item, _turned(carried, -tilt), g.rotation, rests), tilt
+        # Below the hand when it starts to put it down.
+        lin, whole = _on_surface(
+            ctx,
+            run,
+            k,
+            target,
+            item,
+            lambda tilt: _rest_lin(
+                ctx, item, _turned(carried, -tilt), g.rotation, rests
+            ),
+            below=_point_world(ctx.puppet, run, g.k0, g.hand),
+            below_k=g.k0,
+            about=g.point if g.point is not None else ctx.items[item].centre,
         )
-        about = g.point if g.point is not None else ctx.items[item].centre
-        return (
-            lin,
-            _on_line(ctx, lin, item, _lerp(a, b, along), line, about=about),
-            None,
-        )
+        return lin, whole, None
     lin = _rest_lin(ctx, item, carried, g.rotation, rests)
     ground = _ground_at(ctx, run, g.k0, g.hand.entity)
     if ground is None:
@@ -1558,14 +1608,16 @@ def walk_items(
                     "rest", m=_placed((first.x, first.y), _lin_of(m_doc), info.grip)
                 )
             elif first.kind == "surface":
-                line, a, b = _surface_at(ctx, run, 0, first)
-                along = (
-                    first.along
-                    if first.along is not None
-                    else _fraction_on(_apply(m_doc, info.centre), a, b)
+                _lin, m = _on_surface(  # below its staged centre
+                    ctx,
+                    run,
+                    0,
+                    first,
+                    item,
+                    lambda _tilt: _lin_of(m_doc),
+                    below=_apply(m_doc, info.centre),
+                    below_k=0,
                 )
-                lin = _turned(_lin_of(m_doc), _tilt(line))
-                m = _on_line(ctx, lin, item, _lerp(a, b, along), line)
                 state = _State(
                     "body",
                     body=first.body,
@@ -1765,8 +1817,7 @@ def _transition(
             m = whole if ideal and whole is not None else current
             above = _above(m, info.corners, line)
             if not ideal and abs(above) <= SUPPORT_TOLERANCE_PX:
-                dx, dy = line[1]
-                m = _compose(_translate(-dy * above + 0.0, dx * above + 0.0), m)
+                m = _lift(m, line, above)
             rests.append((k, _turned(_lin_of(m), -_tilt(line))))
             body = g.target.body
             return _State(

@@ -881,10 +881,32 @@ def test_an_item_hovering_over_a_named_surface_is_called_floating(tmp_path):
             _TAKE + "- {kind: handover, item: stick, to: crate@surface, start: 1.4}",
             "by `place`",
         ),
+        (
+            _TAKE + "- {kind: release, item: stick, at: 1.4, onto: crate@surface}",
+            "a release falls to the floor",
+        ),
+        (
+            _TAKE + "- {kind: place, item: stick, onto: 'crate@surface@', start: 1.4}",
+            "f from 0",
+        ),
     ],
 )
 def test_a_surface_target_that_does_not_make_sense_is_refused(
     tmp_path, actions, expected
 ):
     with pytest.raises(HoldError, match=expected):
+        _compile(_surface_project(tmp_path, actions))
+
+
+def test_a_bone_named_surface_is_refused_as_a_reserved_name(tmp_path, monkeypatch):
+    import tests._hold_fixture as fixture
+
+    crate = dict(fixture.CRATE)
+    crate["bones"] = [
+        *crate["bones"],
+        {"name": "surface", "parent": "root", "x": 0.0, "y": -50.0},
+    ]
+    monkeypatch.setattr(fixture, "CRATE", crate)
+    actions = _TAKE + "- {kind: place, item: stick, onto: crate@surface, start: 1.4}"
+    with pytest.raises(HoldError, match="reserved point name"):
         _compile(_surface_project(tmp_path, actions))

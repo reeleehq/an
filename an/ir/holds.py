@@ -142,10 +142,11 @@ class PlaceAction(ExtensionAction):
     a point).
     ``item@<point>`` names the item's point that touches the target (default:
     its grip on a socket, its lowest point on the ground). ``rotation``: the
-    item's rotation where it rests (radians, the stage's; default: the angle it
-    last rested at on the ground, else the nearest quarter turn; in a socket,
-    the socket's own). In a socket it is the angle the item comes to rest at
-    (a musket aimed at someone, a sabre raised), held relative to the socket
+    item's rotation where it rests (radians, the stage's; on a surface, relative
+    to the surface, whose tilt is added; default: the angle it last rested at,
+    else the nearest quarter turn; in a socket, the socket's own). In a socket
+    it is the angle the item comes to rest at (a musket aimed at someone, a
+    sabre raised), held relative to the socket
     from then on, so it turns with it.
 
     >>> PlaceAction(item="musket", onto="nap/arm_r/weapon").by is None
