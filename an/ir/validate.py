@@ -17,7 +17,7 @@ import json
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Collection, Literal, Mapping
+from typing import Any, Callable, Collection, Literal, Mapping
 
 from pydantic import ValidationError
 
@@ -742,6 +742,7 @@ def _check_action_targets(
     resolution: tuple[int | None, int | None] | None = None,
     skip: frozenset[str] = frozenset(),
     built: set[str] | None = None,
+    on_unbuilt: Callable[[str], None] | None = None,
 ) -> None:
     """Every `set`/`tween` target must be a node the compiler BUILDS (an#193).
 
@@ -757,7 +758,9 @@ def _check_action_targets(
     camera node (``root``) is a legitimate target, as the compiler says.
     ``built``, when given, is the node paths of the shot's compiled document
     (the one the compile-based checks share, an#551): read instead of
-    compiling the stage a second time.
+    compiling the stage a second time. ``on_unbuilt(why)``, when given, takes
+    the "targets were NOT checked" news instead of a warning of its own (the
+    ``not_compiled`` line folds it in).
     """
     from an.stage import STAGE_RENDERER_NAMES
 
@@ -804,6 +807,9 @@ def _check_action_targets(
     why = None
     if built is None:
         built, why = _built_node_paths(shot, stores, resolution=resolution)
+    if built is None and on_unbuilt is not None:
+        on_unbuilt(why)
+        return
     if built is None:
         report.add(
             "warning",
@@ -1429,6 +1435,12 @@ class ValidationContext:
         return self.memo[key]
 
 
+#: Checks that run whatever ``only`` selects: they report on the checks that
+#: did run (``not_compiled``: a shot the compile-based checks could not
+#: compile, an#551), and say nothing when none did.
+ALWAYS_RUN_CHECKS: frozenset[str] = frozenset({"not_compiled"})
+
+
 def validate_semantic(
     scene: SceneIR,
     *,
@@ -1476,7 +1488,8 @@ def validate_semantic(
     skip that shot rather than crash.
 
     ``only`` runs just the registered checks of those names (what ``an render``
-    does after synthesis, :func:`post_synthesis_findings`); ``fps`` is the one
+    does after synthesis, :func:`post_synthesis_findings`), plus the ones in
+    :data:`ALWAYS_RUN_CHECKS`, which report on whichever checks ran; ``fps`` is the one
     the film is assembled at when it is not the scene's (``an render --fps``),
     which decides how long a dissolve's overlap is.
     """
@@ -1502,7 +1515,11 @@ def validate_semantic(
     )
 
     def selected(stage: str):
-        return [c for c in registered_checks(stage) if only is None or c.name in only]
+        return [
+            c
+            for c in registered_checks(stage)
+            if only is None or c.name in only or c.name in ALWAYS_RUN_CHECKS
+        ]
 
     for check in selected("scene"):
         _run_check(check, ctx)
@@ -1892,19 +1909,31 @@ def _core_action_targets(ctx: ValidationContext) -> None:
         resolution=(res.width or None, res.height or None),
         skip=frozenset(_text_ids(ctx)),
         built=_compiled_node_paths(ctx),
+        on_unbuilt=_targets_unchecked(ctx),
     )
+
+
+def _targets_unchecked(ctx: ValidationContext) -> Callable[[str], None] | None:
+    """Where the action-target check records that it could not check a shot
+    that does not compile: the memo, read by the one ``not_compiled`` line
+    (:func:`an.verify.constraints.check_not_compiled`), so the shot gets one
+    "did NOT run" line, not two. ``None`` for a shot that compiled (or is not
+    a stage shot): its own warning then."""
+    from an.verify.constraints import TARGETS_UNCHECKED_KEY, compile_outcome
+
+    if compile_outcome(ctx)[1] is None:
+        return None
+    key = (TARGETS_UNCHECKED_KEY, ctx.index)
+    return lambda why: ctx.memo.__setitem__(key, why)
 
 
 def _compiled_node_paths(ctx: ValidationContext) -> set[str] | None:
     """The node paths of ``ctx.shot``'s compiled document, the one every
     compile-based check shares (:func:`an.verify.constraints.compile_outcome`),
-    or ``None`` when it did not compile (or no stores were supplied, when the
-    targets are not checked). Safe to read instead of the stage alone: the
+    or ``None`` when it did not compile. Safe to read instead of the stage alone: the
     compiler refuses a channel on a node it did not build, so in a shot that
     compiled every target is among these paths, which is all the check asks;
     the stage alone is compiled only for a shot that did not."""
-    if not ctx.stores:
-        return None
     from an.stage.tree import walk_document
     from an.verify.constraints import compile_outcome
 

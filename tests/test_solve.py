@@ -355,9 +355,7 @@ def test_a_bone_named_on_an_entity_with_several_roots_is_a_point_of_its_part(tmp
     # no part sits on `hand`: still no body to choose
     with pytest.raises(UnknownBodyError, match="root parts"):
         _compile(project, _shot(project, actions=[pin("puppet@hand", "wheel@grip")]))
-    named = _compile(
-        project, _shot(project, actions=[pin("puppet@fore", "wheel@grip")])
-    )
+    named = _compile(project, _shot(project, actions=[pin("puppet@fore", "wheel@grip")]))
     on_part = _compile(
         project, _shot(project, actions=[pin("puppet/fore@fore", "wheel@grip")])
     )
@@ -599,17 +597,13 @@ def test_a_part_a_joint_let_go_of_stays_where_it_was_left(tmp_path, ends):
     assert max(math.dist(a, b) for a, b in zip(hands, hands[1:])) < 5.0
 
 
-def test_every_compile_based_check_shares_one_document_with_the_style_pack(
-    tmp_path, monkeypatch
-):
+def test_every_compile_based_check_shares_one_document_with_the_style_pack(tmp_path, monkeypatch):
     """an#534: the constraint lints and the placements helper used to compile
     without the scene's style pack (so a solve without its gravity), and twice."""
     from an.styles import StylePack
 
     project = _project(tmp_path)
-    project.mall["styles"]["noir"] = StylePack(
-        name="noir", roles={"sky": "#000000"}
-    ).model_dump()
+    project.mall["styles"]["noir"] = StylePack(name="noir", roles={"sky": "#000000"}).model_dump()
     meta = project.scene.meta.model_copy(update={"style_pack": "noir"})
     scene = project.scene.model_copy(update={"meta": meta})
 
@@ -630,3 +624,19 @@ def test_every_compile_based_check_shares_one_document_with_the_style_pack(
     )
     packed = [p for p in packs if p is not None]
     assert [p.name for p in packed] == ["noir"] * len(scene.timeline), packs
+
+
+def test_a_shot_that_does_not_compile_says_its_cause_at_most_twice(tmp_path):
+    """A full validate (every check) of a shot that does not compile: the
+    cause is said by the check that owns it and at most once more, and the
+    "did NOT run" line is said once (an#551)."""
+    project = _project(tmp_path, prop="wheel", joints=[{"type": "pin", "a": "@0.5,0"}])
+    report = validate_semantic(
+        project.scene,
+        available_props=project.mall["props"],
+        available_environments=project.mall["environments"],
+    )
+    said = [f.description for f in report.findings]
+    assert 1 <= sum("does not read" in m for m in said) <= 2
+    assert sum("did NOT run" in m for m in said) == 1
+    assert not [m for m in said if "were NOT checked" in m]

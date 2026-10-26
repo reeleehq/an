@@ -120,7 +120,8 @@ __all__ = [
     "ShortHold",
     "compile_outcome",
     "compiled_shot",
-    "report_not_compiled",
+    "check_not_compiled",
+    "NOT_COMPILED",
     "continuity_findings",
     "discontinuities",
     "short_holds",
@@ -222,70 +223,125 @@ def compile_outcome(ctx: Any) -> tuple[Any | None, Exception | None]:
     return ctx.cached((COMPILED_KEY, ctx.index), build)
 
 
-#: The memo key under which shot ``i``'s compile failure is marked reported.
-NOT_COMPILED_KEY: str = "constraints.not_compiled"
-
-
 def compiled_shot(ctx: Any) -> Any | None:
     """The document of :func:`compile_outcome`, ``None`` for a shot the stage
     does not render or that does not compile. A constraint says nothing about
-    a shot it could not see, but validate does not stay silent about it: a
-    shot that does not compile gets one :func:`report_not_compiled` line, so
-    the checks that skipped it are never read as having passed."""
-    doc, error = compile_outcome(ctx)
-    if error is not None:
-        report_not_compiled(ctx, error)
-    return doc
+    a shot it could not see; the ``not_compiled`` check says, once per shot,
+    that it could not (:func:`check_not_compiled`)."""
+    return compile_outcome(ctx)[0]
 
 
-def report_not_compiled(ctx: Any, error: Exception) -> None:
-    """Say, once per shot, that the compile-based checks did NOT run on
-    ``ctx.shot`` because it does not compile (``error``, from
-    :func:`compile_outcome`), at :data:`an.verify.vision.FAILURE_SEVERITY`:
-    a check that could not look must never read as a check that passed. The
-    check that owns the error (``unknown_body``, ``hold_conflict``, the action
-    targets) still reports the cause itself; when an error on the shot is
-    already in the report, the line names the error's type only, so the
-    author's mistake is said once.
+#: The memo key under which the action-target check records why it could not
+#: check shot ``i`` (its stage did not build either): folded into the one
+#: ``not_compiled`` line rather than said separately.
+TARGETS_UNCHECKED_KEY: str = "constraints.targets_unchecked"
+#: The shortest tail of a compile error's message that counts as "said" when a
+#: finding on the shot contains it (shorter tails match by accident).
+MIN_SAID_CHARS: int = 20
 
-    >>> from an.ir.schema import SceneIR
-    >>> from dataclasses import replace
-    >>> from an.ir.validate import ValidationContext, ValidationReport
-    >>> ctx = ValidationContext(SceneIR(), ValidationReport(), {}, index=0)
-    >>> report_not_compiled(ctx, ValueError("bad step_hz"))
-    >>> report_not_compiled(ctx, ValueError("bad step_hz"))  # once per shot
-    >>> [(f.severity, f.ir_path) for f in ctx.report.findings]
-    [('warning', 'timeline/0')]
-    >>> "did NOT run" in ctx.report.findings[0].description
+
+def _already_said(error: Exception, texts: list[str]) -> bool:
+    """Whether one of ``texts`` (the findings on the shot) already carries
+    ``error``'s message: the whole of it, or a tail after a ``": "`` or
+    ``" — "`` (a compile error prefixes the cause with where it happened, as
+    ``play of 'walk' on 'w': <cause>``; the check that owns the cause says
+    ``<cause>`` in its own words around it).
+
+    >>> e = ValueError("play of 'walk' on 'w': gait 'hop' does not read 'bob'")
+    >>> _already_said(e, ["`play` cannot resolve: gait 'hop' does not read 'bob'."])
     True
-    >>> ctx.report.add("error", "timeline/1/actions/0", "bad step_hz")
-    >>> report_not_compiled(replace(ctx, index=1), ValueError("bad step_hz"))
-    >>> ctx.report.findings[-1].description.endswith("(ValueError, reported above).")
-    True
+    >>> _already_said(e, ["something else entirely"])
+    False
     """
+    import re
 
-    def add():
-        from an.verify.vision import FAILURE_SEVERITY
+    message = str(error).rstrip(".")
+    starts = [0] + [m.end() for m in re.finditer(r": | — ", message)]
+    tails = {message[k:] for k in starts if len(message) - k >= MIN_SAID_CHARS}
+    return any(tail in text for tail in tails for text in texts)
 
-        said = any(
-            f.severity == "error"
-            and (f.ir_path == ctx.path or f.ir_path.startswith(ctx.path + "/"))
+
+def _unsupplied(shot: Any, stores: Mapping[str, Any]) -> list[str]:
+    """The ids of ``shot``'s entities whose rig store was not supplied (the
+    stage builds a stand-in for them, which may not compile): their checks
+    were not asked for, so their failure is not news."""
+    from an.ir.validate import rig_stores
+
+    store_of = {kind: name for kind, (name, _doc) in rig_stores().items()}
+    store_of["environment"] = "environments"
+    return [
+        e.id
+        for e in shot.entities
+        if e.kind in store_of and stores.get(store_of[e.kind]) is None
+    ]
+
+
+def check_not_compiled(ctx: Any) -> None:
+    """Say, once per shot, that the compile-based checks did NOT run on a shot
+    that does not compile, at :data:`an.verify.vision.FAILURE_SEVERITY`: a
+    check that could not look must never read as a check that passed (an#551).
+
+    Runs at ``finish`` over the compiles the shot checks asked for (the memo
+    under :data:`COMPILED_KEY`), so it says nothing when no compile-based check
+    ran. Silent for a shot with an entity whose store was not supplied
+    (checks not asked for are not broken). The cause is given in full unless
+    a finding on the shot already says it (:func:`_already_said`), then
+    "reported above". Folds in the action-target check's own skip.
+
+    >>> from an.ir.schema import SceneIR, Shot
+    >>> from an.ir.validate import ValidationContext, ValidationReport
+    >>> ctx = ValidationContext(SceneIR(timeline=[Shot(id="a"), Shot(id="b")]), ValidationReport(), {})
+    >>> ctx.memo[(COMPILED_KEY, 0)] = (None, ValueError("step_hz 1000 is not a divisor of fps"))
+    >>> ctx.memo[(COMPILED_KEY, 1)] = (None, ValueError("step_hz 1000 is not a divisor of fps"))
+    >>> ctx.report.add("error", "timeline/1/step_hz", "step_hz 1000 is not a divisor of fps.")
+    >>> check_not_compiled(ctx)
+    >>> [(f.severity, f.ir_path) for f in ctx.report.findings[1:]]
+    [('warning', 'timeline/0'), ('warning', 'timeline/1')]
+    >>> [f.description.split("(")[-1] for f in ctx.report.findings[1:]]
+    ['ValueError: step_hz 1000 is not a divisor of fps).', 'ValueError, reported above).']
+    """
+    from an.verify.vision import FAILURE_SEVERITY
+
+    shots = ctx.shots
+    for (_key, i), outcome in _compiled(ctx):
+        _doc, error = outcome
+        if error is None or i >= len(shots) or _unsupplied(shots[i], ctx.stores or {}):
+            continue
+        path = f"timeline/{i}"
+        on_shot = [
+            f.description
             for f in ctx.report.findings
-        )
+            if f.ir_path == path or f.ir_path.startswith(path + "/")
+        ]
         why = (
             f"{type(error).__name__}, reported above"
-            if said
+            if _already_said(error, on_shot)
             else f"{type(error).__name__}: {error}"
+        )
+        targets = (
+            " and the animation targets"
+            if ctx.memo.get((TARGETS_UNCHECKED_KEY, i))
+            else ""
         )
         ctx.report.add(
             FAILURE_SEVERITY,
-            ctx.path,
+            path,
             "the compile-based checks (the constraints, joints, holds and cut "
-            f"placements) did NOT run on this shot: it does not compile ({why}).",
+            f"placements{targets}) did NOT run on this shot: it does not "
+            f"compile ({why}).",
         )
-        return True
 
-    ctx.cached((NOT_COMPILED_KEY, ctx.index), add)
+
+def _compiled(ctx: Any) -> list[tuple[tuple[str, int], Any]]:
+    """The memo's compile outcomes, ``((COMPILED_KEY, i), outcome)``, by shot."""
+    return sorted(
+        (
+            (k, v)
+            for k, v in ctx.memo.items()
+            if isinstance(k, tuple) and len(k) == 2 and k[0] == COMPILED_KEY
+        ),
+        key=lambda kv: kv[0][1],
+    )
 
 
 def _fps(ctx: Any) -> float:
@@ -1814,12 +1870,29 @@ CONSTRAINTS: tuple[Constraint, ...] = (
 )
 
 
+#: Where ``not_compiled`` runs in ``finish``: last, after every check that
+#: compiles a shot there too (the cut checks, the constraints' finish checks).
+NOT_COMPILED_ORDER: float = 1000.0
+#: The one line a shot that does not compile gets (an#551): always on, since
+#: it reports on whichever compile-based checks ran (``only`` included).
+NOT_COMPILED: SemanticCheck = SemanticCheck(
+    "not_compiled",
+    check_not_compiled,
+    stage="finish",
+    order=NOT_COMPILED_ORDER,
+    description="a shot the compile-based checks could not compile says they did not run",
+)
+
+
 def _register(constraints: tuple[Constraint, ...] = CONSTRAINTS) -> None:
     """Register the core's constraint checks once (the core's other checks are
-    registered the same way when ``an.ir.validate`` loads)."""
+    registered the same way when ``an.ir.validate`` loads), and the
+    ``not_compiled`` line that reports the shots they could not compile."""
     for constraint in constraints:
         if constraint.name not in check_names(owner=CORE_OWNER):
             register_check(constraint.semantic_check(), owner=CORE_OWNER)
+    if NOT_COMPILED.name not in check_names(owner=CORE_OWNER):
+        register_check(NOT_COMPILED, owner=CORE_OWNER)
 
 
 _register()

@@ -527,11 +527,7 @@ def test_motion_style_is_registered_under_the_core_owner():
 
 
 def test_a_linear_move_is_over_the_smoothness_target(tmp_path):
-    (msg,) = _msgs(
-        _styled(
-            tmp_path, [_tween(duration=1.0, easing="linear", from_value=0.0)], SMOOTH
-        )
-    )
+    (msg,) = _msgs(_styled(tmp_path, [_tween(duration=1.0, easing="linear", from_value=0.0)], SMOOTH))
     assert "lamp:x" in msg and "corners" in msg
 
 
@@ -629,23 +625,11 @@ def _sounded(tmp_path: Path, at: float, *, reaches=None, offset=0.0):
     cue = {
         "sound": "thud",
         "at": at,
-        "cause": {
-            "when": "lamp",
-            "reaches": reaches or {"y": _HALFWAY_Y},
-            "offset": offset,
-        },
+        "cause": {"when": "lamp", "reaches": reaches or {"y": _HALFWAY_Y}, "offset": offset},
     }
     return _lint(
         tmp_path,
-        [
-            _tween(
-                property="y",
-                from_value=0.0,
-                to_value=300.0,
-                duration=1.0,
-                easing="linear",
-            )
-        ],
+        [_tween(property="y", from_value=0.0, to_value=300.0, duration=1.0, easing="linear")],
         duration=1.0,
         extra={"sounds": [cue]},
     )
@@ -653,11 +637,7 @@ def _sounded(tmp_path: Path, at: float, *, reaches=None, offset=0.0):
 
 def _halfway_y() -> float:
     """The lamp's screen y at 0.5 s of the fall (the fixture's lamp, read from the stage)."""
-    from an.stage.timeline import (
-        evaluate_timeline,
-        screen_position,
-        timeline_from_scene,
-    )
+    from an.stage.timeline import evaluate_timeline, screen_position, timeline_from_scene
 
     class _Ctx:  # just enough of a check context to compile the shot
         index = 0
@@ -674,27 +654,12 @@ def _halfway_y() -> float:
         {
             **project.scene.timeline[0].model_dump(),
             "duration": 1.0,
-            "actions": [
-                _tween(
-                    property="y",
-                    from_value=0.0,
-                    to_value=300.0,
-                    duration=1.0,
-                    easing="linear",
-                )
-            ],
+            "actions": [_tween(property="y", from_value=0.0, to_value=300.0, duration=1.0, easing="linear")],
         }
     )
     ctx = _Ctx()
-    ctx.shot, ctx.scene, ctx.memo = (
-        shot,
-        project.scene.model_copy(update={"timeline": [shot]}),
-        {},
-    )
-    ctx.stores = {
-        "props": project.mall["props"],
-        "environments": project.mall["environments"],
-    }
+    ctx.shot, ctx.scene, ctx.memo = shot, project.scene.model_copy(update={"timeline": [shot]}), {}
+    ctx.stores = {"props": project.mall["props"], "environments": project.mall["environments"]}
     doc = constraints.compiled_shot(ctx)
     pose = evaluate_timeline(timeline_from_scene(doc), 0.5)
     return screen_position(doc, "lamp", pose=pose)[1]
@@ -778,3 +743,32 @@ def test_an_unknown_target_is_still_reported_from_the_stage_alone(tmp_path):
     errors = [f for f in report.findings if f.severity == "error"]
     assert errors and "lamp/nope" in errors[0].description
     assert any("did NOT run" in m for m in _msgs(report))
+
+
+def test_an_unknown_target_is_said_once_with_the_did_not_run_line(tmp_path):
+    report = _targets(tmp_path, [_tween(target="lamp/nope")])
+    (line,) = [m for m in _msgs(report) if "did NOT run" in m]
+    assert line.endswith("reported above).")  # the target error said the cause
+
+
+def test_a_shot_whose_stage_does_not_build_either_gets_one_line(tmp_path, monkeypatch):
+    """The action targets' own "NOT checked" warning is folded into the one
+    line for a shot that does not compile."""
+    import an.motion
+
+    def broken(*a, **k):
+        raise RuntimeError("the stage does not build")
+
+    monkeypatch.setattr(an.motion, "stage_poses", broken)
+    report = _targets(tmp_path, [_tween()], extra={"step_hz": 1000.0})
+    (f,) = report.findings
+    assert "did NOT run" in f.description and "animation targets" in f.description
+
+
+def test_missing_stores_are_not_a_shot_that_does_not_compile(tmp_path):
+    """Without the props store the lamp is a stand-in the stage cannot compile:
+    those checks were not asked for, so validate does not call them broken."""
+    project = load(Path(shutil.copytree(LAMP, tmp_path / "p")))
+    for stores in ({}, {"available_characters": {}}):
+        report = validate_semantic(project.scene, **stores)
+        assert not [m for m in _msgs(report) if "did NOT run" in m]
