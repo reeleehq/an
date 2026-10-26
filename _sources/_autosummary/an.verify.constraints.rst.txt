@@ -14,6 +14,7 @@ an.verify.constraints
 
    .. autosummary::
    
+      av_offset_fault
       airborne_faults
       move_jerk
       unanticipated

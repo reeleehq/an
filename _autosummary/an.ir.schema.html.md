@@ -105,7 +105,7 @@ True
 | [`SetAction`](#an.ir.schema.SetAction)(\*[, name, kind, at])                    | Set a property to a value at a specific time.                                                                                                                       |
 | [`Shot`](#an.ir.schema.Shot)(\*, id[, renderer, duration, camera, ...])    | A single rendered unit.                                                                                                                                             |
 | [`SolveSettings`](#an.ir.schema.SolveSettings)(\*[, mode, gravity, damping, ...])   | How a shot's joints are solved: a per-shot override of the style pack's `gravity` and `damping`, and the solve's mode and effort (ADR 0008 decision 4).             |
-| [`SoundCue`](#an.ir.schema.SoundCue)(\*, sound[, at, until, duration, ...])    | One sound placed on the timeline: an SFX hit, an ambience, a music bed.                                                                                             |
+| [`SoundCue`](#an.ir.schema.SoundCue)(\*, sound[, at, until, cause, ...])       | One sound placed on the timeline: an SFX hit, an ambience, a music bed.                                                                                             |
 | [`StagePlacement`](#an.ir.schema.StagePlacement)(\*[, at, scale, after])             | Where an entity stands on the stage, and how big it is.                                                                                                             |
 | [`Stream`](#an.ir.schema.Stream)(\*, id, ref[, kind, store, height, ...])    | A row of one prop along a travel's direction (ADR 0009 decision 4).                                                                                                 |
 | [`Transition`](#an.ir.schema.Transition)(\*[, kind, duration, color, ...])       | How a shot is ENTERED — from the previous shot, or (for the first shot) from nothing.                                                                               |
@@ -1156,7 +1156,7 @@ This shot’s own gravity (`None` also when it says nothing).
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.SoundCue(, sound, at=0.0, until=None, duration=None, gain_db=0.0, loop=False, fade_in=0.0, fade_out=0.0, duck_db=None, duck_attack=0.08, duck_release=0.3, \*\*extra_data)
+### *class* an.ir.schema.SoundCue(, sound, at=0.0, until=None, cause=None, duration=None, gain_db=0.0, loop=False, fade_in=0.0, fade_out=0.0, duck_db=None, duck_attack=0.08, duck_release=0.3, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -1181,6 +1181,13 @@ whole thing).
 
 Seconds, or a [`CueAnchor`](#an.ir.schema.CueAnchor) resolved from the picture when the film
 is laid out (an#317).
+
+#### cause *: [CueAnchor](#an.ir.schema.CueAnchor) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The visible event this sound is the sound OF, for a cue authored at a
+time (`at` in seconds): the `causality` lint checks the sound does
+not precede it and stays within the audio-visual window (catalogue B7).
+A shot cue only; an anchored `at` already is its cause.
 
 #### duck_db *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 

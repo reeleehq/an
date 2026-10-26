@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=2102afc9"></script>
+    <script src="../_static/documentation_options.js?v=857a2bd0"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.266" />
+  <meta name="docsearch:version" content="0.1.267" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -653,7 +653,10 @@ draws) refuses before any browser launches.</p>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.sound_anchors.resolve_cue_anchors" title="an.sound_anchors.resolve_cue_anchors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_cue_anchors</span></code></a>(scene, ctx, renderers, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.sound_anchors.crossing_in_document" title="an.sound_anchors.crossing_in_document"><code class="xref py py-obj docutils literal notranslate"><span class="pre">crossing_in_document</span></code></a>(doc, anchor, *, ...)</p></td>
+<td><p>Shot-local seconds at which <code class="docutils literal notranslate"><span class="pre">anchor.when</span></code>'s centre first reaches <code class="docutils literal notranslate"><span class="pre">anchor.reaches</span></code>, in a compiled stage document.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.sound_anchors.resolve_cue_anchors" title="an.sound_anchors.resolve_cue_anchors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_cue_anchors</span></code></a>(scene, ctx, renderers, ...)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">scene</span></code> (a copy) with every anchored <code class="docutils literal notranslate"><span class="pre">at</span></code> resolved to seconds and every <code class="docutils literal notranslate"><span class="pre">until</span></code> to a duration.</p></td>
 </tr>
 </tbody>
@@ -673,6 +676,17 @@ draws) refuses before any browser launches.</p>
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.sound_anchors.</span></span><span class="sig-name descname"><span class="pre">SoundAnchorError</span></span><a class="reference internal" href="../_modules/an/sound_anchors.html#SoundAnchorError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.sound_anchors.SoundAnchorError" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
 <p>A cue’s anchor cannot be resolved: the message says which and why.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.sound_anchors.crossing_in_document">
+<span class="sig-prename descclassname"><span class="pre">an.sound_anchors.</span></span><span class="sig-name descname"><span class="pre">crossing_in_document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">doc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anchor</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">shot_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">where</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/sound_anchors.html#crossing_in_document"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.sound_anchors.crossing_in_document" title="Link to this definition">#</a></dt>
+<dd><p>Shot-local seconds at which <code class="docutils literal notranslate"><span class="pre">anchor.when</span></code>’s centre first reaches <code class="docutils literal notranslate"><span class="pre">anchor.reaches</span></code>, in a compiled stage document.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -742,6 +756,7 @@ film_starts: each shot’s start in film time (a <code class="docutils literal n
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sound_anchors.SoundAnchorError"><code class="docutils literal notranslate"><span class="pre">SoundAnchorError</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sound_anchors.crossing_in_document"><code class="docutils literal notranslate"><span class="pre">crossing_in_document()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sound_anchors.resolve_cue_anchors"><code class="docutils literal notranslate"><span class="pre">resolve_cue_anchors()</span></code></a></li>
 </ul>
   </nav></div>

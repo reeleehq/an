@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../_static/documentation_options.js?v=2102afc9"></script>
+    <script src="../../_static/documentation_options.js?v=857a2bd0"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.266" />
+  <meta name="docsearch:version" content="0.1.267" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -746,7 +746,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">CueAnchor</span><span class="p">,</span> <span class="n">SceneIR</span><span class="p">,</span> <span class="n">SoundCue</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.verify._base</span><span class="w"> </span><span class="kn">import</span> <span class="n">Finding</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"SoundAnchorError"</span><span class="p">,</span> <span class="s2">"resolve_cue_anchors"</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"SoundAnchorError"</span><span class="p">,</span> <span class="s2">"crossing_in_document"</span><span class="p">,</span> <span class="s2">"resolve_cue_anchors"</span><span class="p">]</span>
 
 <span class="c1">#: The kind a resolved cue's finding is filed under in the render report.</span>
 <span class="n">SOUND_FINDING_KIND</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"sound"</span>
@@ -778,22 +778,28 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">compiled_document</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_crossing</span><span class="p">(</span>
-    <span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">renderer</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">anchor</span><span class="p">:</span> <span class="n">CueAnchor</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">where</span><span class="p">:</span> <span class="nb">str</span>
+<div class="viewcode-block" id="crossing_in_document">
+<a class="viewcode-back" href="../../_autosummary/an.sound_anchors.html#an.sound_anchors.crossing_in_document">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">crossing_in_document</span><span class="p">(</span>
+    <span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">anchor</span><span class="p">:</span> <span class="n">CueAnchor</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">shot_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">where</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Shot-local seconds at which ``anchor.when``'s centre first reaches ``anchor.reaches``."""</span>
+<span class="w">    </span><span class="sd">"""Shot-local seconds at which ``anchor.when``'s centre first reaches ``anchor.reaches``, in a compiled stage document."""</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
         <span class="n">evaluate_timeline</span><span class="p">,</span>
         <span class="n">screen_position</span><span class="p">,</span>
         <span class="n">timeline_from_scene</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="n">doc</span> <span class="o">=</span> <span class="n">_stage_document</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">renderer</span><span class="p">)</span>
     <span class="n">timeline</span> <span class="o">=</span> <span class="n">timeline_from_scene</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
     <span class="n">axis</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">anchor</span><span class="o">.</span><span class="n">axis</span>
     <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">axis</span> <span class="o">==</span> <span class="s2">"x"</span> <span class="k">else</span> <span class="mi">1</span>
-    <span class="n">fps</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">fps</span><span class="p">)</span>
-    <span class="n">frames</span> <span class="o">=</span> <span class="n">frame_count</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">fps</span><span class="p">)</span>
+    <span class="n">frames</span> <span class="o">=</span> <span class="n">frame_count</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="n">fps</span><span class="p">)</span>
     <span class="n">previous</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">seen</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">frames</span><span class="p">):</span>
@@ -802,7 +808,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">at</span> <span class="o">=</span> <span class="n">screen_position</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">anchor</span><span class="o">.</span><span class="n">when</span><span class="p">,</span> <span class="n">pose</span><span class="o">=</span><span class="n">evaluate_timeline</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="n">t</span><span class="p">))</span>
         <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">SoundAnchorError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">: shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> has no node </span><span class="si">{</span><span class="n">anchor</span><span class="o">.</span><span class="n">when</span><span class="si">!r}</span><span class="s2"> on screen "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">: shot </span><span class="si">{</span><span class="n">shot_id</span><span class="si">!r}</span><span class="s2"> has no node </span><span class="si">{</span><span class="n">anchor</span><span class="o">.</span><span class="n">when</span><span class="si">!r}</span><span class="s2"> on screen "</span>
                 <span class="sa">f</span><span class="s2">"at </span><span class="si">{</span><span class="n">t</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> s (</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">); name a node the shot "</span>
                 <span class="s2">"draws (a text block's lines are &lt;block&gt;/line_0, line_1, …)"</span>
             <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
@@ -817,7 +823,22 @@ window.runMermaid = runMermaid;</script>
     <span class="n">low</span><span class="p">,</span> <span class="n">high</span> <span class="o">=</span> <span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">seen</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">seen</span><span class="p">))</span> <span class="k">if</span> <span class="n">seen</span> <span class="k">else</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="s2">"nan"</span><span class="p">),)</span> <span class="o">*</span> <span class="mi">2</span>
     <span class="k">raise</span> <span class="n">SoundAnchorError</span><span class="p">(</span>
         <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">anchor</span><span class="o">.</span><span class="n">when</span><span class="si">!r}</span><span class="s2"> never reaches </span><span class="si">{</span><span class="n">axis</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">target</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> in shot "</span>
-        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> (its </span><span class="si">{</span><span class="n">axis</span><span class="si">}</span><span class="s2"> runs </span><span class="si">{</span><span class="n">low</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">..</span><span class="si">{</span><span class="n">high</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> px over the shot)"</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">shot_id</span><span class="si">!r}</span><span class="s2"> (its </span><span class="si">{</span><span class="n">axis</span><span class="si">}</span><span class="s2"> runs </span><span class="si">{</span><span class="n">low</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">..</span><span class="si">{</span><span class="n">high</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> px over the shot)"</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_crossing</span><span class="p">(</span>
+    <span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">renderer</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">anchor</span><span class="p">:</span> <span class="n">CueAnchor</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">where</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Shot-local seconds at which ``anchor.when``'s centre first reaches ``anchor.reaches``."""</span>
+    <span class="k">return</span> <span class="n">crossing_in_document</span><span class="p">(</span>
+        <span class="n">_stage_document</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">renderer</span><span class="p">),</span>
+        <span class="n">anchor</span><span class="p">,</span>
+        <span class="n">shot_id</span><span class="o">=</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+        <span class="n">fps</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">fps</span><span class="p">),</span>
+        <span class="n">duration</span><span class="o">=</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span>
+        <span class="n">where</span><span class="o">=</span><span class="n">where</span><span class="p">,</span>
     <span class="p">)</span>
 
 

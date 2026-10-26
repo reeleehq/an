@@ -26,8 +26,9 @@ draws) refuses before any browser launches.
 
 ### Functions
 
-| [`resolve_cue_anchors`](#an.sound_anchors.resolve_cue_anchors)(scene, ctx, renderers, ...)   | `scene` (a copy) with every anchored `at` resolved to seconds and every `until` to a duration.   |
-|----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------|
+| [`crossing_in_document`](#an.sound_anchors.crossing_in_document)(doc, anchor, \*, ...)      | Shot-local seconds at which `anchor.when`'s centre first reaches `anchor.reaches`, in a compiled stage document.   |
+|--------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
+| [`resolve_cue_anchors`](#an.sound_anchors.resolve_cue_anchors)(scene, ctx, renderers, ...) | `scene` (a copy) with every anchored `at` resolved to seconds and every `until` to a duration.                     |
 
 ### Exceptions
 
@@ -39,6 +40,13 @@ draws) refuses before any browser launches.
 Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 A cue’s anchor cannot be resolved: the message says which and why.
+
+### an.sound_anchors.crossing_in_document(doc, anchor, , shot_id, fps, duration, where)
+
+Shot-local seconds at which `anchor.when`’s centre first reaches `anchor.reaches`, in a compiled stage document.
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.sound_anchors.resolve_cue_anchors(scene, ctx, renderers, , film_starts)
 
