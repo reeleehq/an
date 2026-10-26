@@ -98,3 +98,37 @@ def test_sync_writes_md_when_only_json_exists():
         assert result.wrote_md
         assert (pdir / "scene.md").exists()
         assert "JsonFirst" in (pdir / "scene.md").read_text(encoding="utf-8")
+
+
+def test_an_unset_duration_is_what_the_shots_lay_out_so_a_dissolve_does_not_warn():
+    """an#481: `meta.duration` left out was filled with the plain sum of the
+    shots, which `an validate` then compared with the real layout (minus each
+    dissolve's overlap) and warned about."""
+    from an.ir.sync import markdown_to_ir
+    from an.ir.validate import validate_semantic
+
+    md = """# T
+
+```yaml meta
+title: T
+fps: 24
+```
+
+## Shot a (cutout)
+
+```yaml shot
+duration: 2
+```
+
+## Shot b (cutout)
+
+```yaml shot
+duration: 2
+transition: {kind: dissolve, duration: 0.6}
+```
+"""
+    scene = markdown_to_ir(md)
+    assert round(scene.meta.duration, 4) == 3.4167
+    assert not [f for f in validate_semantic(scene).findings if f.ir_path == "meta/duration"]
+    # An authored duration is left as written.
+    assert markdown_to_ir(md.replace("fps: 24", "fps: 24\nduration: 9")).meta.duration == 9
