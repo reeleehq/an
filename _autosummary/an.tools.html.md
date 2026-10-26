@@ -306,7 +306,7 @@ scene: the scene file to reconcile (default scene.md; for example scene.studio.m
 
 ### an.tools.validate(project_dir, fps=0.0, strict_assets=False, scene='')
 
-Validate the scene at `project_dir`. Prints findings, exit 0 on pass.
+Validate the scene at `project_dir`. Prints findings; exits 1 when it reports FAILED, 0 otherwise.
 
 project_dir: the an project
 fps: the frame rate `an render --fps` will use, when not the scene’s (0: the scene’s)

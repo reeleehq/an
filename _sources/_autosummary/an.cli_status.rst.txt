@@ -1,0 +1,25 @@
+an.cli\_status
+==============
+
+.. automodule:: an.cli_status
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      FAILURE_EXIT_CODE
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      exit_code_of
+      failed
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      CommandReport
+   

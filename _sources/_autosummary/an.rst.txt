@@ -57,6 +57,7 @@
    capabilities
    captions
    characters
+   cli_status
    conftest
    credits
    data
