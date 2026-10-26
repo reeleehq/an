@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=09af5856"></script>
+    <script src="../../../_static/documentation_options.js?v=add7dc4f"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.278" />
+  <meta name="docsearch:version" content="0.1.279" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -834,6 +834,8 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"ShortHold"</span><span class="p">,</span>
     <span class="s2">"compile_outcome"</span><span class="p">,</span>
     <span class="s2">"compiled_shot"</span><span class="p">,</span>
+    <span class="s2">"check_not_compiled"</span><span class="p">,</span>
+    <span class="s2">"NOT_COMPILED"</span><span class="p">,</span>
     <span class="s2">"continuity_findings"</span><span class="p">,</span>
     <span class="s2">"discontinuities"</span><span class="p">,</span>
     <span class="s2">"short_holds"</span><span class="p">,</span>
@@ -948,11 +950,127 @@ window.runMermaid = runMermaid;</script>
 <a class="viewcode-back" href="../../../_autosummary/an.verify.constraints.html#an.verify.constraints.compiled_shot">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">compiled_shot</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""The document of :func:`compile_outcome`, ``None`` for a shot the stage</span>
-<span class="sd">    does not render or that does not compile: the checks that own those</span>
-<span class="sd">    problems report them, and a constraint says nothing about a shot it could</span>
-<span class="sd">    not see."""</span>
+<span class="sd">    does not render or that does not compile. A constraint says nothing about</span>
+<span class="sd">    a shot it could not see; the ``not_compiled`` check says, once per shot,</span>
+<span class="sd">    that it could not (:func:`check_not_compiled`)."""</span>
     <span class="k">return</span> <span class="n">compile_outcome</span><span class="p">(</span><span class="n">ctx</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></div>
 
+
+
+<span class="c1">#: The memo key under which the action-target check records why it could not</span>
+<span class="c1">#: check shot ``i`` (its stage did not build either): folded into the one</span>
+<span class="c1">#: ``not_compiled`` line rather than said separately.</span>
+<span class="n">TARGETS_UNCHECKED_KEY</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"constraints.targets_unchecked"</span>
+<span class="c1">#: The shortest tail of a compile error's message that counts as "said" when a</span>
+<span class="c1">#: finding on the shot contains it (shorter tails match by accident).</span>
+<span class="n">MIN_SAID_CHARS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_already_said</span><span class="p">(</span><span class="n">error</span><span class="p">:</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">texts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether one of ``texts`` (the findings on the shot) already carries</span>
+<span class="sd">    ``error``'s message: the whole of it, or a tail after a ``": "`` or</span>
+<span class="sd">    ``" — "`` (a compile error prefixes the cause with where it happened, as</span>
+<span class="sd">    ``play of 'walk' on 'w': &lt;cause&gt;``; the check that owns the cause says</span>
+<span class="sd">    ``&lt;cause&gt;`` in its own words around it).</span>
+
+<span class="sd">    &gt;&gt;&gt; e = ValueError("play of 'walk' on 'w': gait 'hop' does not read 'bob'")</span>
+<span class="sd">    &gt;&gt;&gt; _already_said(e, ["`play` cannot resolve: gait 'hop' does not read 'bob'."])</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; _already_said(e, ["something else entirely"])</span>
+<span class="sd">    False</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+
+    <span class="n">message</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">"."</span><span class="p">)</span>
+    <span class="n">starts</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">end</span><span class="p">()</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">finditer</span><span class="p">(</span><span class="sa">r</span><span class="s2">": | — "</span><span class="p">,</span> <span class="n">message</span><span class="p">)]</span>
+    <span class="n">tails</span> <span class="o">=</span> <span class="p">{</span><span class="n">message</span><span class="p">[</span><span class="n">k</span><span class="p">:]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">starts</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">message</span><span class="p">)</span> <span class="o">-</span> <span class="n">k</span> <span class="o">&gt;=</span> <span class="n">MIN_SAID_CHARS</span><span class="p">}</span>
+    <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">tail</span> <span class="ow">in</span> <span class="n">text</span> <span class="k">for</span> <span class="n">tail</span> <span class="ow">in</span> <span class="n">tails</span> <span class="k">for</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">texts</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_unsupplied</span><span class="p">(</span><span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">stores</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The ids of ``shot``'s entities whose rig store was not supplied (the</span>
+<span class="sd">    stage builds a stand-in for them, which may not compile): their checks</span>
+<span class="sd">    were not asked for, so their failure is not news."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.validate</span><span class="w"> </span><span class="kn">import</span> <span class="n">rig_stores</span>
+
+    <span class="n">store_of</span> <span class="o">=</span> <span class="p">{</span><span class="n">kind</span><span class="p">:</span> <span class="n">name</span> <span class="k">for</span> <span class="n">kind</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">_doc</span><span class="p">)</span> <span class="ow">in</span> <span class="n">rig_stores</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="n">store_of</span><span class="p">[</span><span class="s2">"environment"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"environments"</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">id</span>
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">kind</span> <span class="ow">in</span> <span class="n">store_of</span> <span class="ow">and</span> <span class="n">stores</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">store_of</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">kind</span><span class="p">])</span> <span class="ow">is</span> <span class="kc">None</span>
+    <span class="p">]</span>
+
+
+<div class="viewcode-block" id="check_not_compiled">
+<a class="viewcode-back" href="../../../_autosummary/an.verify.constraints.html#an.verify.constraints.check_not_compiled">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_not_compiled</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Say, once per shot, that the compile-based checks did NOT run on a shot</span>
+<span class="sd">    that does not compile, at :data:`an.verify.vision.FAILURE_SEVERITY`: a</span>
+<span class="sd">    check that could not look must never read as a check that passed (an#551).</span>
+
+<span class="sd">    Runs at ``finish`` over the compiles the shot checks asked for (the memo</span>
+<span class="sd">    under :data:`COMPILED_KEY`), so it says nothing when no compile-based check</span>
+<span class="sd">    ran. Silent for a shot with an entity whose store was not supplied</span>
+<span class="sd">    (checks not asked for are not broken). The cause is given in full unless</span>
+<span class="sd">    a finding on the shot already says it (:func:`_already_said`), then</span>
+<span class="sd">    "reported above". Folds in the action-target check's own skip.</span>
+
+<span class="sd">    &gt;&gt;&gt; from an.ir.schema import SceneIR, Shot</span>
+<span class="sd">    &gt;&gt;&gt; from an.ir.validate import ValidationContext, ValidationReport</span>
+<span class="sd">    &gt;&gt;&gt; ctx = ValidationContext(SceneIR(timeline=[Shot(id="a"), Shot(id="b")]), ValidationReport(), {})</span>
+<span class="sd">    &gt;&gt;&gt; ctx.memo[(COMPILED_KEY, 0)] = (None, ValueError("step_hz 1000 is not a divisor of fps"))</span>
+<span class="sd">    &gt;&gt;&gt; ctx.memo[(COMPILED_KEY, 1)] = (None, ValueError("step_hz 1000 is not a divisor of fps"))</span>
+<span class="sd">    &gt;&gt;&gt; ctx.report.add("error", "timeline/1/step_hz", "step_hz 1000 is not a divisor of fps.")</span>
+<span class="sd">    &gt;&gt;&gt; check_not_compiled(ctx)</span>
+<span class="sd">    &gt;&gt;&gt; [(f.severity, f.ir_path) for f in ctx.report.findings[1:]]</span>
+<span class="sd">    [('warning', 'timeline/0'), ('warning', 'timeline/1')]</span>
+<span class="sd">    &gt;&gt;&gt; [f.description.split("(")[-1] for f in ctx.report.findings[1:]]</span>
+<span class="sd">    ['ValueError: step_hz 1000 is not a divisor of fps).', 'ValueError, reported above).']</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.verify.vision</span><span class="w"> </span><span class="kn">import</span> <span class="n">FAILURE_SEVERITY</span>
+
+    <span class="n">shots</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">shots</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">_key</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span> <span class="n">outcome</span> <span class="ow">in</span> <span class="n">_compiled</span><span class="p">(</span><span class="n">ctx</span><span class="p">):</span>
+        <span class="n">_doc</span><span class="p">,</span> <span class="n">error</span> <span class="o">=</span> <span class="n">outcome</span>
+        <span class="k">if</span> <span class="n">error</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">shots</span><span class="p">)</span> <span class="ow">or</span> <span class="n">_unsupplied</span><span class="p">(</span><span class="n">shots</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">ctx</span><span class="o">.</span><span class="n">stores</span> <span class="ow">or</span> <span class="p">{}):</span>
+            <span class="k">continue</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"timeline/</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span>
+        <span class="n">on_shot</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">description</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">findings</span>
+            <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">ir_path</span> <span class="o">==</span> <span class="n">path</span> <span class="ow">or</span> <span class="n">f</span><span class="o">.</span><span class="n">ir_path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">path</span> <span class="o">+</span> <span class="s2">"/"</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="n">why</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">error</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">, reported above"</span>
+            <span class="k">if</span> <span class="n">_already_said</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">on_shot</span><span class="p">)</span>
+            <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">error</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">error</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+        <span class="n">targets</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s2">" and the animation targets"</span>
+            <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">memo</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">TARGETS_UNCHECKED_KEY</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+            <span class="k">else</span> <span class="s2">""</span>
+        <span class="p">)</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+            <span class="n">FAILURE_SEVERITY</span><span class="p">,</span>
+            <span class="n">path</span><span class="p">,</span>
+            <span class="s2">"the compile-based checks (the constraints, joints, holds and cut "</span>
+            <span class="sa">f</span><span class="s2">"placements</span><span class="si">{</span><span class="n">targets</span><span class="si">}</span><span class="s2">) did NOT run on this shot: it does not "</span>
+            <span class="sa">f</span><span class="s2">"compile (</span><span class="si">{</span><span class="n">why</span><span class="si">}</span><span class="s2">)."</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_compiled</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""The memo's compile outcomes, ``((COMPILED_KEY, i), outcome)``, by shot."""</span>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span>
+        <span class="p">(</span>
+            <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ctx</span><span class="o">.</span><span class="n">memo</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">k</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">COMPILED_KEY</span>
+        <span class="p">),</span>
+        <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">kv</span><span class="p">:</span> <span class="n">kv</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
+    <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_fps</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
@@ -2529,12 +2647,29 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span>
 
 
+<span class="c1">#: Where ``not_compiled`` runs in ``finish``: last, after every check that</span>
+<span class="c1">#: compiles a shot there too (the cut checks, the constraints' finish checks).</span>
+<span class="n">NOT_COMPILED_ORDER</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1000.0</span>
+<span class="c1">#: The one line a shot that does not compile gets (an#551): always on, since</span>
+<span class="c1">#: it reports on whichever compile-based checks ran (``only`` included).</span>
+<span class="n">NOT_COMPILED</span><span class="p">:</span> <span class="n">SemanticCheck</span> <span class="o">=</span> <span class="n">SemanticCheck</span><span class="p">(</span>
+    <span class="s2">"not_compiled"</span><span class="p">,</span>
+    <span class="n">check_not_compiled</span><span class="p">,</span>
+    <span class="n">stage</span><span class="o">=</span><span class="s2">"finish"</span><span class="p">,</span>
+    <span class="n">order</span><span class="o">=</span><span class="n">NOT_COMPILED_ORDER</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"a shot the compile-based checks could not compile says they did not run"</span><span class="p">,</span>
+<span class="p">)</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_register</span><span class="p">(</span><span class="n">constraints</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Constraint</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">CONSTRAINTS</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Register the core's constraint checks once (the core's other checks are</span>
-<span class="sd">    registered the same way when ``an.ir.validate`` loads)."""</span>
+<span class="sd">    registered the same way when ``an.ir.validate`` loads), and the</span>
+<span class="sd">    ``not_compiled`` line that reports the shots they could not compile."""</span>
     <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">constraint</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">check_names</span><span class="p">(</span><span class="n">owner</span><span class="o">=</span><span class="n">CORE_OWNER</span><span class="p">):</span>
             <span class="n">register_check</span><span class="p">(</span><span class="n">constraint</span><span class="o">.</span><span class="n">semantic_check</span><span class="p">(),</span> <span class="n">owner</span><span class="o">=</span><span class="n">CORE_OWNER</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">NOT_COMPILED</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">check_names</span><span class="p">(</span><span class="n">owner</span><span class="o">=</span><span class="n">CORE_OWNER</span><span class="p">):</span>
+        <span class="n">register_check</span><span class="p">(</span><span class="n">NOT_COMPILED</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">CORE_OWNER</span><span class="p">)</span>
 
 
 <span class="n">_register</span><span class="p">()</span>

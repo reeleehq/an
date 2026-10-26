@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=09af5856"></script>
+    <script src="../_static/documentation_options.js?v=add7dc4f"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.278" />
+  <meta name="docsearch:version" content="0.1.279" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -651,19 +651,22 @@ zero-duration shots, voice refs missing from a voices store.</p></li>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.ir.validate.RETIRED_CAMERA_KEYS" title="an.ir.validate.RETIRED_CAMERA_KEYS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RETIRED_CAMERA_KEYS</span></code></a></p></td>
 <td><p>an#109's removed camera fields.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.validate.CUT_CONTINUITY_PROPS" title="an.ir.validate.CUT_CONTINUITY_PROPS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CUT_CONTINUITY_PROPS</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.validate.ALWAYS_RUN_CHECKS" title="an.ir.validate.ALWAYS_RUN_CHECKS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ALWAYS_RUN_CHECKS</span></code></a></p></td>
+<td><p>they report on the checks that did run (<code class="docutils literal notranslate"><span class="pre">not_compiled</span></code>: a shot the compile-based checks could not compile, an#551), and say nothing when none did.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.validate.CUT_CONTINUITY_PROPS" title="an.ir.validate.CUT_CONTINUITY_PROPS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CUT_CONTINUITY_PROPS</span></code></a></p></td>
 <td><p>position in scene px, and the size of its scale (its SIGN is facing, which the genre's view continuity check says, an#203).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.validate.CUT_CONTINUITY_TOLERANCE" title="an.ir.validate.CUT_CONTINUITY_TOLERANCE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CUT_CONTINUITY_TOLERANCE</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.validate.CUT_CONTINUITY_TOLERANCE" title="an.ir.validate.CUT_CONTINUITY_TOLERANCE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CUT_CONTINUITY_TOLERANCE</span></code></a></p></td>
 <td><p>a pixel, or a hundredth of the scale.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.validate.SCREEN_DIRECTION_TOLERANCE_PX" title="an.ir.validate.SCREEN_DIRECTION_TOLERANCE_PX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SCREEN_DIRECTION_TOLERANCE_PX</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.validate.SCREEN_DIRECTION_TOLERANCE_PX" title="an.ir.validate.SCREEN_DIRECTION_TOLERANCE_PX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SCREEN_DIRECTION_TOLERANCE_PX</span></code></a></p></td>
 <td><p>Two entities closer than this on screen have no left/right order to flip.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S" title="an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DIALOGUE_OVERRUN_TOLERANCE_S</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S" title="an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DIALOGUE_OVERRUN_TOLERANCE_S</span></code></a></p></td>
 <td><p>a frame at 60 fps.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.validate.POST_SYNTHESIS_CHECKS" title="an.ir.validate.POST_SYNTHESIS_CHECKS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">POST_SYNTHESIS_CHECKS</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.validate.POST_SYNTHESIS_CHECKS" title="an.ir.validate.POST_SYNTHESIS_CHECKS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">POST_SYNTHESIS_CHECKS</span></code></a></p></td>
 <td><p>The registered checks whose answer depends on what synthesis produced — a line's real length, hence where it starts and ends — and that <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span></code> therefore runs again AFTER the audio pipeline, on the timing it will mux (<a class="reference internal" href="#an.ir.validate.post_synthesis_findings" title="an.ir.validate.post_synthesis_findings"><code class="xref py py-func docutils literal notranslate"><span class="pre">post_synthesis_findings()</span></code></a> runs exactly these, by name, through the registry).</p></td>
 </tr>
 </tbody>
@@ -723,6 +726,19 @@ zero-duration shots, voice refs missing from a voices store.</p></li>
 </tbody>
 </table>
 </div>
+<dl class="py data">
+<dt class="sig sig-object py" id="an.ir.validate.ALWAYS_RUN_CHECKS">
+<span class="sig-prename descclassname"><span class="pre">an.ir.validate.</span></span><span class="sig-name descname"><span class="pre">ALWAYS_RUN_CHECKS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.15)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'not_compiled'})</span></span><a class="headerlink" href="#an.ir.validate.ALWAYS_RUN_CHECKS" title="Link to this definition">#</a></dt>
+<dd><p>they report on the checks that
+did run (<code class="docutils literal notranslate"><span class="pre">not_compiled</span></code>: a shot the compile-based checks could not
+compile, an#551), and say nothing when none did.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Checks that run whatever <code class="docutils literal notranslate"><span class="pre">only</span></code> selects</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py data">
 <dt class="sig sig-object py" id="an.ir.validate.CUT_CONTINUITY_PROPS">
 <span class="sig-prename descclassname"><span class="pre">an.ir.validate.</span></span><span class="sig-name descname"><span class="pre">CUT_CONTINUITY_PROPS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('x',</span> <span class="pre">'y',</span> <span class="pre">'scale_x',</span> <span class="pre">'scale_y')</span></span><a class="headerlink" href="#an.ir.validate.CUT_CONTINUITY_PROPS" title="Link to this definition">#</a></dt>
@@ -1069,7 +1085,8 @@ its <code class="docutils literal notranslate"><span class="pre">order</span></c
 error naming the genre that provides it; checks that would trip over it
 skip that shot rather than crash.</p>
 <p><code class="docutils literal notranslate"><span class="pre">only</span></code> runs just the registered checks of those names (what <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span></code>
-does after synthesis, <a class="reference internal" href="#an.ir.validate.post_synthesis_findings" title="an.ir.validate.post_synthesis_findings"><code class="xref py py-func docutils literal notranslate"><span class="pre">post_synthesis_findings()</span></code></a>); <code class="docutils literal notranslate"><span class="pre">fps</span></code> is the one
+does after synthesis, <a class="reference internal" href="#an.ir.validate.post_synthesis_findings" title="an.ir.validate.post_synthesis_findings"><code class="xref py py-func docutils literal notranslate"><span class="pre">post_synthesis_findings()</span></code></a>), plus the ones in
+<a class="reference internal" href="#an.ir.validate.ALWAYS_RUN_CHECKS" title="an.ir.validate.ALWAYS_RUN_CHECKS"><code class="xref py py-data docutils literal notranslate"><span class="pre">ALWAYS_RUN_CHECKS</span></code></a>, which report on whichever checks ran; <code class="docutils literal notranslate"><span class="pre">fps</span></code> is the one
 the film is assembled at when it is not the scene’s (<code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span> <span class="pre">--fps</span></code>),
 which decides how long a dissolve’s overlap is.</p>
 <dl class="field-list simple">
@@ -1128,6 +1145,7 @@ which decides how long a dissolve’s overlap is.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.ALWAYS_RUN_CHECKS"><code class="docutils literal notranslate"><span class="pre">ALWAYS_RUN_CHECKS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.CUT_CONTINUITY_PROPS"><code class="docutils literal notranslate"><span class="pre">CUT_CONTINUITY_PROPS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.CUT_CONTINUITY_TOLERANCE"><code class="docutils literal notranslate"><span class="pre">CUT_CONTINUITY_TOLERANCE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S"><code class="docutils literal notranslate"><span class="pre">DIALOGUE_OVERRUN_TOLERANCE_S</span></code></a></li>

@@ -17,6 +17,7 @@ Layout-overlap checks (boxes off-screen, text behind sprites) live in
 | [`RETIRED_KEYS`](#an.ir.validate.RETIRED_KEYS)                  | Keys an#106 retired, and what to write instead.                                                                                                                                                                                                                                                                                                              |
 |--------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`RETIRED_CAMERA_KEYS`](#an.ir.validate.RETIRED_CAMERA_KEYS)           | an#109's removed camera fields.                                                                                                                                                                                                                                                                                                                              |
+| [`ALWAYS_RUN_CHECKS`](#an.ir.validate.ALWAYS_RUN_CHECKS)             | they report on the checks that did run (`not_compiled`: a shot the compile-based checks could not compile, an#551), and say nothing when none did.                                                                                                                                                                                                           |
 | [`CUT_CONTINUITY_PROPS`](#an.ir.validate.CUT_CONTINUITY_PROPS)          | position in scene px, and the size of its scale (its SIGN is facing, which the genre's view continuity check says, an#203).                                                                                                                                                                                                                                  |
 | [`CUT_CONTINUITY_TOLERANCE`](#an.ir.validate.CUT_CONTINUITY_TOLERANCE)      | a pixel, or a hundredth of the scale.                                                                                                                                                                                                                                                                                                                        |
 | [`SCREEN_DIRECTION_TOLERANCE_PX`](#an.ir.validate.SCREEN_DIRECTION_TOLERANCE_PX) | Two entities closer than this on screen have no left/right order to flip.                                                                                                                                                                                                                                                                                    |
@@ -46,6 +47,15 @@ Layout-overlap checks (boxes off-screen, text behind sprites) live in
 
 | [`UnregisteredInSceneError`](#an.ir.validate.UnregisteredInSceneError)(findings, \*[, where])   | A scene names kinds or renderers nothing registered: refused at load.   |
 |----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
+
+### an.ir.validate.ALWAYS_RUN_CHECKS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'not_compiled'})*
+
+they report on the checks that
+did run (`not_compiled`: a shot the compile-based checks could not
+compile, an#551), and say nothing when none did.
+
+* **Type:**
+  Checks that run whatever `only` selects
 
 ### an.ir.validate.CUT_CONTINUITY_PROPS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('x', 'y', 'scale_x', 'scale_y')*
 
@@ -337,7 +347,8 @@ error naming the genre that provides it; checks that would trip over it
 skip that shot rather than crash.
 
 `only` runs just the registered checks of those names (what `an render`
-does after synthesis, [`post_synthesis_findings()`](#an.ir.validate.post_synthesis_findings)); `fps` is the one
+does after synthesis, [`post_synthesis_findings()`](#an.ir.validate.post_synthesis_findings)), plus the ones in
+[`ALWAYS_RUN_CHECKS`](#an.ir.validate.ALWAYS_RUN_CHECKS), which report on whichever checks ran; `fps` is the one
 the film is assembled at when it is not the scene’s (`an render --fps`),
 which decides how long a dissolve’s overlap is.
 

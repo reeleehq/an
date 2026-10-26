@@ -57,13 +57,14 @@ True
 
 ### Functions
 
-| [`declarations`](#an.stage.solve.declarations)(shot, mall, \*[, verbs, play_extent])   | The joints `shot` declares (its entities' descriptors', its entities', its own, in that order) and its verbs, flattened to shot time.                                                |
-|-------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`build_puppet`](#an.stage.solve.build_puppet)(doc, shot, mall, decl, \*[, vocab])     | The bodies and joints of `shot` as built in `doc`; raises [`UnknownBodyError`](#an.stage.solve.UnknownBodyError) naming every reference it cannot resolve.                |
-| [`solve_pass`](#an.stage.solve.solve_pass)(state)                                    | The `solve` compile pass (order [`SOLVE_ORDER`](#an.stage.solve.SOLVE_ORDER)).                                                                                       |
-| [`joint_residuals`](#an.stage.solve.joint_residuals)(doc, shot, mall, \*[, times])        | How far each joined joint of `shot` is from holding in `doc`, at every frame: `(puppet, times, gaps[k][j], range_excess[k][j])` (px; and radians past a hinge's range, 0 inside it). |
-| [`shot_declares_solve`](#an.stage.solve.shot_declares_solve)(shot[, mall])                    | Whether `shot` declares anything the solve acts on (the pass's gate).                                                                                                                |
-| [`solve_knobs`](#an.stage.solve.solve_knobs)(shot)                                    | The solve's render knobs for the shot-cache key: the solver's version, the shot's mode and effort as declared, and a digest of its declarations.                                     |
+| [`solve_report`](#an.stage.solve.solve_report)(doc)                                  | The solve's report recorded on a compiled document (`meta.extensions.solve`), `{}` when the pass recorded nothing: what `an validate`'s joint and hold checks read (the `holds` entry is the hold layer's).   |
+|-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`declarations`](#an.stage.solve.declarations)(shot, mall, \*[, verbs, play_extent]) | The joints `shot` declares (its entities' descriptors', its entities', its own, in that order) and its verbs, flattened to shot time.                                                                         |
+| [`build_puppet`](#an.stage.solve.build_puppet)(doc, shot, mall, decl, \*[, vocab])   | The bodies and joints of `shot` as built in `doc`; raises [`UnknownBodyError`](#an.stage.solve.UnknownBodyError) naming every reference it cannot resolve.                                         |
+| [`solve_pass`](#an.stage.solve.solve_pass)(state)                                  | The `solve` compile pass (order [`SOLVE_ORDER`](#an.stage.solve.SOLVE_ORDER)).                                                                                                                |
+| [`joint_residuals`](#an.stage.solve.joint_residuals)(doc, shot, mall, \*[, times])      | How far each joined joint of `shot` is from holding in `doc`, at every frame: `(puppet, times, gaps[k][j], range_excess[k][j])` (px; and radians past a hinge's range, 0 inside it).                          |
+| [`shot_declares_solve`](#an.stage.solve.shot_declares_solve)(shot[, mall])                  | Whether `shot` declares anything the solve acts on (the pass's gate).                                                                                                                                         |
+| [`solve_knobs`](#an.stage.solve.solve_knobs)(shot)                                  | The solve's render knobs for the shot-cache key: the solver's version, the shot's mode and effort as declared, and a digest of its declarations.                                                              |
 
 ### Classes
 
@@ -195,3 +196,21 @@ that declares no joint and no verb.
 
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.stage.solve.solve_report(doc)
+
+The solve’s report recorded on a compiled document
+(`meta.extensions.solve`), `{}` when the pass recorded nothing: what
+`an validate`’s joint and hold checks read (the `holds` entry is the
+hold layer’s).
+
+```pycon
+>>> from types import SimpleNamespace as NS
+>>> solve_report(NS(meta=NS(extensions={SOLVE_EXTENSION: {"mode": "solve"}})))
+{'mode': 'solve'}
+>>> solve_report(NS(meta=NS(extensions=None)))
+{}
+```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]

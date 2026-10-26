@@ -812,7 +812,8 @@ error naming the genre that provides it; checks that would trip over it
 skip that shot rather than crash.
 
 `only` runs just the registered checks of those names (what `an render`
-does after synthesis, `post_synthesis_findings()`); `fps` is the one
+does after synthesis, `post_synthesis_findings()`), plus the ones in
+`ALWAYS_RUN_CHECKS`, which report on whichever checks ran; `fps` is the one
 the film is assembled at when it is not the scene’s (`an render --fps`),
 which decides how long a dissolve’s overlap is.
 

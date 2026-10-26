@@ -9,6 +9,7 @@ an.verify.constraints
    .. autosummary::
    
       CONSTRAINTS
+      NOT_COMPILED
    
    .. rubric:: Functions
 
@@ -23,6 +24,7 @@ an.verify.constraints
       vanishings
       compile_outcome
       compiled_shot
+      check_not_compiled
       continuity_findings
       discontinuities
       short_holds

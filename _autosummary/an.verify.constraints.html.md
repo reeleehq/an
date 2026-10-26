@@ -84,24 +84,26 @@ The core’s constraints:
 
 ### Module Attributes
 
-| [`CONSTRAINTS`](#an.verify.constraints.CONSTRAINTS)   | The core's constraints, in the order their checks run within a stage.   |
-|----------------------------------------------------------------|-------------------------------------------------------------------------|
+| [`CONSTRAINTS`](#an.verify.constraints.CONSTRAINTS)   | The core's constraints, in the order their checks run within a stage.                |
+|----------------------------------------------------------------|--------------------------------------------------------------------------------------|
+| [`NOT_COMPILED`](#an.verify.constraints.NOT_COMPILED)  | always on, since it reports on whichever compile-based checks ran (`only` included). |
 
 ### Functions
 
-| [`av_offset_fault`](#an.verify.constraints.av_offset_fault)(sound_t, cause_t)                  | How a sound at `sound_t` sits against its visible cause at `cause_t` (seconds): `None` inside the window, else `"early"` (sound ahead, past the window), `"late"` (behind), or `"before_cause"` (ahead by more than `CAUSE_TOLERANCE`).                                          |
-|-----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`airborne_faults`](#an.verify.constraints.airborne_faults)(ys, dt, \*[, strength])            | What is wrong with a flight sampled as `ys` (screen y, down is positive) every `dt` s: `hover` (level for more than `HOVER_FRAMES`), `straight` (no downward acceleration: not a throw), `not_parabolic` (the acceleration is not constant), `strength` (not the declared pull). |
-| [`move_jerk`](#an.verify.constraints.move_jerk)(values, dt)                              | The log dimensionless jerk `ln(T^5 / A^2 * integral |jerk|^2 dt)` of a move sampled every `dt` s: lower is smoother.                                                                                                                                                             |
-| [`unanticipated`](#an.verify.constraints.unanticipated)(moves, \*, min_move, frames, fps)    | The moves of at least `min_move` with no anticipation: a move of the same channel, the other way, at most half as far, lasting `frames` frames, that ends at the big move's start (to within a frame).                                                                           |
-| [`shape_drifts`](#an.verify.constraints.shape_drifts)(entity, samples, \*, quantity[, ...]) | The first of `samples` `(t, scale_x, scale_y)` whose `quantity` has left its starting value by more than `tolerance` (a fraction), as one drift carrying the worst ratio seen from then on.                                                                                      |
-| [`weld_drifts`](#an.verify.constraints.weld_drifts)(samples, \*[, index, offset, ...])     | The first instant of `samples` `(t, carrier centre, item centre)` at which the item is more than `tolerance` from its `offset` to the carrier (the first sample's offset when `offset` is `None`), as one drift: the worst distance seen from then on.                           |
-| [`vanishings`](#an.verify.constraints.vanishings)(presence, time_jumps[, entrances])      | The entities that vanish and return with nothing to explain it.                                                                                                                                                                                                                  |
-| [`compile_outcome`](#an.verify.constraints.compile_outcome)(ctx)                               | `ctx.shot` compiled as `an render` compiles it, once per validation: `(document, None)`, `(None, the compile error)`, or `(None, None)` for a shot the stage does not render.                                                                                                    |
-| [`compiled_shot`](#an.verify.constraints.compiled_shot)(ctx)                                 | The document of [`compile_outcome()`](#an.verify.constraints.compile_outcome), `None` for a shot the stage does not render or that does not compile: the checks that own those problems report them, and a constraint says nothing about a shot it could not see.           |
-| [`continuity_findings`](#an.verify.constraints.continuity_findings)(doc, \*, duration, fps[, ...]) | `[(severity, ir path, message)]` for a compiled shot's jumps and short holds.                                                                                                                                                                                                    |
-| [`discontinuities`](#an.verify.constraints.discontinuities)(timeline, \*, rest, duration)      | Every instant in `(0, duration]` where a numeric value of `timeline` jumps: the pose read just before the instant and just after it differ beyond `CONTINUITY_TOLERANCE`.                                                                                                        |
-| [`short_holds`](#an.verify.constraints.short_holds)(timeline, \*, fps)                     | Step-held values shown for less than a frame: two `set``s of one property closer than ``1/fps`, so the first may never land on a frame.                                                                                                                                          |
+| [`av_offset_fault`](#an.verify.constraints.av_offset_fault)(sound_t, cause_t)                  | How a sound at `sound_t` sits against its visible cause at `cause_t` (seconds): `None` inside the window, else `"early"` (sound ahead, past the window), `"late"` (behind), or `"before_cause"` (ahead by more than `CAUSE_TOLERANCE`).                                                              |
+|-----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`airborne_faults`](#an.verify.constraints.airborne_faults)(ys, dt, \*[, strength])            | What is wrong with a flight sampled as `ys` (screen y, down is positive) every `dt` s: `hover` (level for more than `HOVER_FRAMES`), `straight` (no downward acceleration: not a throw), `not_parabolic` (the acceleration is not constant), `strength` (not the declared pull).                     |
+| [`move_jerk`](#an.verify.constraints.move_jerk)(values, dt)                              | The log dimensionless jerk `ln(T^5 / A^2 * integral |jerk|^2 dt)` of a move sampled every `dt` s: lower is smoother.                                                                                                                                                                                 |
+| [`unanticipated`](#an.verify.constraints.unanticipated)(moves, \*, min_move, frames, fps)    | The moves of at least `min_move` with no anticipation: a move of the same channel, the other way, at most half as far, lasting `frames` frames, that ends at the big move's start (to within a frame).                                                                                               |
+| [`shape_drifts`](#an.verify.constraints.shape_drifts)(entity, samples, \*, quantity[, ...]) | The first of `samples` `(t, scale_x, scale_y)` whose `quantity` has left its starting value by more than `tolerance` (a fraction), as one drift carrying the worst ratio seen from then on.                                                                                                          |
+| [`weld_drifts`](#an.verify.constraints.weld_drifts)(samples, \*[, index, offset, ...])     | The first instant of `samples` `(t, carrier centre, item centre)` at which the item is more than `tolerance` from its `offset` to the carrier (the first sample's offset when `offset` is `None`), as one drift: the worst distance seen from then on.                                               |
+| [`vanishings`](#an.verify.constraints.vanishings)(presence, time_jumps[, entrances])      | The entities that vanish and return with nothing to explain it.                                                                                                                                                                                                                                      |
+| [`compile_outcome`](#an.verify.constraints.compile_outcome)(ctx)                               | `ctx.shot` compiled as `an render` compiles it, once per validation: `(document, None)`, `(None, the compile error)`, or `(None, None)` for a shot the stage does not render.                                                                                                                        |
+| [`compiled_shot`](#an.verify.constraints.compiled_shot)(ctx)                                 | The document of [`compile_outcome()`](#an.verify.constraints.compile_outcome), `None` for a shot the stage does not render or that does not compile.                                                                                                                                            |
+| [`check_not_compiled`](#an.verify.constraints.check_not_compiled)(ctx)                            | Say, once per shot, that the compile-based checks did NOT run on a shot that does not compile, at [`an.verify.vision.FAILURE_SEVERITY`](an.verify.vision.html.md#an.verify.vision.FAILURE_SEVERITY): a check that could not look must never read as a check that passed (an#551). |
+| [`continuity_findings`](#an.verify.constraints.continuity_findings)(doc, \*, duration, fps[, ...]) | `[(severity, ir path, message)]` for a compiled shot's jumps and short holds.                                                                                                                                                                                                                        |
+| [`discontinuities`](#an.verify.constraints.discontinuities)(timeline, \*, rest, duration)      | Every instant in `(0, duration]` where a numeric value of `timeline` jumps: the pose read just before the instant and just after it differ beyond `CONTINUITY_TOLERANCE`.                                                                                                                            |
+| [`short_holds`](#an.verify.constraints.short_holds)(timeline, \*, fps)                     | Step-held values shown for less than a frame: two `set``s of one property closer than ``1/fps`, so the first may never land on a frame.                                                                                                                                                              |
 
 ### Classes
 
@@ -171,6 +173,14 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One clip’s change of one channel: from `start` to `end` s, by `delta`.
 
+### an.verify.constraints.NOT_COMPILED *: [SemanticCheck](an.genres.registry.html.md#an.genres.registry.SemanticCheck)* *= SemanticCheck(name='not_compiled', run=<function check_not_compiled>, stage='finish', order=1000.0, description='a shot the compile-based checks could not compile says they did not run')*
+
+always on, since
+it reports on whichever compile-based checks ran (`only` included).
+
+* **Type:**
+  The one line a shot that does not compile gets (an#551)
+
 ### *class* an.verify.constraints.ShapeDrift(entity, quantity, at, ratio)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
@@ -235,6 +245,36 @@ How a sound at `sound_t` sits against its visible cause at `cause_t` (seconds): 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
+### an.verify.constraints.check_not_compiled(ctx)
+
+Say, once per shot, that the compile-based checks did NOT run on a shot
+that does not compile, at [`an.verify.vision.FAILURE_SEVERITY`](an.verify.vision.html.md#an.verify.vision.FAILURE_SEVERITY): a
+check that could not look must never read as a check that passed (an#551).
+
+Runs at `finish` over the compiles the shot checks asked for (the memo
+under `COMPILED_KEY`), so it says nothing when no compile-based check
+ran. Silent for a shot with an entity whose store was not supplied
+(checks not asked for are not broken). The cause is given in full unless
+a finding on the shot already says it (`_already_said()`), then
+“reported above”. Folds in the action-target check’s own skip.
+
+```pycon
+>>> from an.ir.schema import SceneIR, Shot
+>>> from an.ir.validate import ValidationContext, ValidationReport
+>>> ctx = ValidationContext(SceneIR(timeline=[Shot(id="a"), Shot(id="b")]), ValidationReport(), {})
+>>> ctx.memo[(COMPILED_KEY, 0)] = (None, ValueError("step_hz 1000 is not a divisor of fps"))
+>>> ctx.memo[(COMPILED_KEY, 1)] = (None, ValueError("step_hz 1000 is not a divisor of fps"))
+>>> ctx.report.add("error", "timeline/1/step_hz", "step_hz 1000 is not a divisor of fps.")
+>>> check_not_compiled(ctx)
+>>> [(f.severity, f.ir_path) for f in ctx.report.findings[1:]]
+[('warning', 'timeline/0'), ('warning', 'timeline/1')]
+>>> [f.description.split("(")[-1] for f in ctx.report.findings[1:]]
+['ValueError: step_hz 1000 is not a divisor of fps).', 'ValueError, reported above).']
+```
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
 ### an.verify.constraints.compile_outcome(ctx)
 
 `ctx.shot` compiled as `an render` compiles it, once per validation:
@@ -254,9 +294,9 @@ solve (an#534). Every compile-based check reads this one document.
 ### an.verify.constraints.compiled_shot(ctx)
 
 The document of [`compile_outcome()`](#an.verify.constraints.compile_outcome), `None` for a shot the stage
-does not render or that does not compile: the checks that own those
-problems report them, and a constraint says nothing about a shot it could
-not see.
+does not render or that does not compile. A constraint says nothing about
+a shot it could not see; the `not_compiled` check says, once per shot,
+that it could not ([`check_not_compiled()`](#an.verify.constraints.check_not_compiled)).
 
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any) | [`None`](https://docs.python.org/3/builtins/constants.html#None)

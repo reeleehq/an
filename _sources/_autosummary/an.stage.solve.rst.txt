@@ -16,6 +16,7 @@ an.stage.solve
 
    .. autosummary::
    
+      solve_report
       declarations
       build_puppet
       solve_pass

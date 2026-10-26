@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=09af5856"></script>
+    <script src="../../../_static/documentation_options.js?v=add7dc4f"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.278" />
+  <meta name="docsearch:version" content="0.1.279" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -774,6 +774,7 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"SOLVE_ORDER"</span><span class="p">,</span>
     <span class="s2">"SOLVE_CLIP_PREFIX"</span><span class="p">,</span>
     <span class="s2">"SOLVE_EXTENSION"</span><span class="p">,</span>
+    <span class="s2">"solve_report"</span><span class="p">,</span>
     <span class="s2">"UnknownBodyError"</span><span class="p">,</span>
     <span class="s2">"Declarations"</span><span class="p">,</span>
     <span class="s2">"declarations"</span><span class="p">,</span>
@@ -831,6 +832,24 @@ window.runMermaid = runMermaid;</script>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">problems</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">problems</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">problems</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="solve_report">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.solve.html#an.stage.solve.solve_report">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">solve_report</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The solve's report recorded on a compiled document</span>
+<span class="sd">    (``meta.extensions.solve``), ``{}`` when the pass recorded nothing: what</span>
+<span class="sd">    ``an validate``'s joint and hold checks read (the ``holds`` entry is the</span>
+<span class="sd">    hold layer's).</span>
+
+<span class="sd">    &gt;&gt;&gt; from types import SimpleNamespace as NS</span>
+<span class="sd">    &gt;&gt;&gt; solve_report(NS(meta=NS(extensions={SOLVE_EXTENSION: {"mode": "solve"}})))</span>
+<span class="sd">    {'mode': 'solve'}</span>
+<span class="sd">    &gt;&gt;&gt; solve_report(NS(meta=NS(extensions=None)))</span>
+<span class="sd">    {}</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">extensions</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">SOLVE_EXTENSION</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span></div>
 
 
 
@@ -2879,7 +2898,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">puppet</span> <span class="o">=</span> <span class="n">build_puppet</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">decl</span><span class="p">)</span>
     <span class="c1"># The verbs' spans and the join/unjoin instants as the COMPILE placed them</span>
     <span class="c1"># (it knew every leaf's natural length; this reading does not).</span>
-    <span class="n">report</span> <span class="o">=</span> <span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">extensions</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">SOLVE_EXTENSION</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="n">report</span> <span class="o">=</span> <span class="n">solve_report</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
     <span class="n">recorded</span> <span class="o">=</span> <span class="n">report</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"joints"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">recorded</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">puppet</span><span class="o">.</span><span class="n">rows</span><span class="p">):</span>  <span class="c1"># the reaches the hold layer added come last</span>
         <span class="k">for</span> <span class="n">row</span><span class="p">,</span> <span class="n">rec</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">puppet</span><span class="o">.</span><span class="n">rows</span><span class="p">,</span> <span class="n">recorded</span><span class="p">):</span>

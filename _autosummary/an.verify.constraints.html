@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=09af5856"></script>
+    <script src="../_static/documentation_options.js?v=add7dc4f"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.278" />
+  <meta name="docsearch:version" content="0.1.279" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -721,6 +721,9 @@ lip-sync consistency are not built.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.verify.constraints.CONSTRAINTS" title="an.verify.constraints.CONSTRAINTS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CONSTRAINTS</span></code></a></p></td>
 <td><p>The core's constraints, in the order their checks run within a stage.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.verify.constraints.NOT_COMPILED" title="an.verify.constraints.NOT_COMPILED"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NOT_COMPILED</span></code></a></p></td>
+<td><p>always on, since it reports on whichever compile-based checks ran (<code class="docutils literal notranslate"><span class="pre">only</span></code> included).</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -752,15 +755,18 @@ lip-sync consistency are not built.</p>
 <td><p><code class="docutils literal notranslate"><span class="pre">ctx.shot</span></code> compiled as <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span></code> compiles it, once per validation: <code class="docutils literal notranslate"><span class="pre">(document,</span> <span class="pre">None)</span></code>, <code class="docutils literal notranslate"><span class="pre">(None,</span> <span class="pre">the</span> <span class="pre">compile</span> <span class="pre">error)</span></code>, or <code class="docutils literal notranslate"><span class="pre">(None,</span> <span class="pre">None)</span></code> for a shot the stage does not render.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.verify.constraints.compiled_shot" title="an.verify.constraints.compiled_shot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compiled_shot</span></code></a>(ctx)</p></td>
-<td><p>The document of <a class="reference internal" href="#an.verify.constraints.compile_outcome" title="an.verify.constraints.compile_outcome"><code class="xref py py-func docutils literal notranslate"><span class="pre">compile_outcome()</span></code></a>, <code class="docutils literal notranslate"><span class="pre">None</span></code> for a shot the stage does not render or that does not compile: the checks that own those problems report them, and a constraint says nothing about a shot it could not see.</p></td>
+<td><p>The document of <a class="reference internal" href="#an.verify.constraints.compile_outcome" title="an.verify.constraints.compile_outcome"><code class="xref py py-func docutils literal notranslate"><span class="pre">compile_outcome()</span></code></a>, <code class="docutils literal notranslate"><span class="pre">None</span></code> for a shot the stage does not render or that does not compile.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.verify.constraints.continuity_findings" title="an.verify.constraints.continuity_findings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">continuity_findings</span></code></a>(doc, *, duration, fps[, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.verify.constraints.check_not_compiled" title="an.verify.constraints.check_not_compiled"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_not_compiled</span></code></a>(ctx)</p></td>
+<td><p>Say, once per shot, that the compile-based checks did NOT run on a shot that does not compile, at <a class="reference internal" href="an.verify.vision.html#an.verify.vision.FAILURE_SEVERITY" title="an.verify.vision.FAILURE_SEVERITY"><code class="xref py py-data docutils literal notranslate"><span class="pre">an.verify.vision.FAILURE_SEVERITY</span></code></a>: a check that could not look must never read as a check that passed (an#551).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.verify.constraints.continuity_findings" title="an.verify.constraints.continuity_findings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">continuity_findings</span></code></a>(doc, *, duration, fps[, ...])</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">[(severity,</span> <span class="pre">ir</span> <span class="pre">path,</span> <span class="pre">message)]</span></code> for a compiled shot's jumps and short holds.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.verify.constraints.discontinuities" title="an.verify.constraints.discontinuities"><code class="xref py py-obj docutils literal notranslate"><span class="pre">discontinuities</span></code></a>(timeline, *, rest, duration)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.verify.constraints.discontinuities" title="an.verify.constraints.discontinuities"><code class="xref py py-obj docutils literal notranslate"><span class="pre">discontinuities</span></code></a>(timeline, *, rest, duration)</p></td>
 <td><p>Every instant in <code class="docutils literal notranslate"><span class="pre">(0,</span> <span class="pre">duration]</span></code> where a numeric value of <code class="docutils literal notranslate"><span class="pre">timeline</span></code> jumps: the pose read just before the instant and just after it differ beyond <code class="xref py py-data docutils literal notranslate"><span class="pre">CONTINUITY_TOLERANCE</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.verify.constraints.short_holds" title="an.verify.constraints.short_holds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">short_holds</span></code></a>(timeline, *, fps)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.verify.constraints.short_holds" title="an.verify.constraints.short_holds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">short_holds</span></code></a>(timeline, *, fps)</p></td>
 <td><p>Step-held values shown for less than a frame: two <code class="docutils literal notranslate"><span class="pre">set``s</span> <span class="pre">of</span> <span class="pre">one</span> <span class="pre">property</span> <span class="pre">closer</span> <span class="pre">than</span> <span class="pre">``1/fps</span></code>, so the first may never land on a frame.</p></td>
 </tr>
 </tbody>
@@ -871,6 +877,18 @@ underneath, takes over; <code class="docutils literal notranslate"><span class="
 </dl>
 </dd></dl>
 
+<dl class="py data">
+<dt class="sig sig-object py" id="an.verify.constraints.NOT_COMPILED">
+<span class="sig-prename descclassname"><span class="pre">an.verify.constraints.</span></span><span class="sig-name descname"><span class="pre">NOT_COMPILED</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="an.genres.registry.html#an.genres.registry.SemanticCheck" title="an.genres.registry.SemanticCheck"><span class="pre">SemanticCheck</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">SemanticCheck(name='not_compiled',</span> <span class="pre">run=&lt;function</span> <span class="pre">check_not_compiled&gt;,</span> <span class="pre">stage='finish',</span> <span class="pre">order=1000.0,</span> <span class="pre">description='a</span> <span class="pre">shot</span> <span class="pre">the</span> <span class="pre">compile-based</span> <span class="pre">checks</span> <span class="pre">could</span> <span class="pre">not</span> <span class="pre">compile</span> <span class="pre">says</span> <span class="pre">they</span> <span class="pre">did</span> <span class="pre">not</span> <span class="pre">run')</span></span><a class="headerlink" href="#an.verify.constraints.NOT_COMPILED" title="Link to this definition">#</a></dt>
+<dd><p>always on, since
+it reports on whichever compile-based checks ran (<code class="docutils literal notranslate"><span class="pre">only</span></code> included).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The one line a shot that does not compile gets (an#551)</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="an.verify.constraints.ShapeDrift">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.verify.constraints.</span></span><span class="sig-name descname"><span class="pre">ShapeDrift</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">at</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ratio</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/verify/constraints.html#ShapeDrift"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.verify.constraints.ShapeDrift" title="Link to this definition">#</a></dt>
@@ -954,6 +972,38 @@ every <code class="docutils literal notranslate"><span class="pre">dt</span></co
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.verify.constraints.check_not_compiled">
+<span class="sig-prename descclassname"><span class="pre">an.verify.constraints.</span></span><span class="sig-name descname"><span class="pre">check_not_compiled</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/verify/constraints.html#check_not_compiled"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.verify.constraints.check_not_compiled" title="Link to this definition">#</a></dt>
+<dd><p>Say, once per shot, that the compile-based checks did NOT run on a shot
+that does not compile, at <a class="reference internal" href="an.verify.vision.html#an.verify.vision.FAILURE_SEVERITY" title="an.verify.vision.FAILURE_SEVERITY"><code class="xref py py-data docutils literal notranslate"><span class="pre">an.verify.vision.FAILURE_SEVERITY</span></code></a>: a
+check that could not look must never read as a check that passed (an#551).</p>
+<p>Runs at <code class="docutils literal notranslate"><span class="pre">finish</span></code> over the compiles the shot checks asked for (the memo
+under <code class="xref py py-data docutils literal notranslate"><span class="pre">COMPILED_KEY</span></code>), so it says nothing when no compile-based check
+ran. Silent for a shot with an entity whose store was not supplied
+(checks not asked for are not broken). The cause is given in full unless
+a finding on the shot already says it (<code class="xref py py-func docutils literal notranslate"><span class="pre">_already_said()</span></code>), then
+“reported above”. Folds in the action-target check’s own skip.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">SceneIR</span><span class="p">,</span> <span class="n">Shot</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.validate</span><span class="w"> </span><span class="kn">import</span> <span class="n">ValidationContext</span><span class="p">,</span> <span class="n">ValidationReport</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">ValidationContext</span><span class="p">(</span><span class="n">SceneIR</span><span class="p">(</span><span class="n">timeline</span><span class="o">=</span><span class="p">[</span><span class="n">Shot</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">"a"</span><span class="p">),</span> <span class="n">Shot</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">"b"</span><span class="p">)]),</span> <span class="n">ValidationReport</span><span class="p">(),</span> <span class="p">{})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">memo</span><span class="p">[(</span><span class="n">COMPILED_KEY</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"step_hz 1000 is not a divisor of fps"</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">memo</span><span class="p">[(</span><span class="n">COMPILED_KEY</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"step_hz 1000 is not a divisor of fps"</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"error"</span><span class="p">,</span> <span class="s2">"timeline/1/step_hz"</span><span class="p">,</span> <span class="s2">"step_hz 1000 is not a divisor of fps."</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">check_not_compiled</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[(</span><span class="n">f</span><span class="o">.</span><span class="n">severity</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">ir_path</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">findings</span><span class="p">[</span><span class="mi">1</span><span class="p">:]]</span>
+<span class="go">[('warning', 'timeline/0'), ('warning', 'timeline/1')]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">description</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"("</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">findings</span><span class="p">[</span><span class="mi">1</span><span class="p">:]]</span>
+<span class="go">['ValueError: step_hz 1000 is not a divisor of fps).', 'ValueError, reported above).']</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.verify.constraints.compile_outcome">
 <span class="sig-prename descclassname"><span class="pre">an.verify.constraints.</span></span><span class="sig-name descname"><span class="pre">compile_outcome</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/verify/constraints.html#compile_outcome"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.verify.constraints.compile_outcome" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">ctx.shot</span></code> compiled as <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span></code> compiles it, once per validation:
@@ -976,9 +1026,9 @@ solve (an#534). Every compile-based check reads this one document.</p>
 <dt class="sig sig-object py" id="an.verify.constraints.compiled_shot">
 <span class="sig-prename descclassname"><span class="pre">an.verify.constraints.</span></span><span class="sig-name descname"><span class="pre">compiled_shot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/verify/constraints.html#compiled_shot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.verify.constraints.compiled_shot" title="Link to this definition">#</a></dt>
 <dd><p>The document of <a class="reference internal" href="#an.verify.constraints.compile_outcome" title="an.verify.constraints.compile_outcome"><code class="xref py py-func docutils literal notranslate"><span class="pre">compile_outcome()</span></code></a>, <code class="docutils literal notranslate"><span class="pre">None</span></code> for a shot the stage
-does not render or that does not compile: the checks that own those
-problems report them, and a constraint says nothing about a shot it could
-not see.</p>
+does not render or that does not compile. A constraint says nothing about
+a shot it could not see; the <code class="docutils literal notranslate"><span class="pre">not_compiled</span></code> check says, once per shot,
+that it could not (<a class="reference internal" href="#an.verify.constraints.check_not_compiled" title="an.verify.constraints.check_not_compiled"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_not_compiled()</span></code></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
@@ -1227,12 +1277,14 @@ distance seen from then on.</p>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.constraints.Move"><code class="docutils literal notranslate"><span class="pre">Move</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.constraints.NOT_COMPILED"><code class="docutils literal notranslate"><span class="pre">NOT_COMPILED</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.constraints.ShapeDrift"><code class="docutils literal notranslate"><span class="pre">ShapeDrift</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.constraints.ShortHold"><code class="docutils literal notranslate"><span class="pre">ShortHold</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.constraints.Vanishing"><code class="docutils literal notranslate"><span class="pre">Vanishing</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.constraints.WeldDrift"><code class="docutils literal notranslate"><span class="pre">WeldDrift</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.constraints.airborne_faults"><code class="docutils literal notranslate"><span class="pre">airborne_faults()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.constraints.av_offset_fault"><code class="docutils literal notranslate"><span class="pre">av_offset_fault()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.constraints.check_not_compiled"><code class="docutils literal notranslate"><span class="pre">check_not_compiled()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.constraints.compile_outcome"><code class="docutils literal notranslate"><span class="pre">compile_outcome()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.constraints.compiled_shot"><code class="docutils literal notranslate"><span class="pre">compiled_shot()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.constraints.continuity_findings"><code class="docutils literal notranslate"><span class="pre">continuity_findings()</span></code></a></li>
