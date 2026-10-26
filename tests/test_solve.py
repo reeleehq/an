@@ -534,7 +534,9 @@ def test_a_descriptor_joint_that_does_not_read_is_named_not_raised(tmp_path):
     with pytest.raises(UnknownBodyError):
         _compile(project)
     findings = _lint(project, project.scene.timeline[0])
-    assert [s for s, _ in findings] == ["error"] and "does not read" in findings[0][1]
+    assert [s for s, _ in findings] == ["error", "warning"]
+    assert "does not read" in findings[0][1]
+    assert "did NOT run" in findings[1][1]  # the other joint checks skipped it (an#551)
 
 
 def test_a_shot_that_declares_nothing_reads_no_other_store_entry():
@@ -622,3 +624,19 @@ def test_every_compile_based_check_shares_one_document_with_the_style_pack(tmp_p
     )
     packed = [p for p in packs if p is not None]
     assert [p.name for p in packed] == ["noir"] * len(scene.timeline), packs
+
+
+def test_a_shot_that_does_not_compile_says_its_cause_at_most_twice(tmp_path):
+    """A full validate (every check) of a shot that does not compile: the
+    cause is said by the check that owns it and at most once more, and the
+    "did NOT run" line is said once (an#551)."""
+    project = _project(tmp_path, prop="wheel", joints=[{"type": "pin", "a": "@0.5,0"}])
+    report = validate_semantic(
+        project.scene,
+        available_props=project.mall["props"],
+        available_environments=project.mall["environments"],
+    )
+    said = [f.description for f in report.findings]
+    assert 1 <= sum("does not read" in m for m in said) <= 2
+    assert sum("did NOT run" in m for m in said) == 1
+    assert not [m for m in said if "were NOT checked" in m]
