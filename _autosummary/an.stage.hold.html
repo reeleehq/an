@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=790b3177"></script>
+    <script src="../_static/documentation_options.js?v=b282a1ba"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.263" />
+  <meta name="docsearch:version" content="0.1.264" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -700,13 +700,16 @@ holders, what <code class="docutils literal notranslate"><span class="pre">an</s
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.hold.ON_OVERRIDE" title="an.stage.hold.ON_OVERRIDE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ON_OVERRIDE</span></code></a></p></td>
 <td><p>what holds an item when the shot opens (<code class="docutils literal notranslate"><span class="pre">ground</span></code>, a body's point, <code class="docutils literal notranslate"><span class="pre">world&#64;x,y</span></code>).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.hold.GRASP_TOLERANCE_PX" title="an.stage.hold.GRASP_TOLERANCE_PX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GRASP_TOLERANCE_PX</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.hold.AIM_OVERRIDE" title="an.stage.hold.AIM_OVERRIDE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AIM_OVERRIDE</span></code></a></p></td>
+<td><p>the stage angle it is held at, as a place's <code class="docutils literal notranslate"><span class="pre">rotation</span></code> (a shot that opens on a musket already aimed at someone, continuing the shot before it).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.hold.GRASP_TOLERANCE_PX" title="an.stage.hold.GRASP_TOLERANCE_PX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GRASP_TOLERANCE_PX</span></code></a></p></td>
 <td><p>A reach that ends farther than this from its goal did not arrive (scene px).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.hold.DFLT_FALL_GRAVITY" title="an.stage.hold.DFLT_FALL_GRAVITY"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_FALL_GRAVITY</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.hold.DFLT_FALL_GRAVITY" title="an.stage.hold.DFLT_FALL_GRAVITY"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_FALL_GRAVITY</span></code></a></p></td>
 <td><p>Gravity for a released item when neither the shot nor the style pack says (scene px / s², down the screen).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.hold.HOLD_PLAN_PASSES" title="an.stage.hold.HOLD_PLAN_PASSES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HOLD_PLAN_PASSES</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.hold.HOLD_PLAN_PASSES" title="an.stage.hold.HOLD_PLAN_PASSES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HOLD_PLAN_PASSES</span></code></a></p></td>
 <td><p>How many times the gestures are planned (each from the solve the previous plan made).</p></td>
 </tr>
 </tbody>
@@ -739,7 +742,7 @@ holders, what <code class="docutils literal notranslate"><span class="pre">an</s
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.hold.HoldVerb" title="an.stage.hold.HoldVerb"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HoldVerb</span></code></a>(action, start, end, where)</p></td>
 <td><p>A flattened hold verb (a <code class="docutils literal notranslate"><span class="pre">swap</span></code> is its <code class="docutils literal notranslate"><span class="pre">grasp</span></code> and its <code class="docutils literal notranslate"><span class="pre">place</span></code>).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.hold.HoldDeclarations" title="an.stage.hold.HoldDeclarations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HoldDeclarations</span></code></a>([verbs, initial, refs, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.hold.HoldDeclarations" title="an.stage.hold.HoldDeclarations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HoldDeclarations</span></code></a>([verbs, initial, aims, ...])</p></td>
 <td><p>The hold verbs of a shot and its <code class="docutils literal notranslate"><span class="pre">held_by</span></code> overrides, read without geometry.</p></td>
 </tr>
 </tbody>
@@ -754,6 +757,19 @@ holders, what <code class="docutils literal notranslate"><span class="pre">an</s
 </tbody>
 </table>
 </div>
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.hold.AIM_OVERRIDE">
+<span class="sig-prename descclassname"><span class="pre">an.stage.hold.</span></span><span class="sig-name descname"><span class="pre">AIM_OVERRIDE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'held_rotation'</span></span><a class="headerlink" href="#an.stage.hold.AIM_OVERRIDE" title="Link to this definition">#</a></dt>
+<dd><p>the stage angle it
+is held at, as a place’s <code class="docutils literal notranslate"><span class="pre">rotation</span></code> (a shot that opens on a musket already
+aimed at someone, continuing the shot before it).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The override that aims an item a socket holds from the start</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py data">
 <dt class="sig sig-object py" id="an.stage.hold.DFLT_FALL_GRAVITY">
 <span class="sig-prename descclassname"><span class="pre">an.stage.hold.</span></span><span class="sig-name descname"><span class="pre">DFLT_FALL_GRAVITY</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">980.0</span></span><a class="headerlink" href="#an.stage.hold.DFLT_FALL_GRAVITY" title="Link to this definition">#</a></dt>
@@ -794,7 +810,7 @@ when the same declarations can compile to other keys.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.stage.hold.HoldDeclarations">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stage.hold.</span></span><span class="sig-name descname"><span class="pre">HoldDeclarations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">list()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">dict()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">list()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">items</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">dict()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">movers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">set()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/hold.html#HoldDeclarations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.hold.HoldDeclarations" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stage.hold.</span></span><span class="sig-name descname"><span class="pre">HoldDeclarations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">list()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">dict()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">dict()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">list()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">items</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">dict()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">movers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">set()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/hold.html#HoldDeclarations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.hold.HoldDeclarations" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>The hold verbs of a shot and its <code class="docutils literal notranslate"><span class="pre">held_by</span></code> overrides, read without geometry.</p>
 <p><code class="docutils literal notranslate"><span class="pre">refs</span></code> are the holder points to resolve as <code class="docutils literal notranslate"><span class="pre">(ref,</span> <span class="pre">where,</span> <span class="pre">side)</span></code> (side
@@ -803,6 +819,17 @@ entities held (<code class="docutils literal notranslate"><span class="pre">id</
 move a hand (they are solved; a holder that never moves is held fixed).</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.stage.hold.HoldDeclarations.aims">
+<span class="sig-name descname"><span class="pre">aims</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.stage.hold.HoldDeclarations.aims" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">id</span> <span class="pre">-&gt;</span> <span class="pre">(stage</span> <span class="pre">angle,</span> <span class="pre">where)</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">held_rotation</span></code> overrides</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py exception">
@@ -963,12 +990,16 @@ turned any way is the lowest painted pixel, not a corner of its margin).</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.hold.AIM_OVERRIDE"><code class="docutils literal notranslate"><span class="pre">AIM_OVERRIDE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.hold.DFLT_FALL_GRAVITY"><code class="docutils literal notranslate"><span class="pre">DFLT_FALL_GRAVITY</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.hold.GRASP_TOLERANCE_PX"><code class="docutils literal notranslate"><span class="pre">GRASP_TOLERANCE_PX</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.hold.HOLDS_REPORT"><code class="docutils literal notranslate"><span class="pre">HOLDS_REPORT</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.hold.HOLD_PLAN_PASSES"><code class="docutils literal notranslate"><span class="pre">HOLD_PLAN_PASSES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.hold.HOLD_VERSION"><code class="docutils literal notranslate"><span class="pre">HOLD_VERSION</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.hold.HoldDeclarations"><code class="docutils literal notranslate"><span class="pre">HoldDeclarations</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.hold.HoldDeclarations"><code class="docutils literal notranslate"><span class="pre">HoldDeclarations</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.hold.HoldDeclarations.aims"><code class="docutils literal notranslate"><span class="pre">HoldDeclarations.aims</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.hold.HoldError"><code class="docutils literal notranslate"><span class="pre">HoldError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.hold.HoldVerb"><code class="docutils literal notranslate"><span class="pre">HoldVerb</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.hold.ON_OVERRIDE"><code class="docutils literal notranslate"><span class="pre">ON_OVERRIDE</span></code></a></li>

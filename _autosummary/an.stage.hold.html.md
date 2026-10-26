@@ -61,13 +61,14 @@ False
 
 ### Module Attributes
 
-| [`HOLD_VERSION`](#an.stage.hold.HOLD_VERSION)       | bump it when the same declarations can compile to other keys.                                               |
-|---------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
-| [`HOLDS_REPORT`](#an.stage.hold.HOLDS_REPORT)       | The key of the hold report inside `meta.extensions.solve`.                                                  |
-| [`ON_OVERRIDE`](#an.stage.hold.ON_OVERRIDE)        | what holds an item when the shot opens (`ground`, a body's point, `world@x,y`).                             |
-| [`GRASP_TOLERANCE_PX`](#an.stage.hold.GRASP_TOLERANCE_PX) | A reach that ends farther than this from its goal did not arrive (scene px).                                |
-| [`DFLT_FALL_GRAVITY`](#an.stage.hold.DFLT_FALL_GRAVITY)  | Gravity for a released item when neither the shot nor the style pack says (scene px / s², down the screen). |
-| [`HOLD_PLAN_PASSES`](#an.stage.hold.HOLD_PLAN_PASSES)   | How many times the gestures are planned (each from the solve the previous plan made).                       |
+| [`HOLD_VERSION`](#an.stage.hold.HOLD_VERSION)       | bump it when the same declarations can compile to other keys.                                                                                   |
+|---------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`HOLDS_REPORT`](#an.stage.hold.HOLDS_REPORT)       | The key of the hold report inside `meta.extensions.solve`.                                                                                      |
+| [`ON_OVERRIDE`](#an.stage.hold.ON_OVERRIDE)        | what holds an item when the shot opens (`ground`, a body's point, `world@x,y`).                                                                 |
+| [`AIM_OVERRIDE`](#an.stage.hold.AIM_OVERRIDE)       | the stage angle it is held at, as a place's `rotation` (a shot that opens on a musket already aimed at someone, continuing the shot before it). |
+| [`GRASP_TOLERANCE_PX`](#an.stage.hold.GRASP_TOLERANCE_PX) | A reach that ends farther than this from its goal did not arrive (scene px).                                                                    |
+| [`DFLT_FALL_GRAVITY`](#an.stage.hold.DFLT_FALL_GRAVITY)  | Gravity for a released item when neither the shot nor the style pack says (scene px / s², down the screen).                                     |
+| [`HOLD_PLAN_PASSES`](#an.stage.hold.HOLD_PLAN_PASSES)   | How many times the gestures are planned (each from the solve the previous plan made).                                                           |
 
 ### Functions
 
@@ -82,12 +83,21 @@ False
 
 | [`HoldVerb`](#an.stage.hold.HoldVerb)(action, start, end, where)           | A flattened hold verb (a `swap` is its `grasp` and its `place`).             |
 |------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
-| [`HoldDeclarations`](#an.stage.hold.HoldDeclarations)([verbs, initial, refs, ...]) | The hold verbs of a shot and its `held_by` overrides, read without geometry. |
+| [`HoldDeclarations`](#an.stage.hold.HoldDeclarations)([verbs, initial, aims, ...]) | The hold verbs of a shot and its `held_by` overrides, read without geometry. |
 
 ### Exceptions
 
 | [`HoldError`](#an.stage.hold.HoldError)(message, problems)   | The holds of a shot do not make sense (a hand puts down what it does not hold, a socket gets a second item, one hand does two things at once).   |
 |---------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
+
+### an.stage.hold.AIM_OVERRIDE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'held_rotation'*
+
+the stage angle it
+is held at, as a place’s `rotation` (a shot that opens on a musket already
+aimed at someone, continuing the shot before it).
+
+* **Type:**
+  The override that aims an item a socket holds from the start
 
 ### an.stage.hold.DFLT_FALL_GRAVITY *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 980.0*
 
@@ -115,7 +125,7 @@ when the same declarations can compile to other keys.
 * **Type:**
   The hold layer’s version, in the shot-cache key (`solve_knobs`)
 
-### *class* an.stage.hold.HoldDeclarations(verbs=list(), initial=dict(), refs=list(), items=dict(), movers=set())
+### *class* an.stage.hold.HoldDeclarations(verbs=list(), initial=dict(), aims=dict(), refs=list(), items=dict(), movers=set())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -125,6 +135,13 @@ The hold verbs of a shot and its `held_by` overrides, read without geometry.
 `hand`: a moving point, `socket`: one that holds still); `items` the
 entities held (`id -> where first named`); `movers` the entities that
 move a hand (they are solved; a holder that never moves is held fixed).
+
+#### aims *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]*
+
+`id -> (stage angle, where)`
+
+* **Type:**
+  `held_rotation` overrides
 
 ### *exception* an.stage.hold.HoldError(message, problems)
 
