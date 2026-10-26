@@ -242,7 +242,9 @@ def render(
         try:
             parallel_arg = int(parallel)
         except ValueError:
-            return failed(f"invalid --parallel value: {parallel!r}; use a number or 'auto'")
+            return failed(
+                f"invalid --parallel value: {parallel!r}; use a number or 'auto'"
+            )
     from an.render import format_render_findings
 
     cache = ShotCache(cache_frames=cache_frames)
