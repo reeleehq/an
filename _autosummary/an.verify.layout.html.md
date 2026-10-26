@@ -4,7 +4,8 @@ LayoutLintVerifier — cheap pre-render checks on the IR.
 
 Runs the same semantic checks as `an.ir.validate.validate_semantic` plus a
 few that need a render context (do dialogue lines fit in their shot’s
-duration? is the scene’s total duration consistent with the timeline?).
+duration?). Whether `meta.duration` matches the timeline is
+`validate_semantic`’s check, not repeated here.
 
 Deliberately runs on the IR alone (RenderResult=None is fine), so the
 orchestrator can call it BEFORE rendering and skip a costly render if the

@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=5fbed266"></script>
+    <script src="../../../_static/documentation_options.js?v=fbc6567f"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.280" />
+  <meta name="docsearch:version" content="0.1.281" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -716,7 +716,8 @@ window.runMermaid = runMermaid;</script>
 
 <span class="sd">Runs the same semantic checks as ``an.ir.validate.validate_semantic`` plus a</span>
 <span class="sd">few that need a render context (do dialogue lines fit in their shot's</span>
-<span class="sd">duration? is the scene's total duration consistent with the timeline?).</span>
+<span class="sd">duration?). Whether ``meta.duration`` matches the timeline is</span>
+<span class="sd">``validate_semantic``'s check, not repeated here.</span>
 
 <span class="sd">Deliberately runs on the IR alone (RenderResult=None is fine), so the</span>
 <span class="sd">orchestrator can call it BEFORE rendering and skip a costly render if the</span>
@@ -739,20 +740,8 @@ window.runMermaid = runMermaid;</script>
     <span class="k">def</span><span class="w"> </span><span class="nf">verify</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ir</span><span class="p">:</span> <span class="n">SceneIR</span><span class="p">,</span> <span class="n">render</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VerificationReport</span><span class="p">:</span>
         <span class="n">report</span> <span class="o">=</span> <span class="n">VerificationReport</span><span class="p">()</span>
 
-        <span class="c1"># Total duration consistency</span>
-        <span class="c1"># The delivered length: the shots' sum minus any dissolve overlaps</span>
-        <span class="c1"># (an#163); exactly the sum for a scene without one.</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">an.assemble</span><span class="w"> </span><span class="kn">import</span> <span class="n">film_duration</span>
-
-        <span class="n">timeline_total</span> <span class="o">=</span> <span class="n">film_duration</span><span class="p">(</span><span class="n">ir</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">ir</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">duration</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">ir</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">duration</span> <span class="o">-</span> <span class="n">timeline_total</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.01</span><span class="p">:</span>
-            <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
-                <span class="s2">"warning"</span><span class="p">,</span>
-                <span class="s2">"meta/duration"</span><span class="p">,</span>
-                <span class="sa">f</span><span class="s2">"meta.duration (</span><span class="si">{</span><span class="n">ir</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">duration</span><span class="si">}</span><span class="s2">) doesn't match sum of "</span>
-                <span class="sa">f</span><span class="s2">"shot durations (</span><span class="si">{</span><span class="n">timeline_total</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span>
-                <span class="n">suggested_fix</span><span class="o">=</span><span class="sa">f</span><span class="s2">"set meta.duration = </span><span class="si">{</span><span class="n">timeline_total</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-            <span class="p">)</span>
+        <span class="c1"># `meta.duration` is checked once, by `an validate`'s</span>
+        <span class="c1"># `_core_meta_duration` (an#557), not again here with another tolerance.</span>
 
         <span class="c1"># Each shot's structural checks.</span>
         <span class="n">seen_ids</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>

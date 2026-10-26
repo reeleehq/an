@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=5fbed266"></script>
+    <script src="../../../_static/documentation_options.js?v=fbc6567f"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.280" />
+  <meta name="docsearch:version" content="0.1.281" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -922,30 +922,37 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">shot_kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">shot_yaml</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
         <span class="n">shots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Shot</span><span class="p">(</span><span class="o">**</span><span class="n">shot_kwargs</span><span class="p">))</span>
 
-    <span class="n">scene</span> <span class="o">=</span> <span class="n">SceneIR</span><span class="p">(</span><span class="n">meta</span><span class="o">=</span><span class="n">meta</span><span class="p">,</span> <span class="n">timeline</span><span class="o">=</span><span class="n">shots</span><span class="p">,</span> <span class="n">world</span><span class="o">=</span><span class="n">world</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">meta</span><span class="o">.</span><span class="n">duration</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
-        <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">duration</span> <span class="o">=</span> <span class="n">_laid_out_duration</span><span class="p">(</span><span class="n">scene</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">scene</span></div>
+    <span class="c1"># An unwritten `duration:` stays 0.0, "unset" (an#557): never filled with a</span>
+    <span class="c1"># derived length, which the writer would then put in the file as if authored.</span>
+    <span class="c1"># Whatever needs the film's length asks `an.assemble.film_duration`.</span>
+    <span class="k">return</span> <span class="n">SceneIR</span><span class="p">(</span><span class="n">meta</span><span class="o">=</span><span class="n">meta</span><span class="p">,</span> <span class="n">timeline</span><span class="o">=</span><span class="n">shots</span><span class="p">,</span> <span class="n">world</span><span class="o">=</span><span class="n">world</span><span class="p">)</span></div>
 
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_laid_out_duration</span><span class="p">(</span><span class="n">scene</span><span class="p">:</span> <span class="n">SceneIR</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""The duration of a scene whose author wrote none: what the shots lay out</span>
-<span class="sd">    (their durations minus each dissolve or wipe overlap, an#481), so the</span>
-<span class="sd">    `meta.duration` check has nothing to disagree with. The plain sum when the</span>
-<span class="sd">    overlaps cannot be laid out (`an validate` says why).</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">unset_unwritten_duration</span><span class="p">(</span><span class="n">scene</span><span class="p">:</span> <span class="n">SceneIR</span><span class="p">,</span> <span class="n">md_text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SceneIR</span><span class="p">:</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">"""``scene`` (read from the JSON) with ``meta.duration`` back to ``0.0``,</span>
+<span class="sd">    "unset", when ``md_text`` (its ``scene.md``) writes no ``duration`` (an#557).</span>
 
-<span class="sd">    &gt;&gt;&gt; from an.ir.schema import Shot, Transition</span>
-<span class="sd">    &gt;&gt;&gt; two = SceneIR(meta=Meta(fps=24), timeline=[Shot(id="a", duration=2.0),</span>
-<span class="sd">    ...     Shot(id="b", duration=2.0, transition=Transition(kind="dissolve", duration=0.6))])</span>
-<span class="sd">    &gt;&gt;&gt; round(_laid_out_duration(two), 4)</span>
-<span class="sd">    3.4167</span>
+<span class="sd">    Before an#557 reading the markdown filled an unwritten duration with a</span>
+<span class="sd">    derived length (the shots' layout, or their plain sum) and stored it in the</span>
+<span class="sd">    JSON. A JSON value the markdown does not carry can only be that: a value set</span>
+<span class="sd">    through the store writes the line. Left as it is, the next store write</span>
+<span class="sd">    would merge it into the author's file as if authored. Modified in place;</span>
+<span class="sd">    returned for chaining.</span>
+
+<span class="sd">    &gt;&gt;&gt; from an.ir.schema import Shot</span>
+<span class="sd">    &gt;&gt;&gt; s = SceneIR(meta=Meta(duration=4.0), timeline=[Shot(id="a", duration=4.0)])</span>
+<span class="sd">    &gt;&gt;&gt; unset_unwritten_duration(s, "# T\n\n```yaml meta\nfps: 24\n```\n").meta.duration</span>
+<span class="sd">    0.0</span>
+<span class="sd">    &gt;&gt;&gt; s.meta.duration = 4.0</span>
+<span class="sd">    &gt;&gt;&gt; unset_unwritten_duration(s, "```yaml meta\nduration: 4\n```\n").meta.duration</span>
+<span class="sd">    4.0</span>
 <span class="sd">    """</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.assemble</span><span class="w"> </span><span class="kn">import</span> <span class="n">film_duration</span><span class="p">,</span> <span class="n">transition_problems</span>
-
-    <span class="k">if</span> <span class="n">transition_problems</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">,</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">fps</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">duration</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">film_duration</span><span class="p">(</span><span class="n">scene</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">duration</span><span class="p">:</span>
+        <span class="n">meta_block</span> <span class="o">=</span> <span class="n">_extract_yaml_block</span><span class="p">(</span><span class="n">_split_by_shots</span><span class="p">(</span><span class="n">md_text</span><span class="p">)[</span><span class="s2">"__global__"</span><span class="p">],</span> <span class="s2">"meta"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">meta_block</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"duration"</span><span class="p">):</span>
+            <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">duration</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">return</span> <span class="n">scene</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_extract_title</span><span class="p">(</span><span class="n">md_text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -1527,10 +1534,16 @@ window.runMermaid = runMermaid;</script>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_md_meta_body</span><span class="p">(</span><span class="n">scene</span><span class="p">:</span> <span class="n">SceneIR</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""The ```yaml meta`` block's body, as the writer spells it."""</span>
-    <span class="n">meta_dict</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">meta_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">"title"</span><span class="p">:</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">title</span><span class="p">,</span>
         <span class="s2">"author"</span><span class="p">:</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">author</span><span class="p">,</span>
-        <span class="s2">"duration"</span><span class="p">:</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="c1"># `duration` only when authored (an#557): 0.0 is "unset", and the film's</span>
+    <span class="c1"># length is what its shots lay out (`an.assemble.film_duration`). Where the</span>
+    <span class="c1"># writer always put it, so a set value is written byte for byte as before.</span>
+    <span class="k">if</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">duration</span><span class="p">:</span>
+        <span class="n">meta_dict</span><span class="p">[</span><span class="s2">"duration"</span><span class="p">]</span> <span class="o">=</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">duration</span>
+    <span class="n">meta_dict</span> <span class="o">|=</span> <span class="p">{</span>
         <span class="s2">"fps"</span><span class="p">:</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">fps</span><span class="p">,</span>
         <span class="s2">"resolution"</span><span class="p">:</span> <span class="p">{</span>
             <span class="s2">"width"</span><span class="p">:</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
@@ -2183,8 +2196,10 @@ window.runMermaid = runMermaid;</script>
         <span class="n">skew</span> <span class="o">=</span> <span class="n">json_mtime</span> <span class="o">-</span> <span class="n">md_mtime</span>
         <span class="k">if</span> <span class="n">skew</span> <span class="o">&gt;</span> <span class="n">SYNC_MTIME_TOLERANCE_S</span><span class="p">:</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">_read_text</span><span class="p">(</span><span class="n">json_path</span><span class="p">))</span>
-            <span class="n">scene</span> <span class="o">=</span> <span class="n">scene_from_json_doc</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">json_path</span><span class="p">)</span>
             <span class="n">existing</span> <span class="o">=</span> <span class="n">_read_text</span><span class="p">(</span><span class="n">md_path</span><span class="p">)</span>
+            <span class="n">scene</span> <span class="o">=</span> <span class="n">unset_unwritten_duration</span><span class="p">(</span>
+                <span class="n">scene_from_json_doc</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">json_path</span><span class="p">),</span> <span class="n">existing</span>
+            <span class="p">)</span>
             <span class="n">markdown</span> <span class="o">=</span> <span class="n">merge_markdown</span><span class="p">(</span><span class="n">existing</span><span class="p">,</span> <span class="n">scene</span><span class="p">)</span>  <span class="c1"># an#275: keep the author's text</span>
             <span class="k">if</span> <span class="n">markdown</span> <span class="o">!=</span> <span class="n">existing</span><span class="p">:</span>
                 <span class="n">_write_text</span><span class="p">(</span><span class="n">md_path</span><span class="p">,</span> <span class="n">markdown</span><span class="p">)</span>
@@ -2221,8 +2236,9 @@ window.runMermaid = runMermaid;</script>
 <span class="k">def</span><span class="w"> </span><span class="nf">_settle_a_tie</span><span class="p">(</span><span class="n">md_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">json_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">md_mtime</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="n">md_text</span> <span class="o">=</span> <span class="n">_read_text</span><span class="p">(</span><span class="n">md_path</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">json_scene</span> <span class="o">=</span> <span class="n">scene_from_json_doc</span><span class="p">(</span>
-            <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">_read_text</span><span class="p">(</span><span class="n">json_path</span><span class="p">)),</span> <span class="n">source</span><span class="o">=</span><span class="n">json_path</span>
+        <span class="n">json_scene</span> <span class="o">=</span> <span class="n">unset_unwritten_duration</span><span class="p">(</span>
+            <span class="n">scene_from_json_doc</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">_read_text</span><span class="p">(</span><span class="n">json_path</span><span class="p">)),</span> <span class="n">source</span><span class="o">=</span><span class="n">json_path</span><span class="p">),</span>
+            <span class="n">md_text</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">_md_canonical</span><span class="p">(</span><span class="n">md_text</span><span class="p">)</span> <span class="o">==</span> <span class="n">_md_canonical</span><span class="p">(</span><span class="n">ir_to_markdown</span><span class="p">(</span><span class="n">json_scene</span><span class="p">)):</span>
             <span class="k">return</span>
