@@ -113,41 +113,50 @@ def retake(
     rescore: bool = False,
     tts: str = DEFAULT_BROWSE_PROVIDER,
     make: Callable[[str], TTSProvider] = make_tts,
+    scene: str = "",
 ) -> str:
     """Release the recorded takes of the lines of ``project`` containing ``line``.
 
     The plain-function core of ``an voices rescore`` / ``an voices reroll``: see
     :func:`an.audio.pipeline.retake_lines`. ``tts`` must be the provider the
-    line is rendered with (its takes are keyed by it).
+    line is rendered with (its takes are keyed by it). ``scene`` names another
+    scene file of the project (``scene.studio.md``, an#554).
     """
     from an.audio.pipeline import retake_lines
+    from an.ir.sync import DEFAULT_SCENE_FILE
     from an.project import load
 
-    proj = load(project)
+    proj = load(project, scene_file=scene or DEFAULT_SCENE_FILE)
     messages = retake_lines(proj.scene, proj.mall, line, tts=make(tts), rescore=rescore)
     return "\n".join(messages)
 
 
-def _rescore(project: str, line: str, tts: str = DEFAULT_BROWSE_PROVIDER) -> str:
+def _rescore(
+    project: str, line: str, tts: str = DEFAULT_BROWSE_PROVIDER, scene: str = ""
+) -> str:
     """Re-choose the take of each line containing LINE from its cached takes, with
     the current scorer, at the next render (nothing billed while the takes are cached).
 
     project: the project directory
     line: words of the dialogue line (case-insensitive substring)
     tts: the TTS provider the line is rendered with
+    scene: the scene file to read, inside the project (default scene.md; for example scene.studio.md)
     """
-    return retake(project, line, rescore=True, tts=tts)
+    return retake(project, line, rescore=True, tts=tts, scene=scene)
 
 
-def _reroll(project: str, line: str, tts: str = DEFAULT_BROWSE_PROVIDER) -> str:
+def _reroll(
+    project: str, line: str, tts: str = DEFAULT_BROWSE_PROVIDER, scene: str = ""
+) -> str:
     """Synthesize new takes for each line containing LINE at the next render, and
     keep the best (billed: the render prints the cost before the first request).
 
     project: the project directory
     line: words of the dialogue line (case-insensitive substring)
     tts: the TTS provider the line is rendered with
+    scene: the scene file to read, inside the project (default scene.md; for example scene.studio.md)
     """
-    return retake(project, line, rescore=False, tts=tts)
+    return retake(project, line, rescore=False, tts=tts, scene=scene)
 
 
 _rescore.__name__ = "rescore"  # `an voices rescore`
@@ -162,6 +171,7 @@ def design(
     library: str = "",
     no_design: bool = False,
     library_limit: int = 0,
+    scene: str = "",
 ) -> str:
     """Design voice options from each voice document's notes (ElevenLabs Voice Design,
     billed) and/or list candidates from the shared voice library by accent, gender and
@@ -175,7 +185,9 @@ def design(
     library: a shared-library query for every voice without its own `library` key: accent=irish,gender=male,age=middle_aged
     no_design: skip the designed previews: library candidates only, nothing billed
     library_limit: at most this many library candidates per voice (default 8)
+    scene: the scene file whose lines a voice without sample_text speaks (default scene.md; for example scene.studio.md)
     """
+    from an.ir.sync import DEFAULT_SCENE_FILE
     from an.audio.voice_design import (
         DFLT_DESIGN_MODEL,
         DFLT_LIBRARY_LIMIT,
@@ -193,6 +205,7 @@ def design(
         library_query=library or None,
         library_limit=library_limit or DFLT_LIBRARY_LIMIT,
         design=not no_design,
+        scene_file=scene or DEFAULT_SCENE_FILE,
     )
     lines = []
     for ref, entry in manifest.items():
@@ -207,7 +220,12 @@ def design(
 
 
 def audition(
-    project: str, voices: str = "", options: str = "", tts: str = "", redo: bool = False
+    project: str,
+    voices: str = "",
+    options: str = "",
+    tts: str = "",
+    redo: bool = False,
+    scene: str = "",
 ) -> str:
     """An audition reel per option: the character's own lines from the scene, spoken in
     that option's voice with the film's TTS provider, the voice document's model, settings
@@ -221,13 +239,20 @@ def audition(
     options: comma-separated option labels to audition (default: all, e.g. A,B,L1)
     tts: the TTS provider the film renders with (default: elevenlabs)
     redo: make every reel again even when nothing changed (billed again)
+    scene: the scene file whose lines the reels speak (default scene.md; for example scene.studio.md)
     """
     from an.audio.voice_design import DESIGN_PROVIDER, audition_project_voices
+    from an.ir.sync import DEFAULT_SCENE_FILE
 
     refs = [r.strip() for r in voices.split(",") if r.strip()] or None
     labels = [o.strip() for o in options.split(",") if o.strip()] or None
     manifests = audition_project_voices(
-        project, refs, options=labels, tts=make_tts(tts or DESIGN_PROVIDER), redo=redo
+        project,
+        refs,
+        options=labels,
+        tts=make_tts(tts or DESIGN_PROVIDER),
+        redo=redo,
+        scene_file=scene or DEFAULT_SCENE_FILE,
     )
     return "\n".join(
         f"{ref} {o['option']}: {o['audition_path']}"
@@ -290,6 +315,7 @@ def import_recorded(
     recorded_by: str = "",
     transcriber: str = "",
     diarize: bool = False,
+    scene: str = "",
 ) -> str:
     """Import a performer's recording as the voice of its lines: each line is cut out,
     matched to the scene's dialogue (or added to --shot), stored with its provenance,
@@ -307,8 +333,10 @@ def import_recorded(
     recorded_by: who recorded the take (the performer), for the credits
     transcriber: the scribed backend when a take must be transcribed (default: scribed's default)
     diarize: ask the transcriber for speaker labels (map them with --speakers)
+    scene: the scene file whose lines the takes voice (default scene.md; for example scene.studio.md)
     """
     from an.audio.recorded import DFLT_DENOISE, import_recordings
+    from an.ir.sync import DEFAULT_SCENE_FILE
 
     report = import_recordings(
         project,
@@ -323,6 +351,7 @@ def import_recorded(
         recorded_by=recorded_by or None,
         transcriber=transcriber or None,
         diarize=diarize,
+        scene_file=scene or DEFAULT_SCENE_FILE,
     )
     return str(report)
 

@@ -21,7 +21,7 @@ from an.build.gc import (
 
 
 def info(project_dir: str, no_reachability: bool = False) -> str:
-    """Show the project's shot cache: its size, its entries by kind, and how much of it the current scene still reaches.
+    """Show the project's shot cache: its size, its entries by kind, and how much of it the project's scenes still reach (scene.md and every other scene file, e.g. scene.studio.md).
 
     project_dir: path to an an project
     no_reachability: skip computing what the current scene reaches (which compiles every shot and probes this machine's browser, like a render's first second)
@@ -36,7 +36,7 @@ def gc(
     max_age: str = "",
     force: bool = False,
 ) -> str:
-    """Delete the shot-cache entries nothing reaches: not the current scene (under the default render settings or any a recorded render used), and not the latest render of each output on each machine.
+    """Delete the shot-cache entries nothing reaches: not the project's scenes (scene.md and every other scene file, e.g. scene.studio.md; under the default render settings or any a recorded render used), and not the latest render of each output on each machine.
 
     Never deletes a reachable entry, nor anything written since a render of this project still in progress began. A render running meanwhile can at worst re-render a shot, never use a wrong one.
 

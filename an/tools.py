@@ -290,6 +290,7 @@ def iterate(
     instruction: str,
     apply_changes: bool = True,
     model: str = "claude-opus-4-7",
+    scene: str = "",
 ) -> str:
     """Apply a free-text instruction to the scene. Needs ANTHROPIC_API_KEY.
 
@@ -298,8 +299,15 @@ def iterate(
     apply_changes: persist the new scene to disk (default True); the next render
         re-renders exactly the shots whose content changed
     model: Anthropic model id (default claude-opus-4-7)
+    scene: the scene file to edit, inside the project (default scene.md; for example scene.studio.md, whose JSON twin is ir/scene.studio.json)
     """
-    result = _iterate(project_dir, instruction, apply=apply_changes, model=model)
+    result = _iterate(
+        project_dir,
+        instruction,
+        apply=apply_changes,
+        model=model,
+        scene_file=scene or DEFAULT_SCENE_FILE,
+    )
     lines: list[str] = []
     lines.append(f"summary: {result.summary}")
     lines.append(f"affected shots: {', '.join(result.affected_shots) or '(none)'}")
@@ -397,18 +405,19 @@ def probe(
 # SSOT for the CLI dispatcher (per the python-dispatching skill convention).
 
 
-def credits(project_dir: str, json_out: str | None = None) -> str:
+def credits(project_dir: str, json_out: str | None = None, scene: str = "") -> str:
     """Show what third-party work is in ``project_dir`` and what it obliges.
 
     project_dir: the an project
     json_out: also write the machine-readable record to this path
+    scene: the scene file whose speech is credited, inside the project (default scene.md; for example scene.studio.md)
 
     A licence recorded and never displayed is not compliance, so this is the
     consumer that makes the provenance field worth having.
     """
     from an.credits import credits_for_project
 
-    report = credits_for_project(project_dir)
+    report = credits_for_project(project_dir, scene_file=scene or DEFAULT_SCENE_FILE)
     if json_out:
         import json as _json
 

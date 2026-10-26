@@ -1286,6 +1286,12 @@ DEFAULT_SCENE_FILE: str = "scene.md"
 #: default scene file renders to. Reserved for it: another scene may not take it.
 DEFAULT_OUTPUT_NAME: str = "main"
 
+#: The subfolder under which a scene other than the default keeps its own copy
+#: of a per-scene work folder (probes, the live preview), so two scenes that
+#: share shot ids never overwrite each other's files (an#554). The default
+#: scene keeps the folder itself, as it always did.
+PER_SCENE_SUBDIR: str = "scenes"
+
 
 class SceneFileError(ValueError):
     """A scene file a command was given cannot be used: a bad name, a file
@@ -1308,10 +1314,30 @@ class SceneFile:
     def is_default(self) -> bool:
         return self.name == DEFAULT_SCENE_FILE
 
+    @property
+    def project_dir(self) -> Path:
+        """The project this scene belongs to (the folder holding its ``.md``)."""
+        return self.md_path.parent
+
+    def per_scene_dir(self, base: str | Path) -> Path:
+        """This scene's copy of the per-scene work folder ``base``: ``base``
+        itself for the default scene, ``base/scenes/<stem>`` for another, so
+        two scenes sharing shot ids never write the same file (an#554).
+
+        >>> resolve_scene_file("/p", must_exist=False).per_scene_dir("/p/x").as_posix()
+        '/p/x'
+        >>> sf = resolve_scene_file("/p", "scene.studio.md", must_exist=False)
+        >>> sf.per_scene_dir("/p/x").as_posix()
+        '/p/x/scenes/scene.studio'
+        """
+        base = Path(base)
+        return base if self.is_default else base / PER_SCENE_SUBDIR / self.md_path.stem
+
     def output_for(self, output_name: str | None = None) -> str:
         """The output name a render of this scene writes: ``output_name`` when
-        given, else :attr:`output_name`. A scene other than the default one
-        may not write the default scene's output.
+        given, else :attr:`output_name`. No scene may write another's default
+        output: not the default scene's ``main``, and not the stem of another
+        scene file of the project (``scene.b.md``'s ``scene.b``, an#554).
 
         >>> sf = resolve_scene_file("/p", "scene.studio.md", must_exist=False)
         >>> sf.output_for(), sf.output_for("final")
@@ -1333,6 +1359,14 @@ class SceneFile:
                 f"({DEFAULT_SCENE_FILE}) output; a render of {self.name} would "
                 "overwrite it: pick another --output-name"
             )
+        if output_name.lower() != self.output_name.lower():
+            owner = _scene_file_with_stem(self.project_dir, output_name)
+            if owner is not None and owner != self.name:
+                raise SceneFileError(
+                    f"output name {output_name!r} is the output of the project's "
+                    f"other scene file {owner}; a render of {self.name} would "
+                    "overwrite it: pick another --output-name"
+                )
         return output_name
 
 
@@ -1402,6 +1436,13 @@ def resolve_scene_file(
     """
     pdir = Path(project_dir).expanduser()
     if isinstance(scene_file, SceneFile):
+        # Already resolved (a callee handed the caller's SceneFile, an#554):
+        # kept as is when it belongs to this project, re-resolved otherwise.
+        if scene_file.project_dir.resolve() == pdir.resolve():
+            if must_exist and not scene_file.is_default:
+                if not scene_file.md_path.exists():
+                    raise SceneFileError(f"no scene file {scene_file.name!r} in {pdir}")
+            return scene_file
         scene_file = scene_file.name
     name = _scene_file_name(pdir, scene_file)
     stem = Path(name).stem
@@ -1421,6 +1462,49 @@ def resolve_scene_file(
         json_path=pdir / "ir" / f"{stem}.json",
         output_name=DEFAULT_OUTPUT_NAME if is_default else stem,
     )
+
+
+def _scene_file_with_stem(project_dir: Path, stem: str) -> str | None:
+    """The name of the scene file in ``project_dir`` whose stem is ``stem``
+    (case-insensitively: on a case-insensitive disk they are one file), if any."""
+    if not project_dir.is_dir():
+        return None
+    wanted = f"{stem}.md".lower()
+    for p in project_dir.iterdir():
+        if p.name.lower() == wanted and p.is_file():
+            return p.name
+    return None
+
+
+def project_scene_files(project_dir: str | Path) -> list[SceneFile]:
+    """Every scene of the project at ``project_dir`` (an#554): the default
+    ``scene.md`` first, when it or its JSON twin is there, then each other
+    ``.md`` file directly in the project whose JSON twin ``ir/<stem>.json``
+    exists (a scene a command has read: notes and READMEs have none), by name.
+    What a project-wide command (``an cache gc``) must account for.
+
+    >>> import tempfile
+    >>> with tempfile.TemporaryDirectory() as d:
+    ...     p = Path(d)
+    ...     (p / "ir").mkdir()
+    ...     for name in ("scene.md", "scene.b.md", "README.md", "ir/scene.json", "ir/scene.b.json"):
+    ...         _ = (p / name).write_text("")
+    ...     [sf.name for sf in project_scene_files(p)]
+    ['scene.md', 'scene.b.md']
+    """
+    pdir = Path(project_dir).expanduser()
+    default = resolve_scene_file(pdir, must_exist=False)
+    out = [default] if default.md_path.exists() or default.json_path.exists() else []
+    for p in sorted(pdir.glob("*.md")) if pdir.is_dir() else ():
+        if p.name == DEFAULT_SCENE_FILE or not p.is_file():
+            continue
+        try:
+            sf = resolve_scene_file(pdir, p.name)
+        except SceneFileError:
+            continue  # `Scene.md`, `main.md`, `.hidden.md`: not a scene a command reads
+        if sf.json_path.exists():
+            out.append(sf)
+    return out
 
 
 def sync(

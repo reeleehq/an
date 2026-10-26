@@ -79,6 +79,7 @@ from an.audio.transcripts import (
 )
 from an.audio.tts import AudioClip, VoiceMeta
 from an.ir.assets import AssetSource
+from an.ir.sync import DEFAULT_SCENE_FILE
 
 __all__ = [
     "PROVIDER_NAME",
@@ -1205,6 +1206,7 @@ def import_recordings(
     diarize: bool = False,
     match_threshold: float = DFLT_MATCH_THRESHOLD,
     write: bool = True,
+    scene_file: Any = DEFAULT_SCENE_FILE,
 ) -> ImportReport:
     """Import a performer's recording(s) as the voice of their lines (an#490).
 
@@ -1228,6 +1230,8 @@ def import_recordings(
     default is :func:`scribed_transcriber` with ``transcriber`` as the backend
     and ``diarize`` for speaker labels, built only when a take needs it.
     ``write=False`` runs everything but writes nothing (a dry run).
+    ``scene_file`` imports into another scene of the project
+    (``scene.studio.md``, an#554).
     """
     from an.project import load
 
@@ -1240,7 +1244,7 @@ def import_recordings(
     paths = audio_paths(audio)
     if not paths:
         raise RecordedVoicesError(f"no audio files found in {audio!r}")
-    proj = load(project)
+    proj = load(project, scene_file=scene_file)
     scene, mall = proj.scene, proj.mall
     if RECORDINGS_STORE not in mall:
         raise RecordedVoicesError("this project's mall has no recordings store")

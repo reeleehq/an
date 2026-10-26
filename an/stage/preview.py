@@ -59,7 +59,9 @@ def _stage_preview(
     shot_id: str | None = None,
     scene_file: str | Path | SceneFile = DEFAULT_SCENE_FILE,
 ) -> PreviewStaging:
-    """Stage the runtime files + compiled scene JSON under ``<dir>/.an/preview/runtime``.
+    """Stage the runtime files + compiled scene JSON under ``<dir>/.an/preview/runtime``
+    (``<dir>/.an/preview/scenes/<stem>/runtime`` for another scene file, so two
+    scenes previewed at once never overwrite each other's staging, an#554).
 
     Pure side-effect-on-disk: copies the cutout JS runtime, compiles the
     chosen shot, writes ``scene.json``, and stages any SVG character
@@ -68,8 +70,9 @@ def _stage_preview(
     project_root = Path(project_dir).expanduser().resolve()
     if not project_root.exists():
         raise PreviewError(f"no such project directory: {project_root}")
+    scene_file = resolve_scene_file(project_root, scene_file)
 
-    work_dir = project_root.joinpath(*PREVIEW_WORK_SUBDIR)
+    work_dir = scene_file.per_scene_dir(project_root.joinpath(*PREVIEW_WORK_SUBDIR))
     runtime_target = work_dir / "runtime"
     work_dir.mkdir(parents=True, exist_ok=True)
     if runtime_target.exists():
@@ -106,9 +109,10 @@ def preview_project(
     Blocks the calling thread until interrupted (Ctrl-C). Returns the
     base URL after teardown.
     """
-    scene_file = resolve_scene_file(project_dir, scene_file)
-    staging = _stage_preview(project_dir, shot_id=shot_id, scene_file=scene_file)
     project_root = Path(project_dir).expanduser().resolve()
+    # Resolved once: the staging and every poll of the watcher use it (an#554).
+    scene_file = resolve_scene_file(project_root, scene_file)
+    staging = _stage_preview(project_root, shot_id=shot_id, scene_file=scene_file)
 
     stop_event = threading.Event()
     watcher = threading.Thread(
@@ -129,7 +133,7 @@ def preview_project(
     with _serve_dir(staging.runtime_dir) as base_url:
         url = f"{base_url}/{PREVIEW_HTML_NAME}"
         print(f"preview: serving at {url}")
-        print("  Ctrl-C to stop. Edit scene.md and the browser will reload.")
+        print(f"  Ctrl-C to stop. Edit {scene_file.name} and the browser will reload.")
         if open_browser:
             webbrowser.open(url)
         try:
@@ -221,13 +225,10 @@ def _compile_scene_to(
     return shot.id
 
 
-def _source_mtimes(
-    project_root: Path, scene_file: str | Path | SceneFile = DEFAULT_SCENE_FILE
-) -> tuple[float, float]:
-    """``(scene.md mtime, ir/scene.json mtime)`` (the pair of ``scene_file``);
-    missing files report 0.0."""
-    resolved = resolve_scene_file(project_root, scene_file, must_exist=False)
-    md, js = resolved.md_path, resolved.json_path
+def _source_mtimes(scene_file: SceneFile) -> tuple[float, float]:
+    """``(scene.md mtime, ir/scene.json mtime)`` (the pair of the resolved
+    ``scene_file``: a poll never re-resolves it, an#554); missing files report 0.0."""
+    md, js = scene_file.md_path, scene_file.json_path
     md_t = md.stat().st_mtime if md.exists() else 0.0
     js_t = js.stat().st_mtime if js.exists() else 0.0
     return md_t, js_t
@@ -239,7 +240,7 @@ def _watch_loop(
     shot_id: str | None,
     poll_interval_s: float,
     stop_event: threading.Event,
-    scene_file: str | Path | SceneFile = DEFAULT_SCENE_FILE,
+    scene_file: SceneFile,
 ) -> None:
     """Poll source files and recompile when either changes.
 
@@ -247,12 +248,12 @@ def _watch_loop(
     rewrite ``ir/scene.json`` during sync — without re-reading we'd see
     our own write as a change and loop forever.
     """
-    last = _source_mtimes(project_root, scene_file)
+    last = _source_mtimes(scene_file)
     while not stop_event.is_set():
         # Use stop_event.wait so Ctrl-C tears down quickly.
         if stop_event.wait(poll_interval_s):
             return
-        cur = _source_mtimes(project_root, scene_file)
+        cur = _source_mtimes(scene_file)
         if cur == last:
             continue
         try:
@@ -262,4 +263,4 @@ def _watch_loop(
             print(f"preview: reloaded ({time.strftime('%H:%M:%S')})")
         except Exception as e:
             print(f"preview: recompile failed — {e}")
-        last = _source_mtimes(project_root, scene_file)
+        last = _source_mtimes(scene_file)

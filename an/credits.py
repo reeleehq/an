@@ -46,6 +46,7 @@ from an.ir.assets import (
     provider_terms_restriction,
     requires_attribution,
 )
+from an.ir.sync import DEFAULT_SCENE_FILE
 from an.stores._common import is_os_junk
 
 __all__ = [
@@ -1297,11 +1298,15 @@ def _reconstruct_legacy_source(descriptor: Any) -> AssetSource | None:
     return reconstruct(descriptor) if reconstruct is not None else None
 
 
-def credits_for_project(project_dir: str | Path) -> CreditsReport:
-    """Credits for the project at ``project_dir``."""
+def credits_for_project(
+    project_dir: str | Path, *, scene_file: Any = DEFAULT_SCENE_FILE
+) -> CreditsReport:
+    """Credits for the project at ``project_dir``: its assets, and the speech
+    of its scene (``scene_file``: another scene of the project,
+    ``scene.studio.md``, an#554)."""
     from an.project import load
 
-    project = load(Path(project_dir))
+    project = load(Path(project_dir), scene_file=scene_file)
     report = collect_credits(project.mall)
     report.entries.extend(speech_credits(project.mall, project.scene))
     return report
