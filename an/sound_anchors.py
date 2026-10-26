@@ -32,7 +32,7 @@ from an.frame_clock import frame_count
 from an.ir.schema import CueAnchor, SceneIR, SoundCue
 from an.verify._base import Finding
 
-__all__ = ["SoundAnchorError", "resolve_cue_anchors"]
+__all__ = ["SoundAnchorError", "crossing_in_document", "resolve_cue_anchors"]
 
 #: The kind a resolved cue's finding is filed under in the render report.
 SOUND_FINDING_KIND: str = "sound"
@@ -61,22 +61,20 @@ def _stage_document(shot: Any, ctx: Any, renderer: Any) -> Any:
     return compiled_document(shot, ctx)
 
 
-def _crossing(
-    shot: Any, ctx: Any, renderer: Any, anchor: CueAnchor, *, where: str
+def crossing_in_document(
+    doc: Any, anchor: CueAnchor, *, shot_id: str, fps: float, duration: float, where: str
 ) -> float:
-    """Shot-local seconds at which ``anchor.when``'s centre first reaches ``anchor.reaches``."""
+    """Shot-local seconds at which ``anchor.when``'s centre first reaches ``anchor.reaches``, in a compiled stage document."""
     from an.stage.timeline import (
         evaluate_timeline,
         screen_position,
         timeline_from_scene,
     )
 
-    doc = _stage_document(shot, ctx, renderer)
     timeline = timeline_from_scene(doc)
     axis, target = anchor.axis
     index = 0 if axis == "x" else 1
-    fps = float(ctx.fps)
-    frames = frame_count(shot.duration, ctx.fps)
+    frames = frame_count(duration, fps)
     previous: tuple[float, float] | None = None
     seen: list[float] = []
     for k in range(frames):
@@ -85,7 +83,7 @@ def _crossing(
             at = screen_position(doc, anchor.when, pose=evaluate_timeline(timeline, t))
         except (KeyError, ValueError) as e:
             raise SoundAnchorError(
-                f"{where}: shot {shot.id!r} has no node {anchor.when!r} on screen "
+                f"{where}: shot {shot_id!r} has no node {anchor.when!r} on screen "
                 f"at {t:.3f} s ({type(e).__name__}: {e}); name a node the shot "
                 "draws (a text block's lines are <block>/line_0, line_1, …)"
             ) from e
@@ -100,7 +98,21 @@ def _crossing(
     low, high = (min(seen), max(seen)) if seen else (float("nan"),) * 2
     raise SoundAnchorError(
         f"{where}: {anchor.when!r} never reaches {axis}={target:g} in shot "
-        f"{shot.id!r} (its {axis} runs {low:.1f}..{high:.1f} px over the shot)"
+        f"{shot_id!r} (its {axis} runs {low:.1f}..{high:.1f} px over the shot)"
+    )
+
+
+def _crossing(
+    shot: Any, ctx: Any, renderer: Any, anchor: CueAnchor, *, where: str
+) -> float:
+    """Shot-local seconds at which ``anchor.when``'s centre first reaches ``anchor.reaches``."""
+    return crossing_in_document(
+        _stage_document(shot, ctx, renderer),
+        anchor,
+        shot_id=shot.id,
+        fps=float(ctx.fps),
+        duration=shot.duration,
+        where=where,
     )
 
 

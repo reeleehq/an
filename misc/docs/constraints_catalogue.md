@@ -255,7 +255,7 @@ Tolerances below are named, never literal: `SUPPORT_TOLERANCE`, `SKATE_TOLERANCE
 
 **Subsumes.** `CueAnchor` / `an.sound_anchors` (the derivation) and the dialogue-fits checks (`dialogue_fits`) as the timing preconditions.
 
-**Status.** Partial (anchors). The order and tolerance checks are missing.
+**Status.** Partial. Anchors shipped; (i) order and (ii) tolerance shipped as the `causality` check for a shot cue that declares `cause`. The dialogue and lip-sync consistency check (iii) is missing.
 
 ### Group C: across cuts
 

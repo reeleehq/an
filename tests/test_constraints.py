@@ -29,6 +29,7 @@ ONLY = {
     "rigidity",
     "motion_style",
     "gravity",
+    "causality",
 }
 
 
@@ -614,3 +615,71 @@ def test_an_entity_level_in_the_air_is_hovering(tmp_path):
 
 def test_no_pack_gravity_no_finding(tmp_path):
     assert _msgs(_flown(tmp_path, [_fall(easing="linear")], gravity=None)) == []
+
+
+# -- causality: a sound against its visible cause (catalogue B7) ---------------
+
+
+def _sounded(tmp_path: Path, at: float, *, reaches=None, offset=0.0):
+    """The lamp falling 300 px over 1 s (linear); a cue at ``at`` s whose cause is the lamp reaching ``reaches``."""
+    cue = {
+        "sound": "thud",
+        "at": at,
+        "cause": {"when": "lamp", "reaches": reaches or {"y": _HALFWAY_Y}, "offset": offset},
+    }
+    return _lint(
+        tmp_path,
+        [_tween(property="y", from_value=0.0, to_value=300.0, duration=1.0, easing="linear")],
+        duration=1.0,
+        extra={"sounds": [cue]},
+    )
+
+
+def _halfway_y() -> float:
+    """The lamp's screen y at 0.5 s of the fall (the fixture's lamp, read from the stage)."""
+    from an.stage.timeline import evaluate_timeline, screen_position, timeline_from_scene
+
+    class _Ctx:  # just enough of a check context to compile the shot
+        index = 0
+
+        @staticmethod
+        def cached(key, build):
+            return build()
+
+    project = load(LAMP)
+    shot = Shot.model_validate(
+        {
+            **project.scene.timeline[0].model_dump(),
+            "duration": 1.0,
+            "actions": [_tween(property="y", from_value=0.0, to_value=300.0, duration=1.0, easing="linear")],
+        }
+    )
+    ctx = _Ctx()
+    ctx.shot, ctx.scene, ctx.memo = shot, project.scene.model_copy(update={"timeline": [shot]}), {}
+    ctx.stores = {"props": project.mall["props"], "environments": project.mall["environments"]}
+    doc = constraints.compiled_shot(ctx)
+    pose = evaluate_timeline(timeline_from_scene(doc), 0.5)
+    return screen_position(doc, "lamp", pose=pose)[1]
+
+
+_HALFWAY_Y = _halfway_y()
+
+
+def test_causality_is_registered_under_the_core_owner():
+    assert "causality" in check_names(owner=CORE_OWNER)
+
+
+def test_a_sound_on_its_cause_is_clean(tmp_path):
+    assert _msgs(_sounded(tmp_path, 0.5)) == []
+
+
+def test_a_sound_late_past_the_window_is_a_warning(tmp_path):
+    (msg,) = _msgs(_sounded(tmp_path, 0.7))
+    assert "behind" in msg and "'thud'" in msg
+
+
+def test_a_sound_well_before_its_cause_is_an_error(tmp_path):
+    report = _sounded(tmp_path, 0.1)
+    (f,) = report.findings
+    assert f.severity == "error" and "cannot precede" in f.description
+
