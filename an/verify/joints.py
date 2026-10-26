@@ -27,7 +27,7 @@ from __future__ import annotations
 from typing import Any
 
 from an.genres.registry import CORE_OWNER, check_names, register_check
-from an.verify.constraints import Constraint
+from an.verify.constraints import Constraint, compile_outcome
 
 __all__ = [
     "JOINT_CONSTRAINTS",
@@ -49,55 +49,11 @@ LIMIT_TOLERANCE_DEG: float = 0.1
 #: decision 9 on an#497: a lint at 2 px, a blend below it).
 REJOIN_TOLERANCE_PX: float = 2.0
 
-#: The memo key of the shot compiled for the joint checks.
-_COMPILED_KEY = "joints.compiled"
-
 
 def _declares(ctx: Any) -> bool:
     from an.stage.solve import shot_declares_solve
 
     return shot_declares_solve(ctx.shot, ctx.stores or {})
-
-
-def _compiled(ctx: Any) -> tuple[Any, Exception | None]:
-    """``ctx.shot`` compiled as ``an render`` compiles it (its style pack
-    included, whose gravity the solve reads), once per validation: ``(doc,
-    None)``, or ``(None, the error)``."""
-
-    def build():
-        import warnings
-
-        from an.stage.compile import compile_shot, style_pack_for
-        from an.verify.constraints import STAGE_RENDERERS, _fps
-
-        shot, scene = ctx.shot, ctx.scene
-        if shot.renderer not in STAGE_RENDERERS:
-            return None, None
-        try:
-            pack = style_pack_for(scene.meta, (ctx.stores or {}).get("styles") or {})
-        except Exception:  # noqa: BLE001 - a broken pack is the style check's to report
-            pack = None
-        res = scene.meta.resolution
-        try:
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                doc = compile_shot(
-                    shot,
-                    mall=ctx.stores,
-                    fps=int(round(_fps(ctx))),
-                    width=res.width,
-                    height=res.height,
-                    step_hz=shot.step_hz
-                    if shot.step_hz is not None
-                    else scene.meta.step_hz,
-                    default_easing=scene.meta.default_easing,
-                    style_pack=pack,
-                )
-        except Exception as e:  # noqa: BLE001 - reported by the check that owns it
-            return None, e
-        return doc, None
-
-    return ctx.cached((_COMPILED_KEY, ctx.index), build)
 
 
 def _report(doc: Any) -> dict[str, Any]:
@@ -117,7 +73,7 @@ def check_unknown_body(ctx: Any) -> None:
         return
     from an.stage.solve import UnknownBodyError
 
-    _doc, error = _compiled(ctx)
+    _doc, error = compile_outcome(ctx)
     if isinstance(error, UnknownBodyError):
         for where, message in error.problems:
             ctx.report.add("error", f"{ctx.path}/{where}", message)
@@ -140,7 +96,7 @@ def check_unreachable_pin(ctx: Any) -> None:
     """A ``pin`` the joints can meet: else where the chain reaches, and where to put it."""
     if not _declares(ctx):
         return
-    doc, _error = _compiled(ctx)
+    doc, _error = compile_outcome(ctx)
     if doc is None:
         return
     report = _report(doc)
@@ -201,7 +157,7 @@ def check_joint_violation(ctx: Any) -> None:
     """Every joined joint holds at every frame of the compiled shot."""
     if not _declares(ctx):
         return
-    doc, _error = _compiled(ctx)
+    doc, _error = compile_outcome(ctx)
     if doc is None:
         return
     import math
