@@ -71,6 +71,11 @@ The core's constraints:
   (constant downward acceleration) and does not hover. :func:`airborne_faults`
   is the pure function under it. Unsupported falls and hangs wait on supports
   (catalogue A1) and joints.
+- ``causality`` (catalogue B7): a shot sound cue that names its visible ``cause``
+  (a :class:`~an.ir.schema.CueAnchor`) is not ahead of it (error past
+  :data:`CAUSE_TOLERANCE`) and sits within the audio-visual sync window
+  (warning). :func:`av_offset_fault` is the pure function under it. Dialogue and
+  lip-sync consistency are not built.
 """
 
 from __future__ import annotations
@@ -99,6 +104,8 @@ __all__ = [
     "RIGIDITY",
     "MOTION_STYLE",
     "GRAVITY",
+    "CAUSALITY",
+    "av_offset_fault",
     "airborne_faults",
     "Move",
     "move_jerk",
@@ -1623,6 +1630,99 @@ GRAVITY = Constraint(
 )
 
 
+# -----------------------------------------------------------------------------
+# causality (catalogue B7): a sound does not precede, or lag far behind, its cause
+# -----------------------------------------------------------------------------
+
+#: The detectability window of audio-visual asynchrony, seconds, as sound minus
+#: picture: a sound up to this far AHEAD of its visible cause goes unnoticed
+#: (ITU-R BT.1359: +45 ms sound-ahead).
+AV_AHEAD_S: float = 0.045
+#: ... and up to this far BEHIND it (BT.1359: -125 ms sound-behind).
+AV_BEHIND_S: float = 0.125
+#: A sound ahead of its cause by more than this is an effect before its cause: an error.
+CAUSE_TOLERANCE: float = 0.25
+
+
+def av_offset_fault(sound_t: float, cause_t: float) -> str | None:
+    """How a sound at ``sound_t`` sits against its visible cause at ``cause_t`` (seconds): ``None`` inside the window, else ``"early"`` (sound ahead, past the window), ``"late"`` (behind), or ``"before_cause"`` (ahead by more than :data:`CAUSE_TOLERANCE`).
+
+    >>> av_offset_fault(1.0, 1.02), av_offset_fault(1.1, 1.0)
+    (None, None)
+    >>> av_offset_fault(1.0, 1.1), av_offset_fault(1.2, 1.0)
+    ('early', 'late')
+    >>> av_offset_fault(0.5, 1.0)
+    'before_cause'
+    """
+    lead = cause_t - sound_t  # positive: the sound is ahead
+    if lead > CAUSE_TOLERANCE:
+        return "before_cause"
+    if lead > AV_AHEAD_S:
+        return "early"
+    if -lead > AV_BEHIND_S:
+        return "late"
+    return None
+
+
+def check_causality(ctx: Any) -> None:
+    """The core's ``causality`` check: each shot cue that names a ``cause`` lands in its window."""
+    from an.ir.schema import CueAnchor
+
+    cues = [
+        (j, c)
+        for j, c in enumerate(ctx.shot.sounds)
+        if c.cause is not None and not isinstance(c.at, CueAnchor)
+    ]
+    if not cues:
+        return
+    doc = compiled_shot(ctx)
+    if doc is None:
+        return
+    from an.sound_anchors import SoundAnchorError, crossing_in_document
+
+    for j, cue in cues:
+        where = f"{ctx.path}/sounds/{j}"
+        try:
+            cause_t = crossing_in_document(
+                doc,
+                cue.cause,
+                shot_id=ctx.shot.id,
+                fps=_fps(ctx),
+                duration=ctx.shot.duration,
+                where=where,
+            )
+        except SoundAnchorError as e:
+            ctx.report.add("error", f"{where}/cause", str(e))
+            continue
+        cause_t += cue.cause.offset
+        fault = av_offset_fault(float(cue.at), cause_t)
+        if fault is None:
+            continue
+        axis, value = cue.cause.axis
+        delta = float(cue.at) - cause_t
+        ctx.report.add(
+            "error" if fault == "before_cause" else "warning",
+            f"{where}/at",
+            f"{cue.sound!r} at {float(cue.at):.2f} s is {abs(delta) * 1000:.0f} ms "
+            f"{'ahead of' if delta < 0 else 'behind'} its cause ({cue.cause.when} "
+            f"reaches {axis}={value:g} at {cause_t:.2f} s)"
+            + (
+                ": an effect cannot precede its cause. "
+                if fault == "before_cause"
+                else f": outside the {AV_AHEAD_S * 1000:.0f} ms ahead / "
+                f"{AV_BEHIND_S * 1000:.0f} ms behind window viewers accept. "
+            )
+            + f"Move the cue to {cause_t:.2f} s, or anchor it with `at: {{when: ..., reaches: ...}}`.",
+        )
+
+
+CAUSALITY = Constraint(
+    "causality",
+    check_causality,
+    description="a sound cue that names its visible cause is not ahead of it, and is within the audio-visual sync window (catalogue B7)",
+)
+
+
 #: The core's constraints, in the order their checks run within a stage.
 CONSTRAINTS: tuple[Constraint, ...] = (
     CONTINUITY,
@@ -1634,6 +1734,7 @@ CONSTRAINTS: tuple[Constraint, ...] = (
     RIGIDITY,
     MOTION_STYLE,
     GRAVITY,
+    CAUSALITY,
 )
 
 
