@@ -7,7 +7,11 @@
 - ``stick``: a bar drawn in a PNG with transparent margins (its ink is 20 x 200
   of a 60 x 260 canvas), with a ``grip`` bone 60 units below its centre.
 - ``stand``: a box with a ``hand`` bone above it, rotated 90 degrees: a socket
-  that holds things sideways.
+  that holds things sideways. It declares no surface: ``stand@surface`` is the
+  top of its ink.
+- ``crate``: a low box (120 x 60 units) declaring its surface by two bones,
+  ``surface_l`` and ``surface_r``, 40 units above its base (a tray sunk 20
+  units into it, so the declared surface is not the top of its ink) (an#536).
 
 Built in a temporary folder by :func:`make_project`; never rendered.
 """
@@ -108,6 +112,32 @@ STAND = {
 }
 
 
+#: How high the crate's declared surface is above its base (view-box units).
+CRATE_SURFACE = 40.0
+
+CRATE = {
+    "kind": "PropDescriptor",
+    "schema_version": "0.2.0",
+    "name": "crate",
+    "view_box": [0, 0, 400, 400],
+    "origin": [200.0, 400.0],
+    "bones": [
+        {"name": "root", "x": 200.0, "y": 400.0},
+        {"name": "surface_l", "parent": "root", "x": -50.0, "y": -CRATE_SURFACE},
+        {"name": "surface_r", "parent": "root", "x": 50.0, "y": -CRATE_SURFACE},
+    ],
+    "slots": [{"name": "body", "bone": "root", "draw_order": 0, "attachment": "body"}],
+    "skins": {
+        "default": {
+            "name": "default",
+            "slots": {
+                "body": {"body": {"path": "parts/body.svg", "anchor": [0.5, 1.0]}}
+            },
+        }
+    },
+}
+
+
 def _svg(w: int, h: int, colour: str) -> str:
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">'
@@ -126,7 +156,7 @@ def _stick_png(path: Path) -> None:
 
 
 def make_project(root: Path, scene_md: str):
-    """A project at ``root`` with the three props and ``scene_md``, loaded."""
+    """A project at ``root`` with the four props and ``scene_md``, loaded."""
     from an.project import init, load
 
     init(root)
@@ -143,6 +173,7 @@ def make_project(root: Path, scene_md: str):
         ),
         "stick": (STICK, {}),
         "stand": (STAND, {"body.svg": (80, 150, "#9f6f2f")}),
+        "crate": (CRATE, {"body.svg": (120, 60, "#7f5f3f")}),
     }
     for name, (desc, svgs) in parts.items():
         d = props / name

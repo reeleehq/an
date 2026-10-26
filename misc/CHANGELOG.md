@@ -3,6 +3,9 @@
 AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
+## 2026-10-27
+- **Put an item down on a body's surface** (an#536): `place onto: crate@surface` (below the hand) / `crate@surface@f` (a fraction along it) and `held_by:` the same lay it on the body's supporting segment as on the ground (`an.stage.hold._on_line`; `_on_ground` is its level case, byte-identical), the segment from the rig's `surface_l`/`surface_r` bones (`SURFACE_BONES`) or the top of the part's ink; the body then holds it (it follows the body and paints after its part); `floating_item` also measures against named surfaces. `an.ir.holds.SURFACE`; timing contract 1.14.0 (the `place` description in `vocabulary.json`).
+
 ## 2026-10-26
 - **Draw order follows the holder** (an#537): while a body holds an item, the item is painted just after its holder's part and returns to its staged place when let go — a `paint_after` channel (`an.base.PAINT_AFTER_PROPERTY`, its own write group in `stage.node`) keyed by `an.stage.hold.paint_hosts` and painted by a `runtime.js` `PaintProxy` after the holder; `HOLD_VERSION` 2; shots whose items no body holds are byte-identical; timing contract 1.13.0 (`kinds.json` declares it).
 - **`an.genres.API_LEVEL` 9** (an#480): `an.cli_status.failed` is the genre-facing seam for a command that exits non-zero; `cutan` requires it.

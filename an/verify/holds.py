@@ -10,8 +10,9 @@ did in ``meta.extensions.solve.holds``):
 - ``unreachable_hold`` (error): a hand does not arrive where it takes or puts
   its item (even bending as far as its ``lean`` allows), with how far it
   stays short and which way to move the carrier;
-- ``floating_item`` (warning): an item that a hand takes from the floor
-  hovers above it (or sinks into it) before it is taken, and a released item
+- ``floating_item`` (warning): an item that a hand takes from the floor (or
+  from a body's surface the holds name: ``crate@surface``, an#536) hovers
+  above it (or sinks into it) before it is taken, and a released item
   with no ground below it or no gravity, that stays in the air.
 
 All three are silent for a shot that holds nothing.
@@ -143,17 +144,22 @@ def check_floating_item(ctx: Any) -> None:
     if not report:
         return
     for f in report.get("floating") or ():
+        onto = f.get("onto") or "ground"
+        if onto == "ground":
+            what, where, fix = f"the ground (y {f['ground']:g})", "floor", "the ground"
+        else:  # a body's surface (an#536)
+            what, where, fix = f"{onto!r}", "surface", f"{onto!r}"
         how = (
-            f"{f['above']:.0f} px above the ground (y {f['ground']:g})"
+            f"{f['above']:.0f} px above {what}"
             if f["above"] > 0
-            else f"{-f['above']:.0f} px into the ground (y {f['ground']:g})"
+            else f"{-f['above']:.0f} px into {what}"
         )
         ctx.report.add(
             "warning",
             f"{ctx.path}/{f['where']}",
             f"{f['item']!r} is {how} when it is taken at {f['at']:.2f} s. If it lies on the "
-            f"floor, say so: `overrides: {{held_by: ground}}` on {f['item']!r} puts its lowest "
-            "point on the ground.",
+            f"{where}, say so: `overrides: {{held_by: {onto}}}` on {f['item']!r} puts its lowest "
+            f"point on {fix}.",
         )
     for w in report.get("warnings") or ():
         ctx.report.add("warning", f"{ctx.path}/actions", w["message"] + ".")

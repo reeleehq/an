@@ -71,7 +71,7 @@ Tolerances below are named, never literal: `SUPPORT_TOLERANCE`, `SKATE_TOLERANCE
 
 **Subsumes.** Nothing existing; the first constraint of its group. The walk presets' contact instants become its input.
 
-**Status.** Partial (an#502): a stage shot's floor line is `solve: {ground: y}`; an item `overrides: {held_by: ground}`, put down by `place`, or landing after a `release` rests with the lowest point of its painted pixels (the texture's alpha hull) on it, by derivation; the `floating_item` check warns when an item a hand takes hovers above it or sinks into it. Characters' feet, `support_top` on members and scene space's ground are missing.
+**Status.** Partial (an#502): a stage shot's floor line is `solve: {ground: y}`; an item `overrides: {held_by: ground}`, put down by `place`, or landing after a `release` rests with the lowest point of its painted pixels (the texture's alpha hull) on it, by derivation; the `floating_item` check warns when an item a hand takes hovers above it or sinks into it. A body's surface (an#536): `place onto: <body>@surface[@f]` and `held_by:` the same lay an item on a member's supporting segment (its `surface_l`/`surface_r` bones, else the top of its ink) by the same derivation, the member then holding it; `floating_item` measures against those surfaces too. Characters' feet, a declared `support` relation and scene space's ground are missing.
 
 #### A2. Solidity: non-penetration
 
