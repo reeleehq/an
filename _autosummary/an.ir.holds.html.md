@@ -76,7 +76,7 @@ shelf needs them without saying character), registered when [`an.ir`](an.ir.html
 | [`PlaceAction`](#an.ir.holds.PlaceAction)(\*[, name, kind, by, rotation, ...])     | The hand holding `item` puts it `onto` a target and lets it go.                                                                                                                                         |
 | [`ReleaseAction`](#an.ir.holds.ReleaseAction)(\*[, name, kind, at, onto, ...])       | The hand holding `item` lets it go at `at`: it falls with the velocity it had onto the ground, or is tossed `onto: ground@x` on an arc `arc` px high, and lands at `rotation` (default: as in `place`). |
 | [`HandoverAction`](#an.ir.holds.HandoverAction)(\*[, name, kind, by, meet, ...])      | The hand holding `item` gives it to `to` (a hand, or a socket).                                                                                                                                         |
-| [`SwapAction`](#an.ir.holds.SwapAction)(\*[, name, kind, lag, reach, ...])        | `by` takes `take` from `holder` and the hand holding `give` puts that there, `lag` seconds later: a `grasp` and a `place`.                                                                              |
+| [`SwapAction`](#an.ir.holds.SwapAction)(\*[, name, kind, lag, rotation, ...])     | `by` takes `take` from `holder` and the hand holding `give` puts that there, `lag` seconds later: a `grasp` and a `place`.                                                                              |
 
 ### an.ir.holds.DFLT_LEAN_DEG *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 60.0*
 
@@ -175,7 +175,10 @@ frame aligned with the socket’s) or `world@x,y` (hung on a point).
 `item@<point>` names the item’s point that touches the target (default:
 its grip on a socket, its lowest point on the ground). `rotation`: the
 item’s rotation where it rests (radians, the stage’s; default: the angle it
-last rested at on the ground, else the nearest quarter turn; a socket’s own).
+last rested at on the ground, else the nearest quarter turn; in a socket,
+the socket’s own). In a socket it is the angle the item comes to rest at
+(a musket aimed at someone, a sabre raised), held relative to the socket
+from then on, so it turns with it.
 
 ```pycon
 >>> PlaceAction(item="musket", onto="nap/arm_r/weapon").by is None
@@ -203,12 +206,14 @@ True
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.holds.SwapAction(, name=None, kind='swap', holder, take, give, by, lag=0.25, reach=0.4, retract=0.35, lean=60.0, align=True, \*\*extra_data)
+### *class* an.ir.holds.SwapAction(, name=None, kind='swap', holder, take, give, by, lag=0.25, rotation=None, reach=0.4, retract=0.35, lean=60.0, align=True, \*\*extra_data)
 
 Bases: [`ExtensionAction`](an.ir.schema.html.md#an.ir.schema.ExtensionAction)
 
 `by` takes `take` from `holder` and the hand holding `give`
 puts that there, `lag` seconds later: a `grasp` and a `place`.
+`rotation` is the place’s: the angle `give` comes to rest at in the
+holder (radians, the stage’s; default: the holder’s own).
 
 ```pycon
 >>> SwapAction(holder="nap/hand", take="musket", give="sword", by="stu@hand_r").lag == DFLT_SWAP_LAG
@@ -267,7 +272,7 @@ Let `item` go at `at` (a drop, or a toss `onto: ground@x`).
 * **Return type:**
   [`ReleaseAction`](#an.ir.holds.ReleaseAction)
 
-### an.ir.holds.swap(holder, , take, give, by, lag=0.25, reach=0.4, retract=0.35, lean=60.0, align=True)
+### an.ir.holds.swap(holder, , take, give, by, lag=0.25, rotation=None, reach=0.4, retract=0.35, lean=60.0, align=True)
 
 `by` takes `take` from `holder`; `give` goes there in its place.
 

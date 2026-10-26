@@ -1142,7 +1142,7 @@ ValueError: stagger lag must be >= 0, got -1.0
 * **Return type:**
   [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction)
 
-### an.ir.swap(holder, , take, give, by, lag=0.25, reach=0.4, retract=0.35, lean=60.0, align=True)
+### an.ir.swap(holder, , take, give, by, lag=0.25, rotation=None, reach=0.4, retract=0.35, lean=60.0, align=True)
 
 `by` takes `take` from `holder`; `give` goes there in its place.
 
