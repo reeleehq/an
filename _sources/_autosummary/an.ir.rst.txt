@@ -33,6 +33,7 @@ an.ir
       join
       unjoin
       grasp
+      reframe
       place
       release
       handover

@@ -41,6 +41,7 @@ authoring-time DSL to canonical-form actions.
 | [`join`](#an.ir.join)(joint, \*[, at])                              | Rejoin the joint named `joint` at `at`.                                        |
 | [`unjoin`](#an.ir.unjoin)(joint, \*[, at])                            | Let go of the joint named `joint` at `at`.                                     |
 | [`grasp`](#an.ir.grasp)(by, item, \*[, reach, retract, lean, align]) | `by` takes `item`.                                                             |
+| [`reframe`](#an.ir.reframe)(target, \*, to[, at, keep, snap, ...])     | `target` changes to frame `to` at `at` seconds into the action.                |
 | [`place`](#an.ir.place)(item, onto, \*[, by, rotation, reach, ...])  | The hand holding `item` puts it `onto` a target.                               |
 | [`release`](#an.ir.release)(item, \*[, at, onto, arc, rotation])       | Let `item` go at `at` (a drop, or a toss `onto: ground@x`).                    |
 | [`handover`](#an.ir.handover)(item, to, \*[, by, meet, reach, ...])     | Give `item` to `to`.                                                           |
@@ -60,7 +61,7 @@ authoring-time DSL to canonical-form actions.
 | [`WorldMember`](#an.ir.WorldMember)(\*, kind, id, store, ref[, ...])      | An entity of the scene's world: the same reference a shot's entity carries, at a world position with a size (ADR 0009 decision 1). |
 | [`Attachment`](#an.ir.Attachment)(\*, to[, at, scale])                   | A member that goes where another member goes (ADR 0009 decision 1).                                                                |
 | [`Viewpoint`](#an.ir.Viewpoint)(\*[, at, look, look_at, vanish, ...])   | A pinhole camera onto the world, or a composition that resolves to one (ADR 0009 decision 2).                                      |
-| [`Frame`](#an.ir.Frame)(\*[, parent, at, look, coupling, moving])   | A frame of reference: a pose (position and orientation) over film time, relative to its `parent` (ADR 0009 amendment, an#501).     |
+| [`Frame`](#an.ir.Frame)(\*[, parent, at, look, coupling, ...])      | A frame of reference: a pose (position and orientation) over film time, relative to its `parent` (ADR 0009 amendment, an#501).     |
 | [`FrameMoving`](#an.ir.FrameMoving)(\*[, direction])                      | A frame translating at a constant velocity: sugar for a frame whose `at` grows by `direction × speed` per second of FILM time.     |
 | [`Travel`](#an.ir.Travel)(\*[, direction, speed, near, far, ...])    | The viewpoints moving through the world in film time (ADR 0009 decision 4).                                                        |
 | [`Stream`](#an.ir.Stream)(\*, id, ref[, kind, store, height, ...])   | A row of one prop along a travel's direction (ADR 0009 decision 4).                                                                |
@@ -330,7 +331,7 @@ The flat-form list is the canonical representation passed to renderers
 and verifiers. Composition nodes (sequence/parallel/delay/loop) do not
 appear in the flat form — they’re collapsed into time offsets.
 
-### *class* an.ir.Frame(, parent='world', at=(0.0, 0.0, 0.0), look=(0.0, 0.0, 0.0), coupling='rigid', moving=None, \*\*extra_data)
+### *class* an.ir.Frame(\*, parent='world', at=(0.0, 0.0, 0.0), look=(0.0, 0.0, 0.0), coupling='rigid', moving=None, sockets=<factory>, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -354,6 +355,15 @@ sky, a range of mountains).
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### sockets *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]]*
+
+where a
+member that `reframe``s into it with ``snap: <name>` lands (a hand’s
+palm, a shelf’s slot).
+
+* **Type:**
+  Named points of this frame, `{name: point}` in its units
 
 ### *class* an.ir.FrameMoving(, direction=(0.0, 0.0, 1.0), speed, \*\*extra_data)
 
@@ -1053,6 +1063,18 @@ True
 
 * **Return type:**
   [`PullAction`](an.ir.joints.html.md#an.ir.joints.PullAction)
+
+### an.ir.reframe(target, , to, at=0.0, keep='world', snap=None, inherit=None, motion=None, velocity=(0.0, 0.0, 0.0), gravity=9.81)
+
+`target` changes to frame `to` at `at` seconds into the action.
+
+```pycon
+>>> reframe("cup", to="hand", snap="palm").snap
+'palm'
+```
+
+* **Return type:**
+  `ReframeAction`
 
 ### an.ir.register_kind(kind)
 

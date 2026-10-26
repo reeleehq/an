@@ -92,7 +92,7 @@ True
 | [`DelayAction`](#an.ir.schema.DelayAction)(\*[, name, kind])                      | Composition: an empty span that consumes time.                                                                                                                      |
 | [`Dialogue`](#an.ir.schema.Dialogue)(\*, speaker, text[, voice_ref, ...])      | One line of spoken dialogue.                                                                                                                                        |
 | [`ExtensionAction`](#an.ir.schema.ExtensionAction)(\*[, name])                        | An action of a kind the core does not define: the IR's one open member.                                                                                             |
-| [`Frame`](#an.ir.schema.Frame)(\*[, parent, at, look, coupling, moving])    | A frame of reference: a pose (position and orientation) over film time, relative to its `parent` (ADR 0009 amendment, an#501).                                      |
+| [`Frame`](#an.ir.schema.Frame)(\*[, parent, at, look, coupling, ...])       | A frame of reference: a pose (position and orientation) over film time, relative to its `parent` (ADR 0009 amendment, an#501).                                      |
 | [`FrameMoving`](#an.ir.schema.FrameMoving)(\*[, direction])                       | A frame translating at a constant velocity: sugar for a frame whose `at` grows by `direction × speed` per second of FILM time.                                      |
 | [`JointSpec`](#an.ir.schema.JointSpec)(\*, type, a[, b, end, limits, ...])      | A declared relation between two bodies (ADR 0008 decision 3).                                                                                                       |
 | [`LoopAction`](#an.ir.schema.LoopAction)(\*[, name, kind, count])                | Composition: repeat `child` `count` times.                                                                                                                          |
@@ -706,7 +706,7 @@ translates).
 The key an element’s frame is written under in a document (`frame` is the
 field; `in` is not a name Python lets a field have).
 
-### *class* an.ir.schema.Frame(, parent='world', at=(0.0, 0.0, 0.0), look=(0.0, 0.0, 0.0), coupling='rigid', moving=None, \*\*extra_data)
+### *class* an.ir.schema.Frame(\*, parent='world', at=(0.0, 0.0, 0.0), look=(0.0, 0.0, 0.0), coupling='rigid', moving=None, sockets=<factory>, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -730,6 +730,15 @@ sky, a range of mountains).
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### sockets *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]]*
+
+where a
+member that `reframe``s into it with ``snap: <name>` lands (a hand’s
+palm, a shelf’s slot).
+
+* **Type:**
+  Named points of this frame, `{name: point}` in its units
 
 ### *class* an.ir.schema.FrameMoving(, direction=(0.0, 0.0, 1.0), speed, \*\*extra_data)
 
