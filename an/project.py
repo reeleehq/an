@@ -161,11 +161,13 @@ def init(
     """
     pdir = Path(project_dir).expanduser().resolve()
     proj_name = name or pdir.name
+    # The default scene's pair, as every command resolves it (an#554).
+    seed = resolve_scene_file(pdir, must_exist=False)
 
-    if pdir.exists() and (pdir / "scene.md").exists() and not force:
-        if (pdir / "scene.md").stat().st_size > 0:
+    if seed.md_path.exists() and not force:
+        if seed.md_path.stat().st_size > 0:
             raise FileExistsError(
-                f"{pdir / 'scene.md'} already exists with content; pass force=True to overwrite"
+                f"{seed.md_path} already exists with content; pass force=True to overwrite"
             )
 
     pdir.mkdir(parents=True, exist_ok=True)
@@ -183,9 +185,9 @@ def init(
             ),
         )
     )
-    _write_text(pdir / "scene.md", ir_to_markdown(seed_scene))
-    _write_json(pdir / "ir" / "scene.json", json.loads(seed_scene.model_dump_json()))
-    _age_the_seed(pdir / "scene.md", pdir / "ir" / "scene.json")
+    _write_text(seed.md_path, ir_to_markdown(seed_scene))
+    _write_json(seed.json_path, json.loads(seed_scene.model_dump_json()))
+    _age_the_seed(seed.md_path, seed.json_path)
 
     # Seed an.toml.
     toml_path = pdir / "an.toml"

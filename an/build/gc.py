@@ -7,8 +7,11 @@ separate, explicit command, and this module is it.
 
 **What is kept (reachable).** An entry is reachable when either
 
-- a render of the project's CURRENT scene would read it — under any knob set
-  a recorded render ever used, or under a plain ``an render``'s — computed
+- a render of the project's CURRENT scene would read it — of ``scene.md`` or
+  of any other scene file of the project (``scene.studio.md`` with its
+  ``ir/scene.studio.json``, an#554: the cache is the project's, so a
+  collection never drops one scene's entries for another's sake) — under
+  any knob set a recorded render ever used, or under a plain ``an render``'s — computed
   by the render loop's own setup and the engine's own key code, with the
   dialogue stamped from the audio stores as the render stamps it
   (:func:`an.render.cache_entries`); or
@@ -313,8 +316,14 @@ def reachable_entries(
     root_max_age: float | None = None,
     now: float | None = None,
     force: bool = False,
+    others: Iterable[tuple[Any, Any]] = (),
 ) -> Reachability:
     """What the project's current scene and its recorded roots reach.
+
+    ``others`` are the project's OTHER scenes (``(SceneFile, loaded project)``
+    pairs, :func:`other_scenes`; an#554): the cache is the project's, so
+    what each of them reaches is kept as the current scene's is — otherwise
+    ``--max-age`` collected for one scene drops another's older entries.
 
     The current scene is keyed under the knobs of EVERY recorded root (of any
     project, any age: a knob set is a few values, and dropping one would orphan
@@ -381,32 +390,52 @@ def reachable_entries(
 
     from an.audio.pipeline import in_memory_audio_mall
 
-    project = replace(project, mall=in_memory_audio_mall(project.mall))
+    from an.ir.sync import resolve_scene_file
+
+    scenes = [
+        (sf, replace(p, mall=in_memory_audio_mall(p.mall)))
+        for sf, p in [
+            (resolve_scene_file(project.root, must_exist=False), project),
+            *others,
+        ]
+    ]
     for profile, roots in candidates:
-        try:
-            with warnings.catch_warnings():
-                # A stand-in or a missing font warns at compile time; that is
-                # the render's message to give, not the collector's.
-                warnings.simplefilter("ignore")
-                scene_reach = cache_reach(project, engine, **profile)
-        except AudioNotCachedError as e:
-            # No key until that line is synthesised: nothing cached can be its
-            # shot's entry. What the renders under it used stays, whatever age.
-            reach.skipped.append((profile, str(e)))
-            for root in roots:
-                rp = root.record.render_provenance or {}
-                reach.from_roots.update(rp.get("entries") or ())
-            continue
-        except Exception as e:  # noqa: BLE001 — refuse rather than guess
-            raise CacheGcError(
-                f"cannot compute what the current scene reaches under {profile} "
-                f"({type(e).__name__}: {e}); nothing was deleted. Fix what keeps "
-                "it from rendering (`an validate`)"
-            ) from e
-        reach.profiles.append(profile)
-        reach.from_scene.update(scene_reach.ids)
-        for store, keys in scene_reach.derived.items():
-            reach.derived.setdefault(store, set()).update(keys)
+        keyed = False
+        for sf, scene_project in scenes:
+            which = "current scene" if sf.is_default else f"scene {sf.name}"
+            try:
+                with warnings.catch_warnings():
+                    # A stand-in or a missing font warns at compile time; that is
+                    # the render's message to give, not the collector's.
+                    warnings.simplefilter("ignore")
+                    scene_reach = cache_reach(scene_project, engine, **profile)
+            except AudioNotCachedError as e:
+                # No key until that line is synthesised: nothing cached can be its
+                # shot's entry. What the renders under it used stays, whatever age.
+                reach.skipped.append(
+                    (profile, str(e) if sf.is_default else f"{sf.name}: {e}")
+                )
+                for root in roots:
+                    rp = root.record.render_provenance or {}
+                    reach.from_roots.update(rp.get("entries") or ())
+                continue
+            except Exception as e:  # noqa: BLE001 — refuse rather than guess
+                fix = (
+                    "`an validate`"
+                    if sf.is_default
+                    else f"`an validate --scene {sf.name}`"
+                )
+                raise CacheGcError(
+                    f"cannot compute what the {which} reaches under {profile} "
+                    f"({type(e).__name__}: {e}); nothing was deleted. Fix what keeps "
+                    f"it from rendering ({fix})"
+                ) from e
+            keyed = True
+            reach.from_scene.update(scene_reach.ids)
+            for store, keys in scene_reach.derived.items():
+                reach.derived.setdefault(store, set()).update(keys)
+        if keyed:
+            reach.profiles.append(profile)
     if not reach.profiles:
         why = "; ".join(sorted({why for _, why in reach.skipped}))
         raise CacheGcError(
@@ -470,9 +499,14 @@ class GcReport:
         ]
         if self.deleted_derived or self.kept_derived:
             n = sum(len(v) for v in self.deleted_derived.values())
-            what = ", ".join(
-                f"{len(v)} {store}" for store, v in self.deleted_derived.items() if v
-            ) or "nothing"
+            what = (
+                ", ".join(
+                    f"{len(v)} {store}"
+                    for store, v in self.deleted_derived.items()
+                    if v
+                )
+                or "nothing"
+            )
             lines.append(
                 f"derived stores: {verb} {n} entries ({what}), "
                 f"{human_bytes(self.derived_freed)}; kept {self.kept_derived}"
@@ -532,6 +566,29 @@ def _protection_horizon(project_root: Path, now: float) -> float:
     return min([now, *starts]) - CLOCK_SLACK_S
 
 
+def other_scenes(project_dir: str | Path) -> list[tuple[Any, Any]]:
+    """The project's scenes besides ``scene.md``, as ``(SceneFile, loaded
+    project)`` pairs (:func:`an.ir.sync.project_scene_files`; an#554): what a project-wide
+    collection must keep reachable too. A scene that cannot be loaded is a
+    :class:`CacheGcError`: what it reaches is unknown, so nothing may go."""
+    from an.ir.sync import project_scene_files
+    from an.project import load
+
+    out: list[tuple[Any, Any]] = []
+    for sf in project_scene_files(project_dir):
+        if sf.is_default:
+            continue
+        try:
+            out.append((sf, load(project_dir, scene_file=sf)))
+        except Exception as e:  # noqa: BLE001 — refuse rather than guess
+            raise CacheGcError(
+                f"cannot read the project's scene {sf.name} ({type(e).__name__}: "
+                f"{e}); nothing was deleted: what it reaches is unknown. Fix it "
+                f"(`an validate --scene {sf.name}`)"
+            ) from e
+    return out
+
+
 def collect_garbage(
     project_dir: str | Path,
     *,
@@ -562,6 +619,7 @@ def collect_garbage(
     report = GcReport(dry_run=dry_run)
     if store is None:
         return report
+    others = other_scenes(project_dir)
     now = time.time() if now is None else now
     horizon = _protection_horizon(project.root, now)
     entries = inventory(store)
@@ -569,8 +627,8 @@ def collect_garbage(
     report.bytes_before = sum(size for size, _ in blobs.values())
     report.reach = reach = reachable_entries(
         project, store, entries=entries, engine=engine, root_max_age=max_age, now=now,
-        force=force,
-    )
+        force=force, others=others,
+    )  # fmt: skip
     keep_ids = reach.ids
 
     candidates: list[CacheEntry] = []
@@ -797,7 +855,9 @@ def _collect_derived(
     try:
         keep = _closure(mall, specs, keep)
     except UnreadableRecordError as e:
-        report.failed.append(f"derived stores: a kept record is unreadable ({e}); nothing deleted")
+        report.failed.append(
+            f"derived stores: a kept record is unreadable ({e}); nothing deleted"
+        )
         return
     by_key = {(e.store, e.key): e for es in inventory_.values() for e in es}
     records = [
@@ -1017,8 +1077,9 @@ def cache_info(
     if reachability:
         try:
             reach = reachable_entries(
-                project, store, entries=entries, engine=engine, now=now, force=True
-            )
+                project, store, entries=entries, engine=engine, now=now, force=True,
+                others=other_scenes(project_dir),
+            )  # fmt: skip
         except CacheGcError as e:
             info.reachability_error = str(e)
             return info
@@ -1048,5 +1109,7 @@ def _unique_size(
 ) -> int:
     """Bytes of the distinct blobs ``entries`` name, less those ``exclude`` names."""
     skip = {e.asset_id for e in exclude if not e.is_root}
-    hashes = {e.asset_id for e in entries if not e.is_root and e.asset_id in blobs} - skip
+    hashes = {
+        e.asset_id for e in entries if not e.is_root and e.asset_id in blobs
+    } - skip
     return sum(blobs[h][0] for h in hashes)

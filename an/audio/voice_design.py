@@ -91,6 +91,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from an.ir.sync import DEFAULT_SCENE_FILE
+
 __all__ = [
     "ElevenLabsVoiceDesigner",
     "ElevenLabsVoiceLibrary",
@@ -1248,12 +1250,15 @@ def _project_reels(project_dir: str | Path):
     return _WavStore(Path(project_dir) / AUDITIONS_DIR)
 
 
-def _project_lines(project_dir: str | Path) -> Callable[[str], list[str]]:
-    """``ref -> the dialogue lines spoken in that voice`` in the project's scene."""
+def _project_lines(
+    project_dir: str | Path, scene_file: Any = DEFAULT_SCENE_FILE
+) -> Callable[[str], list[str]]:
+    """``ref -> the dialogue lines spoken in that voice`` in the project's scene
+    (``scene_file``: another scene of the project, an#554)."""
     from an.audio.voices import line_voice_id
     from an.project import load
 
-    proj = load(str(project_dir))
+    proj = load(str(project_dir), scene_file=scene_file)
     by_voice: dict[str, list[str]] = {}
     for shot in proj.scene.timeline:
         for line in getattr(shot, "dialogue", None) or ():
@@ -1264,7 +1269,7 @@ def _project_lines(project_dir: str | Path) -> Callable[[str], list[str]]:
 
 
 def _project_audition_inputs(
-    project_dir: str | Path, tts: Any
+    project_dir: str | Path, tts: Any, *, scene_file: Any = DEFAULT_SCENE_FILE
 ) -> Callable[[str], tuple[list[tuple[str, dict[str, Any]]], dict[str, Any]]]:
     """``ref -> (lines, effects)`` for the lines spoken in that voice: each line
     as ``(text, synthesize options)`` — what the film's audio pipeline would
@@ -1276,7 +1281,7 @@ def _project_audition_inputs(
     from an.audio.voices import line_voice_id
     from an.project import load
 
-    proj = load(str(project_dir))
+    proj = load(str(project_dir), scene_file=scene_file)
     by_voice: dict[str, list[Any]] = {}
     for shot in proj.scene.timeline:
         for line in getattr(shot, "dialogue", None) or ():
@@ -1304,17 +1309,23 @@ def design_project_voices(
     library_query: Mapping | str | None = None,
     library_limit: int = DFLT_LIBRARY_LIMIT,
     design: bool = True,
+    scene_file: Any = DEFAULT_SCENE_FILE,
 ) -> dict[str, dict]:
     """Design options for the project's voices (and search the library for the
     ones with a query); write manifests and samples; return the manifest.
 
-    A voice document without ``sample_text`` speaks its own lines from the scene.
+    A voice document without ``sample_text`` speaks its own lines from the scene
+    (``scene_file``: another scene of the project, an#554).
     ``library_query`` (``accent=irish,gender=male``) applies to every voice
     without a ``library`` of its own; ``design=False`` searches the library only.
     """
+    from an.ir.sync import resolve_scene_file
+
+    # A scene file named and not there is a refusal, not "no lines" (an#554).
+    scene_file = resolve_scene_file(project_dir, scene_file)
     voices, options, samples = _project_stores(project_dir)
     try:
-        lines_of = _project_lines(project_dir)
+        lines_of = _project_lines(project_dir, scene_file)
     except Exception:  # noqa: BLE001 - no readable scene: the provider writes the sample text
         lines_of = None
     manifest = design_voice_options(
@@ -1351,6 +1362,7 @@ def audition_project_voices(
     gap_s: float = AUDITION_GAP_S,
     announce: Any = _STDERR,
     redo: bool = False,
+    scene_file: Any = DEFAULT_SCENE_FILE,
 ) -> dict[str, dict]:
     """An audition reel per option of each voice in ``refs`` (default: every
     voice with a manifest): the voice's own lines from the scene, spoken with
@@ -1361,14 +1373,15 @@ def audition_project_voices(
     Every voice's reels are planned and checked before the first request, the
     whole bill is announced once, and a reel already on record under the same
     content key is not made again (``redo`` makes them all again). Returns
-    the manifests of ``refs``.
+    the manifests of ``refs``. ``scene_file`` takes the lines from another
+    scene of the project (``scene.studio.md``, an#554).
     """
     from an.audio.providers import make_tts
 
     tts = tts if tts is not None else make_tts(DESIGN_PROVIDER)
     _, manifests, _ = _project_stores(project_dir)
     reels = _project_reels(project_dir)
-    inputs = _project_audition_inputs(project_dir, tts)
+    inputs = _project_audition_inputs(project_dir, tts, scene_file=scene_file)
     wanted = list(refs) if refs is not None else sorted(manifests)
     if not wanted:
         raise VoiceDesignError("no voice options yet: run `an voices design` first")

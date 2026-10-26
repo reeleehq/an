@@ -40,14 +40,44 @@ from an.base import (
     MP4_FASTSTART_ARGS,
 )
 from an.ir.schema import Shot
-from an.ir.sync import DEFAULT_SCENE_FILE, SceneFile, resolve_scene_file
+from an.ir.sync import (
+    DEFAULT_OUTPUT_NAME,
+    DEFAULT_SCENE_FILE,
+    SceneFile,
+    resolve_scene_file,
+)
 from an.project import Project, load
 
 
 logger = logging.getLogger("an.build")
 
+#: A project's render scratch space (relative to its root).
+RENDER_WORK_DIR: str = ".an/render_work"
 #: Under ``.an/render_work/``: one directory per CACHED render run.
 RENDER_RUNS_DIR: str = "runs"
+#: Under ``.an/render_work/``: an UNCACHED render of an output other than
+#: ``main`` works in ``outputs/<output name>/`` (an#554).
+RENDER_OUTPUTS_DIR: str = "outputs"
+
+
+def _uncached_work_dir(project_root: Path, output_name: str) -> Path:
+    """Where an uncached render of ``output_name`` works: ``.an/render_work``
+    for ``main``, as it always has, and ``.an/render_work/outputs/<name>`` for
+    another output, so two scenes (each its own output) sharing shot ids never
+    write the same ``shot_<id>/`` (an#554). A cached render has a run of its own.
+
+    >>> _uncached_work_dir(Path("/p"), "main").as_posix()
+    '/p/.an/render_work'
+    >>> _uncached_work_dir(Path("/p"), "scene.studio").as_posix()
+    '/p/.an/render_work/outputs/scene.studio'
+    """
+    # Keyed by OUTPUT, not by scene (unlike `SceneFile.per_scene_dir`): what a
+    # render writes belongs to its output, and one scene may render several.
+    base = Path(project_root) / RENDER_WORK_DIR
+    if output_name == DEFAULT_OUTPUT_NAME:
+        return base
+    return base / RENDER_OUTPUTS_DIR / output_name
+
 
 #: In a run directory: the pid of the process rendering it (written at start).
 RUN_LIVE_MARKER: str = ".live"
@@ -494,14 +524,14 @@ def _render_film(
         retime_dialogue(scene, timed_shots_only=True)
 
     engine = resolve_incremental(incremental)
-    work_dir = project.root / ".an" / "render_work"
+    work_dir = _uncached_work_dir(project.root, output_name)
     if engine is not None:
         # A cached render works in a directory of its OWN: two renders of one
         # project at once (a 4:4:4 master and a 4:2:0 delivery, a person and an
         # agent) would otherwise write the same `shot_<id>/<id>.mp4` and each
         # record whatever bytes were there under its own key — poisoning the
         # cache durably, where before it spoiled one run (an#243 review, S1).
-        work_dir = work_dir / RENDER_RUNS_DIR / _run_id()
+        work_dir = project.root / RENDER_WORK_DIR / RENDER_RUNS_DIR / _run_id()
         _start_run(work_dir)
     work_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1275,7 +1305,7 @@ def cache_reach(
         retime_dialogue(scene, timed_shots_only=True)
     prep = _prepare_shots(
         project,
-        project.root / ".an" / "render_work",  # nothing is written
+        project.root / RENDER_WORK_DIR,  # nothing is written
         fps=fps,
         resolution=resolution,
         strict_assets=strict_assets,
@@ -1321,7 +1351,7 @@ UNKNOWN_LIVENESS_MAX_S: float = 24 * 3600.0
 def live_runs(project_root: Path) -> list[tuple[Path, float]]:
     """Every cached render of this project still in progress, with the time it
     started (its live marker's mtime): what `an cache gc` must not race."""
-    runs = Path(project_root) / ".an" / "render_work" / RENDER_RUNS_DIR
+    runs = Path(project_root) / RENDER_WORK_DIR / RENDER_RUNS_DIR
     out: list[tuple[Path, float]] = []
     for d in sorted(runs.iterdir()) if runs.is_dir() else ():
         marker = d / RUN_LIVE_MARKER

@@ -337,7 +337,8 @@ def render_project(project_dir: str | Path, **kwargs: Any) -> Path:
 def orchestrate(
     project_dir: str | Path,
     *,
-    output_name: str = "main",
+    output_name: str | None = None,
+    scene_file: str | Path | SceneFile = DEFAULT_SCENE_FILE,
     verifiers: Sequence[Verifier] | None = None,
     skip_render: bool = False,
     tts: str | object | None = None,
@@ -364,6 +365,12 @@ def orchestrate(
     to inject a :class:`an.audio.WordTimingsLipSync` driven by their
     own alignment store, instead of letting ``an`` re-transcribe. ``tts``
     defaults to each voice's own provider (an#305), as ``an render`` does.
+
+    ``scene_file`` runs the pipeline on another scene of the project
+    (``scene.studio.md``, an#554), and ``output_name`` then defaults to its
+    stem, as :func:`an.render.render_project` does (``main`` for ``scene.md``).
+    A bad or missing scene file, or an output name another scene owns, fails
+    the report at validation, before any work.
     """
     report = OrchestratorReport(root=Path(project_dir))
     if verifiers is None:
@@ -371,7 +378,14 @@ def orchestrate(
 
     # --- 1. validation ------------------------------------------------------
     try:
-        report.validation = validate_project(project_dir)
+        resolved = resolve_scene_file(project_dir, scene_file)
+        output_name = resolved.output_for(output_name)
+    except SceneFileError as e:
+        report.success = False
+        report.error = f"scene file: {e}"
+        return report
+    try:
+        report.validation = validate_project(project_dir, scene_file=resolved)
     except Exception as e:
         report.success = False
         report.error = f"validation crashed: {e!r}"
@@ -382,7 +396,7 @@ def orchestrate(
         return report
 
     # --- 2. pre-render verifiers (run on IR alone) --------------------------
-    project = load(project_dir)
+    project = load(project_dir, scene_file=resolved)
     for v in verifiers:
         try:
             vr = v.verify(project.scene, None)
@@ -400,6 +414,7 @@ def orchestrate(
         report.output_path = _render_project(
             project_dir,
             output_name=output_name,
+            scene_file=resolved,
             tts=tts,
             lipsync=lipsync,
             language=language,
@@ -411,7 +426,7 @@ def orchestrate(
         return report
 
     # --- 4. post-render verifiers (with the actual mp4) ---------------------
-    project = load(project_dir)
+    project = load(project_dir, scene_file=resolved)
     from an.adapters._base import RenderResult
 
     from an.assemble import film_duration

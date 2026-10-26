@@ -214,7 +214,7 @@ def test_voices_rescore_exits_0_when_a_line_matches(tmp_path, monkeypatch):
     from types import SimpleNamespace as NS
 
     scene = NS(timeline=[NS(id="s", dialogue=[NS(text="He did not ask")])])
-    monkeypatch.setattr("an.project.load", lambda project: NS(scene=scene, mall={}))
+    monkeypatch.setattr("an.project.load", lambda project, **kw: NS(scene=scene, mall={}))
     monkeypatch.setattr(
         "an.audio.pipeline.retake_lines",
         lambda *a, **k: ["'He did not ask': no take recorded yet"],
