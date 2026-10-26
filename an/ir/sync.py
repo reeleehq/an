@@ -1303,6 +1303,10 @@ class SceneFile:
         """
         if not output_name:
             return self.output_name
+        if "/" in output_name or "\\" in output_name:
+            raise SceneFileError(
+                f"output name {output_name!r} must be a file stem, not a path"
+            )
         if not self.is_default and output_name.lower() == DEFAULT_OUTPUT_NAME:
             raise SceneFileError(
                 f"output name {output_name!r} is the default scene's "
@@ -1324,13 +1328,16 @@ def _scene_file_name(project_dir: Path, scene_file: str | Path) -> str:
         raise SceneFileError(shape)
     given = Path(spelled).expanduser()
     if len(given.parts) > 1:  # a path, not a bare name: where does it point?
-        if given.resolve().parent != project_dir.resolve():
+        if given.parent.resolve() != project_dir.resolve():
             raise SceneFileError(shape)
     name = given.name
     if not name.lower().endswith(".md") or name.startswith("."):
         raise SceneFileError(shape)
-    # On a case-insensitive disk `Scene.md` IS scene.md: one scene, one output.
-    return DEFAULT_SCENE_FILE if name.lower() == DEFAULT_SCENE_FILE else name
+    if name != DEFAULT_SCENE_FILE and name.lower() == DEFAULT_SCENE_FILE:
+        # On a case-insensitive disk `Scene.md` IS scene.md (two outputs for one
+        # scene), on a case-sensitive one it is another file: say which you mean.
+        raise SceneFileError(f"{shape}; did you mean {DEFAULT_SCENE_FILE}?")
+    return name
 
 
 def resolve_scene_file(
@@ -1358,8 +1365,10 @@ def resolve_scene_file(
     >>> sf = resolve_scene_file("/p", "/p/../p/scene.studio.md", must_exist=False)
     >>> sf.name, sf.json_path.as_posix(), sf.output_name
     ('scene.studio.md', '/p/ir/scene.studio.json', 'scene.studio')
-    >>> resolve_scene_file("/p", "Scene.md", must_exist=False).name
-    'scene.md'
+    >>> resolve_scene_file("/p", "Scene.md", must_exist=False)  # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    an.ir.sync.SceneFileError: scene file 'Scene.md' must be ...; did you mean scene.md?
     >>> resolve_scene_file("/p", "sub/scene.md", must_exist=False)
     Traceback (most recent call last):
     ...

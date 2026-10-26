@@ -113,7 +113,7 @@ def test_a_project_keeps_several_scenes_side_by_side(tmp_path):
 
 def test_a_scene_file_is_resolved_the_way_it_was_typed(tmp_path, monkeypatch):
     """an#539 review: a path into the project is accepted however it is spelled
-    (relative to the shell, absolute, with `..`); `Scene.md` is the default
+    (relative to the shell, absolute, with `..`); `Scene.md` is refused (did you mean scene.md)
     scene on a case-insensitive disk; a backslash, a sub-folder and a stem of
     `main` (the default scene's output) are refused."""
     root = init(tmp_path / "demo")
@@ -133,8 +133,10 @@ def test_a_scene_file_is_resolved_the_way_it_was_typed(tmp_path, monkeypatch):
     monkeypatch.chdir(root)
     assert resolve_scene_file(".", "./scene.x.md").name == "scene.x.md"
 
-    default = resolve_scene_file(root, "Scene.md")
-    assert (default.name, default.output_name) == ("scene.md", "main")
+    with pytest.raises(SceneFileError, match="did you mean scene.md"):
+        resolve_scene_file(root, "Scene.md")
+    with pytest.raises(SceneFileError, match="file stem"):
+        resolve_scene_file(root, "scene.x.md", must_exist=False).output_for("sub/x")
     for bad in ("sub\\scene.x.md", "sub/scene.x.md", "scene.txt", ".hidden.md"):
         with pytest.raises(SceneFileError, match="directly inside"):
             resolve_scene_file(root, bad, must_exist=False)

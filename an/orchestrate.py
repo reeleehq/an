@@ -140,7 +140,7 @@ def validate_project(
     schema_report = validate_schema(project.scene)
     for w in load_warnings:
         if issubclass(w.category, (UserWarning, DeprecationWarning)):
-            schema_report.add("warning", "scene.md", f"reading the scene: {w.message}")
+            schema_report.add("warning", md_name, f"reading the scene: {w.message}")
     # Clock-owned shots (Manim) are judged at their MEASURED length, from the
     # derived store only — validate never renders (an#279).
     from an.measurements import render_context_for, settle_durations
