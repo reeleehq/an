@@ -16,8 +16,8 @@ duration: 12.0
 fps: 24
 resolution: {width: 1280, height: 720}
 default_renderer: cutout
-default_easing: linear
-style_pack: south_park
+default_easing: ease_in_out
+style_pack: kurzgesagt
 sounds:
   - {sound: bed, loop: true, gain_db: -8, duck_db: -12, fade_in: 1.0, fade_out: 1.0}
 ```
@@ -72,8 +72,8 @@ camera: {move: hold}
 ```
 
 ```yaml actions
-- {kind: tween, target: stan/head, property: rotation, to: 0.15, duration: 0.2, start: 0.3}
-- {kind: tween, target: stan/head, property: rotation, to: 0.0, duration: 0.2, start: 0.8}
+- {kind: tween, target: stan/head, property: rotation, to: 0.15, duration: 0.4, start: 0.3}
+- {kind: tween, target: stan/head, property: rotation, to: 0.0, duration: 0.4, start: 0.8}
 - {kind: play, target: kyle, animation: hop, args: {height: 30}, start: 4.0}
 ```
 
