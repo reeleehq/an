@@ -734,6 +734,7 @@ def test_the_report_order_is_pinned():
         "rigidity",  # catalogue A5: declared rigid / volume-preserving entities keep their shape
         "motion_style",  # catalogue B2, B5: the style pack's motion targets
         "gravity",  # catalogue B4: a declared flight is a parabola and does not hover
+        "causality",  # catalogue B7: a sound is not ahead of its named cause
         # ADR 0008 (an#512): the joint checks, after the catalogue's lints (order 250)
         "unknown_body",
         "unreachable_pin",
@@ -759,6 +760,7 @@ def test_the_report_order_is_pinned():
         "draw_order",  # an#510
         "jump_cut",  # catalogue C4: the 30-degree rule over the world's viewpoints
         "object_permanence",  # catalogue C1: presence across shots, uniqueness in one
+        "not_compiled",  # an#551: last, over every compile the checks above asked for
     ]
 
 

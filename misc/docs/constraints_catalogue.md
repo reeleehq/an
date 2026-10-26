@@ -71,7 +71,7 @@ Tolerances below are named, never literal: `SUPPORT_TOLERANCE`, `SKATE_TOLERANCE
 
 **Subsumes.** Nothing existing; the first constraint of its group. The walk presets' contact instants become its input.
 
-**Status.** Partial (an#502): a stage shot's floor line is `solve: {ground: y}`; an item `overrides: {held_by: ground}`, put down by `place`, or landing after a `release` rests with the lowest point of its painted pixels (the texture's alpha hull) on it, by derivation; the `floating_item` check warns when an item a hand takes hovers above it or sinks into it. Characters' feet, `support_top` on members and scene space's ground are missing.
+**Status.** Partial (an#502): a stage shot's floor line is `solve: {ground: y}`; an item `overrides: {held_by: ground}`, put down by `place`, or landing after a `release` rests with the lowest point of its painted pixels (the texture's alpha hull) on it, by derivation; the `floating_item` check warns when an item a hand takes hovers above it or sinks into it. A body's surface (an#536): `place onto: <body>@surface[@f]` and `held_by:` the same lay an item on a member's supporting segment (its `surface_l`/`surface_r` bones, else the top of its ink) by the same derivation, the member then holding it; `floating_item` measures against those surfaces too. Characters' feet, a declared `support` relation and scene space's ground are missing.
 
 #### A2. Solidity: non-penetration
 
@@ -141,7 +141,7 @@ Tolerances below are named, never literal: `SUPPORT_TOLERANCE`, `SKATE_TOLERANCE
 
 **Subsumes.** ADR 0007's `viewpoint` check ("a hand placement that disagrees with the world"): the perspective relation is what that disagreement measures for members on one ground plane; `framing` (an#211) stays beside it as the plate's own check.
 
-**Status.** Missing as a lint; the derivation is in flight (ADR 0007).
+**Status.** Shipped for hand placements in a framed shot (an#519 rank 15), as a `perspective` note of the world lowering (`an validate` warning): a member the world places, put by hand at a row whose ground-plane scale (`an.ir.world.ground_scale`, the member taken to stand on the horizontal plane through its world position) differs from its `stage.scale` by over `PERSPECTIVE_TOLERANCE` (15%). Not built: members outside a world (needs contacts, A1), flying members.
 
 #### A7. View and facing agreement with the viewpoint
 
@@ -255,7 +255,7 @@ Tolerances below are named, never literal: `SUPPORT_TOLERANCE`, `SKATE_TOLERANCE
 
 **Subsumes.** `CueAnchor` / `an.sound_anchors` (the derivation) and the dialogue-fits checks (`dialogue_fits`) as the timing preconditions.
 
-**Status.** Partial (anchors). The order and tolerance checks are missing.
+**Status.** Partial. Anchors shipped; (i) order and (ii) tolerance shipped as the `causality` check for a shot cue that declares `cause`. The dialogue and lip-sync consistency check (iii) is missing.
 
 ### Group C: across cuts
 

@@ -89,6 +89,7 @@ __all__ = [
     "Extents",
     "HAND_PLACEMENT_TOLERANCE_PX",
     "HAND_SCALE_TOLERANCE",
+    "PERSPECTIVE_TOLERANCE",
     "Lowered",
     "Placed",
     "Projection",
@@ -96,6 +97,7 @@ __all__ = [
     "WorldNote",
     "fit_channel",
     "focal_length",
+    "ground_scale",
     "frame_poses",
     "has_world",
     "lower_world",
@@ -288,6 +290,40 @@ class Projection:
             pose.rotate(self.down),
             self.focal,
         )
+
+
+#: A hand placement whose scale differs from the ground plane's by more than
+#: this fraction is out of perspective (catalogue A6).
+PERSPECTIVE_TOLERANCE: float = 0.15
+
+
+def ground_scale(
+    projection: Projection, at: tuple[float, float], *, floor_y: float, unit: float
+) -> float | None:
+    """The ``stage.scale`` of a member standing on the horizontal plane ``y = floor_y`` whose feet are drawn at screen ``at`` (px from the frame centre), or ``None`` at or above the horizon or when the plane is not below the eye.
+
+    The single-view relation (catalogue A6): the ray through the pixel meets the
+    floor at depth ``t * f``, and a member of ``unit`` world units per native
+    pixel is drawn at ``unit * f / depth`` = ``unit * ray_y / (floor_y - eye_y)``,
+    so scale grows with the pixel's distance below the horizon.
+
+    >>> eye = Projection((0.0, 0.0, 0.0), (0.0, 0.0, 1.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0), 1000.0)
+    >>> round(ground_scale(eye, (0.0, 100.0), floor_y=1.0, unit=0.01), 3)    # feet 100 px below the horizon
+    1.0
+    >>> round(ground_scale(eye, (0.0, 200.0), floor_y=1.0, unit=0.01), 3)    # nearer: twice the size
+    2.0
+    >>> ground_scale(eye, (0.0, -50.0), floor_y=1.0, unit=0.01) is None      # above the horizon
+    True
+    """
+    below = floor_y - projection.at[1]
+    ray_y = (
+        projection.focal * projection.forward[1]
+        + at[0] * projection.right[1]
+        + at[1] * projection.down[1]
+    )
+    if below <= _MIN_DEPTH or ray_y <= _MIN_DEPTH:
+        return None
+    return unit * ray_y / below
 
 
 def viewpoint_of(
@@ -1663,6 +1699,40 @@ def _fmt(at: tuple[float, float] | None) -> str:
     return f"({at[0]:.4g}, {at[1]:.4g})"
 
 
+def _perspective_note(
+    note: Callable[[str, str, str, str], None],
+    projection: Projection,
+    member: WorldMember,
+    at: tuple[float, float],
+    scale: float,
+    *,
+    box: Box | None,
+    at3: Point3 | None,
+) -> None:
+    """A warning when a hand-placed member's ``scale`` is not the one the ground plane gives at its screen row (catalogue A6).
+
+    The member is taken to stand on the horizontal plane through its world
+    position. A hand ``at`` keeps the world's scale, so walking a member to a
+    nearer row by hand leaves it the size of its old row.
+    """
+    pos = at3 if at3 is not None else member.at
+    unit = _unit_scale(member, box, where=f"member {member.id!r}")
+    if pos is None or unit is None:
+        return
+    want = ground_scale(projection, at, floor_y=pos[1], unit=unit)
+    if want is None or abs(scale - want) <= PERSPECTIVE_TOLERANCE * want:
+        return
+    note(
+        "warning",
+        "perspective",
+        member.id,
+        f"placed by hand at {_fmt(at)} scale {scale:.3g}, but standing on the "
+        f"ground plane there it would be drawn at scale {want:.3g} (size follows "
+        "the row's distance below the horizon). Set `stage.scale` to that, or "
+        "drop `stage.at` to let the world place it.",
+    )
+
+
 def _lower_shot(
     scene: SceneIR,
     index: int,
@@ -1912,6 +1982,11 @@ def _lower_shot(
                         "drop `stage.at` to follow the world, or move the member.",
                     )
             _, eff_scale = hand[entity.id]
+            if entity.id not in moving and not members[entity.id].attached:
+                _perspective_note(
+                    note, projection, members[entity.id], stage.at, eff_scale,
+                    box=extents.get(entity.id), at3=member_at.get(entity.id),
+                )  # fmt: skip
             if eff_scale != float(stage.scale):
                 entity = entity.model_copy(
                     update={"stage": stage.model_copy(update={"scale": eff_scale})}

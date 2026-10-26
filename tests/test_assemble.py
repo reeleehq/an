@@ -543,13 +543,13 @@ def test_a_cue_that_does_not_loop_cannot_outlast_its_asset(tmp_path):
     assert looped.play == 3.0
 
 
-def test_the_layout_lint_expects_the_delivered_length():
-    from an.verify.layout import LayoutLintVerifier
+def test_the_meta_duration_check_expects_the_delivered_length():
+    from an.ir.validate import validate_semantic
 
     d = Transition(kind="dissolve", duration=0.5)
     scene = SceneIR(meta=Meta(fps=30, duration=3.5),
                     timeline=_shots(("a", 2.0), ("b", 2.0, d)))
-    report = LayoutLintVerifier().verify(scene)
+    report = validate_semantic(scene)
     assert not [f for f in report.findings if f.ir_path == "meta/duration"]
 
 

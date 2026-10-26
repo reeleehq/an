@@ -1976,6 +1976,11 @@ class SoundCue(_IRModel):
     #: Ends the cue at another cue's start (:class:`CueUntil`), instead of a
     #: fixed ``duration``.
     until: CueUntil | None = None
+    #: The visible event this sound is the sound OF, for a cue authored at a
+    #: time (``at`` in seconds): the ``causality`` lint checks the sound does
+    #: not precede it and stays within the audio-visual window (catalogue B7).
+    #: A shot cue only; an anchored ``at`` already is its cause.
+    cause: CueAnchor | None = None
     #: How long it plays. ``None``: the asset's own length, or — when
     #: ``loop`` — to the end of its shot (shot cue) or of the film (meta cue).
     duration: Seconds | None = Field(default=None, gt=0)

@@ -25,7 +25,7 @@ from an.ir.validate import validate_semantic
 from an.props import PropDescriptor
 from an.stage.raster import is_svg_content, svg_problems
 from an.stage.rig import part_probe
-from an.stores._common import asset_ref_problem, inside_folder
+from an.stores._common import ASSET_REF_RULE, asset_ref_problem, asset_ref_problems, inside_folder
 from an.stores.environments import EnvironmentsStore
 from an.stores.props import PropsStore
 
@@ -66,6 +66,74 @@ def test_a_reference_is_judged_by_name(rel, problem):
     assert (found is None) == (problem is None), found
     if problem:
         assert problem in found
+
+
+# -----------------------------------------------------------------------------
+# The whole-document rule a genre shares (an#552)
+# -----------------------------------------------------------------------------
+
+
+def test_asset_ref_problems_pairs_a_label_with_a_whole_sentence(tmp_path):
+    doc = {
+        "source_svg": "../x.svg",
+        "planes": [{"name": "sky", "art": {"kind": "image", "src": "sky.png"}}],
+    }
+    assert asset_ref_problems(doc, tmp_path) == [
+        (
+            "source_svg",
+            f"source_svg names '../x.svg', which leaves the asset folder (`..`): {ASSET_REF_RULE}",
+        )
+    ]
+
+
+def test_asset_ref_problems_without_a_folder_judges_names_only():
+    good = {
+        "skins": {"default": {"slots": {"body": {"body": {"path": "parts/body.svg"}}}}}
+    }
+    assert asset_ref_problems(good) == []
+    assert (
+        asset_ref_problems(good, None, file_problems=lambda f: ["is never asked"]) == []
+    )
+    bad = {
+        "skins": {"default": {"slots": {"body": {"body": {"path": "/etc/hostname"}}}}}
+    }
+    assert [label for label, _ in asset_ref_problems(bad)] == ["part body/body"]
+
+
+def test_asset_ref_problems_catches_a_link_out_of_the_folder(tmp_path):
+    folder = tmp_path / "asset"
+    folder.mkdir()
+    (tmp_path / "secret.svg").write_text(SVG, encoding="utf-8")
+    try:
+        os.symlink(tmp_path / "secret.svg", folder / "link.svg")
+    except (OSError, NotImplementedError):
+        pytest.skip("no symlinks here")
+    [(label, message)] = asset_ref_problems({"source_svg": "link.svg"}, folder)
+    assert label == "source_svg"
+    assert "resolves outside the asset's folder" in message
+    assert message.endswith(ASSET_REF_RULE)
+
+
+def test_asset_ref_problems_asks_file_problems_about_every_file_that_passed(tmp_path):
+    (tmp_path / "here.svg").write_text(SVG, encoding="utf-8")
+    asked = []
+
+    def file_problems(file):
+        asked.append(file)
+        return [] if file.is_file() else ["is not in the folder"]
+
+    doc = {"source_svg": "here.svg", "colour_roles": {"gone.svg": {}, "../out.svg": {}}}
+    assert asset_ref_problems(doc, tmp_path, file_problems=file_problems) == [
+        (
+            "colour_roles gone.svg",
+            "colour_roles gone.svg names 'gone.svg', which is not in the folder",
+        ),
+        (
+            "colour_roles ../out.svg",
+            f"colour_roles ../out.svg names '../out.svg', which leaves the asset folder (`..`): {ASSET_REF_RULE}",
+        ),
+    ]
+    assert asked == [tmp_path / "here.svg", tmp_path / "gone.svg"]  # never the bad name
 
 
 def test_a_link_out_of_the_folder_is_outside(tmp_path):
@@ -285,3 +353,38 @@ def test_a_referenced_svg_with_a_script_is_an_error_whatever_its_suffix(tmp_path
     assert [f.severity for f in findings] == ["error"] * 4  # two problems, each on both shots
     assert "forbidden element(s): image, script" in findings[0].description
     assert "links outside the file: 'http://x/y.png'" in findings[1].description
+
+
+ART = '<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4"/>'
+
+
+@pytest.mark.parametrize(
+    "prolog",
+    ["<!-- made by a-b (v1) -->", "<!DOCTYPE svg>", '<?xml version="1.0"?><?xml-stylesheet href="x"?>'],
+)
+def test_the_staging_step_puts_the_root_on_a_line_of_its_own(tmp_path, prolog):
+    """an#525: PixiJS's SVG sniffing (a multiline regex) cannot skip these
+    prologs when the root follows on the same line, and the whole shot failed
+    at load. Checks the staged bytes, not Pixi: the render is a developer-machine check."""
+    store = PropsStore(tmp_path / "props")
+    parts = tmp_path / "props" / "thing" / "parts"
+    parts.mkdir(parents=True)
+    (parts / "body.svg").write_text(f"{prolog}{ART}", encoding="utf-8")
+    (parts / "clean.svg").write_text(ART, encoding="utf-8")
+    runtime = tmp_path / "runtime"
+    runtime.mkdir()
+    for name in ("body", "clean"):
+        _stage_scene_assets(
+            _scene_json(x=AssetJSON(src=f"props/thing/parts/{name}.svg")), {"props": store}, runtime
+        )
+    assert (runtime / "props/thing/parts/body.svg").read_text(encoding="utf-8") == f"{prolog}\n{ART}"
+    assert (runtime / "props/thing/parts/clean.svg").read_text(encoding="utf-8") == ART
+
+
+def test_a_data_uri_svg_gets_the_same_repair():
+    import base64
+
+    from an.stage.text_layout import svg_data_uri
+
+    uri = svg_data_uri(f"<!-- a-b -->{ART}")
+    assert base64.b64decode(uri.split(",", 1)[1]) == f"<!-- a-b -->\n{ART}".encode()

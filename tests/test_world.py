@@ -1058,3 +1058,43 @@ def test_a_wide_lens_side_window_is_refused_rather_than_teleporting():
     )
     with pytest.raises(WorldError, match="on screen at once"):
         lower_world(scene, extents=EXTENTS)
+
+
+# --- ground-plane perspective on hand placements (catalogue A6) ----------------
+
+
+def _handed(at, scale=1.0):
+    return AssetRef(
+        kind="prop",
+        id="right",
+        store="props",
+        ref="lamp",
+        stage=StagePlacement(at=at, scale=scale),
+    )
+
+
+def _perspective(scene):
+    return [n for n in lower_world(scene, extents=EXTENTS).notes if n.kind == "perspective"]
+
+
+def test_a_world_placement_is_in_perspective():
+    scene = _two_lamps_scene(
+        timeline=[Shot(id="two", viewpoint="two", entities=[_handed((75.0, 60.0), 6.0)])]
+    )
+    assert _perspective(scene) == []
+
+
+def test_walking_a_member_nearer_by_hand_without_resizing_it_is_a_warning():
+    scene = _two_lamps_scene(
+        timeline=[Shot(id="two", viewpoint="two", entities=[_handed((75.0, 120.0), 6.0)])]
+    )
+    (note,) = _perspective(scene)
+    assert note.severity == "warning" and note.entity == "right"
+    assert "scale 12" in note.message  # twice as far below the horizon: twice the size
+
+
+def test_a_hand_scale_that_follows_the_row_is_clean():
+    scene = _two_lamps_scene(
+        timeline=[Shot(id="two", viewpoint="two", entities=[_handed((75.0, 120.0), 12.0)])]
+    )
+    assert _perspective(scene) == []

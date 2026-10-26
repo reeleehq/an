@@ -220,6 +220,20 @@ PLANE_PROPERTIES: frozenset[str] = frozenset(PLANE_REST_VALUES)
 #: draws no path refuses all of them.
 TRIM_PROPERTIES: frozenset[str] = frozenset({"trim_start", "trim_end", "dash_offset"})
 
+#: The draw-order property (an#537): where a node is PAINTED, as the path of the
+#: node it paints just after (``""``: where the stage tree puts it). A string,
+#: switched at its own key like a swap key, and written to its own group. The
+#: node keeps its place in the transform tree, so it moves, turns and fades
+#: exactly as before; only its paint moves. Not authorable: the hold layer emits
+#: it (a held item draws just above the part that holds it, an#537).
+PAINT_AFTER_PROPERTY: str = "paint_after"
+
+#: The non-numeric properties the runtime applies itself (outside
+#: :data:`TRANSFORM_PROPERTIES`, which it animates numerically): a node's place
+#: in the paint order. `runtime.js`'s ``ORDER_PROPERTIES`` mirrors it (pinned by
+#: a test).
+ORDER_PROPERTIES: frozenset[str] = frozenset({PAINT_AFTER_PROPERTY})
+
 #: Characters within which a swap-set name is not addressable: ``/`` would read
 #: as a path segment and ``::`` is the runtime's pose-key separator.
 SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS: tuple[str, ...] = ("/", "::")
@@ -247,6 +261,8 @@ def swap_set_name_problem(name: str) -> str | None:
             f"{name!r} is a transform property; the runtime's static switch "
             "would shadow the set"
         )
+    if name in ORDER_PROPERTIES:
+        return f"{name!r} is the paint-order property; the runtime would shadow the set"
     for bad in SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS:
         if bad in name:
             return f"{name!r} contains {bad!r}, which is reserved"

@@ -39,6 +39,16 @@ that the hand first goes where the item is:
   rest angle on the way down, landing on the ground exactly; ``onto:
   ground@x`` solves the throw that lands there on an arc ``arc`` px high.
 
+**Draw order.** While a body holds an item, the item is PAINTED just after
+its holder's part (an#537): a ``paint_after`` channel on the item's entity node
+(:data:`an.base.PAINT_AFTER_PROPERTY`) names that part from the frame the hold
+changes, and ``""`` (its staged place, ``stage.after`` included) once nothing
+holds it. The item keeps its own node, so its transform is untouched; the
+runtime paints it from right after the part (``runtime.js``, ``makeHeldPaints``).
+A musket in a hand draws over the arm that carries it and under whatever the
+holder draws over that arm; put in a figurine's hand, it draws with the
+figurine, not over the one who put it there.
+
 **Two passes.** The goals and the leans are planned from a solve without the
 gestures (the shot as authored), the shot is solved with them, and the plan is
 made again from that solve (an item carried after a grasp hangs where the
@@ -65,7 +75,7 @@ from dataclasses import dataclass, field
 from functools import lru_cache
 from typing import Any
 
-from an.ir.holds import GESTURE_KINDS, GROUND, HOLD_ACTION_KINDS
+from an.ir.holds import GESTURE_KINDS, GROUND, HOLD_ACTION_KINDS, SURFACE
 from an.stage.compile import CutoutCompileError
 from an.stage.solve import (
     REACH_SOURCE,
@@ -94,6 +104,7 @@ __all__ = [
     "GRASP_TOLERANCE_PX",
     "DFLT_FALL_GRAVITY",
     "HOLD_PLAN_PASSES",
+    "SURFACE_BONES",
     "HoldError",
     "HoldVerb",
     "HoldDeclarations",
@@ -102,11 +113,12 @@ __all__ = [
     "solve_holds",
     "ink_box",
     "ink_points",
+    "paint_hosts",
 ]
 
 #: The hold layer's version, in the shot-cache key (``solve_knobs``): bump it
 #: when the same declarations can compile to other keys.
-HOLD_VERSION: str = "1"
+HOLD_VERSION: str = "2"
 #: The key of the hold report inside ``meta.extensions.solve``.
 HOLDS_REPORT: str = "holds"
 #: ``AssetRef.overrides`` key: what holds an item when the shot opens
@@ -134,9 +146,17 @@ HOLD_PLAN_PASSES: int = 2
 LEAN_ROUNDS: int = 8
 #: Samples of a lean's range searched when no angle brings the goal in reach.
 LEAN_SAMPLES: int = 721
+#: The bones a body declares its supporting surface by (an#536), its two ends
+#: in the art's terms (left, right): what ``<body>@surface`` lays an item on.
+#: Undeclared, the surface is the top edge of the part's ink.
+SURFACE_BONES: tuple[str, str] = ("surface_l", "surface_r")
 #: The alpha (0-255) above which a pixel is ink, not margin.
 INK_ALPHA: int = 16
 _EPS: float = 1e-9
+#: How far a ``paint_after`` change key leads the frame it changes at (s): far
+#: under a frame, far over the document's time quantum, so the frame instant
+#: sees the new host whichever way its time was rounded (an#537).
+PAINT_SWITCH_LEAD_S: float = 1e-6
 #: The clip a hold's channels join (the solve's own, :data:`an.stage.solve.SOLVE_CLIP_PREFIX`).
 ITEM_CHANNELS: tuple[str, ...] = ("x", "y", "rotation", "scale_x", "scale_y")
 
@@ -217,6 +237,33 @@ def _is_place_target(ref: str) -> bool:
     return head in (GROUND, WORLD_REF)
 
 
+def _is_surface_target(ref: str) -> bool:
+    """``<body>@surface`` and ``<body>@surface@f``: a body's top, not a socket.
+
+    >>> _is_surface_target("crate@surface"), _is_surface_target("crate/lid@surface@0.3")
+    (True, True)
+    >>> _is_surface_target("crate@top"), _is_surface_target("ground")
+    (False, False)
+    """
+    return ref.partition("@")[2].partition("@")[0] == SURFACE
+
+
+def _holder_ref(ref: str) -> str:
+    """The reference the solve resolves for a holder: a surface's body (its
+    pivot: only its body and frame are read), any other point as named.
+
+    >>> _holder_ref("crate/lid@surface@0.3"), _holder_ref("stand@hand")
+    ('crate/lid', 'stand@hand')
+    """
+    return ref.partition("@")[0] if _is_surface_target(ref) else ref
+
+
+def _rests_on_nothing(ref: str) -> bool:
+    """A target that holds an item without a hand that could give it back:
+    the ground, a stage point, a body's surface."""
+    return _is_place_target(ref) or _is_surface_target(ref)
+
+
 def _entity(ref: str) -> str:
     return ref.partition("@")[0].split("/", 1)[0]
 
@@ -242,7 +289,7 @@ def hold_declarations(shot: Any, *, play_extent: Any = None) -> HoldDeclarations
         out.initial[entity.id] = (str(on), where)
         out.items.setdefault(entity.id, where)
         if not _is_place_target(str(on)):
-            out.refs.append((str(on), where, "socket"))
+            out.refs.append((_holder_ref(str(on)), where, "socket"))
     for k, action in enumerate(shot.actions):
         for flat in flatten(action, play_extent=play_extent):
             kind = getattr(flat.action, "kind", None)
@@ -260,12 +307,14 @@ def hold_declarations(shot: Any, *, play_extent: Any = None) -> HoldDeclarations
                 target = a.onto if kind == "place" else a.to
                 moving = kind == "handover" and a.meet < 1.0
                 if not _is_place_target(target):
-                    out.refs.append((target, where, "hand" if moving else "socket"))
+                    out.refs.append(
+                        (_holder_ref(target), where, "hand" if moving else "socket")
+                    )
     out.verbs.sort(key=lambda v: (v.start, v.end))
     # Who moves a hand: every explicit `by`, a receiver that reaches, and the
     # holder of an item a place, handover or release gives up without a `by`.
     holder: dict[str, str | None] = {
-        item: (on if not _is_place_target(on) else None)
+        item: (on if not _rests_on_nothing(on) else None)
         for item, (on, _w) in out.initial.items()
     }
     for v in _by_instant(out.verbs):
@@ -280,7 +329,7 @@ def hold_declarations(shot: Any, *, play_extent: Any = None) -> HoldDeclarations
         if a.kind == "release":
             holder[item] = None
         elif a.kind == "place":
-            holder[item] = None if _is_place_target(a.onto) else a.onto
+            holder[item] = None if _rests_on_nothing(a.onto) else a.onto
         else:  # handover
             if a.meet < 1.0:
                 out.movers.add(_entity(a.to))
@@ -363,6 +412,44 @@ def _rotate_about(
 def _lowest(m: Affine, corners: Sequence[tuple[float, float]]) -> float:
     """The lowest (largest ``y``) of ``corners`` under ``m``."""
     return max(_apply(m, c)[1] for c in corners)
+
+
+#: A support line: a point on it and its unit direction, turned so that its
+#: normal ``(-dy, dx)`` points DOWN the screen (into the support).
+Line = tuple[tuple[float, float], tuple[float, float]]
+
+
+def _ground_line(ground: float) -> Line:
+    return ((0.0, ground), (1.0, 0.0))
+
+
+def _line_through(a: tuple[float, float], b: tuple[float, float]) -> Line:
+    """The support line through ``a`` and ``b``, whichever end is named first.
+
+    >>> _line_through((10.0, 5.0), (0.0, 5.0))
+    ((10.0, 5.0), (1.0, 0.0))
+    """
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    n = math.hypot(dx, dy) or 1.0
+    d = (dx / n, dy / n)
+    if d[0] < 0 or (d[0] == 0 and d[1] > 0):  # its normal (-dy, dx) points down
+        d = (-d[0] + 0.0, -d[1] + 0.0)
+    return a, d
+
+
+def _above(m: Affine, corners: Sequence[tuple[float, float]], line: Line) -> float:
+    """How far the lowest of ``corners`` under ``m`` is above ``line``, along
+    its normal (negative: sunk into it). On the ground, ``ground - lowest``.
+
+    >>> square = [(0.0, 0.0), (2.0, 0.0), (0.0, 2.0), (2.0, 2.0)]
+    >>> _above((1, 0, 0, 1, 0, 0), square, _ground_line(5.0))
+    3.0
+    """
+    (ax, ay), (dx, dy) = line
+    nx, ny = -dy, dx
+    return -max(
+        nx * (p[0] - ax) + ny * (p[1] - ay) for p in (_apply(m, c) for c in corners)
+    )
 
 
 # -----------------------------------------------------------------------------
@@ -525,7 +612,7 @@ class ItemInfo:
 class Holder:
     """What holds an item: a body's point, the ground, a stage point, or nothing."""
 
-    kind: str  # "body" | "ground" | "world" | "authored" | "air"
+    kind: str  # "body" | "surface" | "ground" | "world" | "authored" | "air"
     ref: str = ""
     body: str | None = None
     local: tuple[float, float] | None = None
@@ -533,6 +620,10 @@ class Holder:
     entity: str | None = None
     x: float | None = None  # ground@x, world@x,y
     y: float | None = None
+    #: a surface: its two ends in ``body``'s own coordinates, and how far along
+    #: it (from the first) the item goes (``None``: below the hand)
+    segment: tuple[tuple[float, float], tuple[float, float]] | None = None
+    along: float | None = None
     #: ``hand`` (a part the solve moves: one item at a time, one gesture at a
     #: time, whatever point of it is named) or ``socket`` (a point of a part
     #: held still: each point holds its own item).
@@ -639,6 +730,30 @@ def _nearest_frame(times: Sequence[float], t: float) -> int:
     return min(range(len(times)), key=lambda k: (abs(times[k] - t), k))
 
 
+def _anchors_in(
+    doc: Any, rig: Any, eid: str, nodes: Mapping[str, Any], frame: str
+) -> dict[str, tuple[float, float]]:
+    """A rig's bones as points in node ``frame``'s own coordinates, at rest
+    (the entity's own when ``frame`` is the entity)."""
+    from an.stage.solve import _world_matrices
+
+    owners = {
+        bone: eid if a.on is None else f"{eid}/{rig.bodies.get(a.on, a.on)}"
+        for bone, a in rig.anchors.items()
+    }
+    paths = sorted({eid, frame, *(p for p in owners.values() if p in nodes)})
+    rest = _world_matrices(doc, paths, None, nodes)
+    inv = _invert(rest[frame])
+    out: dict[str, tuple[float, float]] = {}
+    for bone, anchor in rig.anchors.items():
+        owner = owners[bone]
+        if owner == frame:
+            out[bone] = anchor.offset
+        elif owner in rest:
+            out[bone] = _apply(_compose(inv, rest[owner]), anchor.offset)
+    return out
+
+
 def _item_info(
     doc: Any,
     shot: Any,
@@ -666,19 +781,9 @@ def _item_info(
     xs, ys = [c[0] for c in corners], [c[1] for c in corners]
     box = (min(xs), min(ys), max(xs) - min(xs), max(ys) - min(ys))
     centre = (box[0] + box[2] / 2.0, box[1] + box[3] / 2.0)
-    anchors: dict[str, tuple[float, float]] = {}
     entity = next((e for e in shot.entities if e.id == item), None)
     rig = _rig_of(entity, mall, nodes, vocab) if entity is not None else None
-    if rig is not None:
-        for bone, anchor in rig.anchors.items():
-            if anchor.on is None:
-                anchors[bone] = anchor.offset
-            else:
-                slot_path = f"{item}/{rig.bodies.get(anchor.on, anchor.on)}"
-                if slot_path in rest:
-                    anchors[bone] = _apply(
-                        _compose(inv, rest[slot_path]), anchor.offset
-                    )
+    anchors = _anchors_in(doc, rig, item, nodes, item) if rig is not None else {}
     pivot = _pivot(nodes[item])
     grip = anchors.get("grip", pivot)
     _theta, sx, sy, _m = _decompose(rest[item])
@@ -759,6 +864,88 @@ def _place_holder(ref: str, *, where: str, problems: list) -> Holder | None:
     return Holder("world", ref=ref, x=xy[0], y=xy[1])
 
 
+def _surface_holder(
+    doc: Any,
+    shot: Any,
+    mall: Mapping[str, Any],
+    puppet: Puppet,
+    ref: str,
+    *,
+    vocab: Any,
+    where: str,
+    problems: list,
+) -> Holder | None:
+    """``<body>@surface[@f]`` (an#536): the body's supporting segment in its
+    own coordinates, from its :data:`SURFACE_BONES` when its rig declares
+    them, else the top edge of the part's ink."""
+    from an.stage.solve import _rig_of
+
+    head = _holder_ref(ref)
+    found = puppet.located.get((head, "socket"))
+    if not isinstance(found, Located):
+        return None  # the solve said why
+    _name, sep, text = ref.partition("@")[2].partition("@")
+    along = None
+    if sep:
+        try:
+            along = float(text)
+        except ValueError:
+            along = None
+        if along is None or not 0.0 <= along <= 1.0:
+            problems.append(
+                (
+                    where,
+                    f"{ref!r}: a place on a surface is `{head}@{SURFACE}` (below the hand) "
+                    f"or `{head}@{SURFACE}@f`, f from 0 (its first end) to 1",
+                )
+            )
+            return None
+    eid = _entity(head)
+    entity = next((e for e in shot.entities if e.id == eid), None)
+    rig = _rig_of(entity, mall, puppet.nodes, vocab) if entity is not None else None
+    if rig is not None and SURFACE in rig.anchors:
+        problems.append(
+            (
+                where,
+                f"{ref!r}: {eid!r} has a bone named {SURFACE!r}, a reserved point name "
+                f"(`<body>@{SURFACE}` is the body's top, an#536): rename the bone, and "
+                f"declare a surface by {list(SURFACE_BONES)}",
+            )
+        )
+        return None
+    bones = (
+        _anchors_in(doc, rig, eid, puppet.nodes, found.body) if rig is not None else {}
+    )
+    declared = [b for b in SURFACE_BONES if b in bones]
+    if len(declared) == len(SURFACE_BONES):
+        segment = (bones[SURFACE_BONES[0]], bones[SURFACE_BONES[1]])
+    elif declared:
+        problems.append(
+            (
+                where,
+                f"{ref!r}: {eid!r} declares {declared[0]!r} but not "
+                f"{[b for b in SURFACE_BONES if b not in declared][0]!r}: a surface is "
+                "two bones (its ends), or neither (the top of the part's ink)",
+            )
+        )
+        return None
+    else:
+        left, top, w, _h = ink_box(doc, puppet.nodes[found.node], mall)
+        segment = (
+            _apply(found.frame, (left, top)),
+            _apply(found.frame, (left + w, top)),
+        )
+    return Holder(
+        "surface",
+        ref=ref,
+        body=found.body,
+        frame=found.frame,
+        entity=eid,
+        segment=segment,
+        along=along,
+    )
+
+
 # -----------------------------------------------------------------------------
 # The schedule: gestures and events, checked
 # -----------------------------------------------------------------------------
@@ -793,6 +980,10 @@ def _schedule(
             continue
         if _is_place_target(on):
             h = _place_holder(on, where=where, problems=problems)
+        elif _is_surface_target(on):
+            h = _surface_holder(
+                doc, shot, mall, puppet, on, vocab=vocab, where=where, problems=problems
+            )
         else:
             h = _holder(puppet, on, "socket")
         if h is not None:
@@ -911,6 +1102,7 @@ def _schedule(
         if current.kind != "body":
             what = {
                 "ground": "on the ground",
+                "surface": f"on {current.ref}",
                 "world": f"at {current.ref}",
                 "authored": "where it is staged",
                 "air": "in the air",
@@ -934,6 +1126,15 @@ def _schedule(
                     )
                 )
                 continue
+        if a.kind == "release" and a.onto is not None and _is_surface_target(a.onto):
+            problems.append(
+                (
+                    v.where,
+                    f"release {item!r} onto {a.onto!r}: a release falls to the floor; an "
+                    f"item is put on a surface by `place` (`onto: {a.onto}`)",
+                )
+            )
+            continue
         if a.kind == "release":
             events[item].append(
                 Event(_frame_at(times, v.start), "drop", release=a, where=v.where)
@@ -945,6 +1146,26 @@ def _schedule(
         meet = getattr(a, "meet", 1.0)
         if _is_place_target(target_ref):
             target = _place_holder(target_ref, where=v.where, problems=problems)
+        elif _is_surface_target(target_ref):
+            if a.kind != "place":
+                problems.append(
+                    (
+                        v.where,
+                        f"{a.kind} {item!r} to {target_ref!r}: an item is put on a surface "
+                        f"by `place` (`onto: {target_ref}`)",
+                    )
+                )
+                continue
+            target = _surface_holder(
+                doc,
+                shot,
+                mall,
+                puppet,
+                target_ref,
+                vocab=vocab,
+                where=v.where,
+                problems=problems,
+            )
         else:
             target = _holder(puppet, target_ref, "hand" if meet < 1.0 else "socket")
         if target is None:
@@ -1012,7 +1233,11 @@ def _schedule(
                 current.text(),
                 target=target,
                 rotation=getattr(a, "rotation", None),
-                point=point if (target.kind != "ground" or "@" in a.item) else None,
+                point=(
+                    point
+                    if (target.kind not in ("ground", "surface") or "@" in a.item)
+                    else None
+                ),
             )
             events[item].append(Event(g.k0, "carry", g, where=v.where))
             events[item].append(Event(g.kc, "put", g, where=v.where))
@@ -1021,7 +1246,7 @@ def _schedule(
             occupied[target.key()] = item
         holder[item] = (
             target
-            if target.kind == "body"
+            if target.kind in ("body", "surface")
             else Holder(target.kind, ref=target.ref, x=target.x, y=target.y)
         )
     # One hand, one gesture at a time.
@@ -1189,6 +1414,60 @@ def _socket_lin(ctx: _Ctx, run: Run, k: int, holder: Holder, item: str) -> Lin:
     return (theta, -sx0 if mirrored else sx0, sy0)
 
 
+def _on_line(
+    ctx: _Ctx,
+    lin: Lin,
+    item: str,
+    at: tuple[float, float],
+    line: Line,
+    *,
+    about: tuple[float, float] | None = None,
+) -> Affine:
+    """The item lying with linear part ``lin``, its point ``about`` (default:
+    its centre) on the normal of ``line`` through ``at``, its lowest ink point
+    on ``line`` (the floor, or a body's surface)."""
+    info = ctx.items[item]
+    about = info.centre if about is None else about
+    m = _placed(at, lin, about)
+    return _lift(m, line, _above(m, info.corners, line))
+
+
+def _lift(m: Affine, line: Line, above: float) -> Affine:
+    """``m`` moved ``above`` along ``line``'s normal (down onto it when positive).
+
+    >>> _lift((1, 0, 0, 1, 2.0, 3.0), _ground_line(10.0), 4.0)[4:]
+    (2.0, 7.0)
+    """
+    dx, dy = line[1]
+    return _compose(_translate(-dy * above + 0.0, dx * above + 0.0), m)
+
+
+def _on_surface(
+    ctx: _Ctx,
+    run: Run,
+    k: int,
+    holder: Holder,
+    item: str,
+    level: Any,
+    *,
+    below: tuple[float, float],
+    below_k: int,
+    about: tuple[float, float] | None = None,
+) -> tuple[Lin, Affine]:
+    """The item lying on ``holder``'s surface at frame ``k``: its linear part
+    (``level(tilt)``: how it lies relative to the surface, turned by the
+    surface's tilt) and its pose, at the surface's fraction ``along``, else
+    at the foot of stage point ``below`` on the surface at frame ``below_k``."""
+    line, a, b = _surface_at(ctx, run, k, holder)
+    along = holder.along
+    if along is None:
+        _line, a0, b0 = _surface_at(ctx, run, below_k, holder)
+        along = _fraction_on(below, a0, b0)
+    tilt = _tilt(line)
+    lin = _turned(level(tilt), tilt)
+    return lin, _on_line(ctx, lin, item, _lerp(a, b, along), line, about=about)
+
+
 def _on_ground(
     ctx: _Ctx,
     lin: Lin,
@@ -1200,10 +1479,40 @@ def _on_ground(
 ) -> Affine:
     """The item lying with linear part ``lin``, its point ``about`` (default:
     its centre) at stage ``x``, its lowest ink point on ``ground``."""
-    info = ctx.items[item]
-    about = info.centre if about is None else about
-    m = _placed((x, 0.0), lin, about)
-    return _compose(_translate(0.0, ground - _lowest(m, info.corners)), m)
+    return _on_line(ctx, lin, item, (x, 0.0), _ground_line(ground), about=about)
+
+
+def _surface_at(
+    ctx: _Ctx, run: Run, k: int, holder: Holder
+) -> tuple[Line, tuple[float, float], tuple[float, float]]:
+    """A surface at frame ``k``: its support line and its two ends, on the stage."""
+    m = _body_world(ctx.puppet, run, k, holder.body)
+    a, b = (_apply(m, p) for p in holder.segment)
+    return _line_through(a, b), a, b
+
+
+def _fraction_on(
+    p: tuple[float, float], a: tuple[float, float], b: tuple[float, float]
+) -> float:
+    """How far along ``a``-``b`` the foot of ``p`` is, kept on the segment.
+
+    >>> _fraction_on((3.0, -7.0), (0.0, 0.0), (10.0, 0.0)), _fraction_on((-4.0, 0.0), (0.0, 0.0), (10.0, 0.0))
+    (0.3, 0.0)
+    """
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    length2 = dx * dx + dy * dy
+    if length2 <= _EPS:
+        return 0.5
+    return max(0.0, min(1.0, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / length2))
+
+
+def _tilt(line: Line) -> float:
+    """A support line's angle on the stage (0: level)."""
+    return math.atan2(line[1][1], line[1][0])
+
+
+def _turned(lin: Lin, angle: float) -> Lin:
+    return (lin[0] + angle, lin[1], lin[2])
 
 
 def _place_target(
@@ -1228,6 +1537,24 @@ def _place_target(
             else (float(g.rotation), carried[1], carried[2])
         )
         return lin, None, (target.x, target.y)
+    if target.kind == "surface":
+        # As on the ground, with the surface's line (in the body's frame, at
+        # frame k) for the floor and the item's angles taken from its tilt.
+        # Below the hand when it starts to put it down.
+        lin, whole = _on_surface(
+            ctx,
+            run,
+            k,
+            target,
+            item,
+            lambda tilt: _rest_lin(
+                ctx, item, _turned(carried, -tilt), g.rotation, rests
+            ),
+            below=_point_world(ctx.puppet, run, g.k0, g.hand),
+            below_k=g.k0,
+            about=g.point if g.point is not None else ctx.items[item].centre,
+        )
+        return lin, whole, None
     lin = _rest_lin(ctx, item, carried, g.rotation, rests)
     ground = _ground_at(ctx, run, g.k0, g.hand.entity)
     if ground is None:
@@ -1280,6 +1607,23 @@ def walk_items(
                 state = _State(
                     "rest", m=_placed((first.x, first.y), _lin_of(m_doc), info.grip)
                 )
+            elif first.kind == "surface":
+                _lin, m = _on_surface(  # below its staged centre
+                    ctx,
+                    run,
+                    0,
+                    first,
+                    item,
+                    lambda _tilt: _lin_of(m_doc),
+                    below=_apply(m_doc, info.centre),
+                    below_k=0,
+                )
+                state = _State(
+                    "body",
+                    body=first.body,
+                    local=_compose(_invert(_body_world(puppet, run, 0, first.body)), m),
+                )
+                rests.append((0, _lin_of(m_doc)))
             elif first.kind == "body":
                 lin = _socket_lin(ctx, run, 0, first, item)
                 aim = ctx.aims.get(item)
@@ -1467,6 +1811,20 @@ def _transition(
                 else current
             )
             return _State("rest", m=m), m
+        if g.target.kind == "surface":
+            # Held by the surface's body from now on: it follows it.
+            line, _a, _b = _surface_at(ctx, run, k, g.target)
+            m = whole if ideal and whole is not None else current
+            above = _above(m, info.corners, line)
+            if not ideal and abs(above) <= SUPPORT_TOLERANCE_PX:
+                m = _lift(m, line, above)
+            rests.append((k, _turned(_lin_of(m), -_tilt(line))))
+            body = g.target.body
+            return _State(
+                "body",
+                body=body,
+                local=_compose(_invert(_body_world(puppet, run, k, body)), m),
+            ), m
         # the ground
         ground = _ground_at(ctx, run, g.k0, g.hand.entity)
         if ground is None:
@@ -1986,9 +2344,15 @@ def _gravity(shot: Any, style_pack: Any) -> tuple[float, float] | None:
 
 def solve_holds(
     state: Any, doc: Any, puppet: Puppet, decl: Any, settings: Any, times: list[float]
-) -> tuple[Run, dict[tuple[str, str], tuple[list[float], list[float]]], dict[str, Any]]:
+) -> tuple[
+    Run,
+    dict[tuple[str, str], tuple[list[float], list[float]]],
+    dict[str, list[tuple[float, str]]],
+    dict[str, Any],
+]:
     """Plan and solve a shot's holds: the final run, the items' channels
-    ``{(path, prop): (values, as the document shows them)}``, and the report."""
+    ``{(path, prop): (values, as the document shows them)}``, the keys of each
+    held item's ``paint_after`` channel (:func:`paint_hosts`), and the report."""
     from an.stage.solve import run_solve
 
     shot = state.shot
@@ -2014,7 +2378,7 @@ def solve_holds(
     walk = walk_items(ctx, run, ideal=False)
     _measure(ctx, run, walk)
     channels = _item_channels(ctx, run, walk)
-    return run, channels, _report(ctx, run, walk)
+    return run, channels, _item_hosts(ctx), _report(ctx, run, walk)
 
 
 def _measure(ctx: _Ctx, run: Run, walk: Walk) -> None:
@@ -2046,6 +2410,13 @@ def _measure(ctx: _Ctx, run: Run, walk: Walk) -> None:
                 g.gap = math.hypot(there_item[0] - socket[0], there_item[1] - socket[1])
                 continue
             there = g.goal or hand
+            if g.target.kind == "surface":
+                before = walk.before.get(g.index)
+                if before is not None:
+                    line, _a, _b = _surface_at(ctx, run, g.kc, g.target)
+                    off = abs(_above(before, info.corners, line))
+                    g.gap = max(off, math.hypot(hand[0] - there[0], hand[1] - there[1]))
+                    continue
             if g.target.kind == "ground":
                 before = walk.before.get(g.index)
                 ground = _ground_at(ctx, run, g.k0, g.hand.entity)
@@ -2086,6 +2457,97 @@ def _item_channels(
         for prop in ITEM_CHANNELS:
             out[(item, prop)] = (values[prop], shown[prop])
     return out
+
+
+def paint_hosts(
+    holders: Sequence[tuple[int, Holder | None]],
+    times: Sequence[float],
+    *,
+    lead: float = PAINT_SWITCH_LEAD_S,
+) -> list[tuple[float, str]]:
+    """The keys of an item's ``paint_after`` channel (an#537) from its holders
+    ``[(frame, holder)]`` in the order they changed: the part it paints just
+    after (``""``: its staged place, when no body holds it), at each change; at
+    one frame the last change stands. A change key leads its frame by ``lead``
+    seconds, so the frame sees it however its time was rounded (the property is
+    ``discrete(switch_at=1)``: it switches at its own key; a space that
+    declares it otherwise must keep that). ``[]`` when no body ever holds it:
+    nothing to emit, and the shot compiles as before.
+
+    >>> hand = Holder("body", ref="fig/arm_r", body="fig/arm_r", local=(0.0, 0.0))
+    >>> times = [0.0, 0.5, 1.0, 1.5, 2.0]
+    >>> paint_hosts([(0, Holder("ground")), (2, hand), (4, None)], times, lead=0.25)
+    [(0.0, ''), (0.75, 'fig/arm_r'), (1.75, '')]
+    >>> paint_hosts([(0, Holder("ground"))], times)
+    []
+    """
+
+    def host(holder: Holder | None) -> str:
+        if holder is None or holder.kind not in ("body", "surface") or not holder.body:
+            return ""
+        return holder.body
+
+    final = {k: host(h) for k, h in holders}
+    if not any(final.values()):
+        return []
+    keys: list[tuple[float, str]] = [(times[0], "")]
+    for k in sorted(final):
+        if final[k] != keys[-1][1]:
+            at = times[k] - lead if k > 0 else times[0]
+            keys = keys[:-1] if keys[-1][0] == at else keys
+            keys.append((at, final[k]))
+    return keys
+
+
+def _item_hosts(ctx: _Ctx) -> dict[str, list[tuple[float, str]]]:
+    """Each item's ``paint_after`` keys (:func:`paint_hosts`): its holder at the
+    shot's start, then at every take, put and drop (the report's timeline)."""
+    out: dict[str, list[tuple[float, str]]] = {}
+    for item in ctx.items:
+        holders: list[tuple[int, Holder | None]] = [(0, ctx.initial.get(item))]
+        for ev in ctx.events.get(item, ()):
+            if ev.kind == "take":
+                holders.append((ev.k, ev.gesture.hand))
+            elif ev.kind == "put":
+                holders.append((ev.k, ev.gesture.target))
+            elif ev.kind == "drop":
+                holders.append((ev.k, None))
+        keys = paint_hosts(holders, ctx.times)
+        if keys:
+            out[item] = keys
+    return out
+
+
+def _nearest_support(
+    ctx: _Ctx, run: Run, g: Gesture, before: Affine
+) -> tuple[float, str, float | None] | None:
+    """What a staged item taken by ``g`` rests on: ``(how far above it, its
+    name, the floor's y or None)``, among the ground and every surface the
+    shot's holds name (an#536) that is under the item. One it touches wins;
+    else the nearest below it; else (sunk into all) the least sunk."""
+    corners = ctx.items[g.item].corners
+    measured: list[tuple[float, str, float | None]] = []
+    ground = _ground_at(ctx, run, g.k0, g.hand.entity)
+    if ground is not None:
+        measured.append((_above(before, corners, _ground_line(ground)), GROUND, ground))
+    surfaces = {
+        h.ref: h
+        for h in (*ctx.initial.values(), *(o.target for o in ctx.gestures))
+        if h is not None and h.kind == "surface"
+    }
+    centre = _apply(before, ctx.items[g.item].centre)
+    for ref, h in sorted(surfaces.items()):
+        line, a, b = _surface_at(ctx, run, g.kc, h)
+        if 0.0 < _fraction_on(centre, a, b) < 1.0:  # over it, not past an end
+            measured.append((_above(before, corners, line), ref, None))
+    if not measured:
+        return None
+    if any(abs(m[0]) <= SUPPORT_TOLERANCE_PX for m in measured):
+        return min(measured, key=lambda m: abs(m[0]))
+    below = [m for m in measured if m[0] > 0]
+    return (
+        min(below, key=lambda m: m[0]) if below else max(measured, key=lambda m: m[0])
+    )
 
 
 def _report(ctx: _Ctx, run: Run, walk: Walk) -> dict[str, Any]:
@@ -2142,13 +2604,13 @@ def _report(ctx: _Ctx, run: Run, walk: Walk) -> dict[str, Any]:
             continue
         if any(o.item == g.item and o.start < g.start for o in ctx.gestures):
             continue
-        ground = _ground_at(ctx, run, g.k0, g.hand.entity)
-        if ground is None:
-            continue
         before = walk.before.get(g.index)
         if before is None:
             continue
-        above = ground - _lowest(before, ctx.items[g.item].corners)
+        support = _nearest_support(ctx, run, g, before)
+        if support is None:
+            continue
+        above, onto, ground = support
         if (
             SUPPORT_TOLERANCE_PX < above <= FLOAT_BAND_PX
             or above < -SUPPORT_TOLERANCE_PX
@@ -2159,7 +2621,8 @@ def _report(ctx: _Ctx, run: Run, walk: Walk) -> dict[str, Any]:
                     "where": g.where,
                     "above": r2(above),
                     "at": r2(g.contact),
-                    "ground": r2(ground),
+                    "ground": r2(ground) if ground is not None else None,
+                    "onto": onto,
                 }
             )
     return {

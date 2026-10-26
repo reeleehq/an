@@ -122,6 +122,119 @@ def inside_folder(folder: str | Path, rel: str) -> Path | None:
     return target if real == root or real.is_relative_to(root) else None
 
 
+def asset_references(doc: Mapping) -> list[tuple[str, str]]:
+    """``(label, path)`` for every file path an asset document names (an#552):
+    an environment's image planes (``planes/<name>/art/src``), a rig's
+    attachments (``skins/<skin>/slots/<slot>/<attachment>/path``), a
+    character's ``source_svg`` and the files its ``colour_roles`` keys name.
+
+    The one list of what an asset document references; the core's
+    ``an validate`` and a genre's own validator both walk it, so they cannot
+    disagree about which fields hold a path.
+
+    >>> asset_references({"planes": [{"name": "sky", "art": {"kind": "image", "src": "sky.png"}},
+    ...                              {"name": "fill", "art": {"kind": "fill"}}]})
+    [('plane sky', 'sky.png')]
+    >>> asset_references({"skins": {"default": {"slots": {"body": {"body": {"path": "parts/body.svg"}}}}},
+    ...                   "source_svg": "source.svg", "colour_roles": {"parts/body.svg": {"#fff": "skin"}}})
+    [('part body/body', 'parts/body.svg'), ('source_svg', 'source.svg'), ('colour_roles parts/body.svg', 'parts/body.svg')]
+
+    A malformed document names nothing where it is malformed (its schema
+    check reports it), rather than raising:
+
+    >>> asset_references({"planes": [{"art": "sky.png"}], "skins": {"default": {"slots": ["body"]}},
+    ...                   "source_svg": 3})
+    []
+    >>> asset_references({"planes": "sky.png", "skins": ["default"]})
+    []
+    """
+    out: list[tuple[str, str]] = []
+    planes = doc.get("planes")
+    for plane in planes if isinstance(planes, (list, tuple)) else ():
+        if not isinstance(plane, Mapping):
+            continue
+        art = plane.get("art")
+        if not isinstance(art, Mapping):
+            continue
+        src = art.get("src")
+        if art.get("kind", "fill") == "image" and isinstance(src, str) and src:
+            out.append((f"plane {plane.get('name', '?')}", src))
+    skins = doc.get("skins")
+    for skin in skins.values() if isinstance(skins, Mapping) else ():
+        slots = skin.get("slots") if isinstance(skin, Mapping) else None
+        if not isinstance(slots, Mapping):
+            continue
+        for slot_name, attachments in slots.items():
+            if not isinstance(attachments, Mapping):
+                continue
+            for att_name, att in attachments.items():
+                rel = att.get("path") if isinstance(att, Mapping) else None
+                if isinstance(rel, str) and rel:
+                    out.append((f"part {slot_name}/{att_name}", rel))
+    source_svg = doc.get("source_svg")
+    if isinstance(source_svg, str) and source_svg:
+        out.append(("source_svg", source_svg))
+    roles = doc.get("colour_roles")
+    if isinstance(roles, Mapping):
+        out += [(f"colour_roles {k}", k) for k in roles if isinstance(k, str) and k]
+    return out
+
+
+#: The message a file that resolves outside its asset's folder gets.
+OUTSIDE_FOLDER_PROBLEM: str = "resolves outside the asset's folder (a link)"
+
+
+def asset_ref_problems(
+    doc: Mapping,
+    folder: str | Path | None = None,
+    *,
+    file_problems: Callable[[Path], list[str]] | None = None,
+) -> list[tuple[str, str]]:
+    """``(label, message)`` for every reference in ``doc``
+    (:func:`asset_references`) that breaks the asset-reference rule (an#483,
+    an#552); ``[]`` when none does. The one rule the core and a genre share.
+
+    A reference is judged by NAME first (:func:`asset_ref_problem`), and is
+    never read when its name is bad; with a ``folder``, also by where it
+    resolves (:func:`inside_folder`: a link out of the folder is the same
+    error). ``file_problems``, when given, is asked about each file that
+    passed (the core passes its SVG self-containment check): it is called
+    for every path that passed the name (and folder) check, whether or not
+    the file exists, so it must tolerate an absent file. Each message it
+    returns is appended to ``"<label> names <path>, which"``, so it must
+    begin with a verb (``"is SVG that ..."``, ``"is not in the folder"``).
+    ``message`` is a whole sentence, label included, so a caller can report
+    it as is.
+
+    >>> asset_ref_problems({"source_svg": "../x.svg", "planes": [
+    ...     {"name": "sky", "art": {"kind": "image", "src": "sky.png"}}]})  # doctest: +NORMALIZE_WHITESPACE
+    [('source_svg', "source_svg names '../x.svg', which leaves the asset folder (`..`):
+      an asset reference must be a relative path inside the asset's own folder
+      (nothing outside it is read)")]
+    >>> asset_ref_problems({"source_svg": "source.svg"}, ".")
+    []
+    >>> asset_ref_problems({"source_svg": "ok.svg"}, ".",
+    ...                    file_problems=lambda f: [f"is SVG that holds a <script>"])
+    [('source_svg', "source_svg names 'ok.svg', which is SVG that holds a <script>")]
+    """
+    out: list[tuple[str, str]] = []
+    for label, rel in asset_references(doc):
+        who = f"{label} names {rel!r}, which"
+        problem = asset_ref_problem(rel)
+        if problem is not None:
+            out.append((label, f"{who} {problem}: {ASSET_REF_RULE}"))
+            continue
+        if folder is None:
+            continue
+        file = inside_folder(folder, rel)
+        if file is None:
+            out.append((label, f"{who} {OUTSIDE_FOLDER_PROBLEM}: {ASSET_REF_RULE}"))
+            continue
+        if file_problems is not None:
+            out += [(label, f"{who} {found}") for found in file_problems(file)]
+    return out
+
+
 class JsonDirStore(MutableMapping):
     """`MutableMapping` of name -> JSON document, stored as ``<name>.json`` files.
 

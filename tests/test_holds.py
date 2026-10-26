@@ -121,7 +121,9 @@ def test_the_hold_verbs_round_trip_through_scene_md():
             release("cup", at=3.0, onto="ground@100", arc=50),
             handover("cup", "jo@hand_l", meet=0.5),
             swap("nap/hand", take="musket", give="sword", by="stu@hand_r", lag=0.3),
-            swap("nap/hand", take="sword", give="musket", by="stu@hand_l", rotation=-0.4),
+            swap(
+                "nap/hand", take="sword", give="musket", by="stu@hand_l", rotation=-0.4
+            ),
         ],
     )
     back = markdown_to_ir(ir_to_markdown(SceneIR(timeline=[shot])))
@@ -669,3 +671,242 @@ def test_an_item_that_holds_another_is_refused_by_name(tmp_path):
     )
     messages = [m for s, m in _lint(project) if s == "error"]
     assert any("is itself held" in m for m in messages), messages
+
+
+# -- draw order follows the holder (an#537) -------------------------------------------
+
+#: What each holder in the report paints the stick just after: the part that
+#: holds it, or its staged place.
+_HOSTS = {"fig/arm_r": "fig/arm_r", "stand@hand": "stand/body", "ground": "", "air": ""}
+
+
+def _paint_channels(doc):
+    return [
+        ch
+        for clip in doc.animations.values()
+        for ch in clip.channels
+        if ch.property == "paint_after"
+    ]
+
+
+def test_a_held_item_draws_just_above_the_part_that_holds_it(tmp_path):
+    """The acceptance of an#537: at every frame, the stick is painted just after
+    the part that holds it (the hand, then the stand's socket part, then the
+    hand again) and back at its staged place once it is let go, switching at
+    the frame its holder changes; its transform is not what moves its paint."""
+    doc = _compile(
+        _project(
+            tmp_path,
+            "- {kind: grasp, by: fig/arm_r, item: stick, start: 0.5}\n"
+            "- {kind: place, item: stick, onto: stand@hand, start: 1.6}\n"
+            "- {kind: grasp, by: fig/arm_r, item: stick, start: 2.4}\n"
+            "- {kind: release, item: stick, at: 3.4}",
+        )
+    )
+    timeline = _holds(doc)["holders"]["stick"]
+    assert [h for _t, h in timeline] == [
+        "ground",
+        "fig/arm_r",
+        "stand@hand",
+        "fig/arm_r",
+        "air",
+    ]
+    (channel,) = _paint_channels(doc)
+    assert channel.target == "stick"
+    for t in _times(0.0, 4.0):
+        holder = [h for at, h in timeline if round(t, 2) >= at][-1]
+        assert _pose(doc, t)[("stick", "paint_after")] == _HOSTS[holder], t
+
+
+def test_an_item_held_from_the_start_draws_with_its_holder_from_the_start(tmp_path):
+    entities = """- {kind: prop, id: fig, store: props, ref: figure, stage: {at: [-100, 200]}}
+- {kind: prop, id: stand, store: props, ref: stand, stage: {at: [40, 200]}}
+- {kind: prop, id: stick, store: props, ref: stick, stage: {at: [40, 0], scale: 0.5, after: fig}, overrides: {held_by: stand@hand}}
+"""
+    actions = "- {kind: tween, target: stand, property: rotation, from: 0.0, to: 0.3, duration: 0.5, start: 1.0}"
+    doc = _compile(make_project(tmp_path / "p", scene(actions, entities=entities)))
+    assert all(
+        _pose(doc, t)[("stick", "paint_after")] == "stand/body"
+        for t in _times(0.0, 4.0)
+    )
+
+
+def test_an_item_no_body_holds_keeps_its_staged_place_and_emits_nothing(tmp_path):
+    """Byte identity for every shot whose items no body ever holds: no channel."""
+    actions = "- {kind: tween, target: stand, property: rotation, from: 0.0, to: 0.3, duration: 0.5, start: 1.0}"
+    doc = _compile(_project(tmp_path, actions))
+    assert _holds(doc)["holders"]["stick"] == [[0.0, "ground"]]
+    assert _paint_channels(doc) == []
+
+
+# -- putting down on a body's surface (an#536) ----------------------------------------
+
+#: The figure, the crate (its declared surface 40 units above its base) at x 20,
+#: the stand (no declared surface: its ink's top) at x 160, the stick on the floor.
+_SURFACE_ENTITIES = """- {kind: prop, id: fig, store: props, ref: figure, stage: {at: [-100, 200]}}
+- {kind: prop, id: crate, store: props, ref: crate, stage: {at: [20, 200]}}
+- {kind: prop, id: stand, store: props, ref: stand, stage: {at: [160, 200]}}
+- {kind: prop, id: stick, store: props, ref: stick, stage: {at: [-160, 150], scale: 0.5, after: fig}, overrides: {held_by: ground}}
+"""
+_TAKE = "- {kind: grasp, by: fig/arm_r, item: stick, start: 0.3}\n"
+
+
+def _surface_project(tmp_path, actions, entities=_SURFACE_ENTITIES):
+    return make_project(tmp_path / "p", scene(actions, entities=entities))
+
+
+def _crate_top(doc, t):
+    """The crate's declared surface at ``t``: its two ends on the stage."""
+    from tests._hold_fixture import CRATE_SURFACE
+
+    return (
+        _stage(doc, "crate", t, point=(-50.0 * K, -CRATE_SURFACE * K)),
+        _stage(doc, "crate", t, point=(50.0 * K, -CRATE_SURFACE * K)),
+    )
+
+
+def test_a_place_onto_a_surface_lays_the_item_on_it_and_it_follows_the_body(tmp_path):
+    """The acceptance of an#536: ``place onto: crate@surface`` puts the stick's
+    lowest painted point on the crate's declared surface (two bones, below the
+    top of its ink), below the hand, at its rest angle; from then on the crate
+    holds it: it moves with the crate and draws just above it."""
+    actions = (
+        _TAKE + "- {kind: place, item: stick, onto: crate@surface, start: 1.4}\n"
+        "- {kind: tween, target: crate, property: x, from: 20, to: 120, duration: 0.5, start: 3.0}"
+    )
+    doc = _compile(_surface_project(tmp_path, actions))
+    g = _gesture(doc, "place")
+    assert g["gap"] <= GRASP_TOLERANCE_PX and g["onto"] == "crate@surface"
+    assert [h for _t, h in _holds(doc)["holders"]["stick"]] == [
+        "ground",
+        "fig/arm_r",
+        "crate@surface",
+    ]
+    for t in _times(g["contact"], 4.0):
+        (lx, ly), (rx, _ry) = _crate_top(doc, t)
+        bottom = _stage(doc, "stick", t, point=INK_BOTTOM)
+        assert bottom[1] == pytest.approx(ly, abs=1e-3), (
+            t
+        )  # on the surface, not its box
+        assert lx - 1e-3 <= bottom[0] <= rx + 1e-3, t
+        assert _pose(doc, t)[("stick", "rotation")] == pytest.approx(0.0, abs=1e-6)
+        assert _pose(doc, t)[("stick", "paint_after")] == "crate/body", t
+    # It rides on the crate: the crate's move is the stick's.
+    before, after = _stage(doc, "stick", 2.9), _stage(doc, "stick", 3.9)
+    assert after[0] - before[0] == pytest.approx(100.0, abs=1e-3)
+    assert after[1] == pytest.approx(before[1], abs=1e-3)
+
+
+def test_an_undeclared_surface_is_the_top_of_the_ink_and_takes_a_fraction(tmp_path):
+    """``stand@surface@0.5``: the stand declares no surface bones, so its
+    surface is the top of its painted box; the item goes halfway along it."""
+    actions = (
+        _TAKE
+        + "- {kind: place, item: stick, onto: stand@surface@0.5, start: 1.4, reach: 0.8}"
+    )
+    doc = _compile(_surface_project(tmp_path, actions))
+    g = _gesture(doc, "place")
+    assert g["gap"] <= GRASP_TOLERANCE_PX
+    top = 200.0 - 150.0 * K  # the stand's body is 150 units tall, standing on y 200
+    for t in _times(g["contact"], 4.0):
+        x, y = _stage(doc, "stick", t, point=INK_BOTTOM)
+        assert (x, y) == (pytest.approx(160.0, abs=1e-3), pytest.approx(top, abs=1e-3))
+
+
+def test_a_tilted_surface_lays_the_item_along_it(tmp_path):
+    """The crate tilted by 0.2 rad before the place: the stick lies at 0.2,
+    its lowest point on the middle of the tilted surface."""
+    actions = (
+        "- {kind: tween, target: crate, property: rotation, from: 0.0, to: 0.2, duration: 0.2, start: 0.0}\n"
+        + _TAKE
+        + "- {kind: place, item: stick, onto: crate@surface@0.5, start: 1.4}"
+    )
+    doc = _compile(_surface_project(tmp_path, actions))
+    g = _gesture(doc, "place")
+    assert g["gap"] <= GRASP_TOLERANCE_PX
+    t = g["contact"] + 0.5
+    (lx, ly), (rx, ry) = _crate_top(doc, t)
+    mid = ((lx + rx) / 2.0, (ly + ry) / 2.0)
+    assert _pose(doc, t)[("stick", "rotation")] == pytest.approx(0.2, abs=1e-6)
+    assert math.dist(_stage(doc, "stick", t, point=INK_BOTTOM), mid) < 1e-3
+
+
+def test_an_item_can_start_on_a_surface_and_is_taken_from_it(tmp_path):
+    entities = _SURFACE_ENTITIES.replace(
+        "overrides: {held_by: ground}", "overrides: {held_by: crate@surface@0.25}"
+    )
+    doc = _compile(_surface_project(tmp_path, _TAKE, entities))
+    (lx, ly), (rx, _ry) = _crate_top(doc, 0.0)
+    x, y = _stage(doc, "stick", 0.0, point=INK_BOTTOM)
+    assert (x, y) == (
+        pytest.approx(lx + 0.25 * (rx - lx), abs=1e-3),
+        pytest.approx(ly, abs=1e-3),
+    )
+    assert _pose(doc, 0.0)[("stick", "paint_after")] == "crate/body"
+    g = _gesture(doc, "grasp")
+    assert g["gap"] <= GRASP_TOLERANCE_PX
+    assert _holds(doc)["holders"]["stick"] == [
+        [0.0, "crate@surface@0.25"],
+        [g["contact"], "fig/arm_r"],
+    ]
+
+
+def test_an_item_hovering_over_a_named_surface_is_called_floating(tmp_path):
+    """``floating_item`` measures a staged item against the surfaces the holds
+    name as well as the ground, and names the one to rest it on."""
+    entities = """- {kind: prop, id: fig, store: props, ref: figure, stage: {at: [-100, 200]}}
+- {kind: prop, id: crate, store: props, ref: crate, stage: {at: [20, 200]}}
+- {kind: prop, id: stick, store: props, ref: stick, stage: {at: [20, 110], scale: 0.5, after: fig}}
+"""
+    actions = _TAKE + "- {kind: place, item: stick, onto: crate@surface, start: 1.4}"
+    warnings_ = [
+        m
+        for s, m in _lint(_surface_project(tmp_path, actions, entities))
+        if s == "warning"
+    ]
+    assert any(
+        "above 'crate@surface'" in m and "held_by: crate@surface" in m
+        for m in warnings_
+    ), warnings_
+
+
+@pytest.mark.parametrize(
+    "actions, expected",
+    [
+        (
+            _TAKE + "- {kind: place, item: stick, onto: crate@surface@2, start: 1.4}",
+            "f from 0",
+        ),
+        (
+            _TAKE + "- {kind: handover, item: stick, to: crate@surface, start: 1.4}",
+            "by `place`",
+        ),
+        (
+            _TAKE + "- {kind: release, item: stick, at: 1.4, onto: crate@surface}",
+            "a release falls to the floor",
+        ),
+        (
+            _TAKE + "- {kind: place, item: stick, onto: 'crate@surface@', start: 1.4}",
+            "f from 0",
+        ),
+    ],
+)
+def test_a_surface_target_that_does_not_make_sense_is_refused(
+    tmp_path, actions, expected
+):
+    with pytest.raises(HoldError, match=expected):
+        _compile(_surface_project(tmp_path, actions))
+
+
+def test_a_bone_named_surface_is_refused_as_a_reserved_name(tmp_path, monkeypatch):
+    import tests._hold_fixture as fixture
+
+    crate = dict(fixture.CRATE)
+    crate["bones"] = [
+        *crate["bones"],
+        {"name": "surface", "parent": "root", "x": 0.0, "y": -50.0},
+    ]
+    monkeypatch.setattr(fixture, "CRATE", crate)
+    actions = _TAKE + "- {kind: place, item: stick, onto: crate@surface, start: 1.4}"
+    with pytest.raises(HoldError, match="reserved point name"):
+        _compile(_surface_project(tmp_path, actions))

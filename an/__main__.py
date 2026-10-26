@@ -43,9 +43,12 @@ each one is user-visible and none is typer's default:
    returns its report as a string and argh printed it; typer discards return
    values, so the wrapper prints it. Without this the CLI runs correctly and
    shows nothing, which is the worst possible failure for a diagnostic tool.
-3. **A function that exits nonzero still exits nonzero.** ``bench-compare
-   --strict`` and ``bench-mutants`` call ``sys.exit(1)`` after printing; the
-   wrapper must not swallow ``SystemExit``.
+3. **A function that exits nonzero still exits nonzero.** A refusal raises
+   ``SystemExit("message")`` (``an probe``, ``an library ...``); the wrapper
+   must not swallow it. A command whose REPORT says it failed returns
+   :func:`an.cli_status.failed` instead, and the wrapper exits with its code
+   after printing it (an#480, an#559); which command does which:
+   :data:`an.cli_status.EXIT_POLICY`.
 """
 
 from __future__ import annotations
@@ -60,7 +63,8 @@ from an.audio.pipeline import AudioPipelineError
 from an.audio.recorded import RecordedVoicesError
 from an.audio.voice_design import VoiceDesignError
 from an.ir.migrate import DocumentMigrationError
-from an.ir.sync import SceneMarkdownError, SceneValidationError
+from an.ir.sync import SceneFileError, SceneMarkdownError, SceneValidationError
+from an.cli_status import exit_code_of
 from an.tools import _dispatch_funcs, _dispatch_namespaces, registered_namespaces
 
 
@@ -119,6 +123,9 @@ _REFUSALS: tuple[type[BaseException], ...] = (
     DocumentMigrationError,
     SceneMarkdownError,
     SceneValidationError,
+    # `--scene` naming a file that is not there, not a scene file of the
+    # project, or one that would overwrite the default scene's output (an#539).
+    SceneFileError,
     # A render refused before any request — a voice spoken by the wrong
     # provider, a voice nobody chose (an#486): the message names the fix.
     AudioPipelineError,
@@ -163,6 +170,9 @@ def _printing(func: Callable[..., Any]) -> Callable[..., Any]:
             raise typer.Exit(1) from e
         if result is not None:
             typer.echo(result)
+        code = exit_code_of(result)
+        if code:
+            raise typer.Exit(code)  # a report that says it failed (an#480)
 
     return run
 

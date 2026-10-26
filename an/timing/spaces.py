@@ -18,8 +18,9 @@ Two spaces are seeded here, and they reproduce today's output EXACTLY:
   :data:`an.base.TRANSFORM_PROPERTIES` is ``number`` (linear), including
   ``tint_r/g/b`` (``tint`` itself stays the compiler's authoring sugar, expanded
   into those three before any channel exists, so the wire shape does not move);
-  every other property names a swap set, ``*@*`` included, and is
-  ``discrete(switch_at=1)``.
+  ``paint_after`` (:data:`an.base.PAINT_AFTER_PROPERTY`, an#537) is where the
+  node is painted, ``discrete(switch_at=1)`` in its own write group; every other
+  property names a swap set, ``*@*`` included, and is ``discrete(switch_at=1)``.
 - ``stage.camera`` — the stage's 2D framing camera: ``x``, ``y``, ``zoom``,
   ``rotation``, all plain ``number`` (the compiler lowers them onto ``root``'s
   pivot, scale and rotation channels). New genres get log zoom and shortest-arc
@@ -43,7 +44,7 @@ from dataclasses import dataclass, field
 from fnmatch import fnmatchcase
 from typing import Any, Callable, Mapping, Union
 
-from an.base import TRANSFORM_PROPERTIES
+from an.base import PAINT_AFTER_PROPERTY, TRANSFORM_PROPERTIES
 from an.timing.kinds import DiscreteKind, FieldKind, NumberKind, kind_from_spec
 
 #: The write group every swap set on a stage node shares: they all replace the
@@ -305,6 +306,16 @@ def _stage_node() -> PropertySpace:
         )
         for prop in sorted(TRANSFORM_PROPERTIES)
     )
+    order = (
+        FieldDecl(
+            PAINT_AFTER_PROPERTY,
+            SWAP_KIND,
+            description=(
+                "where the node is painted: the path of the node it paints just "
+                "after ('' = where the tree puts it), switched at its own key (an#537)"
+            ),
+        ),
+    )
     swaps = (
         FieldDecl(
             "*@*",
@@ -321,7 +332,7 @@ def _stage_node() -> PropertySpace:
     )
     return PropertySpace(
         "stage.node",
-        numeric + swaps,
+        numeric + order + swaps,
         description=(
             "a node of the 2D stage engine: transform properties interpolate as "
             "plain numbers; every other property is a swap set that switches at "

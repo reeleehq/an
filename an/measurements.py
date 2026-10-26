@@ -38,6 +38,7 @@ from typing import TYPE_CHECKING, Any
 
 from an.base import DEFAULT_DURATION
 from an.ir.schema import SceneIR, Shot
+from an.ir.sync import DEFAULT_SCENE_FILE, SceneFile
 
 if TYPE_CHECKING:  # pragma: no cover - types only
     from an.adapters._base import RenderContext
@@ -199,8 +200,19 @@ def settle_durations(
     out = scene.model_copy(update={"timeline": timeline})
     from an.assemble import film_duration
 
-    before = (film_duration(scene, fps=fps), sum(s.duration for s in scene.timeline))
-    if any(abs(meta.duration - b) <= META_DURATION_TOLERANCE_S for b in before):
+    # An unset `meta.duration` (0.0) stays unset (an#557): the film's length is
+    # read off the settled shots. A set one that agreed with the shots before
+    # they settled follows them: it said what the shots laid out, and a scene
+    # stored before an#557 carries the length its reader derived (the layout at
+    # the scene's rate, an#481, or the plain sum before it) as if authored.
+    before = (
+        film_duration(scene, fps=fps),
+        film_duration(scene),
+        sum(s.duration for s in scene.timeline),
+    )
+    if meta.duration > 0 and any(
+        abs(meta.duration - b) <= META_DURATION_TOLERANCE_S for b in before
+    ):
         out.meta = meta.model_copy(update={"duration": film_duration(out, fps=fps)})
     return out, findings
 
@@ -268,7 +280,9 @@ def render_context_for(project: Any, **overrides: Any) -> "RenderContext":
     return RenderContext(**kwargs)
 
 
-def accept_measured(project_dir: str | Path) -> dict[str, float]:
+def accept_measured(
+    project_dir: str | Path, *, scene_file: str | Path | SceneFile = DEFAULT_SCENE_FILE
+) -> dict[str, float]:
     """Write each clock-owned shot's MEASURED length into the authored scene.
 
     Only stored measurements (render first); only shots whose scene duration
@@ -278,7 +292,7 @@ def accept_measured(project_dir: str | Path) -> dict[str, float]:
     """
     from an.project import load
 
-    project = load(project_dir)
+    project = load(project_dir, scene_file=scene_file)
     ctx = render_context_for(project)
     accepted: dict[str, float] = {}
     for shot in project.scene.timeline:

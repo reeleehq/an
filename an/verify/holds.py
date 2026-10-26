@@ -10,8 +10,9 @@ did in ``meta.extensions.solve.holds``):
 - ``unreachable_hold`` (error): a hand does not arrive where it takes or puts
   its item (even bending as far as its ``lean`` allows), with how far it
   stays short and which way to move the carrier;
-- ``floating_item`` (warning): an item that a hand takes from the floor
-  hovers above it (or sinks into it) before it is taken, and a released item
+- ``floating_item`` (warning): an item that a hand takes from the floor (or
+  from a body's surface the holds name: ``crate@surface``, an#536) hovers
+  above it (or sinks into it) before it is taken, and a released item
   with no ground below it or no gravity, that stays in the air.
 
 All three are silent for a shot that holds nothing.
@@ -41,12 +42,13 @@ def _declares(ctx: Any) -> bool:
 
 
 def _holds(ctx: Any) -> tuple[dict[str, Any] | None, Exception | None]:
-    from an.verify.joints import _compiled, _report
+    from an.stage.solve import solve_report
+    from an.verify.constraints import compile_outcome
 
-    doc, error = _compiled(ctx)
+    doc, error = compile_outcome(ctx)
     if doc is None:
         return None, error
-    return _report(doc).get("holds"), None
+    return solve_report(doc).get("holds"), None
 
 
 def check_hold_conflict(ctx: Any) -> None:
@@ -142,17 +144,22 @@ def check_floating_item(ctx: Any) -> None:
     if not report:
         return
     for f in report.get("floating") or ():
+        onto = f.get("onto") or "ground"
+        if onto == "ground":
+            what, where, fix = f"the ground (y {f['ground']:g})", "floor", "the ground"
+        else:  # a body's surface (an#536)
+            what, where, fix = f"{onto!r}", "surface", f"{onto!r}"
         how = (
-            f"{f['above']:.0f} px above the ground (y {f['ground']:g})"
+            f"{f['above']:.0f} px above {what}"
             if f["above"] > 0
-            else f"{-f['above']:.0f} px into the ground (y {f['ground']:g})"
+            else f"{-f['above']:.0f} px into {what}"
         )
         ctx.report.add(
             "warning",
             f"{ctx.path}/{f['where']}",
             f"{f['item']!r} is {how} when it is taken at {f['at']:.2f} s. If it lies on the "
-            f"floor, say so: `overrides: {{held_by: ground}}` on {f['item']!r} puts its lowest "
-            "point on the ground.",
+            f"{where}, say so: `overrides: {{held_by: {onto}}}` on {f['item']!r} puts its lowest "
+            f"point on {fix}.",
         )
     for w in report.get("warnings") or ():
         ctx.report.add("warning", f"{ctx.path}/actions", w["message"] + ".")

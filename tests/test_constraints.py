@@ -29,6 +29,7 @@ ONLY = {
     "rigidity",
     "motion_style",
     "gravity",
+    "causality",
 }
 
 
@@ -614,3 +615,160 @@ def test_an_entity_level_in_the_air_is_hovering(tmp_path):
 
 def test_no_pack_gravity_no_finding(tmp_path):
     assert _msgs(_flown(tmp_path, [_fall(easing="linear")], gravity=None)) == []
+
+
+# -- causality: a sound against its visible cause (catalogue B7) ---------------
+
+
+def _sounded(tmp_path: Path, at: float, *, reaches=None, offset=0.0):
+    """The lamp falling 300 px over 1 s (linear); a cue at ``at`` s whose cause is the lamp reaching ``reaches``."""
+    cue = {
+        "sound": "thud",
+        "at": at,
+        "cause": {"when": "lamp", "reaches": reaches or {"y": _HALFWAY_Y}, "offset": offset},
+    }
+    return _lint(
+        tmp_path,
+        [_tween(property="y", from_value=0.0, to_value=300.0, duration=1.0, easing="linear")],
+        duration=1.0,
+        extra={"sounds": [cue]},
+    )
+
+
+def _halfway_y() -> float:
+    """The lamp's screen y at 0.5 s of the fall (the fixture's lamp, read from the stage)."""
+    from an.stage.timeline import evaluate_timeline, screen_position, timeline_from_scene
+
+    class _Ctx:  # just enough of a check context to compile the shot
+        index = 0
+
+        @staticmethod
+        def cached(key, build):
+            return build()
+
+    import tempfile
+
+    # a copy: loading writes ir/scene.json, which the corpus must not gain
+    project = load(Path(shutil.copytree(LAMP, Path(tempfile.mkdtemp()) / "p")))
+    shot = Shot.model_validate(
+        {
+            **project.scene.timeline[0].model_dump(),
+            "duration": 1.0,
+            "actions": [_tween(property="y", from_value=0.0, to_value=300.0, duration=1.0, easing="linear")],
+        }
+    )
+    ctx = _Ctx()
+    ctx.shot, ctx.scene, ctx.memo = shot, project.scene.model_copy(update={"timeline": [shot]}), {}
+    ctx.stores = {"props": project.mall["props"], "environments": project.mall["environments"]}
+    doc = constraints.compiled_shot(ctx)
+    pose = evaluate_timeline(timeline_from_scene(doc), 0.5)
+    return screen_position(doc, "lamp", pose=pose)[1]
+
+
+_HALFWAY_Y = _halfway_y()
+
+
+def test_causality_is_registered_under_the_core_owner():
+    assert "causality" in check_names(owner=CORE_OWNER)
+
+
+def test_a_sound_on_its_cause_is_clean(tmp_path):
+    assert _msgs(_sounded(tmp_path, 0.5)) == []
+
+
+def test_a_sound_late_past_the_window_is_a_warning(tmp_path):
+    (msg,) = _msgs(_sounded(tmp_path, 0.7))
+    assert "behind" in msg and "'thud'" in msg
+
+
+def test_a_sound_well_before_its_cause_is_an_error(tmp_path):
+    report = _sounded(tmp_path, 0.1)
+    (f,) = report.findings
+    assert f.severity == "error" and "cannot precede" in f.description
+
+
+# -- a shot that does not compile (an#551) -------------------------------------
+
+
+def test_a_shot_that_does_not_compile_says_the_checks_did_not_run(tmp_path):
+    """The compile-based checks skip a shot they could not compile; validate
+    says so once, at the failure severity, never ``info`` (and never nothing)."""
+    from an.verify.vision import FAILURE_SEVERITY
+
+    report = _lint(tmp_path, [_tween()], extra={"step_hz": 1000.0})
+    (f,) = report.findings  # once, though every constraint skipped it
+    assert f.severity == FAILURE_SEVERITY != "info"
+    assert f.ir_path == "timeline/0"
+    assert "did NOT run" in f.description and "CutoutCompileError" in f.description
+
+
+def test_a_shot_that_compiles_says_nothing_about_the_compile(tmp_path):
+    assert _msgs(_lint(tmp_path, [_tween()])) == []
+
+
+def _targets(tmp_path, actions, *, extra=None):
+    """The action-target and continuity checks over the lamp shot with ``actions``."""
+    project = load(Path(shutil.copytree(LAMP, tmp_path / "p")))
+    shot = Shot.model_validate(
+        {
+            **project.scene.timeline[0].model_dump(),
+            "actions": list(actions),
+            **(extra or {}),
+        }
+    )
+    return validate_semantic(
+        project.scene.model_copy(update={"timeline": [shot]}),
+        available_props=project.mall["props"],
+        available_environments=project.mall["environments"],
+        only={"action_targets", "continuity"},
+    )
+
+
+def test_the_action_targets_read_the_shared_compile(tmp_path, monkeypatch):
+    """A shot that compiled has its targets checked against the document the
+    compile-based checks share: the stage is not compiled a second time."""
+    import an.motion
+
+    def no_second_compile(*a, **k):
+        raise AssertionError("the stage was compiled a second time")
+
+    monkeypatch.setattr(an.motion, "stage_poses", no_second_compile)
+    assert _msgs(_targets(tmp_path, [_tween()])) == []
+
+
+def test_an_unknown_target_is_still_reported_from_the_stage_alone(tmp_path):
+    """The shot does not compile (the compiler refuses the target), so the
+    targets are read off the stage alone, and the constraints say they did not run."""
+    report = _targets(tmp_path, [_tween(target="lamp/nope")])
+    errors = [f for f in report.findings if f.severity == "error"]
+    assert errors and "lamp/nope" in errors[0].description
+    assert any("did NOT run" in m for m in _msgs(report))
+
+
+def test_an_unknown_target_is_said_once_with_the_did_not_run_line(tmp_path):
+    report = _targets(tmp_path, [_tween(target="lamp/nope")])
+    (line,) = [m for m in _msgs(report) if "did NOT run" in m]
+    assert line.endswith("reported above).")  # the target error said the cause
+
+
+def test_a_shot_whose_stage_does_not_build_either_gets_one_line(tmp_path, monkeypatch):
+    """The action targets' own "NOT checked" warning is folded into the one
+    line for a shot that does not compile."""
+    import an.motion
+
+    def broken(*a, **k):
+        raise RuntimeError("the stage does not build")
+
+    monkeypatch.setattr(an.motion, "stage_poses", broken)
+    report = _targets(tmp_path, [_tween()], extra={"step_hz": 1000.0})
+    (f,) = report.findings
+    assert "did NOT run" in f.description and "animation targets" in f.description
+
+
+def test_missing_stores_are_not_a_shot_that_does_not_compile(tmp_path):
+    """Without the props store the lamp is a stand-in the stage cannot compile:
+    those checks were not asked for, so validate does not call them broken."""
+    project = load(Path(shutil.copytree(LAMP, tmp_path / "p")))
+    for stores in ({}, {"available_characters": {}}):
+        report = validate_semantic(project.scene, **stores)
+        assert not [m for m in _msgs(report) if "did NOT run" in m]

@@ -534,7 +534,9 @@ def test_a_descriptor_joint_that_does_not_read_is_named_not_raised(tmp_path):
     with pytest.raises(UnknownBodyError):
         _compile(project)
     findings = _lint(project, project.scene.timeline[0])
-    assert [s for s, _ in findings] == ["error"] and "does not read" in findings[0][1]
+    assert [s for s, _ in findings] == ["error", "warning"]
+    assert "does not read" in findings[0][1]
+    assert "did NOT run" in findings[1][1]  # the other joint checks skipped it (an#551)
 
 
 def test_a_shot_that_declares_nothing_reads_no_other_store_entry():
@@ -593,3 +595,48 @@ def test_a_part_a_joint_let_go_of_stays_where_it_was_left(tmp_path, ends):
     doc = _compile(project, shot)
     hands = [_hand_and_grip(doc, t)[0] for t in _times(1.0)]
     assert max(math.dist(a, b) for a, b in zip(hands, hands[1:])) < 5.0
+
+
+def test_every_compile_based_check_shares_one_document_with_the_style_pack(tmp_path, monkeypatch):
+    """an#534: the constraint lints and the placements helper used to compile
+    without the scene's style pack (so a solve without its gravity), and twice."""
+    from an.styles import StylePack
+
+    project = _project(tmp_path)
+    project.mall["styles"]["noir"] = StylePack(name="noir", roles={"sky": "#000000"}).model_dump()
+    meta = project.scene.meta.model_copy(update={"style_pack": "noir"})
+    scene = project.scene.model_copy(update={"meta": meta})
+
+    import an.stage.compile as stage_compile
+
+    real, packs = stage_compile.compile_shot, []
+
+    def spy(*args, **kw):
+        packs.append(kw.get("style_pack"))
+        return real(*args, **kw)
+
+    monkeypatch.setattr(stage_compile, "compile_shot", spy)
+    validate_semantic(
+        scene,
+        available_props=project.mall["props"],
+        available_environments=project.mall["environments"],
+        available_styles=project.mall["styles"],
+    )
+    packed = [p for p in packs if p is not None]
+    assert [p.name for p in packed] == ["noir"] * len(scene.timeline), packs
+
+
+def test_a_shot_that_does_not_compile_says_its_cause_at_most_twice(tmp_path):
+    """A full validate (every check) of a shot that does not compile: the
+    cause is said by the check that owns it and at most once more, and the
+    "did NOT run" line is said once (an#551)."""
+    project = _project(tmp_path, prop="wheel", joints=[{"type": "pin", "a": "@0.5,0"}])
+    report = validate_semantic(
+        project.scene,
+        available_props=project.mall["props"],
+        available_environments=project.mall["environments"],
+    )
+    said = [f.description for f in report.findings]
+    assert 1 <= sum("does not read" in m for m in said) <= 2
+    assert sum("did NOT run" in m for m in said) == 1
+    assert not [m for m in said if "were NOT checked" in m]

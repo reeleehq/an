@@ -22,7 +22,13 @@ from typing import Mapping
 
 from an.base import DEFAULT_FPS, DEFAULT_RESOLUTION
 from an.ir.schema import Meta, Resolution, SceneIR
-from an.ir.sync import ir_to_markdown, sync as sync_files
+from an.ir.sync import (
+    DEFAULT_SCENE_FILE,
+    SceneFile,
+    ir_to_markdown,
+    resolve_scene_file,
+    sync as sync_files,
+)
 from an.stores import build_project_mall
 from an.util import _read_text, _write_json, _write_text
 
@@ -155,11 +161,13 @@ def init(
     """
     pdir = Path(project_dir).expanduser().resolve()
     proj_name = name or pdir.name
+    # The default scene's pair, as every command resolves it (an#554).
+    seed = resolve_scene_file(pdir, must_exist=False)
 
-    if pdir.exists() and (pdir / "scene.md").exists() and not force:
-        if (pdir / "scene.md").stat().st_size > 0:
+    if seed.md_path.exists() and not force:
+        if seed.md_path.stat().st_size > 0:
             raise FileExistsError(
-                f"{pdir / 'scene.md'} already exists with content; pass force=True to overwrite"
+                f"{seed.md_path} already exists with content; pass force=True to overwrite"
             )
 
     pdir.mkdir(parents=True, exist_ok=True)
@@ -177,9 +185,9 @@ def init(
             ),
         )
     )
-    _write_text(pdir / "scene.md", ir_to_markdown(seed_scene))
-    _write_json(pdir / "ir" / "scene.json", json.loads(seed_scene.model_dump_json()))
-    _age_the_seed(pdir / "scene.md", pdir / "ir" / "scene.json")
+    _write_text(seed.md_path, ir_to_markdown(seed_scene))
+    _write_json(seed.json_path, json.loads(seed_scene.model_dump_json()))
+    _age_the_seed(seed.md_path, seed.json_path)
 
     # Seed an.toml.
     toml_path = pdir / "an.toml"
@@ -208,8 +216,18 @@ def init(
     return pdir
 
 
-def load(project_dir: str | Path, *, check_kinds: bool = True) -> Project:
+def load(
+    project_dir: str | Path,
+    *,
+    check_kinds: bool = True,
+    scene_file: str | Path | SceneFile = DEFAULT_SCENE_FILE,
+) -> Project:
     """Load an existing project. Reconciles scene.md / ir/scene.json first.
+
+    ``scene_file`` names another scene of the project (``scene.studio.md``, its
+    JSON twin ``ir/scene.studio.json``, an#539; resolved by
+    :func:`an.ir.sync.resolve_scene_file`, so a bad or missing one raises
+    :class:`~an.ir.sync.SceneFileError`); the assets are the project's.
 
     Registers the installed genres first (:func:`an.genres.load`, ADR 0001
     decision 3: discovery is explicit, and loading a project is one of the
@@ -231,9 +249,10 @@ def load(project_dir: str | Path, *, check_kinds: bool = True) -> Project:
         raise FileNotFoundError(f"no such project directory: {pdir}")
 
     # Sync md ↔ json so the loaded scene reflects the latest Markdown.
-    sync_files(pdir)
+    scene_file = resolve_scene_file(pdir, scene_file)
+    sync_files(pdir, scene_file)
 
-    mall = build_project_mall(pdir, ensure=True)
+    mall = build_project_mall(pdir, ensure=True, scene_file=scene_file)
     scene = mall["scenes"]["main"]
     if check_kinds:
         from an.ir.validate import require_registered_kinds

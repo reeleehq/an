@@ -17,7 +17,7 @@ import json
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Collection, Literal, Mapping
+from typing import Any, Callable, Collection, Literal, Mapping
 
 from pydantic import ValidationError
 
@@ -741,6 +741,8 @@ def _check_action_targets(
     *,
     resolution: tuple[int | None, int | None] | None = None,
     skip: frozenset[str] = frozenset(),
+    built: set[str] | None = None,
+    on_unbuilt: Callable[[str], None] | None = None,
 ) -> None:
     """Every `set`/`tween` target must be a node the compiler BUILDS (an#193).
 
@@ -754,6 +756,11 @@ def _check_action_targets(
     ``skip`` names entities another check owns (text blocks: their units are
     checked by `_check_text_blocks`, at the scene's resolution). The runtime's
     camera node (``root``) is a legitimate target, as the compiler says.
+    ``built``, when given, is the node paths of the shot's compiled document
+    (the one the compile-based checks share, an#551): read instead of
+    compiling the stage a second time. ``on_unbuilt(why)``, when given, takes
+    the "targets were NOT checked" news instead of a warning of its own (the
+    ``not_compiled`` line folds it in).
     """
     from an.stage import STAGE_RENDERER_NAMES
 
@@ -797,7 +804,12 @@ def _check_action_targets(
     ]
     if not targets:
         return
-    built, why = _built_node_paths(shot, stores, resolution=resolution)
+    why = None
+    if built is None:
+        built, why = _built_node_paths(shot, stores, resolution=resolution)
+    if built is None and on_unbuilt is not None:
+        on_unbuilt(why)
+        return
     if built is None:
         report.add(
             "warning",
@@ -1423,6 +1435,12 @@ class ValidationContext:
         return self.memo[key]
 
 
+#: Checks that run whatever ``only`` selects: they report on the checks that
+#: did run (``not_compiled``: a shot the compile-based checks could not
+#: compile, an#551), and say nothing when none did.
+ALWAYS_RUN_CHECKS: frozenset[str] = frozenset({"not_compiled"})
+
+
 def validate_semantic(
     scene: SceneIR,
     *,
@@ -1470,7 +1488,8 @@ def validate_semantic(
     skip that shot rather than crash.
 
     ``only`` runs just the registered checks of those names (what ``an render``
-    does after synthesis, :func:`post_synthesis_findings`); ``fps`` is the one
+    does after synthesis, :func:`post_synthesis_findings`), plus the ones in
+    :data:`ALWAYS_RUN_CHECKS`, which report on whichever checks ran; ``fps`` is the one
     the film is assembled at when it is not the scene's (``an render --fps``),
     which decides how long a dissolve's overlap is.
     """
@@ -1496,7 +1515,11 @@ def validate_semantic(
     )
 
     def selected(stage: str):
-        return [c for c in registered_checks(stage) if only is None or c.name in only]
+        return [
+            c
+            for c in registered_checks(stage)
+            if only is None or c.name in only or c.name in ALWAYS_RUN_CHECKS
+        ]
 
     for check in selected("scene"):
         _run_check(check, ctx)
@@ -1885,7 +1908,39 @@ def _core_action_targets(ctx: ValidationContext) -> None:
         ctx.stores,
         resolution=(res.width or None, res.height or None),
         skip=frozenset(_text_ids(ctx)),
+        built=_compiled_node_paths(ctx),
+        on_unbuilt=_targets_unchecked(ctx),
     )
+
+
+def _targets_unchecked(ctx: ValidationContext) -> Callable[[str], None] | None:
+    """Where the action-target check records that it could not check a shot
+    that does not compile: the memo, read by the one ``not_compiled`` line
+    (:func:`an.verify.constraints.check_not_compiled`), so the shot gets one
+    "did NOT run" line, not two. ``None`` for a shot that compiled (or is not
+    a stage shot): its own warning then."""
+    from an.verify.constraints import TARGETS_UNCHECKED_KEY, compile_outcome
+
+    if compile_outcome(ctx)[1] is None:
+        return None
+    key = (TARGETS_UNCHECKED_KEY, ctx.index)
+    return lambda why: ctx.memo.__setitem__(key, why)
+
+
+def _compiled_node_paths(ctx: ValidationContext) -> set[str] | None:
+    """The node paths of ``ctx.shot``'s compiled document, the one every
+    compile-based check shares (:func:`an.verify.constraints.compile_outcome`),
+    or ``None`` when it did not compile. Safe to read instead of the stage alone: the
+    compiler refuses a channel on a node it did not build, so in a shot that
+    compiled every target is among these paths, which is all the check asks;
+    the stage alone is compiled only for a shot that did not."""
+    from an.stage.tree import walk_document
+    from an.verify.constraints import compile_outcome
+
+    doc, _error = compile_outcome(ctx)
+    if doc is None:
+        return None  # the stage alone is compiled; its failure is reported
+    return {path for path, _node in walk_document(doc)}
 
 
 def _core_field_kinds(ctx: ValidationContext) -> None:
@@ -2094,17 +2149,19 @@ def _core_asset_refs(ctx: ValidationContext) -> None:
             continue  # store not supplied → this check did not run
         problems = ctx.cached(
             ("asset_refs", store_name, entity.ref),
-            lambda: _asset_ref_problems(store, entity.ref),
+            lambda: _stored_asset_ref_problems(store, entity.ref),
         )
         where = f"{path}/entities/{j}"
         for problem in problems:
             report.add("error", where, f"{entity.kind} ref {entity.ref!r}: {problem}")
 
 
-def _asset_ref_problems(store: Any, ref: str) -> list[str]:
+def _stored_asset_ref_problems(store: Any, ref: str) -> list[str]:
     """What is wrong with the files the asset ``ref``'s document names
-    (:func:`_core_asset_refs`), one message each; ``[]`` when nothing is."""
-    from an.stores._common import ASSET_REF_RULE, asset_ref_problem, inside_folder
+    (:func:`_core_asset_refs`), one message each; ``[]`` when nothing is.
+    The rule is :func:`an.stores._common.asset_ref_problems`, with the SVG
+    self-containment check as its ``file_problems``."""
+    from an.stores._common import asset_ref_problems
 
     try:
         raw = store[ref] if ref in store else None
@@ -2114,66 +2171,30 @@ def _asset_ref_problems(store: Any, ref: str) -> list[str]:
         return []  # a missing or malformed document is `entity_refs`' finding
     root = getattr(store, "_root", None)
     folder = Path(root) / str(ref) if root is not None else None
-    out: list[str] = []
-    for label, rel in _asset_references(raw):
-        who = f"{label} names {rel!r}, which"
-        problem = asset_ref_problem(rel)
-        if problem is not None:
-            out.append(f"{who} {problem}: {ASSET_REF_RULE}")
-            continue
-        if folder is None:
-            continue
-        file = inside_folder(folder, rel)
-        if file is None:
-            out.append(
-                f"{who} resolves outside the asset's folder (a link): {ASSET_REF_RULE}"
-            )
-            continue
-        out += [
-            f"{who} is SVG that {found} — an asset is self-contained: no code, "
-            "no picture inside, no outside file, no embedded data"
-            for found in _svg_file_problems(file)
-        ]
-    return out
+    return [
+        message
+        for _label, message in asset_ref_problems(
+            raw, folder, file_problems=_svg_self_containment_problems
+        )
+    ]
+
+
+def _svg_self_containment_problems(file: "Path") -> list[str]:
+    """:func:`_svg_file_problems` of ``file``, each said as what an asset must be."""
+    return [
+        f"is SVG that {found} — an asset is self-contained: no code, "
+        "no picture inside, no outside file, no embedded data"
+        for found in _svg_file_problems(file)
+    ]
 
 
 def _asset_references(doc: Mapping) -> list[tuple[str, str]]:
-    """``(what, path)`` for every file path ``doc`` names: an environment's
-    image planes (``planes/<name>/art/src``), a rig's attachments
-    (``skins/<skin>/slots/<slot>/<attachment>/path``), a character's
-    ``source_svg`` and the files its ``colour_roles`` keys name.
+    """Deprecated private alias of :func:`an.stores._common.asset_references`,
+    kept because ``cutan`` (before it moves to the public name, an#552)
+    imports it."""
+    from an.stores._common import asset_references
 
-    >>> _asset_references({"planes": [{"name": "sky", "art": {"kind": "image", "src": "sky.png"}},
-    ...                               {"name": "fill", "art": {"kind": "fill"}}]})
-    [('plane sky', 'sky.png')]
-    >>> _asset_references({"skins": {"default": {"slots": {"body": {"body": {"path": "parts/body.svg"}}}}},
-    ...                    "source_svg": "source.svg", "colour_roles": {"parts/body.svg": {"#fff": "skin"}}})
-    [('part body/body', 'parts/body.svg'), ('source_svg', 'source.svg'), ('colour_roles parts/body.svg', 'parts/body.svg')]
-    """
-    out: list[tuple[str, str]] = []
-    for plane in doc.get("planes") or ():
-        if not isinstance(plane, Mapping):
-            continue
-        art = plane.get("art") or {}
-        src = art.get("src") if isinstance(art, Mapping) else None
-        if art.get("kind", "fill") == "image" and isinstance(src, str) and src:
-            out.append((f"plane {plane.get('name', '?')}", src))
-    for skin in (doc.get("skins") or {}).values():
-        slots = (skin or {}).get("slots") or {} if isinstance(skin, Mapping) else {}
-        for slot_name, attachments in slots.items():
-            if not isinstance(attachments, Mapping):
-                continue
-            for att_name, att in attachments.items():
-                rel = att.get("path") if isinstance(att, Mapping) else None
-                if isinstance(rel, str) and rel:
-                    out.append((f"part {slot_name}/{att_name}", rel))
-    source_svg = doc.get("source_svg")
-    if isinstance(source_svg, str) and source_svg:
-        out.append(("source_svg", source_svg))
-    roles = doc.get("colour_roles")
-    if isinstance(roles, Mapping):
-        out += [(f"colour_roles {k}", k) for k in roles if isinstance(k, str) and k]
-    return out
+    return asset_references(doc)
 
 
 def _svg_file_problems(file: "Path") -> list[str]:
@@ -2414,18 +2435,21 @@ _DELIBERATE: dict[str, frozenset[str]] = {
 
 
 def _placements(
-    shot: Any, ctx: ValidationContext
+    ctx: ValidationContext, shot: Any, index: int
 ) -> dict[str, tuple[dict, dict]] | None:
     """``{entity id: (state at the start, state at the end)}`` of a stage shot's
     entities, each state ``{prop: value}`` read off the document the stage
-    compiles; ``None`` when the shot is not a stage shot or does not compile
+    compiles (the one every compile-based check shares: style pack included,
+    an#534); ``None`` when the shot is not a stage shot or does not compile
     (its own checks say why)."""
-    import warnings
+    from dataclasses import replace
 
-    if shot.renderer not in ("stage", "cutout"):
+    from an.verify.constraints import compiled_shot
+
+    doc = compiled_shot(replace(ctx, shot=shot, index=index))
+    if doc is None:
         return None
     try:
-        from an.stage.compile import compile_shot
         from an.stage.timeline import (
             _node_chain,
             _pose_for,
@@ -2435,12 +2459,6 @@ def _placements(
         )
 
         res = ctx.scene.meta.resolution
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            doc = compile_shot(
-                shot, mall=ctx.stores, fps=int(ctx.scene.meta.fps),
-                width=res.width, height=res.height,
-            )  # fmt: skip
         timeline = timeline_from_scene(doc)
         poses = (
             evaluate_timeline(timeline, 0.0),
@@ -2537,7 +2555,8 @@ def _core_cut_continuity(ctx: ValidationContext) -> None:
 def _all_placements(ctx: ValidationContext) -> list:
     """Every shot's :func:`_placements`, computed once per validation."""
     return ctx.cached(
-        "placements", lambda: [_placements(shot, ctx) for shot in ctx.shots]
+        "placements",
+        lambda: [_placements(ctx, shot, i) for i, shot in enumerate(ctx.shots)],
     )
 
 
@@ -2783,8 +2802,9 @@ def _core_meta_duration(ctx: ValidationContext) -> None:
         "meta/duration",
         f"meta.duration says {declared:g} s, but the shots lay out {laid_out:g} s "
         "(their durations, minus any dissolve overlap); the film is as long as "
-        f"its shots. Set `duration: {laid_out:g}` in the meta block, or fix the "
-        "shot whose length is not what you meant.",
+        f"its shots. Set `duration: {laid_out:g}` in the meta block, or remove "
+        "it (unset, the film is as long as its shots), or fix the shot whose "
+        "length is not what you meant.",
     )
 
 

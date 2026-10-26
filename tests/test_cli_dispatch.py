@@ -255,9 +255,10 @@ def test_a_command_that_returns_none_prints_nothing_extra():
 def test_a_nonzero_exit_is_not_swallowed():
     """MUTATION: in `_printing`, wrap the call in `try/except SystemExit: pass`.
 
-    `bench-compare --strict` and `bench-mutants` print and then `sys.exit(1)`;
-    that exit code is the entire point of `--strict`, and a wrapper that
-    swallowed it would give CI a permanently green gate.
+    A refusal raises `SystemExit("...")` (`an probe`, `an library ...`, `an
+    cache gc`); a wrapper that swallowed it would make every refusal exit 0.
+    (A command whose REPORT failed returns `an.cli_status.failed` instead:
+    `test_a_failed_report_exits_with_its_code`.)
     """
 
     def fails() -> str:
@@ -270,6 +271,27 @@ def test_a_nonzero_exit_is_not_swallowed():
     result = runner.invoke(build_app([fails, other], {}), ["fails"])
     assert result.exit_code == 3
     assert "printed before exiting" in result.output
+
+
+def test_a_failed_report_exits_with_its_code():
+    """MUTATION: in `_printing`, delete the `if code: raise typer.Exit(code)` guard.
+
+    A command returns its report as a string; `failed(text)` is the string that
+    also says the command failed (an#480). Without the guard `an validate`
+    prints FAILED and exits 0, which no CI step can tell from a pass.
+    """
+    from an.cli_status import failed
+
+    def bad() -> str:
+        return failed("thing: FAILED")
+
+    def good() -> str:
+        return "thing: passed"
+
+    app = build_app([bad, good], {})
+    r = runner.invoke(app, ["bad"])
+    assert (r.exit_code, "thing: FAILED" in r.output) == (1, True)
+    assert runner.invoke(app, ["good"]).exit_code == 0
 
 
 def test_a_single_command_app_still_needs_its_subcommand_name():

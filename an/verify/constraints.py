@@ -71,6 +71,11 @@ The core's constraints:
   (constant downward acceleration) and does not hover. :func:`airborne_faults`
   is the pure function under it. Unsupported falls and hangs wait on supports
   (catalogue A1) and joints.
+- ``causality`` (catalogue B7): a shot sound cue that names its visible ``cause``
+  (a :class:`~an.ir.schema.CueAnchor`) is not ahead of it (error past
+  :data:`CAUSE_TOLERANCE`) and sits within the audio-visual sync window
+  (warning). :func:`av_offset_fault` is the pure function under it. Dialogue and
+  lip-sync consistency are not built.
 """
 
 from __future__ import annotations
@@ -99,6 +104,8 @@ __all__ = [
     "RIGIDITY",
     "MOTION_STYLE",
     "GRAVITY",
+    "CAUSALITY",
+    "av_offset_fault",
     "airborne_faults",
     "Move",
     "move_jerk",
@@ -111,7 +118,10 @@ __all__ = [
     "vanishings",
     "Discontinuity",
     "ShortHold",
+    "compile_outcome",
     "compiled_shot",
+    "check_not_compiled",
+    "NOT_COMPILED",
     "continuity_findings",
     "discontinuities",
     "short_holds",
@@ -166,15 +176,17 @@ COMPILED_KEY: str = "constraints.compiled"
 STAGE_RENDERERS: frozenset[str] = frozenset({"stage", "cutout"})
 
 
-def compiled_shot(ctx: Any) -> Any | None:
-    """``ctx.shot`` compiled as ``an render`` compiles it, once per validation.
+def compile_outcome(ctx: Any) -> tuple[Any | None, Exception | None]:
+    """``ctx.shot`` compiled as ``an render`` compiles it, once per validation:
+    ``(document, None)``, ``(None, the compile error)``, or ``(None, None)`` for
+    a shot the stage does not render.
 
     The stores validate was given stand in for the mall; the scene's frame rate
-    (the render's when ``an validate --fps`` says), resolution, step grid and
-    default easing are the ones the render uses, so what is linted is the
-    document that is drawn. ``None`` for a shot the stage does not render or
-    that does not compile: the checks that own those problems report them, and
-    a constraint says nothing about a shot it could not see.
+    (the render's when ``an validate --fps`` says), resolution, step grid,
+    default easing and **style pack** are the ones the render uses, so what is
+    linted is the document that is drawn: the ``solve`` pass reads the pack's
+    gravity and damping, and a document compiled without them is a different
+    solve (an#534). Every compile-based check reads this one document.
     """
 
     def build():
@@ -182,15 +194,19 @@ def compiled_shot(ctx: Any) -> Any | None:
 
         shot, scene = ctx.shot, ctx.scene
         if shot.renderer not in STAGE_RENDERERS:
-            return None
-        from an.stage.compile import compile_shot
+            return None, None
+        from an.stage.compile import compile_shot, style_pack_for
 
+        try:
+            pack = style_pack_for(scene.meta, (ctx.stores or {}).get("styles") or {})
+        except Exception:  # noqa: BLE001 - a broken pack is the style check's to report
+            pack = None
         res = scene.meta.resolution
         step_hz = shot.step_hz if shot.step_hz is not None else scene.meta.step_hz
         try:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")  # the render's warnings, not validate's
-                return compile_shot(
+                doc = compile_shot(
                     shot,
                     mall=ctx.stores,
                     fps=int(round(_fps(ctx))),
@@ -198,11 +214,134 @@ def compiled_shot(ctx: Any) -> Any | None:
                     height=res.height,
                     step_hz=step_hz,
                     default_easing=scene.meta.default_easing,
+                    style_pack=pack,
                 )
-        except Exception:  # noqa: BLE001 - a shot that cannot compile is reported elsewhere
-            return None
+        except Exception as e:  # noqa: BLE001 - reported by the check that owns it
+            return None, e
+        return doc, None
 
     return ctx.cached((COMPILED_KEY, ctx.index), build)
+
+
+def compiled_shot(ctx: Any) -> Any | None:
+    """The document of :func:`compile_outcome`, ``None`` for a shot the stage
+    does not render or that does not compile. A constraint says nothing about
+    a shot it could not see; the ``not_compiled`` check says, once per shot,
+    that it could not (:func:`check_not_compiled`)."""
+    return compile_outcome(ctx)[0]
+
+
+#: The memo key under which the action-target check records why it could not
+#: check shot ``i`` (its stage did not build either): folded into the one
+#: ``not_compiled`` line rather than said separately.
+TARGETS_UNCHECKED_KEY: str = "constraints.targets_unchecked"
+#: The shortest tail of a compile error's message that counts as "said" when a
+#: finding on the shot contains it (shorter tails match by accident).
+MIN_SAID_CHARS: int = 20
+
+
+def _already_said(error: Exception, texts: list[str]) -> bool:
+    """Whether one of ``texts`` (the findings on the shot) already carries
+    ``error``'s message: the whole of it, or a tail after a ``": "`` or
+    ``" — "`` (a compile error prefixes the cause with where it happened, as
+    ``play of 'walk' on 'w': <cause>``; the check that owns the cause says
+    ``<cause>`` in its own words around it).
+
+    >>> e = ValueError("play of 'walk' on 'w': gait 'hop' does not read 'bob'")
+    >>> _already_said(e, ["`play` cannot resolve: gait 'hop' does not read 'bob'."])
+    True
+    >>> _already_said(e, ["something else entirely"])
+    False
+    """
+    import re
+
+    message = str(error).rstrip(".")
+    starts = [0] + [m.end() for m in re.finditer(r": | — ", message)]
+    tails = {message[k:] for k in starts if len(message) - k >= MIN_SAID_CHARS}
+    return any(tail in text for tail in tails for text in texts)
+
+
+def _unsupplied(shot: Any, stores: Mapping[str, Any]) -> list[str]:
+    """The ids of ``shot``'s entities whose rig store was not supplied (the
+    stage builds a stand-in for them, which may not compile): their checks
+    were not asked for, so their failure is not news."""
+    from an.ir.validate import rig_stores
+
+    store_of = {kind: name for kind, (name, _doc) in rig_stores().items()}
+    store_of["environment"] = "environments"
+    return [
+        e.id
+        for e in shot.entities
+        if e.kind in store_of and stores.get(store_of[e.kind]) is None
+    ]
+
+
+def check_not_compiled(ctx: Any) -> None:
+    """Say, once per shot, that the compile-based checks did NOT run on a shot
+    that does not compile, at :data:`an.verify.vision.FAILURE_SEVERITY`: a
+    check that could not look must never read as a check that passed (an#551).
+
+    Runs at ``finish`` over the compiles the shot checks asked for (the memo
+    under :data:`COMPILED_KEY`), so it says nothing when no compile-based check
+    ran. Silent for a shot with an entity whose store was not supplied
+    (checks not asked for are not broken). The cause is given in full unless
+    a finding on the shot already says it (:func:`_already_said`), then
+    "reported above". Folds in the action-target check's own skip.
+
+    >>> from an.ir.schema import SceneIR, Shot
+    >>> from an.ir.validate import ValidationContext, ValidationReport
+    >>> ctx = ValidationContext(SceneIR(timeline=[Shot(id="a"), Shot(id="b")]), ValidationReport(), {})
+    >>> ctx.memo[(COMPILED_KEY, 0)] = (None, ValueError("step_hz 1000 is not a divisor of fps"))
+    >>> ctx.memo[(COMPILED_KEY, 1)] = (None, ValueError("step_hz 1000 is not a divisor of fps"))
+    >>> ctx.report.add("error", "timeline/1/step_hz", "step_hz 1000 is not a divisor of fps.")
+    >>> check_not_compiled(ctx)
+    >>> [(f.severity, f.ir_path) for f in ctx.report.findings[1:]]
+    [('warning', 'timeline/0'), ('warning', 'timeline/1')]
+    >>> [f.description.split("(")[-1] for f in ctx.report.findings[1:]]
+    ['ValueError: step_hz 1000 is not a divisor of fps).', 'ValueError, reported above).']
+    """
+    from an.verify.vision import FAILURE_SEVERITY
+
+    shots = ctx.shots
+    for (_key, i), outcome in _compiled(ctx):
+        _doc, error = outcome
+        if error is None or i >= len(shots) or _unsupplied(shots[i], ctx.stores or {}):
+            continue
+        path = f"timeline/{i}"
+        on_shot = [
+            f.description
+            for f in ctx.report.findings
+            if f.ir_path == path or f.ir_path.startswith(path + "/")
+        ]
+        why = (
+            f"{type(error).__name__}, reported above"
+            if _already_said(error, on_shot)
+            else f"{type(error).__name__}: {error}"
+        )
+        targets = (
+            " and the animation targets"
+            if ctx.memo.get((TARGETS_UNCHECKED_KEY, i))
+            else ""
+        )
+        ctx.report.add(
+            FAILURE_SEVERITY,
+            path,
+            "the compile-based checks (the constraints, joints, holds and cut "
+            f"placements{targets}) did NOT run on this shot: it does not "
+            f"compile ({why}).",
+        )
+
+
+def _compiled(ctx: Any) -> list[tuple[tuple[str, int], Any]]:
+    """The memo's compile outcomes, ``((COMPILED_KEY, i), outcome)``, by shot."""
+    return sorted(
+        (
+            (k, v)
+            for k, v in ctx.memo.items()
+            if isinstance(k, tuple) and len(k) == 2 and k[0] == COMPILED_KEY
+        ),
+        key=lambda kv: kv[0][1],
+    )
 
 
 def _fps(ctx: Any) -> float:
@@ -1623,6 +1762,99 @@ GRAVITY = Constraint(
 )
 
 
+# -----------------------------------------------------------------------------
+# causality (catalogue B7): a sound does not precede, or lag far behind, its cause
+# -----------------------------------------------------------------------------
+
+#: The detectability window of audio-visual asynchrony, seconds, as sound minus
+#: picture: a sound up to this far AHEAD of its visible cause goes unnoticed
+#: (ITU-R BT.1359: +45 ms sound-ahead).
+AV_AHEAD_S: float = 0.045
+#: ... and up to this far BEHIND it (BT.1359: -125 ms sound-behind).
+AV_BEHIND_S: float = 0.125
+#: A sound ahead of its cause by more than this is an effect before its cause: an error.
+CAUSE_TOLERANCE: float = 0.25
+
+
+def av_offset_fault(sound_t: float, cause_t: float) -> str | None:
+    """How a sound at ``sound_t`` sits against its visible cause at ``cause_t`` (seconds): ``None`` inside the window, else ``"early"`` (sound ahead, past the window), ``"late"`` (behind), or ``"before_cause"`` (ahead by more than :data:`CAUSE_TOLERANCE`).
+
+    >>> av_offset_fault(1.0, 1.02), av_offset_fault(1.1, 1.0)
+    (None, None)
+    >>> av_offset_fault(1.0, 1.1), av_offset_fault(1.2, 1.0)
+    ('early', 'late')
+    >>> av_offset_fault(0.5, 1.0)
+    'before_cause'
+    """
+    lead = cause_t - sound_t  # positive: the sound is ahead
+    if lead > CAUSE_TOLERANCE:
+        return "before_cause"
+    if lead > AV_AHEAD_S:
+        return "early"
+    if -lead > AV_BEHIND_S:
+        return "late"
+    return None
+
+
+def check_causality(ctx: Any) -> None:
+    """The core's ``causality`` check: each shot cue that names a ``cause`` lands in its window."""
+    from an.ir.schema import CueAnchor
+
+    cues = [
+        (j, c)
+        for j, c in enumerate(ctx.shot.sounds)
+        if c.cause is not None and not isinstance(c.at, CueAnchor)
+    ]
+    if not cues:
+        return
+    doc = compiled_shot(ctx)
+    if doc is None:
+        return
+    from an.sound_anchors import SoundAnchorError, crossing_in_document
+
+    for j, cue in cues:
+        where = f"{ctx.path}/sounds/{j}"
+        try:
+            cause_t = crossing_in_document(
+                doc,
+                cue.cause,
+                shot_id=ctx.shot.id,
+                fps=_fps(ctx),
+                duration=ctx.shot.duration,
+                where=where,
+            )
+        except SoundAnchorError as e:
+            ctx.report.add("error", f"{where}/cause", str(e))
+            continue
+        cause_t += cue.cause.offset
+        fault = av_offset_fault(float(cue.at), cause_t)
+        if fault is None:
+            continue
+        axis, value = cue.cause.axis
+        delta = float(cue.at) - cause_t
+        ctx.report.add(
+            "error" if fault == "before_cause" else "warning",
+            f"{where}/at",
+            f"{cue.sound!r} at {float(cue.at):.2f} s is {abs(delta) * 1000:.0f} ms "
+            f"{'ahead of' if delta < 0 else 'behind'} its cause ({cue.cause.when} "
+            f"reaches {axis}={value:g} at {cause_t:.2f} s)"
+            + (
+                ": an effect cannot precede its cause. "
+                if fault == "before_cause"
+                else f": outside the {AV_AHEAD_S * 1000:.0f} ms ahead / "
+                f"{AV_BEHIND_S * 1000:.0f} ms behind window viewers accept. "
+            )
+            + f"Move the cue to {cause_t:.2f} s, or anchor it with `at: {{when: ..., reaches: ...}}`.",
+        )
+
+
+CAUSALITY = Constraint(
+    "causality",
+    check_causality,
+    description="a sound cue that names its visible cause is not ahead of it, and is within the audio-visual sync window (catalogue B7)",
+)
+
+
 #: The core's constraints, in the order their checks run within a stage.
 CONSTRAINTS: tuple[Constraint, ...] = (
     CONTINUITY,
@@ -1634,15 +1866,33 @@ CONSTRAINTS: tuple[Constraint, ...] = (
     RIGIDITY,
     MOTION_STYLE,
     GRAVITY,
+    CAUSALITY,
+)
+
+
+#: Where ``not_compiled`` runs in ``finish``: last, after every check that
+#: compiles a shot there too (the cut checks, the constraints' finish checks).
+NOT_COMPILED_ORDER: float = 1000.0
+#: The one line a shot that does not compile gets (an#551): always on, since
+#: it reports on whichever compile-based checks ran (``only`` included).
+NOT_COMPILED: SemanticCheck = SemanticCheck(
+    "not_compiled",
+    check_not_compiled,
+    stage="finish",
+    order=NOT_COMPILED_ORDER,
+    description="a shot the compile-based checks could not compile says they did not run",
 )
 
 
 def _register(constraints: tuple[Constraint, ...] = CONSTRAINTS) -> None:
     """Register the core's constraint checks once (the core's other checks are
-    registered the same way when ``an.ir.validate`` loads)."""
+    registered the same way when ``an.ir.validate`` loads), and the
+    ``not_compiled`` line that reports the shots they could not compile."""
     for constraint in constraints:
         if constraint.name not in check_names(owner=CORE_OWNER):
             register_check(constraint.semantic_check(), owner=CORE_OWNER)
+    if NOT_COMPILED.name not in check_names(owner=CORE_OWNER):
+        register_check(NOT_COMPILED, owner=CORE_OWNER)
 
 
 _register()

@@ -17,6 +17,7 @@ A carried item turns, mirrors and squashes with the hand that holds it (a charac
 - {kind: grasp, by: stu@hand_r, item: musket, start: 2.0}                 # take it from wherever it is
 - {kind: place, item: musket, onto: nap/arm_r/weapon, start: 7.0}          # into a socket, aligned with it
 - {kind: place, item: book, onto: ground@-860, start: 9.0}                 # lie it on the floor at x -860
+- {kind: place, item: cup, onto: table@surface, start: 11.0}               # stand it on the table top, below the hand
 - {kind: release, item: musket, at: 13.4, onto: ground@-420, arc: 60}      # toss it to land at x -420
 - {kind: release, item: cup, at: 5.0}                                      # drop it: falls with the hand's velocity
 - {kind: handover, item: cup, to: jo@hand_l, meet: 0.5, start: 4.0}        # both reach; jo takes it in the middle
@@ -28,13 +29,13 @@ A carried item turns, mirrors and squashes with the hand that holds it (a charac
 |---|---|---|---|
 | `by` | grasp, swap (place, handover: optional) | the moving point: `entity@hand_r` (a genre's named point: **use it for characters**, it stays the hand when the rig gains a forearm or a hand bone), `entity/part@bone`, `entity/part@u,v`, or `entity/part` (that part's far end from its pivot) | place/handover/release: whoever holds the item |
 | `item` | all | the entity held; `item@grip` names the point (a bone of its rig, or `u,v` of its drawing) | its `grip` bone, else its stage point; on the ground, its lowest painted point |
-| `onto` | place, release | `ground` (straight down), `ground@x`, a socket `nap/arm_r/weapon` / `stand@hand`, or `world@x,y` | release: the ground below |
+| `onto` | place, release | `ground` (straight down), `ground@x`, a socket `nap/arm_r/weapon` / `stand@hand`, a body's surface `table@surface` / `table@surface@0.3` (place only), or `world@x,y` | release: the ground below |
 | `to` | handover | the receiver's point | |
 | `meet` | handover | where the hands meet, from the giver's (1: into the receiver's point, which does not move) | 1 |
 | `reach`, `retract` | grasp, place, handover, swap | seconds out and back | 0.4, 0.35 |
 | `lean` | grasp, place, handover, swap | most degrees the body may bend | 60 |
 | `align` | grasp, handover, swap | over the retract the item turns to how the hand holds things (drawn as it is, along the hand's part, as a socket holds it); `false` keeps the angle it was taken at | true |
-| `rotation` | place, release, swap (the give) | the item's rotation where it comes to rest (radians, the stage's). Into a socket it is how the item is **aimed** there (a musket pointed at someone, a sabre raised): it arrives at that angle, grip on the socket, and from then on turns with the socket | as it last lay on the ground, else its nearest quarter turn; a socket's own |
+| `rotation` | place, release, swap (the give) | the item's rotation where it comes to rest (radians, the stage's; on a surface, relative to the surface). Into a socket it is how the item is **aimed** there (a musket pointed at someone, a sabre raised): it arrives at that angle, grip on the socket, and from then on turns with the socket | as it last lay on the ground, else its nearest quarter turn; a socket's own |
 | `arc` | release | how high a toss rises above its higher end (px) | 40 |
 | `lag` | swap | how long after the taking hand the giving hand starts | 0.25 |
 
@@ -48,18 +49,27 @@ A `swap` is a `grasp` (by `by`, of `take`) and a `place` (of `give`, by whicheve
 - `overrides: {held_by: ground}` on an item entity: it lies on the floor when the shot opens, its lowest PAINTED pixel on the line (a raster's transparent margin does not float). Its x and rotation are what you staged.
 - `overrides: {held_by: nap/arm_r/weapon}`: it starts in that socket (its grip there, aligned with it); `held_by: stu@hand_r`: in that hand. Not `on:` — YAML reads `on` as `true`.
 - `overrides: {held_by: nap/arm_r/weapon, held_rotation: -0.98}`: it starts in that socket **aimed** at that stage angle (what a place's `rotation` would have left it at), then turns with the socket: a shot that continues another opens on the musket still pointed at Hannibal. Only beside a socket or a hand; an item on the ground lies at its staged rotation (`an validate` refuses `held_rotation` there).
+- `overrides: {held_by: table@surface}` (or `table@surface@0.25`): it stands on the table's surface when the shot opens, below its staged centre (or that fraction along the surface), and the table holds it.
 - An item named by no `held_by` stays where it is staged until a hand takes it; `an validate` warns when it hovers above (or sinks into) the floor at that moment.
+
+## Putting things on a surface (a table top, a shelf)
+
+`onto: table@surface` lays the item on the table exactly as `ground` lays it on the floor (an#536): its lowest painted point on the table's supporting segment, below the hand (kept on the segment), at its rest angle; `table@surface@0.3` puts it 0.3 of the way along the segment from its first end. From then on the TABLE holds it: it moves, turns and draws with the table (just above the table's part), until a hand takes it again.
+
+- **The segment** is the table's own, so it is declared once per prop, not per item: two bones of its rig named `surface_l` and `surface_r` (its two ends, in the art's units), or, when it declares neither, the top edge of the part's painted pixels (right for a crate or a plain table; declare the bones when something else is drawn above the top, or the surface is a shelf inside the art). A prop with several root parts is named with its part: `table/top@surface`.
+- **A tilted surface** (the table turned, a ramp) lays the item along it: its angle is the surface's tilt plus its rest angle, and `rotation` on such a place is relative to the surface.
+- Only `place` and `held_by` put an item on a surface; a `release onto:` a surface is refused (`hold_conflict`), and `surface` is a reserved point name: a rig with a bone called `surface` is refused there (rename it).
 
 ## What `an validate` says
 
 - `hold_conflict` (error, the render refuses too): a hand puts down what it does not hold, takes what it already holds, still holds something else (a part that moves is one hand, whatever point of it is named), starts a second gesture before its first is over, or would reach its goal after the shot ends; a socket that still holds an item receives another (take it first, or `swap`); a verb names an item that is not in the shot; an item that is itself held holds another (not built).
 - `unreachable_hold` (error): `'stu@hand_l' cannot put 'sword' on 'nap/arm_r/weapon' at 11.17 s: it stays 21.7 px short, bent 59.27°, ... Move stu about 22 px to the right`. Fix the staging, never the hold.
-- `floating_item` (warning): the item lay above or below the floor when it was taken (`held_by: ground` fixes it); a released item with no ground below or no gravity stays in the air.
+- `floating_item` (warning): the item lay above or below the floor, or above a surface the holds name (`table@surface`), when it was taken (`held_by: ground` or `held_by: table@surface` fixes it); a released item with no ground below or no gravity stays in the air.
 - `unknown_body` (error): a `by`, `onto`, `to`, `holder` or `held_by` that names nothing.
 
 ## Things to know
 
-- **Draw order is the author's:** put a held item `stage.after: <carrier>` so it draws over the hand (and over the figurine it is given to, if it is drawn later).
+- **Draw order follows the holder** (an#537): while a hand or a socket holds an item, the item draws just above the part that holds it (over the arm that carries it, under whatever the carrier draws over that arm; with the figurine once it is put in its hand), and back at its staged place (its entity order, `stage.after` included) once it is on the ground or in the air. Its `stage.after` only decides where it draws while nothing holds it.
 - **Gravity for a fall** is the shot's or the style pack's (`gravity:`), else 980 px/s² down; `solve: {gravity: none}` makes a released item stay where it was let go (a warning).
 - **A catch:** a `release` and another hand's `grasp` of the same item at the same instant: the release comes first, the other hand catches it where it was let go.
 - **Two gestures that bend one body opposite ways at once** cannot both arrive; `unreachable_hold` says which other gesture bends it the other way. Do them one after the other.

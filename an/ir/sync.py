@@ -40,6 +40,7 @@ agent extensions don't get clobbered on round-trip.
 from __future__ import annotations
 
 import json
+import os
 import re
 from dataclasses import dataclass
 import warnings
@@ -205,10 +206,36 @@ def markdown_to_ir(md_text: str) -> SceneIR:
                 shot_kwargs[key] = shot_yaml[key]
         shots.append(Shot(**shot_kwargs))
 
-    if meta.duration == 0.0:
-        meta.duration = sum(s.duration for s in shots)
-
+    # An unwritten `duration:` stays 0.0, "unset" (an#557): never filled with a
+    # derived length, which the writer would then put in the file as if authored.
+    # Whatever needs the film's length asks `an.assemble.film_duration`.
     return SceneIR(meta=meta, timeline=shots, world=world)
+
+
+def unset_unwritten_duration(scene: SceneIR, md_text: str) -> SceneIR:
+    r"""``scene`` (read from the JSON) with ``meta.duration`` back to ``0.0``,
+    "unset", when ``md_text`` (its ``scene.md``) writes no ``duration`` (an#557).
+
+    Before an#557 reading the markdown filled an unwritten duration with a
+    derived length (the shots' layout, or their plain sum) and stored it in the
+    JSON. A JSON value the markdown does not carry can only be that: a value set
+    through the store writes the line. Left as it is, the next store write
+    would merge it into the author's file as if authored. Modified in place;
+    returned for chaining.
+
+    >>> from an.ir.schema import Shot
+    >>> s = SceneIR(meta=Meta(duration=4.0), timeline=[Shot(id="a", duration=4.0)])
+    >>> unset_unwritten_duration(s, "# T\n\n```yaml meta\nfps: 24\n```\n").meta.duration
+    0.0
+    >>> s.meta.duration = 4.0
+    >>> unset_unwritten_duration(s, "```yaml meta\nduration: 4\n```\n").meta.duration
+    4.0
+    """
+    if scene.meta.duration:
+        meta_block = _extract_yaml_block(_split_by_shots(md_text)["__global__"], "meta")
+        if not (meta_block or {}).get("duration"):
+            scene.meta.duration = 0.0
+    return scene
 
 
 def _extract_title(md_text: str) -> str:
@@ -787,10 +814,16 @@ def _md_shot_heading(shot: Shot) -> str:
 
 def _md_meta_body(scene: SceneIR) -> str:
     """The ```yaml meta`` block's body, as the writer spells it."""
-    meta_dict = {
+    meta_dict: dict[str, Any] = {
         "title": scene.meta.title,
         "author": scene.meta.author,
-        "duration": scene.meta.duration,
+    }
+    # `duration` only when authored (an#557): 0.0 is "unset", and the film's
+    # length is what its shots lay out (`an.assemble.film_duration`). Where the
+    # writer always put it, so a set value is written byte for byte as before.
+    if scene.meta.duration:
+        meta_dict["duration"] = scene.meta.duration
+    meta_dict |= {
         "fps": scene.meta.fps,
         "resolution": {
             "width": scene.meta.resolution.width,
@@ -1258,16 +1291,249 @@ def scene_from_json_doc(doc: dict, *, source: str | Path | None = None) -> Scene
         raise SceneValidationError(f"{where}: {e}", e) from e
 
 
-def sync(project_dir: str | Path) -> SyncResult:
-    """Reconcile ``scene.md`` and ``ir/scene.json`` inside a project directory.
+#: The scene file a project's commands read when none is named: ``scene.md``,
+#: paired with ``ir/scene.json``.
+DEFAULT_SCENE_FILE: str = "scene.md"
+
+#: What ``output/<name>.mp4`` (and its render report and shot-cache root) the
+#: default scene file renders to. Reserved for it: another scene may not take it.
+DEFAULT_OUTPUT_NAME: str = "main"
+
+#: The subfolder under which a scene other than the default keeps its own copy
+#: of a per-scene work folder (probes, the live preview), so two scenes that
+#: share shot ids never overwrite each other's files (an#554). The default
+#: scene keeps the folder itself, as it always did.
+PER_SCENE_SUBDIR: str = "scenes"
+
+#: What an output name may be: a file stem that cannot climb out of, or alias,
+#: the folder it names (``..``, ``.``, ``a/b``; an#554 review).
+_OUTPUT_NAME_RE = re.compile(r"[\w-][\w.-]*")
+
+
+class SceneFileError(ValueError):
+    """A scene file a command was given cannot be used: a bad name, a file
+    that is not there, or a name that would overwrite the default scene's
+    output. The message says what to do."""
+
+
+@dataclass(frozen=True)
+class SceneFile:
+    """One scene of a project, resolved (an#539): its name inside the project,
+    its markdown, its JSON twin, and the output name a render of it defaults to.
+    Built by :func:`resolve_scene_file`, never by hand."""
+
+    name: str
+    md_path: Path
+    json_path: Path
+    output_name: str
+
+    @property
+    def is_default(self) -> bool:
+        return self.name == DEFAULT_SCENE_FILE
+
+    @property
+    def project_dir(self) -> Path:
+        """The project this scene belongs to (the folder holding its ``.md``)."""
+        return self.md_path.parent
+
+    def per_scene_dir(self, base: str | Path) -> Path:
+        """This scene's copy of the per-scene work folder ``base``: ``base``
+        itself for the default scene, ``base/scenes/<stem>`` for another, so
+        two scenes sharing shot ids never write the same file (an#554).
+
+        >>> resolve_scene_file("/p", must_exist=False).per_scene_dir("/p/x").as_posix()
+        '/p/x'
+        >>> sf = resolve_scene_file("/p", "scene.studio.md", must_exist=False)
+        >>> sf.per_scene_dir("/p/x").as_posix()
+        '/p/x/scenes/scene.studio'
+        """
+        base = Path(base)
+        return base if self.is_default else base / PER_SCENE_SUBDIR / self.md_path.stem
+
+    def output_for(self, output_name: str | None = None) -> str:
+        """The output name a render of this scene writes: ``output_name`` when
+        given, else :attr:`output_name`. No scene may write another scene's
+        default output: not the default scene's ``main``, and not that of another
+        scene of the project (:func:`project_scene_files`: ``scene.b.md``'s
+        ``scene.b``, an#554). A name must be a plain stem (no ``..``).
+
+        >>> sf = resolve_scene_file("/p", "scene.studio.md", must_exist=False)
+        >>> sf.output_for(), sf.output_for("final")
+        ('scene.studio', 'final')
+        >>> sf.output_for("main")
+        Traceback (most recent call last):
+        ...
+        an.ir.sync.SceneFileError: output name 'main' is the default scene's (scene.md) output; a render of scene.studio.md would overwrite it: pick another --output-name
+        >>> sf.output_for("..")  # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        an.ir.sync.SceneFileError: output name '..' must be a file stem ...
+        """
+        if not output_name:
+            return self.output_name
+        if not _OUTPUT_NAME_RE.fullmatch(output_name):
+            # Not a path, and not `.`/`..`/`.hidden`: a name like those resolves
+            # to another output's folder (`render_work/outputs/..` is main's).
+            raise SceneFileError(
+                f"output name {output_name!r} must be a file stem (letters, digits, "
+                "'_', '-' and '.', not starting with '.'), not a path"
+            )
+        if not self.is_default and output_name.lower() == DEFAULT_OUTPUT_NAME:
+            raise SceneFileError(
+                f"output name {output_name!r} is the default scene's "
+                f"({DEFAULT_SCENE_FILE}) output; a render of {self.name} would "
+                "overwrite it: pick another --output-name"
+            )
+        for other in project_scene_files(self.project_dir):
+            if other.name != self.name and (
+                other.output_name.lower() == output_name.lower()
+            ):
+                raise SceneFileError(
+                    f"output name {output_name!r} is the output of the project's "
+                    f"other scene file {other.name}; a render of {self.name} would "
+                    "overwrite it: pick another --output-name"
+                )
+        return output_name
+
+
+def _scene_file_name(project_dir: Path, scene_file: str | Path) -> str:
+    """The name of ``scene_file`` inside ``project_dir``; raises
+    :class:`SceneFileError` for anything that is not a ``.md`` file directly in it."""
+    shape = (
+        f"scene file {str(scene_file)!r} must be a .md file directly inside the "
+        f"project directory {project_dir} (for example scene.studio.md)"
+    )
+    spelled = str(scene_file)
+    # A backslash is a path separator on Windows (Path sorts it out below); on
+    # POSIX it is a legal name character that would be a folder there.
+    if ("\\" in spelled and os.sep != "\\") or not spelled.strip():
+        raise SceneFileError(shape)
+    given = Path(spelled).expanduser()
+    if len(given.parts) > 1:  # a path, not a bare name: where does it point?
+        if given.parent.resolve() != project_dir.resolve():
+            raise SceneFileError(shape)
+    name = given.name
+    if not name.lower().endswith(".md") or name.startswith("."):
+        raise SceneFileError(shape)
+    if name != DEFAULT_SCENE_FILE and name.lower() == DEFAULT_SCENE_FILE:
+        # On a case-insensitive disk `Scene.md` IS scene.md (two outputs for one
+        # scene), on a case-sensitive one it is another file: say which you mean.
+        raise SceneFileError(f"{shape}; did you mean {DEFAULT_SCENE_FILE}?")
+    return name
+
+
+def resolve_scene_file(
+    project_dir: str | Path,
+    scene_file: "str | Path | SceneFile" = DEFAULT_SCENE_FILE,
+    *,
+    must_exist: bool = True,
+) -> SceneFile:
+    """Resolve the scene file a command was given (an#539: a project may keep
+    several scenes, ``scene.studio.md`` beside ``scene.md``).
+
+    ``scene_file`` is a name inside the project, or a path whose parent is
+    the project directory (``proj/scene.studio.md``, an absolute path, a path
+    spelled with ``..``). Its JSON twin is ``ir/<stem>.json``; a render of it
+    defaults to ``output/<stem>.mp4``, and to ``output/main.mp4`` for the
+    default ``scene.md``. Raises :class:`SceneFileError` for a name that is
+    not a ``.md`` file directly in the project, for another scene whose stem
+    is ``main`` (it would overwrite the default scene's output), and, under
+    ``must_exist``, for a named scene that is not there. A missing DEFAULT
+    scene is never an error here: a new project has none yet.
+
+    >>> sf = resolve_scene_file("/p", must_exist=False)
+    >>> sf.name, sf.md_path.as_posix(), sf.json_path.as_posix(), sf.output_name
+    ('scene.md', '/p/scene.md', '/p/ir/scene.json', 'main')
+    >>> sf = resolve_scene_file("/p", "/p/../p/scene.studio.md", must_exist=False)
+    >>> sf.name, sf.json_path.as_posix(), sf.output_name
+    ('scene.studio.md', '/p/ir/scene.studio.json', 'scene.studio')
+    >>> resolve_scene_file("/p", "Scene.md", must_exist=False)  # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    an.ir.sync.SceneFileError: scene file 'Scene.md' must be ...; did you mean scene.md?
+    >>> resolve_scene_file("/p", "sub/scene.md", must_exist=False)
+    Traceback (most recent call last):
+    ...
+    an.ir.sync.SceneFileError: scene file 'sub/scene.md' must be a .md file directly inside the project directory /p (for example scene.studio.md)
+    >>> resolve_scene_file("/p", "main.md", must_exist=False)
+    Traceback (most recent call last):
+    ...
+    an.ir.sync.SceneFileError: scene file 'main.md' would render to output/main.mp4, the default scene's (scene.md) output: rename the file (for example scene.main.md)
+    """
+    pdir = Path(project_dir).expanduser()
+    if isinstance(scene_file, SceneFile):
+        # Already resolved (a callee handed the caller's SceneFile, an#554):
+        # kept as is when it belongs to this project, re-resolved otherwise.
+        if scene_file.project_dir.resolve() == pdir.resolve():
+            if must_exist and not scene_file.is_default:
+                if not scene_file.md_path.exists():
+                    raise SceneFileError(f"no scene file {scene_file.name!r} in {pdir}")
+            return scene_file
+        scene_file = scene_file.name
+    name = _scene_file_name(pdir, scene_file)
+    stem = Path(name).stem
+    is_default = name == DEFAULT_SCENE_FILE
+    if not is_default and stem.lower() == DEFAULT_OUTPUT_NAME:
+        raise SceneFileError(
+            f"scene file {name!r} would render to output/{DEFAULT_OUTPUT_NAME}.mp4, "
+            f"the default scene's ({DEFAULT_SCENE_FILE}) output: rename the file "
+            f"(for example scene.{stem}.md)"
+        )
+    md_path = pdir / name
+    if must_exist and not is_default and not md_path.exists():
+        raise SceneFileError(f"no scene file {name!r} in {pdir}")
+    return SceneFile(
+        name=name,
+        md_path=md_path,
+        json_path=pdir / "ir" / f"{stem}.json",
+        output_name=DEFAULT_OUTPUT_NAME if is_default else stem,
+    )
+
+
+def project_scene_files(project_dir: str | Path) -> list[SceneFile]:
+    """Every scene of the project at ``project_dir`` (an#554): the default
+    ``scene.md`` first, when it or its JSON twin is there, then each other
+    ``.md`` file directly in the project whose JSON twin ``ir/<stem>.json``
+    exists (a scene a command has read: notes and READMEs have none), by name.
+    What a project-wide command (``an cache gc``) must account for.
+
+    >>> import tempfile
+    >>> with tempfile.TemporaryDirectory() as d:
+    ...     p = Path(d)
+    ...     (p / "ir").mkdir()
+    ...     for name in ("scene.md", "scene.b.md", "README.md", "ir/scene.json", "ir/scene.b.json"):
+    ...         _ = (p / name).write_text("")
+    ...     [sf.name for sf in project_scene_files(p)]
+    ['scene.md', 'scene.b.md']
+    """
+    pdir = Path(project_dir).expanduser()
+    default = resolve_scene_file(pdir, must_exist=False)
+    out = [default] if default.md_path.exists() or default.json_path.exists() else []
+    for p in sorted(pdir.glob("*.md")) if pdir.is_dir() else ():
+        if p.name == DEFAULT_SCENE_FILE or not p.is_file():
+            continue
+        try:
+            sf = resolve_scene_file(pdir, p.name)
+        except SceneFileError:
+            continue  # `Scene.md`, `main.md`, `.hidden.md`: not a scene a command reads
+        if sf.json_path.exists():
+            out.append(sf)
+    return out
+
+
+def sync(
+    project_dir: str | Path, scene_file: "str | Path | SceneFile" = DEFAULT_SCENE_FILE
+) -> SyncResult:
+    """Reconcile a scene's markdown and JSON inside a project directory
+    (``scene.md`` and ``ir/scene.json``, or the pair of the ``scene_file`` named;
+    a named scene that is not there raises :class:`SceneFileError`).
 
     Strategy in v0.1: Markdown is the human SSOT; if both exist, the JSON is
     regenerated from the Markdown unless mtimes show JSON is newer (which the
     user is told never to do — but we warn instead of silently overwriting).
     """
-    pdir = Path(project_dir)
-    md_path = pdir / "scene.md"
-    json_path = pdir / "ir" / "scene.json"
+    resolved = resolve_scene_file(project_dir, scene_file)
+    md_path, json_path = resolved.md_path, resolved.json_path
     result = SyncResult()
 
     md_exists = md_path.exists()
@@ -1293,8 +1559,10 @@ def sync(project_dir: str | Path) -> SyncResult:
         skew = json_mtime - md_mtime
         if skew > SYNC_MTIME_TOLERANCE_S:
             data = json.loads(_read_text(json_path))
-            scene = scene_from_json_doc(data, source=json_path)
             existing = _read_text(md_path)
+            scene = unset_unwritten_duration(
+                scene_from_json_doc(data, source=json_path), existing
+            )
             markdown = merge_markdown(existing, scene)  # an#275: keep the author's text
             if markdown != existing:
                 _write_text(md_path, markdown)
@@ -1323,14 +1591,16 @@ def sync(project_dir: str | Path) -> SyncResult:
 
 
 class SyncTieWarning(UserWarning):
-    """``scene.md`` and ``ir/scene.json`` had the same age and disagreed."""
+    """A scene's markdown (``scene.md``) and its JSON twin (``ir/scene.json``)
+    had the same age and disagreed."""
 
 
 def _settle_a_tie(md_path: Path, json_path: Path, md_mtime: float, result) -> None:
     md_text = _read_text(md_path)
     try:
-        json_scene = scene_from_json_doc(
-            json.loads(_read_text(json_path)), source=json_path
+        json_scene = unset_unwritten_duration(
+            scene_from_json_doc(json.loads(_read_text(json_path)), source=json_path),
+            md_text,
         )
         if _md_canonical(md_text) == _md_canonical(ir_to_markdown(json_scene)):
             return
@@ -1340,8 +1610,8 @@ def _settle_a_tie(md_path: Path, json_path: Path, md_mtime: float, result) -> No
     warnings.warn(
         f"{md_path} and {json_path} have the same modification time but say "
         "different things (an edit made outside `an` within half a second of "
-        "the other file's write); scene.md, the source of truth, was taken and "
-        "ir/scene.json regenerated from it.",
+        f"the other file's write); {md_path.name}, the source of truth, was taken "
+        f"and ir/{json_path.name} regenerated from it.",
         SyncTieWarning,
         stacklevel=3,
     )

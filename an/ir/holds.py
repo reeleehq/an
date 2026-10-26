@@ -64,6 +64,7 @@ __all__ = [
     "HOLD_ACTION_KINDS",
     "GESTURE_KINDS",
     "GROUND",
+    "SURFACE",
     "DFLT_REACH",
     "DFLT_RETRACT",
     "DFLT_LEAN_DEG",
@@ -91,6 +92,10 @@ DFLT_TOSS_ARC: float = 40.0
 DFLT_SWAP_LAG: Seconds = 0.25
 #: The name of the floor in a target (``ground``, ``ground@x``).
 GROUND: str = "ground"
+#: The point name of a body's supporting surface in a target (an#536):
+#: ``crate@surface`` (below the hand), ``crate@surface@0.3`` (that fraction of
+#: the way along it), as on the ground but on the body's top, following it.
+SURFACE: str = "surface"
 
 #: The kinds' names.
 HOLD_ACTION_KINDS: tuple[str, ...] = ("grasp", "place", "release", "handover", "swap")
@@ -131,13 +136,17 @@ class PlaceAction(ExtensionAction):
 
     ``onto`` is ``ground`` (straight down, at floor height), ``ground@x`` (at
     stage ``x``), a body's point (a socket: the item's grip goes there, its
-    frame aligned with the socket's) or ``world@x,y`` (hung on a point).
+    frame aligned with the socket's), a body's surface (``crate@surface``, or
+    ``crate@surface@f`` at that fraction along it: lying on its top as on the
+    ground, held by that body from then on, an#536) or ``world@x,y`` (hung on
+    a point).
     ``item@<point>`` names the item's point that touches the target (default:
     its grip on a socket, its lowest point on the ground). ``rotation``: the
-    item's rotation where it rests (radians, the stage's; default: the angle it
-    last rested at on the ground, else the nearest quarter turn; in a socket,
-    the socket's own). In a socket it is the angle the item comes to rest at
-    (a musket aimed at someone, a sabre raised), held relative to the socket
+    item's rotation where it rests (radians, the stage's; on a surface, relative
+    to the surface, whose tilt is added; default: the angle it last rested at,
+    else the nearest quarter turn; in a socket, the socket's own). In a socket
+    it is the angle the item comes to rest at (a musket aimed at someone, a
+    sabre raised), held relative to the socket
     from then on, so it turns with it.
 
     >>> PlaceAction(item="musket", onto="nap/arm_r/weapon").by is None
