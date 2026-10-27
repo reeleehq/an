@@ -20,6 +20,10 @@ Two steps, both plain functions over injected stores:
   but a choice must come before the previews expire).
 - :func:`choose_voice_option`: the ``voice_id`` of the chosen option (saving it
   as a voice first when it was not persisted).
+- :func:`choose_in_entry`: the choice made in one manifest entry (that
+  ``voice_id``, the designed voice it replaces retired, who chose it and
+  when), returning the voice document and the replaced voice: the step every
+  chooser shares, the CLI's :func:`choose_project_voice` and a connector's alike.
 
 **Two more routes to a voice** (an#485). Design from notes can miss a
 regional accent entirely (every design of "rural Limerick Irish" came out
@@ -83,6 +87,7 @@ Designing is billed by the provider; nothing here is called by a render.
 
 from __future__ import annotations
 
+import copy
 import io
 import re
 import wave
@@ -106,6 +111,8 @@ __all__ = [
     "plan_auditions",
     "run_auditions",
     "cast_project_voice",
+    "VoiceChoice",
+    "choose_in_entry",
     "choose_project_voice",
     "choose_voice_option",
     "default_chooser",
@@ -148,6 +155,10 @@ SAMPLES_DIR = Path("artifacts") / "voice_samples"
 #: ``chosen_by`` is not cast: nobody the writer trusts picked it.
 CHOSEN_BY_KEY = "chosen_by"
 CHOSEN_AT_KEY = "chosen_at"
+#: On an option of a voice's options manifest: its ``voice_id`` was saved by a
+#: choice (the option was not persisted when designed), so a later choice of
+#: another option retires it (:func:`choose_in_entry`, an#549).
+SAVED_BY_CHOICE_KEY = "saved_by_choice"
 #: A voice a render may speak although nobody chose it: a timing draft. Any
 #: truthy value; a string says why, and the render report repeats it.
 PROVISIONAL_KEY = "provisional"
@@ -1481,6 +1492,138 @@ def audition_project_voices(
     return entries
 
 
+@dataclass(frozen=True)
+class VoiceChoice:
+    """What :func:`choose_in_entry` did: the voice document; ``previous``, the
+    voice the choice displaced (what a voice file written before still
+    names; ``None`` when it displaced none); and ``retired``, that voice when
+    it went into the ``retired`` ledger (one the choose step itself saved)."""
+
+    document: dict
+    previous: str | None = None
+    retired: str | None = None
+
+
+def choose_in_entry(
+    entry: MutableMapping,
+    option: str,
+    *,
+    by: str | None = None,
+    designer: Any = None,
+    ref: str = "",
+    at: str | None = None,
+    doc: Mapping | None = None,
+) -> VoiceChoice:
+    """Make ``option`` the choice of one voice's options manifest ``entry``
+    (an#549): the one choose step an's ``an voices choose`` and a connector
+    (reelee's production pack) share. Returns the voice document
+    (:func:`record_choice` of ``doc``, default an empty one: a caller that
+    keeps the voice file elsewhere merges these keys into it) and the voice
+    it replaced.
+
+    ``entry`` is updated in place: ``chosen`` records the option, its
+    ``voice_id``, ``chosen_by`` and ``chosen_at``. Choosing the option already
+    chosen reuses its voice (nothing is saved), and keeps its ``chosen_at``
+    when the same chooser chooses it again and no ``at`` is given. Choosing
+    another one names its voice (saved as a provider voice when it was not,
+    :func:`choose_voice_option`, and marked ``saved_by_choice`` on its option)
+    and retires the voice it replaces when a choice saved it: its option no
+    longer names it, and ``entry["retired"]`` records it (``{voice_id,
+    option, name_prefix}``), never deleted here (a copy of the manifest, or a
+    voice file already written, may still name it: freeing the provider's
+    slot is a separate, explicit act). A voice saved when the options were
+    designed (``persist=True``), a library voice and one cast by hand stay
+    named where they are. ``by`` defaults to the login name (see
+    :func:`record_choice`).
+
+    >>> from types import SimpleNamespace
+    >>> class Saver:   # a designer that saves a preview as voice "v<preview>"
+    ...     def design_voice(self, notes, *, preview, name): return SimpleNamespace(voice_id="v" + preview)
+    >>> entry = {"notes": "n", "options": [{"option": "A", "generated_voice_id": "a"},
+    ...                                    {"option": "B", "generated_voice_id": "b"}]}
+    >>> choose_in_entry(entry, "a", by="noel", at="t1", designer=Saver()).document["voice_id"]
+    'va'
+    >>> choice = choose_in_entry(entry, "B", by="noel", at="t2", designer=Saver())
+    >>> choice.previous, choice.retired, [o["voice_id"] for o in entry["options"]]
+    ('va', 'va', [None, 'vb'])
+    >>> choose_in_entry(entry, "B", by="noel").document["chosen_at"]   # the same choice again
+    't2'
+    """
+    if not isinstance(entry.get("retired", []), list):
+        raise VoiceDesignError(
+            f"the options manifest's `retired` is {type(entry['retired']).__name__}, "
+            "not a list: the manifest is damaged; nothing was chosen"
+        )
+    label = str(option).strip().upper()
+    previous = entry.get("chosen") or {}
+    chooser = (by or "").strip() or default_chooser()
+    displaced = retired = None
+    if previous.get("option") == label and previous.get("voice_id"):
+        voice_id = previous["voice_id"]
+        if at is None and previous.get(CHOSEN_BY_KEY) == chooser:
+            at = previous.get(CHOSEN_AT_KEY)
+    else:
+        option_of = next(
+            (o for o in entry.get("options", ()) if o.get("option") == label), None
+        )
+        saved = option_of is not None and not option_of.get("voice_id")
+        voice_id = choose_voice_option(entry, label, ref=ref, designer=designer)
+        displaced = (
+            previous.get("voice_id") if previous.get("voice_id") != voice_id else None
+        )
+        retired = _retire(entry, previous, keep=voice_id)
+        if option_of is not None:
+            option_of["voice_id"] = voice_id
+            if saved:
+                option_of[SAVED_BY_CHOICE_KEY] = True
+    document = record_choice(doc, voice_id, by=chooser, at=at, provider=DESIGN_PROVIDER)
+    entry["chosen"] = _chosen_record(label, document)
+    return VoiceChoice(document, displaced, retired)
+
+
+def _chosen_record(option: str | None, document: Mapping) -> dict:
+    """An options manifest's ``chosen``: the option (``None``: cast by hand),
+    and the voice document's ``voice_id``, ``chosen_by`` and ``chosen_at``."""
+    return {
+        "option": option,
+        "voice_id": document["voice_id"],
+        CHOSEN_BY_KEY: document[CHOSEN_BY_KEY],
+        CHOSEN_AT_KEY: document[CHOSEN_AT_KEY],
+    }
+
+
+def _retire(entry: MutableMapping, previous: Mapping, *, keep: str) -> str | None:
+    """Retire the voice ``previous`` (the choice being replaced) named, when a
+    choice saved it (its option is marked ``saved_by_choice``) and it is not
+    ``keep``: its option no longer names it, and the ``retired`` ledger does,
+    with whose name it carries (a copy of the manifest inherits the row, not
+    the right to delete it). Returns the retired voice, or ``None``."""
+    old = previous.get("voice_id")
+    saved = next(
+        (
+            o
+            for o in entry.get("options", ())
+            if o.get("option") == previous.get("option")
+            and o.get(SAVED_BY_CHOICE_KEY)
+            and o.get("voice_id") == old
+        ),
+        None,
+    )
+    if not old or old == keep or previous.get("option") is None or saved is None:
+        return None
+    retired = entry.setdefault("retired", [])
+    saved["voice_id"] = None
+    saved.pop(SAVED_BY_CHOICE_KEY, None)
+    retired.append(
+        {
+            "voice_id": old,
+            "option": previous.get("option"),
+            "name_prefix": entry.get("name_prefix"),
+        }
+    )
+    return old
+
+
 def choose_project_voice(
     project_dir: str | Path,
     ref: str,
@@ -1492,26 +1635,22 @@ def choose_project_voice(
 ) -> dict:
     """Write the chosen option's ``voice_id`` into ``assets/voices/<ref>.json``,
     with who chose it (``by``, default the login name) and when (``at``, default
-    now; :func:`record_choice`); return the document."""
+    now), and the choice into its options manifest (:func:`choose_in_entry`);
+    return the document."""
     voices, options, _ = _project_stores(project_dir)
     if ref not in options:
         raise VoiceDesignError(f"no options for {ref!r}: run `an voices design` first")
-    entry = dict(options[ref])
-    voice_id = choose_voice_option(entry, option, ref=ref, designer=designer)
-    doc = record_choice(
-        voices[ref] if ref in voices else {},
-        voice_id,
+    entry = copy.deepcopy(dict(options[ref]))
+    doc = choose_in_entry(
+        entry,
+        option,
         by=by,
+        designer=designer,
+        ref=ref,
         at=at,
-        provider=DESIGN_PROVIDER,
-    )
+        doc=voices[ref] if ref in voices else {},
+    ).document
     voices[ref] = doc
-    entry["chosen"] = {
-        "option": str(option).upper(),
-        "voice_id": voice_id,
-        CHOSEN_BY_KEY: doc[CHOSEN_BY_KEY],
-        CHOSEN_AT_KEY: doc[CHOSEN_AT_KEY],
-    }
     options[ref] = entry
     return doc
 
@@ -1544,11 +1683,8 @@ def cast_project_voice(
     voices[ref] = doc
     if ref in options:
         entry = dict(options[ref])
-        entry["chosen"] = {
-            "option": None,
-            "voice_id": chosen,
-            CHOSEN_BY_KEY: doc[CHOSEN_BY_KEY],
-            CHOSEN_AT_KEY: doc[CHOSEN_AT_KEY],
-        }
+        # cast by hand: what it replaces is not retired (the designed voice
+        # stays named on its option), and it is never retired itself
+        entry["chosen"] = _chosen_record(None, doc)
         options[ref] = entry
     return doc
