@@ -60,7 +60,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from an.base import EasingSpec
-from an.timing.easing import VALUE_TYPED_EASINGS, apply_easing
+from an.timing.easing import VALUE_TYPED_CALLS, VALUE_TYPED_EASINGS, apply_easing
 from an.timing.kinds import FieldKind, FieldKindError, Segment
 
 
@@ -125,7 +125,10 @@ def evaluate(channel: Channel, t: float, *, kind: FieldKind | None = None) -> An
     # Validated for every segment (a typo'd easing name must raise on a swap
     # channel too), but *applied* only where the interpolator uses it.
     eased = apply_easing(
-        a.easing, u, names=VALUE_TYPED_EASINGS if kind is None else None
+        a.easing,
+        u,
+        names=VALUE_TYPED_EASINGS if kind is None else None,
+        calls=VALUE_TYPED_CALLS,
     )
     if kind is not None:
         if t == a.time:  # the first instant of a segment is the key it leaves

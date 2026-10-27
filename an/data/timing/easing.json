@@ -1,7 +1,7 @@
 {
  "format": "an.timing.easing",
  "version": 1,
- "description": "Every named easing, the solver that computes it, and its value at u in 'sample_u'. Hyphenated CSS names are the exact CSS curves; an's underscore names (and 'ease') are an's own polynomial curves, so a CSS document's 'ease' must be read through 'css_import_aliases'; Manim's rate functions keep Manim's names. A bare 4-number list is a cubic Bezier solved by 'an-bezier-newton-8'; the string 'cubic-bezier(...)' is solved by 'css-bezier-newton-bisection'.",
+ "description": "Every named easing, the solver that computes it, and its value at u in 'sample_u'. Hyphenated CSS names are the exact CSS curves; an's underscore names (and 'ease') are an's own polynomial curves, so a CSS document's 'ease' must be read through 'css_import_aliases'; Manim's rate functions keep Manim's names. A bare 4-number list is a cubic Bezier solved by 'an-bezier-newton-8'; the string 'cubic-bezier(...)' is solved by 'css-bezier-newton-bisection'. 'perspective(k)' is k*u / (1 + (k - 1)*u), k > 0 the depth ratio of a segment's end to its start: a pinhole projection of linear motion, exact; the value-typed rule takes it too.",
  "families": [
   "common",
   "legacy",
@@ -850,7 +850,7 @@
     -0.2527970781274853,
     -0.09225749082191968,
     -0.02426710195325536,
-    -0.003537187604922127,
+    -0.003537187604922126,
     -8.467621885809154e-13,
     -0.0
    ]
@@ -1323,7 +1323,7 @@
     0.8231191625209586,
     0.8886026607319298,
     0.927074712561627,
-    0.9526047247960581,
+    0.9526047247960578,
     0.9702753944880748,
     0.982574498976312,
     0.9909280013069506,
@@ -1400,6 +1400,66 @@
     0.9829733903484371,
     0.9955253847041083,
     0.9999999999981103,
+    1.0
+   ]
+  },
+  {
+   "spec": "perspective(0.25)",
+   "solver": "css-bezier-newton-bisection",
+   "samples": [
+    0.0,
+    2.500001875001406e-07,
+    0.012987012987012988,
+    0.02702702702702703,
+    0.04225352112676056,
+    0.05882352941176471,
+    0.07692307692307693,
+    0.0967741935483871,
+    0.11864406779661016,
+    0.14285714285714288,
+    0.169811320754717,
+    0.2,
+    0.20064076892270727,
+    0.23404255319148942,
+    0.2727272727272727,
+    0.3170731707317074,
+    0.36842105263157887,
+    0.42857142857142855,
+    0.5000000000000001,
+    0.5862068965517241,
+    0.6923076923076924,
+    0.8260869565217388,
+    0.999996000012,
+    1.0
+   ]
+  },
+  {
+   "spec": "perspective(3)",
+   "solver": "css-bezier-newton-bisection",
+   "samples": [
+    0.0,
+    2.999994000012e-06,
+    0.13636363636363638,
+    0.25000000000000006,
+    0.3461538461538461,
+    0.42857142857142866,
+    0.5,
+    0.5624999999999999,
+    0.6176470588235293,
+    0.6666666666666667,
+    0.7105263157894738,
+    0.75,
+    0.7507492507492509,
+    0.7857142857142857,
+    0.818181818181818,
+    0.8478260869565218,
+    0.8749999999999999,
+    0.9,
+    0.9230769230769231,
+    0.9444444444444443,
+    0.9642857142857144,
+    0.982758620689655,
+    0.9999996666664446,
     1.0
    ]
   }

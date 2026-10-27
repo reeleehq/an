@@ -231,6 +231,8 @@ PARAMETRIC_EXAMPLES: tuple[Any, ...] = (
     [1.0, 0.0, 0.0, 1.0],  # the legacy solver's slope guard and clamps
     [0.42, 0.0, 1.0, 1.0],
     [0.0, 0.0, 0.58, 1.0],
+    "perspective(0.25)",  # an#629: a stream instance coming closer
+    "perspective(3)",  # ... and moving away
 )
 
 #: How a CSS-named document's names map onto this registry where the name means
@@ -250,7 +252,10 @@ def build_easing() -> dict[str, Any]:
             "curves, so a CSS document's 'ease' must be read through "
             "'css_import_aliases'; Manim's rate functions keep Manim's names. A bare 4-number "
             "list is a cubic Bezier solved by 'an-bezier-newton-8'; the string "
-            "'cubic-bezier(...)' is solved by 'css-bezier-newton-bisection'."
+            "'cubic-bezier(...)' is solved by 'css-bezier-newton-bisection'. "
+            "'perspective(k)' is k*u / (1 + (k - 1)*u), k > 0 the depth ratio of a "
+            "segment's end to its start: a pinhole projection of linear motion, "
+            "exact; the value-typed rule takes it too."
         ),
         "families": list(EASING_FAMILIES),
         "solvers": solvers(owner=CORE_OWNER),
