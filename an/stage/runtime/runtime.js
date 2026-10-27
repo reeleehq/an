@@ -381,6 +381,17 @@
         return container;
     }
 
+    // The compiler's synthetic top-level node: its children are built into
+    // `root` (the centred camera node), and `root` sorts them like any other
+    // container whose children carry a paint order (a world's stream slots
+    // reused for a farther instance, an#634).
+    function buildSceneRoot(sceneNode, root) {
+        for (const child of (sceneNode.children || [])) {
+            buildSceneTree(child, root, '');
+        }
+        applyPaintOrder(root);
+    }
+
     // Visual kinds a genre's runtime script registers (an#247): checked FIRST,
     // so a genre may also take over a built-in kind. The cut-out mouth and eye are
     // such kinds, registered by cutan's runtime script (an#225). `make(visualSpec, PIXI)` returns the display object.
@@ -2396,9 +2407,7 @@
             // matching the channel.target strings the compiler emits). Do
             // NOT apply its transform — it's a logical container, and the
             // outer `root` already centers the scene to canvas center.
-            for (const child of (scene.scene.children || [])) {
-                buildSceneTree(child, root, '');
-            }
+            buildSceneRoot(scene.scene, root);
         }
 
         // The overlay (an#155): a SECOND top-level container, centred like

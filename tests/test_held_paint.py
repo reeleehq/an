@@ -336,25 +336,35 @@ def test_an_item_held_by_a_part_of_another_held_item_paints_once():
 
 @requires_node
 def test_a_z_index_key_moves_a_node_among_its_sorted_siblings():
-    """The world's stream slots: siblings given their places as static
-    ``z_index`` (the container sorts), then a ``z_index`` key on one of them
-    paints it elsewhere among them, frame by frame, and nothing reparents."""
+    """The world's stream slots (an#634): the compiler gives the scene's
+    top-level entities their places as static ``z_index``, the loader's
+    ``buildSceneRoot`` makes the camera root sort them, and a ``z_index`` key
+    on one paints it elsewhere among them, frame by frame; nothing reparents."""
     src = RUNTIME_JS.read_text(encoding="utf-8")
     lifted = "\n".join(
         _lift(src, start, start)
-        for start in ("function applyPaintOrder(", "function applyProperty(")
+        for start in (
+            "function childPrefix(",
+            "function applyPaintOrder(",
+            "function buildSceneTree(",
+            "function buildSceneRoot(",
+            "function applyTransform(",
+            "function applyProperty(",
+        )
     )
     script = (
         lifted
         + """
     const root = new PIXI.Container();
     new PIXI.Container().addChild(root);
-    for (const [i, name] of ['sky', 'far', 'near'].entries()) {
-        node(name, root)._anZ = i;
+    const kid = (name, z) => ({name, transform: {}, z_index: z, children: [
+        {name: 'ink', transform: {}, children: []}]});
+    buildSceneRoot({children: [kid('sky', 0), kid('far', 1), kid('near', 2)]}, root);
+    for (const name of ['sky', 'far', 'near']) {  // a leaf that logs its paint
+        const leaf = new Leaf(); leaf.name = name; nodeIndex[name].addChild(leaf);
     }
-    applyPaintOrder(root);
     const frame = () => { log.length = 0; root.updateTransform(); root.render({}); return log.slice(); };
-    const out = {opening: frame()};
+    const out = {opening: frame(), sortable: root.sortableChildren};
     applyProperty(nodeIndex['near'], 'z_index', 1);  // reused for a farther instance
     applyProperty(nodeIndex['far'], 'z_index', 2);
     out.reused = frame();
@@ -363,6 +373,7 @@ def test_a_z_index_key_moves_a_node_among_its_sorted_siblings():
     """
     )
     out = _run(script)
+    assert out["sortable"] is True
     assert out["opening"] == ["sky", "far", "near"]
     assert out["reused"] == ["sky", "near", "far"]
     assert out["parents"] == [True, True]

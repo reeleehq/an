@@ -1257,7 +1257,7 @@ def test_a_stream_of_stroked_paths_compiles_with_its_slot_marker(tmp_path):
 
 
 def test_the_core_override_keys_are_the_owners_constants():
-    from an.base import CORE_OVERRIDE_KEYS, PAINT_RANKS_OVERRIDE, PLANE_FACTORS_OVERRIDE
+    from an.base import CORE_OVERRIDE_KEYS, PAINT_KEYS_OVERRIDE, PLANE_FACTORS_OVERRIDE
     from an.ir.world import ATTACHED_OVERRIDE, STREAM_OVERRIDE
     from an.stage.hold import AIM_OVERRIDE, ON_OVERRIDE
 
@@ -1267,7 +1267,7 @@ def test_the_core_override_keys_are_the_owners_constants():
         ON_OVERRIDE,
         AIM_OVERRIDE,
         PLANE_FACTORS_OVERRIDE,
-        PAINT_RANKS_OVERRIDE,
+        PAINT_KEYS_OVERRIDE,
     }
     assert owners == set(CORE_OVERRIDE_KEYS)
 
@@ -1426,7 +1426,7 @@ def test_a_reused_slot_is_painted_by_the_depth_of_the_instance_it_draws(tmp_path
     """an#634: at every frame, the stream's visible slots are painted far to
     near (the larger, nearer pole later), read off the compiled document's
     ``z_index`` keys the way the stage sorts the scene's children."""
-    from an.base import PAINT_RANKS_OVERRIDE, Z_INDEX_PROPERTY
+    from an.base import PAINT_KEYS_OVERRIDE, Z_INDEX_PROPERTY
     from an.stage.compile import compile_shot
     from an.stage.timeline import entity_alpha, timeline_from_scene
     from an.timing.timeline import evaluate_timeline
@@ -1435,7 +1435,7 @@ def test_a_reused_slot_is_painted_by_the_depth_of_the_instance_it_draws(tmp_path
     scene = _lane(_travel_scene(Shot(id="s1", duration=3.0, viewpoint="road")), 0.2)
     shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
     slots = [e.id for e in shot.entities if e.overrides and "stream" in e.overrides]
-    assert all(PAINT_RANKS_OVERRIDE in e.overrides for e in shot.entities)
+    assert all(PAINT_KEYS_OVERRIDE in e.overrides for e in shot.entities)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         doc = compile_shot(shot, project.mall)
@@ -1454,13 +1454,13 @@ def test_a_reused_slot_is_painted_by_the_depth_of_the_instance_it_draws(tmp_path
     assert changed  # the slots were reused, and their order moved with them
 
 
-def test_a_shot_whose_order_holds_carries_no_paint_ranks():
+def test_a_shot_whose_order_holds_carries_no_paint_keys():
     """No slot reused (a short shot): nothing recorded, nothing compiled."""
-    from an.base import PAINT_RANKS_OVERRIDE
+    from an.base import PAINT_KEYS_OVERRIDE
 
     scene = _travel_scene(Shot(id="s1", duration=0.2, viewpoint="road"))
     shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
-    assert not [e for e in shot.entities if PAINT_RANKS_OVERRIDE in (e.overrides or {})]
+    assert not [e for e in shot.entities if PAINT_KEYS_OVERRIDE in (e.overrides or {})]
 
 
 # --- an#629: a closed-form pass is one exact tween per channel -----------------
@@ -1508,3 +1508,67 @@ def test_a_minute_of_road_costs_a_third_of_what_fitting_did():
     )
     shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
     assert 0 < len(shot.actions) <= 2000
+
+
+def _compiled_road(tmp_path, *, member_after: str | None = None):
+    """The road at lane 0.2 under an environment with a foreground band
+    (``set/rail`` over everything), its poles after ``set/hill``; ``left``
+    placed after ``member_after`` when given. The compiled document."""
+    from an.stage.compile import compile_shot
+
+    root = Path(shutil.copytree(LAMP, tmp_path / "p"))
+    shutil.copytree(PLANES / "assets/environments/stage", root / "assets/environments/stage")
+    project = load(root)
+    env = AssetRef(kind="environment", id="set", store="environments", ref="stage")
+    scene = _lane(
+        _travel_scene(Shot(id="s1", duration=3.0, viewpoint="road", entities=[env])), 0.2
+    )
+    (stream,) = scene.world.travel.streams
+    scene.world.travel = scene.world.travel.model_copy(
+        update={
+            "streams": [stream.model_copy(update={"after": "set/hill"})],
+            "plates": {"far": ["set/sky"], "vehicle": ["set/hill", "set/rail"]},
+        }
+    )
+    left, right = scene.world.members
+    if member_after:
+        scene.world.members = [left.model_copy(update={"after": member_after}), right]
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        return compile_shot(shot, project.mall)
+
+
+def _painted(doc, t: float) -> list[str]:
+    from an.base import Z_INDEX_PROPERTY
+    from an.stage.timeline import timeline_from_scene
+    from an.timing.timeline import evaluate_timeline
+
+    pose = evaluate_timeline(timeline_from_scene(doc), t)
+    z = {
+        n.name: (pose.get((n.name, Z_INDEX_PROPERTY), n.z_index), i)
+        for i, n in enumerate(doc.scene.children)
+    }
+    return sorted(z, key=z.get)
+
+
+@pytest.mark.parametrize("member_after", [None, "set/rail", "pole_0"])
+def test_a_reordered_slot_never_crosses_what_the_author_placed(tmp_path, member_after):
+    """an#634 review: the slots move only among their keyed neighbours. The
+    foreground band stays over every pole; a member placed after the rail
+    stays over the band; one placed after a pole stays just after it; and as
+    the shot opens the order is the built one."""
+    doc = _compiled_road(tmp_path, member_after=member_after)
+    built = [n.name for n in doc.scene.children]
+    assert _painted(doc, 0.0) == built
+    moved = False
+    for t in (0.5, 1.6, 2.3, 2.9):
+        order = _painted(doc, t)
+        moved |= order != built
+        poles = [i for i, n in enumerate(order) if n.startswith("pole_")]
+        assert max(poles) < order.index("set__band_1")
+        if member_after == "set/rail":
+            assert order.index("left") > order.index("set__band_1")
+        if member_after == "pole_0":
+            assert order.index("left") == order.index("pole_0") + 1
+    assert moved

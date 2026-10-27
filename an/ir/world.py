@@ -46,7 +46,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Callable, Collection, Mapping, Sequence
 
-from an.base import PAINT_RANKS_OVERRIDE, PLANE_FACTORS_OVERRIDE, STREAM_OVERRIDE
+from an.base import PAINT_KEYS_OVERRIDE, PLANE_FACTORS_OVERRIDE, STREAM_OVERRIDE
 from an.ir.compose import (
     delay,
     flatten,
@@ -1338,49 +1338,24 @@ def _travel_entities(
     return entities, actions, problems
 
 
-def paint_ranks(
-    keys: Mapping[str, Sequence[tuple[float, Any]]],
-) -> dict[str, list[tuple[float, int]]]:
-    """Each entity's rank in the paint order (0 = painted first) from each time
-    on, given its paint key from each time on (``{id: [(time, key)]}``, the
-    first at 0, a key sorting farther-first); ``{}`` when no rank ever changes,
-    so a shot whose order holds carries nothing (an#634).
-
-    A stream slot reused for a farther instance must drop behind the slots now
-    nearer than it, which a paint order fixed as the shot opens cannot say.
-
-    >>> paint_ranks({"near": [(0.0, 2)], "slot": [(0.0, 3), (1.5, 1)]})
-    {'near': [(0.0, 0), (1.5, 1)], 'slot': [(0.0, 1), (1.5, 0)]}
-    >>> paint_ranks({"a": [(0.0, 1)], "b": [(0.0, 2), (1.0, 3)]})
-    {}
-    """
-    times = sorted({t for ks in keys.values() for t, _ in ks})
-    ranks: dict[str, list[tuple[float, int]]] = {eid: [] for eid in keys}
-    for t in times:
-        now = {eid: [k for at, k in ks if at <= t][-1] for eid, ks in keys.items()}
-        for rank, eid in enumerate(sorted(now, key=now.__getitem__)):
-            if not ranks[eid] or ranks[eid][-1][1] != rank:
-                ranks[eid].append((t, rank))
-    if all(len(r) == 1 for r in ranks.values()):
-        return {}
-    return ranks
-
-
-def _with_paint_ranks(
+def _with_paint_keys(
     ordered: list[tuple[tuple[float, float, float], AssetRef, int | None]],
     pass_keys: Mapping[str, Sequence[tuple[float, tuple[float, float, float]]]],
+    *,
+    entity_ids: Collection[str],
 ) -> list[tuple[tuple[float, float, float], AssetRef, int | None]]:
-    """``ordered`` (sorted by each entity's key as the shot opens) with each
-    entity's paint ranks recorded under :data:`an.base.PAINT_RANKS_OVERRIDE`
-    when a stream slot's later pass changes the order (:func:`paint_ranks`);
-    the compiler turns them into ``z_index`` keys (an#634)."""
+    """``ordered`` with each entity's paint key from each time on recorded
+    under :data:`an.base.PAINT_KEYS_OVERRIDE` (``[[time, key]]``, the first at
+    0; a key sorts farther first) when a stream slot is reused (an#634): the
+    compiler orders each run of keyed siblings by them, frame by frame. An
+    entity the author placed after another entity (``stage.after`` naming one
+    of ``entity_ids``) keeps that place and carries none."""
     if not any(len(ks) > 1 for ks in pass_keys.values()):
         return ordered
-    ranks = paint_ranks(
-        {e.id: pass_keys.get(e.id) or [(0.0, key)] for key, e, _ in ordered}
-    )
-    if not ranks:
-        return ordered
+
+    def keyed(e: AssetRef) -> bool:
+        return e.stage is None or e.stage.after not in entity_ids
+
     return [
         (
             key,
@@ -1388,10 +1363,14 @@ def _with_paint_ranks(
                 update={
                     "overrides": {
                         **(e.overrides or {}),
-                        PAINT_RANKS_OVERRIDE: [list(r) for r in ranks[e.id]],
+                        PAINT_KEYS_OVERRIDE: [
+                            [t, list(k)] for t, k in pass_keys.get(e.id) or [(0.0, key)]
+                        ],
                     }
                 }
-            ),
+            )
+            if keyed(e)
+            else e,
             j,
         )
         for key, e, j in ordered
@@ -2577,7 +2556,11 @@ def _lower_shot(
         for stream_id, problem in problems:
             note("warning", "stream", stream_id, problem)
     ordered.sort(key=lambda item: item[0])
-    ordered = _with_paint_ranks(ordered, pass_keys)
+    ordered = _with_paint_keys(
+        ordered,
+        pass_keys,
+        entity_ids={e.id for _, e, _ in ordered} | {e.id for e, _ in envs},
+    )
     if sightings:
         _depth_order_notes(
             [e for _, e, _ in ordered],

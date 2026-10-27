@@ -229,11 +229,12 @@ PLANE_FACTORS_OVERRIDE: str = "plane_factors"
 #: The core's marker on a slot entity a travel's lowering made (an#516): the
 #: id of the stream it draws (``an.ir.world``).
 STREAM_OVERRIDE: str = "stream"
-#: The core's record, on each entity a world paints by depth, of its rank in
-#: the paint order from each time on (``[[time, rank]]``, an#634): set only when
-#: a stream slot reused for a farther instance changes the order, and turned
-#: into ``z_index`` keys by the stage compiler.
-PAINT_RANKS_OVERRIDE: str = "paint_ranks"
+#: The core's record, on each entity a world paints by depth, of its paint key
+#: from each time on (``[[time, key]]``, a key sorting farther first, an#634):
+#: set when a stream slot is reused, so a slot drawing a farther instance can
+#: drop behind nearer ones; the stage compiler orders each run of keyed
+#: siblings by them with ``z_index`` keys.
+PAINT_KEYS_OVERRIDE: str = "paint_keys"
 #: At or under this alpha an entity is not seen (a stream slot between its
 #: passes, a fade's end): it cannot jump or swap sides at a cut (an#516), nor
 #: overlap or be drawn through anything at an instant (an#632).
@@ -252,7 +253,7 @@ CORE_OVERRIDE_KEYS: frozenset[str] = frozenset(
         "held_by",
         "held_rotation",
         PLANE_FACTORS_OVERRIDE,
-        PAINT_RANKS_OVERRIDE,
+        PAINT_KEYS_OVERRIDE,
     }
 )
 

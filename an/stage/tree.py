@@ -97,6 +97,45 @@ def _walk(node: Any, prefix: str, ancestors: tuple) -> Iterator[tuple[str, Any, 
         yield from _walk(child, inner, ancestors + ((node, path),))
 
 
+def entity_containers(root: Any) -> Iterator[Any]:
+    """The containers whose children are entity nodes, in document order: the
+    synthetic ``root`` and every wrapper under it that indexes its children in
+    the parent's prefix (``scope=""``: the ``<env>__after_<k>`` that carries a
+    plane's parallax for the entities placed after it), so each child's path
+    is its own name."""
+    yield root
+    for child in _children(root):
+        if _get(child, "scope") == "":
+            yield from entity_containers(child)
+
+
+def paint_places(root: Any) -> dict[str, tuple[tuple[float, int], ...]]:
+    """Where each entity node of the synthetic ``root`` is painted, as a key
+    that sorts back to front: per container from the outermost, its sort key
+    there (``z_index``, else its index) and its index, as a container whose
+    children carry a ``z_index`` sorts them.
+
+    >>> from an.stage.serialize import NodeJSON
+    >>> root = NodeJSON(name="root", children=[NodeJSON(name="b"), NodeJSON(name="a", z_index=-1.0),
+    ...     NodeJSON(name="w", scope="", children=[NodeJSON(name="c")])])
+    >>> places = paint_places(root)
+    >>> sorted(places, key=places.get)
+    ['a', 'b', 'w', 'c']
+    """
+    out: dict[str, tuple[tuple[float, int], ...]] = {}
+
+    def visit(container: Any, outer: tuple[tuple[float, int], ...]) -> None:
+        for i, child in enumerate(_children(container)):
+            z = _get(child, "z_index")
+            here = (*outer, (float(i) if z is None else float(z), i))
+            out[_get(child, "name")] = here
+            if _get(child, "scope") == "":
+                visit(child, here)
+
+    visit(root, ())
+    return out
+
+
 def walk(node: Any, prefix: str = "") -> Iterator[tuple[str, Any]]:
     """``(path, node)`` for ``node`` and every descendant, as the runtime
     indexes them, in document order."""
