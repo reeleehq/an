@@ -1453,7 +1453,9 @@ def design_project_voices(
         # Reels an audition recorded while this design ran are kept (an#587).
         with options.locked(ref):
             if isinstance(stored := _previous_entries(options).get(ref), Mapping):
-                _carry_reels(stored, entry)  # a damaged one is replaced: it was paid for
+                _carry_reels(
+                    stored, entry
+                )  # a damaged one is replaced: it was paid for
             options[ref] = entry
     return manifest
 
