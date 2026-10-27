@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=bc9ab534"></script>
+    <script src="../_static/documentation_options.js?v=bef7169d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -53,12 +53,12 @@
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="an.iterate" href="an.iterate.html" />
+    <link rel="next" title="an.ir.world_from_shot" href="an.ir.world_from_shot.html" />
     <link rel="prev" title="an.ir.validate" href="an.ir.validate.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.299" />
+  <meta name="docsearch:version" content="0.1.300" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -415,6 +415,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.ir.schema.html">an.ir.schema</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.validate.html">an.ir.validate</a></li>
 <li class="toctree-l3 current active"><a aria-current="page" class="current reference internal" href="#">an.ir.world</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.world_from_shot.html">an.ir.world_from_shot</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.iterate.html">an.iterate</a></li>
@@ -707,22 +708,25 @@ move, and a close-up is the same world seen from nearer.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.ir.world.lower_world" title="an.ir.world.lower_world"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lower_world</span></code></a>(scene, *, extents[, ...])</p></td>
 <td><p>The scene with every framed shot's placements derived from the world.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.member_placements" title="an.ir.world.member_placements"><code class="xref py py-obj docutils literal notranslate"><span class="pre">member_placements</span></code></a>(world, projection, *, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.member_of" title="an.ir.world.member_of"><code class="xref py py-obj docutils literal notranslate"><span class="pre">member_of</span></code></a>(entity, **placement)</p></td>
+<td><p>The world member a shot entity becomes (the inverse of <code class="xref py py-func docutils literal notranslate"><span class="pre">_entity_of()</span></code>): its fields as they are, its <code class="docutils literal notranslate"><span class="pre">stage</span></code> dropped (a member is placed by each shot's viewpoint) and its <code class="docutils literal notranslate"><span class="pre">after</span></code> kept, with <code class="docutils literal notranslate"><span class="pre">placement</span></code> (<code class="docutils literal notranslate"><span class="pre">at</span></code>, <code class="docutils literal notranslate"><span class="pre">height</span></code>, ...) where the world stands it.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.world.member_placements" title="an.ir.world.member_placements"><code class="xref py py-obj docutils literal notranslate"><span class="pre">member_placements</span></code></a>(world, projection, *, ...)</p></td>
 <td><p>Every member's placement under <code class="docutils literal notranslate"><span class="pre">projection</span></code>: <code class="docutils literal notranslate"><span class="pre">{id:</span> <span class="pre">Placed}</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.world.pose_look" title="an.ir.world.pose_look"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pose_look</span></code></a>(pose)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.pose_look" title="an.ir.world.pose_look"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pose_look</span></code></a>(pose)</p></td>
 <td><p>The <code class="docutils literal notranslate"><span class="pre">(yaw,</span> <span class="pre">pitch)</span></code> in degrees a pose faces.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.resolve_viewpoint" title="an.ir.world.resolve_viewpoint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_viewpoint</span></code></a>(world, viewpoint, *, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.world.resolve_viewpoint" title="an.ir.world.resolve_viewpoint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_viewpoint</span></code></a>(world, viewpoint, *, ...)</p></td>
 <td><p>The camera a viewpoint is, as a <a class="reference internal" href="#an.ir.world.Projection" title="an.ir.world.Projection"><code class="xref py py-class docutils literal notranslate"><span class="pre">Projection</span></code></a>, in its own frame's units.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.world.stream_instances" title="an.ir.world.stream_instances"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stream_instances</span></code></a>(stream, travel, *, s_min, s_max)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.stream_instances" title="an.ir.world.stream_instances"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stream_instances</span></code></a>(stream, travel, *, s_min, s_max)</p></td>
 <td><p>The instances of <code class="docutils literal notranslate"><span class="pre">stream</span></code> whose position along the travel lies in <code class="docutils literal notranslate"><span class="pre">[s_min,</span> <span class="pre">s_max]</span></code>: <code class="docutils literal notranslate"><span class="pre">[(k,</span> <span class="pre">world</span> <span class="pre">position)]</span></code>, <code class="docutils literal notranslate"><span class="pre">k</span></code> the instance index.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.stream_slots" title="an.ir.world.stream_slots"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stream_slots</span></code></a>(stream, travel)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.world.stream_slots" title="an.ir.world.stream_slots"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stream_slots</span></code></a>(stream, travel)</p></td>
 <td><p>How many entities a stream needs: one per instance that can be between <code class="docutils literal notranslate"><span class="pre">near</span></code> and <code class="docutils literal notranslate"><span class="pre">far</span></code> at once, plus one.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.world.viewpoint_of" title="an.ir.world.viewpoint_of"><code class="xref py py-obj docutils literal notranslate"><span class="pre">viewpoint_of</span></code></a>(world, viewpoint)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.viewpoint_of" title="an.ir.world.viewpoint_of"><code class="xref py py-obj docutils literal notranslate"><span class="pre">viewpoint_of</span></code></a>(world, viewpoint)</p></td>
 <td><p>The shot's viewpoint as a model: a name is looked up in the world.</p></td>
 </tr>
 </tbody>
@@ -1072,6 +1076,29 @@ it does not name).</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.ir.world.member_of">
+<span class="sig-prename descclassname"><span class="pre">an.ir.world.</span></span><span class="sig-name descname"><span class="pre">member_of</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">placement</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/world.html#member_of"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.world.member_of" title="Link to this definition">#</a></dt>
+<dd><p>The world member a shot entity becomes (the inverse of
+<code class="xref py py-func docutils literal notranslate"><span class="pre">_entity_of()</span></code>): its fields as they are, its <code class="docutils literal notranslate"><span class="pre">stage</span></code> dropped (a
+member is placed by each shot’s viewpoint) and its <code class="docutils literal notranslate"><span class="pre">after</span></code> kept, with
+<code class="docutils literal notranslate"><span class="pre">placement</span></code> (<code class="docutils literal notranslate"><span class="pre">at</span></code>, <code class="docutils literal notranslate"><span class="pre">height</span></code>, …) where the world stands it. Its
+<code class="docutils literal notranslate"><span class="pre">joints</span></code> stay with the shot: they tie it to other entities of THAT shot,
+and <code class="xref py py-func docutils literal notranslate"><span class="pre">_entity_of()</span></code> gives a member none.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">e</span> <span class="o">=</span> <span class="n">AssetRef</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">"prop"</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="s2">"lamp"</span><span class="p">,</span> <span class="n">store</span><span class="o">=</span><span class="s2">"props"</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="s2">"lamp"</span><span class="p">,</span>
+<span class="gp">... </span>             <span class="n">stage</span><span class="o">=</span><span class="n">StagePlacement</span><span class="p">(</span><span class="n">at</span><span class="o">=</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">),</span> <span class="n">after</span><span class="o">=</span><span class="s2">"set/sky"</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">member_of</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">at</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">),</span> <span class="n">height</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">at</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">after</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">stage</span>
+<span class="go">((0.0, 0.0, 5.0), 'set/sky', None)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.ir.schema.html#an.ir.schema.WorldMember" title="an.ir.schema.WorldMember"><code class="xref py py-class docutils literal notranslate"><span class="pre">WorldMember</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.ir.world.member_placements">
 <span class="sig-prename descclassname"><span class="pre">an.ir.world.</span></span><span class="sig-name descname"><span class="pre">member_placements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">world</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">projection</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">extents</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hide</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hand</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extent_problems</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">member_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/world.html#member_placements"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.world.member_placements" title="Link to this definition">#</a></dt>
 <dd><p>Every member’s placement under <code class="docutils literal notranslate"><span class="pre">projection</span></code>: <code class="docutils literal notranslate"><span class="pre">{id:</span> <span class="pre">Placed}</span></code>.</p>
@@ -1218,11 +1245,11 @@ slot in every shot, which is what keeps a cut continuous.</p>
       </div>
     </a>
     <a class="right-next"
-       href="an.iterate.html"
+       href="an.ir.world_from_shot.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">an.iterate</p>
+        <p class="prev-next-title">an.ir.world_from_shot</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -1272,6 +1299,7 @@ slot in every shot, which is what keeps a cut continuous.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.ground_scale"><code class="docutils literal notranslate"><span class="pre">ground_scale()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.has_world"><code class="docutils literal notranslate"><span class="pre">has_world()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.lower_world"><code class="docutils literal notranslate"><span class="pre">lower_world()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.member_of"><code class="docutils literal notranslate"><span class="pre">member_of()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.member_placements"><code class="docutils literal notranslate"><span class="pre">member_placements()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.pose_look"><code class="docutils literal notranslate"><span class="pre">pose_look()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.resolve_viewpoint"><code class="docutils literal notranslate"><span class="pre">resolve_viewpoint()</span></code></a></li>

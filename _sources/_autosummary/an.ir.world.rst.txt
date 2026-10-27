@@ -23,6 +23,7 @@ an.ir.world
       frame_poses
       has_world
       lower_world
+      member_of
       member_placements
       pose_look
       resolve_viewpoint

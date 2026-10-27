@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=bc9ab534"></script>
+    <script src="../../../_static/documentation_options.js?v=bef7169d"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.299" />
+  <meta name="docsearch:version" content="0.1.300" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -731,18 +731,36 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Mapping</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Mapping</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">AssetRef</span><span class="p">,</span> <span class="n">SceneIR</span><span class="p">,</span> <span class="n">World</span><span class="p">,</span> <span class="n">stage_specimen</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.world</span><span class="w"> </span><span class="kn">import</span> <span class="n">Box</span><span class="p">,</span> <span class="n">Lowered</span><span class="p">,</span> <span class="n">WorldError</span><span class="p">,</span> <span class="n">has_world</span><span class="p">,</span> <span class="n">lower_world</span>
 
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.world_from_shot</span><span class="w"> </span><span class="kn">import</span> <span class="n">SeededMembers</span>
+
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">"lower_scene"</span><span class="p">,</span>
+    <span class="s2">"seed_world"</span><span class="p">,</span>
     <span class="s2">"lowered_or_same"</span><span class="p">,</span>
     <span class="s2">"member_extents"</span><span class="p">,</span>
     <span class="s2">"native_box"</span><span class="p">,</span>
     <span class="s2">"world_report"</span><span class="p">,</span>
 <span class="p">]</span>
+
+
+<span class="c1">#: Entity kinds the stage draws nothing for: what no shot places.</span>
+<span class="n">UNDRAWN_KINDS</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"voice"</span><span class="p">})</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">draws</span><span class="p">(</span><span class="n">ref</span><span class="p">:</span> <span class="n">AssetRef</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether the stage draws ``ref`` (an environment, a prop, a character:</span>
+<span class="sd">    anything but :data:`UNDRAWN_KINDS`).</span>
+
+<span class="sd">    &gt;&gt;&gt; draws(AssetRef(kind="voice", id="v", store="voices", ref="v"))</span>
+<span class="sd">    False</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">ref</span><span class="o">.</span><span class="n">kind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">UNDRAWN_KINDS</span>
 
 
 <div class="viewcode-block" id="native_box">
@@ -765,13 +783,15 @@ window.runMermaid = runMermaid;</script>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">node_box</span><span class="p">,</span> <span class="n">screen_position</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.tree</span><span class="w"> </span><span class="kn">import</span> <span class="n">walk_document</span>
 
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">draws</span><span class="p">(</span><span class="n">ref</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
     <span class="n">kind</span> <span class="o">=</span> <span class="n">entity_kind</span><span class="p">(</span><span class="n">ref</span><span class="o">.</span><span class="n">kind</span><span class="p">)</span>
     <span class="n">specimen</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">kind</span><span class="p">,</span> <span class="s2">"specimen"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">if</span> <span class="n">kind</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">specimen</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">ref</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"voice"</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
         <span class="n">specimen</span> <span class="o">=</span> <span class="n">stage_specimen</span>
-    <span class="n">bare</span> <span class="o">=</span> <span class="n">ref</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"stage"</span><span class="p">:</span> <span class="kc">None</span><span class="p">})</span>
+    <span class="c1"># Alone in its specimen: no placement, and no joint to an entity that is</span>
+    <span class="c1"># not there (a hand holding a prop would not compile, an#514 review).</span>
+    <span class="n">bare</span> <span class="o">=</span> <span class="n">ref</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"stage"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">"joints"</span><span class="p">:</span> <span class="p">[]})</span>
     <span class="n">shot</span> <span class="o">=</span> <span class="n">specimen</span><span class="p">(</span><span class="n">bare</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">shot</span><span class="o">.</span><span class="n">renderer</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">STAGE_RENDERER_NAMES</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
@@ -888,6 +908,72 @@ window.runMermaid = runMermaid;</script>
             <span class="k">continue</span>
         <span class="n">out</span><span class="p">[</span><span class="n">member</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">geometry</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">env</span><span class="o">.</span><span class="n">planes</span><span class="p">}</span>
     <span class="k">return</span> <span class="n">out</span>
+
+
+<div class="viewcode-block" id="seed_world">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.world.html#an.stage.world.seed_world">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">seed_world</span><span class="p">(</span>
+    <span class="n">scene</span><span class="p">:</span> <span class="n">SceneIR</span><span class="p">,</span>
+    <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">shot_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">focal</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">depth</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">SceneIR</span><span class="p">,</span> <span class="s2">"SeededMembers"</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``scene`` with a world derived from its hand-placed shot ``shot_id``</span>
+<span class="sd">    (:func:`an.ir.world_from_shot.seed_members`, an#514): the members, and one</span>
+<span class="sd">    viewpoint named after the shot, a camera at the origin with ``focal``</span>
+<span class="sd">    (pixels; default: the default field of view, so the world frames the same</span>
+<span class="sd">    at any resolution). The shot names that viewpoint and keeps its own</span>
+<span class="sd">    ``stage`` lines, which agree with the world. The art is measured here,</span>
+<span class="sd">    as the lowering measures it (:func:`native_box`; a measurement that fails</span>
+<span class="sd">    leaves the entity out, said in ``skipped``).</span>
+
+<span class="sd">    Raises ``ValueError`` for a scene that already has a world, an unknown</span>
+<span class="sd">    shot or one that already names a viewpoint, and what</span>
+<span class="sd">    :func:`~an.ir.world_from_shot.seed_members` refuses.</span>
+
+<span class="sd">    &gt;&gt;&gt; seed_world(SceneIR(), {}, "a")</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: no shot 'a' in the scene (its shots: [])</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">Viewpoint</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.world</span><span class="w"> </span><span class="kn">import</span> <span class="n">focal_length</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.world_from_shot</span><span class="w"> </span><span class="kn">import</span> <span class="n">seed_members</span>
+
+    <span class="k">if</span> <span class="n">scene</span><span class="o">.</span><span class="n">world</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">"the scene already has a `world`: a world is derived from a shot once; "</span>
+            <span class="s2">"add members or viewpoints to it by hand"</span>
+        <span class="p">)</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">)</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">shot_id</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"no shot </span><span class="si">{</span><span class="n">shot_id</span><span class="si">!r}</span><span class="s2"> in the scene (its shots: "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">id</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">]</span><span class="si">}</span><span class="s2">)"</span>
+        <span class="p">)</span>
+    <span class="n">shot</span> <span class="o">=</span> <span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">shot</span><span class="o">.</span><span class="n">viewpoint</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot_id</span><span class="si">!r}</span><span class="s2"> already names a viewpoint"</span><span class="p">)</span>
+    <span class="n">width</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">width</span><span class="p">)</span>
+    <span class="n">height</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">height</span><span class="p">)</span>
+    <span class="n">drawn</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">kind</span> <span class="o">!=</span> <span class="s2">"environment"</span> <span class="ow">and</span> <span class="n">draws</span><span class="p">(</span><span class="n">e</span><span class="p">)]</span>
+    <span class="n">extents</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Box</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">drawn</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">extents</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">native_box</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — unmeasured is a reason to leave it out, as `member_extents` says</span>
+            <span class="n">extents</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">lens</span> <span class="o">=</span> <span class="n">Viewpoint</span><span class="p">(</span><span class="n">at</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">focal</span><span class="o">=</span><span class="n">focal</span><span class="p">)</span>
+    <span class="n">seeded</span> <span class="o">=</span> <span class="n">seed_members</span><span class="p">(</span>
+        <span class="n">shot</span><span class="p">,</span> <span class="n">extents</span><span class="o">=</span><span class="n">extents</span><span class="p">,</span> <span class="n">focal</span><span class="o">=</span><span class="n">focal_length</span><span class="p">(</span><span class="n">lens</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">),</span> <span class="n">depth</span><span class="o">=</span><span class="n">depth</span>
+    <span class="p">)</span>
+    <span class="n">world</span> <span class="o">=</span> <span class="n">World</span><span class="p">(</span><span class="n">members</span><span class="o">=</span><span class="n">seeded</span><span class="o">.</span><span class="n">members</span><span class="p">,</span> <span class="n">viewpoints</span><span class="o">=</span><span class="p">{</span><span class="n">shot_id</span><span class="p">:</span> <span class="n">lens</span><span class="p">})</span>
+    <span class="n">timeline</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">)</span>
+    <span class="n">timeline</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">shot</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"viewpoint"</span><span class="p">:</span> <span class="n">shot_id</span><span class="p">})</span>
+    <span class="k">return</span> <span class="n">scene</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"world"</span><span class="p">:</span> <span class="n">world</span><span class="p">,</span> <span class="s2">"timeline"</span><span class="p">:</span> <span class="n">timeline</span><span class="p">}),</span> <span class="n">seeded</span></div>
+
 
 
 <div class="viewcode-block" id="lower_scene">

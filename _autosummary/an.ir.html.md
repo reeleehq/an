@@ -1298,13 +1298,14 @@ which decides how long a dissolve’s overlap is.
 
 ### Modules
 
-| [`assets`](an.ir.assets.html.md#module-an.ir.assets)     | Where a third-party asset came from, and what its licence obliges.                         |
-|---------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|
-| [`camera`](an.ir.camera.html.md#module-an.ir.camera)     | Camera semantics: the named moves, and the one resolver that expands them.                 |
-| [`compose`](an.ir.compose.html.md#module-an.ir.compose)   | Composition combinators for authoring action trees, plus a flattener.                      |
-| [`frames`](an.ir.frames.html.md#module-an.ir.frames)     | Frames of reference: a tree of named poses over film time (ADR 0009 amendment, an#501).    |
-| [`holds`](an.ir.holds.html.md#module-an.ir.holds)       | Holding things: `grasp`, `place`, `release`, `handover` and `swap` (an#502, catalogue A4). |
-| [`joints`](an.ir.joints.html.md#module-an.ir.joints)     | The constraint layer's verbs: `pin`, `pull`, `join` and `unjoin` (ADR 0008, an#512).       |
-| [`schema`](an.ir.schema.html.md#module-an.ir.schema)     | Pydantic v2 models for the Scene IR.                                                       |
-| [`validate`](an.ir.validate.html.md#module-an.ir.validate) | Schema and semantic validation for SceneIR documents.                                      |
-| [`world`](an.ir.world.html.md#module-an.ir.world)       | One world, many shots: the scene world's geometry and its lowering (ADR 0009).             |
+| [`assets`](an.ir.assets.html.md#module-an.ir.assets)                   | Where a third-party asset came from, and what its licence obliges.                         |
+|-----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|
+| [`camera`](an.ir.camera.html.md#module-an.ir.camera)                   | Camera semantics: the named moves, and the one resolver that expands them.                 |
+| [`compose`](an.ir.compose.html.md#module-an.ir.compose)                 | Composition combinators for authoring action trees, plus a flattener.                      |
+| [`frames`](an.ir.frames.html.md#module-an.ir.frames)                   | Frames of reference: a tree of named poses over film time (ADR 0009 amendment, an#501).    |
+| [`holds`](an.ir.holds.html.md#module-an.ir.holds)                     | Holding things: `grasp`, `place`, `release`, `handover` and `swap` (an#502, catalogue A4). |
+| [`joints`](an.ir.joints.html.md#module-an.ir.joints)                   | The constraint layer's verbs: `pin`, `pull`, `join` and `unjoin` (ADR 0008, an#512).       |
+| [`schema`](an.ir.schema.html.md#module-an.ir.schema)                   | Pydantic v2 models for the Scene IR.                                                       |
+| [`validate`](an.ir.validate.html.md#module-an.ir.validate)               | Schema and semantic validation for SceneIR documents.                                      |
+| [`world`](an.ir.world.html.md#module-an.ir.world)                     | One world, many shots: the scene world's geometry and its lowering (ADR 0009).             |
+| [`world_from_shot`](an.ir.world_from_shot.html.md#module-an.ir.world_from_shot) | World members from a shot placed by hand (an#514): the projection inverted.                |

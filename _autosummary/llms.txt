@@ -101,6 +101,7 @@
 - [an.ir.schema](an.ir.schema.html.md): Pydantic v2 models for the Scene IR.
 - [an.ir.validate](an.ir.validate.html.md): Schema and semantic validation for SceneIR documents.
 - [an.ir.world](an.ir.world.html.md): One world, many shots: the scene world’s geometry and its lowering (ADR 0009).
+- [an.ir.world_from_shot](an.ir.world_from_shot.html.md): World members from a shot placed by hand (an#514): the projection inverted.
 - [an.iterate](an.iterate.html.md): Iterative edit loop — free-text instruction → IR patch via Claude → re-render.
 - [an.kinematics](an.kinematics.html.md): A deterministic 2D constraint solver: bodies joined at points, driven at a
 - [an.kinematics.bodies](an.kinematics.bodies.html.md): Bodies and the points on them: the things a joint joins and a driver moves.

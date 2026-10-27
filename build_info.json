@@ -1,34 +1,34 @@
 {
   "schema_version": 1,
-  "built_at": "2026-10-27T05:58:29Z",
+  "built_at": "2026-10-27T06:05:12Z",
   "package": {
     "name": "an",
-    "version": "0.1.299",
+    "version": "0.1.300",
     "display_name": "an",
     "source": "pyproject.toml"
   },
   "git": {
     "available": true,
-    "commit": "789bc27b2df05a39e6ca5a749c035ff591e6c8e7",
-    "short_commit": "789bc27",
+    "commit": "44e1f9ea2ad208a55c0f386ad47683dfe496aba4",
+    "short_commit": "44e1f9e",
     "branch": "main",
     "tags": [
-      "0.1.299"
+      "0.1.300"
     ],
     "dirty": false,
     "remote_url": "https://github.com/reeleehq/an",
-    "commit_url": "https://github.com/reeleehq/an/commit/789bc27b2df05a39e6ca5a749c035ff591e6c8e7",
+    "commit_url": "https://github.com/reeleehq/an/commit/44e1f9ea2ad208a55c0f386ad47683dfe496aba4",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "reeleehq/an",
-    "sha": "e0b4ef3408cbd207256b6c73053c1c650404cad2",
+    "sha": "bafc3b19e9da33c68f99aea5751e316b8e77502e",
     "sha_in_history": true,
     "ref": "refs/heads/main",
     "ref_name": "main",
-    "run_id": "40457214394",
-    "run_url": "https://github.com/reeleehq/an/actions/runs/40457214394",
+    "run_id": "40458202779",
+    "run_url": "https://github.com/reeleehq/an/actions/runs/40458202779",
     "server_url": "https://github.com"
   },
   "tools": {
@@ -57,21 +57,19 @@
     "docs_dir": "docsrc"
   },
   "site": {
-    "modules_documented": 224,
-    "objects_documented": 3170
+    "modules_documented": 225,
+    "objects_documented": 3176
   },
   "pypi": {
     "checked": true,
-    "latest": "0.1.298",
-    "relation": "ahead",
+    "latest": "0.1.300",
+    "relation": "same",
     "error": null
   },
-  "reproduce": "git clone https://github.com/reeleehq/an && cd an\ngit checkout 789bc27b2df05a39e6ca5a749c035ff591e6c8e7\npip install \"epythet==0.2.22\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/reeleehq/an && cd an\ngit checkout 44e1f9ea2ad208a55c0f386ad47683dfe496aba4\npip install \"epythet==0.2.22\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
-    "aligned": false,
-    "notes": [
-      "The documented version (0.1.299) is ahead of the latest release on PyPI (0.1.298): these docs describe unreleased code."
-    ]
+    "aligned": true,
+    "notes": []
   }
 }

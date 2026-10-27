@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=bc9ab534"></script>
+    <script src="../../../_static/documentation_options.js?v=bef7169d"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.299" />
+  <meta name="docsearch:version" content="0.1.300" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -816,6 +816,7 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"frame_poses"</span><span class="p">,</span>
     <span class="s2">"has_world"</span><span class="p">,</span>
     <span class="s2">"lower_world"</span><span class="p">,</span>
+    <span class="s2">"member_of"</span><span class="p">,</span>
     <span class="s2">"member_placements"</span><span class="p">,</span>
     <span class="s2">"pose_look"</span><span class="p">,</span>
     <span class="s2">"resolve_viewpoint"</span><span class="p">,</span>
@@ -3606,6 +3607,29 @@ window.runMermaid = runMermaid;</script>
         <span class="n">library</span><span class="o">=</span><span class="n">member</span><span class="o">.</span><span class="n">library</span><span class="p">,</span>
         <span class="n">stage</span><span class="o">=</span><span class="n">stage</span><span class="p">,</span>
     <span class="p">)</span>
+
+
+<div class="viewcode-block" id="member_of">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.world.html#an.ir.member_of">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">member_of</span><span class="p">(</span><span class="n">entity</span><span class="p">:</span> <span class="n">AssetRef</span><span class="p">,</span> <span class="o">**</span><span class="n">placement</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">WorldMember</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The world member a shot entity becomes (the inverse of</span>
+<span class="sd">    :func:`_entity_of`): its fields as they are, its ``stage`` dropped (a</span>
+<span class="sd">    member is placed by each shot's viewpoint) and its ``after`` kept, with</span>
+<span class="sd">    ``placement`` (``at``, ``height``, ...) where the world stands it. Its</span>
+<span class="sd">    ``joints`` stay with the shot: they tie it to other entities of THAT shot,</span>
+<span class="sd">    and :func:`_entity_of` gives a member none.</span>
+
+<span class="sd">    &gt;&gt;&gt; e = AssetRef(kind="prop", id="lamp", store="props", ref="lamp",</span>
+<span class="sd">    ...              stage=StagePlacement(at=(1.0, 2.0), after="set/sky"))</span>
+<span class="sd">    &gt;&gt;&gt; m = member_of(e, at=(0.0, 0.0, 5.0), height=1.0)</span>
+<span class="sd">    &gt;&gt;&gt; m.at, m.after, m.stage</span>
+<span class="sd">    ((0.0, 0.0, 5.0), 'set/sky', None)</span>
+<span class="sd">    """</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="n">entity</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">exclude</span><span class="o">=</span><span class="p">{</span><span class="s2">"stage"</span><span class="p">,</span> <span class="s2">"joints"</span><span class="p">},</span> <span class="n">exclude_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">entity</span><span class="o">.</span><span class="n">stage</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">entity</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">after</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fields</span><span class="p">[</span><span class="s2">"after"</span><span class="p">]</span> <span class="o">=</span> <span class="n">entity</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">after</span>
+    <span class="k">return</span> <span class="n">WorldMember</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="o">**</span><span class="n">fields</span><span class="p">,</span> <span class="o">**</span><span class="n">placement</span><span class="p">})</span></div>
+
 
 
 <div class="viewcode-block" id="pose_look">

@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=bc9ab534"></script>
+    <script src="../_static/documentation_options.js?v=bef7169d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.299" />
+  <meta name="docsearch:version" content="0.1.300" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -415,6 +415,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.ir.schema.html">an.ir.schema</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.validate.html">an.ir.validate</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.world.html">an.ir.world</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.world_from_shot.html">an.ir.world_from_shot</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.iterate.html">an.iterate</a></li>
@@ -636,12 +637,40 @@
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.world_cli.show" title="an.world_cli.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>(project_dir[, shot, json, frames, scene])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.world_cli.from_shot" title="an.world_cli.from_shot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_shot</span></code></a>(project_dir, shot[, focal, depth, ...])</p></td>
+<td><p>Give a scene placed by hand a world: invert a master shot's placements through a pinhole camera and write the <code class="code docutils literal notranslate"><span class="pre">world</span></code> and the shot's viewpoint into the scene.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.world_cli.show" title="an.world_cli.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>(project_dir[, shot, json, frames, scene])</p></td>
 <td><p>Print every framed shot as the compiler sees it: each entity's placement derived from the scene's world, and what the world added, replaced or could not place.</p></td>
 </tr>
 </tbody>
 </table>
 </div>
+<dl class="py function">
+<dt class="sig sig-object py" id="an.world_cli.from_shot">
+<span class="sig-prename descclassname"><span class="pre">an.world_cli.</span></span><span class="sig-name descname"><span class="pre">from_shot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">focal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dry_run</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scene</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'scene.md'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/world_cli.html#from_shot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.world_cli.from_shot" title="Link to this definition">#</a></dt>
+<dd><p>Give a scene placed by hand a world: invert a master shot’s placements through a pinhole camera and write the <code class="code docutils literal notranslate"><span class="pre">world</span></code> and the shot’s viewpoint into the scene.</p>
+<p>Every entity the shot places by hand (<code class="code docutils literal notranslate"><span class="pre">stage.at</span></code>) becomes a world member at
+one depth, its screen position and scale inverted (x = sx·Z/f, height =
+scale·native·Z/f), so the world lowers back to the placements the shot
+already has; its environments become members as they are. The shot keeps
+its <code class="code docutils literal notranslate"><span class="pre">stage</span></code> lines (they agree with the world) and names the new viewpoint,
+called after it.
+The other shots then take viewpoints by hand. The scene file is updated
+through the store: the prose around its blocks is kept.</p>
+<p>project_dir: the an project
+shot: the master shot’s id
+focal: the lens in pixels (default: the default field of view at the scene’s width)
+depth: the depth every member stands at, in world units (default: where the tallest is 1.7 tall, so units read as metres)
+dry_run: print what would be written, and write nothing
+scene: the scene file to read, inside the project (default scene.md)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="an.world_cli.show">
 <span class="sig-prename descclassname"><span class="pre">an.world_cli.</span></span><span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">json</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scene</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'scene.md'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/world_cli.html#show"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.world_cli.show" title="Link to this definition">#</a></dt>
@@ -710,6 +739,7 @@ scene: the scene file to read, inside the project (default scene.md; for example
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.world_cli.from_shot"><code class="docutils literal notranslate"><span class="pre">from_shot()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.world_cli.show"><code class="docutils literal notranslate"><span class="pre">show()</span></code></a></li>
 </ul>
   </nav></div>

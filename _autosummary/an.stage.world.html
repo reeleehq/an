@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=bc9ab534"></script>
+    <script src="../_static/documentation_options.js?v=bef7169d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.299" />
+  <meta name="docsearch:version" content="0.1.300" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -415,6 +415,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.ir.schema.html">an.ir.schema</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.validate.html">an.ir.validate</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.world.html">an.ir.world</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.world_from_shot.html">an.ir.world_from_shot</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.iterate.html">an.iterate</a></li>
@@ -651,16 +652,19 @@ extents, film starts, then <a class="reference internal" href="an.ir.world.html#
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.world.lower_scene" title="an.stage.world.lower_scene"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lower_scene</span></code></a>(scene, mall, *[, fps, film_starts])</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">scene</span></code> as the compiler should see it: every framed shot's placements derived from the world (<a class="reference internal" href="an.ir.world.html#an.ir.world.lower_world" title="an.ir.world.lower_world"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.ir.world.lower_world()</span></code></a>), with the members' extents measured here and each shot's film start from the assembled timeline (so a travel's streams keep phase across cuts).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.world.lowered_or_same" title="an.stage.world.lowered_or_same"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lowered_or_same</span></code></a>(scene, mall, *[, fps])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.world.seed_world" title="an.stage.world.seed_world"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seed_world</span></code></a>(scene, mall, shot_id, *[, focal, ...])</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene</span></code> with a world derived from its hand-placed shot <code class="docutils literal notranslate"><span class="pre">shot_id</span></code> (<a class="reference internal" href="an.ir.world_from_shot.html#an.ir.world_from_shot.seed_members" title="an.ir.world_from_shot.seed_members"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.ir.world_from_shot.seed_members()</span></code></a>, an#514): the members, and one viewpoint named after the shot, a camera at the origin with <code class="docutils literal notranslate"><span class="pre">focal</span></code> (pixels; default: the default field of view, so the world frames the same at any resolution).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.world.lowered_or_same" title="an.stage.world.lowered_or_same"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lowered_or_same</span></code></a>(scene, mall, *[, fps])</p></td>
 <td><p>The lowered scene, or <code class="docutils literal notranslate"><span class="pre">scene</span></code> itself when it has no world or its world cannot be lowered: for the walks that must see what a framed shot draws (credits, publishability) but are not where a world error is reported (validate is).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.world.member_extents" title="an.stage.world.member_extents"><code class="xref py py-obj docutils literal notranslate"><span class="pre">member_extents</span></code></a>(world, mall, *, width, height)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.world.member_extents" title="an.stage.world.member_extents"><code class="xref py py-obj docutils literal notranslate"><span class="pre">member_extents</span></code></a>(world, mall, *, width, height)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{id:</span> <span class="pre">native</span> <span class="pre">box}</span></code> for every positioned or attached member and every stream of <code class="docutils literal notranslate"><span class="pre">world</span></code> (environments draw plates, not a box, and are left out).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.world.native_box" title="an.stage.world.native_box"><code class="xref py py-obj docutils literal notranslate"><span class="pre">native_box</span></code></a>(ref, mall, *, width, height)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.world.native_box" title="an.stage.world.native_box"><code class="xref py py-obj docutils literal notranslate"><span class="pre">native_box</span></code></a>(ref, mall, *, width, height)</p></td>
 <td><p>The box <code class="docutils literal notranslate"><span class="pre">ref</span></code>'s art occupies at <code class="docutils literal notranslate"><span class="pre">stage.scale</span></code> 1, <code class="docutils literal notranslate"><span class="pre">(x0,</span> <span class="pre">y0,</span> <span class="pre">x1,</span> <span class="pre">y1)</span></code> in scene pixels relative to its placement point; <code class="docutils literal notranslate"><span class="pre">None</span></code> when it draws nothing that can be measured (an unknown ref drawn as a placeholder is still measured: that is what the shot would show).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.world.world_report" title="an.stage.world.world_report"><code class="xref py py-obj docutils literal notranslate"><span class="pre">world_report</span></code></a>(lowered)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.world.world_report" title="an.stage.world.world_report"><code class="xref py py-obj docutils literal notranslate"><span class="pre">world_report</span></code></a>(lowered)</p></td>
 <td><p>What <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">world</span> <span class="pre">show</span></code> prints: per framed shot, its entities as the compiler sees them (id, kind, at, scale, after) and the lowering's notes.</p></td>
 </tr>
 </tbody>
@@ -737,6 +741,33 @@ still measured: that is what the shot would show).</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.stage.world.seed_world">
+<span class="sig-prename descclassname"><span class="pre">an.stage.world.</span></span><span class="sig-name descname"><span class="pre">seed_world</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scene</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shot_id</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">focal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/world.html#seed_world"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.world.seed_world" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">scene</span></code> with a world derived from its hand-placed shot <code class="docutils literal notranslate"><span class="pre">shot_id</span></code>
+(<a class="reference internal" href="an.ir.world_from_shot.html#an.ir.world_from_shot.seed_members" title="an.ir.world_from_shot.seed_members"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.ir.world_from_shot.seed_members()</span></code></a>, an#514): the members, and one
+viewpoint named after the shot, a camera at the origin with <code class="docutils literal notranslate"><span class="pre">focal</span></code>
+(pixels; default: the default field of view, so the world frames the same
+at any resolution). The shot names that viewpoint and keeps its own
+<code class="docutils literal notranslate"><span class="pre">stage</span></code> lines, which agree with the world. The art is measured here,
+as the lowering measures it (<a class="reference internal" href="#an.stage.world.native_box" title="an.stage.world.native_box"><code class="xref py py-func docutils literal notranslate"><span class="pre">native_box()</span></code></a>; a measurement that fails
+leaves the entity out, said in <code class="docutils literal notranslate"><span class="pre">skipped</span></code>).</p>
+<p>Raises <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> for a scene that already has a world, an unknown
+shot or one that already names a viewpoint, and what
+<a class="reference internal" href="an.ir.world_from_shot.html#an.ir.world_from_shot.seed_members" title="an.ir.world_from_shot.seed_members"><code class="xref py py-func docutils literal notranslate"><span class="pre">seed_members()</span></code></a> refuses.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">seed_world</span><span class="p">(</span><span class="n">SceneIR</span><span class="p">(),</span> <span class="p">{},</span> <span class="s2">"a"</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">no shot 'a' in the scene (its shots: [])</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference internal" href="an.ir.schema.html#an.ir.schema.SceneIR" title="an.ir.schema.SceneIR"><code class="xref py py-class docutils literal notranslate"><span class="pre">SceneIR</span></code></a>, <a class="reference internal" href="an.ir.world_from_shot.html#an.ir.world_from_shot.SeededMembers" title="an.ir.world_from_shot.SeededMembers"><code class="xref py py-class docutils literal notranslate"><span class="pre">SeededMembers</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.stage.world.world_report">
 <span class="sig-prename descclassname"><span class="pre">an.stage.world.</span></span><span class="sig-name descname"><span class="pre">world_report</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lowered</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/world.html#world_report"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.world.world_report" title="Link to this definition">#</a></dt>
 <dd><p>What <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">world</span> <span class="pre">show</span></code> prints: per framed shot, its entities as the
@@ -801,6 +832,7 @@ compiler sees them (id, kind, at, scale, after) and the lowering’s notes.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.world.lowered_or_same"><code class="docutils literal notranslate"><span class="pre">lowered_or_same()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.world.member_extents"><code class="docutils literal notranslate"><span class="pre">member_extents()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.world.native_box"><code class="docutils literal notranslate"><span class="pre">native_box()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.world.seed_world"><code class="docutils literal notranslate"><span class="pre">seed_world()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.world.world_report"><code class="docutils literal notranslate"><span class="pre">world_report()</span></code></a></li>
 </ul>
   </nav></div>

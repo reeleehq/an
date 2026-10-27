@@ -78,3 +78,4 @@ an.ir
    schema
    validate
    world
+   world_from_shot

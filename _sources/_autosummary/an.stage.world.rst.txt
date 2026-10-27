@@ -9,6 +9,7 @@ an.stage.world
    .. autosummary::
    
       lower_scene
+      seed_world
       lowered_or_same
       member_extents
       native_box

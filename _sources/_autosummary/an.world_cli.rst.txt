@@ -8,5 +8,6 @@ an.world\_cli
 
    .. autosummary::
    
+      from_shot
       show
    

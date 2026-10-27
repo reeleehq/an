@@ -103,6 +103,7 @@
 - [an.ir.schema](_autosummary/an.ir.schema.html.md): Pydantic v2 models for the Scene IR.
 - [an.ir.validate](_autosummary/an.ir.validate.html.md): Schema and semantic validation for SceneIR documents.
 - [an.ir.world](_autosummary/an.ir.world.html.md): One world, many shots: the scene world’s geometry and its lowering (ADR 0009).
+- [an.ir.world_from_shot](_autosummary/an.ir.world_from_shot.html.md): World members from a shot placed by hand (an#514): the projection inverted.
 - [an.iterate](_autosummary/an.iterate.html.md): Iterative edit loop — free-text instruction → IR patch via Claude → re-render.
 - [an.kinematics](_autosummary/an.kinematics.html.md): A deterministic 2D constraint solver: bodies joined at points, driven at a
 - [an.kinematics.bodies](_autosummary/an.kinematics.bodies.html.md): Bodies and the points on them: the things a joint joins and a driver moves.
@@ -232,7 +233,7 @@
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [an.world_cli](_autosummary/an.world_cli.html.md): &#96;an world …&#96;: the scene’s world from the shell (ADR 0009).
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-27 05:58 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-27 06:05 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
 
 ## Optional
 
