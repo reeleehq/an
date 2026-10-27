@@ -205,6 +205,9 @@ def markdown_to_ir(md_text: str) -> SceneIR:
         for key in ("transition", "sounds", "policy", "viewpoint", "joints", "solve"):
             if key in shot_yaml:
                 shot_kwargs[key] = shot_yaml[key]
+        # an#542: `continue:` (a Python keyword, so `continue_from` in the IR).
+        if "continue" in shot_yaml:
+            shot_kwargs["continue_from"] = shot_yaml["continue"]
         shots.append(Shot(**shot_kwargs))
 
     # An unwritten `duration:` stays 0.0, "unset" (an#557): never filled with a
@@ -934,6 +937,8 @@ def _md_shot_blocks(shot: Shot) -> dict[FenceKey, str]:
         shot_yaml["joints"] = [j.model_dump(mode="json") for j in shot.joints]
     if shot.solve is not None:
         shot_yaml["solve"] = shot.solve.model_dump(mode="json")
+    if shot.continue_from is not None:  # an#542
+        shot_yaml["continue"] = shot.continue_from
     blocks[("yaml", "shot")] = yaml.safe_dump(shot_yaml, sort_keys=False).rstrip()
     if shot.entities:
         entities_dump = [

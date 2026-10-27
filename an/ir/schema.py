@@ -2201,6 +2201,13 @@ class Shot(_IRModel):
     #: How this shot is solved (:class:`SolveSettings`): mode, gravity and
     #: damping over the style pack's. ``None`` (omitted): the defaults.
     solve: SolveSettings | None = None
+    #: Open from another shot's end state (an#542): ``"<shot id>"`` in this
+    #: scene, or ``"<scene file>#<shot id>"`` in a sibling scene file. Every
+    #: entity this shot shares with that one opens as that one ends (its
+    #: transform, swap keys, alpha, and what holds it); this shot's own opening
+    #: ``set``/``tween`` wins. Written ``continue:`` in the shot block; resolved
+    #: before compile (:mod:`an.continuity`). ``None`` (omitted): opens as staged.
+    continue_from: str | None = None
 
     @field_validator("policy")
     @classmethod
@@ -2233,6 +2240,8 @@ class Shot(_IRModel):
                 data.pop("joints", None)
             if self.solve is None:
                 data.pop("solve", None)
+            if self.continue_from is None:
+                data.pop("continue_from", None)
         return data
 
 

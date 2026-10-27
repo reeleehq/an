@@ -1,0 +1,1 @@
+- `continue: <shot>` / `continue: <scene file>#<shot>` on a shot block: the shot opens at that shot's evaluated end state for every shared entity (transform, channels, alpha, swap keys, holder and aim), resolved before compile (an#542).

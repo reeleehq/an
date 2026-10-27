@@ -1426,8 +1426,9 @@ class ValidationContext:
     index: int | None = None
     memo: dict[Any, Any] = field(default_factory=dict)
     #: The scene as the compiler sees it (ADR 0009): every framed shot's
-    #: placements derived from the world (:class:`an.ir.world.Lowered`).
-    #: ``None`` when the scene has no world, or its viewpoints could not be
+    #: placements derived from the world (:class:`an.ir.world.Lowered`), and
+    #: every ``continue:`` resolved (an#542). ``None`` when the scene has
+    #: neither, or its viewpoints or continuations could not be
     #: resolved (reported as an error at ``world``); then ``shots`` are the
     #: scene's own. The ``shot`` checks run on these shots: a member the world
     #: adds is an entity to them, and its actions have a target.
@@ -1542,9 +1543,13 @@ def validate_semantic(
 
     for check in selected("scene"):
         _run_check(check, ctx)
-    if has_world(scene):
+    if has_world(scene) or any(s.continue_from for s in scene.timeline):
+        from an.continuity import ContinuityError
+
         try:
             ctx.lowered = _lowered(ctx)
+        except ContinuityError as e:  # an#542: a `continue:` that cannot resolve
+            ctx.report.add("error", "timeline", str(e))
         except WorldError as e:
             ctx.report.add("error", "world", str(e))
         except Exception as e:  # noqa: BLE001 — a finding, never a traceback (ADR 0009)

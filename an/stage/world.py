@@ -16,6 +16,8 @@ extents, film starts, then :func:`an.ir.world.lower_world`.
 
 from __future__ import annotations
 
+import dataclasses
+
 import warnings
 from typing import TYPE_CHECKING, Any, Mapping
 
@@ -266,12 +268,15 @@ def lower_scene(
     *,
     fps: float | None = None,
     film_starts: list[float] | None = None,
+    continue_stack: tuple[tuple[str | None, str], ...] = (),
 ) -> Lowered:
     """``scene`` as the compiler should see it: every framed shot's placements
     derived from the world (:func:`an.ir.world.lower_world`), with the
     members' extents measured here and each shot's film start from the
     assembled timeline (so a travel's streams keep phase across cuts). A scene
-    without a world comes back as it is, at no cost.
+    without a world comes back as it is, at no cost. Then every shot's
+    ``continue:`` is resolved (:func:`an.continuity.continue_shots`, an#542):
+    a shot that continues another opens as that one ends.
 
     Raises :class:`an.ir.world.WorldError` for a viewpoint that cannot be
     resolved; `an validate` reports the same error instead of raising.
@@ -279,6 +284,23 @@ def lower_scene(
     >>> lower_scene(SceneIR(), {}).scene.timeline
     []
     """
+    lowered = _lower_world(scene, mall, fps=fps, film_starts=film_starts)
+    from an.continuity import continue_shots
+
+    continued = continue_shots(lowered.scene, mall, fps=fps, stack=continue_stack)
+    if continued is lowered.scene:
+        return lowered
+    return dataclasses.replace(lowered, scene=continued)
+
+
+def _lower_world(
+    scene: SceneIR,
+    mall: Mapping[str, Mapping] | None,
+    *,
+    fps: float | None,
+    film_starts: list[float] | None,
+) -> Lowered:
+    """The world half of :func:`lower_scene`."""
     if not has_world(scene):
         return Lowered(scene, [])
     width = int(scene.meta.resolution.width)
