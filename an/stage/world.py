@@ -17,13 +17,18 @@ extents, film starts, then :func:`an.ir.world.lower_world`.
 from __future__ import annotations
 
 import warnings
-from typing import Any, Mapping
+from dataclasses import replace
+from typing import TYPE_CHECKING, Any, Mapping
 
 from an.ir.schema import AssetRef, SceneIR, World, stage_specimen
 from an.ir.world import Box, Lowered, WorldError, has_world, lower_world
 
+if TYPE_CHECKING:
+    from an.ir.world_from_shot import SeededWorld
+
 __all__ = [
     "lower_scene",
+    "seed_world",
     "lowered_or_same",
     "member_extents",
     "native_box",
@@ -168,6 +173,69 @@ def plane_geometry(
             continue
         out[member.id] = {p.name: geometry(p) for p in env.planes}
     return out
+
+
+def seed_world(
+    scene: SceneIR,
+    mall: Mapping[str, Mapping] | None,
+    shot_id: str,
+    *,
+    focal: float | None = None,
+    depth: float | None = None,
+    viewpoint: str | None = None,
+) -> tuple[SceneIR, "SeededWorld"]:
+    """``scene`` with a world derived from its hand-placed shot ``shot_id``
+    (:func:`an.ir.world_from_shot.world_from_shot`, an#514), the shot's art
+    measured here (:func:`native_box`); the shot then names the new viewpoint
+    (``viewpoint``, default: the shot's id) and keeps its own ``stage`` lines,
+    which agree with the world. ``focal`` is the lens in pixels (default: the
+    viewpoint's default field of view at the scene's width, recorded as that
+    field of view so the world frames the same at any resolution).
+
+    Raises ``ValueError`` for a scene that already has a world, an unknown
+    shot, or one that places nothing by hand.
+
+    >>> seed_world(SceneIR(), {}, "a")
+    Traceback (most recent call last):
+    ...
+    ValueError: no shot 'a' in the scene (its shots: [])
+    """
+    from an.ir.schema import Viewpoint
+    from an.ir.world import focal_length
+    from an.ir.world_from_shot import world_from_shot
+
+    if scene.world is not None:
+        raise ValueError(
+            "the scene already has a `world`: a world is derived from a shot once; "
+            "add members or viewpoints to it by hand"
+        )
+    index = next((i for i, s in enumerate(scene.timeline) if s.id == shot_id), None)
+    if index is None:
+        raise ValueError(
+            f"no shot {shot_id!r} in the scene (its shots: "
+            f"{[s.id for s in scene.timeline]})"
+        )
+    shot = scene.timeline[index]
+    width = int(scene.meta.resolution.width)
+    height = int(scene.meta.resolution.height)
+    extents = {
+        e.id: native_box(e, mall, width=width, height=height)
+        for e in shot.entities
+        if e.kind != "environment"
+    }
+    lens = Viewpoint(focal=focal)
+    seeded = world_from_shot(
+        shot, extents=extents, focal=focal_length(lens, width=width), depth=depth
+    )
+    if focal is None:  # the default lens, kept as a field of view
+        seeded = replace(
+            seeded, viewpoint=seeded.viewpoint.model_copy(update={"focal": None})
+        )
+    name = viewpoint or shot.id
+    world = seeded.world.model_copy(update={"viewpoints": {name: seeded.viewpoint}})
+    timeline = list(scene.timeline)
+    timeline[index] = shot.model_copy(update={"viewpoint": name})
+    return scene.model_copy(update={"world": world, "timeline": timeline}), seeded
 
 
 def lower_scene(

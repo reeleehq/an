@@ -1,0 +1,1 @@
+- `an world from-shot <dir> <shot>` gives a scene placed by hand a world: the master shot's hand placements inverted through a pinhole at one depth, so the world lowers back to them and `an validate` stays clean (an#514).
