@@ -1,0 +1,1 @@
+- An item let go or put down by a holder the world leans with its frame lands as it hangs in the hand, not on its side: the world marks what it leans (`overrides.sway`) and the hold layer takes the holder's lean out before rounding to a quarter turn (an#659).

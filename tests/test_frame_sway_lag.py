@@ -434,3 +434,52 @@ def test_an_item_grasped_later_leans_with_the_car_until_then(tmp_path):
     lean = pose.get(("fig", "rotation"), 0.0)
     assert abs(lean) > 0.5
     assert pose.get(("stick", "rotation"), 0.0) == pytest.approx(lean, abs=1e-3)
+
+
+@pytest.mark.parametrize("release_at", [0.5])
+def test_an_item_let_go_in_a_braking_car_lands_upright_not_on_its_side(tmp_path, release_at):
+    """an#659: the figure leans ~64 degrees with the braking car and carries
+    the stick at that angle; let go, the stick used to land at the nearest
+    quarter turn of it (on its side). The floor does not lean: the holder's
+    lean is taken out first, so it lands as it hangs in the hand, upright."""
+    import warnings
+
+    from an.ir import grasp, release
+    from an.ir.compose import delay, sequence
+    from an.ir.schema import Meta, Resolution, SceneIR, SolveSettings, World, WorldMember
+    from an.stage.compile import compile_shot
+    from an.stage.timeline import timeline_from_scene
+    from an.timing.timeline import evaluate_timeline
+    from tests._hold_fixture import make_project, scene as hold_scene
+
+    project = make_project(tmp_path / "p", hold_scene(""))
+    in_car = dict(store="props", frame="car", kind="prop")
+    world = World(
+        members=[
+            WorldMember(id="fig", ref="figure", at=(0.0, 0.4, 2.0), height=0.8, **in_car),
+            WorldMember(id="stick", ref="stick", at=(0.15, 0.4, 2.0), height=0.3, **in_car),
+        ],
+        frames={"car": Frame(sway=FrameSway())},
+        viewpoints={"side": Viewpoint(at=(-8.0, -1.0, 5.0), look=(90.0, 0.0, 0.0), focal=300.0)},
+    )
+    shot = Shot(
+        id="s", duration=2.0, viewpoint="side", solve=SolveSettings(ground=300),
+        actions=[
+            tween("car", "at_z", to=10.0, duration=1.0, from_=0.0, easing="ease_out"),
+            grasp("fig/arm_r", "stick", reach=0.2, retract=0.1),
+            sequence(delay(release_at), release("stick")),
+        ],
+    )
+    sc = SceneIR(meta=Meta(fps=24, resolution=Resolution(width=320, height=240)),
+                 world=world, timeline=[shot])
+    box = (-5.0, -20.0, 5.0, 0.0)
+    low = lower_world(sc, extents={k: box for k in ("fig", "stick")}).scene.timeline[0]
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        doc = compile_shot(low, project.mall, fps=24, width=320, height=240)
+    timeline = timeline_from_scene(doc)
+    assert abs(evaluate_timeline(timeline, release_at).get(("fig", "rotation"), 0.0)) > 0.5
+    landed = evaluate_timeline(timeline, 1.9).get(("stick", "rotation"), 0.0)
+    quarter = math.pi / 2
+    assert abs(landed - round(landed / quarter) * quarter) < 1e-6  # at rest on a quarter
+    assert abs(round(landed / quarter)) % 2 == 0, landed  # upright, not on its side
