@@ -34,10 +34,9 @@ def _lift(src: str, start: str, end: str) -> str:
     return src[i : src.index("\n    }", j) + len("\n    }")]
 
 
-def _paint_order(case: str, hide: str = "none") -> list[str]:
-    """The leaves PixiJS renders, in order, for one of the scripted cases.
-    ``hide`` hides the figure (the holder) before each frame: ``alpha0`` or
-    ``invisible``; ``root_alpha0`` hides their common ancestor (an#562)."""
+def _prelude() -> str:
+    """The node preamble: PixiJS, a `Leaf` that logs when rendered, the runtime's
+    held-paint functions lifted verbatim, and `node(path, parent)`."""
     if not BUNDLE.is_file():
         pytest.skip(f"vendored pixi not present at {BUNDLE}")
     src = RUNTIME_JS.read_text(encoding="utf-8")
@@ -47,21 +46,21 @@ def _paint_order(case: str, hide: str = "none") -> list[str]:
             src[src.index("const PAINT_AFTER =") : src.index("const SHARED_WRITES")],
         ]
     )
-    script = f"""
+    js = """
     global.self = global; global.window = global;
-    global.document = {{ createElement: () => ({{ getContext: () => null, style: {{}} }}),
-                        addEventListener: () => {{}} }};
-    (0, eval)(require('fs').readFileSync({json.dumps(str(BUNDLE))}, 'utf8'));
-    let nodeIndex = {{}};
+    global.document = { createElement: () => ({ getContext: () => null, style: {} }),
+                        addEventListener: () => {} };
+    (0, eval)(require('fs').readFileSync(__BUNDLE__, 'utf8'));
+    let nodeIndex = {};
     const log = [];
-    class Leaf extends PIXI.Container {{
-        render(r) {{
+    class Leaf extends PIXI.Container {
+        render(r) {
             if (!this.visible || this.worldAlpha <= 0 || !this.renderable) return;
             log.push(this.name);
-        }}
-    }}
-    {lifted}
-    function node(path, parent) {{
+        }
+    }
+    __LIFTED__
+    function node(path, parent) {
         const c = new PIXI.Container();
         c.name = path;
         nodeIndex[path] = c;
@@ -71,7 +70,22 @@ def _paint_order(case: str, hide: str = "none") -> list[str]:
         c._anDraws = [leaf];
         if (parent) parent.addChild(c);
         return c;
-    }}
+    }
+    """
+    return js.replace("__BUNDLE__", json.dumps(str(BUNDLE))).replace("__LIFTED__", lifted)
+
+
+def _run(script: str) -> dict:
+    proc = run_node(_prelude() + script, timeout=NODE_BUNDLE_TIMEOUT_S)
+    assert proc.returncode == 0, proc.stderr
+    return json.loads(proc.stdout.strip().splitlines()[-1])
+
+
+def _paint_order(case: str, hide: str = "none") -> list[str]:
+    """The leaves PixiJS renders, in order, for one of the scripted cases.
+    ``hide`` hides the figure (the holder) before each frame: ``alpha0`` or
+    ``invisible``; ``root_alpha0`` hides their common ancestor (an#562)."""
+    script = f"""
     const top = new PIXI.Container();
     const root = new PIXI.Container();
     top.addChild(root);
@@ -114,9 +128,7 @@ def _paint_order(case: str, hide: str = "none") -> list[str]:
     out.refused = refused;
     console.log(JSON.stringify(out));
     """
-    proc = run_node(script, timeout=NODE_BUNDLE_TIMEOUT_S)
-    assert proc.returncode == 0, proc.stderr
-    return json.loads(proc.stdout.strip().splitlines()[-1])
+    return _run(script)
 
 
 @requires_node
@@ -247,7 +259,7 @@ def test_a_held_item_still_shows_when_its_holder_is_hidden(case, hide):
     """an#562: the holder faded to alpha 0 (or hidden) takes its parts with it, and
     the item, its own entity, still paints: from the holder's skipped place."""
     out = _paint_order(case, hide)
-    assert out["fig/arm_far"] == ["stick", "stand"][:1] + ["stand"]
+    assert out["fig/arm_far"] == ["stick", "stand"]
     assert out[""] == ["stand", "stick"]  # at its own place, as ever
     assert out["stand"] == ["stand", "stick"]
 
@@ -259,9 +271,59 @@ def test_a_hidden_ancestor_shared_with_the_item_still_hides_it():
     assert out["fig/arm_far"] == [] and out[""] == []
 
 
+_TWO_HELD = """
+    const top = new PIXI.Container(); const root = new PIXI.Container(); top.addChild(root);
+    const fig = new PIXI.Container(); fig.name = 'fig'; nodeIndex['fig'] = fig; root.addChild(fig);
+    __PARTS__
+    const a = node('A', root), b = node('B', root);
+    makeHeldPaints({animations: {x: {channels: [
+        {target: 'A', property: 'paint_after', keyframes: [{time: 0, value: 'fig/arm_far'}]},
+        {target: 'B', property: 'paint_after', keyframes: [{time: 0, value: 'fig/torso'}]}]}}});
+    applyPaintAfter(a, 'fig/arm_far'); applyPaintAfter(b, 'fig/torso');
+    __HIDE__
+    root.updateTransform(); root.render({});
+    console.log(JSON.stringify(log));
+"""
+
+
 @requires_node
-@pytest.mark.parametrize("case", ["plain", "sorted", "global"])
-def test_nothing_hidden_nothing_changes(case):
-    """The guard is invisible until an ancestor is skipped: the same order as before."""
-    out = _paint_order(case)
-    assert out["fig/arm_far"].count("stick") == 1
+def test_items_held_in_a_container_that_sorts_paint_in_its_order_when_it_is_hidden():
+    """an#562 review: the proxies follow the zIndex order the container sorts by, not
+    the order they were made in."""
+    parts = (
+        "node('fig/arm_far', fig); node('fig/torso', fig);"
+        "nodeIndex['fig/arm_far'].zIndex = 2; nodeIndex['fig/torso'].zIndex = 1;"
+        "fig.sortableChildren = true;"
+    )
+    shown = _run(_TWO_HELD.replace("__PARTS__", parts).replace("__HIDE__", ""))
+    hidden = _run(_TWO_HELD.replace("__PARTS__", parts).replace("__HIDE__", "fig.alpha = 0;"))
+    assert shown == ["fig/torso", "B", "fig/arm_far", "A"]
+    assert hidden == ["B", "A"]
+
+
+@requires_node
+def test_an_item_held_by_a_part_of_another_held_item_paints_once():
+    """an#562 review: a held item is non-renderable in place; the guard on its
+    container must not read that as 'skipped' and paint what it holds twice."""
+    script = """
+    const top = new PIXI.Container(); const root = new PIXI.Container(); top.addChild(root);
+    const fig = new PIXI.Container(); fig.name = 'fig'; nodeIndex['fig'] = fig; root.addChild(fig);
+    node('fig/arm', fig);
+    const cup = new PIXI.Container(); cup.name = 'cup'; nodeIndex['cup'] = cup; root.addChild(cup);
+    node('cup/body', cup); node('cup/rim', cup);
+    const spoon = node('spoon', root);
+    makeHeldPaints({animations: {x: {channels: [
+        {target: 'cup', property: 'paint_after', keyframes: [{time: 0, value: 'fig/arm'}]},
+        {target: 'spoon', property: 'paint_after', keyframes: [{time: 0, value: 'cup/rim'}]}]}}});
+    applyPaintAfter(cup, 'fig/arm'); applyPaintAfter(spoon, 'cup/rim');
+    const out = {};
+    for (const hide of [false, true]) {
+        fig.alpha = hide ? 0 : 1;
+        log.length = 0; root.updateTransform(); root.render({});
+        out[hide ? 'hidden' : 'shown'] = log.slice();
+    }
+    console.log(JSON.stringify(out));
+    """
+    out = _run(script)
+    assert out["shown"].count("spoon") == 1 and out["shown"].count("cup/body") == 1
+    assert out["hidden"].count("spoon") == 1

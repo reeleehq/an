@@ -267,39 +267,46 @@
     // twice, and an ancestor nobody skips renders as it always did. A scene
     // with no `paint_after` channel makes no wrapper at all.
     function guardHeldAncestors(proxies) {
-        const roots = new Set();
+        const mine = new Set(proxies);
+        const tops = new Set();
         for (const p of proxies) {
             let top = p;
-            for (let a = p.parent; a; a = a.parent) {
-                top = a;
-                if (!a._anHeldWithin) {
-                    a._anHeldWithin = [];
-                    const original = a.render;
-                    a.render = function (renderer) {
-                        if (!this.visible || this.worldAlpha <= 0 || !this.renderable) {
-                            for (const q of this._anHeldWithin) q.render(renderer);
-                            return;
-                        }
-                        original.call(this, renderer);
-                    };
+            while (top.parent) top = top.parent;
+            tops.add(top);
+        }
+        const wrap = a => {
+            if (a._anHeldWithin) return;
+            const original = a.render;
+            a.render = function (renderer) {
+                // A held item is non-renderable in place: its own proxy paints it.
+                if (!this.renderable && this._anPaintAfter) return;
+                if (!this.visible || this.worldAlpha <= 0 || !this.renderable) {
+                    for (const q of this._anHeldWithin) q.render(renderer);
+                    return;
                 }
-                a._anHeldWithin.push(p);
-            }
-            roots.add(top);
-        }
-        // The proxies inside one ancestor render in the tree's paint order.
-        const rank = new Map();
-        const mine = new Set(proxies);
-        const walk = node => {
-            if (mine.has(node)) rank.set(node, rank.size);
-            for (const c of node.children) walk(c);
+                original.call(this, renderer);
+            };
+            a._anHeldWithin = [];
         };
-        for (const r of roots) walk(r);
-        for (const p of proxies) {
-            for (let a = p.parent; a; a = a.parent) {
-                a._anHeldWithin.sort((x, y) => rank.get(x) - rank.get(y));
+        // One depth-first pass in the tree's paint order (children sorted by
+        // zIndex where their container sorts): each proxy joins the list of
+        // every ancestor above it, so a skipped ancestor paints them in order.
+        const path = [];
+        const walk = node => {
+            if (mine.has(node)) {
+                for (const a of path) {
+                    wrap(a);
+                    a._anHeldWithin.push(node);
+                }
             }
-        }
+            const kids = node.sortableChildren
+                ? node.children.slice().sort((x, y) => x.zIndex - y.zIndex)
+                : node.children;
+            path.push(node);
+            for (const c of kids) walk(c);
+            path.pop();
+        };
+        for (const t of tops) walk(t);
     }
 
     function applyPaintAfter(node, value) {
