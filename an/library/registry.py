@@ -75,11 +75,12 @@ import hashlib
 import json
 import os
 import sys
-import tempfile
 from collections.abc import Iterable, Iterator, Mapping
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+from dol import atomic_write
 
 from an.library.root import CORE_PACKAGE, POSIX_DATA_DEFAULT, WINDOWS_DATA_DEFAULT
 
@@ -283,14 +284,10 @@ def remember_statements(
                 if held.get("number", 0) > statement.get("number", 0):
                     continue
             folder.mkdir(parents=True, exist_ok=True)
-            fd, tmp = tempfile.mkstemp(prefix=".tmp-", dir=folder)
-            with os.fdopen(fd, "w", encoding="utf-8") as f:
-                json.dump(
-                    {**dict(statement), "asset": asset_key, "root": root_s},
-                    f,
-                    sort_keys=True,
-                )
-            os.replace(tmp, target)
+            doc = {**dict(statement), "asset": asset_key, "root": root_s}
+            atomic_write(
+                target, json.dumps(doc, sort_keys=True).encode("utf-8"), fsync=True
+            )
         except (OSError, ValueError) as e:
             raise RegistryError(
                 f"cannot remember what {asset_key} says about {digest[:12]}… in "
@@ -366,19 +363,13 @@ def record_generated(digests: Iterable[str], *, generator: str) -> None:
             continue
         try:
             folder.mkdir(parents=True, exist_ok=True)
-            fd, tmp = tempfile.mkstemp(prefix=".tmp-", dir=folder)
-            with os.fdopen(fd, "w", encoding="utf-8") as f:
-                json.dump(
-                    {
-                        "generator": generator,
-                        "recorded": datetime.now(timezone.utc).isoformat(
-                            timespec="seconds"
-                        ),
-                    },
-                    f,
-                    sort_keys=True,
-                )
-            os.replace(tmp, target)
+            doc = {
+                "generator": generator,
+                "recorded": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            }
+            atomic_write(
+                target, json.dumps(doc, sort_keys=True).encode("utf-8"), fsync=True
+            )
         except OSError as e:
             raise RegistryError(
                 f"cannot record that {generator} drew {digest[:12]}… in {folder} ({e})"

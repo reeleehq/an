@@ -1,0 +1,1 @@
+- An audition reel is written under the manifest lock, only while its option is still the same voice (a re-design in between leaves the newer reel alone, the late reel is neither kept nor reported, and the call warns, `VoiceDesignWarning`); `run_auditions(keep=)` replaces `on_reel`; the audition reels and `an.library.registry` write atomically through `dol.atomic_write` (an#649).
