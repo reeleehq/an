@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../_static/documentation_options.js?v=edc04cb3"></script>
+    <script src="../../_static/documentation_options.js?v=2649dc7e"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.313" />
+  <meta name="docsearch:version" content="0.1.314" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -725,7 +725,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">TypeAlias</span><span class="p">,</span> <span class="n">get_args</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">TypeAlias</span><span class="p">,</span> <span class="n">get_args</span>
 
 <span class="c1"># -- Versioning ---------------------------------------------------------------</span>
 
@@ -940,6 +940,32 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: plane's own ``depth``, so a plane at a world depth compiles exactly as one</span>
 <span class="c1">#: with that factor written by hand.</span>
 <span class="n">PLANE_FACTORS_OVERRIDE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"plane_factors"</span>
+<span class="c1">#: The core's marker on a slot entity a travel's lowering made (an#516): the</span>
+<span class="c1">#: id of the stream it draws (``an.ir.world``).</span>
+<span class="n">STREAM_OVERRIDE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"stream"</span>
+<span class="c1">#: Keys the CORE records in an entity's ``overrides``: what attaches it, the</span>
+<span class="c1">#: stream slot it is, what holds it and at what angle, the world's plane</span>
+<span class="c1">#: factors. Bookkeeping about the entity, not fields of its asset document, so</span>
+<span class="c1">#: a resolver that validates overrides against its document (a stroked path,</span>
+<span class="c1">#: a text block) leaves them out (an#516); ``tests/test_world.py`` holds the</span>
+<span class="c1">#: owners' constants to this set.</span>
+<span class="n">CORE_OVERRIDE_KEYS</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span>
+    <span class="p">{</span><span class="s2">"attached"</span><span class="p">,</span> <span class="n">STREAM_OVERRIDE</span><span class="p">,</span> <span class="s2">"held_by"</span><span class="p">,</span> <span class="s2">"held_rotation"</span><span class="p">,</span> <span class="n">PLANE_FACTORS_OVERRIDE</span><span class="p">}</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="asset_overrides">
+<a class="viewcode-back" href="../../_autosummary/an.base.html#an.base.asset_overrides">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">asset_overrides</span><span class="p">(</span><span class="n">overrides</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``overrides`` without the core's own keys (:data:`CORE_OVERRIDE_KEYS`):</span>
+<span class="sd">    what an entity asks of its asset document.</span>
+
+<span class="sd">    &gt;&gt;&gt; asset_overrides({"points": [[0, 0]], "stream": "dash", "held_by": "ground"})</span>
+<span class="sd">    {'points': [[0, 0]]}</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="p">(</span><span class="n">overrides</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">CORE_OVERRIDE_KEYS</span><span class="p">}</span></div>
+
+
 
 <span class="c1">#: The draw-order property (an#537): where a node is PAINTED, as the path of the</span>
 <span class="c1">#: node it paints just after (``""``: where the stage tree puts it). A string,</span>

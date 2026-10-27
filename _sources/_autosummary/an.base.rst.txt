@@ -18,6 +18,8 @@ an.base
       PLANE_REST_VALUES
       TRIM_PROPERTIES
       PLANE_FACTORS_OVERRIDE
+      STREAM_OVERRIDE
+      CORE_OVERRIDE_KEYS
       PAINT_AFTER_PROPERTY
       ORDER_PROPERTIES
       SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS
@@ -38,5 +40,6 @@ an.base
 
    .. autosummary::
    
+      asset_overrides
       swap_set_name_problem
    

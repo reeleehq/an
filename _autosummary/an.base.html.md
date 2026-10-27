@@ -23,6 +23,8 @@ fraction of a second so the CLI is snappy.
 | [`PLANE_REST_VALUES`](#an.base.PLANE_REST_VALUES)                  | a node targeted with any of them is drawn on a plane tilted away from the camera (`rotation_x`, radians, positive = the top recedes; `perspective`, the eye's distance in frame heights; `plane_fade_start`/`plane_fade_end`, the far fade, scene px up the plane from the hinge, off while the end is `<= 0`).                  |
 | [`TRIM_PROPERTIES`](#an.base.TRIM_PROPERTIES)                    | The path-only properties inside `TRANSFORM_PROPERTIES` (an#160; the name predates `dash_offset`, an#161): trim and the dash phase.                                                                                                                                                                                               |
 | [`PLANE_FACTORS_OVERRIDE`](#an.base.PLANE_FACTORS_OVERRIDE)             | The key the world's lowering records the parallax factors derived from an environment member's `depths` under, in the entity's `overrides` (`{plane name: factor}`, an#503): the compiler reads them where it reads a plane's own `depth`, so a plane at a world depth compiles exactly as one with that factor written by hand. |
+| [`STREAM_OVERRIDE`](#an.base.STREAM_OVERRIDE)                    | the id of the stream it draws (`an.ir.world`).                                                                                                                                                                                                                                                                                   |
+| [`CORE_OVERRIDE_KEYS`](#an.base.CORE_OVERRIDE_KEYS)                 | what attaches it, the stream slot it is, what holds it and at what angle, the world's plane factors.                                                                                                                                                                                                                             |
 | [`PAINT_AFTER_PROPERTY`](#an.base.PAINT_AFTER_PROPERTY)               | where a node is PAINTED, as the path of the node it paints just after (`""`: where the stage tree puts it).                                                                                                                                                                                                                      |
 | [`ORDER_PROPERTIES`](#an.base.ORDER_PROPERTIES)                   | The non-numeric properties the runtime applies itself (outside `TRANSFORM_PROPERTIES`, which it animates numerically): a node's place in the paint order.                                                                                                                                                                        |
 | [`SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS`](#an.base.SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS) | `/` would read as a path segment and `::` is the runtime's pose-key separator.                                                                                                                                                                                                                                                   |
@@ -41,8 +43,9 @@ fraction of a second so the CLI is snappy.
 
 ### Functions
 
-| [`swap_set_name_problem`](#an.base.swap_set_name_problem)(name)   | Why `name` cannot be a swap-set name, or `None` if it can.   |
-|--------------------------------------------------------------------------------|--------------------------------------------------------------|
+| [`asset_overrides`](#an.base.asset_overrides)(overrides)   | `overrides` without the core's own keys ([`CORE_OVERRIDE_KEYS`](#an.base.CORE_OVERRIDE_KEYS)): what an entity asks of its asset document.   |
+|-------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`swap_set_name_problem`](#an.base.swap_set_name_problem)(name)  | Why `name` cannot be a swap-set name, or `None` if it can.                                                                                                  |
 
 ### an.base.AUTHORABLE_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'alpha', 'dash_offset', 'perspective', 'pivot_x', 'pivot_y', 'plane_fade_end', 'plane_fade_start', 'rotation', 'rotation_rad', 'rotation_x', 'scale_x', 'scale_y', 'skew_x', 'skew_y', 'tint', 'tint_b', 'tint_g', 'tint_r', 'trim_end', 'trim_start', 'x', 'y'})*
 
@@ -133,6 +136,18 @@ asset-set name (an#62).
 ### an.base.COMPATIBLE_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '0.3.0'*
 
 Minimum Scene IR version this code can still read without migration.
+
+### an.base.CORE_OVERRIDE_KEYS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'attached', 'held_by', 'held_rotation', 'plane_factors', 'stream'})*
+
+what attaches it, the
+stream slot it is, what holds it and at what angle, the world’s plane
+factors. Bookkeeping about the entity, not fields of its asset document, so
+a resolver that validates overrides against its document (a stroked path,
+a text block) leaves them out (an#516); `tests/test_world.py` holds the
+owners’ constants to this set.
+
+* **Type:**
+  Keys the CORE records in an entity’s `overrides`
 
 ### an.base.DEFAULT_DUCK_DB *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= -12.0*
 
@@ -285,6 +300,14 @@ changes, also bump COMPATIBLE_VERSION and add a migration in `ir.migrate`.
 described a 3D camera this package never had, and gave `Camera` a `keys`
 list so it can translate (an#109).
 
+### an.base.STREAM_OVERRIDE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'stream'*
+
+the
+id of the stream it draws (`an.ir.world`).
+
+* **Type:**
+  The core’s marker on a slot entity a travel’s lowering made (an#516)
+
 ### an.base.SUPPORTED_RENDERERS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('cutout', 'stage', 'manim', 'motion_graphics', 'whiteboard')*
 
 The same vocabulary as [`RendererName`](#an.base.RendererName), as a runtime tuple — DERIVED
@@ -318,6 +341,19 @@ draws no path refuses all of them.
 ### an.base.WIPE_DIRECTIONS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('left', 'right', 'up', 'down')*
 
 The ways a `wipe`’s edge can travel across the frame (an#390).
+
+### an.base.asset_overrides(overrides)
+
+`overrides` without the core’s own keys ([`CORE_OVERRIDE_KEYS`](#an.base.CORE_OVERRIDE_KEYS)):
+what an entity asks of its asset document.
+
+```pycon
+>>> asset_overrides({"points": [[0, 0]], "stream": "dash", "held_by": "ground"})
+{'points': [[0, 0]]}
+```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.base.swap_set_name_problem(name)
 

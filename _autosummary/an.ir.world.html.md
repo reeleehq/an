@@ -56,7 +56,7 @@ move, and a close-up is the same world seen from nearer.
 | [`frame_poses`](#an.ir.world.frame_poses)(scene, \*[, film_starts])              | Per framed shot, where each frame stands in the world as the shot opens and as it closes (after the shot's own `<frame>:at_*` actions): what `an world show --frames` prints.                                                                                                                                                                                                   |
 | [`has_world`](#an.ir.world.has_world)(scene)                                   | Whether lowering would change anything: a world, or a shot with a viewpoint.                                                                                                                                                                                                                                                                                                    |
 | [`lower_world`](#an.ir.world.lower_world)(scene, \*, extents[, ...])             | The scene with every framed shot's placements derived from the world.                                                                                                                                                                                                                                                                                                           |
-| [`member_of`](#an.ir.world.member_of)(entity, \*\*placement)                   | The world member a shot entity becomes (the inverse of `_entity_of()`): its fields as they are, its `stage` dropped (a member is placed by each shot's viewpoint) and its `after` kept, with `placement` (`at`, `height`, ...) where the world stands it.                                                                                                                       |
+| [`member_of`](#an.ir.world.member_of)(entity, \*\*placement)                   | The world member a shot entity becomes (the inverse of `entity_of()`): its fields as they are, its `stage` dropped (a member is placed by each shot's viewpoint) and its `after` kept, with `placement` (`at`, `height`, ...) where the world stands it.                                                                                                                        |
 | [`member_placements`](#an.ir.world.member_placements)(world, projection, \*, ...)      | Every member's placement under `projection`: `{id: Placed}`.                                                                                                                                                                                                                                                                                                                    |
 | [`pose_look`](#an.ir.world.pose_look)(pose)                                    | The `(yaw, pitch)` in degrees a pose faces.                                                                                                                                                                                                                                                                                                                                     |
 | [`resolve_viewpoint`](#an.ir.world.resolve_viewpoint)(world, viewpoint, \*, ...)       | The camera a viewpoint is, as a [`Projection`](#an.ir.world.Projection), in its own frame's units.                                                                                                                                                                                                                                                          |
@@ -217,6 +217,17 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 One thing the lowering did or could not do for one shot, for
 `an validate` (its severity) and `an world show`.
 
+#### *property* description *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+The note as a finding says it (validate and the render alike).
+
+#### *property* ir_path *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+the shot’s entities.
+
+* **Type:**
+  Where a finding on it points
+
 ### an.ir.world.fit_channel(g, a, b, , tolerance, min_step)
 
 One channel’s motion `g` on `[a, b]` as tweens: `[(t0, t1, v0, v1,
@@ -345,11 +356,11 @@ Raises [`WorldError`](#an.ir.world.WorldError) for a viewpoint the world cannot 
 ### an.ir.world.member_of(entity, \*\*placement)
 
 The world member a shot entity becomes (the inverse of
-`_entity_of()`): its fields as they are, its `stage` dropped (a
+`entity_of()`): its fields as they are, its `stage` dropped (a
 member is placed by each shot’s viewpoint) and its `after` kept, with
 `placement` (`at`, `height`, …) where the world stands it. Its
 `joints` stay with the shot: they tie it to other entities of THAT shot,
-and `_entity_of()` gives a member none.
+and `entity_of()` gives a member none.
 
 ```pycon
 >>> e = AssetRef(kind="prop", id="lamp", store="props", ref="lamp",

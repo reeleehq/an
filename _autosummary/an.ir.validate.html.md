@@ -20,6 +20,7 @@ Layout-overlap checks (boxes off-screen, text behind sprites) live in
 | [`ALWAYS_RUN_CHECKS`](#an.ir.validate.ALWAYS_RUN_CHECKS)             | they report on the checks that did run (`not_compiled`: a shot the compile-based checks could not compile, an#551), and say nothing when none did.                                                                                                                                                                                                           |
 | [`CUT_CONTINUITY_PROPS`](#an.ir.validate.CUT_CONTINUITY_PROPS)          | position in scene px, and the size of its scale (its SIGN is facing, which the genre's view continuity check says, an#203).                                                                                                                                                                                                                                  |
 | [`CUT_CONTINUITY_TOLERANCE`](#an.ir.validate.CUT_CONTINUITY_TOLERANCE)      | a pixel, or a hundredth of the scale.                                                                                                                                                                                                                                                                                                                        |
+| [`UNSEEN_ALPHA`](#an.ir.validate.UNSEEN_ALPHA)                  | At or under this alpha an entity is not seen at a cut (a stream slot between its passes, a fade's end): it cannot jump or swap sides (an#516).                                                                                                                                                                                                               |
 | [`SCREEN_DIRECTION_TOLERANCE_PX`](#an.ir.validate.SCREEN_DIRECTION_TOLERANCE_PX) | Two entities closer than this on screen have no left/right order to flip.                                                                                                                                                                                                                                                                                    |
 | [`DIALOGUE_OVERRUN_TOLERANCE_S`](#an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S)  | a frame at 60 fps.                                                                                                                                                                                                                                                                                                                                           |
 | [`POST_SYNTHESIS_CHECKS`](#an.ir.validate.POST_SYNTHESIS_CHECKS)         | The registered checks whose answer depends on what synthesis produced — a line's real length, hence where it starts and ends — and that `an render` therefore runs again AFTER the audio pipeline, on the timing it will mux ([`post_synthesis_findings()`](#an.ir.validate.post_synthesis_findings) runs exactly these, by name, through the registry). |
@@ -116,6 +117,11 @@ later migration will touch. So it is caught here, at ERROR, by name.
 ### an.ir.validate.SCREEN_DIRECTION_TOLERANCE_PX *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 1.0*
 
 Two entities closer than this on screen have no left/right order to flip.
+
+### an.ir.validate.UNSEEN_ALPHA *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.001*
+
+At or under this alpha an entity is not seen at a cut (a stream slot between
+its passes, a fade’s end): it cannot jump or swap sides (an#516).
 
 ### *exception* an.ir.validate.UnregisteredInSceneError(findings, , where='')
 
