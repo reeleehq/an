@@ -46,7 +46,8 @@ The core's constraints:
 - ``draw_order`` (an#510, catalogue A3): two entities painted one way in one
   shot and the other way in a later one, with no change of ``stage.after``
   between them. :func:`order_flips` is the pure function under it. (The
-  within-shot half, painted order against world depth, is not built.)
+  within-shot half, painted order against world depth for a member in motion, is the
+  lowering's: ``an.ir.world.depth_order_problems``, reported as a ``draw_order`` note.)
 - ``jump_cut`` (catalogue C4, the 30-degree rule): two consecutive shots of one
   subject from nearly the same angle and size. :func:`jump_cut_between` is the
   pure function under it.
