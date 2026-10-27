@@ -15,7 +15,7 @@ This file orients an AI agent doing engineering work *on* an itself. If you're u
 - **Wave records (fact, not design space):** `misc/docs/wave{1_verification,2_research,3_research,4_research,5_research,6_research,7_research}.md`. Measured, so where one contradicts its epic's brief, the record wins; read the relevant one before building on that area (bench, golden corpus, render pipeline, faces, stage). What each contradicts: `misc/docs/sharp_edges.md`.
 - **Project skills:** `.claude/skills/` — `an` (downstream), `an-spec`, `an-dev` (read alongside this file), and `an-dev-{bench,render-pipeline,stage,path,text,runtime-assets,licensing}` for their areas: read the matching one before touching a pixel, an encode flag, the camera or planes. The cut-out skills (`an-style`, `an-art-package`, `an-dev-{expression,lipsync,rig-contract,swap-channels}`) are one-paragraph stubs pointing to `cutan-*` in the `cutan` repository.
 - **Related packages:** [`shaping`](https://github.com/thorwhalen/shaping) (shares `an`'s animation-track format; no dependency either way, so check a track-format change against it) and [`tituli`](https://github.com/thorwhalen/tituli) (text in video). The structured-animation family also includes [`previz`](https://github.com/thorwhalen/previz) (TypeScript: the kernel's twin, asserting `an/data/timing/` — thorwhalen/previz#3 — and a view engine whose entity is a vector of engine parameters; direction in an#257), [`burns`](https://github.com/thorwhalen/burns) (the crop engine for camera moves over a still or a video, burns#24) and [`jy`](https://github.com/i2mint/jy) (the Python-to-JS bridge; the JS-to-Python direction is still to be named). A camera move is a move of a view through a parameter space, defined once in the shared vocabulary and lowered per engine (an#257). See §13 of `misc/docs/architecture_as_built.md`.
-- **AI changelog:** `misc/CHANGELOG.md` — one line under today's date per non-trivial chunk.
+- **AI changelog:** one fragment file per PR in `misc/changelog.d/` (`<YYYY-MM-DD>-<slug>.md`, one `- ` line; see `misc/changelog.py`), folded into `misc/CHANGELOG.md` by a maintainer. Never edit `misc/CHANGELOG.md` in a PR: it is what makes parallel PRs conflict.
 - **Demos and examples:** the cut-out gallery (`misc/demos/`) and `examples/` moved to `cutan`; the core corpus is `misc/bench/corpus/` (`an.bench.core_corpus`). **A new user-facing capability gets a demo** (in `cutan` for anything a character does).
 
 ## Architectural pillars (locked in)
@@ -54,7 +54,7 @@ This file orients an AI agent doing engineering work *on* an itself. If you're u
 
 ## Per-PR housekeeping
 
-- Append a one-line entry under today's date in `misc/CHANGELOG.md`.
+- Add a changelog fragment, `misc/changelog.d/<today>-<slug>.md` (one `- ` line).
 - If the change moves the system's actual shape, update `misc/docs/architecture_as_built.md` in the same PR — it is the doc everything else routes to.
 - Update the matching skill in `.claude/skills/` if the user-facing surface changed.
 - Log non-trivial unblessed design decisions: in the PR description for repo-level work, in `.an/decisions.jsonl` (via `mall["decisions"]`) for project-level work.
