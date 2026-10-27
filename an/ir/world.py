@@ -1932,6 +1932,7 @@ def _lower_shot(
     )
     min_step = _MIN_SAMPLE_FRAMES / float(fps)
     passes: dict[str, list[tuple[_Pass, float]]] = {}
+    depth_fns: dict[str, Callable[[float], float]] = {}  # moving members' depth(t)
     for mid in sorted(moving):
         member, box = positioned[mid], extents.get(mid)
         m = _unit_scale(member, box, where=f"member {mid!r}")
@@ -1953,6 +1954,13 @@ def _lower_shot(
         )
         if found:
             passes[mid] = found
+            depth_fns[mid] = _depth_fn(
+                ctx,
+                member,
+                WORLD_FRAME if mid in courses else frame_of[mid],
+                split.member_tracks.get(mid),
+                courses[mid].world_at if mid in courses else None,
+            )
     for mid, course in courses.items():
         for change in course.changes:
             _reframe_notes(change, mid, ctx, near=near, note=note)
@@ -2237,6 +2245,15 @@ def _lower_shot(
         for stream_id, problem in problems:
             note("warning", "stream", stream_id, problem)
     ordered.sort(key=lambda item: item[0])
+    if depth_fns:
+        for message_entity, message in depth_order_problems(
+            [e for _, e, _ in ordered],
+            {mid: p.depth for mid, p in placed.items() if p.depth is not None},
+            depth_fns,
+            duration=duration,
+            step=min_step,
+        ):
+            note("warning", "draw_order", message_entity, message)
     entities = [e for e, _ in envs] + [e for _, e, _ in ordered]
     origins = [j for _, j in envs] + [j for _, _, j in ordered]
     return (
@@ -2244,6 +2261,88 @@ def _lower_shot(
         notes,
         origins,
     )
+
+
+def _depth_fn(
+    ctx: _FrameCtx,
+    member: WorldMember,
+    frame: str,
+    tracks: Mapping[str, Track] | None,
+    course: Callable[[float], Point3] | None,
+) -> Callable[[float], float]:
+    """``t -> the member's depth`` from the camera, over the shot, for a member in motion."""
+    view = ctx.view_fn(frame, course or (lambda t: _member_point(member, tracks, t)))
+    return lambda t: view(t)[2]
+
+
+#: A member must be this much nearer (world units) than one painted over it
+#: before it counts as nearer: depth ties and rounding are not an order.
+DEPTH_ORDER_TOLERANCE: float = 1e-6
+
+
+def depth_order_problems(
+    painted: Sequence[AssetRef],
+    still: Mapping[str, float],
+    moving: Mapping[str, Callable[[float], float]],
+    *,
+    duration: float,
+    step: float,
+    tolerance: float = DEPTH_ORDER_TOLERANCE,
+) -> list[tuple[str, str]]:
+    """``(entity, message)`` for each pair of members painted one way (``painted``,
+    back to front) whose depth order is the other way at some time of the shot,
+    one of them in motion (an#510, catalogue A3): the lowering orders members by
+    depth as the shot opens, so a member that passes another in depth is painted
+    on the wrong side of it for the rest of the shot. A pair where either has a
+    ``stage.after`` is the author's statement of order and is not reported.
+    ``still`` maps the members at rest to their depth, ``moving`` the others to
+    ``depth(t)``.
+
+    >>> from an.ir.schema import AssetRef, StagePlacement
+    >>> a, b = AssetRef(kind="prop", id="a", store="props", ref="a"), AssetRef(kind="prop", id="b", store="props", ref="b")
+    >>> out = depth_order_problems([a, b], {"b": 5.0}, {"a": lambda t: 10.0 - 4.0 * t}, duration=2.0, step=0.5)
+    >>> [(e, m.split(" from")[0]) for e, m in out]
+    [('a', "'a' is painted behind 'b' but is nearer the camera")]
+    >>> depth_order_problems([a, b], {"b": 5.0}, {"a": lambda t: 10.0}, duration=2.0, step=0.5)
+    []
+    """
+    members = [e for e in painted if e.id in still or e.id in moving]
+
+    def depth(mid: str, t: float) -> float:
+        return moving[mid](t) if mid in moving else still[mid]
+
+    n = max(1, int(math.ceil(duration / step))) if duration > 0 else 1
+    times = [duration * k / n for k in range(n + 1)]
+    out: list[tuple[str, str]] = []
+    for i, behind in enumerate(members):
+        for front in members[i + 1 :]:
+            if behind.id not in moving and front.id not in moving:
+                continue  # both at rest: ordered by their depth, by construction
+            if (behind.stage and behind.stage.after) or (
+                front.stage and front.stage.after
+            ):
+                continue
+            t = next(
+                (
+                    t
+                    for t in times
+                    if depth(behind.id, t) < depth(front.id, t) - tolerance
+                ),
+                None,
+            )
+            if t is not None:
+                out.append(
+                    (
+                        behind.id,
+                        f"{behind.id!r} is painted behind {front.id!r} but is nearer "
+                        f"the camera from {t:.2f} s (depth {depth(behind.id, t):.3g} "
+                        f"against {depth(front.id, t):.3g}): the world orders members by "
+                        "depth as the shot opens, so it stays on the wrong side. Cut "
+                        "the shot where they pass, or say which is in front with "
+                        "`stage.after`.",
+                    )
+                )
+    return out
 
 
 def _is_slot_id(entity_id: str, travel: Travel) -> bool:
