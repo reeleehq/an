@@ -162,6 +162,7 @@ def validate_project(
         available_environments=project.mall.get("environments"),
         available_styles=project.mall.get("styles"),
         available_sounds=project.mall.get("sounds"),
+        available_scenes=project.mall.get("scenes"),
         available_library_lock=project.mall.get("library_lock"),
         available_recordings=project.mall.get("recordings"),
         fps=fps,
@@ -287,8 +288,17 @@ def _strict_asset_findings(
     height = scene.meta.resolution.height or DEFAULT_RESOLUTION[1]
     from an.stage.world import lower_scene
 
+    from an.continuity import ContinuityError
+
     try:
         shots = lower_scene(scene, project.mall, fps=fps).scene.timeline
+    except ContinuityError:  # validate reported it; the world still lowers
+        try:
+            shots = lower_scene(
+                scene, project.mall, fps=fps, continues=False
+            ).scene.timeline
+        except Exception:  # noqa: BLE001 — validate reported it
+            shots = scene.timeline
     except Exception:  # noqa: BLE001 — validate reported it; check what it can
         shots = scene.timeline
     for i, shot in enumerate(shots):

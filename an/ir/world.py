@@ -39,6 +39,7 @@ move, and a close-up is the same world seen from nearer.
 from __future__ import annotations
 
 import bisect
+import json
 import math
 import random
 import re
@@ -1821,6 +1822,10 @@ class Lowered:
     scene: SceneIR
     notes: list[WorldNote] = field(default_factory=list)
     origins: dict[int, list[int | None]] = field(default_factory=dict)
+    #: Per continued shot (an#542), how many actions its ``continue:`` put
+    #: before the author's, so a finding's ``actions/<k>`` can name the
+    #: author's line.
+    carried: dict[int, int] = field(default_factory=dict)
 
     def notes_for(self, index: int) -> list[WorldNote]:
         return [n for n in self.notes if n.index == index]
@@ -2904,6 +2909,17 @@ def depth_order_problems(
                     )
                 )
     return out
+
+
+def viewpoint_key(shot: Any) -> Any:
+    """What identifies a shot's viewpoint for "the same framing": its name, or
+    its inline viewpoint's dump; ``None`` for a hand-placed shot. Two shots
+    with one key cut within a framing; two keys are a cut between framings
+    (``cut_continuity``, and a ``continue:`` across them, an#542)."""
+    vp = getattr(shot, "viewpoint", None)
+    if vp is None or isinstance(vp, str):
+        return vp
+    return json.dumps(vp.model_dump(), sort_keys=True, default=str)
 
 
 def _is_slot_id(entity_id: str, travel: Travel) -> bool:

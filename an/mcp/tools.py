@@ -214,6 +214,7 @@ def apply_patch(
             available_environments=mall.get("environments"),
             available_styles=mall.get("styles"),
             available_sounds=mall.get("sounds"),
+            available_scenes=mall.get("scenes"),
         )
     )
     out: dict[str, Any] = {

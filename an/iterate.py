@@ -260,6 +260,7 @@ def iterate(
         available_environments=project.mall.get("environments"),
         available_styles=project.mall.get("styles"),
         available_sounds=project.mall.get("sounds"),
+        available_scenes=project.mall.get("scenes"),
         available_library_lock=project.mall.get("library_lock"),
     )
     full_report = schema_report.merge(semantic_report)
