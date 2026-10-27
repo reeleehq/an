@@ -100,6 +100,7 @@ Designing is billed by the provider; nothing here is called by a render.
 | [`plan_auditions`](#an.audio.voice_design.plan_auditions)(entry, lines, \*[, ref, ...])       | The reels to make for one voice's manifest `entry`, every one checked BEFORE anything is billed: the named `options` exist (default: every option with a voice id) and are saved voices, there are `lines` to speak, and an option whose recorded reel was made under this very key is skipped unless `redo`.                                                                                                                                                                                                                                                                          |
 | [`run_auditions`](#an.audio.voice_design.run_auditions)(jobs, \*, reels, tts[, gap_s, ...])  | Make every reel of `jobs` with `tts` (`synthesize(text, voice_id, \*\*options)` per line — billed), `gap_s` apart, into `reels` under the job's reel key, and record it on the job's option (`audition`, `audition_lines`, `audition_key`); `on_reel` is called after each reel is recorded, so a failure later loses nothing paid for.                                                                                                                                                                                                                                                |
 | [`cast_project_voice`](#an.audio.voice_design.cast_project_voice)(project_dir, ref[, ...])        | Record a voice picked by hand (from `an voices list`, or the document's own `voice_id`) as the writer's choice for `ref`: `voice_id` (default: the one the document already names), `chosen_by`, `chosen_at`; no options manifest needed and nothing billed.                                                                                                                                                                                                                                                                                                                           |
+| [`merge_redesign`](#an.audio.voice_design.merge_redesign)(previous, entry, \*[, in_use])      | `entry` (a voice's options, designed again) keeping what the previous design's entry recorded (an#604).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | [`choose_in_entry`](#an.audio.voice_design.choose_in_entry)(entry, option, \*[, by, ...])      | Make `option` the choice of one voice's options manifest `entry` (an#549): the one choose step an's `an voices choose` and a connector (reelee's production pack) share.                                                                                                                                                                                                                                                                                                                                                                                                               |
 | [`choose_project_voice`](#an.audio.voice_design.choose_project_voice)(project_dir, ref, option, \*) | Write the chosen option's `voice_id` into `assets/voices/<ref>.json`, with who chose it (`by`, default the login name) and when (`at`, default now), and the choice into its options manifest ([`choose_in_entry()`](#an.audio.voice_design.choose_in_entry)); return the document.                                                                                                                                                                                                                                                                                               |
 | [`choose_voice_option`](#an.audio.voice_design.choose_voice_option)(entry, option, \*[, ref, ...]) | The provider `voice_id` of `option` in one voice's manifest `entry`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
@@ -330,7 +331,7 @@ document’s when given. Returns the document.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
-### an.audio.voice_design.choose_in_entry(entry, option, , by=None, designer=None, ref='', at=None, doc=None)
+### an.audio.voice_design.choose_in_entry(entry, option, , by=None, designer=None, ref='', at=None, doc=None, in_use=())
 
 Make `option` the choice of one voice’s options manifest `entry`
 (an#549): the one choose step an’s `an voices choose` and a connector
@@ -351,7 +352,9 @@ option, name_prefix}`), never deleted here (a copy of the manifest, or a
 voice file already written, may still name it: freeing the provider’s
 slot is a separate, explicit act). A voice saved when the options were
 designed (`persist=True`), a library voice and one cast by hand stay
-named where they are. `by` defaults to the login name (see
+named where they are; a choice carried over a re-design (`retire_on_replace`,
+an#604) is retired when replaced. A voice in `in_use` (one another voice
+document speaks) is never retired: pass the project’s other voices. `by` defaults to the login name (see
 [`record_choice()`](#an.audio.voice_design.record_choice)).
 
 ```pycon
@@ -426,7 +429,7 @@ without a `library` of its own; `design=False` searches the library only.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)]
 
-### an.audio.voice_design.design_voice_options(voices, , samples, refs=None, designer=None, model_id='eleven_ttv_v3', persist=True, name_prefix='an', lines_of=None, library=None, library_query=None, library_limit=8, design=True)
+### an.audio.voice_design.design_voice_options(voices, , samples, refs=None, designer=None, model_id='eleven_ttv_v3', persist=True, name_prefix='an', lines_of=None, library=None, library_query=None, library_limit=8, design=True, previous=None, in_use=())
 
 Design options for each voice with notes, and search the library for
 each voice with a query; return the options manifest.
@@ -452,6 +455,15 @@ library: the shared-library seam ([`default_library()`](#an.audio.voice_design.d
 library_query: the query for voices without their own (`accent=irish,gender=male`)
 library_limit: at most this many library candidates per voice
 design: with `False`, no designed previews (library candidates only, nothing billed)
+previous: `{ref: the entry its last design wrote}` (a damaged one as anything
+
+> that is not a mapping): each designed again keeps its record
+> ([`merge_redesign()`](#an.audio.voice_design.merge_redesign)), and a damaged one is refused BEFORE anything is
+> billed or saved (an#604)
+
+in_use: voice ids a voice document names, which a re-design never retires;
+: a caller passing `previous` should pass them (the default, none, would
+  ledger a voice another character speaks)
 
 A voice with `notes` gets designed options `A`, `B`, …; a voice with
 a query gets library options `L1`, `L2`, …; one with both gets both in
@@ -509,6 +521,31 @@ with its preview in `samples` (`<ref>_L<n>`) when the library has one
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)]
+
+### an.audio.voice_design.merge_redesign(previous, entry, , in_use=())
+
+`entry` (a voice’s options, designed again) keeping what the previous
+design’s entry recorded (an#604). Its `chosen` is kept (the voice the
+voice document names, by whom and when), its `option` cleared, since
+this design’s option of that label is another voice, and marked
+`RETIRE_ON_REPLACE_KEY` when that voice was a designed one, so the
+choice that replaces it retires it. Its `retired` ledger is kept and
+joined by every voice the previous design saved that nothing names any
+more: not this design, not `chosen`, not `in_use` (a voice document
+names it), not a library option (another account’s). `entry` is
+returned, updated.
+
+```pycon
+>>> old = {"name_prefix": "p", "options": [{"option": "A", "voice_id": "v1"},
+...        {"option": "B", "voice_id": "v2"}, {"option": "L1", "kind": "library", "voice_id": "pub"}],
+...        "chosen": {"option": "A", "voice_id": "v1", "chosen_by": "n", "chosen_at": "t"}}
+>>> new = merge_redesign(old, {"options": [{"option": "A", "voice_id": "v9"}]})
+>>> new["chosen"]["option"], new["chosen"][RETIRE_ON_REPLACE_KEY], new["retired"]
+(None, True, [{'voice_id': 'v2', 'option': 'B', 'name_prefix': 'p'}])
+```
+
+* **Return type:**
+  [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)
 
 ### an.audio.voice_design.parse_library_query(text)
 

@@ -15,6 +15,7 @@ an.audio.voice\_design
       plan_auditions
       run_auditions
       cast_project_voice
+      merge_redesign
       choose_in_entry
       choose_project_voice
       choose_voice_option
