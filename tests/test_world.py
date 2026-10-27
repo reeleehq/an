@@ -1367,3 +1367,28 @@ def test_a_travel_past_its_budget_stops_fitting_early(monkeypatch):
     with pytest.raises(WorldError, match="at least .* actions, already past"):
         lower_world(scene, extents=EXTENTS)
     assert 0 < len(calls) < every / 2, (len(calls), every)
+
+
+def test_a_lane_range_is_measured_across_it_not_at_its_ends():
+    """B3 review: a field of trees over lanes 2..60 under a wide side window.
+    Neither end sees much (60 is past `far`), the lanes between see most."""
+    scene = _travel_scene(Shot(id="s1", duration=6.0, viewpoint="road"), yaw=90.0)
+    scene.world.viewpoints["road"] = Viewpoint(
+        at=(0.0, -1.0, 0.0), look=(90.0, 0.0, 0.0), fov=120.0
+    )
+    scene.world.travel = scene.world.travel.model_copy(
+        update={
+            "far": 30.0,
+            "streams": [
+                Stream(
+                    id="pole",
+                    ref="lamp",
+                    height=6.0,
+                    every=3.0,
+                    lane=(2.0, 60.0),
+                    y=0.0,
+                )
+            ],
+        }
+    )
+    lower_world(scene, extents=EXTENTS)  # no "two instances in one slot"
