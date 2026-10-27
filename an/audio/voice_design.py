@@ -188,13 +188,14 @@ AUDITION_CONTENT_KEY = "audition_key"
 #: The reel of one scene lives in its own folder
 #: (:meth:`an.ir.sync.SceneFile.per_scene_dir`), so two scenes' reels coexist and
 #: each scene's skip test reads its own record; the fields at the top of the
-#: option stay the latest reel made (``audition_path`` is what ``an voices list`` shows).
+#: option stay the latest reel made.
 AUDITIONS_KEY = "auditions"
+AUDITION_PATH_KEY = "audition_path"
 AUDITION_RECORD_KEYS = (
     AUDITION_KEY,
     AUDITION_LINES_KEY,
     AUDITION_CONTENT_KEY,
-    "audition_path",
+    AUDITION_PATH_KEY,
 )
 #: ``announce`` default: a line on stderr (the pipeline's own), so a billed
 #: call is never silent unless the caller passes ``None``.
@@ -897,12 +898,15 @@ def plan_auditions(
     gap_s: float = AUDITION_GAP_S,
     tts_name: str = "",
     redo: bool = False,
+    recorded: Callable[[dict], Mapping[str, Any] | None] | None = None,
 ) -> list[AuditionJob]:
     """The reels to make for one voice's manifest ``entry``, every one checked
     BEFORE anything is billed: the named ``options`` exist (default: every
     option with a voice id) and are saved voices, there are ``lines`` to speak,
     and an option whose recorded reel was made under this very key is skipped
-    unless ``redo``. Raises :class:`VoiceDesignError` for any problem.
+    unless ``redo``. ``recorded(option)`` says which record to judge that by
+    (default: the option's own fields; the project forms pass the scene's own
+    record, an#571). Raises :class:`VoiceDesignError` for any problem.
     """
     lines = [(text, dict(opts)) for text, opts in lines]
     if not lines:
@@ -936,10 +940,11 @@ def plan_auditions(
         key = audition_key(
             option["voice_id"], lines, effects=effects, gap_s=gap_s, tts_name=tts_name
         )
+        on_record = (recorded(option) if recorded is not None else option) or {}
         if (
             not redo
-            and option.get(AUDITION_KEY)
-            and option.get(AUDITION_CONTENT_KEY) == key
+            and on_record.get(AUDITION_KEY)
+            and on_record.get(AUDITION_CONTENT_KEY) == key
         ):
             continue  # the reel on record IS this reel: never billed twice
         jobs.append(AuditionJob(ref, option, lines, dict(effects or {}), key))
@@ -1267,19 +1272,26 @@ def _project_reels(project_dir: str | Path, scene_file: Any = DEFAULT_SCENE_FILE
     return _WavStore(Path(project_dir) / sf.per_scene_dir(AUDITIONS_DIR))
 
 
-def _as_this_scene_sees(option: dict, sf: Any, reels: Any) -> dict:
-    """A copy of ``option`` whose top-level reel fields are those of ``sf``'s own
-    record (an#571), so :func:`plan_auditions` judges "already on record" against
-    this scene's reel and not whichever scene was auditioned last. The default
-    scene falls back to the fields written before records were per scene. A
-    record whose reel is no longer in ``reels`` counts as none."""
-    seen = {k: v for k, v in option.items() if k not in AUDITION_RECORD_KEYS}
+def _scene_record(option: Mapping, sf: Any, reels: Any = None) -> dict | None:
+    """``sf``'s own record of ``option``'s reel (an#571), or ``None``. The default
+    scene falls back to the top-level fields written before records were per
+    scene, but only while they are still its own: once another scene has made a
+    reel they describe that one, unless they point into the default folder. A
+    record whose reel is no longer in ``reels`` (when given) counts as none."""
     record = (option.get(AUDITIONS_KEY) or {}).get(sf.name)
     if record is None and sf.is_default:
-        record = {k: option[k] for k in AUDITION_RECORD_KEYS if k in option}
-    if record and record.get(AUDITION_KEY) in reels:
-        seen.update(record)
-    return seen
+        legacy = {k: option[k] for k in AUDITION_RECORD_KEYS if k in option}
+        default_folder = AUDITIONS_DIR.as_posix() + "/"
+        path = str(legacy.get(AUDITION_PATH_KEY, ""))
+        if (AUDITIONS_KEY not in option) or (
+            path.startswith(default_folder)
+            and "/" not in path[len(default_folder) :]
+        ):
+            record = legacy
+    if record and reels is not None:
+        if not reels.path_of(record.get(AUDITION_KEY, "")).is_file():
+            return None
+    return record or None
 
 
 def _project_lines(
@@ -1432,14 +1444,9 @@ def audition_project_voices(
         entry = dict(manifests[ref])
         entry["options"] = [dict(o) for o in entry.get("options", ())]
         entries[ref] = entry
-        # Planned against this scene's own records; written against the real ones.
-        planned = {
-            **entry,
-            "options": [_as_this_scene_sees(o, sf, reels) for o in entry["options"]],
-        }
         lines, effects = inputs(ref)
         jobs += plan_auditions(
-            planned,
+            entry,
             lines,
             ref=ref,
             options=options,
@@ -1447,18 +1454,15 @@ def audition_project_voices(
             gap_s=gap_s,
             tts_name=str(getattr(tts, "name", "")),
             redo=redo,
+            recorded=lambda option: _scene_record(option, sf, reels),
         )
 
     def record(job: AuditionJob) -> None:
+        # run_auditions has put the reel's fields on the option (the latest made);
+        # add where it is, and keep this scene's own record beside it.
+        job.option[AUDITION_PATH_KEY] = (reels_dir / f"{job.reel}.wav").as_posix()
         made = {k: job.option[k] for k in AUDITION_RECORD_KEYS if k in job.option}
-        made["audition_path"] = (reels_dir / f"{job.reel}.wav").as_posix()
-        (real,) = [
-            o
-            for o in entries[job.ref]["options"]
-            if o.get("option") == job.option.get("option")
-        ]
-        real.update(made)  # the latest reel made, at the top
-        real.setdefault(AUDITIONS_KEY, {})[sf.name] = made
+        job.option.setdefault(AUDITIONS_KEY, {})[sf.name] = made
         manifests[job.ref] = entries[
             job.ref
         ]  # written per reel: a later failure loses nothing paid

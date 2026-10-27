@@ -429,3 +429,47 @@ def test_two_scenes_reels_of_one_voice_coexist_and_each_is_billed_once(tmp_path)
     assert option["audition_path"] == "artifacts/voice_auditions/scenes/scene.b/jerry_L1.wav"  # the latest
     assert option["auditions"]["scene.md"]["audition_path"] == "artifacts/voice_auditions/jerry_L1.wav"
     assert option["auditions"]["scene.b.md"]["audition_path"] == option["audition_path"]
+
+
+def test_a_scenes_audition_names_its_own_reel_not_the_latest_made(tmp_path, monkeypatch):
+    """an#571 review: after scene b ran, re-running scene.md (a hit) must still say scene.md's reel."""
+    from an.audio.cli import audition
+    from an.ir.schema import Meta, SceneIR
+    from an.stores import build_project_mall
+
+    root = _project(tmp_path, _shot("a", 10.0))
+    one = _shot("a", 10.0)
+    one.dialogue = [Dialogue(speaker="x", text="First scene.", voice_ref="jerry")]
+    _set_shots(root, one)
+    other = _shot("a", 10.0)
+    other.dialogue = [Dialogue(speaker="x", text="Scene b.", voice_ref="jerry")]
+    build_project_mall(root, ensure=True, scene_file="scene.b.md")["scenes"]["main"] = SceneIR(
+        meta=Meta(title="B"), timeline=[other]
+    )
+    mall = load(root).mall
+    mall["voices"]["jerry"] = {"provider": "elevenlabs", "model_id": "eleven_v3", "notes": NOTES,
+                               "library": {"accent": "irish"}}
+    design_project_voices(root, designer=FakeDesigner(n=1), library=FakeLibrary(n=1))
+    tts = FakeTTS(seconds=0.25)
+    audition_project_voices(root, ["jerry"], tts=tts, options=["L1"], announce=None)
+    audition_project_voices(root, ["jerry"], tts=tts, options=["L1"], announce=None, scene_file="scene.b.md")
+    monkeypatch.setattr("an.audio.providers.make_tts", lambda name: tts)
+    out = audition(str(root), voices="jerry", options="L1", scene="scene.md")
+    assert out == "jerry L1: artifacts/voice_auditions/jerry_L1.wav"
+    out = audition(str(root), voices="jerry", options="L1", scene="scene.b.md")
+    assert out == "jerry L1: artifacts/voice_auditions/scenes/scene.b/jerry_L1.wav"
+    assert len(tts.requests) == 2
+
+
+def test_the_pre_per_scene_fields_are_only_the_default_scenes_while_they_are_its_own():
+    from an.audio.voice_design import _scene_record
+    from an.ir.sync import resolve_scene_file
+
+    default = resolve_scene_file("/p", must_exist=False)
+    other = resolve_scene_file("/p", "scene.b.md", must_exist=False)
+    legacy = {"audition": "j_A", "audition_key": "k", "audition_path": "artifacts/voice_auditions/j_A.wav"}
+    assert _scene_record(legacy, default)["audition_key"] == "k"
+    assert _scene_record(legacy, other) is None  # a non-default scene never hits on it
+    later = {**legacy, "audition_path": "artifacts/voice_auditions/scenes/scene.b/j_A.wav",
+             "auditions": {"scene.b.md": {"audition": "j_A", "audition_key": "k2"}}}
+    assert _scene_record(later, default) is None  # the top level is scene b's now
