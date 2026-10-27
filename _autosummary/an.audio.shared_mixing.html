@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=bce126d8"></script>
+    <script src="../_static/documentation_options.js?v=54fb851a"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.327" />
+  <meta name="docsearch:version" content="0.1.328" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -667,8 +667,23 @@ imports themselves stay written out where they are, so the licence firewall
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.shared_mixing.mixing_too_old" title="an.audio.shared_mixing.mixing_too_old"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mixing_too_old</span></code></a>(*, needed_for, error)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.shared_mixing.mixing_problem" title="an.audio.shared_mixing.mixing_problem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mixing_problem</span></code></a>()</p></td>
+<td><p>Why the installed <code class="docutils literal notranslate"><span class="pre">mixing</span></code> cannot serve <code class="docutils literal notranslate"><span class="pre">an</span></code>: a part it uses is missing (<code class="docutils literal notranslate"><span class="pre">mixing.loudness</span></code>, <code class="docutils literal notranslate"><span class="pre">mixing.filtergraph</span></code>), or it is absent; <code class="docutils literal notranslate"><span class="pre">None</span></code> when it can.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.shared_mixing.mixing_too_old" title="an.audio.shared_mixing.mixing_too_old"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mixing_too_old</span></code></a>(*, needed_for, error)</p></td>
 <td><p>Run an import of a part of <code class="docutils literal notranslate"><span class="pre">mixing</span></code>; an <code class="docutils literal notranslate"><span class="pre">ImportError</span></code> becomes <code class="docutils literal notranslate"><span class="pre">error</span></code>, saying the installed <code class="docutils literal notranslate"><span class="pre">mixing</span></code> is too old when it lacks the part, else what failed.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.shared_mixing.warn_if_mixing_too_old" title="an.audio.shared_mixing.warn_if_mixing_too_old"><code class="xref py py-obj docutils literal notranslate"><span class="pre">warn_if_mixing_too_old</span></code></a>()</p></td>
+<td><p>Say once per process, before anything is billed, that the installed <code class="docutils literal notranslate"><span class="pre">mixing</span></code> cannot serve <code class="docutils literal notranslate"><span class="pre">an</span></code> (<a class="reference internal" href="#an.audio.shared_mixing.mixing_problem" title="an.audio.shared_mixing.mixing_problem"><code class="xref py py-func docutils literal notranslate"><span class="pre">mixing_problem()</span></code></a>): the entry points that may bill (a render, <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">voices</span> <span class="pre">design</span></code>, <code class="docutils literal notranslate"><span class="pre">audition</span></code> and <code class="docutils literal notranslate"><span class="pre">reroll</span></code>) call it, so an old <code class="docutils literal notranslate"><span class="pre">mixing</span></code> is not found after synthesis (an#644).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Exceptions</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.shared_mixing.MixingTooOldWarning" title="an.audio.shared_mixing.MixingTooOldWarning"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MixingTooOldWarning</span></code></a></p></td>
+<td><p>The installed <code class="docutils literal notranslate"><span class="pre">mixing</span></code> lacks a part <code class="docutils literal notranslate"><span class="pre">an</span></code> uses (or is absent).</p></td>
 </tr>
 </tbody>
 </table>
@@ -685,6 +700,27 @@ imports themselves stay written out where they are, so the licence firewall
 <dd><p>The package, and what the user runs when theirs predates a part <code class="docutils literal notranslate"><span class="pre">an</span></code> needs.</p>
 </dd></dl>
 
+<dl class="py exception">
+<dt class="sig sig-object py" id="an.audio.shared_mixing.MixingTooOldWarning">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.shared_mixing.</span></span><span class="sig-name descname"><span class="pre">MixingTooOldWarning</span></span><a class="reference internal" href="../_modules/an/audio/shared_mixing.html#MixingTooOldWarning"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.shared_mixing.MixingTooOldWarning" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#UserWarning" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserWarning</span></code></a></p>
+<p>The installed <code class="docutils literal notranslate"><span class="pre">mixing</span></code> lacks a part <code class="docutils literal notranslate"><span class="pre">an</span></code> uses (or is absent).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.shared_mixing.mixing_problem">
+<span class="sig-prename descclassname"><span class="pre">an.audio.shared_mixing.</span></span><span class="sig-name descname"><span class="pre">mixing_problem</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/shared_mixing.html#mixing_problem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.shared_mixing.mixing_problem" title="Link to this definition">#</a></dt>
+<dd><p>Why the installed <code class="docutils literal notranslate"><span class="pre">mixing</span></code> cannot serve <code class="docutils literal notranslate"><span class="pre">an</span></code>: a part it uses is
+missing (<code class="docutils literal notranslate"><span class="pre">mixing.loudness</span></code>, <code class="docutils literal notranslate"><span class="pre">mixing.filtergraph</span></code>), or it is absent;
+<code class="docutils literal notranslate"><span class="pre">None</span></code> when it can. Asked of the code, not of a version number: an
+editable install’s metadata keeps the version it was installed at (an#644).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="an.audio.shared_mixing.mixing_too_old">
 <span class="sig-prename descclassname"><span class="pre">an.audio.shared_mixing.</span></span><span class="sig-name descname"><span class="pre">mixing_too_old</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">needed_for</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/shared_mixing.html#mixing_too_old"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.shared_mixing.mixing_too_old" title="Link to this definition">#</a></dt>
@@ -694,6 +730,21 @@ part, else what failed.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterator" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Iterator</span></code></a>[<span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.shared_mixing.warn_if_mixing_too_old">
+<span class="sig-prename descclassname"><span class="pre">an.audio.shared_mixing.</span></span><span class="sig-name descname"><span class="pre">warn_if_mixing_too_old</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/shared_mixing.html#warn_if_mixing_too_old"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.shared_mixing.warn_if_mixing_too_old" title="Link to this definition">#</a></dt>
+<dd><p>Say once per process, before anything is billed, that the installed
+<code class="docutils literal notranslate"><span class="pre">mixing</span></code> cannot serve <code class="docutils literal notranslate"><span class="pre">an</span></code> (<a class="reference internal" href="#an.audio.shared_mixing.mixing_problem" title="an.audio.shared_mixing.mixing_problem"><code class="xref py py-func docutils literal notranslate"><span class="pre">mixing_problem()</span></code></a>): the entry points
+that may bill (a render, <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">voices</span> <span class="pre">design</span></code>, <code class="docutils literal notranslate"><span class="pre">audition</span></code> and
+<code class="docutils literal notranslate"><span class="pre">reroll</span></code>) call it, so an old <code class="docutils literal notranslate"><span class="pre">mixing</span></code> is not found after synthesis
+(an#644). <a class="reference internal" href="#an.audio.shared_mixing.mixing_too_old" title="an.audio.shared_mixing.mixing_too_old"><code class="xref py py-func docutils literal notranslate"><span class="pre">mixing_too_old()</span></code></a> stays the backstop at each import.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -749,7 +800,10 @@ part, else what failed.</p>
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.shared_mixing.INSTALL_HINT"><code class="docutils literal notranslate"><span class="pre">INSTALL_HINT</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.shared_mixing.MIXING"><code class="docutils literal notranslate"><span class="pre">MIXING</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.shared_mixing.MixingTooOldWarning"><code class="docutils literal notranslate"><span class="pre">MixingTooOldWarning</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.shared_mixing.mixing_problem"><code class="docutils literal notranslate"><span class="pre">mixing_problem()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.shared_mixing.mixing_too_old"><code class="docutils literal notranslate"><span class="pre">mixing_too_old()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.shared_mixing.warn_if_mixing_too_old"><code class="docutils literal notranslate"><span class="pre">warn_if_mixing_too_old()</span></code></a></li>
 </ul>
   </nav></div>
 

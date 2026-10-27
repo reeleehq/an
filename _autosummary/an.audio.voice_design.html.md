@@ -98,7 +98,7 @@ Designing is billed by the provider; nothing here is called by a render.
 | [`audition_project_voices`](#an.audio.voice_design.audition_project_voices)(project_dir[, refs, ...])  | An audition reel per option of each voice in `refs` (default: every voice with a manifest): the voice's own lines from the scene, spoken with the film's TTS provider (`tts`, default ElevenLabs — the provider the film renders with, so the reel sounds like the film), the voice document's model, settings and effects, to `artifacts/voice_auditions/<ref>_<option>.wav` (`.../scenes/<stem>/` for a scene other than `scene.md`, so two scenes' reels coexist, an#571); the manifest records each reel (`audition_path`, and per scene under `auditions`) as soon as it is made. |
 | [`audition_voice_options`](#an.audio.voice_design.audition_voice_options)(entry, lines, \*, ...)      | An audition reel per option of one voice's manifest `entry`: every line of `lines` — `(text, synthesize options)` pairs, the options being what the film's pipeline would send (`model_id`, `voice_settings`, `audio_tags` from the line's cues) — spoken in that option's voice by `tts` (the film's provider), the voice's `effects` applied, `gap_s` apart, as one WAV in `reels` under `<ref>_<option>`.                                                                                                                                                                           |
 | [`plan_auditions`](#an.audio.voice_design.plan_auditions)(entry, lines, \*[, ref, ...])       | The reels to make for one voice's manifest `entry`, every one checked BEFORE anything is billed: the named `options` exist (default: every option with a voice id) and are saved voices, there are `lines` to speak, and an option whose recorded reel was made under this very key is skipped unless `redo`.                                                                                                                                                                                                                                                                          |
-| [`run_auditions`](#an.audio.voice_design.run_auditions)(jobs, \*, reels, tts[, gap_s, ...])  | Make every reel of `jobs` with `tts` (`synthesize(text, voice_id, \*\*options)` per line — billed), `gap_s` apart, into `reels` under the job's reel key, and record it on the job's option (`audition`, `audition_lines`, `audition_key`); `on_reel` is called after each reel is recorded, so a failure later loses nothing paid for.                                                                                                                                                                                                                                                |
+| [`run_auditions`](#an.audio.voice_design.run_auditions)(jobs, \*, reels, tts[, gap_s, ...])  | Make every reel of `jobs` with `tts` (`synthesize(text, voice_id, \*\*options)` per line — billed), `gap_s` apart, record it on the job's option (`audition`, `audition_lines`, `audition_key`) and keep it as soon as it is made, so a failure later loses nothing paid for: `keep(job, wav)`, by default `reels[job.reel] = wav` (a caller that also records the reel elsewhere writes both in one step, an#649).                                                                                                                                                                    |
 | [`cast_project_voice`](#an.audio.voice_design.cast_project_voice)(project_dir, ref[, ...])        | Record a voice picked by hand (from `an voices list`, or the document's own `voice_id`) as the writer's choice for `ref`: `voice_id` (default: the one the document already names), `chosen_by`, `chosen_at`; no options manifest needed and nothing billed.                                                                                                                                                                                                                                                                                                                           |
 | [`merge_redesign`](#an.audio.voice_design.merge_redesign)(previous, entry, \*[, in_use])      | `entry` (a voice's options, designed again) keeping what the previous design's entry recorded (an#604).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | [`choose_in_entry`](#an.audio.voice_design.choose_in_entry)(entry, option, \*[, by, ...])      | Make `option` the choice of one voice's options manifest `entry` (an#549): the one choose step an's `an voices choose` and a connector (reelee's production pack) share.                                                                                                                                                                                                                                                                                                                                                                                                               |
@@ -133,6 +133,7 @@ Designing is billed by the provider; nothing here is called by a render.
 
 | [`VoiceDesignError`](#an.audio.voice_design.VoiceDesignError)   | A voice that cannot be designed or chosen (no notes, an unknown option, ...).   |
 |---------------------------------------------------------------------|---------------------------------------------------------------------------------|
+| [`VoiceDesignWarning`](#an.audio.voice_design.VoiceDesignWarning) | Something paid for was not kept (a reel whose option was designed again).       |
 
 ### *class* an.audio.voice_design.AuditionJob(ref, option, lines, effects, key)
 
@@ -230,6 +231,12 @@ Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueEr
 
 A voice that cannot be designed or chosen (no notes, an unknown option, …).
 
+### *exception* an.audio.voice_design.VoiceDesignWarning
+
+Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
+
+Something paid for was not kept (a reel whose option was designed again).
+
 ### an.audio.voice_design.announce_auditions(jobs, tts)
 
 What making `jobs` will bill, in one sentence (`""` for none).
@@ -278,6 +285,9 @@ whole bill is announced once, and a reel already on record under the same
 content key is not made again (`redo` makes them all again). Returns
 the manifests of `refs`. `scene_file` takes the lines from another
 scene of the project (`scene.studio.md`, an#554).
+A reel whose option was designed again (another voice) while it was made
+is neither kept nor recorded, and the call warns (`VoiceDesignWarning`,
+an#649).
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)]
@@ -634,13 +644,14 @@ True
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
-### an.audio.voice_design.run_auditions(jobs, \*, reels, tts, gap_s=0.6, announce=<object object>, on_reel=None)
+### an.audio.voice_design.run_auditions(jobs, \*, reels, tts, gap_s=0.6, announce=<object object>, keep=None)
 
 Make every reel of `jobs` with `tts` (`synthesize(text, voice_id,
-\*\*options)` per line — billed), `gap_s` apart, into `reels` under the
-job’s reel key, and record it on the job’s option (`audition`,
-`audition_lines`, `audition_key`); `on_reel` is called after each
-reel is recorded, so a failure later loses nothing paid for. `announce`
+\*\*options)` per line — billed), `gap_s` apart, record it on the job’s
+option (`audition`, `audition_lines`, `audition_key`) and keep it as
+soon as it is made, so a failure later loses nothing paid for: `keep(job,
+wav)`, by default `reels[job.reel] = wav` (a caller that also records
+the reel elsewhere writes both in one step, an#649). `announce`
 (default: a line on stderr; `None` for silence) is told the whole bill
 first, and the provider is asked `check_available()` before the first
 request.

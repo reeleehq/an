@@ -50,4 +50,5 @@ an.audio.voice\_design
    .. autosummary::
    
       VoiceDesignError
+      VoiceDesignWarning
    

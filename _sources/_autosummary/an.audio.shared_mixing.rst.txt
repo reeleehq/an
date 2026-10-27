@@ -15,5 +15,13 @@ an.audio.shared\_mixing
 
    .. autosummary::
    
+      mixing_problem
       mixing_too_old
+      warn_if_mixing_too_old
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      MixingTooOldWarning
    

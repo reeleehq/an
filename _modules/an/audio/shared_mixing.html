@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=bce126d8"></script>
+    <script src="../../../_static/documentation_options.js?v=54fb851a"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.327" />
+  <meta name="docsearch:version" content="0.1.328" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -731,8 +731,10 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">contextlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">contextmanager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">lru_cache</span>
 
 <span class="c1">#: The package, and what the user runs when theirs predates a part ``an`` needs.</span>
 <span class="n">MIXING</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"mixing"</span>
@@ -741,6 +743,13 @@ window.runMermaid = runMermaid;</script>
 <span class="n">INSTALL_HINT</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"pip install mixing"</span>
 <span class="c1">#: How Python words ``from mixing import part`` failing on ``part``.</span>
 <span class="n">_CANNOT_IMPORT</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"cannot import name '(\w+)'"</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="MixingTooOldWarning">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.shared_mixing.html#an.audio.shared_mixing.MixingTooOldWarning">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MixingTooOldWarning</span><span class="p">(</span><span class="ne">UserWarning</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The installed ``mixing`` lacks a part ``an`` uses (or is absent)."""</span></div>
+
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_missing_part</span><span class="p">(</span><span class="n">e</span><span class="p">:</span> <span class="ne">ImportError</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
@@ -781,6 +790,39 @@ window.runMermaid = runMermaid;</script>
             <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">needed_for</span><span class="si">}</span><span class="s2"> needs </span><span class="si">{</span><span class="n">part</span><span class="si">}</span><span class="s2">, which the installed </span><span class="si">{</span><span class="n">MIXING</span><span class="si">}</span><span class="s2"> is too old "</span>
             <span class="sa">f</span><span class="s2">"to have: `</span><span class="si">{</span><span class="n">UPGRADE_HINT</span><span class="si">}</span><span class="s2">`"</span>
         <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
+
+
+
+<div class="viewcode-block" id="mixing_problem">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.shared_mixing.html#an.audio.shared_mixing.mixing_problem">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">mixing_problem</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Why the installed ``mixing`` cannot serve ``an``: a part it uses is</span>
+<span class="sd">    missing (``mixing.loudness``, ``mixing.filtergraph``), or it is absent;</span>
+<span class="sd">    ``None`` when it can. Asked of the code, not of a version number: an</span>
+<span class="sd">    editable install's metadata keeps the version it was installed at (an#644).</span>
+<span class="sd">    """</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">mixing_too_old</span><span class="p">(</span><span class="n">needed_for</span><span class="o">=</span><span class="s2">"an"</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="ne">RuntimeError</span><span class="p">):</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">mixing</span><span class="w"> </span><span class="kn">import</span> <span class="n">loudness</span>  <span class="c1"># noqa: F401</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">mixing.filtergraph</span><span class="w"> </span><span class="kn">import</span> <span class="n">resample_pitch_filter</span>  <span class="c1"># noqa: F401</span>
+    <span class="k">except</span> <span class="ne">RuntimeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="warn_if_mixing_too_old">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.shared_mixing.html#an.audio.shared_mixing.warn_if_mixing_too_old">[docs]</a>
+<span class="nd">@lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">warn_if_mixing_too_old</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Say once per process, before anything is billed, that the installed</span>
+<span class="sd">    ``mixing`` cannot serve ``an`` (:func:`mixing_problem`): the entry points</span>
+<span class="sd">    that may bill (a render, ``an voices design``, ``audition`` and</span>
+<span class="sd">    ``reroll``) call it, so an old ``mixing`` is not found after synthesis</span>
+<span class="sd">    (an#644). :func:`mixing_too_old` stays the backstop at each import."""</span>
+    <span class="n">problem</span> <span class="o">=</span> <span class="n">mixing_problem</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">problem</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">MixingTooOldWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span></div>
 
 </pre></div>
 
