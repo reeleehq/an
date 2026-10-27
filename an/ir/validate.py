@@ -2662,8 +2662,10 @@ def _core_world(ctx: ValidationContext) -> None:
 def _report_plane_depths(ctx: ValidationContext, world: Any, env_store: Any) -> None:
     """The planes an environment member gives a world depth (``depths``, an#503)
     exist in the environment and carry no parallax of their own: one fact has
-    one spelling. Reported once per member, at the first framed shot."""
+    one spelling; none is in a ``far`` frame (at infinity: factor 0). Reported
+    once per member, at the first framed shot."""
     from an.ir.frames import FrameTree
+    from an.ir.world import plane_frame
     from an.stage.environments import (
         ENVIRONMENT_DOCUMENT_KIND,
         EnvironmentDescriptor,
@@ -2686,8 +2688,18 @@ def _report_plane_depths(ctx: ValidationContext, world: Any, env_store: Any) -> 
         tree = FrameTree(frames)
         for name in sorted(member.depths):
             where = f"world/members/{j}"
-            frame = (member.planes or {}).get(name) or member.frame
-            if frame is not None and any(
+            frame = plane_frame(world, member, name)
+            travel_far = world.travel is not None and f"{member.id}/{name}" in (
+                world.travel.plates.get("far", ())
+            )
+            if travel_far:
+                ctx.report.add(
+                    "error",
+                    where,
+                    f"plane {member.id}/{name!r} has a world depth but `world.travel.plates` "
+                    "lists it `far`: that is at infinity, factor 0. Drop one.",
+                )
+            elif frame in tree and any(
                 frames[n].coupling == "far" for n in tree.chain(frame)
             ):
                 ctx.report.add(
@@ -2715,20 +2727,6 @@ def _report_plane_depths(ctx: ValidationContext, world: Any, env_store: Any) -> 
                     "descriptor's depth at 1.0 and let the world depth derive the factor, "
                     "or drop the world depth.",
                 )
-            if (
-                frame is not None
-                and name in planes
-                and not tree.is_still(frame)
-                and not any(frames[n].coupling == "far" for n in tree.chain(frame))
-            ):
-                ctx.report.add(
-                    "warning",
-                    where,
-                    f"plane {member.id}/{name!r} has a world depth and is in frame "
-                    f"{frame!r}, which moves: the derived factor assumes the plane "
-                    "stays still relative to the camera's frame. A plane in a frame "
-                    "that moves relative to the camera is not derived yet (an#503).",
-                )
 
 
 def _core_viewpoint(ctx: ValidationContext) -> None:
@@ -2741,7 +2739,8 @@ def _core_viewpoint(ctx: ValidationContext) -> None:
     only) it must be pinned, parallax factor 0; in the viewpoint's frame it
     rides with the camera; in any other frame that moves relative to the
     camera it would stand still while the view moves, which is the plate with
-    near objects baked in (a warning)."""
+    near objects baked in (a warning), unless it is at a world depth there
+    (``depths``), which the lowering keys (an#503)."""
     shot = ctx.shot
     if getattr(shot, "viewpoint", None) is None or ctx.lowered is None:
         return
@@ -2754,7 +2753,7 @@ def _core_viewpoint(ctx: ValidationContext) -> None:
     _report_plane_depths(ctx, world, env_store)
     from an.ir.frames import FrameTree
     from an.ir.schema import WORLD_FRAME
-    from an.ir.world import viewpoint_of
+    from an.ir.world import plane_frame, viewpoint_of
     from an.stage.environments import (
         ENVIRONMENT_DOCUMENT_KIND,
         environment_from_document,
@@ -2802,6 +2801,14 @@ def _core_viewpoint(ctx: ValidationContext) -> None:
                 if member is not None
                 else None
             )
+            if (
+                frame is None
+                and member is not None
+                and plane.name in (member.depths or {})
+            ):
+                # a depth says where it is: in the frame a member naming none is in,
+                # as the lowering reads it (`plane_frame`)
+                frame = plane_frame(world, member, plane.name)
             at_infinity = role == "far" or (
                 frame is not None
                 and any(frames[n].coupling == "far" for n in tree.chain(frame))
@@ -2838,8 +2845,10 @@ def _core_viewpoint(ctx: ValidationContext) -> None:
                         f"(at infinity), but its parallax factor is {plane.factors()}: a far "
                         "plate is pinned, `depth: 0`.",
                     )
-            elif frame is not None and not tree.is_static(
-                frame, vp_frame, float(shot.duration)
+            elif (
+                frame is not None
+                and plane.name not in (member.depths or {})
+                and not tree.is_static(frame, vp_frame, float(shot.duration))
             ):
                 ctx.report.add(
                     "warning",

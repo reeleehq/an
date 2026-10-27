@@ -123,6 +123,53 @@ def member_extents(
     return out
 
 
+def plane_geometry(
+    world: World | None, mall: Mapping[str, Mapping] | None
+) -> dict[str, dict[str, tuple[tuple[float, float], Box | None]]]:
+    """``{member id: {plane: (offset, box)}}`` for every environment member of
+    ``world`` that gives a plane a world depth (an#503): where each of its
+    planes sits on screen (``Plane.offset``), which is where the lowering
+    anchors a plane at a depth, and the box it draws around that point
+    (:func:`an.stage.environments.plane_rect`; ``None`` for an image whose
+    drawn size depends on art not measured here), which says when it is on
+    screen. An environment that cannot be read is left out (the compiler and
+    the validator say why).
+
+    >>> doc = {"kind": "EnvironmentDescriptor", "name": "e",
+    ...        "planes": [{"name": "hill", "offset": [0, 80], "size": [320, 80]}]}
+    >>> from an.ir.schema import World, WorldMember
+    >>> world = World(members=[WorldMember(kind="environment", id="set",
+    ...     store="environments", ref="e", depths={"hill": 20.0})])
+    >>> plane_geometry(world, {"environments": {"e": doc}})
+    {'set': {'hill': ((0.0, 80.0), (-160.0, -40.0, 160.0, 40.0))}}
+    """
+    from an.stage.environments import environment_from_document, plane_rect
+
+    def geometry(plane) -> tuple[tuple[float, float], Box | None]:
+        ox, oy = (float(v) for v in plane.offset)
+        rect = plane_rect(
+            plane.model_copy(update={"parallax": None, "depth": 1.0}), None
+        )
+        box = (
+            None
+            if rect is None
+            else (rect[0] - ox, rect[1] - oy, rect[2] - ox, rect[3] - oy)
+        )
+        return (ox, oy), box
+
+    out: dict[str, dict[str, tuple[tuple[float, float], Box | None]]] = {}
+    store = (mall or {}).get("environments") or {}
+    for member in world.members if world is not None else ():
+        if not member.depths:
+            continue
+        try:
+            env = environment_from_document(store[member.ref])
+        except Exception:  # noqa: BLE001 — a missing or malformed environment is another check's
+            continue
+        out[member.id] = {p.name: geometry(p) for p in env.planes}
+    return out
+
+
 def lower_scene(
     scene: SceneIR,
     mall: Mapping[str, Mapping] | None,
@@ -158,6 +205,7 @@ def lower_scene(
         film_starts=film_starts,
         fps=fps,
         extent_problems=problems,
+        plane_geometry=plane_geometry(scene.world, mall),
     )
 
 

@@ -1719,13 +1719,42 @@ def _member_passes(
     height: float,
     times: Sequence[float],
 ) -> _Sighting:
-    """A positioned member in motion relative to the camera, as one passage per
-    stretch of the shot it is in front of the camera and on screen (it can
-    leave and come back), each with its depth as it enters; no passage when
-    it never is. ``times`` is the shot's scan grid (``_grid``), sampled once
-    for the depth runs and the sighting's series."""
+    """A positioned member in motion relative to the camera (:func:`_sight` of
+    where it stands, ``course`` or its own point and tracks)."""
     view = ctx.view_fn(frame, course or (lambda t: _member_point(member, tracks, t)))
-    focal = ctx.projection.focal
+    return _sight(
+        view,
+        focal=ctx.projection.focal,
+        box=box,
+        m=m,
+        near=near,
+        tol=tol,
+        min_step=min_step,
+        width=width,
+        height=height,
+        times=times,
+    )
+
+
+def _sight(
+    view: Callable[[float], tuple[float, float, float]],
+    *,
+    focal: float,
+    box: Box | None,
+    m: float,
+    near: float,
+    tol: float,
+    min_step: float,
+    width: float,
+    height: float,
+    times: Sequence[float],
+) -> _Sighting:
+    """Something in motion relative to the camera, ``view`` being ``t -> (right,
+    down, depth)`` of its point: one passage per stretch of the shot it is in
+    front of the camera and on screen (it can leave and come back), each with
+    its depth as it enters; no passage when it never is. Its screen scale is
+    ``m · focal / depth``. ``times`` is the shot's scan grid (``_grid``),
+    sampled once for the depth runs and the sighting's series."""
 
     def g(t: float) -> tuple[float, float, float]:
         return to_screen(view(t))
@@ -1850,6 +1879,8 @@ def _lower_shot(
     width: float,
     height: float,
     fps: float,
+    plane_geometry: Mapping[str, Mapping[str, tuple[tuple[float, float], Box | None]]],
+    plane_anchors: dict[tuple[str, str], _PlaneAnchor],
 ) -> tuple[Shot, list[WorldNote], list[int | None]]:
     shot = scene.timeline[index]
     world = scene.world
@@ -2170,6 +2201,32 @@ def _lower_shot(
             actions.extend(
                 _pass_actions(mid, [p for p, _ in passes[mid]], duration=duration)
             )
+    lowered_envs = []
+    for e, j in envs:
+        e, plane_actions = _with_plane_depths(
+            e,
+            members.get(e.id),
+            world=world,
+            ctx=ctx,
+            placed=placed,
+            viewpoint=vp,
+            geometry=plane_geometry.get(e.id, {}),
+            anchors=plane_anchors,
+            existing=[*shot.actions, *actions],
+            sight=dict(
+                focal=projection.focal,
+                near=near,
+                tol=tol,
+                min_step=min_step,
+                width=width,
+                height=height,
+                times=grid,
+            ),
+            note=note,
+        )
+        lowered_envs.append((e, j))
+        actions.extend(plane_actions)
+    envs = lowered_envs
     swayed = _sway_members(
         sorted(
             mid
@@ -2225,7 +2282,7 @@ def _lower_shot(
             else ""
         )
         raise WorldError(
-            f"shot {shot.id!r}: the members in motion lower to {n_motion} actions"
+            f"shot {shot.id!r}: the members and planes in motion lower to {n_motion} actions"
             f"{sway_note}, past the `max_actions` ({budget}). Raise `tolerance_px` "
             "on the travel, cut the shot, or keep fewer members moving relative "
             "to the camera."
@@ -2268,10 +2325,6 @@ def _lower_shot(
         for stream_id, problem in problems:
             note("warning", "stream", stream_id, problem)
     ordered.sort(key=lambda item: item[0])
-    envs = [
-        (_with_plane_factors(e, members.get(e.id), placed, vp, note), j)
-        for e, j in envs
-    ]
     if sightings:
         _depth_order_notes(
             [e for _, e, _ in ordered],
@@ -2338,23 +2391,136 @@ def reference_depth(placed: Mapping[str, Placed], viewpoint: Viewpoint) -> float
     return sum(shown) / len(shown) if shown else None
 
 
-def _with_plane_factors(
+def plane_frame(world: World, member: WorldMember, plane: str) -> str:
+    """The frame plane ``plane`` of environment ``member`` stands in: its own
+    ``planes`` entry, else the member's ``in``, else the frame a member that
+    names none is in (:meth:`World.default_frame`).
+
+    >>> from an.ir.schema import World, WorldMember
+    >>> m = WorldMember(kind="environment", id="set", store="environments", ref="e",
+    ...                 frame="car", planes={"sky": "far"})
+    >>> plane_frame(World(), m, "sky"), plane_frame(World(), m, "hill")
+    ('far', 'car')
+    """
+    return (member.planes or {}).get(plane) or member.frame or world.default_frame()
+
+
+def plane_anchor(
+    eye: Projection, offset: tuple[float, float], z: float, *, near: float = 0.0
+) -> Point3 | None:
+    """Where a plane at depth ``z`` of its frame stands: the point where the ray
+    from ``eye`` (the camera, in that frame's units) through the plane's origin
+    on screen (``offset``, pixels from the frame centre) meets the plane
+    ``z`` along the camera's look direction from the frame's origin. The plane
+    is a plate facing the camera through that point, ``z - eye.at · forward``
+    in front of it; ``None`` when that is less than ``near`` (behind it).
+
+    >>> eye = Projection((0.0, 0.0, -5.0), (0.0, 0.0, 1.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0), 100.0)
+    >>> plane_anchor(eye, (0.0, 50.0), 15.0)   # 20 in front of a camera standing at z = -5
+    (0.0, 10.0, 15.0)
+    >>> plane_anchor(eye, (0.0, 0.0), -10.0) is None
+    True
+    >>> side = Projection((0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (0.0, 0.0, -1.0), (0.0, 1.0, 0.0), 100.0)
+    >>> plane_anchor(side, (0.0, 0.0), 20.0)   # a camera looking along +x
+    (20.0, 0.0, 0.0)
+    """
+    ox, oy = offset
+    ray = _add(
+        eye.forward,
+        _add(_mul(eye.right, ox / eye.focal), _mul(eye.down, oy / eye.focal)),
+    )
+    reach = z - _dot(eye.at, eye.forward)
+    if reach <= max(near, _MIN_DEPTH):
+        return None
+    return _add(eye.at, _mul(ray, reach))
+
+
+@dataclass(frozen=True)
+class _PlaneAnchor:
+    """A plane at a depth keyed by the world: the point of its frame it stands
+    at, and the depth at which it shows as its environment draws it (scale 1,
+    at its ``offset``), both taken the first time a shot keys it, so it is the
+    same plate across cuts."""
+
+    frame: str
+    at: Point3
+    rest: float
+
+
+def _with_plane_depths(
     entity: AssetRef,
     member: WorldMember | None,
+    *,
+    world: World,
+    ctx: _FrameCtx,
     placed: Mapping[str, Placed],
     viewpoint: Viewpoint,
+    geometry: Mapping[str, tuple[tuple[float, float], Box | None]],
+    anchors: dict[tuple[str, str], _PlaneAnchor],
+    existing: Sequence[Any],
+    sight: Mapping[str, Any],
     note: Callable[[str, str, str, str], None],
-) -> AssetRef:
-    """``entity`` (an environment) carrying the factors its member's ``depths``
-    derive (:data:`PLANE_FACTORS_OVERRIDE`); unchanged without ``depths``. A
-    plane's depth is its distance from the camera along the look direction, and
-    its factor ``z_ref / z`` is relative to :func:`reference_depth`, so it is the
+) -> tuple[AssetRef, list[Any]]:
+    """``entity`` (an environment) and the actions its member's ``depths``
+    derive (an#503); unchanged and none without ``depths``.
+
+    A plane's depth is its ``z`` in its frame (:func:`plane_frame`), measured
+    along the camera's look direction from the frame's origin. A plane in a
+    frame still relative to the camera's gets the parallax factor ``z_ref /
+    depth`` (:data:`PLANE_FACTORS_OVERRIDE`, :func:`reference_depth`), the
     shot's own: the same plane scrolls differently from a wider or a closer
-    viewpoint, as parallax does."""
+    viewpoint, as parallax does. A plane in a frame that moves relative to the
+    camera's is keyed instead (:func:`_plane_keys`). ``geometry`` is each
+    plane's ``(offset, box)`` (:func:`an.stage.world.plane_geometry`);
+    ``anchors`` the planes already keyed in earlier shots (updated);
+    ``existing`` the shot's actions; ``sight`` the knobs of :func:`_sight`.
+    A plane in a ``far`` frame or a travel's ``far`` plates is skipped: the
+    validator refuses a depth there."""
     if member is None or not member.depths:
-        return entity
+        return entity, []
+    tree, vp_frame = ctx.tree, ctx.vp_frame
+    travel_far = set(world.travel.plates.get("far", ())) if world.travel else set()
     z_ref = reference_depth(placed, viewpoint)
-    if z_ref is None:
+    factors: dict[str, float] = {}
+    actions: list[Any] = []
+    unmeasured = False
+    for name, z in sorted(member.depths.items()):
+        frame = plane_frame(world, member, name)
+        if (
+            frame not in tree
+            or f"{member.id}/{name}" in travel_far
+            or any(tree.frames[n].coupling == "far" for n in tree.chain(frame))
+        ):
+            continue
+        offset, box = geometry.get(name, ((0.0, 0.0), None))
+        if tree.is_static(frame, vp_frame, ctx.duration, film_start=ctx.film_start):
+            to_frame = tree.relative_pose(
+                vp_frame, frame, 0.0, film_start=ctx.film_start
+            )
+            eye = ctx.projection.transformed(to_frame)
+            at = plane_anchor(eye, offset, z, near=sight["near"])
+            if at is None:
+                _behind(note, entity.id, name, z, frame)
+            elif z_ref is None:
+                unmeasured = True
+            else:
+                factors[name] = parallax_factor(eye.view(at)[2], z_ref)
+            continue
+        keyed = _plane_keys(
+            f"{entity.id}/{name}",
+            (member.id, name),
+            ctx,
+            frame=frame,
+            z=z,
+            offset=offset,
+            box=box,
+            anchors=anchors,
+            existing=existing,
+            sight=sight,
+            note=note,
+        )
+        actions.extend(keyed)
+    if unmeasured:
         note(
             "warning",
             "plane_depths",
@@ -2362,10 +2528,99 @@ def _with_plane_factors(
             "its planes have world depths but the shot shows no member to measure "
             "them against: the planes keep their own parallax factors.",
         )
-        return entity
-    factors = {name: parallax_factor(z, z_ref) for name, z in member.depths.items()}
+    if not factors:
+        return entity, actions
     overrides = {**(entity.overrides or {}), PLANE_FACTORS_OVERRIDE: factors}
-    return entity.model_copy(update={"overrides": overrides})
+    return entity.model_copy(update={"overrides": overrides}), actions
+
+
+def _behind(note: Callable, entity: str, name: str, z: float, frame: str) -> None:
+    note(
+        "warning",
+        "plane_depths",
+        entity,
+        f"plane {name!r} is at depth {z:g} in frame {frame!r}, which is not in front "
+        "of the camera as the shot opens: it keeps its own parallax.",
+    )
+
+
+def _plane_keys(
+    target: str,
+    key: tuple[str, str],
+    ctx: _FrameCtx,
+    *,
+    frame: str,
+    z: float,
+    offset: tuple[float, float],
+    box: Box | None,
+    anchors: dict[tuple[str, str], _PlaneAnchor],
+    existing: Sequence[Any],
+    sight: Mapping[str, Any],
+    note: Callable[[str, str, str, str], None],
+) -> list[Any]:
+    """The keys of a plane standing still in a frame that moves relative to the
+    camera (an#503): a plate in ``world`` under a moving ``vehicle`` streams past
+    at its depth, as a member does (:func:`_sight`: its screen position and
+    apparent size, fitted to the travel's tolerance, hidden while it is behind
+    the camera or off screen). It is anchored (:class:`_PlaneAnchor`) the first
+    time a shot keys it, so a cut continues the same plate. It rides the 2D
+    camera as the character plane does, as every member in motion does. The
+    shot's own actions on a channel it would key win (a warning); keys the shot
+    already holds (a lowered scene lowered again) are not added twice."""
+    entity = target.split("/", 1)[0]
+    anchor = anchors.get(key)
+    if anchor is None or anchor.frame != frame:
+        to_frame = ctx.tree.relative_pose(
+            ctx.vp_frame, frame, 0.0, film_start=ctx.film_start
+        )
+        eye = ctx.projection.transformed(to_frame)
+        at = plane_anchor(eye, offset, z, near=sight["near"])
+        if at is None:
+            _behind(note, entity, key[1], z, frame)
+            return []
+        anchor = anchors[key] = _PlaneAnchor(frame, at, eye.view(at)[2])
+    view = ctx.view_fn(frame, lambda t: anchor.at)
+    focal = sight["focal"]
+    passes = [
+        p for p, _ in _sight(view, box=box, m=anchor.rest / focal, **sight).passes
+    ]
+    keys = (
+        _pass_actions(target, passes, duration=ctx.duration)
+        if passes
+        else [set_(target, "alpha", 0.0, at=0.0)]
+    )
+    if all(k in existing for k in keys):
+        return []  # already there: a lowered scene lowered again
+    keyed = {
+        a.property for k in keys for a in iter_actions(k) if hasattr(a, "property")
+    }
+    hand = sorted(
+        {
+            a.property
+            for top in existing
+            for a in iter_actions(top)
+            if getattr(a, "target", None) == target and a.property in keyed
+        }
+    )
+    if hand:
+        note(
+            "warning",
+            "plane_depths",
+            entity,
+            f"plane {key[1]!r} is at a depth in frame {frame!r}, which moves relative "
+            f"to the viewpoint's, but the shot's own actions drive its {hand}: the "
+            "actions win and the plane is not keyed by its depth.",
+        )
+        return []
+    if not passes:
+        note(
+            "info",
+            "plane_depths",
+            entity,
+            f"plane {key[1]!r} is at a depth in frame {frame!r} and the shot never "
+            "shows it: it is hidden.",
+        )
+    return keys
 
 
 def _depth_order_notes(
@@ -2649,6 +2904,8 @@ def lower_world(
     film_starts: Sequence[float] | None = None,
     fps: float | None = None,
     extent_problems: Mapping[str, str] | None = None,
+    plane_geometry: Mapping[str, Mapping[str, tuple[tuple[float, float], Box | None]]]
+    | None = None,
 ) -> Lowered:
     """The scene with every framed shot's placements derived from the world.
 
@@ -2666,7 +2923,12 @@ def lower_world(
     ``extents`` is what the stage measured (:func:`an.stage.world.member_extents`),
     ``extent_problems`` why some could not be; ``film_starts`` is where each
     shot starts in the film, so stream phase is continuous across cuts (the
-    shot sum by default).
+    shot sum by default); ``plane_geometry`` is ``{environment member id: {plane:
+    (offset, box)}}``, each plane's origin on screen (``Plane.offset``) and its
+    drawn box around it (``None``: unknown), read by the stage
+    (:func:`an.stage.world.plane_geometry`): where a plane at a world depth is
+    anchored and when it is on screen (an#503; the origin and no box for one
+    it does not name).
 
     Raises :class:`WorldError` for a viewpoint the world cannot resolve.
 
@@ -2686,6 +2948,7 @@ def lower_world(
     shots: list[Shot] = []
     notes: list[WorldNote] = []
     origins: dict[int, list[int | None]] = {}
+    plane_anchors: dict[tuple[str, str], _PlaneAnchor] = {}  # across the cuts
     for i, shot in enumerate(scene.timeline):
         if shot.viewpoint is None:
             shots.append(shot)
@@ -2699,6 +2962,8 @@ def lower_world(
             width=width,
             height=height,
             fps=rate,
+            plane_geometry=plane_geometry or {},
+            plane_anchors=plane_anchors,
         )
         shots.append(lowered)
         notes.extend(shot_notes)
