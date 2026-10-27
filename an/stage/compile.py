@@ -1243,19 +1243,15 @@ def paint_orders(
     >>> paint_orders({"near": [(0.0, 2)], "slot": [(0.0, 3), (1.5, 1)]})
     [(0.0, ['near', 'slot']), (1.5, ['slot', 'near'])]
     """
-    times = sorted({float(t) for ks in keys.values() for t, _ in ks})
+    changes: dict[float, list[tuple[str, Any]]] = {}
+    for n, ks in keys.items():
+        for t, k in ks:
+            changes.setdefault(float(t), []).append((n, _sort_key(k)))
+    now: dict[str, Any] = {}
     out = []
-    for t in times:
-        now = {n: [k for at, k in ks if float(at) <= t][-1] for n, ks in keys.items()}
-        out.append(
-            (
-                t,
-                sorted(
-                    now,
-                    key=lambda n: tuple(now[n]) if isinstance(now[n], list) else now[n],
-                ),
-            )
-        )
+    for t in sorted(changes):  # each key read once: linear in the keys (an#648)
+        now.update(changes[t])
+        out.append((t, sorted(now, key=now.__getitem__)))
     return out
 
 

@@ -1135,6 +1135,11 @@ def _depth_runs(
 _CAMERA_SAMPLES: int = 33
 
 
+#: A stream pass's paint depth: ``(start time, depth as the shot opens, depth
+#: rate per second or None)`` (an#648).
+_PassDepth = tuple[float, float, "float | None"]
+
+
 def _travel_entities(
     travel: Travel,
     ctx: _FrameCtx,
@@ -1145,13 +1150,13 @@ def _travel_entities(
     width: float,
     height: float,
     skip: Sequence[str] = (),
-) -> tuple[
-    list[tuple[AssetRef, list[tuple[float, float]]]], list[Any], list[tuple[str, str]]
-]:
-    """The stream instances a framed shot shows, as ``(entity, [(time, depth)]
-    per pass)`` (each pass's start, 0 for the first, and the depth of its
-    instance as the shot opens: what paints it, an#634) and their actions, plus
-    the problems found (unsized streams) as ``(stream id, message)``. Entities are SLOTS (`stream_slots`),
+) -> tuple[list[tuple[AssetRef, list[_PassDepth]]], list[Any], list[tuple[str, str]]]:
+    """The stream instances a framed shot shows, as ``(entity, [(time, depth,
+    rate)] per pass)`` (each pass's start, 0 for the first; the depth of its
+    instance as the shot opens, and its depth's rate of change in a closed-form
+    pass, ``None`` in a scanned one: what paints it, an#634, an#648) and their
+    actions, plus the problems found (unsized streams) as ``(stream id,
+    message)``. Entities are SLOTS (`stream_slots`),
     each drawing the instances that pass through it one after another, so
     the entity count is bounded by what the view shows and never by the
     shot's length; ``skip`` names slot entities the shot already has (a lowered
@@ -1169,7 +1174,7 @@ def _travel_entities(
     reach = float(travel.far)
     min_step = _MIN_SAMPLE_FRAMES / float(fps)
     tol = float(travel.tolerance_px)
-    entities: list[tuple[AssetRef, list[tuple[float, float]]]] = []
+    entities: list[tuple[AssetRef, list[_PassDepth]]] = []
     actions: list[Any] = []
     problems: list[tuple[str, str]] = []
     skipped = set(skip)
@@ -1218,13 +1223,13 @@ def _travel_entities(
                 stream, travel, ctx, frame, box=box, m=m, width=width, height=height
             ),
         )
-        passes: dict[int, list[tuple[int, _Pass, float]]] = {}
+        passes: dict[int, list[tuple[int, _Pass, tuple[float, float | None]]]] = {}
         for k, p in stream_instances(stream, travel, s_min=s_lo, s_max=s_hi):
             view = ctx.view_fn(frame, lambda t, p=p: p)
             if closed is not None:
                 at_start = projection.moved(_mul(cam_dir, speed * film_start))
                 depth0 = _dot(_sub(p, at_start.at), projection.forward)
-                slope = -speed * k_forward
+                slope = rate = -speed * k_forward
                 if abs(slope) < _MIN_DEPTH:
                     if not (travel.near <= depth0 <= travel.far):
                         continue
@@ -1238,7 +1243,7 @@ def _travel_entities(
                     if t_out <= t_in:
                         continue
             else:
-                depth0 = view(0.0)[2]
+                depth0, rate = view(0.0)[2], None
                 scanned = _depth_window(
                     lambda t: view(t)[2],
                     0.0,
@@ -1277,7 +1282,7 @@ def _travel_entities(
             )
             if fitted is None:
                 continue  # never on screen during this shot
-            passes.setdefault(k % slots, []).append((k, fitted, depth0))
+            passes.setdefault(k % slots, []).append((k, fitted, (depth0, rate)))
             spent += _pass_cost(fitted, duration=duration)
             if spent > budget:  # stop fitting: the rest can only add
                 raise WorldError(
@@ -1319,8 +1324,8 @@ def _travel_entities(
                         ),
                     ),
                     [
-                        (p.t_in if i else 0.0, depth0)
-                        for i, (_, p, depth0) in enumerate(ordered)
+                        (p.t_in if i else 0.0, *depth)
+                        for i, (_, p, depth) in enumerate(ordered)
                     ],
                 )
             )
@@ -1338,6 +1343,68 @@ def _travel_entities(
     return entities, actions, problems
 
 
+def _is_slot(entity: AssetRef) -> bool:
+    return STREAM_OVERRIDE in (entity.overrides or {})
+
+
+def _depth_at(t: float, depth0: float, rate: float | None) -> float:
+    return depth0 + rate * t if rate is not None else depth0
+
+
+def _slot_paint_keys(
+    slots: Sequence[tuple[AssetRef, Sequence[_PassDepth]]],
+    rest_depths: Sequence[float],
+    *,
+    duration: float,
+) -> dict[str, list[tuple[float, tuple[float, float, float]]]]:
+    """Each stream slot's paint key from each time on (``(1.0, -depth,
+    tiebreak)``, a key sorting farther first). Among slots, every instance
+    moves alike, so its depth as the shot opens orders it for the whole pass
+    (an#634). An entity at rest (``rest_depths``) is passed: where a
+    closed-form pass crosses one's depth, every slot is keyed again at its
+    depth at that time, so the instance goes from behind the entity to in
+    front of it (an#648). A scanned pass keeps its opening depth.
+
+    >>> e = lambda i: AssetRef(kind="prop", id=f"p{i}", store="props", ref="p")
+    >>> keys = _slot_paint_keys([(e(0), [(0.0, 10.0, -4.0)]),
+    ...                          (e(1), [(0.0, 14.0, -4.0), (1.5, 20.0, -4.0)])], [6.0], duration=2.0)
+    >>> [(t, -k[1]) for t, k in keys["p0"]], [(t, -k[1]) for t, k in keys["p1"]]
+    ([(0.0, 10.0), (1.0, 6.0), (1.5, 4.0)], [(0.0, 14.0), (1.0, 10.0), (1.5, 14.0)])
+    """
+    crossings = sorted(
+        {
+            t
+            for _, passes in slots
+            for i, (start, depth0, rate) in enumerate(passes)
+            if rate
+            for d in rest_depths
+            if start
+            < (t := (d - depth0) / rate)
+            < (passes[i + 1][0] if i + 1 < len(passes) else duration)
+        }
+    )
+    # With no crossing, the depth as the shot opens; with one, every slot is
+    # keyed at every time any key changes, at its depth then, so that keys
+    # compared at one instant are depths at that instant.
+    times = (
+        sorted({p[0] for _, passes in slots for p in passes} | set(crossings))
+        if crossings
+        else None
+    )
+    out: dict[str, list[tuple[float, tuple[float, float, float]]]] = {}
+    for si, (entity, passes) in enumerate(slots):
+        tie = 10_000.0 + si
+        if times is None:
+            keys = [(start, depth0) for start, depth0, _ in passes]
+        else:
+            keys = [
+                (t, _depth_at(t, *[p for p in passes if p[0] <= t][-1][1:]))
+                for t in times
+            ]
+        out[entity.id] = [(t, (1.0, -depth, tie)) for t, depth in keys]
+    return out
+
+
 def _with_paint_keys(
     ordered: list[tuple[tuple[float, float, float], AssetRef, int | None]],
     pass_keys: Mapping[str, Sequence[tuple[float, tuple[float, float, float]]]],
@@ -1349,13 +1416,29 @@ def _with_paint_keys(
     0; a key sorts farther first) when a stream slot is reused (an#634): the
     compiler orders each run of keyed siblings by them, frame by frame. An
     entity the author placed after another entity (``stage.after`` naming one
-    of ``entity_ids``) keeps that place and carries none."""
+    of ``entity_ids``) rides that entity's keys, just behind it, so it stays
+    painted right after it as it moves (an#648); after an entity that carries
+    none, it carries none either."""
     if not any(len(ks) > 1 for ks in pass_keys.values()):
         return ordered
-
-    def keyed(e: AssetRef) -> bool:
-        return e.stage is None or e.stage.after not in entity_ids
-
+    hosts = {
+        e.id: e.stage.after
+        for _, e, _ in ordered
+        if e.stage is not None and e.stage.after in entity_ids
+    }
+    keys = {
+        e.id: [[t, list(k)] for t, k in pass_keys.get(e.id) or [(0.0, key)]]
+        for key, e, _ in ordered
+        if e.id not in hosts
+    }
+    riding = True
+    while riding:  # a chain of `after`s rides from its first keyed entity
+        riding = False
+        for eid, host in list(hosts.items()):
+            if host in keys:
+                keys[eid] = [[t, [*k, 1]] for t, k in keys[host]]
+                del hosts[eid]
+                riding = True
     return [
         (
             key,
@@ -1363,13 +1446,11 @@ def _with_paint_keys(
                 update={
                     "overrides": {
                         **(e.overrides or {}),
-                        PAINT_KEYS_OVERRIDE: [
-                            [t, list(k)] for t, k in pass_keys.get(e.id) or [(0.0, key)]
-                        ],
+                        PAINT_KEYS_OVERRIDE: keys[e.id],
                     }
                 }
             )
-            if keyed(e)
+            if e.id in keys
             else e,
             j,
         )
@@ -2560,7 +2641,13 @@ def _lower_shot(
         # streams belong.
         for si, (entity, keys) in enumerate(extra):
             ordered.append(((1.0, -keys[0][1], 10_000.0 + si), entity, None))
-            pass_keys[entity.id] = [(t, (1.0, -d, 10_000.0 + si)) for t, d in keys]
+        pass_keys.update(
+            _slot_paint_keys(
+                extra,
+                [-key[1] for key, e, _ in ordered if key[0] == 1.0 and not _is_slot(e)],
+                duration=duration,
+            )
+        )
         actions.extend(extra_actions)
         if n_motion and n_motion + len(extra_actions) > budget:
             raise WorldError(

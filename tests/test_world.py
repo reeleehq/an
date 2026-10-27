@@ -1579,7 +1579,7 @@ def test_a_reordered_slot_never_crosses_what_the_author_placed(tmp_path, member_
     doc = _compiled_road(tmp_path, member_after=member_after)
     built = [n.name for n in doc.scene.children]
     assert _painted(doc, 0.0) == built
-    moved = False
+    moved, pole_0_places = False, set()
     for t in (0.5, 1.6, 2.3, 2.9):
         order = _painted(doc, t)
         moved |= order != built
@@ -1589,7 +1589,10 @@ def test_a_reordered_slot_never_crosses_what_the_author_placed(tmp_path, member_
             assert order.index("left") > order.index("set__band_1")
         if member_after == "pole_0":
             assert order.index("left") == order.index("pole_0") + 1
+            pole_0_places.add(order.index("pole_0"))
     assert moved
+    if member_after == "pole_0":  # it rides pole_0, which still moves (an#648)
+        assert len(pole_0_places) > 1
 
 
 @pytest.mark.parametrize("stream_after", [None, "set/hill"])
@@ -1626,3 +1629,68 @@ def test_slots_riding_a_plane_wrapper_are_ordered_inside_it(tmp_path):
         for ch in clip.channels
         if ch.property == Z_INDEX_PROPERTY
     )
+
+
+def test_a_pole_passing_a_member_at_rest_is_painted_over_it_once_nearer(tmp_path):
+    """an#648: the lamps ride the car at depth 2; each pole comes from far
+    away and passes them. While a pole is farther it is painted under them,
+    and from the instant it is nearer, over them (keyed again at the crossing,
+    not by its depth as the shot opens)."""
+    from an.base import PAINT_KEYS_OVERRIDE
+    from an.stage.compile import compile_shot
+    from an.stage.timeline import entity_alpha, timeline_from_scene
+    from an.timing.timeline import evaluate_timeline
+
+    project = _project(tmp_path)
+    scene = _lane(_travel_scene(Shot(id="s1", duration=3.0, viewpoint="road")), 0.2)
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    keys = {e.id: e.overrides[PAINT_KEYS_OVERRIDE] for e in shot.entities}
+    (rest,) = {-k[1] for t, k in keys["left"]}
+    speed = scene.world.travel.speed
+
+    def depth(pole: str, t: float) -> float:
+        at, key = [(a, k) for a, k in keys[pole] if a <= t][-1]
+        return -key[1] - speed * (t - at)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        doc = compile_shot(shot, project.mall)
+    timeline = timeline_from_scene(doc)
+    checked = {True: 0, False: 0}
+    for i in range(1, 60):
+        t = 3.0 * i / 60 + 0.013  # between the key times
+        order = _painted(doc, t)
+        pose = evaluate_timeline(timeline, t)
+        for pole in (n for n in order if n.startswith("pole_")):
+            if entity_alpha(doc, pose, pole) <= 1e-3:
+                continue
+            nearer = depth(pole, t) < rest
+            assert (order.index(pole) > order.index("left")) == nearer, (pole, t)
+            checked[nearer] += 1
+    assert checked[True] and checked[False]
+
+
+def test_only_entities_the_draw_order_check_leaves_to_the_world_are_reordered(tmp_path):
+    """an#648: the cut-to-cut ``draw_order`` check reads the order as a shot
+    opens, which is right because the only entities a shot reorders within
+    itself (``z_index`` keys) are world members and stream slots, which that
+    check leaves to the world (an#632)."""
+    from an.base import STREAM_OVERRIDE, Z_INDEX_PROPERTY
+    from an.stage.compile import compile_shot
+
+    project = _project(tmp_path)
+    scene = _lane(_travel_scene(Shot(id="s1", duration=3.0, viewpoint="road")), 0.2)
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    world = {m.id for m in scene.world.members} | {
+        e.id for e in shot.entities if STREAM_OVERRIDE in (e.overrides or {})
+    }
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        doc = compile_shot(shot, project.mall)
+    keyed = {
+        ch.target
+        for clip in doc.animations.values()
+        for ch in clip.channels
+        if ch.property == Z_INDEX_PROPERTY
+    }
+    assert keyed and keyed <= world
