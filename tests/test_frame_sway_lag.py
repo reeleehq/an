@@ -258,16 +258,12 @@ def test_a_swaying_item_the_holds_solver_rotates_warns(how):
     scene = _braking(FrameSway())
     shot = scene.timeline[0]
     if how == "held_by":
-        right = next(e for e in shot.entities if e.id == "right") if shot.entities else None
-        if right is None:
-            from an.ir.schema import AssetRef
+        from an.ir.schema import AssetRef
 
-            shot.entities.append(
-                AssetRef(kind="prop", id="right", store="props", ref="lamp",
-                         overrides={"held_by": "ground"})
-            )
-        else:
-            right.overrides = {**(right.overrides or {}), "held_by": "ground"}
+        shot.entities.append(
+            AssetRef(kind="prop", id="right", store="props", ref="lamp",
+                     overrides={"held_by": "ground"})
+        )
     else:
         shot.actions.append(PlaceAction(item="right", onto="ground", by="left@hand_r", at=0.2))
     notes = lower_world(scene, extents=EXTENTS).notes
