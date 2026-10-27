@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-10-27
+- `choose_in_entry(name_prefix=)` names the voice a choice saves under a host's own prefix and records it as `saved_under` on its option, so a retired voice keeps the prefix it was saved under (an#618).
 - A plate at a world depth in a frame that rolls relative to the camera turns with it (an#599): its down axis's screen angle is keyed as `rotation` (a roll exact, nothing for a yaw or a pitch, unwrapped past ±π, on every passage of a plate that turns), a hand `rotation` on it wins alone; its scale is fitted at its visible extent (no more than the frame), and an image plate's box comes from its measured art (`an.stage.environments.plane_art_size`, shared with the framing check).
 - `an world from-shot` (an#603): a ref placed at several scales seeds ONE height and several depths (its largest placement at the master's depth), so a second viewpoint sees parallax, when those depths agree with the master's draw order; the default depth makes the tallest character, not the tallest thing, 1.7 tall.
 - Holds: with no `solve.ground`, a carrier whose rig is placed by its base (an `origin` one of its parts' painted bottom rests on: a figure's feet) puts things on that point's line, read from the gesture-free solve, so an arm hanging below the feet is no longer the floor; a rig placed by its middle, and a character rig (no `origin`), keep the lowest of their parts (an#601).

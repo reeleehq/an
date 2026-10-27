@@ -1,1 +1,0 @@
-- `choose_in_entry(name_prefix=)` names the voice a choice saves under a host's own prefix and records it as `saved_under` on its option, so a retired voice keeps the prefix it was saved under (an#618).
