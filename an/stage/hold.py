@@ -1337,51 +1337,42 @@ def _ground_at(ctx: _Ctx, run: Run, k: int, entity: str | None) -> float | None:
     return lowest
 
 
-def _standing_entities(
-    shot: Any, mall: Mapping[str, Any], puppet: Puppet, *, vocab: Any = None
-) -> frozenset[str]:
-    """The shot's entities with parts whose rig is placed by its base: a
-    declared ``origin`` (an#338) at or below every bone, the point the rig
-    stands on (a figure's feet, a stand's foot; an#601). An ``origin`` above a
-    bone (a wheel's hub, a stick's middle) is where the rig is HELD, not where
-    it stands, and its floor stays the bottom of its parts."""
+def _standing_entities(ctx: _Ctx, base: Run, *, vocab: Any = None) -> frozenset[str]:
+    """The shot's entities placed by the point they stand on (an#601): a
+    declared ``origin`` (an#338) that one of their parts' painted bottom
+    touches in the gesture-free solve as the shot opens (a figure's feet, a
+    stand's foot: within :data:`SUPPORT_TOLERANCE_PX`). An ``origin`` no part
+    rests on (a wheel's hub, a stick's middle, a stand placed by its middle)
+    is where the rig is held, not where it stands, and its floor stays the
+    bottom of its parts. The stance is the AUTHORED placement: a carrier a
+    shot joint moves (welded to a cart) keeps its floor at its ``stage.at``."""
     from an.stage.solve import _descriptor, _field
 
-    owners = {b.entity for b in puppet.bodies.values()}
+    puppet = ctx.puppet
+    parts: dict[str, list[str]] = {}
+    for path, b in puppet.bodies.items():
+        if b.parent_body is None:
+            parts.setdefault(b.entity, []).append(path)
     out = set()
-    for e in shot.entities:
-        if e.id not in owners or e.id not in puppet.nodes:
+    for e in ctx.shot.entities:
+        if e.id not in parts or e.id not in puppet.nodes or not base.evaluated:
             continue
         desc = (getattr(vocab, "descriptors", None) or {}).get(e.id) or _descriptor(
-            e, mall
+            e, ctx.mall
         )
-        origin = _field(desc, "origin")
-        if origin is not None and float(origin[1]) >= max(
-            _bone_heights(_field(desc, "bones") or ()), default=float("-inf")
-        ):
+        if _field(desc, "origin") is None:
+            continue
+        stands_at = _apply(base.evaluated[0][e.id], (0.0, 0.0))[1]
+        bottoms = (
+            _lowest(
+                _body_world(puppet, base, 0, p),
+                ink_points(ctx.doc, puppet.nodes[p], ctx.mall),
+            )
+            for p in parts[e.id]
+        )
+        if any(abs(y - stands_at) <= SUPPORT_TOLERANCE_PX for y in bottoms):
             out.add(e.id)
     return frozenset(out)
-
-
-def _bone_heights(bones: Any) -> list[float]:
-    """Each bone's y in the rig's view box (a child's ``y`` is its parent's
-    plus its own; rest rotations ignored: a stance is judged upright).
-
-    >>> _bone_heights([{"name": "root", "y": 200.0}, {"name": "grip", "parent": "root", "y": 60.0}])
-    [200.0, 260.0]
-    """
-    from an.stage.solve import _field
-
-    local = {_field(b, "name"): b for b in bones}
-
-    def height(b: Any, seen: frozenset = frozenset()) -> float:
-        parent = local.get(_field(b, "parent"))
-        own = float(_field(b, "y", 0.0) or 0.0)
-        if parent is None or _field(parent, "name") in seen:
-            return own
-        return own + height(parent, seen | {_field(b, "name")})
-
-    return [height(b) for b in bones]
 
 
 def _first_carrier(ctx: _Ctx, item: str) -> str | None:
@@ -2466,7 +2457,7 @@ def solve_holds(
     ctx.gravity = _gravity(shot, state.style_pack)
     ctx.ground = shot.solve.ground if shot.solve is not None else None
     ctx.floor_run = base
-    ctx.stands = _standing_entities(shot, state.mall, puppet, vocab=state.vocab)
+    ctx.stands = _standing_entities(ctx, base, vocab=state.vocab)
     run = base
     if ctx.gestures:
         for _pass in range(HOLD_PLAN_PASSES):

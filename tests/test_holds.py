@@ -1080,3 +1080,37 @@ def test_a_rig_placed_by_its_middle_is_not_standing_on_it(tmp_path):
     base = 200.0 + 75.0 * K
     lowest = _stage(doc, "stick", 2.9, point=INK_BOTTOM)[1]
     assert lowest == pytest.approx(base, abs=1.0), lowest
+
+
+def test_a_rig_whose_root_bone_is_its_middle_is_not_standing_on_it(tmp_path):
+    """an#601 review 2: the stand's root bone AND its origin at its middle,
+    its art centred on them: no part rests on the origin, so the stick it lets
+    go of falls to the stand's base, not its middle."""
+    import json as _json
+
+    from an.project import load
+
+    entities = """- {kind: prop, id: stand, store: props, ref: stand, stage: {at: [160, 200]}}
+- {kind: prop, id: stick, store: props, ref: stick, stage: {at: [160, 100], scale: 0.5, after: stand}, overrides: {held_by: stand@hand}}
+"""
+    root = tmp_path / "p"
+    make_project(
+        root,
+        scene(
+            "- {kind: release, item: stick, at: 1.0}",
+            entities=entities,
+            shot="duration: 3.0",
+        ),
+    )
+    stand = root / "assets" / "props" / "stand"
+    doc = _json.loads((stand / "prop.json").read_text(encoding="utf-8"))
+    doc["origin"] = [200.0, 325.0]
+    doc["bones"] = [
+        {"name": "root", "x": 200.0, "y": 325.0},
+        {"name": "hand", "parent": "root", "x": 0.0, "y": -175.0},
+    ]
+    doc["skins"]["default"]["slots"]["body"]["body"]["anchor"] = [0.5, 0.5]
+    (stand / "prop.json").write_text(_json.dumps(doc), encoding="utf-8")
+    doc = _compile(load(root))
+    lowest = _stage(doc, "stick", 2.9, point=INK_BOTTOM)[1]
+    assert lowest == pytest.approx(200.0 + 75.0 * K, abs=1.0), lowest
