@@ -2077,3 +2077,30 @@ def test_a_member_attached_to_a_walker_is_painted_with_it(tmp_path):
         assert order.index("hat") == order.index("right") + 1, (t, order)
         places.add(order.index("right"))
     assert len(places) > 1  # the poles did pass the pair
+
+
+def test_a_walker_passes_behind_a_standing_member_with_no_travel(tmp_path):
+    """an#679: no travel. ``left`` walks away from the camera (``at_z`` from
+    1 to 5) past ``right``, standing at depth 2, at 0.75 s: it is painted over
+    ``right`` while nearer and under it once behind, keyed at the crossing as
+    in a travelling view."""
+    from an.ir.compose import tween
+    from an.stage.compile import compile_shot
+
+    walk = tween("left", "at_z", to=5.0, duration=3.0, from_=1.0, easing="linear")
+    scene = _two_lamps_scene(
+        timeline=[Shot(id="s1", duration=3.0, viewpoint="two", actions=[walk])]
+    )
+    assert scene.world.travel is None
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        doc = compile_shot(shot, _project(tmp_path).mall)
+    seen = set()
+    for i in range(60):
+        t = 3.0 * i / 60 + 0.013  # between the key times
+        nearer = 1.0 + 4.0 * t / 3.0 < 2.0
+        order = _painted(doc, t)
+        assert (order.index("left") > order.index("right")) == nearer, (t, order)
+        seen.add(nearer)
+    assert seen == {True, False}

@@ -2929,6 +2929,7 @@ def _lower_shot(
                 "the attachment does not follow the host's motion across the frame.",
             )
     pass_keys: dict[str, list[tuple[float, tuple[float, float, float]]]] = {}
+    extra: list = []
     if world.travel is not None:
         extra, extra_actions, problems = _travel_entities(
             world.travel,
@@ -2947,29 +2948,6 @@ def _lower_shot(
         for si, (entity, keys) in enumerate(extra):
             ordered.append(((1.0, -keys[0][1], SLOT_TIEBREAK + si), entity, None))
         pass_keys.update(_slot_paint_keys(extra))
-        pass_keys.update(
-            _crossing_paint_keys(
-                {
-                    e.id: key
-                    for key, e, _ in ordered
-                    if e.id in placed
-                    and e.id not in moving
-                    and not _is_slot(e)
-                    and placed[e.id].depth is not None
-                    and key[0] == 1.0
-                    and not (e.id in members and members[e.id].attached)
-                },
-                extra,
-                {
-                    e.id: (sightings[e.id].depths, key)
-                    for key, e, _ in ordered
-                    if e.id in sightings and key[0] == 1.0
-                },
-                duration=duration,
-                grid=grid,
-                near=near,
-            )
-        )
         actions.extend(extra_actions)
         if n_motion and n_motion + len(extra_actions) > budget:
             raise WorldError(
@@ -2980,6 +2958,31 @@ def _lower_shot(
             )
         for stream_id, problem in problems:
             note("warning", "stream", stream_id, problem)
+    # Crossings are keyed in any world, a travel's or not: a member that walks
+    # behind one standing is painted behind it while it is behind (an#679).
+    pass_keys.update(
+        _crossing_paint_keys(
+            {
+                e.id: key
+                for key, e, _ in ordered
+                if e.id in placed
+                and e.id not in moving
+                and not _is_slot(e)
+                and placed[e.id].depth is not None
+                and key[0] == 1.0
+                and not (e.id in members and members[e.id].attached)
+            },
+            extra,
+            {
+                e.id: (sightings[e.id].depths, key)
+                for key, e, _ in ordered
+                if e.id in sightings and key[0] == 1.0
+            },
+            duration=duration,
+            grid=grid,
+            near=near,
+        )
+    )
     # Built in the order of the first keys, which the compiler's runs read as
     # the opening order (an#658: two that swap as the shot opens).
     ordered = [
