@@ -587,22 +587,60 @@ def test_the_subrip_mirror_matches_mixing_field_for_field_and_byte_for_byte():
         assert srt.seconds_to_srt_time(t) == seconds_to_srt_time(t), t
 
 
+#: The one module that may import ``mixing``, and what it may import (an#578).
+MIXING_IMPORT_ALLOWED = {"loudness.py": {"mixing.loudness", "mixing"}}
+
+
 def test_an_never_imports_mixing():
-    """The boundary: `an` MIRRORS `mixing.srt` rather than depending on it,
-    because installing `mixing` would pull a GPL-built ffmpeg binary (via
-    moviepy -> imageio-ffmpeg) past a licence perimeter that reads declared
-    metadata only. See `an/captions.py`'s docstring before changing this."""
+    """The boundary: `an` MIRRORS `mixing.srt` rather than depending on it.
+
+    Reason, as of mixing 0.0.64 (an#578): `mixing`'s base install no longer
+    carries the GPL-built ffmpeg binary (moviepy -> imageio-ffmpeg now sit in
+    its `media` extra), so ONE module may import the shared loudness component,
+    `an/audio/loudness.py` (`mixing.loudness`, lazily, from the bare `an[loudness]`
+    extra). Anything else importing `mixing` is still refused, and
+    `test_the_loudness_component_loads_no_media_stack` fails if the reason stops
+    holding. See `an/captions.py`'s docstring before widening this."""
     root = Path(__file__).resolve().parents[1] / "an"
     offenders = []
     for path in root.rglob("*.py"):
+        allowed = MIXING_IMPORT_ALLOWED.get(path.name, set()) if path.parent.name == "audio" else set()
         for node in ast.walk(ast.parse(path.read_text("utf-8"))):
             names = []
             if isinstance(node, ast.Import):
                 names = [a.name for a in node.names]
             elif isinstance(node, ast.ImportFrom) and node.module and node.level == 0:
-                names = [node.module]
-            offenders += [f"{path.name}: {n}" for n in names if n.split(".")[0] == "mixing"]
+                names = [node.module] + [f"{node.module}.{a.name}" for a in node.names]
+            offenders += [
+                f"{path.name}: {n}"
+                for n in names
+                if n.split(".")[0] == "mixing" and n not in allowed
+            ]
     assert offenders == []
+
+
+def test_the_loudness_component_loads_no_media_stack():
+    """The reason `an/audio/loudness.py` may import `mixing.loudness` (an#578):
+    importing `an.audio.loudness` and using the component pulls in neither the
+    GPL-built ffmpeg binary's carriers nor scipy."""
+    import importlib.util
+
+    try:
+        if importlib.util.find_spec("mixing.loudness") is None:
+            pytest.skip("the `loudness` extra (mixing) is not installed")
+    except ImportError:
+        pytest.skip("the `loudness` extra (mixing) is not installed")
+    code = (
+        "import sys, an.audio.loudness as m\n"
+        "m.component_available()\n"
+        "m._component().limit_peaks\n"
+        "bad = [n for n in ('moviepy', 'imageio_ffmpeg', 'imageio', 'scipy', 'cv2', 'pydub')"
+        " if n in sys.modules]\n"
+        "print(bad)\n"
+        "sys.exit(1 if bad else 0)\n"
+    )
+    done = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True)
+    assert done.returncode == 0, done.stdout + done.stderr
 
 
 def test_building_captions_loads_no_media_stack():

@@ -89,11 +89,12 @@ MCP_EXTRA_CLOSURE: tuple[str, ...] = (
 
 
 #: Distributions the `loudness` extra adds (an#563): mixing is MIT, its base
-#: install's config2py and xdol Apache-2.0 (dol `an` already ships).
+#: install's config2py, xdol and i2 Apache-2.0 (dol `an` already ships).
 LOUDNESS_EXTRA_CLOSURE: tuple[str, ...] = (
     "mixing",
     "config2py",
     "xdol",
+    "i2",
 )
 
 
