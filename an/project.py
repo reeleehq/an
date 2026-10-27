@@ -102,9 +102,14 @@ RENDER_REPORTS_GITIGNORE: tuple[str, ...] = ("artifacts/render_reports/",)
 #: Probe frames and contact sheets (``an probe``, ``an library sheet``,
 #: an#347): looks at work in progress, which may show private-study material.
 PROBES_GITIGNORE: tuple[str, ...] = ("artifacts/probes/",)
+#: The file locks an options manifest's writers take (``<ref>.json.lock``,
+#: an#587): empty, per machine, never project source.
+LOCKS_GITIGNORE: tuple[str, ...] = ("artifacts/voice_options/*.lock",)
 #: What a project's ``.gitignore`` keeps out of version control (``an init``
 #: adds each line a ``.gitignore`` lacks, never removing one).
-PROJECT_GITIGNORE: tuple[str, ...] = RENDER_REPORTS_GITIGNORE + PROBES_GITIGNORE
+PROJECT_GITIGNORE: tuple[str, ...] = (
+    RENDER_REPORTS_GITIGNORE + PROBES_GITIGNORE + LOCKS_GITIGNORE
+)
 
 
 def _ensure_gitignored(pdir: Path, lines: tuple[str, ...]) -> None:

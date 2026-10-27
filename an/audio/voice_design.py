@@ -216,6 +216,9 @@ AUDITION_RECORD_KEYS = (
     AUDITION_CONTENT_KEY,
     AUDITION_PATH_KEY,
 )
+#: Everything an option records about its reels: the latest reel's fields and
+#: each scene's own record (an#587, an#588).
+REEL_RECORD_KEYS = (*AUDITION_RECORD_KEYS, AUDITIONS_KEY)
 #: ``announce`` default: a line on stderr (the pipeline's own), so a billed
 #: call is never silent unless the caller passes ``None``.
 _STDERR = object()
@@ -1320,7 +1323,7 @@ def _scene_record(option: Mapping, sf: Any, reels: Any = None) -> dict | None:
     record whose reel is no longer in ``reels`` (when given) counts as none."""
     record = (option.get(AUDITIONS_KEY) or {}).get(sf.name)
     if record is None and sf.is_default:
-        legacy = {k: option[k] for k in AUDITION_RECORD_KEYS if k in option}
+        legacy = _pick(option, AUDITION_RECORD_KEYS)
         default_folder = AUDITIONS_DIR.as_posix() + "/"
         path = str(legacy.get(AUDITION_PATH_KEY, ""))
         if (AUDITIONS_KEY not in option) or (
@@ -1447,7 +1450,11 @@ def design_project_voices(
                 if o.get("sample")
                 else None
             )
-        options[ref] = entry
+        # Reels an audition recorded while this design ran are kept (an#587).
+        with options.locked(ref):
+            if isinstance(stored := options.get(ref), Mapping):
+                _carry_reels(stored, entry)
+            options[ref] = entry
     return manifest
 
 
@@ -1533,16 +1540,12 @@ def _carry_reels(previous: Mapping, entry: MutableMapping) -> None:
     the same label already had (a library voice found again): its reels are on
     disk, and their content keys still say whether they are current (an#588)."""
     before = {
-        (o.get("option"), o.get("voice_id")): o
-        for o in previous.get("options", ())
-        if o.get("voice_id")
+        _reel_identity(o): o for o in previous.get("options", ()) if o.get("voice_id")
     }
     for o in entry.get("options", ()):
-        old = before.get((o.get("option"), o.get("voice_id")))
+        old = before.get(_reel_identity(o))
         if old is not None:
-            o.update(
-                {k: old[k] for k in (*AUDITION_RECORD_KEYS, AUDITIONS_KEY) if k in old}
-            )
+            o.update(_pick(old, REEL_RECORD_KEYS))
 
 
 def _check_previous_entry(entry: Any, *, ref: str) -> None:
@@ -1578,6 +1581,17 @@ def _voice_row(row: Any) -> bool:
     )
 
 
+def _pick(record: Mapping, keys: Iterable[str]) -> dict:
+    """The ``keys`` ``record`` has, with their values."""
+    return {k: record[k] for k in keys if k in record}
+
+
+def _reel_identity(option: Mapping) -> tuple[Any, Any]:
+    """What makes two options' reels the same reels: the label (the reel file
+    is ``<ref>_<label>.wav``) and the voice."""
+    return option.get("option"), option.get("voice_id")
+
+
 def _with_reel(entry: Mapping, option: Mapping, *, scene: str) -> dict:
     """``entry`` (a voice's options manifest as stored now) with ``option``'s
     reel recorded on its option of the same label and voice: the latest reel's
@@ -1593,16 +1607,20 @@ def _with_reel(entry: Mapping, option: Mapping, *, scene: str) -> dict:
     >>> new = _with_reel(stored, mine, scene="scene.md")
     >>> new["options"][0]["audition"], sorted(new["options"][0]["auditions"]), new["options"][1]["audition"]
     ('r_a', ['b.md', 'scene.md'], 'other_run')
+
+    What is stored wins over this run's stale copy of another scene's record:
+
+    >>> mine["auditions"]["b.md"] = {"audition": "stale"}
+    >>> with_b = _with_reel(stored, mine, scene="scene.md")["options"][0]["auditions"]
+    >>> with_b["b.md"], with_b["scene.md"]
+    ({'audition': 'r_b'}, {'audition': 'r_a'})
     """
     out = dict(entry)
     out["options"] = [dict(o) for o in entry.get("options", ())]
     for o in out["options"]:
-        if (o.get("option"), o.get("voice_id")) != (
-            option.get("option"),
-            option.get("voice_id"),
-        ):
+        if _reel_identity(o) != _reel_identity(option):
             continue
-        o.update({k: option[k] for k in AUDITION_RECORD_KEYS if k in option})
+        o.update(_pick(option, AUDITION_RECORD_KEYS))
         mine = option.get(AUDITIONS_KEY) or {}
         o[AUDITIONS_KEY] = {**mine, **(o.get(AUDITIONS_KEY) or {}), scene: mine[scene]}
     return out
@@ -1680,11 +1698,16 @@ def audition_project_voices(
         # run_auditions has put the reel's fields on the option (the latest made);
         # add where it is, and keep this scene's own record beside it.
         job.option[AUDITION_PATH_KEY] = (reels_dir / f"{job.reel}.wav").as_posix()
-        made = {k: job.option[k] for k in AUDITION_RECORD_KEYS if k in job.option}
+        made = _pick(job.option, AUDITION_RECORD_KEYS)
         job.option.setdefault(AUDITIONS_KEY, {})[sf.name] = made
         # Written per reel, so a later failure loses nothing paid; into the
         # manifest as it is NOW, so a run beside this one keeps its reels (an#587).
         with manifests.locked(job.ref):
+            if job.ref not in manifests:
+                raise VoiceDesignError(
+                    f"the options manifest of {job.ref!r} was removed during the "
+                    f"audition; its reel {job.reel!r} is on disk but recorded nowhere"
+                )
             manifests[job.ref] = _with_reel(
                 manifests[job.ref], job.option, scene=sf.name
             )
@@ -1894,21 +1917,24 @@ def choose_project_voice(
     now), and the choice into its options manifest (:func:`choose_in_entry`);
     return the document."""
     voices, options, _ = _project_stores(project_dir)
-    if ref not in options:
-        raise VoiceDesignError(f"no options for {ref!r}: run `an voices design` first")
-    entry = copy.deepcopy(dict(options[ref]))
-    doc = choose_in_entry(
-        entry,
-        option,
-        by=by,
-        designer=designer,
-        ref=ref,
-        at=at,
-        doc=voices[ref] if ref in voices else {},
-        in_use=_voices_in_use(voices, but=ref),
-    ).document
-    voices[ref] = doc
-    options[ref] = entry
+    with options.locked(ref):  # one read, change and write of the manifest (an#587)
+        if ref not in options:
+            raise VoiceDesignError(
+                f"no options for {ref!r}: run `an voices design` first"
+            )
+        entry = copy.deepcopy(dict(options[ref]))
+        doc = choose_in_entry(
+            entry,
+            option,
+            by=by,
+            designer=designer,
+            ref=ref,
+            at=at,
+            doc=voices[ref] if ref in voices else {},
+            in_use=_voices_in_use(voices, but=ref),
+        ).document
+        voices[ref] = doc
+        options[ref] = entry
     return doc
 
 
@@ -1938,6 +1964,15 @@ def cast_project_voice(
         )
     doc = record_choice(doc, chosen, by=by, at=at, provider=provider)
     voices[ref] = doc
+    with options.locked(ref):  # one read, change and write of the manifest (an#587)
+        _cast_in_manifest(options, ref, doc, chosen=chosen, voices=voices)
+    return doc
+
+
+def _cast_in_manifest(
+    options: MutableMapping, ref: str, doc: Mapping, *, chosen: str, voices: Mapping
+) -> None:
+    """Record a hand cast in ``ref``'s options manifest, if it has one."""
     if ref in options:
         entry = copy.deepcopy(dict(options[ref]))
         previous = entry.get("chosen") or {}
@@ -1950,11 +1985,8 @@ def cast_project_voice(
             )
         entry["chosen"] = _chosen_record(None, doc)
         if previous.get(RETIRE_ON_REPLACE_KEY) and previous.get("voice_id") == chosen:
-            entry["chosen"].update(
-                {k: previous[k] for k in _CARRIED_KEYS if k in previous}
-            )
+            entry["chosen"].update(_pick(previous, _CARRIED_KEYS))
         options[ref] = entry
-    return doc
 
 
 def _voices_in_use(voices: Mapping, *, but: str | None = None) -> set[str]:

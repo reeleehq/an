@@ -67,6 +67,7 @@ def test_an_init_ignores_the_probe_folder(tmp_path):
     assert "artifacts/probes/" in lines and list(PROJECT_GITIGNORE) == [
         "artifacts/render_reports/",
         "artifacts/probes/",
+        "artifacts/voice_options/*.lock",
     ]
 
 
