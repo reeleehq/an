@@ -258,8 +258,9 @@ def test_an_edit_made_in_the_same_instant_as_the_json_wins_and_says_so(tmp_path)
     edited = AUTHORED.replace("to: 120", "to: 80")
     (tmp_path / "scene.md").write_text(edited, encoding="utf-8")
     _tie(tmp_path)
-    with pytest.warns(SyncTieWarning, match="source of truth"):
+    with pytest.warns(SyncTieWarning, match="source of truth") as caught:
         result = sync(tmp_path)
+    assert caught[0].filename == __file__  # it points at sync's caller (an#584)
     assert result.wrote_json and not result.wrote_md
     scene = ScenesStore(tmp_path)["main"]
     assert scene.timeline[0].actions[0].to_value == 80

@@ -46,7 +46,7 @@ from fnmatch import fnmatchcase
 from dataclasses import dataclass
 import warnings
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import yaml
 
@@ -1597,25 +1597,13 @@ def project_scene_files(
     return out
 
 
-@dataclass(frozen=True)
-class _Side:
-    """Which side of a scene's pair holds the scene, and the scene it holds
-    (:func:`_scene_side`). ``winner`` is one of :data:`_SIDES`; ``scene`` is
-    ``None`` only when neither file is there, or on a tie a side of which
-    cannot be read (the JSON's read then says why)."""
-
-    winner: str
-    scene: SceneIR | None = None
-    md_mtime: float = 0.0
-    json_mtime: float = 0.0
-
-
-#: ``_Side.winner``: nothing there; only one side there; one side newer (by
-#: more than :data:`SYNC_MTIME_TOLERANCE_S`); the same age and saying the same
-#: thing (the JSON's scene, which carries the pipeline's state); the same age
-#: and disagreeing (the Markdown's: the human source of truth, an#411); the
-#: same age and a side unreadable.
-_SIDES = (
+#: Which side of a scene's pair holds the scene (``_Side.winner``): nothing
+#: there; only one side there; one side newer (by more than
+#: :data:`SYNC_MTIME_TOLERANCE_S`); the same age and saying the same thing (the
+#: JSON's scene, which carries the pipeline's state); the same age and
+#: disagreeing (the Markdown's: the human source of truth, an#411); the same
+#: age and a side unreadable.
+_Winner = Literal[
     "none",
     "md_only",
     "json_only",
@@ -1624,46 +1612,69 @@ _SIDES = (
     "tie_agrees",
     "tie_md",
     "tie_unreadable",
-)
+]
+
+
+@dataclass(frozen=True)
+class _Side:
+    """Which side of a scene's pair holds the scene, and the scene it holds
+    (:func:`_scene_side`). ``scene`` is ``None`` only when neither file is
+    there, or on a tie with an unreadable side. ``md_text`` is the Markdown
+    as read; the mtimes are set only when both files are there."""
+
+    winner: _Winner
+    scene: SceneIR | None = None
+    md_text: str | None = None
+    md_mtime: float | None = None
+    json_mtime: float | None = None
+
+
+def _json_scene(json_path: Path, md_text: str | None) -> SceneIR:
+    """The scene in ``json_path``, its duration unset where the Markdown
+    (``md_text``, when there is one) leaves it unwritten."""
+    scene = scene_from_json_doc(json.loads(_read_text(json_path)), source=json_path)
+    return unset_unwritten_duration(scene, md_text) if md_text is not None else scene
 
 
 def _scene_side(md_path: Path, json_path: Path) -> _Side:
     """The one decision :func:`sync` and :func:`read_scene` share (an#584):
     the newer of ``md_path`` / ``json_path`` wins, the Markdown on a tie that
     disagrees, and nothing is decided on a tie with an unreadable side. Reads,
-    never writes. A JSON scene is read with the Markdown's unwritten duration
-    unset when the Markdown is there (:func:`unset_unwritten_duration`)."""
+    never writes."""
     md_exists, json_exists = md_path.exists(), json_path.exists()
-
-    def from_json(md_text: str | None) -> SceneIR:
-        scene = scene_from_json_doc(json.loads(_read_text(json_path)), source=json_path)
-        return (
-            unset_unwritten_duration(scene, md_text) if md_text is not None else scene
-        )
-
     if not md_exists:
-        return _Side("json_only", from_json(None)) if json_exists else _Side("none")
+        return (
+            _Side("json_only", _json_scene(json_path, None))
+            if json_exists
+            else _Side("none")
+        )
     if not json_exists:
-        return _Side("md_only", markdown_to_ir(_read_text(md_path)))
+        md_text = _read_text(md_path)
+        return _Side("md_only", markdown_to_ir(md_text), md_text)
     md_mtime, json_mtime = md_path.stat().st_mtime, json_path.stat().st_mtime
     skew = json_mtime - md_mtime
     if skew > SYNC_MTIME_TOLERANCE_S:
-        return _Side("json_newer", from_json(_read_text(md_path)), md_mtime, json_mtime)
+        data = json.loads(_read_text(json_path))  # the JSON first: its error wins
+        md_text = _read_text(md_path)
+        scene = unset_unwritten_duration(
+            scene_from_json_doc(data, source=json_path), md_text
+        )
+        return _Side("json_newer", scene, md_text, md_mtime, json_mtime)
     md_text = _read_text(md_path)
     if skew < -SYNC_MTIME_TOLERANCE_S:
-        return _Side("md_newer", markdown_to_ir(md_text), md_mtime, json_mtime)
+        return _Side("md_newer", markdown_to_ir(md_text), md_text, md_mtime, json_mtime)
     # The same age: the pair the store writes always says the same thing (its
     # merge is checked), so a disagreement here is an edit made OUTSIDE the
     # store within the tolerance -- a `cp -r` then a `sed` in the same second
     # (an#412). The JSON used to win silently, and the next store write then
     # reverted the author's edit in scene.md (an#411).
     try:
-        json_scene = from_json(md_text)
+        json_scene = _json_scene(json_path, md_text)
         if _md_canonical(md_text) == _md_canonical(ir_to_markdown(json_scene)):
-            return _Side("tie_agrees", json_scene, md_mtime, json_mtime)
-        return _Side("tie_md", markdown_to_ir(md_text), md_mtime, json_mtime)
+            return _Side("tie_agrees", json_scene, md_text, md_mtime, json_mtime)
+        return _Side("tie_md", markdown_to_ir(md_text), md_text, md_mtime, json_mtime)
     except Exception:  # noqa: BLE001 - an unreadable side: the JSON read says why
-        return _Side("tie_unreadable", None, md_mtime, json_mtime)
+        return _Side("tie_unreadable", None, md_text, md_mtime, json_mtime)
 
 
 def sync(
@@ -1678,36 +1689,33 @@ def sync(
     the JSON that the Markdown cannot represent, so a newer JSON is merged into
     the Markdown (an#275: the author's text kept) rather than overwritten, and
     a tie that disagrees is warned about (:class:`SyncTieWarning`). After a
-    write the two mtimes are equalised, so the next sync does not flip.
+    write over an existing file the two mtimes are equalised, so the next sync
+    does not flip.
     """
-    import os
-
     resolved = resolve_scene_file(project_dir, scene_file)
     md_path, json_path = resolved.md_path, resolved.json_path
     result = SyncResult()
     side = _scene_side(md_path, json_path)
-    scene = side.scene
+    if side.winner == "tie_md":
+        warnings.warn(
+            f"{md_path} and {json_path} have the same modification time but say "
+            "different things (an edit made outside `an` within half a second of "
+            f"the other file's write); {md_path.name}, the source of truth, was "
+            f"taken and ir/{json_path.name} regenerated from it.",
+            SyncTieWarning,
+            stacklevel=2,
+        )
     if side.winner in ("md_only", "md_newer", "tie_md"):
-        if side.winner == "tie_md":
-            warnings.warn(
-                f"{md_path} and {json_path} have the same modification time but say "
-                "different things (an edit made outside `an` within half a second of "
-                f"the other file's write); {md_path.name}, the source of truth, was "
-                f"taken and ir/{json_path.name} regenerated from it.",
-                SyncTieWarning,
-                stacklevel=2,
-            )
-        _write_json(json_path, json.loads(scene.model_dump_json()))
-        if side.winner != "md_only":
+        _write_json(json_path, json.loads(side.scene.model_dump_json()))
+        if side.md_mtime is not None:
             os.utime(json_path, (side.md_mtime, side.md_mtime))
         result.wrote_json = True
     elif side.winner == "json_only":
-        _write_text(md_path, ir_to_markdown(scene))
+        _write_text(md_path, ir_to_markdown(side.scene))
         result.wrote_md = True
     elif side.winner == "json_newer":
-        existing = _read_text(md_path)
-        markdown = merge_markdown(existing, scene)  # an#275: keep the author's text
-        if markdown != existing:
+        markdown = merge_markdown(side.md_text, side.scene)  # an#275: the author's text
+        if markdown != side.md_text:
             _write_text(md_path, markdown)
         os.utime(md_path, (side.json_mtime, side.json_mtime))
         result.wrote_md = True
@@ -1733,15 +1741,13 @@ def read_scene(
     ('Title', False)
     """
     resolved = resolve_scene_file(project_dir, scene_file)
-    md_path, json_path = resolved.md_path, resolved.json_path
-    side = _scene_side(md_path, json_path)
+    side = _scene_side(resolved.md_path, resolved.json_path)
     if side.winner == "none":
         raise SceneFileError(
             f"no scene file {resolved.name!r} in {resolved.project_dir}"
         )
     if side.scene is None:  # a tie with an unreadable side: the JSON read says why
-        scene = scene_from_json_doc(json.loads(_read_text(json_path)), source=json_path)
-        return unset_unwritten_duration(scene, _read_text(md_path))
+        return _json_scene(resolved.json_path, side.md_text)
     return side.scene
 
 
