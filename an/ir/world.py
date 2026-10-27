@@ -1588,7 +1588,9 @@ def _lean_actions(
     entity_id: str,
     fitted: tuple[float, list[tuple[float, float, float, float, Any]]],
 ) -> list[Any]:
-    """The ``rotation`` channel of ``entity_id`` from :func:`_fit_lean`."""
+    """The ``rotation`` channel of ``entity_id`` from :func:`_fit_lean`. It SETS
+    the rotation: the core's entities rest at 0, so a genre rig with a rest
+    rotation on the entity root has to add its own (an#580)."""
     v0, segments = fitted
     out: list[Any] = [set_(entity_id, "rotation", v0, at=0.0)]
     for ta, tb, va, vb, easing in segments:
@@ -1620,8 +1622,8 @@ def _sway_members(
     flight, it does not lean. So a member that reframes into a swaying frame
     starts leaning, and one that goes out and back resumes. The lean settles
     by that sway's ``settle`` (a first-order lag starting on the lean the shot
-    opens with: the frame was already moving); out of a swaying frame it is
-    upright at once. The unsettled lean is computed once per frame and the
+    opens with: the frame was already moving); out of a swaying frame it
+    returns upright with the settle of the last one it was in. The unsettled lean is computed once per frame and the
     fit once per distinct course, so members riding together cost one."""
     duration, tree = ctx.duration, ctx.tree
     if duration <= 0:
@@ -1657,12 +1659,14 @@ def _sway_members(
 
     def lean_of(course: tuple[tuple[float, str, bool], ...]) -> Any:
         target, settle = [0.0] * len(times), [0.0] * len(times)
+        last_settle = 0.0  # leaving a swaying frame settles as the last one did
         for i, t in enumerate(times):
             _, frame, flying = [leg for leg in course if leg[0] <= t][-1]
             series = None if flying else raw_of(frame)
             if series is not None:
                 target[i] = series[i]
-                settle[i] = float(tree.frames[tree.sway_frame(frame)].sway.settle)
+                last_settle = float(tree.frames[tree.sway_frame(frame)].sway.settle)
+            settle[i] = last_settle
         lean = [target[0]]
         for v, lag in zip(target[1:], settle[1:]):
             k = 1.0 - math.exp(-dt / lag) if lag > 0 else 1.0
@@ -2182,10 +2186,18 @@ def _lower_shot(
             )
     n_motion = len(actions) - len(split.actions)
     if n_motion > budget:
+        n_sway = sum(len(lean) for lean in swayed.values())
+        sway_note = (
+            f" ({n_sway} of them are sway leans, which `tolerance_px` does not "
+            "change: put `sway` on fewer frames)"
+            if n_sway
+            else ""
+        )
         raise WorldError(
-            f"shot {shot.id!r}: the members in motion lower to {n_motion} actions, "
-            f"past the `max_actions` ({budget}). Raise `tolerance_px` on the travel, "
-            "cut the shot, or keep fewer members moving relative to the camera."
+            f"shot {shot.id!r}: the members in motion lower to {n_motion} actions"
+            f"{sway_note}, past the `max_actions` ({budget}). Raise `tolerance_px` "
+            "on the travel, cut the shot, or keep fewer members moving relative "
+            "to the camera."
         )
     for member in world.members:
         host = member.attached.to if member.attached is not None else None
