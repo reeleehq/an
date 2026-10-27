@@ -1684,6 +1684,7 @@ def _with_paint_keys(
     *,
     entity_ids: Collection[str],
     members: Collection[str],
+    attached: Mapping[str, str] | None = None,
 ) -> list[tuple[tuple[float, float, float], AssetRef, int | None]]:
     """``ordered`` with each entity's paint key from each time on recorded
     under :data:`an.base.PAINT_KEYS_OVERRIDE` (``[[time, key]]``, the first at
@@ -1694,13 +1695,24 @@ def _with_paint_keys(
     painted right after it as it moves (an#648), when it is a world member
     (``members``: the only entities a shot reorders); otherwise it carries
     none, and keeps its built place. Its keys are its host's with a suffix,
-    so the compiler can tell whether its host is built beside it."""
+    so the compiler can tell whether its host is built beside it. A member
+    attached to another (``attached``: ``{member: host}``) rides its host the
+    same way, unless the author placed it ``after`` something, and is built
+    right after it, so it is painted with its host at every frame, however
+    its host moves (an#678)."""
     if not any(len(ks) > 1 for ks in pass_keys.values()):
         return ordered
     after = {
         e.id: e.stage.after if e.stage is not None else None for _, e, _ in ordered
     }
     hosts = {eid: a for eid, a in after.items() if a in entity_ids}
+    attached = attached or {}
+    hosts.update(
+        (eid, host)
+        for eid, host in attached.items()
+        if eid in after and after[eid] is None and host in after
+    )
+    on_host = {eid for eid in hosts if eid in attached and after[eid] is None}
 
     keys = {
         e.id: [[t, list(k)] for t, k in pass_keys.get(e.id) or [(0.0, key)]]
@@ -1715,9 +1727,9 @@ def _with_paint_keys(
                 keys[eid] = [[t, [*k, 1, n]] for t, k in keys[host]]
                 del hosts[eid]
                 riding = True
-    return [
+    built = [
         (
-            key,
+            tuple(keys[e.id][0][1]) if e.id in on_host and e.id in keys else key,
             e.model_copy(
                 update={
                     "overrides": {
@@ -1732,6 +1744,8 @@ def _with_paint_keys(
         )
         for key, e, j in ordered
     ]
+    built.sort(key=lambda item: item[0])  # an attached member, after its host
+    return built
 
 
 def _pass_cost(p: _Pass, *, duration: float) -> int:
@@ -2943,6 +2957,7 @@ def _lower_shot(
                     and not _is_slot(e)
                     and placed[e.id].depth is not None
                     and key[0] == 1.0
+                    and not (e.id in members and members[e.id].attached)
                 },
                 extra,
                 {
@@ -2984,6 +2999,7 @@ def _lower_shot(
         pass_keys,
         entity_ids={e.id for _, e, _ in ordered} | {e.id for e, _ in envs},
         members=members.keys(),
+        attached={m.id: m.attached.to for m in world.members if m.attached},
     )
     if sightings:
         _depth_order_notes(

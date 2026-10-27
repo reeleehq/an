@@ -1,0 +1,1 @@
+- **An attached member rides its host's paint keys** (an#678): in a shot whose paint order changes, a world member attached to another (without an `after` of its own) is keyed with its host's keys plus the rider suffix and built right after it, instead of being keyed as at rest at its host's opening depth, so nothing passes between a walker and what it carries.
