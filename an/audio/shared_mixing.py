@@ -29,66 +29,10 @@ UPGRADE_HINT: str = "pip install -U mixing"
 INSTALL_HINT: str = "pip install mixing"
 #: How Python words ``from mixing import part`` failing on ``part``.
 _CANNOT_IMPORT = re.compile(r"cannot import name '(\w+)'")
-#: The oldest ``mixing`` with every part ``an`` uses: ``mixing.loudness``
-#: (0.0.64, an#563) and ``mixing.filtergraph.resample_pitch_filter`` (0.0.72,
-#: an#611). A local package declares no version floor, so it is checked here
-#: (an#644).
-MIN_MIXING: str = "0.0.72"
 
 
 class MixingTooOldWarning(UserWarning):
-    """The installed ``mixing`` is older than :data:`MIN_MIXING` (or absent)."""
-
-
-def _release(version: str) -> tuple[int, ...] | None:
-    """The numeric release of ``version`` (``"0.0.72.dev1"`` -> ``(0, 0, 72)``),
-    ``None`` when it does not start with one.
-
-    >>> _release("0.0.72"), _release("1.2rc1"), _release("unknown")
-    ((0, 0, 72), (1, 2), None)
-    """
-    m = re.match(r"\d+(?:\.\d+)*", version)
-    return tuple(int(p) for p in m.group(0).split(".")) if m else None
-
-
-def mixing_version_problem(
-    *, minimum: str = MIN_MIXING, installed: str | None = None
-) -> str | None:
-    """Why the installed ``mixing`` cannot serve ``an`` (older than
-    ``minimum``, or not installed), or ``None``. ``installed`` defaults to the
-    distribution's version; one that is not a release number is not judged.
-
-    >>> mixing_version_problem(installed="0.0.60")
-    'mixing 0.0.60 is older than 0.0.72, which an needs (mixing.loudness, mixing.filtergraph): `pip install -U mixing`'
-    >>> mixing_version_problem(installed="0.0.81") is None
-    True
-    """
-    if installed is None:
-        from importlib.metadata import PackageNotFoundError, version
-
-        try:
-            installed = version(MIXING)
-        except PackageNotFoundError:
-            return f"{MIXING} is not installed, and an needs it: `{INSTALL_HINT}`"
-    have, need = _release(installed), _release(minimum)
-    if have is None or need is None or have >= need:
-        return None
-    return (
-        f"{MIXING} {installed} is older than {minimum}, which an needs "
-        f"(mixing.loudness, mixing.filtergraph): `{UPGRADE_HINT}`"
-    )
-
-
-@lru_cache(maxsize=None)
-def warn_if_mixing_too_old() -> None:
-    """Say once per process, before anything is billed, that the installed
-    ``mixing`` is too old (:func:`mixing_version_problem`): the entry points
-    that may bill (a render, ``an voices design`` and ``audition``) call it,
-    so an old ``mixing`` is not found after synthesis (an#644).
-    :func:`mixing_too_old` stays the backstop at the import."""
-    problem = mixing_version_problem()
-    if problem:
-        warnings.warn(problem, MixingTooOldWarning, stacklevel=3)
+    """The installed ``mixing`` lacks a part ``an`` uses (or is absent)."""
 
 
 def _missing_part(e: ImportError) -> str | None:
@@ -127,3 +71,30 @@ def mixing_too_old(*, needed_for: str, error: type[Exception]) -> Iterator[None]
             f"{needed_for} needs {part}, which the installed {MIXING} is too old "
             f"to have: `{UPGRADE_HINT}`"
         ) from e
+
+
+def mixing_problem() -> str | None:
+    """Why the installed ``mixing`` cannot serve ``an``: a part it uses is
+    missing (``mixing.loudness``, ``mixing.filtergraph``), or it is absent;
+    ``None`` when it can. Asked of the code, not of a version number: an
+    editable install's metadata keeps the version it was installed at (an#644).
+    """
+    try:
+        with mixing_too_old(needed_for="an", error=RuntimeError):
+            from mixing import loudness  # noqa: F401
+            from mixing.filtergraph import resample_pitch_filter  # noqa: F401
+    except RuntimeError as e:
+        return str(e)
+    return None
+
+
+@lru_cache(maxsize=None)
+def warn_if_mixing_too_old() -> None:
+    """Say once per process, before anything is billed, that the installed
+    ``mixing`` cannot serve ``an`` (:func:`mixing_problem`): the entry points
+    that may bill (a render, ``an voices design``, ``audition`` and
+    ``reroll``) call it, so an old ``mixing`` is not found after synthesis
+    (an#644). :func:`mixing_too_old` stays the backstop at each import."""
+    problem = mixing_problem()
+    if problem:
+        warnings.warn(problem, MixingTooOldWarning, stacklevel=3)

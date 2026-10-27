@@ -1,1 +1,1 @@
-- A render, `an voices design` and `an voices audition` warn once, before anything is billed, when the installed `mixing` is older than `MIN_MIXING` (0.0.72) or absent (`MixingTooOldWarning`, an#644).
+- A render, `an voices design`, `audition` and `reroll` warn once, before anything is billed, when the installed `mixing` lacks a part `an` uses or is absent (`MixingTooOldWarning`; the parts are imported, not a version compared, an#644).

@@ -1783,6 +1783,9 @@ def retake_lines(
     take has its own key, so its visemes and word timings are aligned afresh.
     This is the only way a recorded take is replaced (ADR 0003).
     """
+    from an.audio.shared_mixing import warn_if_mixing_too_old
+
+    warn_if_mixing_too_old()  # a reroll is billed (an#644)
     out: list[str] = []
     for shot, line in lines_matching(scene, match):
         voice_id = line_voice_id(line, shot, mall)
