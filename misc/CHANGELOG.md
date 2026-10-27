@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-10-27
+- **Audition reels per scene** (an#571): a scene other than `scene.md` keeps its reels under `voice_auditions/scenes/<stem>/`; the manifest keeps each scene's record under `auditions`, so two scenes' reels coexist and each is billed once.
 - **Props validate on the shared asset rule** (an#567): `validate_prop` calls `asset_ref_problems` (every skin, one wording); `an.stores` re-exports `asset_references`, `asset_ref_problem(s)`, `inside_folder`, `ASSET_REF_RULE`.
 - **Output names** (an#574): an unread `scene*.md` owns its output name; names may not end with `.`, start with `-` or be a Windows device name.
 - **Sway review fixes** (an#504): a member leans with the acceleration of the frame it stands in (a braking sub-frame of a swaying car), leg by leg along its `reframe`s (into a swaying frame: leans; out and back: resumes); the acceleration stencil stays inside the shot (`FrameTree.acceleration(within=)`: no impulse at a shot's start, right sign on a 0.01 s shot); the lean is computed once per frame and fitted once per course; `sway_attached` only for members in the shot; `DFLT_WORLD_GRAVITY` now lives in `an.ir.schema` (re-exported by `an.ir.reframe`) with `DFLT_SWAY_LIMIT_DEG`, and `FrameSway` dumps only non-default fields (`gain: 1` too); `lag_filter` refuses `dt <= 0`; `an.stage.compile.lagged_positions` removed.
