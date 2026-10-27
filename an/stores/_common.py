@@ -17,8 +17,11 @@ from __future__ import annotations
 import json
 import re
 from collections.abc import Callable, Mapping, MutableMapping
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Iterator
+
+from dol import atomic_write, file_lock
 
 #: File and folder names an operating system or file manager drops into any
 #: folder: never an asset. Hidden names (a leading ``.``: ``.DS_Store``,
@@ -264,10 +267,27 @@ class JsonDirStore(MutableMapping):
     def __setitem__(self, key: str, value: Any) -> None:
         p = self._path(key)
         p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text(
-            json.dumps(value, indent=2, sort_keys=True, default=str) + "\n",
-            encoding="utf-8",
-        )
+        data = json.dumps(value, indent=2, sort_keys=True, default=str) + "\n"
+        atomic_write(p, data.encode("utf-8"))  # a reader never sees half a document
+
+    @contextmanager
+    def locked(self, key: str) -> Iterator[None]:
+        """Hold ``key``'s file lock (``<key>.json.lock``): a read, change and
+        write of ``key`` inside it is one step for every process that takes it
+        too (an#587). The lock file and the atomic write's temp file are never
+        keys.
+
+        >>> import tempfile
+        >>> store = JsonDirStore(tempfile.mkdtemp())
+        >>> with store.locked("jerry"):
+        ...     store["jerry"] = {"options": []}
+        >>> list(store), store["jerry"]
+        (['jerry'], {'options': []})
+        """
+        p = self._path(key)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        with file_lock(p):
+            yield
 
     def __delitem__(self, key: str) -> None:
         p = self._path(key)
