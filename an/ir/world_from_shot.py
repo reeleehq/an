@@ -32,6 +32,8 @@ why. The camera itself, the lens and the scene file are the stage's
 
 from __future__ import annotations
 
+import json
+
 from collections.abc import Collection
 from dataclasses import dataclass, field
 
@@ -113,9 +115,16 @@ def seed_members(
             f"shot {shot.id!r} places nothing by hand (no entity with a `stage.at` "
             "whose art can be measured): there is no view to invert"
         )
-    if depth is None:
+    defaulted = depth is None
+    if defaulted:
         depth = DFLT_SUBJECT_HEIGHT * focal / _reference_height(placed)
     depths, flat = _depths(placed, depth)
+    if defaulted:
+        # The order may have pushed the reference (the person) deeper: a uniform
+        # rescale keeps every projection, the order and the copies' ratios, and
+        # stands it at DFLT_SUBJECT_HEIGHT again.
+        ref = _reference_index(placed)
+        depths = [z * depth / depths[ref] for z in depths]
     members = []
     for (_i, e, (sx, sy), scale, native), z in zip(placed, depths):
         k = z / focal  # world units per screen pixel at that depth
@@ -162,9 +171,11 @@ def _depths(placed, depth: float) -> tuple[list[float], str | None]:
         if fixed[j] is not None:
             if ordered and fixed[j] < deepest - _DEPTH_EPS * deepest:
                 return [depth] * len(placed), (
-                    f"{e.id!r} is listed (drawn) behind something nearer than it: the "
-                    "copies of one thing cannot take the depths their scales say, so "
-                    f"every member stands at depth {depth:.4g}"
+                    f"{e.id!r} would be drawn behind something farther than it: with "
+                    "each thing's largest copy at one depth, its copies' depths do not "
+                    "keep the master's drawing order, so every member stands at depth "
+                    f"{depth:.4g} (move members along their line of sight to give them "
+                    "depth by hand)"
                 )
             out[j] = fixed[j]
         else:
@@ -176,13 +187,11 @@ def _depths(placed, depth: float) -> tuple[list[float], str | None]:
 
 def _thing(e, native: float) -> tuple:
     """What makes two placements one thing: the same art, the same size."""
-    import json
-
     overrides = json.dumps(e.overrides or {}, sort_keys=True, default=str)
     return (
         e.store,
         e.ref,
-        json.dumps(e.library, default=str),
+        json.dumps(e.library, sort_keys=True, default=str),
         overrides,
         round(native, 6),
     )
@@ -194,17 +203,20 @@ CHARACTER_KIND: str = "character"
 _DEPTH_EPS: float = 1e-9
 
 
-def _reference_height(placed) -> float:
-    """The screen height the default depth makes :data:`DFLT_SUBJECT_HEIGHT`
+def _reference_index(placed) -> int:
+    """Which placement the default depth makes :data:`DFLT_SUBJECT_HEIGHT`
     tall: the tallest placed character when there is one (a person, which is
     what the default height is), else the tallest placed thing (an#603: a sun
     or a building would make the world's units read as something else)."""
-    people = [
-        scale * native
-        for _i, e, _at, scale, native in placed
-        if e.kind == CHARACTER_KIND
-    ]
-    return max(people or [scale * native for *_, scale, native in placed])
+    people = [j for j, (_i, e, *_r) in enumerate(placed) if e.kind == CHARACTER_KIND]
+    pool = people or range(len(placed))
+    return max(pool, key=lambda j: placed[j][3] * placed[j][4])
+
+
+def _reference_height(placed) -> float:
+    """The screen height of :func:`_reference_index`'s placement."""
+    _i, _e, _at, scale, native = placed[_reference_index(placed)]
+    return scale * native
 
 
 #: Significant digits a derived coordinate is written with: far below a

@@ -389,3 +389,39 @@ def test_one_ref_in_two_stores_or_with_other_art_is_two_things():
     )
     seeded = seed_members(shot, extents={"a": box, "b": box, "c": small}, focal=500.0)
     assert len({m.at[2] for m in seeded.members}) == 1, "no two of them are one thing"
+
+
+def test_the_person_stays_person_sized_when_the_order_pushes_them_back():
+    """The hero, listed behind two copies of a lamp, is pushed as deep as the far
+    copy; the world is rescaled so the hero is still 1.7 tall (an#603 review)."""
+    from an.ir.world_from_shot import DFLT_SUBJECT_HEIGHT, seed_members
+
+    box = (-10.0, -100.0, 10.0, 0.0)
+
+    def placed(eid, ref, scale, kind="prop"):
+        return AssetRef(
+            kind=kind,
+            id=eid,
+            store="props",
+            ref=ref,
+            stage=StagePlacement(at=(0.0, 0.0), scale=scale),
+        )
+
+    shot = Shot(
+        id="m",
+        duration=1.0,
+        entities=[
+            placed("hero", "hero", 0.3, "character"),
+            placed("far", "lamp", 0.3),
+            placed("near", "lamp", 0.6),
+        ],
+    )
+    seeded = seed_members(
+        shot, extents={"hero": box, "far": box, "near": box}, focal=500.0
+    )
+    m = {x.id: x for x in seeded.members}
+    assert m["hero"].height == pytest.approx(DFLT_SUBJECT_HEIGHT)
+    assert (
+        m["far"].at[2] == pytest.approx(2 * m["near"].at[2])
+        and m["hero"].at[2] >= m["far"].at[2]
+    )
