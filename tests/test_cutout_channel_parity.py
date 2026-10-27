@@ -57,9 +57,22 @@ _NAMED = ["linear", "ease", "ease_in", "ease_out", "ease_in_out", "step"]
 #: exact float where (t - a.time) / span rounds up to 1.0 for the
 #: string-boundary row (times harmlessly clamp on rows they don't concern).
 _TIMES = [
-    -0.5, 0.0, 0.146, 0.25, 0.5, 0.66, 0.75, 0.999, 0.9999999, 1.0, 1.5,
-    1.7099999989999999, 2.0, 9.0,
-    math.nextafter(9.767899248713501, 0.0), 9.767899248713501,
+    -0.5,
+    0.0,
+    0.146,
+    0.25,
+    0.5,
+    0.66,
+    0.75,
+    0.999,
+    0.9999999,
+    1.0,
+    1.5,
+    1.7099999989999999,
+    2.0,
+    9.0,
+    math.nextafter(9.767899248713501, 0.0),
+    9.767899248713501,
 ]
 
 
@@ -74,6 +87,17 @@ def _battery() -> list[dict]:
     for easing in _NAMED + [[0.42, 0.0, 0.58, 1.0], [0.5, 2.0, 0.5, 2.0]]:
         cases.append(
             {"keyframes": [_kf(0.0, 0.0, easing), _kf(1.0, 10.0)], "kind": "numeric"}
+        )
+    # A travelling stream's exact pass (an#629): `projective(k)` coming closer,
+    # moving away, and k written with every digit the lowering writes.
+    for easing in [
+        "projective(0.25)",
+        "projective(3)",
+        "projective(0.83333333333333337)",
+        "projective(1e-300)",
+    ]:
+        cases.append(
+            {"keyframes": [_kf(0.0, 4.0, easing), _kf(1.0, 900.0)], "kind": "numeric"}
         )
     # Large-magnitude bezier rows: a ULP of disagreement in `eased` is
     # amplified by (b - a), so these rows are what force the two Newton loops
@@ -120,11 +144,18 @@ def _battery() -> list[dict]:
         }
     )
     # Mixed numeric/string takes the snap path on both sides.
-    cases.append({"keyframes": [_kf(0.0, 3.0, "linear"), _kf(1.0, "B")], "kind": "mixed"})
+    cases.append(
+        {"keyframes": [_kf(0.0, 3.0, "linear"), _kf(1.0, "B")], "kind": "mixed"}
+    )
     # Duplicate-time keyframes: zero-span segment resolves to the later value.
     cases.append(
         {
-            "keyframes": [_kf(0.0, "A", "step"), _kf(0.5, "B", "step"), _kf(0.5, "C", "step"), _kf(1.0, "D", "step")],
+            "keyframes": [
+                _kf(0.0, "A", "step"),
+                _kf(0.5, "B", "step"),
+                _kf(0.5, "C", "step"),
+                _kf(1.0, "D", "step"),
+            ],
             "kind": "string",
         }
     )
@@ -147,7 +178,9 @@ def _python_results(cases) -> list[list]:
                 Keyframe(
                     k["time"],
                     k["value"],
-                    tuple(k["easing"]) if isinstance(k["easing"], list) else k["easing"],
+                    tuple(k["easing"])
+                    if isinstance(k["easing"], list)
+                    else k["easing"],
                 )
                 for k in case["keyframes"]
             ],
@@ -183,6 +216,7 @@ def _js_results(cases) -> list[list]:
     pieces = [
         _extract_js_block(src, "const EASINGS ="),
         _extract_js_block(src, "function cubicBezier"),
+        _extract_js_block(src, "function projectiveCurve"),
         _extract_js_block(src, "function applyEasing"),
         _extract_js_block(src, "function evaluateChannel"),
     ]
@@ -237,7 +271,16 @@ def test_overshoot_bezier_on_a_string_channel_holds_the_first_key():
             expected = "A" if t < 1.0 else "B"
             assert v == expected, f"t={t}: got {v!r}, wanted {expected!r}"
         ch = Channel(
-            "t", "p", [Keyframe(k["time"], k["value"], tuple(k["easing"]) if isinstance(k["easing"], list) else None) for k in case["keyframes"]]
+            "t",
+            "p",
+            [
+                Keyframe(
+                    k["time"],
+                    k["value"],
+                    tuple(k["easing"]) if isinstance(k["easing"], list) else None,
+                )
+                for k in case["keyframes"]
+            ],
         )
         for t in inside:
             assert evaluate(ch, t) == "A"
@@ -258,6 +301,7 @@ def test_both_sides_validate_easing_on_non_numeric_segments():
     pieces = [
         _extract_js_block(src, "const EASINGS ="),
         _extract_js_block(src, "function cubicBezier"),
+        _extract_js_block(src, "function projectiveCurve"),
         _extract_js_block(src, "function applyEasing"),
         _extract_js_block(src, "function evaluateChannel"),
     ]

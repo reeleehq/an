@@ -1029,16 +1029,33 @@ def _fit_pass(
     min_step: float,
     width: float,
     height: float,
+    depth: Callable[[float], float] | None = None,
 ) -> _Pass | None:
     """The channels of one entity's passage: its on-screen window within
     ``[t_in, t_out]`` and the Bézier fits of ``g`` on it; ``None`` when it is
-    never on screen."""
+    never on screen.
+
+    ``depth`` (the instance's depth at shot time ``t``) is given for a pass
+    seen in closed form (the camera translating at a constant velocity, its
+    orientation fixed): every channel of ``g`` is then a projection of linear
+    motion, which ``projective(k)`` draws exactly between the window's two
+    ends (an#629), so each channel is ONE tween, with no fitting."""
     window = _on_screen_window(
         g, t_in, t_out, box, width=width, height=height, step=min_step
     )
     if window is None:
         return None
     t_in, t_out = window
+    if depth is not None:
+        ratio = depth(t_out) / depth(t_in)
+        ease = "linear" if ratio == 1.0 else f"projective({ratio:.17g})"
+        a, b = g(t_in), g(t_out)
+        exact = {
+            prop: [(t_in, t_out, a[i], b[i], ease)]
+            for i, prop in enumerate(("x", "y", "scale_x"))
+        }
+        exact["scale_y"] = exact["scale_x"]
+        return _Pass(t_in, t_out, exact, a)
     channels = {
         "x": fit_channel(
             lambda t: g(t)[0], t_in, t_out, tolerance=tol, min_step=min_step
@@ -1252,6 +1269,8 @@ def _travel_entities(
                 min_step=min_step,
                 width=width,
                 height=height,
+                # closed form: the exact one-tween pass (an#629)
+                depth=(lambda t, view=view: view(t)[2]) if closed is not None else None,
             )
             if fitted is None:
                 continue  # never on screen during this shot

@@ -80,6 +80,10 @@ SOLVERS: dict[str, str] = {
         "bisection steps on [0, 1] to the same 1e-12"
     ),
     "css-steps": "the CSS Easing Level 1 step algorithm",
+    "projective-closed-form": (
+        "projective(k): u / (u + (1 - u) / k), k > 0 the depth ratio of a "
+        "segment's end to its start (a pinhole projection of linear motion; an#629)"
+    ),
 }
 _SOLVER_OWNERS: dict[str, str | None] = dict.fromkeys(SOLVERS, CORE_OWNER)
 
@@ -359,6 +363,30 @@ STEP_POSITIONS: tuple[str, ...] = (
     "end",
 )
 DFLT_STEP_POSITION: str = "jump-end"
+
+
+def projective(k: float) -> Curve:
+    """The easing of a quantity a pinhole camera shows of a point moving at
+    constant velocity in depth (an#629): ``u -> u / (u + (1 − u) / k)``, i.e.
+    ``k·u / (1 + (k − 1)·u)``, with ``k`` the depth at the segment's end over
+    its depth at its start. A projection ``f·X / z`` with ``X`` and ``z``
+    linear in time is this curve between its two ends, exactly, whatever
+    ``f``, ``X`` and the speed; so one tween per channel draws a passing
+    instance with no fitting. ``k = 1`` is linear; ``k < 1`` (coming closer)
+    is slow then fast. Written as it is, it is exact at both ends and never
+    divides by zero for any ``k > 0``.
+
+    >>> p = projective(0.25)
+    >>> p(0.0), p(1.0), round(p(0.5), 6), projective(1e-300)(1.0)
+    (0.0, 1.0, 0.2, 1.0)
+    >>> projective(-1.0)
+    Traceback (most recent call last):
+     ...
+    an.timing.easing.UnknownEasingError: projective(k) takes a depth ratio k > 0, got -1.0
+    """
+    if not (k > 0 and math.isfinite(k)):
+        raise UnknownEasingError(f"projective(k) takes a depth ratio k > 0, got {k}")
+    return lambda u: u / (u + (1.0 - u) / k) if u > 0 else 0.0
 
 
 def css_steps(n: int, position: str = DFLT_STEP_POSITION) -> Curve:
@@ -686,6 +714,21 @@ def _seed() -> None:
 #: ``EASINGS`` table (the stage engine draws these and no others), so the Python
 #: spec of that rule refuses what the browser would refuse.
 VALUE_TYPED_EASINGS: frozenset[str] = frozenset(EASING_PRESETS)
+#: The parametrised calls the value-typed rule accepts beside those names:
+#: ``runtime.js``'s ``applyEasing`` evaluates ``projective(k)`` too (an#629),
+#: what a travelling stream's slots are drawn with.
+VALUE_TYPED_CALLS: frozenset[str] = frozenset({"projective"})
+
+
+def _call_name(spec: str) -> str | None:
+    """The function a parametrised spec calls (``projective(0.5)`` ->
+    ``projective``), ``None`` for a name.
+
+    >>> _call_name("projective(0.5)"), _call_name("ease_in")
+    ('projective', None)
+    """
+    match = _CALL.match(spec.strip())
+    return match.group(1) if match is not None else None
 
 
 # -----------------------------------------------------------------------------
@@ -736,8 +779,16 @@ def _parse_call(spec: str) -> Curve | None:
         count = int(number)
         position = parts[1] if len(parts) == 2 else DFLT_STEP_POSITION
         return css_steps(count, position)
+    if name == "projective":
+        nums = _parse_numbers(args, spec)
+        if len(nums) != 1:
+            raise UnknownEasingError(
+                f"easing {spec!r}: projective takes 1 number, got {len(nums)}"
+            )
+        return projective(nums[0])
     raise UnknownEasingError(
-        f"unknown easing function {name!r} in {spec!r}; known: cubic-bezier(), steps()"
+        f"unknown easing function {name!r} in {spec!r}; known: cubic-bezier(), "
+        "steps(), projective()"
     )
 
 
@@ -755,7 +806,7 @@ def _resolve_cached(spec: str) -> Curve:
         )
         raise UnknownEasingError(
             f"unknown easing preset {spec!r}{hint}; known: {sorted(_REGISTRY)}, "
-            "cubic-bezier(x1, y1, x2, y2), steps(n[, position])"
+            "cubic-bezier(x1, y1, x2, y2), steps(n[, position]), projective(k)"
         )
     return parsed
 
@@ -789,13 +840,15 @@ def apply_easing(
     t: float,
     *,
     names: Collection[str] | None = None,
+    calls: Collection[str] = (),
 ) -> float:
     """Apply an easing spec to a normalised parameter ``t`` in ``[0, 1]``.
 
     ``names`` restricts the string specs accepted to that collection — what an
     engine that implements only part of the registry passes (the stage runtime
-    implements the legacy names; see ``an.stage.easing``). Sequences
-    always take the legacy Bézier solver.
+    implements the legacy names; see ``an.stage.easing``), plus the
+    parametrised specs whose function is in ``calls`` (``projective``,
+    :data:`VALUE_TYPED_CALLS`). Sequences always take the legacy Bézier solver.
 
     >>> apply_easing(None, 0.25)
     0.25
@@ -806,7 +859,12 @@ def apply_easing(
      ...
     an.timing.easing.UnknownEasingError: unknown easing preset 'smooth'; known: ['linear']
     """
-    if names is not None and isinstance(spec, str) and spec not in names:
+    if (
+        names is not None
+        and isinstance(spec, str)
+        and spec not in names
+        and _call_name(spec) not in calls
+    ):
         raise UnknownEasingError(
             f"unknown easing preset {spec!r}; known: {sorted(names)}"
         )

@@ -616,7 +616,8 @@ def test_a_lowered_travelling_shot_compiles_and_moves_as_the_world_says(tmp_path
             if exact is None or abs(exact[0]) > W / 2 or abs(exact[1]) > H / 2:
                 continue
             sx, sy = screen_position(doc, entity.id, pose=pose)
-            assert (sx - W / 2, sy - H / 2) == pytest.approx(exact[:2], abs=1.5)
+            # exact (an#629): one projective tween per channel
+            assert (sx - W / 2, sy - H / 2) == pytest.approx(exact[:2], abs=1e-6)
             checked += 1
     assert checked > 20
 
@@ -1408,3 +1409,50 @@ def test_a_travel_is_not_reported_as_solids_through_each_other(tmp_path):
     assert not [f for f in found if "the order flips" in f.description]
     inversions = [f for f in found if "though it is the farther" in f.description]
     assert inversions and all("an#634" in f.description for f in inversions)
+
+
+# --- an#629: a closed-form pass is one exact tween per channel -----------------
+
+
+def test_a_closed_form_pass_is_one_perspective_tween_per_channel_and_exact():
+    """A point at lateral X, height Y, depth z0 - v·t: its projection is drawn
+    by `projective(z_out / z_in)` between the window's ends, exactly."""
+    from an.ir.world import _fit_pass
+    from an.timing.easing import apply_easing
+
+    focal, X, Y, z0, v = 300.0, 1.7, 0.6, 30.0, 6.0
+
+    def depth(t):
+        return z0 - v * t
+
+    def g(t):
+        return focal * X / depth(t), focal * Y / depth(t), 0.5 * focal / depth(t)
+
+    p = _fit_pass(
+        g, 0.0, 4.0, box=BOX, ref_height=20.0, tol=0.5, min_step=0.05,
+        width=W, height=H, depth=depth,
+    )  # fmt: skip
+    for prop, i in (("x", 0), ("y", 1), ("scale_x", 2)):
+        ((ta, tb, va, vb, ease),) = p.channels[prop]
+        assert ease.startswith("projective(")
+        for k in range(1, 20):
+            t = ta + (tb - ta) * k / 20
+            drawn = va + (vb - va) * apply_easing(ease, (t - ta) / (tb - ta))
+            assert drawn == pytest.approx(g(t)[i], rel=1e-9, abs=1e-9)
+
+
+def test_a_minute_of_road_costs_a_third_of_what_fitting_did():
+    """S9's case: a 60 s road with a pole every 2 units. Fitted, it lowered to
+    3695 actions; one tween per channel per pass, 1312. A budget of 2000
+    refused it, and now holds it."""
+    scene = _travel_scene(Shot(id="s1", duration=60.0, viewpoint="road"))
+    scene.world.travel = scene.world.travel.model_copy(
+        update={
+            "streams": [
+                Stream(id="pole", ref="lamp", height=1.5, every=2.0, lane=1.2, y=0.0)
+            ],
+            "max_actions": 2000,
+        }
+    )
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    assert 0 < len(shot.actions) <= 2000

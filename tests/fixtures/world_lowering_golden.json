@@ -607,12 +607,7 @@
          "to_value": 14.4,
          "from_value": 12.0,
          "duration": 1.25,
-         "easing": [
-          0.3333333333333333,
-          0.2778240817913335,
-          0.6666666666666666,
-          0.6000799840032178
-         ]
+         "easing": "projective(0.83333333333333337)"
         }
        ]
       },
@@ -641,12 +636,7 @@
          "to_value": 12.0,
          "from_value": 10.0,
          "duration": 1.25,
-         "easing": [
-          0.3333333333333333,
-          0.2778240817914816,
-          0.6666666666666666,
-          0.6000799840031685
-         ]
+         "easing": "projective(0.83333333333333337)"
         }
        ]
       },
@@ -675,12 +665,7 @@
          "to_value": 0.9,
          "from_value": 0.75,
          "duration": 1.25,
-         "easing": [
-          0.3333333333333333,
-          0.2778240817913335,
-          0.6666666666666666,
-          0.6000799840032178
-         ]
+         "easing": "projective(0.83333333333333337)"
         }
        ]
       },
@@ -709,12 +694,7 @@
          "to_value": 0.9,
          "from_value": 0.75,
          "duration": 1.25,
-         "easing": [
-          0.3333333333333333,
-          0.2778240817913335,
-          0.6666666666666666,
-          0.6000799840032178
-         ]
+         "easing": "projective(0.83333333333333337)"
         }
        ]
       },
@@ -747,41 +727,10 @@
        "kind": "tween",
        "target": "pole_1",
        "property": "x",
-       "to_value": 160.0,
+       "to_value": 240.0,
        "from_value": 120.0,
-       "duration": 0.1875,
-       "easing": [
-        0.3333333333333333,
-        0.2500625156289497,
-        0.6666666666666666,
-        0.5557036543374352
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 0.1875
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_1",
-         "property": "x",
-         "to_value": 240.0,
-         "from_value": 160.0,
-         "duration": 0.1875,
-         "easing": [
-          0.3333333333333333,
-          0.22229632099595165,
-          0.6666666666666666,
-          0.5002498750624891
-         ]
-        }
-       ]
+       "duration": 0.375,
+       "easing": "projective(0.5)"
       },
       {
        "name": null,
@@ -796,41 +745,10 @@
        "kind": "tween",
        "target": "pole_1",
        "property": "y",
-       "to_value": 133.33333333333334,
+       "to_value": 200.0,
        "from_value": 100.0,
-       "duration": 0.1875,
-       "easing": [
-        0.3333333333333333,
-        0.2500625156288549,
-        0.6666666666666666,
-        0.5557036543374354
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 0.1875
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_1",
-         "property": "y",
-         "to_value": 200.0,
-         "from_value": 133.33333333333334,
-         "duration": 0.1875,
-         "easing": [
-          0.3333333333333333,
-          0.22229632099580957,
-          0.6666666666666666,
-          0.5002498750623943
-         ]
-        }
-       ]
+       "duration": 0.375,
+       "easing": "projective(0.5)"
       },
       {
        "name": null,
@@ -845,41 +763,10 @@
        "kind": "tween",
        "target": "pole_1",
        "property": "scale_x",
-       "to_value": 10.0,
+       "to_value": 15.0,
        "from_value": 7.5,
-       "duration": 0.1875,
-       "easing": [
-        0.3333333333333333,
-        0.2500625156289497,
-        0.6666666666666666,
-        0.5557036543374352
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 0.1875
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_1",
-         "property": "scale_x",
-         "to_value": 15.0,
-         "from_value": 10.0,
-         "duration": 0.1875,
-         "easing": [
-          0.3333333333333333,
-          0.22229632099595165,
-          0.6666666666666666,
-          0.5002498750624891
-         ]
-        }
-       ]
+       "duration": 0.375,
+       "easing": "projective(0.5)"
       },
       {
        "name": null,
@@ -894,41 +781,10 @@
        "kind": "tween",
        "target": "pole_1",
        "property": "scale_y",
-       "to_value": 10.0,
+       "to_value": 15.0,
        "from_value": 7.5,
-       "duration": 0.1875,
-       "easing": [
-        0.3333333333333333,
-        0.2500625156289497,
-        0.6666666666666666,
-        0.5557036543374352
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 0.1875
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_1",
-         "property": "scale_y",
-         "to_value": 15.0,
-         "from_value": 10.0,
-         "duration": 0.1875,
-         "easing": [
-          0.3333333333333333,
-          0.22229632099595165,
-          0.6666666666666666,
-          0.5002498750624891
-         ]
-        }
-       ]
+       "duration": 0.375,
+       "easing": "projective(0.5)"
       },
       {
        "name": null,
@@ -963,12 +819,7 @@
          "to_value": 12.857142857142858,
          "from_value": 12.0,
          "duration": 0.5,
-         "easing": [
-          0.3333333333333333,
-          0.3111318532344536,
-          0.6666666666666666,
-          0.642882651239499
-         ]
+         "easing": "projective(0.93333333333333335)"
         }
        ]
       },
@@ -997,12 +848,7 @@
          "to_value": 10.714285714285714,
          "from_value": 10.0,
          "duration": 0.5,
-         "easing": [
-          0.3333333333333333,
-          0.31113185323417775,
-          0.6666666666666666,
-          0.6428826512394983
-         ]
+         "easing": "projective(0.93333333333333335)"
         }
        ]
       },
@@ -1031,12 +877,7 @@
          "to_value": 0.8035714285714286,
          "from_value": 0.75,
          "duration": 0.5,
-         "easing": [
-          0.3333333333333333,
-          0.3111318532344536,
-          0.6666666666666666,
-          0.642882651239499
-         ]
+         "easing": "projective(0.93333333333333335)"
         }
        ]
       },
@@ -1065,12 +906,7 @@
          "to_value": 0.8035714285714286,
          "from_value": 0.75,
          "duration": 0.5,
-         "easing": [
-          0.3333333333333333,
-          0.3111318532344536,
-          0.6666666666666666,
-          0.642882651239499
-         ]
+         "easing": "projective(0.93333333333333335)"
         }
        ]
       },
@@ -1095,93 +931,10 @@
        "kind": "tween",
        "target": "pole_2",
        "property": "x",
-       "to_value": 96.0,
+       "to_value": 240.0,
        "from_value": 60.0,
-       "duration": 0.5625,
-       "easing": [
-        0.3333333333333333,
-        0.20841148764118966,
-        0.6666666666666666,
-        0.4669864747817938
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 0.5625
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_2",
-         "property": "x",
-         "to_value": 137.14285714285714,
-         "from_value": 96.0,
-         "duration": 0.28125,
-         "easing": [
-          0.3333333333333333,
-          0.23340335433964232,
-          0.6666666666666666,
-          0.5240135180160861
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 0.84375
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_2",
-         "property": "x",
-         "to_value": 174.54545454545453,
-         "from_value": 137.14285714285714,
-         "duration": 0.140625,
-         "easing": [
-          0.3333333333333333,
-          0.26196089638265435,
-          0.6666666666666666,
-          0.5758732466903758
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 0.984375
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_2",
-         "property": "x",
-         "to_value": 240.0,
-         "from_value": 174.54545454545453,
-         "duration": 0.140625,
-         "easing": [
-          0.3333333333333333,
-          0.24249037616323108,
-          0.6666666666666666,
-          0.5418384772377267
-         ]
-        }
-       ]
+       "duration": 1.125,
+       "easing": "projective(0.25)"
       },
       {
        "name": null,
@@ -1196,67 +949,10 @@
        "kind": "tween",
        "target": "pole_2",
        "property": "y",
-       "to_value": 80.0,
+       "to_value": 200.0,
        "from_value": 50.0,
-       "duration": 0.5625,
-       "easing": [
-        0.3333333333333333,
-        0.20841148764121598,
-        0.6666666666666666,
-        0.4669864747818465
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 0.5625
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_2",
-         "property": "y",
-         "to_value": 114.28571428571429,
-         "from_value": 80.0,
-         "duration": 0.28125,
-         "easing": [
-          0.3333333333333333,
-          0.23340335433961926,
-          0.6666666666666666,
-          0.5240135180160401
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 0.84375
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_2",
-         "property": "y",
-         "to_value": 200.0,
-         "from_value": 114.28571428571429,
-         "duration": 0.28125,
-         "easing": [
-          0.3333333333333333,
-          0.19055785812964152,
-          0.6666666666666666,
-          0.4171038387875051
-         ]
-        }
-       ]
+       "duration": 1.125,
+       "easing": "projective(0.25)"
       },
       {
        "name": null,
@@ -1271,93 +967,10 @@
        "kind": "tween",
        "target": "pole_2",
        "property": "scale_x",
-       "to_value": 6.0,
+       "to_value": 15.0,
        "from_value": 3.75,
-       "duration": 0.5625,
-       "easing": [
-        0.3333333333333333,
-        0.20841148764118966,
-        0.6666666666666666,
-        0.4669864747817938
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 0.5625
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_2",
-         "property": "scale_x",
-         "to_value": 8.571428571428571,
-         "from_value": 6.0,
-         "duration": 0.28125,
-         "easing": [
-          0.3333333333333333,
-          0.23340335433964232,
-          0.6666666666666666,
-          0.5240135180160861
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 0.84375
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_2",
-         "property": "scale_x",
-         "to_value": 10.909090909090908,
-         "from_value": 8.571428571428571,
-         "duration": 0.140625,
-         "easing": [
-          0.3333333333333333,
-          0.26196089638265435,
-          0.6666666666666666,
-          0.5758732466903758
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 0.984375
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_2",
-         "property": "scale_x",
-         "to_value": 15.0,
-         "from_value": 10.909090909090908,
-         "duration": 0.140625,
-         "easing": [
-          0.3333333333333333,
-          0.24249037616323108,
-          0.6666666666666666,
-          0.5418384772377267
-         ]
-        }
-       ]
+       "duration": 1.125,
+       "easing": "projective(0.25)"
       },
       {
        "name": null,
@@ -1372,93 +985,10 @@
        "kind": "tween",
        "target": "pole_2",
        "property": "scale_y",
-       "to_value": 6.0,
+       "to_value": 15.0,
        "from_value": 3.75,
-       "duration": 0.5625,
-       "easing": [
-        0.3333333333333333,
-        0.20841148764118966,
-        0.6666666666666666,
-        0.4669864747817938
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 0.5625
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_2",
-         "property": "scale_y",
-         "to_value": 8.571428571428571,
-         "from_value": 6.0,
-         "duration": 0.28125,
-         "easing": [
-          0.3333333333333333,
-          0.23340335433964232,
-          0.6666666666666666,
-          0.5240135180160861
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 0.84375
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_2",
-         "property": "scale_y",
-         "to_value": 10.909090909090908,
-         "from_value": 8.571428571428571,
-         "duration": 0.140625,
-         "easing": [
-          0.3333333333333333,
-          0.26196089638265435,
-          0.6666666666666666,
-          0.5758732466903758
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 0.984375
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_2",
-         "property": "scale_y",
-         "to_value": 15.0,
-         "from_value": 10.909090909090908,
-         "duration": 0.140625,
-         "easing": [
-          0.3333333333333333,
-          0.24249037616323108,
-          0.6666666666666666,
-          0.5418384772377267
-         ]
-        }
-       ]
+       "duration": 1.125,
+       "easing": "projective(0.25)"
       },
       {
        "name": null,
@@ -1481,93 +1011,10 @@
        "kind": "tween",
        "target": "pole_3",
        "property": "x",
-       "to_value": 68.57142857142857,
+       "to_value": 240.0,
        "from_value": 40.0,
-       "duration": 0.9375,
-       "easing": [
-        0.3333333333333333,
-        0.19452549673478836,
-        0.6666666666666666,
-        0.42897930049956756
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 0.9375
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_3",
-         "property": "x",
-         "to_value": 106.66666666666667,
-         "from_value": 68.57142857142857,
-         "duration": 0.46875,
-         "easing": [
-          0.3333333333333333,
-          0.21436227224011614,
-          0.6666666666666666,
-          0.4817693873773835
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.40625
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_3",
-         "property": "x",
-         "to_value": 147.69230769230768,
-         "from_value": 106.66666666666667,
-         "duration": 0.234375,
-         "easing": [
-          0.3333333333333333,
-          0.24080763174951347,
-          0.6666666666666666,
-          0.5386389850059314
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.640625
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_3",
-         "property": "x",
-         "to_value": 240.0,
-         "from_value": 147.69230769230768,
-         "duration": 0.234375,
-         "easing": [
-          0.3333333333333333,
-          0.20520713094787382,
-          0.6666666666666666,
-          0.45867166354362776
-         ]
-        }
-       ]
+       "duration": 1.875,
+       "easing": "projective(0.16666666666666666)"
       },
       {
        "name": null,
@@ -1582,93 +1029,10 @@
        "kind": "tween",
        "target": "pole_3",
        "property": "y",
-       "to_value": 57.142857142857146,
+       "to_value": 200.0,
        "from_value": 33.333333333333336,
-       "duration": 0.9375,
-       "easing": [
-        0.3333333333333333,
-        0.1945254967347552,
-        0.6666666666666666,
-        0.4289793004995346
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 0.9375
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_3",
-         "property": "y",
-         "to_value": 88.88888888888889,
-         "from_value": 57.142857142857146,
-         "duration": 0.46875,
-         "easing": [
-          0.3333333333333333,
-          0.2143622722400416,
-          0.6666666666666666,
-          0.48176938737733355
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.40625
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_3",
-         "property": "y",
-         "to_value": 123.07692307692308,
-         "from_value": 88.88888888888889,
-         "duration": 0.234375,
-         "easing": [
-          0.3333333333333333,
-          0.24080763174953645,
-          0.6666666666666666,
-          0.5386389850056545
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.640625
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_3",
-         "property": "y",
-         "to_value": 200.0,
-         "from_value": 123.07692307692308,
-         "duration": 0.234375,
-         "easing": [
-          0.3333333333333333,
-          0.2052071309478123,
-          0.6666666666666666,
-          0.4586716635435455
-         ]
-        }
-       ]
+       "duration": 1.875,
+       "easing": "projective(0.16666666666666666)"
       },
       {
        "name": null,
@@ -1683,93 +1047,10 @@
        "kind": "tween",
        "target": "pole_3",
        "property": "scale_x",
-       "to_value": 4.285714285714286,
+       "to_value": 15.0,
        "from_value": 2.5,
-       "duration": 0.9375,
-       "easing": [
-        0.3333333333333333,
-        0.19452549673478836,
-        0.6666666666666666,
-        0.42897930049956756
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 0.9375
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_3",
-         "property": "scale_x",
-         "to_value": 6.666666666666667,
-         "from_value": 4.285714285714286,
-         "duration": 0.46875,
-         "easing": [
-          0.3333333333333333,
-          0.21436227224011614,
-          0.6666666666666666,
-          0.4817693873773835
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.40625
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_3",
-         "property": "scale_x",
-         "to_value": 9.23076923076923,
-         "from_value": 6.666666666666667,
-         "duration": 0.234375,
-         "easing": [
-          0.3333333333333333,
-          0.24080763174951347,
-          0.6666666666666666,
-          0.5386389850059314
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.640625
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_3",
-         "property": "scale_x",
-         "to_value": 15.0,
-         "from_value": 9.23076923076923,
-         "duration": 0.234375,
-         "easing": [
-          0.3333333333333333,
-          0.20520713094787382,
-          0.6666666666666666,
-          0.45867166354362776
-         ]
-        }
-       ]
+       "duration": 1.875,
+       "easing": "projective(0.16666666666666666)"
       },
       {
        "name": null,
@@ -1784,93 +1065,10 @@
        "kind": "tween",
        "target": "pole_3",
        "property": "scale_y",
-       "to_value": 4.285714285714286,
+       "to_value": 15.0,
        "from_value": 2.5,
-       "duration": 0.9375,
-       "easing": [
-        0.3333333333333333,
-        0.19452549673478836,
-        0.6666666666666666,
-        0.42897930049956756
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 0.9375
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_3",
-         "property": "scale_y",
-         "to_value": 6.666666666666667,
-         "from_value": 4.285714285714286,
-         "duration": 0.46875,
-         "easing": [
-          0.3333333333333333,
-          0.21436227224011614,
-          0.6666666666666666,
-          0.4817693873773835
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.40625
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_3",
-         "property": "scale_y",
-         "to_value": 9.23076923076923,
-         "from_value": 6.666666666666667,
-         "duration": 0.234375,
-         "easing": [
-          0.3333333333333333,
-          0.24080763174951347,
-          0.6666666666666666,
-          0.5386389850059314
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.640625
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_3",
-         "property": "scale_y",
-         "to_value": 15.0,
-         "from_value": 9.23076923076923,
-         "duration": 0.234375,
-         "easing": [
-          0.3333333333333333,
-          0.20520713094787382,
-          0.6666666666666666,
-          0.45867166354362776
-         ]
-        }
-       ]
+       "duration": 1.875,
+       "easing": "projective(0.16666666666666666)"
       },
       {
        "name": null,
@@ -1893,41 +1091,10 @@
        "kind": "tween",
        "target": "pole_4",
        "property": "x",
-       "to_value": 45.0,
+       "to_value": 90.0,
        "from_value": 30.0,
-       "duration": 1.0,
-       "easing": [
-        0.3333333333333333,
-        0.2222963209958727,
-        0.6666666666666666,
-        0.5002498750625679
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.0
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_4",
-         "property": "x",
-         "to_value": 90.0,
-         "from_value": 45.0,
-         "duration": 1.0,
-         "easing": [
-          0.3333333333333333,
-          0.1667500416874961,
-          0.6666666666666666,
-          0.3339993339994273
-         ]
-        }
-       ]
+       "duration": 2.0,
+       "easing": "projective(0.33333333333333331)"
       },
       {
        "name": null,
@@ -1942,41 +1109,10 @@
        "kind": "tween",
        "target": "pole_4",
        "property": "y",
-       "to_value": 37.5,
+       "to_value": 75.0,
        "from_value": 25.0,
-       "duration": 1.0,
-       "easing": [
-        0.3333333333333333,
-        0.22229632099585692,
-        0.6666666666666666,
-        0.5002498750625364
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.0
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_4",
-         "property": "y",
-         "to_value": 75.0,
-         "from_value": 37.5,
-         "duration": 1.0,
-         "easing": [
-          0.3333333333333333,
-          0.16675004168746455,
-          0.6666666666666666,
-          0.33399933399944837
-         ]
-        }
-       ]
+       "duration": 2.0,
+       "easing": "projective(0.33333333333333331)"
       },
       {
        "name": null,
@@ -1991,67 +1127,10 @@
        "kind": "tween",
        "target": "pole_4",
        "property": "scale_x",
-       "to_value": 2.8125,
+       "to_value": 5.625,
        "from_value": 1.875,
-       "duration": 1.0,
-       "easing": [
-        0.3333333333333333,
-        0.2222963209958727,
-        0.6666666666666666,
-        0.5002498750625679
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.0
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_4",
-         "property": "scale_x",
-         "to_value": 3.75,
-         "from_value": 2.8125,
-         "duration": 0.5,
-         "easing": [
-          0.3333333333333333,
-          0.2500625156288708,
-          0.6666666666666666,
-          0.5557036543374352
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.5
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_4",
-         "property": "scale_x",
-         "to_value": 5.625,
-         "from_value": 3.75,
-         "duration": 0.5,
-         "easing": [
-          0.3333333333333333,
-          0.2222963209958727,
-          0.6666666666666666,
-          0.5002498750625679
-         ]
-        }
-       ]
+       "duration": 2.0,
+       "easing": "projective(0.33333333333333331)"
       },
       {
        "name": null,
@@ -2066,67 +1145,10 @@
        "kind": "tween",
        "target": "pole_4",
        "property": "scale_y",
-       "to_value": 2.8125,
+       "to_value": 5.625,
        "from_value": 1.875,
-       "duration": 1.0,
-       "easing": [
-        0.3333333333333333,
-        0.2222963209958727,
-        0.6666666666666666,
-        0.5002498750625679
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.0
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_4",
-         "property": "scale_y",
-         "to_value": 3.75,
-         "from_value": 2.8125,
-         "duration": 0.5,
-         "easing": [
-          0.3333333333333333,
-          0.2500625156288708,
-          0.6666666666666666,
-          0.5557036543374352
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.5
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_4",
-         "property": "scale_y",
-         "to_value": 5.625,
-         "from_value": 3.75,
-         "duration": 0.5,
-         "easing": [
-          0.3333333333333333,
-          0.2222963209958727,
-          0.6666666666666666,
-          0.5002498750625679
-         ]
-        }
-       ]
+       "duration": 2.0,
+       "easing": "projective(0.33333333333333331)"
       },
       {
        "name": null,
@@ -2144,12 +1166,7 @@
        "to_value": 51.42857142857143,
        "from_value": 24.0,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.1556385627890264,
-        0.6666666666666666,
-        0.28652968036523074
-       ]
+       "easing": "projective(0.46666666666666667)"
       },
       {
        "name": null,
@@ -2167,12 +1184,7 @@
        "to_value": 42.857142857142854,
        "from_value": 20.0,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.1556385627890178,
-        0.6666666666666666,
-        0.2865296803653169
-       ]
+       "easing": "projective(0.46666666666666667)"
       },
       {
        "name": null,
@@ -2190,12 +1202,7 @@
        "to_value": 3.2142857142857144,
        "from_value": 1.5,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.1556385627890264,
-        0.6666666666666666,
-        0.28652968036523074
-       ]
+       "easing": "projective(0.46666666666666667)"
       },
       {
        "name": null,
@@ -2213,12 +1220,7 @@
        "to_value": 3.2142857142857144,
        "from_value": 1.5,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.1556385627890264,
-        0.6666666666666666,
-        0.28652968036523074
-       ]
+       "easing": "projective(0.46666666666666667)"
       },
       {
        "name": null,
@@ -2236,12 +1238,7 @@
        "to_value": 36.0,
        "from_value": 20.0,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.18526752630794915,
-        0.6666666666666666,
-        0.4004796163070322
-       ]
+       "easing": "projective(0.55555555555555558)"
       },
       {
        "name": null,
@@ -2259,12 +1256,7 @@
        "to_value": 30.0,
        "from_value": 16.666666666666668,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.18526752630796395,
-        0.6666666666666666,
-        0.40047961630700246
-       ]
+       "easing": "projective(0.55555555555555558)"
       },
       {
        "name": null,
@@ -2282,12 +1274,7 @@
        "to_value": 2.25,
        "from_value": 1.25,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.18526752630794915,
-        0.6666666666666666,
-        0.4004796163070322
-       ]
+       "easing": "projective(0.55555555555555558)"
       },
       {
        "name": null,
@@ -2305,12 +1292,7 @@
        "to_value": 2.25,
        "from_value": 1.25,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.18526752630794915,
-        0.6666666666666666,
-        0.4004796163070322
-       ]
+       "easing": "projective(0.55555555555555558)"
       },
       {
        "name": null,
@@ -2328,12 +1310,7 @@
        "to_value": 27.692307692307693,
        "from_value": 17.142857142857142,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.20642784552844393,
-        0.6666666666666666,
-        0.46186961869623533
-       ]
+       "easing": "projective(0.61904761904761907)"
       },
       {
        "name": null,
@@ -2351,12 +1328,7 @@
        "to_value": 23.076923076923077,
        "from_value": 14.285714285714286,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.20642784552842153,
-        0.6666666666666666,
-        0.46186961869619025
-       ]
+       "easing": "projective(0.61904761904761907)"
       },
       {
        "name": null,
@@ -2374,12 +1346,7 @@
        "to_value": 1.7307692307692308,
        "from_value": 1.0714285714285714,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.20642784552844393,
-        0.6666666666666666,
-        0.46186961869623533
-       ]
+       "easing": "projective(0.61904761904761907)"
       },
       {
        "name": null,
@@ -2397,12 +1364,7 @@
        "to_value": 1.7307692307692308,
        "from_value": 1.0714285714285714,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.20642784552844393,
-        0.6666666666666666,
-        0.46186961869623533
-       ]
+       "easing": "projective(0.61904761904761907)"
       },
       {
        "name": null,
@@ -2420,12 +1382,7 @@
        "to_value": 22.5,
        "from_value": 15.0,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.2222963209958727,
-        0.6666666666666666,
-        0.5002498750625679
-       ]
+       "easing": "projective(0.66666666666666663)"
       },
       {
        "name": null,
@@ -2443,12 +1400,7 @@
        "to_value": 18.75,
        "from_value": 12.5,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.22229632099585692,
-        0.6666666666666666,
-        0.5002498750625364
-       ]
+       "easing": "projective(0.66666666666666663)"
       },
       {
        "name": null,
@@ -2466,12 +1418,7 @@
        "to_value": 1.40625,
        "from_value": 0.9375,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.2222963209958727,
-        0.6666666666666666,
-        0.5002498750625679
-       ]
+       "easing": "projective(0.66666666666666663)"
       },
       {
        "name": null,
@@ -2489,12 +1436,7 @@
        "to_value": 1.40625,
        "from_value": 0.9375,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.2222963209958727,
-        0.6666666666666666,
-        0.5002498750625679
-       ]
+       "easing": "projective(0.66666666666666663)"
       },
       {
        "name": null,
@@ -2512,12 +1454,7 @@
        "to_value": 18.94736842105263,
        "from_value": 13.333333333333334,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.2346374234339977,
-        0.6666666666666666,
-        0.5265151515153488
-       ]
+       "easing": "projective(0.70370370370370372)"
       },
       {
        "name": null,
@@ -2535,12 +1472,7 @@
        "to_value": 15.789473684210526,
        "from_value": 11.11111111111111,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.2346374234341031,
-        0.6666666666666666,
-        0.5265151515152646
-       ]
+       "easing": "projective(0.70370370370370372)"
       },
       {
        "name": null,
@@ -2558,12 +1490,7 @@
        "to_value": 1.1842105263157894,
        "from_value": 0.8333333333333334,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.2346374234339977,
-        0.6666666666666666,
-        0.5265151515153488
-       ]
+       "easing": "projective(0.70370370370370372)"
       },
       {
        "name": null,
@@ -2581,12 +1508,7 @@
        "to_value": 1.1842105263157894,
        "from_value": 0.8333333333333334,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.2346374234339977,
-        0.6666666666666666,
-        0.5265151515153488
-       ]
+       "easing": "projective(0.70370370370370372)"
       },
       {
        "name": null,
@@ -2604,12 +1526,7 @@
        "to_value": 16.363636363636363,
        "from_value": 12.0,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.24450964701698089,
-        0.6666666666666666,
-        0.5456197746273523
-       ]
+       "easing": "projective(0.73333333333333328)"
       },
       {
        "name": null,
@@ -2627,12 +1544,7 @@
        "to_value": 13.636363636363637,
        "from_value": 10.0,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.24450964701689945,
-        0.6666666666666666,
-        0.5456197746274067
-       ]
+       "easing": "projective(0.73333333333333328)"
       },
       {
        "name": null,
@@ -2650,12 +1562,7 @@
        "to_value": 1.0227272727272727,
        "from_value": 0.75,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.24450964701698089,
-        0.6666666666666666,
-        0.5456197746273523
-       ]
+       "easing": "projective(0.73333333333333328)"
       },
       {
        "name": null,
@@ -2673,12 +1580,7 @@
        "to_value": 1.0227272727272727,
        "from_value": 0.75,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.24450964701698089,
-        0.6666666666666666,
-        0.5456197746273523
-       ]
+       "easing": "projective(0.73333333333333328)"
       }
      ],
      "dialogue": [],
@@ -2915,12 +1817,7 @@
        "to_value": 21.176470588235293,
        "from_value": 14.4,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.22673922321802073,
-        0.6666666666666666,
-        0.5100344935716545
-       ]
+       "easing": "projective(0.68000000000000005)"
       },
       {
        "name": null,
@@ -2938,12 +1835,7 @@
        "to_value": 17.647058823529413,
        "from_value": 12.0,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.2267392232180556,
-        0.6666666666666666,
-        0.5100344935717247
-       ]
+       "easing": "projective(0.68000000000000005)"
       },
       {
        "name": null,
@@ -2961,12 +1853,7 @@
        "to_value": 1.3235294117647058,
        "from_value": 0.9,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.22673922321802073,
-        0.6666666666666666,
-        0.5100344935716545
-       ]
+       "easing": "projective(0.68000000000000005)"
       },
       {
        "name": null,
@@ -2984,12 +1871,7 @@
        "to_value": 1.3235294117647058,
        "from_value": 0.9,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.22673922321802073,
-        0.6666666666666666,
-        0.5100344935716545
-       ]
+       "easing": "projective(0.68000000000000005)"
       },
       {
        "name": null,
@@ -3007,12 +1889,7 @@
        "to_value": 18.0,
        "from_value": 12.857142857142858,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.23816328474798765,
-        0.6666666666666666,
-        0.5335199253632612
-       ]
+       "easing": "projective(0.7142857142857143)"
       },
       {
        "name": null,
@@ -3030,12 +1907,7 @@
        "to_value": 15.0,
        "from_value": 10.714285714285714,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.2381632847481027,
-        0.6666666666666666,
-        0.5335199253632614
-       ]
+       "easing": "projective(0.7142857142857143)"
       },
       {
        "name": null,
@@ -3053,12 +1925,7 @@
        "to_value": 1.125,
        "from_value": 0.8035714285714286,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.23816328474798765,
-        0.6666666666666666,
-        0.5335199253632612
-       ]
+       "easing": "projective(0.7142857142857143)"
       },
       {
        "name": null,
@@ -3076,12 +1943,7 @@
        "to_value": 1.125,
        "from_value": 0.8035714285714286,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.23816328474798765,
-        0.6666666666666666,
-        0.5335199253632612
-       ]
+       "easing": "projective(0.7142857142857143)"
       },
       {
        "name": null,
@@ -3108,12 +1970,7 @@
          "to_value": 15.652173913043478,
          "from_value": 12.0,
          "duration": 1.75,
-         "easing": [
-          0.3333333333333333,
-          0.2556151991018726,
-          0.6666666666666666,
-          0.5653496761856804
-         ]
+         "easing": "projective(0.76666666666666672)"
         }
        ]
       },
@@ -3142,12 +1999,7 @@
          "to_value": 13.043478260869565,
          "from_value": 10.0,
          "duration": 1.75,
-         "easing": [
-          0.3333333333333333,
-          0.25561519910196995,
-          0.6666666666666666,
-          0.565349676185648
-         ]
+         "easing": "projective(0.76666666666666672)"
         }
        ]
       },
@@ -3176,12 +2028,7 @@
          "to_value": 0.9782608695652174,
          "from_value": 0.75,
          "duration": 1.75,
-         "easing": [
-          0.3333333333333333,
-          0.2556151991018726,
-          0.6666666666666666,
-          0.5653496761856804
-         ]
+         "easing": "projective(0.76666666666666672)"
         }
        ]
       },
@@ -3210,12 +2057,7 @@
          "to_value": 0.9782608695652174,
          "from_value": 0.75,
          "duration": 1.75,
-         "easing": [
-          0.3333333333333333,
-          0.2556151991018726,
-          0.6666666666666666,
-          0.5653496761856804
-         ]
+         "easing": "projective(0.76666666666666672)"
         }
        ]
       },
@@ -3260,12 +2102,7 @@
          "to_value": 13.846153846153847,
          "from_value": 12.0,
          "duration": 1.0,
-         "easing": [
-          0.3333333333333333,
-          0.2889274125438637,
-          0.6666666666666666,
-          0.6154437778803143
-         ]
+         "easing": "projective(0.8666666666666667)"
         }
        ]
       },
@@ -3294,12 +2131,7 @@
          "to_value": 11.538461538461538,
          "from_value": 10.0,
          "duration": 1.0,
-         "easing": [
-          0.3333333333333333,
-          0.28892741254367144,
-          0.6666666666666666,
-          0.6154437778803785
-         ]
+         "easing": "projective(0.8666666666666667)"
         }
        ]
       },
@@ -3328,12 +2160,7 @@
          "to_value": 0.8653846153846154,
          "from_value": 0.75,
          "duration": 1.0,
-         "easing": [
-          0.3333333333333333,
-          0.2889274125438637,
-          0.6666666666666666,
-          0.6154437778803143
-         ]
+         "easing": "projective(0.8666666666666667)"
         }
        ]
       },
@@ -3362,12 +2189,7 @@
          "to_value": 0.8653846153846154,
          "from_value": 0.75,
          "duration": 1.0,
-         "easing": [
-          0.3333333333333333,
-          0.2889274125438637,
-          0.6666666666666666,
-          0.6154437778803143
-         ]
+         "easing": "projective(0.8666666666666667)"
         }
        ]
       },
@@ -3400,67 +2222,10 @@
        "kind": "tween",
        "target": "pole_4",
        "property": "x",
-       "to_value": 130.9090909090909,
+       "to_value": 240.0,
        "from_value": 90.0,
-       "duration": 0.3125,
-       "easing": [
-        0.3333333333333333,
-        0.22923830363662615,
-        0.6666666666666666,
-        0.5153718006964414
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 0.3125
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_4",
-         "property": "x",
-         "to_value": 169.41176470588235,
-         "from_value": 130.9090909090909,
-         "duration": 0.15625,
-         "easing": [
-          0.3333333333333333,
-          0.2576343108279862,
-          0.6666666666666666,
-          0.568754287954859
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 0.46875
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_4",
-         "property": "x",
-         "to_value": 240.0,
-         "from_value": 169.41176470588235,
-         "duration": 0.15625,
-         "easing": [
-          0.3333333333333333,
-          0.2353633421592368,
-          0.6666666666666666,
-          0.5279744550885443
-         ]
-        }
-       ]
+       "duration": 0.625,
+       "easing": "projective(0.375)"
       },
       {
        "name": null,
@@ -3475,67 +2240,10 @@
        "kind": "tween",
        "target": "pole_4",
        "property": "y",
-       "to_value": 109.0909090909091,
+       "to_value": 200.0,
        "from_value": 75.0,
-       "duration": 0.3125,
-       "easing": [
-        0.3333333333333333,
-        0.22923830363667244,
-        0.6666666666666666,
-        0.5153718006963952
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 0.3125
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_4",
-         "property": "y",
-         "to_value": 141.1764705882353,
-         "from_value": 109.0909090909091,
-         "duration": 0.15625,
-         "easing": [
-          0.3333333333333333,
-          0.25763431082798616,
-          0.6666666666666666,
-          0.5687542879547607
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 0.46875
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_4",
-         "property": "y",
-         "to_value": 200.0,
-         "from_value": 141.1764705882353,
-         "duration": 0.15625,
-         "easing": [
-          0.3333333333333333,
-          0.23536334215923682,
-          0.6666666666666666,
-          0.5279744550885443
-         ]
-        }
-       ]
+       "duration": 0.625,
+       "easing": "projective(0.375)"
       },
       {
        "name": null,
@@ -3550,67 +2258,10 @@
        "kind": "tween",
        "target": "pole_4",
        "property": "scale_x",
-       "to_value": 8.181818181818182,
+       "to_value": 15.0,
        "from_value": 5.625,
-       "duration": 0.3125,
-       "easing": [
-        0.3333333333333333,
-        0.22923830363662615,
-        0.6666666666666666,
-        0.5153718006964414
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 0.3125
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_4",
-         "property": "scale_x",
-         "to_value": 10.588235294117647,
-         "from_value": 8.181818181818182,
-         "duration": 0.15625,
-         "easing": [
-          0.3333333333333333,
-          0.2576343108279862,
-          0.6666666666666666,
-          0.568754287954859
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 0.46875
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_4",
-         "property": "scale_x",
-         "to_value": 15.0,
-         "from_value": 10.588235294117647,
-         "duration": 0.15625,
-         "easing": [
-          0.3333333333333333,
-          0.2353633421592368,
-          0.6666666666666666,
-          0.5279744550885443
-         ]
-        }
-       ]
+       "duration": 0.625,
+       "easing": "projective(0.375)"
       },
       {
        "name": null,
@@ -3625,67 +2276,10 @@
        "kind": "tween",
        "target": "pole_4",
        "property": "scale_y",
-       "to_value": 8.181818181818182,
+       "to_value": 15.0,
        "from_value": 5.625,
-       "duration": 0.3125,
-       "easing": [
-        0.3333333333333333,
-        0.22923830363662615,
-        0.6666666666666666,
-        0.5153718006964414
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 0.3125
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_4",
-         "property": "scale_y",
-         "to_value": 10.588235294117647,
-         "from_value": 8.181818181818182,
-         "duration": 0.15625,
-         "easing": [
-          0.3333333333333333,
-          0.2576343108279862,
-          0.6666666666666666,
-          0.568754287954859
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 0.46875
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_4",
-         "property": "scale_y",
-         "to_value": 15.0,
-         "from_value": 10.588235294117647,
-         "duration": 0.15625,
-         "easing": [
-          0.3333333333333333,
-          0.2353633421592368,
-          0.6666666666666666,
-          0.5279744550885443
-         ]
-        }
-       ]
+       "duration": 0.625,
+       "easing": "projective(0.375)"
       },
       {
        "name": null,
@@ -3720,12 +2314,7 @@
          "to_value": 12.413793103448276,
          "from_value": 12.0,
          "duration": 0.25,
-         "easing": [
-          0.3333333333333333,
-          0.3222329633208393,
-          0.6666666666666666,
-          0.6551843039890428
-         ]
+         "easing": "projective(0.96666666666666667)"
         }
        ]
       },
@@ -3754,12 +2343,7 @@
          "to_value": 10.344827586206897,
          "from_value": 10.0,
          "duration": 0.25,
-         "easing": [
-          0.3333333333333333,
-          0.3222329633214114,
-          0.6666666666666666,
-          0.655184303988757
-         ]
+         "easing": "projective(0.96666666666666667)"
         }
        ]
       },
@@ -3788,12 +2372,7 @@
          "to_value": 0.7758620689655172,
          "from_value": 0.75,
          "duration": 0.25,
-         "easing": [
-          0.3333333333333333,
-          0.3222329633208393,
-          0.6666666666666666,
-          0.6551843039890428
-         ]
+         "easing": "projective(0.96666666666666667)"
         }
        ]
       },
@@ -3822,12 +2401,7 @@
          "to_value": 0.7758620689655172,
          "from_value": 0.75,
          "duration": 0.25,
-         "easing": [
-          0.3333333333333333,
-          0.3222329633208393,
-          0.6666666666666666,
-          0.6551843039890428
-         ]
+         "easing": "projective(0.96666666666666667)"
         }
        ]
       },
@@ -3852,93 +2426,10 @@
        "kind": "tween",
        "target": "pole_5",
        "property": "x",
-       "to_value": 84.70588235294117,
+       "to_value": 240.0,
        "from_value": 51.42857142857143,
-       "duration": 0.6875,
-       "easing": [
-        0.3333333333333333,
-        0.20246049043080347,
-        0.6666666666666666,
-        0.4513354104209325
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 0.6875
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_5",
-         "property": "x",
-         "to_value": 125.21739130434783,
-         "from_value": 84.70588235294117,
-         "duration": 0.34375,
-         "easing": [
-          0.3333333333333333,
-          0.22556317239887,
-          0.6666666666666666,
-          0.5074819289327461
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.03125
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_5",
-         "property": "x",
-         "to_value": 164.57142857142858,
-         "from_value": 125.21739130434783,
-         "duration": 0.171875,
-         "easing": [
-          0.3333333333333333,
-          0.25368385193551407,
-          0.6666666666666666,
-          0.5620424057201792
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.203125
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_5",
-         "property": "x",
-         "to_value": 240.0,
-         "from_value": 164.57142857142858,
-         "duration": 0.171875,
-         "easing": [
-          0.3333333333333333,
-          0.228643287890281,
-          0.6666666666666666,
-          0.514111587744674
-         ]
-        }
-       ]
+       "duration": 1.375,
+       "easing": "projective(0.21428571428571427)"
       },
       {
        "name": null,
@@ -3953,93 +2444,10 @@
        "kind": "tween",
        "target": "pole_5",
        "property": "y",
-       "to_value": 70.58823529411765,
+       "to_value": 200.0,
        "from_value": 42.857142857142854,
-       "duration": 0.6875,
-       "easing": [
-        0.3333333333333333,
-        0.20246049043088876,
-        0.6666666666666666,
-        0.4513354104207904
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 0.6875
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_5",
-         "property": "y",
-         "to_value": 104.34782608695652,
-         "from_value": 70.58823529411765,
-         "duration": 0.34375,
-         "easing": [
-          0.3333333333333333,
-          0.2255631723987532,
-          0.6666666666666666,
-          0.5074819289328394
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.03125
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_5",
-         "property": "y",
-         "to_value": 137.14285714285714,
-         "from_value": 104.34782608695652,
-         "duration": 0.171875,
-         "easing": [
-          0.3333333333333333,
-          0.25368385193561044,
-          0.6666666666666666,
-          0.5620424057202755
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.203125
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_5",
-         "property": "y",
-         "to_value": 200.0,
-         "from_value": 137.14285714285714,
-         "duration": 0.171875,
-         "easing": [
-          0.3333333333333333,
-          0.22864328789040658,
-          0.6666666666666666,
-          0.5141115877446742
-         ]
-        }
-       ]
+       "duration": 1.375,
+       "easing": "projective(0.21428571428571427)"
       },
       {
        "name": null,
@@ -4054,93 +2462,10 @@
        "kind": "tween",
        "target": "pole_5",
        "property": "scale_x",
-       "to_value": 5.294117647058823,
+       "to_value": 15.0,
        "from_value": 3.2142857142857144,
-       "duration": 0.6875,
-       "easing": [
-        0.3333333333333333,
-        0.20246049043080347,
-        0.6666666666666666,
-        0.4513354104209325
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 0.6875
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_5",
-         "property": "scale_x",
-         "to_value": 7.826086956521739,
-         "from_value": 5.294117647058823,
-         "duration": 0.34375,
-         "easing": [
-          0.3333333333333333,
-          0.22556317239887,
-          0.6666666666666666,
-          0.5074819289327461
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.03125
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_5",
-         "property": "scale_x",
-         "to_value": 10.285714285714286,
-         "from_value": 7.826086956521739,
-         "duration": 0.171875,
-         "easing": [
-          0.3333333333333333,
-          0.25368385193551407,
-          0.6666666666666666,
-          0.5620424057201792
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.203125
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_5",
-         "property": "scale_x",
-         "to_value": 15.0,
-         "from_value": 10.285714285714286,
-         "duration": 0.171875,
-         "easing": [
-          0.3333333333333333,
-          0.228643287890281,
-          0.6666666666666666,
-          0.514111587744674
-         ]
-        }
-       ]
+       "duration": 1.375,
+       "easing": "projective(0.21428571428571427)"
       },
       {
        "name": null,
@@ -4155,93 +2480,10 @@
        "kind": "tween",
        "target": "pole_5",
        "property": "scale_y",
-       "to_value": 5.294117647058823,
+       "to_value": 15.0,
        "from_value": 3.2142857142857144,
-       "duration": 0.6875,
-       "easing": [
-        0.3333333333333333,
-        0.20246049043080347,
-        0.6666666666666666,
-        0.4513354104209325
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 0.6875
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_5",
-         "property": "scale_y",
-         "to_value": 7.826086956521739,
-         "from_value": 5.294117647058823,
-         "duration": 0.34375,
-         "easing": [
-          0.3333333333333333,
-          0.22556317239887,
-          0.6666666666666666,
-          0.5074819289327461
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.03125
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_5",
-         "property": "scale_y",
-         "to_value": 10.285714285714286,
-         "from_value": 7.826086956521739,
-         "duration": 0.171875,
-         "easing": [
-          0.3333333333333333,
-          0.25368385193551407,
-          0.6666666666666666,
-          0.5620424057201792
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.203125
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_5",
-         "property": "scale_y",
-         "to_value": 15.0,
-         "from_value": 10.285714285714286,
-         "duration": 0.171875,
-         "easing": [
-          0.3333333333333333,
-          0.228643287890281,
-          0.6666666666666666,
-          0.514111587744674
-         ]
-        }
-       ]
+       "duration": 1.375,
+       "easing": "projective(0.21428571428571427)"
       },
       {
        "name": null,
@@ -4264,93 +2506,10 @@
        "kind": "tween",
        "target": "pole_6",
        "property": "x",
-       "to_value": 60.0,
+       "to_value": 180.0,
        "from_value": 36.0,
-       "duration": 1.0,
-       "easing": [
-        0.3333333333333333,
-        0.20008003201274802,
-        0.6666666666666666,
-        0.4448145680657881
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.0
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_6",
-         "property": "x",
-         "to_value": 90.0,
-         "from_value": 60.0,
-         "duration": 0.5,
-         "easing": [
-          0.3333333333333333,
-          0.22229632099579374,
-          0.6666666666666666,
-          0.5002498750627258
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.5
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_6",
-         "property": "x",
-         "to_value": 120.0,
-         "from_value": 90.0,
-         "duration": 0.25,
-         "easing": [
-          0.3333333333333333,
-          0.2500625156291865,
-          0.6666666666666666,
-          0.5557036543369616
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.75
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_6",
-         "property": "x",
-         "to_value": 180.0,
-         "from_value": 120.0,
-         "duration": 0.25,
-         "easing": [
-          0.3333333333333333,
-          0.22229632099618848,
-          0.6666666666666666,
-          0.5002498750619364
-         ]
-        }
-       ]
+       "duration": 2.0,
+       "easing": "projective(0.20000000000000001)"
       },
       {
        "name": null,
@@ -4365,93 +2524,10 @@
        "kind": "tween",
        "target": "pole_6",
        "property": "y",
-       "to_value": 50.0,
+       "to_value": 150.0,
        "from_value": 30.0,
-       "duration": 1.0,
-       "easing": [
-        0.3333333333333333,
-        0.20008003201278748,
-        0.6666666666666666,
-        0.44481456806582764
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.0
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_6",
-         "property": "y",
-         "to_value": 75.0,
-         "from_value": 50.0,
-         "duration": 0.5,
-         "easing": [
-          0.3333333333333333,
-          0.22229632099576216,
-          0.6666666666666666,
-          0.5002498750627258
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.5
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_6",
-         "property": "y",
-         "to_value": 100.0,
-         "from_value": 75.0,
-         "duration": 0.25,
-         "easing": [
-          0.3333333333333333,
-          0.2500625156291865,
-          0.6666666666666666,
-          0.5557036543368667
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.75
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_6",
-         "property": "y",
-         "to_value": 150.0,
-         "from_value": 100.0,
-         "duration": 0.25,
-         "easing": [
-          0.3333333333333333,
-          0.22229632099614113,
-          0.6666666666666666,
-          0.5002498750617785
-         ]
-        }
-       ]
+       "duration": 2.0,
+       "easing": "projective(0.20000000000000001)"
       },
       {
        "name": null,
@@ -4466,93 +2542,10 @@
        "kind": "tween",
        "target": "pole_6",
        "property": "scale_x",
-       "to_value": 3.75,
+       "to_value": 11.25,
        "from_value": 2.25,
-       "duration": 1.0,
-       "easing": [
-        0.3333333333333333,
-        0.20008003201274802,
-        0.6666666666666666,
-        0.4448145680657881
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.0
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_6",
-         "property": "scale_x",
-         "to_value": 5.625,
-         "from_value": 3.75,
-         "duration": 0.5,
-         "easing": [
-          0.3333333333333333,
-          0.22229632099579374,
-          0.6666666666666666,
-          0.5002498750627258
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.5
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_6",
-         "property": "scale_x",
-         "to_value": 7.5,
-         "from_value": 5.625,
-         "duration": 0.25,
-         "easing": [
-          0.3333333333333333,
-          0.2500625156291865,
-          0.6666666666666666,
-          0.5557036543369616
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.75
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_6",
-         "property": "scale_x",
-         "to_value": 11.25,
-         "from_value": 7.5,
-         "duration": 0.25,
-         "easing": [
-          0.3333333333333333,
-          0.22229632099618848,
-          0.6666666666666666,
-          0.5002498750619364
-         ]
-        }
-       ]
+       "duration": 2.0,
+       "easing": "projective(0.20000000000000001)"
       },
       {
        "name": null,
@@ -4567,93 +2560,10 @@
        "kind": "tween",
        "target": "pole_6",
        "property": "scale_y",
-       "to_value": 3.75,
+       "to_value": 11.25,
        "from_value": 2.25,
-       "duration": 1.0,
-       "easing": [
-        0.3333333333333333,
-        0.20008003201274802,
-        0.6666666666666666,
-        0.4448145680657881
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.0
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_6",
-         "property": "scale_y",
-         "to_value": 5.625,
-         "from_value": 3.75,
-         "duration": 0.5,
-         "easing": [
-          0.3333333333333333,
-          0.22229632099579374,
-          0.6666666666666666,
-          0.5002498750627258
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.5
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_6",
-         "property": "scale_y",
-         "to_value": 7.5,
-         "from_value": 5.625,
-         "duration": 0.25,
-         "easing": [
-          0.3333333333333333,
-          0.2500625156291865,
-          0.6666666666666666,
-          0.5557036543369616
-         ]
-        }
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.75
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_6",
-         "property": "scale_y",
-         "to_value": 11.25,
-         "from_value": 7.5,
-         "duration": 0.25,
-         "easing": [
-          0.3333333333333333,
-          0.22229632099618848,
-          0.6666666666666666,
-          0.5002498750619364
-         ]
-        }
-       ]
+       "duration": 2.0,
+       "easing": "projective(0.20000000000000001)"
       },
       {
        "name": null,
@@ -4668,41 +2578,10 @@
        "kind": "tween",
        "target": "pole_7",
        "property": "x",
-       "to_value": 40.0,
+       "to_value": 72.0,
        "from_value": 27.692307692307693,
-       "duration": 1.0,
-       "easing": [
-        0.3333333333333333,
-        0.23084025854101708,
-        0.6666666666666666,
-        0.5187324152229102
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.0
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_7",
-         "property": "x",
-         "to_value": 72.0,
-         "from_value": 40.0,
-         "duration": 1.0,
-         "easing": [
-          0.3333333333333333,
-          0.18526752630794915,
-          0.6666666666666666,
-          0.4004796163070322
-         ]
-        }
-       ]
+       "duration": 2.0,
+       "easing": "projective(0.38461538461538464)"
       },
       {
        "name": null,
@@ -4717,41 +2596,10 @@
        "kind": "tween",
        "target": "pole_7",
        "property": "y",
-       "to_value": 33.333333333333336,
+       "to_value": 60.0,
        "from_value": 23.076923076923077,
-       "duration": 1.0,
-       "easing": [
-        0.3333333333333333,
-        0.2308402585410362,
-        0.6666666666666666,
-        0.5187324152229105
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.0
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_7",
-         "property": "y",
-         "to_value": 60.0,
-         "from_value": 33.333333333333336,
-         "duration": 1.0,
-         "easing": [
-          0.3333333333333333,
-          0.18526752630796395,
-          0.6666666666666666,
-          0.40047961630700246
-         ]
-        }
-       ]
+       "duration": 2.0,
+       "easing": "projective(0.38461538461538464)"
       },
       {
        "name": null,
@@ -4766,41 +2614,10 @@
        "kind": "tween",
        "target": "pole_7",
        "property": "scale_x",
-       "to_value": 2.5,
+       "to_value": 4.5,
        "from_value": 1.7307692307692308,
-       "duration": 1.0,
-       "easing": [
-        0.3333333333333333,
-        0.23084025854101708,
-        0.6666666666666666,
-        0.5187324152229102
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.0
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_7",
-         "property": "scale_x",
-         "to_value": 4.5,
-         "from_value": 2.5,
-         "duration": 1.0,
-         "easing": [
-          0.3333333333333333,
-          0.18526752630794915,
-          0.6666666666666666,
-          0.4004796163070322
-         ]
-        }
-       ]
+       "duration": 2.0,
+       "easing": "projective(0.38461538461538464)"
       },
       {
        "name": null,
@@ -4815,41 +2632,10 @@
        "kind": "tween",
        "target": "pole_7",
        "property": "scale_y",
-       "to_value": 2.5,
+       "to_value": 4.5,
        "from_value": 1.7307692307692308,
-       "duration": 1.0,
-       "easing": [
-        0.3333333333333333,
-        0.23084025854101708,
-        0.6666666666666666,
-        0.5187324152229102
-       ]
-      },
-      {
-       "name": null,
-       "kind": "sequence",
-       "children": [
-        {
-         "name": null,
-         "kind": "delay",
-         "duration": 1.0
-        },
-        {
-         "name": null,
-         "kind": "tween",
-         "target": "pole_7",
-         "property": "scale_y",
-         "to_value": 4.5,
-         "from_value": 2.5,
-         "duration": 1.0,
-         "easing": [
-          0.3333333333333333,
-          0.18526752630794915,
-          0.6666666666666666,
-          0.4004796163070322
-         ]
-        }
-       ]
+       "duration": 2.0,
+       "easing": "projective(0.38461538461538464)"
       },
       {
        "name": null,
@@ -4867,12 +2653,7 @@
        "to_value": 45.0,
        "from_value": 22.5,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.1667500416874961,
-        0.6666666666666666,
-        0.3339993339994273
-       ]
+       "easing": "projective(0.5)"
       },
       {
        "name": null,
@@ -4890,12 +2671,7 @@
        "to_value": 37.5,
        "from_value": 18.75,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.16675004168746455,
-        0.6666666666666666,
-        0.33399933399944837
-       ]
+       "easing": "projective(0.5)"
       },
       {
        "name": null,
@@ -4913,12 +2689,7 @@
        "to_value": 2.8125,
        "from_value": 1.40625,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.1667500416874961,
-        0.6666666666666666,
-        0.3339993339994273
-       ]
+       "easing": "projective(0.5)"
       },
       {
        "name": null,
@@ -4936,12 +2707,7 @@
        "to_value": 2.8125,
        "from_value": 1.40625,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.1667500416874961,
-        0.6666666666666666,
-        0.3339993339994273
-       ]
+       "easing": "projective(0.5)"
       },
       {
        "name": null,
@@ -4959,12 +2725,7 @@
        "to_value": 32.72727272727273,
        "from_value": 18.94736842105263,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.19306374613873134,
-        0.6666666666666666,
-        0.4246608527132779
-       ]
+       "easing": "projective(0.57894736842105265)"
       },
       {
        "name": null,
@@ -4982,12 +2743,7 @@
        "to_value": 27.272727272727273,
        "from_value": 15.789473684210526,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.19306374613874852,
-        0.6666666666666666,
-        0.4246608527132435
-       ]
+       "easing": "projective(0.57894736842105265)"
       },
       {
        "name": null,
@@ -5005,12 +2761,7 @@
        "to_value": 2.0454545454545454,
        "from_value": 1.1842105263157894,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.19306374613873134,
-        0.6666666666666666,
-        0.4246608527132779
-       ]
+       "easing": "projective(0.57894736842105265)"
       },
       {
        "name": null,
@@ -5028,12 +2779,7 @@
        "to_value": 2.0454545454545454,
        "from_value": 1.1842105263157894,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.19306374613873134,
-        0.6666666666666666,
-        0.4246608527132779
-       ]
+       "easing": "projective(0.57894736842105265)"
       },
       {
        "name": null,
@@ -5051,12 +2797,7 @@
        "to_value": 25.714285714285715,
        "from_value": 16.363636363636363,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.21219837516666115,
-        0.6666666666666666,
-        0.47648962497624536
-       ]
+       "easing": "projective(0.63636363636363635)"
       },
       {
        "name": null,
@@ -5074,12 +2815,7 @@
        "to_value": 21.428571428571427,
        "from_value": 13.636363636363637,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.2121983751666612,
-        0.6666666666666666,
-        0.4764896249762959
-       ]
+       "easing": "projective(0.63636363636363635)"
       },
       {
        "name": null,
@@ -5097,12 +2833,7 @@
        "to_value": 1.6071428571428572,
        "from_value": 1.0227272727272727,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.21219837516666115,
-        0.6666666666666666,
-        0.47648962497624536
-       ]
+       "easing": "projective(0.63636363636363635)"
       },
       {
        "name": null,
@@ -5120,12 +2851,7 @@
        "to_value": 1.6071428571428572,
        "from_value": 1.0227272727272727,
        "duration": 2.0,
-       "easing": [
-        0.3333333333333333,
-        0.21219837516666115,
-        0.6666666666666666,
-        0.47648962497624536
-       ]
+       "easing": "projective(0.63636363636363635)"
       }
      ],
      "dialogue": [],
@@ -5363,12 +3089,7 @@
        "to_value": 291.6666666666667,
        "from_value": 1.83697019872103e-14,
        "duration": 0.2916666666666667,
-       "easing": [
-        0.3333333333333333,
-        0.3333333333333333,
-        0.6666666666666666,
-        0.666666666666645
-       ]
+       "easing": "linear"
       },
       {
        "name": null,
@@ -5427,12 +3148,7 @@
          "to_value": 291.6666666666668,
          "from_value": -291.6666666666667,
          "duration": 0.5833333333333335,
-         "easing": [
-          0.3333333333333333,
-          0.33333333333332243,
-          0.6666666666666666,
-          0.6666666666666126
-         ]
+         "easing": "linear"
         }
        ]
       },
@@ -5509,12 +3225,7 @@
          "to_value": 291.6666666666668,
          "from_value": -291.6666666666668,
          "duration": 0.5833333333333335,
-         "easing": [
-          0.3333333333333333,
-          0.33333333333338727,
-          0.6666666666666666,
-          0.6666666666666128
-         ]
+         "easing": "linear"
         }
        ]
       },
@@ -5591,12 +3302,7 @@
          "to_value": -249.99999999999997,
          "from_value": -291.6666666666668,
          "duration": 0.04166666666666674,
-         "easing": [
-          0.3333333333333333,
-          0.3333333333339384,
-          0.6666666666666666,
-          0.6666666666658343
-         ]
+         "easing": "linear"
         }
        ]
       },
@@ -5719,12 +3425,7 @@
        "to_value": 291.6666666666665,
        "from_value": -249.99999999999997,
        "duration": 0.5416666666666666,
-       "easing": [
-        0.3333333333333333,
-        0.33333333333346754,
-        0.6666666666666666,
-        0.6666666666667949
-       ]
+       "easing": "linear"
       },
       {
        "name": null,
@@ -5783,12 +3484,7 @@
          "to_value": 291.66666666666697,
          "from_value": -291.6666666666665,
          "duration": 0.5833333333333334,
-         "easing": [
-          0.3333333333333333,
-          0.33333333333322496,
-          0.6666666666666666,
-          0.6666666666665151
-         ]
+         "easing": "linear"
         }
        ]
       },
@@ -5865,12 +3561,7 @@
          "to_value": 250.0,
          "from_value": -291.66666666666697,
          "duration": 0.5416666666666667,
-         "easing": [
-          0.3333333333333333,
-          0.3333333333334847,
-          0.6666666666666666,
-          0.6666666666665677
-         ]
+         "easing": "linear"
         }
        ]
       },
