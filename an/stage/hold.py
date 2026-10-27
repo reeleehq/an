@@ -75,6 +75,7 @@ from dataclasses import dataclass, field
 from functools import lru_cache, partial
 from typing import Any
 
+from an.base import SWAY_OVERRIDE
 from an.ir.holds import GESTURE_KINDS, GROUND, HOLD_ACTION_KINDS, SURFACE
 from an.stage.compile import CutoutCompileError
 from an.stage.solve import (
@@ -1436,9 +1437,14 @@ def _rest_lin(
     current: Lin,
     rotation: float | None,
     rests: list[tuple[int, Lin]],
+    *,
+    lean: float = 0.0,
 ) -> Lin:
     """How an item lies when it comes to rest on the ground: at ``rotation`` if
-    given, else as it last lay, else its nearest quarter turn."""
+    given, else as it last lay, else its nearest quarter turn, taken from the
+    angle it was carried at less its holder's ``lean`` (a holder the world
+    leans with its frame tips what it carries; the floor does not lean,
+    an#659)."""
     sx0, sy0 = ctx.items[item].scale
     sign = -1.0 if current[1] < 0 else 1.0
     if rotation is not None:
@@ -1446,8 +1452,25 @@ def _rest_lin(
         return (float(rotation), last_sign * sx0, sy0)
     if rests:
         return rests[-1][1]
-    quarter = round(current[0] / (math.pi / 2.0)) * (math.pi / 2.0)
+    quarter = round((current[0] - lean) / (math.pi / 2.0)) * (math.pi / 2.0)
     return (quarter, sign * sx0, sy0)
+
+
+def _holder_lean(ctx: _Ctx, entity: str, k: int) -> float:
+    """The lean the world gives ``entity`` at frame ``k`` (its root's
+    ``rotation``, when the world marks it ``overrides.sway``, an#659), else 0."""
+    marked = any(
+        e.id == entity and (e.overrides or {}).get(SWAY_OVERRIDE)
+        for e in ctx.shot.entities
+    )
+    if not marked:
+        return 0.0
+    from an.stage.timeline import timeline_from_scene
+    from an.timing.timeline import evaluate_timeline
+
+    pose = evaluate_timeline(timeline_from_scene(ctx.doc), ctx.times[k])
+    value = pose.get((entity, "rotation"), 0.0)
+    return float(value) if isinstance(value, (int, float)) else 0.0
 
 
 def _socket_lin(ctx: _Ctx, run: Run, k: int, holder: Holder, item: str) -> Lin:
@@ -1635,14 +1658,29 @@ def _place_target(
             target,
             item,
             lambda tilt: _rest_lin(
-                ctx, item, _turned(carried, -tilt), g.rotation, rests
+                ctx,
+                item,
+                _turned(carried, -tilt),
+                g.rotation,
+                rests,
+                # the surface's own tilt is out already (_on_surface): a
+                # surface leaning with the holder takes its lean with it
+                lean=_holder_lean(ctx, g.hand.entity, g.kc)
+                - _holder_lean(ctx, ctx.puppet.bodies[target.body].entity, g.kc),
             ),
             below=_point_world(ctx.puppet, run, g.k0, g.hand),
             below_k=g.kc,
             about=g.point if g.point is not None else ctx.items[item].centre,
         )
         return lin, whole, None
-    lin = _rest_lin(ctx, item, carried, g.rotation, rests)
+    lin = _rest_lin(
+        ctx,
+        item,
+        carried,
+        g.rotation,
+        rests,
+        lean=_holder_lean(ctx, g.hand.entity, g.kc),
+    )
     ground = _ground_at(ctx, run, g.kc, g.hand.entity)
     if ground is None:
         return lin, None, None
@@ -1992,7 +2030,9 @@ def _fall(
             v0 = ((c0[0] - prev[0]) / dt, (c0[1] - prev[1]) / dt)
     gx, gy = ctx.gravity or (0.0, 0.0)
     ground = _ground_at(ctx, run, k, entity)
-    lin1 = _rest_lin(ctx, item, lin0, rotation, rests)
+    lin1 = _rest_lin(
+        ctx, item, lin0, rotation, rests, lean=_holder_lean(ctx, entity, k)
+    )
     if ground is None or gy <= 0:
         ctx.warnings.append(
             {

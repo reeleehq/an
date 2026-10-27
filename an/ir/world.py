@@ -46,7 +46,12 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Callable, Collection, Mapping, Sequence
 
-from an.base import PAINT_KEYS_OVERRIDE, PLANE_FACTORS_OVERRIDE, STREAM_OVERRIDE
+from an.base import (
+    PAINT_KEYS_OVERRIDE,
+    PLANE_FACTORS_OVERRIDE,
+    STREAM_OVERRIDE,
+    SWAY_OVERRIDE,
+)
 from an.ir.compose import (
     delay,
     flatten,
@@ -1353,6 +1358,13 @@ def _travel_entities(
 #: Where a stream slot's paint key's tiebreak starts (``(1.0, -depth, tie)``):
 #: past every listed entity's index and every added member's ``1000 + i``.
 SLOT_TIEBREAK: float = 10_000.0
+
+
+def _marked(entity: AssetRef, key: str, value: Any) -> AssetRef:
+    """``entity`` with the core's ``key`` set in its overrides."""
+    return entity.model_copy(
+        update={"overrides": {**(entity.overrides or {}), key: value}}
+    )
 
 
 def _is_slot(entity: AssetRef) -> bool:
@@ -2960,6 +2972,13 @@ def _lower_shot(
         for key, e, j in ordered
     ]
     ordered.sort(key=lambda item: item[0])
+    # Its rotation channel is the lean only where the shot animates no rotation
+    # of its own (sway_rotation warns where it does).
+    leaning = swayed.keys() - rotated
+    ordered = [  # what the world leans, said for the hold layer (an#659)
+        (key, _marked(e, SWAY_OVERRIDE, True) if e.id in leaning else e, j)
+        for key, e, j in ordered
+    ]
     ordered = _with_paint_keys(
         ordered,
         pass_keys,

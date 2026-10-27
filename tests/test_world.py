@@ -1257,7 +1257,12 @@ def test_a_stream_of_stroked_paths_compiles_with_its_slot_marker(tmp_path):
 
 
 def test_the_core_override_keys_are_the_owners_constants():
-    from an.base import CORE_OVERRIDE_KEYS, PAINT_KEYS_OVERRIDE, PLANE_FACTORS_OVERRIDE
+    from an.base import (
+        CORE_OVERRIDE_KEYS,
+        PAINT_KEYS_OVERRIDE,
+        PLANE_FACTORS_OVERRIDE,
+        SWAY_OVERRIDE,
+    )
     from an.ir.world import ATTACHED_OVERRIDE, STREAM_OVERRIDE
     from an.stage.hold import AIM_OVERRIDE, ON_OVERRIDE
 
@@ -1268,6 +1273,7 @@ def test_the_core_override_keys_are_the_owners_constants():
         AIM_OVERRIDE,
         PLANE_FACTORS_OVERRIDE,
         PAINT_KEYS_OVERRIDE,
+        SWAY_OVERRIDE,
     }
     assert owners == set(CORE_OVERRIDE_KEYS)
 
