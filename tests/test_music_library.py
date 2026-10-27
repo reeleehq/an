@@ -294,3 +294,13 @@ def test_the_command_writes_files_table_and_attribution_and_resumes(
     assert again.startswith("incompetech: 1 kept") and len(opened) == 1
     with pytest.raises(SystemExit, match="registered"):
         add_library("audionautix", titles_from=str(titles), out=str(out))
+
+    from an.cli_status import exit_code_of
+
+    def refuse(req, timeout=None):
+        raise OSError("HTTP Error 403: Forbidden")
+
+    monkeypatch.setattr(urllib.request, "urlopen", refuse)
+    titles.write_text(json.dumps(["Sneaky Snitch", "Gone"]), encoding="utf-8")
+    said = add_library("incompetech", titles_from=str(titles), out=str(out), pause=0.0)
+    assert exit_code_of(said) == 1 and "Gone: direct: HTTP Error 403" in said

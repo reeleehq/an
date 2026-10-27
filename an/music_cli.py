@@ -27,7 +27,8 @@ def add_library(
     sha256, licence, the URL the bytes came from and the library's page, the
     attribution, and any metadata the titles file gives) and `ATTRIBUTION.md`
     (the blocks to paste under a video) into OUT. A rerun keeps the files the
-    previous `tracks.csv` recorded, digest checked. A paid library (artlist,
+    previous `tracks.csv` recorded, digest checked, and exits 1 when a title
+    could not be fetched (the table still lists it, with why). A paid library (artlist,
     epidemic_sound) downloads nothing: its rows are a wishlist.
 
     library: a registered library (incompetech, artlist, epidemic_sound)
@@ -38,7 +39,9 @@ def add_library(
     from collections import Counter
     from pathlib import Path
 
+    from an.cli_status import failed
     from an.music_library import (
+        FAILED,
         MUSIC_LIBRARIES,
         MusicLibraryError,
         acquire,
@@ -77,15 +80,16 @@ def add_library(
     store[TRACKS_TABLE] = tracks_table(rows).encode("utf-8")
     store[ATTRIBUTION_FILE] = attribution_text(rows).encode("utf-8")
     counts = Counter(r.status for r in rows)
-    failed = [f"  {r.title}: {r.error}" for r in rows if r.error]
-    return "\n".join(
+    reasons = [f"  {r.title}: {r.error}" for r in rows if r.error]
+    report = "\n".join(
         [
             f"{library}: "
             + ", ".join(f"{n} {status}" for status, n in sorted(counts.items()))
             + f" -> {Path(out) / TRACKS_TABLE}",
-            *failed,
+            *reasons,
         ]
     )
+    return failed(report) if counts[FAILED] else report
 
 
 _dispatch_funcs = [add_library]
