@@ -1,1 +1,0 @@
-- The `an` skill's planes-of-movement reference is checked: each YAML example validates against the scene schema with no key the schema does not know (an#505).

@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-10-27
+- The `an` skill's planes-of-movement reference is checked: each YAML example validates against the scene schema with no key the schema does not know (an#505).
 - The solve gives up the first candidate (last declared first) whose loss at least halves a conflict's failure, so a rope held at both ends gives up its end, never a link (it came apart by hundreds of px); `SOLVER_VERSION` 3 (an#641). Re-gripping a far end over several frames is an#645.
 - Loudness and voice effects say a `mixing` too old for them one way (`an.audio.shared_mixing.mixing_too_old`: upgrade it); the "mixing not installed" machinery is gone, the `loudness` extra is an empty alias, and the render's voice-spread report now raises on a too-old `mixing` instead of skipping silently (an#621).
 - `projective(k)` easing (Python, `runtime.js`, the timing contract 1.17.0) and a travel's closed-form passes lowered to one exact tween per channel with it: a minute of road is about a third of the actions (an#629).
