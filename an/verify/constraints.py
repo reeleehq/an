@@ -86,7 +86,6 @@ from dataclasses import dataclass
 from typing import Any, Callable, Iterator, Mapping
 
 from an.base import STREAM_OVERRIDE, UNSEEN_ALPHA, Z_INDEX_PROPERTY
-from an.stage.tree import paint_places
 from an.genres.registry import (
     CORE_OWNER,
     CheckStage,
@@ -827,7 +826,7 @@ def solid_overlaps(
     through the pose and the camera at that instant).
     """
     from an.stage.timeline import entity_alpha, node_box, timeline_from_scene
-    from an.stage.tree import walk_document
+    from an.stage.tree import paint_places, walk_document
     from an.timing.timeline import evaluate_timeline
 
     solids = [e for e in entities if _is_solid(e)]
@@ -971,6 +970,8 @@ def painted_order(doc: Any, ids: Any) -> list[str]:
     >>> painted_order(doc, {"a", "b"})
     ['a', 'b']
     """
+    from an.stage.tree import paint_places
+
     places = paint_places(doc.scene)
     return sorted((n for n in places if n in ids), key=places.__getitem__)
 
