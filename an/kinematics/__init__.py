@@ -107,7 +107,7 @@ for.
 """
 
 from an.kinematics.bodies import WORLD, Body, Point, inertia, mass, point_world
-from an.kinematics.chains import reach, two_bone
+from an.kinematics.chains import arc_chain, reach, two_bone
 from an.kinematics.joints import (
     Contact,
     Distance,
@@ -151,6 +151,7 @@ __all__ = [
     "Force",
     "reach",
     "two_bone",
+    "arc_chain",
     "solve",
     "solve_frames",
     "resolve_rests",

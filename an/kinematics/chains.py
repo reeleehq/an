@@ -1,4 +1,5 @@
-"""Closed-form pieces for chains: the two-link reach and its reachable range.
+"""Closed-form pieces for chains: the two-link reach and its reachable range,
+and the arc a longer chain held at both ends sags on (:func:`arc_chain`).
 
 A two-link chain (an upper arm and a forearm, a thigh and a shin) with its
 root held and its tip asked for is the common case of every puppet, and it
