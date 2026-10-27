@@ -3,7 +3,7 @@
 The mall is the unit of persistence in an. Every long-lived state — assets
 (characters, props, environments, voices, styles, sounds, recordings), the scene file pair, intermediate
 artifacts (audio, viseme tracks, best-of-N take records, per-shot mp4s, the
-content-keyed shot cache),
+content-keyed shot cache, linked transcripts),
 final output and its caption sidecar, the agent's decision log, and the asset
 library's lockfile of pinned check-outs — is keyed inside a store. Stores are
 dol-backed so the same call
@@ -18,7 +18,7 @@ sites work against filesystem, SQLite, S3, etc.
 ...         'environments', 'library_lock', 'measurements', 'output',
 ...         'pictures', 'previews', 'props', 'recordings', 'render_reports', 'scenes',
 ...         'shot_cache', 'shots', 'sounds', 'sources', 'styles', 'takes',
-...         'visemes', 'voices',
+...         'transcripts', 'visemes', 'voices',
 ...     ]
 True
 """
@@ -48,6 +48,7 @@ from an.stores.sounds import SoundsStore
 from an.stores.styles import StylesStore
 from an.stores.voices import VoicesStore
 from an.build.shot_cache import shot_cache_store
+from an.stores.transcripts import transcripts_store
 from an.stores.artifacts import (
     AudioArtifactStore,
     CaptionsStore,
@@ -159,6 +160,9 @@ def build_project_mall(
         # The content-keyed shot cache (ADR 0004): a `lacing.ArtifactStore`,
         # `catalog/<key>.json` + `blobs/<sha256>`. `render_project` reads it.
         "shot_cache": shot_cache_store(pdir / "artifacts" / "shot_cache"),
+        # Transcripts an earlier step produced, named where a transcript file
+        # is (`artifact:transcripts/<key>`, an#493): a `lacing.ArtifactStore`.
+        "transcripts": transcripts_store(pdir / "artifacts" / "transcripts"),
         "previews": PreviewArtifactStore(pdir / "artifacts" / "previews"),
         # Contact sheets of opaque renders (a Manim shot's settled beats), keyed
         # by the PNG's sha256 so cached provenance keeps pointing at them.

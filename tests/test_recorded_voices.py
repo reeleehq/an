@@ -703,3 +703,58 @@ def test_the_default_transcriber_never_picks_a_remote_backend_silently(
     assert calls[-1]["backend"] == "faster-whisper"
     scribed_transcriber("elevenlabs")(tmp_path / "take.wav")  # named: allowed
     assert calls[-1]["backend"] == "elevenlabs"
+
+
+# --- a transcript that is a linked artifact in the project store (an#493) -------------
+
+
+def _recorded_transcript(root, key="take1"):
+    from an.stores.transcripts import TRANSCRIPTS_STORE, record_transcript
+
+    store = load(root).mall[TRANSCRIPTS_STORE]
+    return record_transcript(store, key, SRT, generated_by="processor:test.asr")
+
+
+@pytest.mark.parametrize("named", ["by reference", "as the artifact"])
+def test_a_transcript_artifact_in_the_store_times_the_take_and_its_provenance_names_it(
+    tmp_path, named
+):
+    root = _project(tmp_path)
+    artifact = _recorded_transcript(root)
+    transcript = "artifact:transcripts/take1" if named == "by reference" else artifact
+    report = import_recordings(
+        root, _take(tmp_path), transcript=transcript, license=LICENSE
+    )
+    assert [t.line for t in report.takes] == ["s1/0", "s1/1"]
+    expected = (
+        "transcripts/take1"
+        if named == "by reference"
+        else f"transcripts/{artifact.asset_id}"
+    )
+    for record in _records(root).values():
+        extra = record["source"]["extra"]
+        assert extra["transcript"] == "srt" and extra["transcript_artifact"] == expected
+
+
+def test_a_file_transcript_records_no_artifact(tmp_path):
+    root = _project(tmp_path)
+    import_recordings(root, _take(tmp_path), transcript=_srt(tmp_path), license=LICENSE)
+    assert all(
+        "transcript_artifact" not in r["source"]["extra"]
+        for r in _records(root).values()
+    )
+
+
+def test_a_transcript_artifact_that_is_not_there_is_refused_by_name(tmp_path):
+    root = _project(tmp_path)
+    with pytest.raises(RecordedVoicesError, match="no transcript 'nope'"):
+        import_recordings(
+            root,
+            _take(tmp_path),
+            transcript="artifact:transcripts/nope",
+            license=LICENSE,
+        )
+    with pytest.raises(RecordedVoicesError, match="no 'elsewhere' store"):
+        import_recordings(
+            root, _take(tmp_path), transcript="artifact:elsewhere/x", license=LICENSE
+        )

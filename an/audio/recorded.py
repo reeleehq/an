@@ -65,7 +65,7 @@ import wave
 from collections.abc import Callable, Iterable, Mapping, MutableMapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, NamedTuple
 
 from an.audio.transcripts import (
     TranscriptSegment,
@@ -78,6 +78,12 @@ from an.audio.transcripts import (
     segment_lines,
 )
 from an.audio.tts import AudioClip, VoiceMeta
+from an.stores.transcripts import (
+    LinkedTranscript,
+    TranscriptLinkError,
+    is_artifact_ref,
+    linked_transcript,
+)
 from an.ir.assets import AssetSource
 from an.ir.sync import DEFAULT_SCENE_FILE
 
@@ -704,6 +710,8 @@ class _Take:
     transcript_kind: str
     #: silence heard between the previous take of the same file and this one
     gap_before: float | None = None
+    #: the linked transcript artifact it was cut by (``<store>/<key>``, an#493)
+    transcript_ref: str | None = None
     line: Any = None
     where: str = ""
     added: bool = False
@@ -742,8 +750,54 @@ def _scene_speakers(scene: Any) -> dict[str, str]:
     return names
 
 
-def _parse_transcript_file(item: str | Path) -> list[TranscriptSegment]:
+class _Given(NamedTuple):
+    """The transcript given for one take: its segments, its kind (``'srt'``,
+    ``'text'``, ...) and the artifact it was read from (``<store>/<key>``,
+    an#493), if it was."""
+
+    segments: list[TranscriptSegment]
+    kind: str
+    ref: str | None = None
+
+
+def _linked(transcript: Any, mall: Mapping[str, Any]) -> Any:
+    """``transcript`` with every artifact it names (``artifact:<store>/<key>``,
+    or a ``lacing.Artifact``; an#493) read out of ``mall`` into a
+    :class:`~an.stores.transcripts.LinkedTranscript`; anything else as given."""
+
+    def one(item: Any) -> Any:
+        if not is_artifact_ref(item):
+            return item
+        try:
+            return linked_transcript(item, mall)
+        except TranscriptLinkError as e:
+            raise RecordedVoicesError(str(e)) from None
+
+    if (
+        isinstance(transcript, str)
+        and is_artifact_ref(transcript)
+        and "," in transcript
+    ):
+        # the CLI's spelling of one artifact per take: `--transcript artifact:a,artifact:b`
+        return [one(part.strip()) for part in transcript.split(",") if part.strip()]
+    if (
+        transcript is None
+        or isinstance(transcript, (str, Path))
+        or is_artifact_ref(transcript)
+    ):
+        return one(transcript)
+    return [one(item) for item in transcript]
+
+
+def _parse_transcript_file(
+    item: str | Path | LinkedTranscript,
+) -> list[TranscriptSegment]:
     """:func:`parse_transcript`, with a refusal that names the file instead of a traceback."""
+    if isinstance(item, LinkedTranscript):
+        try:
+            return parse_transcript(item.text, fmt=item.fmt)
+        except ValueError as e:
+            raise RecordedVoicesError(f"{item.ref}: {e}") from e
     try:
         return parse_transcript(item)
     except (ValueError, OSError) as e:
@@ -753,16 +807,23 @@ def _parse_transcript_file(item: str | Path) -> list[TranscriptSegment]:
 
 
 def _transcripts_for(
-    paths: Sequence[Path], transcript: str | Path | Sequence[str | Path] | None
-) -> dict[Path, tuple[list[TranscriptSegment], str]]:
-    """``{audio path: (segments, kind)}`` from what ``transcript`` names: nothing;
-    a directory (paired by stem, every take must pair); one file or text per
-    audio file (same count); one file for one take; or one plain transcript
-    whose lines are the takes."""
+    paths: Sequence[Path],
+    transcript: str
+    | Path
+    | LinkedTranscript
+    | Sequence[str | Path | LinkedTranscript]
+    | None,
+) -> dict[Path, _Given]:
+    """``{audio path: given}`` from what ``transcript`` names: nothing;
+    a directory (paired by stem, every take must pair); one file, text or
+    linked artifact per audio file (same count); one for one take; or one
+    plain transcript whose lines are the takes."""
     if transcript is None or transcript == "":
         return {}
-    items: list[str | Path]
-    if isinstance(transcript, (str, Path)):
+    items: list[str | Path | LinkedTranscript]
+    if isinstance(transcript, LinkedTranscript):
+        items = [transcript]
+    elif isinstance(transcript, (str, Path)):
         p = Path(transcript) if len(str(transcript)) < 4096 else None
         if p is not None and p.is_dir():
             out = {}
@@ -777,7 +838,7 @@ def _transcripts_for(
                     None,
                 )
                 if match is not None:
-                    out[audio] = (
+                    out[audio] = _Given(
                         _parse_transcript_file(match),
                         match.suffix.lstrip(".").lower(),
                     )
@@ -804,15 +865,20 @@ def _transcripts_for(
     else:
         items = list(transcript)
 
-    def kind_of(item: str | Path) -> str:
+    def kind_of(item: str | Path | LinkedTranscript) -> str:
+        if isinstance(item, LinkedTranscript):
+            return item.fmt
         p = Path(item) if len(str(item)) < 4096 else None
         if p is not None and p.is_file():
             return p.suffix.lstrip(".").lower() or "text"
         return "text"
 
+    def ref_of(item: Any) -> str | None:
+        return item.ref if isinstance(item, LinkedTranscript) else None
+
     if len(items) == len(paths):
         return {
-            audio: (_parse_transcript_file(item), kind_of(item))
+            audio: _Given(_parse_transcript_file(item), kind_of(item), ref_of(item))
             for audio, item in zip(paths, items)
         }
     if len(items) != 1:
@@ -821,11 +887,11 @@ def _transcripts_for(
             "(a directory pairs them by stem), or one transcript for one take"
         )
     segments = _parse_transcript_file(items[0])
-    kind = kind_of(items[0])
+    kind, ref = kind_of(items[0]), ref_of(items[0])
     if len(paths) == 1:
-        return {paths[0]: (segments, kind)}
+        return {paths[0]: _Given(segments, kind, ref)}
     if all(not s.timed for s in segments) and len(segments) == len(paths):
-        return {audio: ([seg], kind) for audio, seg in zip(paths, segments)}
+        return {audio: _Given([seg], kind, ref) for audio, seg in zip(paths, segments)}
     raise RecordedVoicesError(
         f"one transcript ({len(segments)} line(s)) for {len(paths)} audio files: a plain "
         "transcript with one line per file pairs them in order; a timed transcript goes "
@@ -836,7 +902,7 @@ def _transcripts_for(
 def _timed_segments(
     path: Path,
     total: float,
-    given: tuple[list[TranscriptSegment], str] | None,
+    given: _Given | None,
     *,
     transcribe: Transcriber | None,
     make_transcriber: Callable[[], Transcriber],
@@ -853,7 +919,7 @@ def _timed_segments(
                 f"the transcriber found no speech with timings in {path.name}"
             )
         return timed, "asr"
-    segments, kind = given
+    segments, kind, _ref = given
     segments = [s for s in segments if s.text]
     if not segments:
         raise RecordedVoicesError(f"the transcript for {path.name} has no lines")
@@ -1249,7 +1315,7 @@ def import_recordings(
     scene, mall = proj.scene, proj.mall
     if RECORDINGS_STORE not in mall:
         raise RecordedVoicesError("this project's mall has no recordings store")
-    given = _transcripts_for(paths, transcript)
+    given = _transcripts_for(paths, _linked(transcript, mall))
     speaker_map = _parse_speakers(speakers)
     known = _scene_speakers(scene)
     make_transcriber = lambda: scribed_transcriber(transcriber, diarize=diarize)  # noqa: E731
@@ -1283,6 +1349,7 @@ def import_recordings(
                 words=rebase_words(segment.words, a),
                 speaker=None,
                 transcript_kind=kind,
+                transcript_ref=given[path].ref if path in given else None,
                 # The silence HEARD: from the previous speech's end to this cut's
                 # start (the cut keeps its pad, so the pause must not count it twice).
                 gap_before=(a - previous_end) if previous_end is not None else None,
@@ -1329,6 +1396,11 @@ def import_recordings(
                 "denoise": denoise,
                 "transcript": take.transcript_kind,
                 "line": take.where,
+                **(
+                    {"transcript_artifact": take.transcript_ref}
+                    if take.transcript_ref
+                    else {}
+                ),
             },
         )
         if write:
