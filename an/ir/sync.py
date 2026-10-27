@@ -42,6 +42,7 @@ from __future__ import annotations
 import json
 import os
 import re
+from fnmatch import fnmatchcase
 from dataclasses import dataclass
 import warnings
 from pathlib import Path
@@ -70,7 +71,7 @@ from an.genres.registry import (
     register_action_kind,
 )
 from an.ir.schema import AssetRef, Dialogue, Meta, SceneIR, Shot, World
-from an.util import _read_text, _write_json, _write_text
+from an.util import is_windows_reserved, _read_text, _write_json, _write_text
 
 
 #: Two files whose mtimes are closer than this are "the same age" to `sync`,
@@ -1306,8 +1307,29 @@ DEFAULT_OUTPUT_NAME: str = "main"
 PER_SCENE_SUBDIR: str = "scenes"
 
 #: What an output name may be: a file stem that cannot climb out of, or alias,
-#: the folder it names (``..``, ``.``, ``a/b``; an#554 review).
-_OUTPUT_NAME_RE = re.compile(r"[\w-][\w.-]*")
+#: the folder it names (``..``, ``.``, ``a/b``; an#554 review). It starts with a
+#: letter, digit or ``_`` (a leading ``-`` reads as a command-line flag) and does
+#: not end with ``.`` (Windows drops the dot, so ``a.`` and ``a`` collide).
+_OUTPUT_NAME_RE = re.compile(r"\w[\w.-]*(?<!\.)")
+
+#: Files that may be a scene before they have been read (no ``ir/<stem>.json``
+#: yet): a render of one would write its output name, so that name is taken.
+#: Only these claim a name unread; any other ``.md`` claims its own once a
+#: command has read it.
+SCENE_FILE_GLOB: str = "scene*.md"
+
+
+def _output_stem_problem(stem: str) -> str | None:
+    """Why ``stem`` cannot be an output name on every platform, or ``None``:
+    a Windows device name, a trailing dot (Windows drops it, so ``a.`` is ``a``)
+    or a leading dash (read as a command-line flag)."""
+    if is_windows_reserved(stem):
+        return "is a reserved device name on Windows"
+    if stem.endswith("."):
+        return "ends with '.', which Windows drops"
+    if stem.startswith("-"):
+        return "starts with '-', which reads as a command-line flag"
+    return None
 
 
 class SceneFileError(ValueError):
@@ -1376,7 +1398,12 @@ class SceneFile:
             # to another output's folder (`render_work/outputs/..` is main's).
             raise SceneFileError(
                 f"output name {output_name!r} must be a file stem (letters, digits, "
-                "'_', '-' and '.', not starting with '.'), not a path"
+                "'_', '-' and '.'; not starting with '.' or '-', not ending with "
+                "'.'), not a path"
+            )
+        if problem := _output_stem_problem(output_name):
+            raise SceneFileError(
+                f"output name {output_name!r} {problem}: pick another --output-name"
             )
         if not self.is_default and output_name.lower() == DEFAULT_OUTPUT_NAME:
             raise SceneFileError(
@@ -1384,7 +1411,7 @@ class SceneFile:
                 f"({DEFAULT_SCENE_FILE}) output; a render of {self.name} would "
                 "overwrite it: pick another --output-name"
             )
-        for other in project_scene_files(self.project_dir):
+        for other in project_scene_files(self.project_dir, unsynced=True):
             if other.name != self.name and (
                 other.output_name.lower() == output_name.lower()
             ):
@@ -1479,6 +1506,11 @@ def resolve_scene_file(
             f"the default scene's ({DEFAULT_SCENE_FILE}) output: rename the file "
             f"(for example scene.{stem}.md)"
         )
+    if not is_default and (problem := _output_stem_problem(stem)):
+        raise SceneFileError(
+            f"scene file {name!r} would render to output/{stem}.mp4, a name that "
+            f"{problem}: rename the file"
+        )
     md_path = pdir / name
     if must_exist and not is_default and not md_path.exists():
         raise SceneFileError(f"no scene file {name!r} in {pdir}")
@@ -1490,12 +1522,18 @@ def resolve_scene_file(
     )
 
 
-def project_scene_files(project_dir: str | Path) -> list[SceneFile]:
+def project_scene_files(
+    project_dir: str | Path, *, unsynced: bool = False
+) -> list[SceneFile]:
     """Every scene of the project at ``project_dir`` (an#554): the default
     ``scene.md`` first, when it or its JSON twin is there, then each other
     ``.md`` file directly in the project whose JSON twin ``ir/<stem>.json``
     exists (a scene a command has read: notes and READMEs have none), by name.
     What a project-wide command (``an cache gc``) must account for.
+
+    ``unsynced=True`` also lists the ``scene*.md`` files not read yet (no JSON
+    twin): a render of one would claim its output name, so the output-name
+    refusal counts them (an#574).
 
     >>> import tempfile
     >>> with tempfile.TemporaryDirectory() as d:
@@ -1503,8 +1541,11 @@ def project_scene_files(project_dir: str | Path) -> list[SceneFile]:
     ...     (p / "ir").mkdir()
     ...     for name in ("scene.md", "scene.b.md", "README.md", "ir/scene.json", "ir/scene.b.json"):
     ...         _ = (p / name).write_text("")
+    ...     _ = (p / "scene.c.md").write_text("")
     ...     [sf.name for sf in project_scene_files(p)]
+    ...     [sf.name for sf in project_scene_files(p, unsynced=True)]
     ['scene.md', 'scene.b.md']
+    ['scene.md', 'scene.b.md', 'scene.c.md']
     """
     pdir = Path(project_dir).expanduser()
     default = resolve_scene_file(pdir, must_exist=False)
@@ -1516,7 +1557,7 @@ def project_scene_files(project_dir: str | Path) -> list[SceneFile]:
             sf = resolve_scene_file(pdir, p.name)
         except SceneFileError:
             continue  # `Scene.md`, `main.md`, `.hidden.md`: not a scene a command reads
-        if sf.json_path.exists():
+        if sf.json_path.exists() or (unsynced and fnmatchcase(p.name, SCENE_FILE_GLOB)):
             out.append(sf)
     return out
 

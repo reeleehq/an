@@ -369,3 +369,38 @@ def test_gc_refuses_when_another_scene_cannot_be_read(tmp_path):
     os.utime(md, (later, later))
     with pytest.raises(CacheGcError, match="scene.studio.md"):
         other_scenes(root)
+
+
+def test_a_scene_not_yet_read_still_owns_its_output_name(tmp_path):
+    """an#574: scene.c.md with no ir/scene.c.json is still a scene a render may
+    be pointed at; another scene may not take `scene.c`. A notes file is not one."""
+    root = _two_scene_project(tmp_path)
+    (root / "scene.c.md").write_text(_STUDIO, encoding="utf-8")
+    assert not (root / "ir" / "scene.c.json").exists()
+    studio = resolve_scene_file(root, "scene.studio.md")
+    with pytest.raises(SceneFileError, match="other scene file"):
+        studio.output_for("scene.c")
+    (root / "notes.md").write_text("# notes\n", encoding="utf-8")
+    assert studio.output_for("notes") == "notes"
+
+
+@pytest.mark.parametrize(
+    "bad", ["a.", "-x", "con", "CON", "nul.v2", "com1", "com0", "lpt9.final", "a..", "-"]
+)
+def test_an_output_name_cannot_trail_a_dot_lead_a_dash_or_be_a_device(tmp_path, bad):
+    sf = resolve_scene_file(_two_scene_project(tmp_path), "scene.studio.md")
+    with pytest.raises(SceneFileError, match="file stem|reserved device"):
+        sf.output_for(bad)
+
+
+@pytest.mark.parametrize("good", ["a-b", "v1.2", "console", "com10", "_x", "9"])
+def test_ordinary_output_names_still_pass(tmp_path, good):
+    sf = resolve_scene_file(_two_scene_project(tmp_path), "scene.studio.md")
+    assert sf.output_for(good) == good
+
+
+@pytest.mark.parametrize("name", ["con.md", "-x.md", "scene..md", "COM0.md"])
+def test_a_scene_file_whose_stem_is_not_a_safe_output_name_is_refused(tmp_path, name):
+    """an#574 review: the default output comes from the file name, not only --output-name."""
+    with pytest.raises(SceneFileError, match="rename the file"):
+        resolve_scene_file(_two_scene_project(tmp_path), name, must_exist=False)
