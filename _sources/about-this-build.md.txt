@@ -5,7 +5,7 @@ orphan: true
 
 # About this build
 
-This documentation was built on **2026-10-27 20:18 UTC** from commit <a href="https://github.com/reeleehq/an/commit/f1145e1f8b30d82dd95c1bbebff497e06767d171"><code>f1145e1</code></a> on branch <code>main</code>, for **an 0.1.335** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-27 20:21 UTC** from commit <a href="https://github.com/reeleehq/an/commit/f1145e1f8b30d82dd95c1bbebff497e06767d171"><code>f1145e1</code></a> on branch <code>main</code>, for **an 0.1.335** (from <code>pyproject.toml</code>).
 
 :::{note}
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -26,9 +26,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 | | |
 |---|---|
 | Repository | <code>reeleehq/an</code> |
-| Run | <a href="https://github.com/reeleehq/an/actions/runs/40570155794">40570155794</a> |
+| Run | <a href="https://github.com/reeleehq/an/actions/runs/40570497834">40570497834</a> |
 | Ref | <code>refs/heads/main</code> |
-| Event commit | <code>1b13284a1e5f436a00a78fc41d561ddcd32b41a3</code> (in the history of the built commit) |
+| Event commit | <code>886c61d48f13f27ceaf983a037ac382ab5fb4be3</code> (in the history of the built commit) |
 
 ## Tools
 
