@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=7768b615"></script>
+    <script src="../../../_static/documentation_options.js?v=d310320c"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.320" />
+  <meta name="docsearch:version" content="0.1.321" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -3244,6 +3244,10 @@ window.runMermaid = runMermaid;</script>
         <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">iter_actions</span><span class="p">(</span><span class="n">top</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s2">"property"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"rotation"</span>
     <span class="p">}</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.hold</span><span class="w"> </span><span class="kn">import</span> <span class="n">hold_declarations</span>
+
+    <span class="c1"># The items the holds solver sets the rotation of (an#590): its own list.</span>
+    <span class="n">held</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">hold_declarations</span><span class="p">(</span><span class="n">shot</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">)</span> <span class="k">if</span> <span class="n">swayed</span> <span class="k">else</span> <span class="nb">set</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">mid</span><span class="p">,</span> <span class="n">lean</span> <span class="ow">in</span> <span class="n">swayed</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">actions</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">lean</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">mid</span> <span class="ow">in</span> <span class="n">rotated</span><span class="p">:</span>
@@ -3253,6 +3257,18 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">mid</span><span class="p">,</span>
                 <span class="s2">"its frame sways (it leans with the frame's acceleration) and the "</span>
                 <span class="s2">"shot also animates its `rotation`: the two fight. Drop one."</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">mid</span> <span class="ow">in</span> <span class="n">held</span><span class="p">:</span>
+            <span class="n">note</span><span class="p">(</span>
+                <span class="s2">"warning"</span><span class="p">,</span>
+                <span class="s2">"sway_rotation"</span><span class="p">,</span>
+                <span class="n">mid</span><span class="p">,</span>
+                <span class="s2">"its frame sways (it leans with the frame's acceleration), and the "</span>
+                <span class="s2">"holds solver also sets its `rotation` (it is grasped, placed or "</span>
+                <span class="s2">"`held_by` something): where the solve rests or carries it, the "</span>
+                <span class="s2">"solver's angle replaces the lean, and a rest taken while the "</span>
+                <span class="s2">"frame leans keeps that lean after it stops (an#590). Drop the "</span>
+                <span class="s2">"hold or `held_by`, or take it out of the swaying frame."</span><span class="p">,</span>
             <span class="p">)</span>
     <span class="k">for</span> <span class="n">member</span> <span class="ow">in</span> <span class="n">world</span><span class="o">.</span><span class="n">members</span><span class="p">:</span>
         <span class="k">if</span> <span class="p">(</span>
