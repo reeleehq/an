@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-10-27
+- A render, `an voices design`, `audition` and `reroll` warn once, before anything is billed, when the installed `mixing` lacks a part `an` uses or is absent (`MixingTooOldWarning`; the parts are imported, not a version compared, an#644).
 - An audition reel is written under the manifest lock, only while its option is still the same voice (a re-design in between leaves the newer reel alone, the late reel is neither kept nor reported, and the call warns, `VoiceDesignWarning`); `run_auditions(keep=)` replaces `on_reel`; the audition reels and `an.library.registry` write atomically through `dol.atomic_write` (an#649).
 - Paint order follow-ups (an#648): a pole passing a member at rest is painted over it from the instant it is nearer; an entity placed after a moving world entity rides its paint key; a held item follows a host that a `z_index` key moves; `paint_orders` reads each key once.
 - A swaying item `held_by` something as the shot opens is not given a lean (the solver rests it at its own angle): it no longer stays tipped after its frame stops; one grasped later leans until the grasp (an#651).
