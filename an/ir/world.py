@@ -755,6 +755,68 @@ def stream_slots(stream: Stream, travel: Travel) -> int:
     )
 
 
+#: Samples along the travel, each side of the camera, when measuring how much
+#: of a stream one viewpoint shows (:func:`_span_slots`).
+_SPAN_SAMPLES: int = 512
+
+
+def _span_slots(
+    stream: Stream,
+    travel: Travel,
+    ctx: "_FrameCtx",
+    frame: str,
+    *,
+    box: Box | None,
+    m: float,
+    width: float,
+    height: float,
+) -> int:
+    """How many slots a stream needs under THIS viewpoint (an#516, B3): the
+    stretch of the travel over which one instance is on screen (between
+    ``near`` and ``far`` and in the frame), at either extreme of its lane, as
+    the camera stands when the shot opens, over the stream's minimum
+    spacing, plus one. A wide lens or a yawed side window shows more of a row
+    than the depth range does; :func:`stream_slots` is the depth range's
+    count, and a stream takes the larger, so a view the depth range already
+    covers keeps its slots (and every lowering that worked lowers the same)."""
+    direction = _unit(tuple(map(float, travel.direction)))  # type: ignore[arg-type]
+    right_h = _unit((direction[2], 0.0, -direction[0]))
+    pitch, spread = _pitch(stream)
+    # A point in view is at most `far` deep and inside the frame's diagonal,
+    # so at most this far along the travel from the camera, lane and height
+    # included: a side window sees well past `far` along the row.
+    focal = ctx.projection.focal
+    lanes = _range(stream.lane)
+    reach = (
+        float(travel.far) * math.hypot(1.0, math.hypot(width, height) / (2.0 * focal))
+        + max(abs(lanes[0]), abs(lanes[1]))
+        + abs(float(stream.y))
+    )
+    eye = ctx.eye_at(0.0)
+    s_cam = _dot(ctx.pose(frame, 0.0).unapply(eye.at), direction)
+    seen: list[float] = []
+    for lane in lanes:
+        for i in range(-_SPAN_SAMPLES, _SPAN_SAMPLES + 1):
+            d = reach * i / _SPAN_SAMPLES
+            p = _add(
+                _add(_mul(direction, s_cam + d), _mul(right_h, lane)),
+                (0.0, float(stream.y), 0.0),
+            )
+            rx, ry, depth = ctx.view_fn(frame, lambda t, p=p: p)(0.0)
+            if not (travel.near <= depth <= travel.far):
+                continue
+            sx, sy = focal * rx / depth, focal * ry / depth
+            scale = m * focal / depth
+            if _in_frame(
+                (sx, sy), _screen_box((sx, sy), scale, box), width=width, height=height
+            ):
+                seen.append(d)
+    if not seen:
+        return 1
+    span = max(seen) - min(seen) + 2 * reach / _SPAN_SAMPLES  # a sample each side
+    return int(math.ceil(span / max(pitch - 2 * spread, 1e-9))) + 1
+
+
 def fit_channel(
     g: Callable[[float], float],
     a: float,
@@ -1093,7 +1155,12 @@ def _travel_entities(
                 s_cam.append(_dot(cam, direction))
             s_lo, s_hi = min(s_cam) - reach, max(s_cam) + reach
         ref_height = (box[3] - box[1]) if box is not None else 1.0
-        slots = stream_slots(stream, travel)
+        slots = max(
+            stream_slots(stream, travel),
+            _span_slots(
+                stream, travel, ctx, frame, box=box, m=m, width=width, height=height
+            ),
+        )
         passes: dict[int, list[tuple[int, _Pass, float]]] = {}
         for k, p in stream_instances(stream, travel, s_min=s_lo, s_max=s_hi):
             view = ctx.view_fn(frame, lambda t, p=p: p)
@@ -1174,9 +1241,9 @@ def _travel_entities(
                     raise WorldError(
                         f"stream {stream.id!r}: two instances are on screen at once "
                         f"in one slot ({entity_id}, {prev.t_out:.2f}s and {nxt.t_in:.2f}s) "
-                        "under this viewpoint; the travelling view's slots are sized by "
-                        "the depth range, which a wide lens or a yawed view exceeds. "
-                        "Narrow `fov`, bring `far` in, or space the stream out (`every`)."
+                        "under this viewpoint; the slots are sized by what the view shows "
+                        "as the shot opens, and a camera that turns during it can show "
+                        "more. Narrow `fov`, bring `far` in, or space the stream out (`every`)."
                     )
             first = ordered[0][1]
             entities.append(

@@ -1043,9 +1043,12 @@ def test_a_world_block_inside_a_shot_is_refused():
         markdown_to_ir(moved)
 
 
-def test_a_wide_lens_side_window_is_refused_rather_than_teleporting():
-    """Review B3: the slot count comes from the depth range; a wide lens on a side
-    window shows more of the row than that, and the lowering says so."""
+def test_a_wide_lens_side_window_gets_the_slots_its_view_needs():
+    """Review B3 (an#516): a wide lens on a side window shows more of the row
+    than the depth range; the slots are sized from the on-screen span, so it
+    lowers (the lowering still asserts no slot holds two passes at once)."""
+    from an.ir.world import stream_slots
+
     scene = _travel_scene(Shot(id="s1", duration=6.0, viewpoint="road"), yaw=90.0)
     scene.world.viewpoints["road"] = Viewpoint(
         at=(0.0, -1.0, 0.0), look=(90.0, 0.0, 0.0), fov=120.0
@@ -1058,8 +1061,10 @@ def test_a_wide_lens_side_window_is_refused_rather_than_teleporting():
             ],
         }
     )
-    with pytest.raises(WorldError, match="on screen at once"):
-        lower_world(scene, extents=EXTENTS)
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    slots = {e.id for e in shot.entities if e.id.startswith("pole_")}
+    depth_count = stream_slots(scene.world.travel.streams[0], scene.world.travel)
+    assert len(slots) > depth_count, (len(slots), depth_count)
 
 
 # --- ground-plane perspective on hand placements (catalogue A6) ----------------
