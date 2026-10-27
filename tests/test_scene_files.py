@@ -8,6 +8,7 @@ project reaches.
 
 from __future__ import annotations
 
+import json
 import os
 import time
 from pathlib import Path
@@ -404,3 +405,94 @@ def test_a_scene_file_whose_stem_is_not_a_safe_output_name_is_refused(tmp_path, 
     """an#574 review: the default output comes from the file name, not only --output-name."""
     with pytest.raises(SceneFileError, match="rename the file"):
         resolve_scene_file(_two_scene_project(tmp_path), name, must_exist=False)
+
+
+def _snapshot(root: Path) -> dict[str, tuple[bytes, int]]:
+    return {
+        str(p.relative_to(root)): (p.read_bytes(), p.stat().st_mtime_ns)
+        for p in sorted(root.rglob("*"))
+        if p.is_file()
+    }
+
+
+def _stale_json_project(tmp_path) -> Path:
+    """scene.studio.md edited AFTER its JSON twin was written: a sync would rewrite the JSON."""
+    root = _two_scene_project(tmp_path)
+    load(root)
+    load(root, scene_file="scene.studio.md")
+    md = root / "scene.studio.md"
+    md.write_text(_STUDIO.replace("duration: 1\nfps", "duration: 2\nfps"), encoding="utf-8")
+    later = time.time() + 10
+    os.utime(md, (later, later))
+    return root
+
+
+def test_read_only_commands_leave_every_scene_file_untouched(tmp_path):
+    """an#573: `an cache info`, `gc --dry-run`, credits and `world show` rewrote other scenes' ir/*.json."""
+    from an.build.gc import cache_info, collect_garbage
+    from an.credits import credits_for_project
+    from an.world_cli import show
+
+    root = _stale_json_project(tmp_path)
+    before = _snapshot(root)
+    cache_info(root)
+    collect_garbage(root, dry_run=True, force=True)
+    credits_for_project(root, scene_file="scene.studio.md")
+    show(str(root), scene="scene.studio.md")
+    assert _snapshot(root) == before
+
+
+@pytest.mark.parametrize(
+    "case", ["md_newer", "json_newer", "tie_agrees", "tie_disagrees", "json_only", "md_only"]
+)
+def test_read_scene_is_what_a_sync_then_a_read_gives(tmp_path, case):
+    """`read_scene` decides like `sync` does, in every branch of the pair, and writes nothing."""
+    import shutil
+
+    from an.ir.sync import read_scene
+
+    root = _two_scene_project(tmp_path)
+    load(root, scene_file="scene.studio.md")
+    name, md, js = "scene.studio.md", root / "scene.studio.md", root / "ir" / "scene.studio.json"
+    now = time.time()
+    edited = _STUDIO.replace("duration: 1\nfps", "duration: 2\nfps")
+    if case == "md_newer":
+        md.write_text(edited, encoding="utf-8")
+        os.utime(md, (now + 10, now + 10))
+    elif case == "json_newer":
+        doc = json.loads(js.read_text(encoding="utf-8"))
+        doc["meta"]["title"] = "From JSON"
+        js.write_text(json.dumps(doc), encoding="utf-8")
+        os.utime(js, (now + 10, now + 10))
+    elif case in ("tie_agrees", "tie_disagrees"):
+        if case == "tie_disagrees":
+            md.write_text(edited, encoding="utf-8")
+        os.utime(md, (now, now))
+        os.utime(js, (now, now))
+    elif case == "json_only":  # only the default scene may lack its Markdown
+        name, md, js = "scene.md", root / "scene.md", root / "ir" / "scene.json"
+        load(root)
+        md.unlink()
+    else:
+        js.unlink()
+    twin = tmp_path / "twin"
+    shutil.copytree(root, twin, copy_function=shutil.copy2)
+    before = _snapshot(root)
+    in_memory = read_scene(root, name)
+    assert _snapshot(root) == before
+    synced = load(twin, scene_file=name).scene
+    assert in_memory.model_dump() == synced.model_dump()
+
+
+def test_read_scene_refuses_a_scene_that_is_not_there(tmp_path):
+    from an.ir.sync import read_scene
+
+    with pytest.raises(SceneFileError):
+        read_scene(_two_scene_project(tmp_path), "scene.nope.md")
+
+
+def test_a_sync_free_load_has_a_read_only_scene_view(tmp_path):
+    root = _stale_json_project(tmp_path)
+    project = load(root, scene_file="scene.studio.md", sync=False)
+    with pytest.raises(TypeError):
+        project.mall["scenes"]["main"] = project.scene

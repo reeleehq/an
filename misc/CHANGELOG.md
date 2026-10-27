@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-10-27
+- **Sync-free read** (an#573): `an.ir.sync.read_scene` and `load(..., sync=False)` read past a stale md/json pair writing nothing; `cache info`, `cache gc` (also `--dry-run`), `credits` and `world show` use it.
 - **Audition reels per scene** (an#571): a scene other than `scene.md` keeps its reels under `voice_auditions/scenes/<stem>/`; the manifest keeps each scene's record under `auditions`, so two scenes' reels coexist and each is billed once.
 - **Props validate on the shared asset rule** (an#567): `validate_prop` calls `asset_ref_problems` (every skin, one wording); `an.stores` re-exports `asset_references`, `asset_ref_problem(s)`, `inside_folder`, `ASSET_REF_RULE`.
 - **Output names** (an#574): an unread `scene*.md` owns its output name; names may not end with `.`, start with `-` or be a Windows device name.

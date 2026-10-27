@@ -1306,7 +1306,7 @@ def credits_for_project(
     ``scene.studio.md``, an#554)."""
     from an.project import load
 
-    project = load(Path(project_dir), scene_file=scene_file)
+    project = load(Path(project_dir), scene_file=scene_file, sync=False)
     report = collect_credits(project.mall)
     report.entries.extend(speech_credits(project.mall, project.scene))
     return report
