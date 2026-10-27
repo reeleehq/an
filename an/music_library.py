@@ -9,23 +9,26 @@ script, and ``an music add-library`` its command:
     an music add-library incompetech --titles-from usage.json --out audio/macleod
 
 - **A library is data** (:class:`MusicLibrary`): who made it, its licence, the
-  attribution it asks for, and the rule from a title to the file's URL. The
-  registry (:data:`MUSIC_LIBRARIES`, :func:`register_music_library`) holds
-  ``incompetech`` (Kevin MacLeod, CC BY 4.0) and two paid libraries, ``artlist``
-  and ``epidemic_sound``, which never download: their titles become wishlist
-  rows to license by hand. A library whose licence this package has not
-  checked is registered by the caller, who vouches for it.
+  attribution it asks for, the names a video credits it by, and the rule from
+  a title to the file's URL. The registry (:data:`MUSIC_LIBRARIES`,
+  :func:`register_music_library`) holds ``incompetech`` (Kevin MacLeod, CC BY
+  4.0) and two paid libraries, ``artlist`` and ``epidemic_sound``, which never
+  download: their titles become wishlist rows to license by hand. A library
+  whose licence this package has not checked is registered by the caller, who
+  vouches for it.
 - **Every step is a seam** (keyword arguments with working defaults):
   ``fetch`` (``url -> bytes``, :func:`polite_fetch`), ``mirrors`` (where else
   a URL's bytes may be: :func:`direct`, then :func:`wayback`, the Internet
   Archive's raw copy, the only route to a site that refuses scripts),
-  ``verify`` (``path -> seconds``, :func:`ffprobe_verify`) and ``sleep``
-  (the pause between downloads).
-- **A row is an** :class:`an.ir.assets.AssetSource`: the same provenance a
-  sound in the project's store carries, so ``an credits`` reads it the same
-  way, with the title, file, duration and digest beside it. A title that fails
-  is a ``failed`` row with its reason; the batch goes on. A file already in
-  ``out`` that verifies is kept, not fetched again, so a rerun resumes.
+  ``verify`` (``bytes -> seconds``, :func:`ffprobe_verify`), ``sleep`` (the
+  pause before a second request to the same host) and ``out`` (any
+  ``{file name: bytes}`` store; a folder by default).
+- **A row is an** :class:`an.ir.assets.AssetSource`, the provenance a sound in
+  the project's store carries: ``url`` is where the bytes came from (the
+  mirror that served them), ``source_page_url`` the library's own address.
+  A title that fails is a ``failed`` row with its reasons; the batch goes on. A
+  file whose digest a previous run recorded (``kept``) is not fetched again,
+  so a rerun resumes.
 
 >>> lib = MUSIC_LIBRARIES["incompetech"]
 >>> lib.track_url("Sneaky Snitch")
@@ -40,18 +43,21 @@ from __future__ import annotations
 
 import csv
 import hashlib
+import http.client
 import io
 import json
+import re
 import shutil
 import subprocess
 import tempfile
 import time
+import unicodedata
 import urllib.request
 from collections.abc import Callable, Iterable, Mapping, MutableMapping, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
 
 from an.ir.assets import AssetSource
 
@@ -60,32 +66,40 @@ __all__ = [
     "AcquiredTrack",
     "MusicLibrary",
     "MusicLibraryError",
+    "MusicToolMissing",
     "acquire",
     "attribution_text",
     "direct",
     "ffprobe_verify",
+    "files_store",
+    "kept_digests",
     "polite_fetch",
     "register_music_library",
-    "files_store",
+    "safe_file_name",
     "titles_by_library",
+    "titles_from_json",
     "tracks_table",
     "wayback",
 ]
 
-#: Seconds between two downloads from one library: a library is someone's
-#: website, not a CDN.
+#: Seconds between two requests to one host: a library is someone's website.
 DFLT_PAUSE_S: float = 2.0
 #: How a download introduces itself.
 USER_AGENT: str = "an-music-library (+https://github.com/reeleehq/an)"
 #: Seconds a download may take before it counts as failed.
 DFLT_TIMEOUT_S: float = 60.0
+#: The largest file a download keeps: a music track is a few MB; a body past
+#: this is not one.
+DFLT_MAX_BYTES: int = 64 * 1024 * 1024
 #: The Internet Archive's raw-file form of a URL (``id_``: the bytes as
 #: archived, not the archive's page around them; ``2``: the latest capture).
 WAYBACK_RAW: str = "https://web.archive.org/web/2id_/{url}"
+#: The extension a track is saved with when its library names no other.
+DFLT_SUFFIX: str = ".mp3"
 #: The row statuses.
 ACQUIRED, KEPT, FAILED, WISHLIST = "acquired", "kept", "failed", "wishlist"
-#: The tracks table's columns, in order (a row's ``AssetSource`` extras beyond
-#: them, a catalogue's ``feel`` or ``genre``, follow in name order).
+#: The tracks table's columns, in order (a row's other extras, a catalogue's
+#: ``feel`` or ``genre``, follow in name order).
 TRACK_COLUMNS: tuple[str, ...] = (
     "title",
     "library",
@@ -97,14 +111,44 @@ TRACK_COLUMNS: tuple[str, ...] = (
     "license_url",
     "author",
     "url",
+    "source_page_url",
+    "mirror",
     "attribution",
     "credited_by",
     "error",
 )
+#: The columns a titles file's metadata fills (the rest the library states).
+METADATA_COLUMNS: tuple[str, ...] = ("credited_by",)
+#: What a fetch, a verification or a store write may raise for ONE title (an
+#: HTTP or URL error is an ``OSError``; a :class:`MusicLibraryError` a
+#: ``ValueError``); anything else is a bug and stops the batch.
+_TITLE_ERRORS: tuple[type[BaseException], ...] = (
+    OSError,
+    ValueError,
+    KeyError,
+    http.client.HTTPException,
+)
 
 
 class MusicLibraryError(ValueError):
-    """A library that is not registered, or a file that is not usable audio."""
+    """A library, a title or a file that cannot be used, and why."""
+
+
+class MusicToolMissing(RuntimeError):
+    """A tool every title needs is missing: the batch stops before it starts."""
+
+
+def safe_file_name(title: str, *, suffix: str = DFLT_SUFFIX) -> str:
+    """``title`` as a file name: NFC, path separators as ``-``, no leading dot.
+
+    >>> safe_file_name("AC/DC"), safe_file_name("../../escape")
+    ('AC-DC.mp3', '-..-escape.mp3')
+    """
+    name = unicodedata.normalize("NFC", title).replace("/", "-").replace("\\", "-")
+    name = name.strip().lstrip(". ")
+    if not name:
+        raise MusicLibraryError(f"title {title!r} gives no file name")
+    return name + suffix
 
 
 @dataclass(frozen=True)
@@ -114,7 +158,9 @@ class MusicLibrary:
     ``license`` is ``None`` for a PAID library (its titles become wishlist rows,
     never downloads); ``track_url`` is then unused. ``attribution`` is a
     template over ``{title}``, ``{author}`` and ``{license_url}``. ``aliases``
-    are the names a video description credits it by (``From Epidemic Sound:``).
+    are the names a video description credits it by (``From Epidemic Sound:``,
+    ``Kevin MacLeod (incompetech.com)``); ``file_name`` the name a title is
+    saved under.
     """
 
     name: str
@@ -125,8 +171,7 @@ class MusicLibrary:
     attribution: str = '"{title}" {author}'
     author_url: str | None = None
     aliases: tuple[str, ...] = ()
-    #: The file name a title is saved under in ``out``.
-    file_name: Callable[[str], str] = field(default=lambda title: f"{title}.mp3")
+    file_name: Callable[[str], str] = safe_file_name
 
     @property
     def paid(self) -> bool:
@@ -210,11 +255,34 @@ def wayback(url: str) -> str:
 DFLT_MIRRORS: tuple[Callable[[str], str], ...] = (direct, wayback)
 
 
-def polite_fetch(url: str, *, timeout: float = DFLT_TIMEOUT_S) -> bytes:
-    """``url``'s bytes, asked for with a named user agent; an HTTP error raises."""
+def polite_fetch(
+    url: str, *, timeout: float = DFLT_TIMEOUT_S, max_bytes: int = DFLT_MAX_BYTES
+) -> bytes:
+    """``url``'s bytes, asked for with a named user agent. An HTTP error raises;
+    so does a text page (an error page served with 200) and a body over
+    ``max_bytes``, before it is read."""
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
     with urllib.request.urlopen(request, timeout=timeout) as response:  # noqa: S310
-        return response.read()
+        kind = (response.headers.get("Content-Type") or "").split(";")[0].strip()
+        if kind.startswith("text/"):
+            raise MusicLibraryError(f"{url} is a {kind} page, not audio")
+        size = int(response.headers.get("Content-Length") or 0)
+        if size > max_bytes:
+            raise MusicLibraryError(f"{url} is {size} bytes, over {max_bytes}")
+        data = response.read(max_bytes + 1)
+    if len(data) > max_bytes:
+        raise MusicLibraryError(f"{url} is over {max_bytes} bytes")
+    return data
+
+
+def _ffprobe() -> str:
+    exe = shutil.which("ffprobe")
+    if exe is None:
+        raise MusicToolMissing(
+            "verifying a track needs ffprobe (it comes with ffmpeg: "
+            "https://ffmpeg.org/download.html)"
+        )
+    return exe
 
 
 def ffprobe_verify(data: bytes) -> float:
@@ -222,12 +290,7 @@ def ffprobe_verify(data: bytes) -> float:
     when it is empty, has no audio stream, or no duration (an error page saved
     as ``.mp3`` is all three). Probed from a temporary file: from a pipe,
     ffprobe reports no duration."""
-    exe = shutil.which("ffprobe")
-    if exe is None:
-        raise MusicLibraryError(
-            "verifying a track needs ffprobe (it comes with ffmpeg: "
-            "https://ffmpeg.org/download.html)"
-        )
+    exe = _ffprobe()
     if not data:
         raise MusicLibraryError("the file is empty")
     with tempfile.TemporaryDirectory() as tmp:
@@ -260,8 +323,9 @@ class AcquiredTrack:
     error: str | None = None
 
     def row(self) -> dict[str, Any]:
-        """The row as the tracks table writes it (lists joined by ``; ``)."""
-        src = self.source.model_dump(exclude_none=True)
+        """The row as the tracks table writes it (a list joined by ``; ``, a
+        mapping as JSON)."""
+        src = self.source.model_dump(exclude_none=True, exclude={"provider", "id"})
         out = {
             "title": self.title,
             "library": self.library,
@@ -271,13 +335,17 @@ class AcquiredTrack:
             if self.duration_s is None
             else round(self.duration_s, 3),
             "error": self.error,
-            **src,
+            **{k: v for k, v in src.items() if v != {}},
         }
-        return {
-            k: "; ".join(map(str, v)) if isinstance(v, (list, tuple)) else v
-            for k, v in out.items()
-            if k not in ("provider", "id")
-        }
+        return {k: _cell(v) for k, v in out.items()}
+
+
+def _cell(value: Any) -> Any:
+    if isinstance(value, (list, tuple)):
+        return "; ".join(map(str, value))
+    if isinstance(value, Mapping):
+        return json.dumps(value, sort_keys=True)
+    return value
 
 
 def acquire(
@@ -290,33 +358,35 @@ def acquire(
     verify: Callable[[bytes], float] = ffprobe_verify,
     pause: float = DFLT_PAUSE_S,
     sleep: Callable[[float], None] = time.sleep,
+    kept: Mapping[str, str] | None = None,
 ) -> list[AcquiredTrack]:
     """Download ``titles`` of ``library`` into ``out``, verified, one row each.
-
-    ``out`` is a folder, or any ``{file name: bytes}`` store (:func:`files_store`).
 
     ``titles`` is a list, or ``{title: metadata}`` whose metadata (``credited_by``:
     the videos that credit it; a catalogue's ``feel``, ``genre``, ...) is kept
     on the row. Each title is fetched from each of ``mirrors`` in turn until one
-    gives bytes ``verify`` accepts; ``pause`` seconds pass between downloads.
-    A paid library downloads nothing and returns wishlist rows.
+    gives bytes ``verify`` accepts; ``pause`` seconds pass before a second
+    request to the same host. ``kept`` is ``{file name: sha256}`` a previous run
+    recorded (:func:`kept_digests`): a file in ``out`` with that digest is kept,
+    any other is fetched again. A paid library downloads nothing and returns
+    wishlist rows.
     """
     lib = _library(library)
-    meta = (
-        {t: dict(m or {}) for t, m in titles.items()}
-        if isinstance(titles, Mapping)
-        else {t: {} for t in titles}
-    )
-    for title, extra in meta.items():
-        clash = sorted(set(extra) & set(AssetSource.model_fields))
-        if clash:
-            raise MusicLibraryError(
-                f"{title!r}: its metadata sets {clash}, which the library states "
-                f"({lib.name}); drop them from the titles file"
-            )
+    meta = _titles_meta(titles, lib)
     store = files_store(out)
+    kept = dict(kept or {})
+    if verify is ffprobe_verify and not lib.paid:
+        _ffprobe()  # stop before the first download, not after it
+    names = {} if lib.paid else _file_names(lib, meta)
+    hosts: set[str] = set()
+
+    def wait(url: str) -> None:
+        host = urlparse(url).netloc
+        if host in hosts:
+            sleep(pause)
+        hosts.add(host)
+
     rows: list[AcquiredTrack] = []
-    fetched_before = False
     for title, extra in meta.items():
         source = AssetSource(
             provider=lib.name,
@@ -331,34 +401,96 @@ def acquire(
         if lib.paid:
             rows.append(AcquiredTrack(title, lib.name, WISHLIST, source))
             continue
-        url = lib.track_url(title)
-        name = lib.file_name(title)
-        source = source.model_copy(update={"url": url, "source_page_url": url})
-        if name in store:
-            try:
-                rows.append(_row(lib, title, KEPT, source, name, store[name], verify))
-                continue
-            except MusicLibraryError:
-                pass  # a broken file from an earlier run: fetch it again
-        errors = []
-        for mirror in mirrors:
-            if fetched_before:
-                sleep(pause)
-            fetched_before = True
-            try:
-                data = fetch(mirror(url))
-                row = _row(lib, title, ACQUIRED, source, name, data, verify)
-            except Exception as e:  # noqa: BLE001 — every failure is the row's reason
-                errors.append(f"{mirror.__name__}: {e}")
-                continue
-            store[name] = data
-            rows.append(row)
-            break
-        else:
-            rows.append(
-                AcquiredTrack(title, lib.name, FAILED, source, error="; ".join(errors))
+        page, name = lib.track_url(title), names[title]
+        source = source.model_copy(update={"source_page_url": page})
+        try:
+            if name in kept and name in store:
+                data = store[name]
+                if hashlib.sha256(data).hexdigest() == kept[name]:
+                    rows.append(
+                        _row(lib, title, KEPT, source, name, data, verify(data))
+                    )
+                    continue
+            data, duration, url, mirror = _fetch_verified(
+                page, mirrors=mirrors, fetch=fetch, verify=verify, wait=wait
             )
+            store[name] = data
+        except _TITLE_ERRORS as e:
+            rows.append(AcquiredTrack(title, lib.name, FAILED, source, error=str(e)))
+            continue
+        source = source.model_copy(update={"url": url, "mirror": mirror})
+        rows.append(_row(lib, title, ACQUIRED, source, name, data, duration))
     return rows
+
+
+def _fetch_verified(
+    url: str,
+    *,
+    mirrors: Sequence[Callable[[str], str]],
+    fetch: Callable[[str], bytes],
+    verify: Callable[[bytes], float],
+    wait: Callable[[str], None],
+) -> tuple[bytes, float, str, str]:
+    """``(bytes, seconds, the URL that served them, its mirror's name)`` from
+    the first of ``mirrors`` whose bytes ``verify`` accepts; every mirror's
+    reason in one :class:`MusicLibraryError` when none does."""
+    reasons = []
+    for mirror in mirrors:
+        where = mirror(url)
+        wait(where)
+        try:
+            data = fetch(where)
+            return data, verify(data), where, mirror.__name__
+        except _TITLE_ERRORS as e:
+            reasons.append(f"{mirror.__name__}: {e}")
+    raise MusicLibraryError("; ".join(reasons))
+
+
+def _titles_meta(titles: Any, lib: MusicLibrary) -> dict[str, dict[str, Any]]:
+    """``titles`` as ``{title: metadata}``, refused when it is neither a list of
+    titles nor such a mapping, or when metadata would restate the library."""
+    if isinstance(titles, (str, bytes)):
+        raise MusicLibraryError("titles is one string; pass a list of titles")
+    if isinstance(titles, Mapping):
+        meta = {}
+        for title, m in titles.items():
+            if not isinstance(m, Mapping):
+                raise MusicLibraryError(
+                    f"{title!r}: metadata must be an object ({{'feel': ...}}), got {m!r}"
+                )
+            meta[title] = dict(m)
+    else:
+        meta = {t: {} for t in titles}
+    reserved = (set(AssetSource.model_fields) | set(TRACK_COLUMNS)) - set(
+        METADATA_COLUMNS
+    )
+    for title, extra in meta.items():
+        if not isinstance(title, str) or not title.strip():
+            raise MusicLibraryError(
+                f"a title must be a non-empty string, got {title!r}"
+            )
+        clash = sorted(set(extra) & reserved)
+        if clash:
+            raise MusicLibraryError(
+                f"{title!r}: its metadata sets {clash}, which the library or the "
+                f"table states ({lib.name}); drop them from the titles file"
+            )
+    return meta
+
+
+def _file_names(lib: MusicLibrary, meta: Mapping[str, Any]) -> dict[str, str]:
+    """``{title: file name}``, refused when two titles share a file (as a
+    case-insensitive disk sees it)."""
+    names = {title: lib.file_name(title) for title in meta}
+    seen: dict[str, str] = {}
+    for title, name in names.items():
+        key = unicodedata.normalize("NFC", name).casefold()
+        if key in seen:
+            raise MusicLibraryError(
+                f"titles {seen[key]!r} and {title!r} would both be saved as {name!r}"
+            )
+        seen[key] = title
+    return names
 
 
 def _library(library: str | MusicLibrary) -> MusicLibrary:
@@ -392,10 +524,8 @@ def _row(
     source: AssetSource,
     name: str,
     data: bytes,
-    verify: Callable[[bytes], float],
+    duration: float,
 ) -> AcquiredTrack:
-    """The row of a verified file (``verify`` raises for one that is not)."""
-    duration = verify(data)
     return AcquiredTrack(
         title,
         lib.name,
@@ -418,6 +548,16 @@ def tracks_table(rows: Iterable[AcquiredTrack]) -> str:
     return buffer.getvalue()
 
 
+def kept_digests(table: str) -> dict[str, str]:
+    """``{file: sha256}`` of the acquired or kept rows of a tracks table
+    (:func:`tracks_table`'s text): what a rerun may keep."""
+    return {
+        r["file"]: r["sha256"]
+        for r in csv.DictReader(io.StringIO(table))
+        if r.get("status") in (ACQUIRED, KEPT) and r.get("file") and r.get("sha256")
+    }
+
+
 def attribution_text(rows: Iterable[AcquiredTrack]) -> str:
     """The attribution blocks to paste under a video, one per track that has
     one (acquired or kept), blank-line separated, each once.
@@ -434,19 +574,58 @@ def attribution_text(rows: Iterable[AcquiredTrack]) -> str:
     return "\n\n".join(blocks) + ("\n" if blocks else "")
 
 
+def titles_from_json(text: str) -> list[str] | dict[str, dict[str, Any]]:
+    """A titles file's JSON: a list of titles, or ``{title: {metadata}}``.
+
+    >>> titles_from_json('["A", "B"]'), titles_from_json('{"A": {"feel": "Bright"}}')
+    (['A', 'B'], {'A': {'feel': 'Bright'}})
+    """
+    try:
+        titles = json.loads(text)
+    except json.JSONDecodeError as e:
+        raise MusicLibraryError(f"the titles file is not JSON ({e})") from e
+    shapes = 'a list of titles (["A", "B"]) or an object ({"A": {"feel": "Bright"}})'
+    if isinstance(titles, list) and all(isinstance(t, str) for t in titles):
+        return titles
+    if isinstance(titles, dict) and all(isinstance(m, dict) for m in titles.values()):
+        return titles
+    raise MusicLibraryError(f"the titles file must hold {shapes}")
+
+
+#: What a credit line may carry before its title: a timestamp (``0:00``,
+#: ``(1:02:03) -``) and a label (``Song:``, ``Track -``).
+_TIMESTAMP = re.compile(r"^\(?\d{1,2}:\d{2}(?::\d{2})?\)?\s*[-–—|:]?\s*")
+_LABEL = re.compile(r"^(?:song|track|title)\s*[:\-–—]\s*", re.IGNORECASE)
+#: The attribution form, ``"Title" Author (site)``.
+_QUOTED = re.compile(r'^["“](?P<title>[^"”]+)["”]\s*(?:by\s+|[-–—]\s*)?(?P<who>.*)$')
+#: What may wrap a library's name in a header (``From Epidemic Sound:``,
+#: ``Music by Kevin MacLeod (incompetech.com)``, ``Music: Artlist``).
+_HEADER_PREFIX = re.compile(
+    r"^(?:from|music\s+by|music\s+from|music)\b\s*[:\-–]?\s*", re.I
+)
+_PARENS = re.compile(r"\s*\([^)]*\)")
+#: Lines in a credit block that are not titles: a link, the licence's words.
+_NOISE = re.compile(r"https?://|^www\.|licen[cs]ed under|creative\s+commons", re.I)
+
+
 def titles_by_library(description: str) -> dict[str, list[str]]:
-    """The titles a video description credits, by registered library: a line
-    naming a library (by name or alias, ``From Epidemic Sound:``) opens its
-    block, and each following line (bullets stripped) is a title until a blank
-    line.
+    """The titles a video description credits, by registered library.
+
+    A line naming a library (by name or alias, with ``From``/``Music by``/
+    ``Music:`` and a parenthetical allowed around it) opens its block, and each
+    following line is a title until a blank line; a timestamp, a
+    ``Song:``/``Track:`` label, quotes and bullets are stripped, and links and
+    licence lines skipped. The attribution form (``"Title" Kevin MacLeod
+    (incompetech.com)``) credits its title wherever it stands.
 
     >>> text = '''Music:
     ... From Epidemic Sound:
-    ... - Night Owl
-    ... - Morning Light
+    ... - 0:00 Night Owl
+    ... - Song: "Morning Light"
+    ... https://www.epidemicsound.com/
     ...
-    ... Kevin MacLeod:
-    ... Sneaky Snitch'''
+    ... "Sneaky Snitch" Kevin MacLeod (incompetech.com)
+    ... Licensed under Creative Commons: By Attribution 4.0 License'''
     >>> titles_by_library(text)
     {'epidemic_sound': ['Night Owl', 'Morning Light'], 'incompetech': ['Sneaky Snitch']}
     """
@@ -455,19 +634,36 @@ def titles_by_library(description: str) -> dict[str, list[str]]:
         for lib in MUSIC_LIBRARIES.values()
         for alias in (lib.name, *lib.aliases)
     }
+
+    def library_named(text: str) -> str | None:
+        bare = _PARENS.sub("", text).strip().rstrip(":").strip()
+        bare = _HEADER_PREFIX.sub("", bare).strip().rstrip(":").strip()
+        return names.get(bare.casefold())
+
     out: dict[str, list[str]] = {}
+
+    def credit(library: str, title: str) -> None:
+        titles = out.setdefault(library, [])
+        if title and title not in titles:
+            titles.append(title)
+
     current: str | None = None
     for line in description.splitlines():
-        text = line.strip().lstrip("-•*").strip()
+        text = line.strip().lstrip("-•*·").strip()
         if not text:
             current = None
             continue
-        header = text.rstrip(":").strip()
-        if header.casefold().startswith("from "):
-            header = header[5:].strip()
-        if text.endswith(":") and header.casefold() in names:
-            current = names[header.casefold()]
+        if _NOISE.search(text):
+            continue
+        quoted = _QUOTED.match(text)
+        if quoted and (library := library_named(quoted["who"])):
+            credit(library, quoted["title"].strip())
+            continue
+        if library := library_named(text):
+            current = library
             out.setdefault(current, [])
-        elif current is not None:
-            out[current].append(text)
-    return out
+            continue
+        if current is not None:
+            title = _LABEL.sub("", _TIMESTAMP.sub("", text)).strip().strip('"“”')
+            credit(current, title)
+    return {k: v for k, v in out.items() if v}
