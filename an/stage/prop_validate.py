@@ -37,7 +37,7 @@ from an.stage.rig import (
     rig_problems,
     rig_rest_problems,
 )
-from an.stores._common import ASSET_REF_RULE, asset_ref_problem, inside_folder
+from an.stores import asset_ref_problems
 from an.verify._base import VerificationReport
 
 #: The descriptor file a prop folder holds (the props store's sidecar name).
@@ -48,14 +48,27 @@ BLOCKING: str = "error"
 ADVISORY: str = "warning"
 
 
+def _art_file_problems(file: Path) -> list[str]:
+    """The ``file_problems`` hook of :func:`asset_ref_problems`: an art file the
+    folder lacks, else what ``an validate`` says of an SVG that is not
+    self-contained (one rule, both commands)."""
+    from an.ir.validate import _svg_self_containment_problems
+
+    return (
+        _svg_self_containment_problems(file)
+        if file.is_file()
+        else ["is not in the folder"]
+    )
+
+
 def validate_prop(
     prop_dir: str | Path, *, name: str | None = None
 ) -> VerificationReport:
     """Check a prop folder (``prop.json`` + ``parts/``) against the rig contract, offline.
 
     Blocking: no or an unreadable descriptor, a structural rig problem (an
-    unknown bone, a bone cycle), an attachment whose art is not in the folder,
-    a prop that draws nothing. Advisory: a chain the stage cannot draw in its
+    unknown bone, a bone cycle), an attachment of any skin whose art is not in the
+    folder (or is an SVG that is not self-contained), a prop that draws nothing. Advisory: a chain the stage cannot draw in its
     declared order (the compiler refuses it), the origin, the rest pose, an
     unpopulated ``AssetSource``.
     """
@@ -67,7 +80,8 @@ def validate_prop(
         raw = json.loads(meta.read_text(encoding="utf-8"))
         if raw.get("kind") != PROP_DOCUMENT_KIND.name:
             raise ValueError("not a PropDescriptor")
-        desc = PropDescriptor.model_validate(migrate(raw, kind=PROP_DOCUMENT_KIND.name))
+        document = migrate(raw, kind=PROP_DOCUMENT_KIND.name)
+        desc = PropDescriptor.model_validate(document)
     except (OSError, ValueError) as e:
         missing = isinstance(e, OSError) or str(e) == "not a PropDescriptor"
         report.add(
@@ -103,27 +117,14 @@ def validate_prop(
         report.add(ADVISORY, f"{PROP_META_NAME}#rig", f"{who}: {problem}")
 
     skin = desc.skins.get("default") or next(iter(desc.skins.values()), None)
+    # The one asset-reference rule (an#483, an#552), over EVERY skin's art (not
+    # only the default one: a skin is a swap the scene may ask for); only the
+    # skins, since nothing else in prop.json names a file the prop reads.
+    for _label, message in asset_ref_problems(
+        {"skins": document.get("skins")}, directory, file_problems=_art_file_problems
+    ):
+        report.add(BLOCKING, f"{PROP_META_NAME}#skins", f"{who}: {message}")
     drawn_any = False
-    for slot_name, attachments in (skin.slots if skin is not None else {}).items():
-        for att_name, att in attachments.items():
-            problem = asset_ref_problem(att.path)
-            file = inside_folder(directory, att.path) if problem is None else None
-            if problem is not None or file is None:
-                # Outside the folder (by name, or through a link): never read (an#483).
-                report.add(
-                    BLOCKING,
-                    att.path,
-                    f"{who}: slot {slot_name!r} attachment {att_name!r} names "
-                    f"{att.path!r}, which {problem or 'resolves outside the folder (a link)'}: "
-                    f"{ASSET_REF_RULE}",
-                )
-            elif not file.is_file():
-                report.add(
-                    BLOCKING,
-                    att.path,
-                    f"{who}: slot {slot_name!r} attachment {att_name!r} names "
-                    f"{att.path!r}, which is not in the folder",
-                )
     for slot in desc.slots:
         if skin is not None and drawn_attachment(desc, skin, slot) is not None:
             drawn_any = True
@@ -184,7 +185,8 @@ def render_prop_contract() -> str:
         "## Blocking",
         "",
         "- a bone naming an unknown parent, a bone cycle, a slot on an unknown bone;",
-        "- an attachment whose art is not in the folder; a prop that draws nothing.",
+        "- an attachment, in any skin, whose art is not in the folder or is an SVG that is not",
+        "  self-contained; a prop that draws nothing.",
         "",
         "## Advisory",
         "",

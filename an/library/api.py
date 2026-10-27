@@ -440,9 +440,7 @@ def check_relpath(path: str) -> str:
         or path.startswith("/")
         or any(ord(c) < 32 or c == "\x7f" for c in path)
         or any(
-            p in ("", ".", "..")
-            or p.endswith((".", " "))
-            or is_windows_reserved(p)
+            p in ("", ".", "..") or p.endswith((".", " ")) or is_windows_reserved(p)
             for p in parts
         )
     ):
