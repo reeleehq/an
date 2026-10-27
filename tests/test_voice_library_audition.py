@@ -386,3 +386,46 @@ def test_the_cli_verbs_dispatch():
 
     names = [f.__name__ for f in _dispatch_funcs]
     assert names.index("design") < names.index("audition") < names.index("choose") < names.index("cast")
+
+
+def test_two_scenes_reels_of_one_voice_coexist_and_each_is_billed_once(tmp_path):
+    """an#571: auditioning an option for scene.md and then scene.b.md left only the last
+    reel (same file, same manifest field), and re-running the first re-billed it."""
+    from an.ir.schema import Meta, SceneIR
+    from an.stores import build_project_mall
+
+    root = _project(tmp_path, _shot("a", 10.0))
+    one = _shot("a", 10.0)
+    one.duration = 4.0
+    one.dialogue = [Dialogue(speaker="x", text="Line of the first scene.", voice_ref="jerry")]
+    _set_shots(root, one)
+    other = _shot("a", 10.0)
+    other.duration = 4.0
+    other.dialogue = [Dialogue(speaker="x", text="A line of scene b.", voice_ref="jerry")]
+    build_project_mall(root, ensure=True, scene_file="scene.b.md")["scenes"]["main"] = SceneIR(
+        meta=Meta(title="B"), timeline=[other]
+    )
+    mall = load(root).mall
+    mall["voices"]["jerry"] = {"provider": "elevenlabs", "model_id": "eleven_v3", "notes": NOTES,
+                               "library": {"accent": "irish"}}
+    design_project_voices(root, designer=FakeDesigner(n=1), library=FakeLibrary(n=1))
+    tts = FakeTTS(seconds=0.25)
+    kw = {"tts": tts, "options": ["L1"], "announce": None}
+
+    audition_project_voices(root, ["jerry"], **kw)
+    audition_project_voices(root, ["jerry"], scene_file="scene.b.md", **kw)
+    assert len(tts.requests) == 2
+    first = Path(root) / "artifacts" / "voice_auditions" / "jerry_L1.wav"
+    second = Path(root) / "artifacts" / "voice_auditions" / "scenes" / "scene.b" / "jerry_L1.wav"
+    assert first.is_file() and second.is_file()
+    assert [r[0] for r in tts.requests] == ["Line of the first scene.", "A line of scene b."]
+
+    audition_project_voices(root, ["jerry"], **kw)  # either scene again: a hit, nothing billed
+    audition_project_voices(root, ["jerry"], scene_file="scene.b.md", **kw)
+    assert len(tts.requests) == 2
+
+    manifest = json.loads((Path(root) / "artifacts" / "voice_options" / "jerry.json").read_text(encoding="utf-8"))
+    option = manifest["options"][1]
+    assert option["audition_path"] == "artifacts/voice_auditions/scenes/scene.b/jerry_L1.wav"  # the latest
+    assert option["auditions"]["scene.md"]["audition_path"] == "artifacts/voice_auditions/jerry_L1.wav"
+    assert option["auditions"]["scene.b.md"]["audition_path"] == option["audition_path"]

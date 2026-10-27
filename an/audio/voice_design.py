@@ -183,6 +183,19 @@ AUDITION_SAMPLE_RATE = (
 AUDITION_KEY = "audition"
 AUDITION_LINES_KEY = "audition_lines"
 AUDITION_CONTENT_KEY = "audition_key"
+#: Where the manifest keeps each scene's own record of an option's reel (an#571):
+#: ``{scene file name: {audition, audition_lines, audition_key, audition_path}}``.
+#: The reel of one scene lives in its own folder
+#: (:meth:`an.ir.sync.SceneFile.per_scene_dir`), so two scenes' reels coexist and
+#: each scene's skip test reads its own record; the fields at the top of the
+#: option stay the latest reel made (``audition_path`` is what ``an voices list`` shows).
+AUDITIONS_KEY = "auditions"
+AUDITION_RECORD_KEYS = (
+    AUDITION_KEY,
+    AUDITION_LINES_KEY,
+    AUDITION_CONTENT_KEY,
+    "audition_path",
+)
 #: ``announce`` default: a line on stderr (the pipeline's own), so a billed
 #: call is never silent unless the caller passes ``None``.
 _STDERR = object()
@@ -1241,13 +1254,32 @@ def _project_stores(project_dir: str | Path):
     )
 
 
-def _project_reels(project_dir: str | Path):
+def _project_reels(project_dir: str | Path, scene_file: Any = DEFAULT_SCENE_FILE):
+    """The reels store of ``scene_file``: ``artifacts/voice_auditions`` for the
+    default scene, its own subfolder for another (an#571)."""
+    from an.ir.sync import resolve_scene_file
     from an.stores.artifacts import _BlobStore
 
     class _WavStore(_BlobStore):
         EXT = "wav"
 
-    return _WavStore(Path(project_dir) / AUDITIONS_DIR)
+    sf = resolve_scene_file(project_dir, scene_file)
+    return _WavStore(Path(project_dir) / sf.per_scene_dir(AUDITIONS_DIR))
+
+
+def _as_this_scene_sees(option: dict, sf: Any, reels: Any) -> dict:
+    """A copy of ``option`` whose top-level reel fields are those of ``sf``'s own
+    record (an#571), so :func:`plan_auditions` judges "already on record" against
+    this scene's reel and not whichever scene was auditioned last. The default
+    scene falls back to the fields written before records were per scene. A
+    record whose reel is no longer in ``reels`` counts as none."""
+    seen = {k: v for k, v in option.items() if k not in AUDITION_RECORD_KEYS}
+    record = (option.get(AUDITIONS_KEY) or {}).get(sf.name)
+    if record is None and sf.is_default:
+        record = {k: option[k] for k in AUDITION_RECORD_KEYS if k in option}
+    if record and record.get(AUDITION_KEY) in reels:
+        seen.update(record)
+    return seen
 
 
 def _project_lines(
@@ -1368,8 +1400,10 @@ def audition_project_voices(
     voice with a manifest): the voice's own lines from the scene, spoken with
     the film's TTS provider (``tts``, default ElevenLabs — the provider the
     film renders with, so the reel sounds like the film), the voice document's
-    model, settings and effects, to ``artifacts/voice_auditions/<ref>_<option>.wav``;
-    the manifest records each reel (``audition_path``) as soon as it is made.
+    model, settings and effects, to ``artifacts/voice_auditions/<ref>_<option>.wav``
+    (``.../scenes/<stem>/`` for a scene other than ``scene.md``, so two scenes'
+    reels coexist, an#571); the manifest records each reel (``audition_path``,
+    and per scene under ``auditions``) as soon as it is made.
     Every voice's reels are planned and checked before the first request, the
     whole bill is announced once, and a reel already on record under the same
     content key is not made again (``redo`` makes them all again). Returns
@@ -1377,11 +1411,14 @@ def audition_project_voices(
     scene of the project (``scene.studio.md``, an#554).
     """
     from an.audio.providers import make_tts
+    from an.ir.sync import resolve_scene_file
 
+    sf = resolve_scene_file(project_dir, scene_file)
     tts = tts if tts is not None else make_tts(DESIGN_PROVIDER)
     _, manifests, _ = _project_stores(project_dir)
-    reels = _project_reels(project_dir)
-    inputs = _project_audition_inputs(project_dir, tts, scene_file=scene_file)
+    reels = _project_reels(project_dir, sf)
+    reels_dir = sf.per_scene_dir(AUDITIONS_DIR)
+    inputs = _project_audition_inputs(project_dir, tts, scene_file=sf)
     wanted = list(refs) if refs is not None else sorted(manifests)
     if not wanted:
         raise VoiceDesignError("no voice options yet: run `an voices design` first")
@@ -1395,9 +1432,14 @@ def audition_project_voices(
         entry = dict(manifests[ref])
         entry["options"] = [dict(o) for o in entry.get("options", ())]
         entries[ref] = entry
+        # Planned against this scene's own records; written against the real ones.
+        planned = {
+            **entry,
+            "options": [_as_this_scene_sees(o, sf, reels) for o in entry["options"]],
+        }
         lines, effects = inputs(ref)
         jobs += plan_auditions(
-            entry,
+            planned,
             lines,
             ref=ref,
             options=options,
@@ -1408,9 +1450,15 @@ def audition_project_voices(
         )
 
     def record(job: AuditionJob) -> None:
-        job.option["audition_path"] = str(
-            (AUDITIONS_DIR / f"{job.reel}.wav").as_posix()
-        )
+        made = {k: job.option[k] for k in AUDITION_RECORD_KEYS if k in job.option}
+        made["audition_path"] = (reels_dir / f"{job.reel}.wav").as_posix()
+        (real,) = [
+            o
+            for o in entries[job.ref]["options"]
+            if o.get("option") == job.option.get("option")
+        ]
+        real.update(made)  # the latest reel made, at the top
+        real.setdefault(AUDITIONS_KEY, {})[sf.name] = made
         manifests[job.ref] = entries[
             job.ref
         ]  # written per reel: a later failure loses nothing paid
