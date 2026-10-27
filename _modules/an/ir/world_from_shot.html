@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=e6fe8823"></script>
+    <script src="../../../_static/documentation_options.js?v=d1060249"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.305" />
+  <meta name="docsearch:version" content="0.1.306" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -724,11 +724,14 @@ window.runMermaid = runMermaid;</script>
 
 <span class="sd">so the world lowers back to exactly the placements the shot already has, and</span>
 <span class="sd">the master's own ``stage`` lines agree with it (the ``viewpoint`` check says</span>
-<span class="sd">nothing). ``Z`` defaults to the depth at which the tallest placed entity is</span>
-<span class="sd">:data:`DFLT_SUBJECT_HEIGHT` tall. Every member stands at that one depth: what</span>
-<span class="sd">is nearer or farther is the author's to say, by moving a member along its</span>
-<span class="sd">line of sight (``at`` and ``height`` scaled together keep it where the master</span>
-<span class="sd">shows it). The camera itself, the lens and the scene file are the stage's</span>
+<span class="sd">nothing). ``Z`` defaults to the depth at which the tallest placed character</span>
+<span class="sd">(else the tallest placed entity) is :data:`DFLT_SUBJECT_HEIGHT` tall. A thing</span>
+<span class="sd">placed several times is ONE thing at several depths, its largest placement</span>
+<span class="sd">at ``Z`` and the others farther by their scale (an#603), so a second viewpoint</span>
+<span class="sd">sees them parallax; a thing placed once takes the depth the master's drawing</span>
+<span class="sd">order needs (listed first = farthest). When the copies' depths contradict</span>
+<span class="sd">that order, every member stands at ``Z`` and :attr:`SeededMembers.flat` says</span>
+<span class="sd">why. The camera itself, the lens and the scene file are the stage's</span>
 <span class="sd">(:func:`an.stage.world.seed_world`).</span>
 
 <span class="sd">&gt;&gt;&gt; from an.ir.schema import AssetRef, Shot, StagePlacement</span>
@@ -743,6 +746,8 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Collection</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 
@@ -751,8 +756,9 @@ window.runMermaid = runMermaid;</script>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"DFLT_SUBJECT_HEIGHT"</span><span class="p">,</span> <span class="s2">"SeededMembers"</span><span class="p">,</span> <span class="s2">"seed_members"</span><span class="p">]</span>
 
-<span class="c1">#: How tall the tallest placed entity is in the seeded world, by default:</span>
-<span class="c1">#: a person, in metres (the world's units are metres: `DFLT_WORLD_GRAVITY`).</span>
+<span class="c1">#: How tall the tallest placed character (else the tallest placed entity) is</span>
+<span class="c1">#: in the seeded world, by default: a person, in metres (the world's units are</span>
+<span class="c1">#: metres: `DFLT_WORLD_GRAVITY`).</span>
 <span class="n">DFLT_SUBJECT_HEIGHT</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.7</span>
 
 
@@ -766,7 +772,10 @@ window.runMermaid = runMermaid;</script>
 
     <span class="n">members</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">WorldMember</span><span class="p">]</span>
     <span class="n">depth</span><span class="p">:</span> <span class="nb">float</span>
-    <span class="n">skipped</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+    <span class="n">skipped</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+    <span class="c1">#: Why the copies of one thing could not take the depths their scales say</span>
+    <span class="c1">#: (an#603), so every member stands at ``depth``; ``None`` when they did.</span>
+    <span class="n">flat</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 
 
@@ -782,8 +791,9 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SeededMembers</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""The world members ``shot``'s hand placements are a view of, from a</span>
 <span class="sd">    camera at the origin with focal length ``focal`` (pixels): every entity</span>
-<span class="sd">    with a ``stage.at`` becomes a member at ``depth`` (default: where the</span>
-<span class="sd">    tallest is :data:`DFLT_SUBJECT_HEIGHT` tall), every environment a member</span>
+<span class="sd">    with a ``stage.at`` becomes a member (:func:`_depths`: ``depth``, default</span>
+<span class="sd">    where the tallest character, else the tallest thing, is</span>
+<span class="sd">    :data:`DFLT_SUBJECT_HEIGHT` tall), every environment a member</span>
 <span class="sd">    as it is. ``extents`` is each entity's native box (``None``: unmeasured);</span>
 <span class="sd">    ``drawn`` the ids of the entities the stage draws (default: every one</span>
 <span class="sd">    ``extents`` names), the others (a voice) being no member of a picture.</span>
@@ -824,21 +834,109 @@ window.runMermaid = runMermaid;</script>
             <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> places nothing by hand (no entity with a `stage.at` "</span>
             <span class="s2">"whose art can be measured): there is no view to invert"</span>
         <span class="p">)</span>
-    <span class="k">if</span> <span class="n">depth</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">tallest</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">scale</span> <span class="o">*</span> <span class="n">native</span> <span class="k">for</span> <span class="o">*</span><span class="n">_</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">native</span> <span class="ow">in</span> <span class="n">placed</span><span class="p">)</span>
-        <span class="n">depth</span> <span class="o">=</span> <span class="n">DFLT_SUBJECT_HEIGHT</span> <span class="o">*</span> <span class="n">focal</span> <span class="o">/</span> <span class="n">tallest</span>
-    <span class="n">k</span> <span class="o">=</span> <span class="n">depth</span> <span class="o">/</span> <span class="n">focal</span>  <span class="c1"># world units per screen pixel at that depth</span>
-    <span class="n">members</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">member_of</span><span class="p">(</span>
-            <span class="n">e</span><span class="p">,</span>
-            <span class="n">at</span><span class="o">=</span><span class="p">(</span><span class="n">_tidy</span><span class="p">(</span><span class="n">sx</span> <span class="o">*</span> <span class="n">k</span><span class="p">),</span> <span class="n">_tidy</span><span class="p">(</span><span class="n">sy</span> <span class="o">*</span> <span class="n">k</span><span class="p">),</span> <span class="n">_tidy</span><span class="p">(</span><span class="n">depth</span><span class="p">)),</span>
-            <span class="n">height</span><span class="o">=</span><span class="n">_tidy</span><span class="p">(</span><span class="n">scale</span> <span class="o">*</span> <span class="n">native</span> <span class="o">*</span> <span class="n">k</span><span class="p">),</span>
+    <span class="n">defaulted</span> <span class="o">=</span> <span class="n">depth</span> <span class="ow">is</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">defaulted</span><span class="p">:</span>
+        <span class="n">depth</span> <span class="o">=</span> <span class="n">DFLT_SUBJECT_HEIGHT</span> <span class="o">*</span> <span class="n">focal</span> <span class="o">/</span> <span class="n">_reference_height</span><span class="p">(</span><span class="n">placed</span><span class="p">)</span>
+    <span class="n">depths</span><span class="p">,</span> <span class="n">flat</span> <span class="o">=</span> <span class="n">_depths</span><span class="p">(</span><span class="n">placed</span><span class="p">,</span> <span class="n">depth</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">defaulted</span><span class="p">:</span>
+        <span class="c1"># The order may have pushed the reference (the person) deeper: a uniform</span>
+        <span class="c1"># rescale keeps every projection, the order and the copies' ratios, and</span>
+        <span class="c1"># stands it at DFLT_SUBJECT_HEIGHT again.</span>
+        <span class="n">ref</span> <span class="o">=</span> <span class="n">_reference_index</span><span class="p">(</span><span class="n">placed</span><span class="p">)</span>
+        <span class="n">depths</span> <span class="o">=</span> <span class="p">[</span><span class="n">z</span> <span class="o">*</span> <span class="n">depth</span> <span class="o">/</span> <span class="n">depths</span><span class="p">[</span><span class="n">ref</span><span class="p">]</span> <span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">depths</span><span class="p">]</span>
+    <span class="n">members</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">_i</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="p">(</span><span class="n">sx</span><span class="p">,</span> <span class="n">sy</span><span class="p">),</span> <span class="n">scale</span><span class="p">,</span> <span class="n">native</span><span class="p">),</span> <span class="n">z</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">placed</span><span class="p">,</span> <span class="n">depths</span><span class="p">):</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="n">z</span> <span class="o">/</span> <span class="n">focal</span>  <span class="c1"># world units per screen pixel at that depth</span>
+        <span class="n">members</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">member_of</span><span class="p">(</span>
+                <span class="n">e</span><span class="p">,</span>
+                <span class="n">at</span><span class="o">=</span><span class="p">(</span><span class="n">_tidy</span><span class="p">(</span><span class="n">sx</span> <span class="o">*</span> <span class="n">k</span><span class="p">),</span> <span class="n">_tidy</span><span class="p">(</span><span class="n">sy</span> <span class="o">*</span> <span class="n">k</span><span class="p">),</span> <span class="n">_tidy</span><span class="p">(</span><span class="n">z</span><span class="p">)),</span>
+                <span class="n">height</span><span class="o">=</span><span class="n">_tidy</span><span class="p">(</span><span class="n">scale</span> <span class="o">*</span> <span class="n">native</span> <span class="o">*</span> <span class="n">k</span><span class="p">),</span>
+            <span class="p">)</span>
         <span class="p">)</span>
-        <span class="k">for</span> <span class="n">_i</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="p">(</span><span class="n">sx</span><span class="p">,</span> <span class="n">sy</span><span class="p">),</span> <span class="n">scale</span><span class="p">,</span> <span class="n">native</span> <span class="ow">in</span> <span class="n">placed</span>
-    <span class="p">]</span>
     <span class="n">environments</span> <span class="o">=</span> <span class="p">[</span><span class="n">member_of</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"environment"</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">SeededMembers</span><span class="p">([</span><span class="o">*</span><span class="n">environments</span><span class="p">,</span> <span class="o">*</span><span class="n">members</span><span class="p">],</span> <span class="n">depth</span><span class="p">,</span> <span class="n">skipped</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">SeededMembers</span><span class="p">([</span><span class="o">*</span><span class="n">environments</span><span class="p">,</span> <span class="o">*</span><span class="n">members</span><span class="p">],</span> <span class="n">depth</span><span class="p">,</span> <span class="n">skipped</span><span class="p">,</span> <span class="n">flat</span><span class="p">)</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_depths</span><span class="p">(</span><span class="n">placed</span><span class="p">,</span> <span class="n">depth</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Each placed member's depth, and why they are all ``depth`` when they are.</span>
+
+<span class="sd">    A thing placed several times (same store, ref, library and overrides, same</span>
+<span class="sd">    measured height: :func:`_thing`) is ONE thing at several depths: its largest</span>
+<span class="sd">    placement at ``depth``, a copy drawn at half that scale twice as far</span>
+<span class="sd">    (an#603). Those depths are fixed. A thing placed once may stand anywhere on</span>
+<span class="sd">    its line of sight and still project as placed, so it takes the depth the</span>
+<span class="sd">    draw order needs: the lowering draws far first, and the master lists back</span>
+<span class="sd">    to front, so each member is at least as deep as everything listed after</span>
+<span class="sd">    it, and at least ``depth``. A member drawn ``after`` an anchor is placed by</span>
+<span class="sd">    that anchor, not by its depth, and is left out of the order. When two</span>
+<span class="sd">    fixed copies are listed against their depths, the master could not come</span>
+<span class="sd">    back drawn as it was: every member stands at ``depth``."""</span>
+    <span class="n">largest</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">count</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">_i</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">_at</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">native</span> <span class="ow">in</span> <span class="n">placed</span><span class="p">:</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">_thing</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">native</span><span class="p">)</span>
+        <span class="n">largest</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">largest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">count</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">count</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">fixed</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">depth</span> <span class="o">*</span> <span class="n">largest</span><span class="p">[</span><span class="n">_thing</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">n</span><span class="p">)]</span> <span class="o">/</span> <span class="n">scale</span> <span class="k">if</span> <span class="n">count</span><span class="p">[</span><span class="n">_thing</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">n</span><span class="p">)]</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">_i</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">_at</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">placed</span>
+    <span class="p">]</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">depth</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">placed</span><span class="p">)</span>
+    <span class="n">deepest</span> <span class="o">=</span> <span class="mf">0.0</span>  <span class="c1"># of everything listed after</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">placed</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="n">placed</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">ordered</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">stage</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">e</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">after</span> <span class="ow">is</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">fixed</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ordered</span> <span class="ow">and</span> <span class="n">fixed</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">deepest</span> <span class="o">-</span> <span class="n">_DEPTH_EPS</span> <span class="o">*</span> <span class="n">deepest</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">[</span><span class="n">depth</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">placed</span><span class="p">),</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> would be drawn behind something farther than it: with "</span>
+                    <span class="s2">"each thing's largest copy at one depth, its copies' depths do not "</span>
+                    <span class="s2">"keep the master's drawing order, so every member stands at depth "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">depth</span><span class="si">:</span><span class="s2">.4g</span><span class="si">}</span><span class="s2"> (move members along their line of sight to give them "</span>
+                    <span class="s2">"depth by hand)"</span>
+                <span class="p">)</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">fixed</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">depth</span><span class="p">,</span> <span class="n">deepest</span><span class="p">)</span> <span class="k">if</span> <span class="n">ordered</span> <span class="k">else</span> <span class="n">depth</span>
+        <span class="k">if</span> <span class="n">ordered</span><span class="p">:</span>
+            <span class="n">deepest</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">deepest</span><span class="p">,</span> <span class="n">out</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">out</span><span class="p">,</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_thing</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">native</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What makes two placements one thing: the same art, the same size."""</span>
+    <span class="n">overrides</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">overrides</span> <span class="ow">or</span> <span class="p">{},</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">store</span><span class="p">,</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">ref</span><span class="p">,</span>
+        <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">library</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="nb">str</span><span class="p">),</span>
+        <span class="n">overrides</span><span class="p">,</span>
+        <span class="nb">round</span><span class="p">(</span><span class="n">native</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span>
+    <span class="p">)</span>
+
+
+<span class="c1">#: The kind whose tallest placement sets the default depth (a person).</span>
+<span class="n">CHARACTER_KIND</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"character"</span>
+<span class="c1">#: A relative slack when comparing two recovered depths.</span>
+<span class="n">_DEPTH_EPS</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-9</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_reference_index</span><span class="p">(</span><span class="n">placed</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Which placement the default depth makes :data:`DFLT_SUBJECT_HEIGHT`</span>
+<span class="sd">    tall: the tallest placed character when there is one (a person, which is</span>
+<span class="sd">    what the default height is), else the tallest placed thing (an#603: a sun</span>
+<span class="sd">    or a building would make the world's units read as something else)."""</span>
+    <span class="n">people</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="p">(</span><span class="n">_i</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="o">*</span><span class="n">_r</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">placed</span><span class="p">)</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="n">CHARACTER_KIND</span><span class="p">]</span>
+    <span class="n">pool</span> <span class="o">=</span> <span class="n">people</span> <span class="ow">or</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">placed</span><span class="p">))</span>
+    <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">pool</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">j</span><span class="p">:</span> <span class="n">placed</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span> <span class="o">*</span> <span class="n">placed</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">4</span><span class="p">])</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_reference_height</span><span class="p">(</span><span class="n">placed</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The screen height of :func:`_reference_index`'s placement."""</span>
+    <span class="n">_i</span><span class="p">,</span> <span class="n">_e</span><span class="p">,</span> <span class="n">_at</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">native</span> <span class="o">=</span> <span class="n">placed</span><span class="p">[</span><span class="n">_reference_index</span><span class="p">(</span><span class="n">placed</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">scale</span> <span class="o">*</span> <span class="n">native</span>
 
 
 <span class="c1">#: Significant digits a derived coordinate is written with: far below a</span>

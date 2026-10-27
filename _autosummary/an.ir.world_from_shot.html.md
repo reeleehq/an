@@ -12,11 +12,14 @@ stood at one depth `Z` in front of a camera at the origin looking down
 
 so the world lowers back to exactly the placements the shot already has, and
 the master’s own `stage` lines agree with it (the `viewpoint` check says
-nothing). `Z` defaults to the depth at which the tallest placed entity is
-[`DFLT_SUBJECT_HEIGHT`](#an.ir.world_from_shot.DFLT_SUBJECT_HEIGHT) tall. Every member stands at that one depth: what
-is nearer or farther is the author’s to say, by moving a member along its
-line of sight (`at` and `height` scaled together keep it where the master
-shows it). The camera itself, the lens and the scene file are the stage’s
+nothing). `Z` defaults to the depth at which the tallest placed character
+(else the tallest placed entity) is [`DFLT_SUBJECT_HEIGHT`](#an.ir.world_from_shot.DFLT_SUBJECT_HEIGHT) tall. A thing
+placed several times is ONE thing at several depths, its largest placement
+at `Z` and the others farther by their scale (an#603), so a second viewpoint
+sees them parallax; a thing placed once takes the depth the master’s drawing
+order needs (listed first = farthest). When the copies’ depths contradict
+that order, every member stands at `Z` and [`SeededMembers.flat`](#an.ir.world_from_shot.SeededMembers.flat) says
+why. The camera itself, the lens and the scene file are the stage’s
 ([`an.stage.world.seed_world()`](an.stage.world.html.md#an.stage.world.seed_world)).
 
 ```pycon
@@ -32,25 +35,26 @@ shows it). The camera itself, the lens and the scene file are the stage’s
 
 ### Module Attributes
 
-| [`DFLT_SUBJECT_HEIGHT`](#an.ir.world_from_shot.DFLT_SUBJECT_HEIGHT)   | How tall the tallest placed entity is in the seeded world, by default: a person, in metres (the world's units are metres: `DFLT_WORLD_GRAVITY`).   |
-|------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`DFLT_SUBJECT_HEIGHT`](#an.ir.world_from_shot.DFLT_SUBJECT_HEIGHT)   | How tall the tallest placed character (else the tallest placed entity) is in the seeded world, by default: a person, in metres (the world's units are metres: `DFLT_WORLD_GRAVITY`).   |
+|------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 
 ### Functions
 
-| [`seed_members`](#an.ir.world_from_shot.seed_members)(shot, \*, extents, focal[, ...])   | The world members `shot`'s hand placements are a view of, from a camera at the origin with focal length `focal` (pixels): every entity with a `stage.at` becomes a member at `depth` (default: where the tallest is [`DFLT_SUBJECT_HEIGHT`](#an.ir.world_from_shot.DFLT_SUBJECT_HEIGHT) tall), every environment a member as it is.   |
-|--------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`seed_members`](#an.ir.world_from_shot.seed_members)(shot, \*, extents, focal[, ...])   | The world members `shot`'s hand placements are a view of, from a camera at the origin with focal length `focal` (pixels): every entity with a `stage.at` becomes a member (`_depths()`: `depth`, default where the tallest character, else the tallest thing, is [`DFLT_SUBJECT_HEIGHT`](#an.ir.world_from_shot.DFLT_SUBJECT_HEIGHT) tall), every environment a member as it is.   |
+|--------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 
 ### Classes
 
-| [`SeededMembers`](#an.ir.world_from_shot.SeededMembers)(members, depth[, skipped])   | What [`seed_members()`](#an.ir.world_from_shot.seed_members) derived: the members (environments first, as listed), the depth the placed ones stand at, and the drawn entities it left out (`{id: why}`), which stay listed in the shot and placed by hand.   |
-|---------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`SeededMembers`](#an.ir.world_from_shot.SeededMembers)(members, depth[, skipped, flat])   | What [`seed_members()`](#an.ir.world_from_shot.seed_members) derived: the members (environments first, as listed), the depth the placed ones stand at, and the drawn entities it left out (`{id: why}`), which stay listed in the shot and placed by hand.   |
+|---------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 
 ### an.ir.world_from_shot.DFLT_SUBJECT_HEIGHT *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 1.7*
 
-How tall the tallest placed entity is in the seeded world, by default:
-a person, in metres (the world’s units are metres: `DFLT_WORLD_GRAVITY`).
+How tall the tallest placed character (else the tallest placed entity) is
+in the seeded world, by default: a person, in metres (the world’s units are
+metres: `DFLT_WORLD_GRAVITY`).
 
-### *class* an.ir.world_from_shot.SeededMembers(members, depth, skipped=dict())
+### *class* an.ir.world_from_shot.SeededMembers(members, depth, skipped=dict(), flat=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -58,12 +62,18 @@ What [`seed_members()`](#an.ir.world_from_shot.seed_members) derived: the member
 listed), the depth the placed ones stand at, and the drawn entities it left
 out (`{id: why}`), which stay listed in the shot and placed by hand.
 
+#### flat *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+Why the copies of one thing could not take the depths their scales say
+(an#603), so every member stands at `depth`; `None` when they did.
+
 ### an.ir.world_from_shot.seed_members(shot, , extents, focal, depth=None, drawn=None)
 
 The world members `shot`’s hand placements are a view of, from a
 camera at the origin with focal length `focal` (pixels): every entity
-with a `stage.at` becomes a member at `depth` (default: where the
-tallest is [`DFLT_SUBJECT_HEIGHT`](#an.ir.world_from_shot.DFLT_SUBJECT_HEIGHT) tall), every environment a member
+with a `stage.at` becomes a member (`_depths()`: `depth`, default
+where the tallest character, else the tallest thing, is
+[`DFLT_SUBJECT_HEIGHT`](#an.ir.world_from_shot.DFLT_SUBJECT_HEIGHT) tall), every environment a member
 as it is. `extents` is each entity’s native box (`None`: unmeasured);
 `drawn` the ids of the entities the stage draws (default: every one
 `extents` names), the others (a voice) being no member of a picture.

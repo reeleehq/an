@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=e6fe8823"></script>
+    <script src="../_static/documentation_options.js?v=d1060249"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.305" />
+  <meta name="docsearch:version" content="0.1.306" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -645,11 +645,14 @@ stood at one depth <code class="docutils literal notranslate"><span class="pre">
 </div></blockquote>
 <p>so the world lowers back to exactly the placements the shot already has, and
 the master’s own <code class="docutils literal notranslate"><span class="pre">stage</span></code> lines agree with it (the <code class="docutils literal notranslate"><span class="pre">viewpoint</span></code> check says
-nothing). <code class="docutils literal notranslate"><span class="pre">Z</span></code> defaults to the depth at which the tallest placed entity is
-<a class="reference internal" href="#an.ir.world_from_shot.DFLT_SUBJECT_HEIGHT" title="an.ir.world_from_shot.DFLT_SUBJECT_HEIGHT"><code class="xref py py-data docutils literal notranslate"><span class="pre">DFLT_SUBJECT_HEIGHT</span></code></a> tall. Every member stands at that one depth: what
-is nearer or farther is the author’s to say, by moving a member along its
-line of sight (<code class="docutils literal notranslate"><span class="pre">at</span></code> and <code class="docutils literal notranslate"><span class="pre">height</span></code> scaled together keep it where the master
-shows it). The camera itself, the lens and the scene file are the stage’s
+nothing). <code class="docutils literal notranslate"><span class="pre">Z</span></code> defaults to the depth at which the tallest placed character
+(else the tallest placed entity) is <a class="reference internal" href="#an.ir.world_from_shot.DFLT_SUBJECT_HEIGHT" title="an.ir.world_from_shot.DFLT_SUBJECT_HEIGHT"><code class="xref py py-data docutils literal notranslate"><span class="pre">DFLT_SUBJECT_HEIGHT</span></code></a> tall. A thing
+placed several times is ONE thing at several depths, its largest placement
+at <code class="docutils literal notranslate"><span class="pre">Z</span></code> and the others farther by their scale (an#603), so a second viewpoint
+sees them parallax; a thing placed once takes the depth the master’s drawing
+order needs (listed first = farthest). When the copies’ depths contradict
+that order, every member stands at <code class="docutils literal notranslate"><span class="pre">Z</span></code> and <a class="reference internal" href="#an.ir.world_from_shot.SeededMembers.flat" title="an.ir.world_from_shot.SeededMembers.flat"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SeededMembers.flat</span></code></a> says
+why. The camera itself, the lens and the scene file are the stage’s
 (<a class="reference internal" href="an.stage.world.html#an.stage.world.seed_world" title="an.stage.world.seed_world"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.stage.world.seed_world()</span></code></a>).</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">AssetRef</span><span class="p">,</span> <span class="n">Shot</span><span class="p">,</span> <span class="n">StagePlacement</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">shot</span> <span class="o">=</span> <span class="n">Shot</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">"master"</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">entities</span><span class="o">=</span><span class="p">[</span>
@@ -665,7 +668,7 @@ shows it). The camera itself, the lens and the scene file are the stage’s
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world_from_shot.DFLT_SUBJECT_HEIGHT" title="an.ir.world_from_shot.DFLT_SUBJECT_HEIGHT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_SUBJECT_HEIGHT</span></code></a></p></td>
-<td><p>How tall the tallest placed entity is in the seeded world, by default: a person, in metres (the world's units are metres: <code class="code docutils literal notranslate"><span class="pre">DFLT_WORLD_GRAVITY</span></code>).</p></td>
+<td><p>How tall the tallest placed character (else the tallest placed entity) is in the seeded world, by default: a person, in metres (the world's units are metres: <code class="code docutils literal notranslate"><span class="pre">DFLT_WORLD_GRAVITY</span></code>).</p></td>
 </tr>
 </tbody>
 </table>
@@ -674,7 +677,7 @@ shows it). The camera itself, the lens and the scene file are the stage’s
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world_from_shot.seed_members" title="an.ir.world_from_shot.seed_members"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seed_members</span></code></a>(shot, *, extents, focal[, ...])</p></td>
-<td><p>The world members <code class="docutils literal notranslate"><span class="pre">shot</span></code>'s hand placements are a view of, from a camera at the origin with focal length <code class="docutils literal notranslate"><span class="pre">focal</span></code> (pixels): every entity with a <code class="docutils literal notranslate"><span class="pre">stage.at</span></code> becomes a member at <code class="docutils literal notranslate"><span class="pre">depth</span></code> (default: where the tallest is <a class="reference internal" href="#an.ir.world_from_shot.DFLT_SUBJECT_HEIGHT" title="an.ir.world_from_shot.DFLT_SUBJECT_HEIGHT"><code class="xref py py-data docutils literal notranslate"><span class="pre">DFLT_SUBJECT_HEIGHT</span></code></a> tall), every environment a member as it is.</p></td>
+<td><p>The world members <code class="docutils literal notranslate"><span class="pre">shot</span></code>'s hand placements are a view of, from a camera at the origin with focal length <code class="docutils literal notranslate"><span class="pre">focal</span></code> (pixels): every entity with a <code class="docutils literal notranslate"><span class="pre">stage.at</span></code> becomes a member (<code class="xref py py-func docutils literal notranslate"><span class="pre">_depths()</span></code>: <code class="docutils literal notranslate"><span class="pre">depth</span></code>, default where the tallest character, else the tallest thing, is <a class="reference internal" href="#an.ir.world_from_shot.DFLT_SUBJECT_HEIGHT" title="an.ir.world_from_shot.DFLT_SUBJECT_HEIGHT"><code class="xref py py-data docutils literal notranslate"><span class="pre">DFLT_SUBJECT_HEIGHT</span></code></a> tall), every environment a member as it is.</p></td>
 </tr>
 </tbody>
 </table>
@@ -682,7 +685,7 @@ shows it). The camera itself, the lens and the scene file are the stage’s
 <p class="rubric">Classes</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world_from_shot.SeededMembers" title="an.ir.world_from_shot.SeededMembers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SeededMembers</span></code></a>(members, depth[, skipped])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world_from_shot.SeededMembers" title="an.ir.world_from_shot.SeededMembers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SeededMembers</span></code></a>(members, depth[, skipped, flat])</p></td>
 <td><p>What <a class="reference internal" href="#an.ir.world_from_shot.seed_members" title="an.ir.world_from_shot.seed_members"><code class="xref py py-func docutils literal notranslate"><span class="pre">seed_members()</span></code></a> derived: the members (environments first, as listed), the depth the placed ones stand at, and the drawn entities it left out (<code class="docutils literal notranslate"><span class="pre">{id:</span> <span class="pre">why}</span></code>), which stay listed in the shot and placed by hand.</p></td>
 </tr>
 </tbody>
@@ -691,19 +694,27 @@ shows it). The camera itself, the lens and the scene file are the stage’s
 <dl class="py data">
 <dt class="sig sig-object py" id="an.ir.world_from_shot.DFLT_SUBJECT_HEIGHT">
 <span class="sig-prename descclassname"><span class="pre">an.ir.world_from_shot.</span></span><span class="sig-name descname"><span class="pre">DFLT_SUBJECT_HEIGHT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.7</span></span><a class="headerlink" href="#an.ir.world_from_shot.DFLT_SUBJECT_HEIGHT" title="Link to this definition">#</a></dt>
-<dd><p>How tall the tallest placed entity is in the seeded world, by default:
-a person, in metres (the world’s units are metres: <code class="code docutils literal notranslate"><span class="pre">DFLT_WORLD_GRAVITY</span></code>).</p>
+<dd><p>How tall the tallest placed character (else the tallest placed entity) is
+in the seeded world, by default: a person, in metres (the world’s units are
+metres: <code class="code docutils literal notranslate"><span class="pre">DFLT_WORLD_GRAVITY</span></code>).</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.ir.world_from_shot.SeededMembers">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.world_from_shot.</span></span><span class="sig-name descname"><span class="pre">SeededMembers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">members</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skipped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">dict()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/world_from_shot.html#SeededMembers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.world_from_shot.SeededMembers" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.world_from_shot.</span></span><span class="sig-name descname"><span class="pre">SeededMembers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">members</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skipped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">dict()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/world_from_shot.html#SeededMembers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.world_from_shot.SeededMembers" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>What <a class="reference internal" href="#an.ir.world_from_shot.seed_members" title="an.ir.world_from_shot.seed_members"><code class="xref py py-func docutils literal notranslate"><span class="pre">seed_members()</span></code></a> derived: the members (environments first, as
 listed), the depth the placed ones stand at, and the drawn entities it left
 out (<code class="docutils literal notranslate"><span class="pre">{id:</span> <span class="pre">why}</span></code>), which stay listed in the shot and placed by hand.</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.world_from_shot.SeededMembers.flat">
+<span class="sig-name descname"><span class="pre">flat</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#an.ir.world_from_shot.SeededMembers.flat" title="Link to this definition">#</a></dt>
+<dd><p>Why the copies of one thing could not take the depths their scales say
+(an#603), so every member stands at <code class="docutils literal notranslate"><span class="pre">depth</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> when they did.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py function">
@@ -711,8 +722,9 @@ out (<code class="docutils literal notranslate"><span class="pre">{id:</span> <s
 <span class="sig-prename descclassname"><span class="pre">an.ir.world_from_shot.</span></span><span class="sig-name descname"><span class="pre">seed_members</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shot</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">extents</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">focal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drawn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/world_from_shot.html#seed_members"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.world_from_shot.seed_members" title="Link to this definition">#</a></dt>
 <dd><p>The world members <code class="docutils literal notranslate"><span class="pre">shot</span></code>’s hand placements are a view of, from a
 camera at the origin with focal length <code class="docutils literal notranslate"><span class="pre">focal</span></code> (pixels): every entity
-with a <code class="docutils literal notranslate"><span class="pre">stage.at</span></code> becomes a member at <code class="docutils literal notranslate"><span class="pre">depth</span></code> (default: where the
-tallest is <a class="reference internal" href="#an.ir.world_from_shot.DFLT_SUBJECT_HEIGHT" title="an.ir.world_from_shot.DFLT_SUBJECT_HEIGHT"><code class="xref py py-data docutils literal notranslate"><span class="pre">DFLT_SUBJECT_HEIGHT</span></code></a> tall), every environment a member
+with a <code class="docutils literal notranslate"><span class="pre">stage.at</span></code> becomes a member (<code class="xref py py-func docutils literal notranslate"><span class="pre">_depths()</span></code>: <code class="docutils literal notranslate"><span class="pre">depth</span></code>, default
+where the tallest character, else the tallest thing, is
+<a class="reference internal" href="#an.ir.world_from_shot.DFLT_SUBJECT_HEIGHT" title="an.ir.world_from_shot.DFLT_SUBJECT_HEIGHT"><code class="xref py py-data docutils literal notranslate"><span class="pre">DFLT_SUBJECT_HEIGHT</span></code></a> tall), every environment a member
 as it is. <code class="docutils literal notranslate"><span class="pre">extents</span></code> is each entity’s native box (<code class="docutils literal notranslate"><span class="pre">None</span></code>: unmeasured);
 <code class="docutils literal notranslate"><span class="pre">drawn</span></code> the ids of the entities the stage draws (default: every one
 <code class="docutils literal notranslate"><span class="pre">extents</span></code> names), the others (a voice) being no member of a picture.</p>
@@ -777,7 +789,10 @@ members first, so it would move on top of them.</p>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world_from_shot.DFLT_SUBJECT_HEIGHT"><code class="docutils literal notranslate"><span class="pre">DFLT_SUBJECT_HEIGHT</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world_from_shot.SeededMembers"><code class="docutils literal notranslate"><span class="pre">SeededMembers</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world_from_shot.SeededMembers"><code class="docutils literal notranslate"><span class="pre">SeededMembers</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world_from_shot.SeededMembers.flat"><code class="docutils literal notranslate"><span class="pre">SeededMembers.flat</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world_from_shot.seed_members"><code class="docutils literal notranslate"><span class="pre">seed_members()</span></code></a></li>
 </ul>
   </nav></div>
