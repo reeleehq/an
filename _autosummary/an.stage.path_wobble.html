@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=1a8f9284"></script>
+    <script src="../_static/documentation_options.js?v=2d7718ee"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.301" />
+  <meta name="docsearch:version" content="0.1.302" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -652,8 +652,9 @@ differently, and the same arrow wobbles the same way every render.</p></li>
 <li><p><strong>The ends stay put.</strong> The amplitude ramps up over the first and down over
 the last wavelength, so a route still starts and ends where it was drawn
 to, and an arrowhead’s tip lands on its target.</p></li>
-<li><p><strong>Static.</strong> One displacement per path. A <em>boil</em> (a wobble that changes on
-twos) is several displaced polylines on a step channel; not built.</p></li>
+<li><p><strong>Static.</strong> One displacement per seed. A <em>boil</em> (a wobble that changes on
+twos, an#443) is several of them, seeded <code class="docutils literal notranslate"><span class="pre">&lt;seed&gt;:&lt;k&gt;</span></code>, on a step channel:
+<a class="reference internal" href="an.stage.paths.html#an.stage.paths.drawn_polyline" title="an.stage.paths.drawn_polyline"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.stage.paths.drawn_polyline()</span></code></a> draws each, the compiler steps them.</p></li>
 </ul>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pts</span> <span class="o">=</span> <span class="n">wobble_polyline</span><span class="p">([(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">200.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)],</span> <span class="n">amplitude</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> <span class="n">wavelength</span><span class="o">=</span><span class="mf">50.0</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="s2">"route:0"</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">pts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># the ends are where they were</span>
@@ -671,7 +672,7 @@ twos) is several displaced polylines on a step channel; not built.</p></li>
 <td><p>enough that the wobble reads as a curve, not a zig-zag, at any amplitude a stroke should take.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.stage.path_wobble.MAX_WOBBLE_POINTS" title="an.stage.path_wobble.MAX_WOBBLE_POINTS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MAX_WOBBLE_POINTS</span></code></a></p></td>
-<td><p>The most points a wobbled path may carry.</p></td>
+<td><p>The most points a wobbled path may put on the wire, every drawing of a boil counted (an#443): each is redrawn every frame a trim, dash or boil step moves it, and each is in the compiled document.</p></td>
 </tr>
 </tbody>
 </table>
@@ -694,9 +695,11 @@ twos) is several displaced polylines on a step channel; not built.</p></li>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.stage.path_wobble.MAX_WOBBLE_POINTS">
 <span class="sig-prename descclassname"><span class="pre">an.stage.path_wobble.</span></span><span class="sig-name descname"><span class="pre">MAX_WOBBLE_POINTS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">20000</span></span><a class="headerlink" href="#an.stage.path_wobble.MAX_WOBBLE_POINTS" title="Link to this definition">#</a></dt>
-<dd><p>The most points a wobbled path may carry. Every point is redrawn each
-frame a trim or dash moves; past this the wavelength is too short for the
-path’s length (a hair-fine wobble over a long route).</p>
+<dd><p>The most points a wobbled path may put on the wire, every drawing of a boil
+counted (an#443): each is redrawn every frame a trim, dash or boil step
+moves it, and each is in the compiled document. Past this the wavelength
+is too short for the path’s length (a hair-fine wobble over a long route),
+or the boil has too many drawings.</p>
 </dd></dl>
 
 <dl class="py data">

@@ -19,8 +19,9 @@ other.
 - **The ends stay put.** The amplitude ramps up over the first and down over
   the last wavelength, so a route still starts and ends where it was drawn
   to, and an arrowhead’s tip lands on its target.
-- **Static.** One displacement per path. A *boil* (a wobble that changes on
-  twos) is several displaced polylines on a step channel; not built.
+- **Static.** One displacement per seed. A *boil* (a wobble that changes on
+  twos, an#443) is several of them, seeded `<seed>:<k>`, on a step channel:
+  [`an.stage.paths.drawn_polyline()`](an.stage.paths.html.md#an.stage.paths.drawn_polyline) draws each, the compiler steps them.
 
 ```pycon
 >>> pts = wobble_polyline([(0.0, 0.0), (200.0, 0.0)], amplitude=4.0, wavelength=50.0, seed="route:0")
@@ -34,9 +35,9 @@ True
 
 ### Module Attributes
 
-| [`WOBBLE_SAMPLES_PER_WAVELENGTH`](#an.stage.path_wobble.WOBBLE_SAMPLES_PER_WAVELENGTH)   | enough that the wobble reads as a curve, not a zig-zag, at any amplitude a stroke should take.   |
-|----------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------|
-| [`MAX_WOBBLE_POINTS`](#an.stage.path_wobble.MAX_WOBBLE_POINTS)               | The most points a wobbled path may carry.                                                        |
+| [`WOBBLE_SAMPLES_PER_WAVELENGTH`](#an.stage.path_wobble.WOBBLE_SAMPLES_PER_WAVELENGTH)   | enough that the wobble reads as a curve, not a zig-zag, at any amplitude a stroke should take.                                                                                                      |
+|----------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`MAX_WOBBLE_POINTS`](#an.stage.path_wobble.MAX_WOBBLE_POINTS)               | The most points a wobbled path may put on the wire, every drawing of a boil counted (an#443): each is redrawn every frame a trim, dash or boil step moves it, and each is in the compiled document. |
 
 ### Functions
 
@@ -47,9 +48,11 @@ True
 
 ### an.stage.path_wobble.MAX_WOBBLE_POINTS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 20000*
 
-The most points a wobbled path may carry. Every point is redrawn each
-frame a trim or dash moves; past this the wavelength is too short for the
-path’s length (a hair-fine wobble over a long route).
+The most points a wobbled path may put on the wire, every drawing of a boil
+counted (an#443): each is redrawn every frame a trim, dash or boil step
+moves it, and each is in the compiled document. Past this the wavelength
+is too short for the path’s length (a hair-fine wobble over a long route),
+or the boil has too many drawings.
 
 ### an.stage.path_wobble.WOBBLE_SAMPLES_PER_WAVELENGTH *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 8*
 

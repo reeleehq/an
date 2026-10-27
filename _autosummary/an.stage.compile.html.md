@@ -46,6 +46,7 @@ mall). It reads only.
 | [`CAMERA_NODE`](#an.stage.compile.CAMERA_NODE)                  | indexed by the runtime, absent from the tree.                                                                                                                                                                             |
 | [`AFTER_BANDS_PRODUCT`](#an.stage.compile.AFTER_BANDS_PRODUCT)          | the [`AfterBand`](#an.stage.compile.AfterBand) wrappers the scene pass built.                                                                                                                             |
 | [`CAMERA_KEYS_PRODUCT`](#an.stage.compile.CAMERA_KEYS_PRODUCT)          | The product key under which the follow pass (an#445) leaves the camera keys it resolved from the compiled motion; the camera and parallax passes read them there instead of `camera_keys(shot)`.                          |
+| [`BOIL_SET`](#an.stage.compile.BOIL_SET)                     | the runtime's path registers it as a draw set, `"0"` the static wobble's drawing.                                                                                                                                         |
 | [`STAGE_COMPILE_PASSES`](#an.stage.compile.STAGE_COMPILE_PASSES)         | The STAGE's own compile passes, in order.                                                                                                                                                                                 |
 | [`RUNTIME_FIELD_KINDS`](#an.stage.compile.RUNTIME_FIELD_KINDS)          | The field kinds `runtime.js` implements (its `FIELD_KINDS` table; a test pins the two).                                                                                                                                   |
 | [`BAND_INFIX`](#an.stage.compile.BAND_INFIX)                   | The infix of a container holding a later band of an environment's planes (an#344): `<env>__band_<k>`, `scope=<env>`.                                                                                                      |
@@ -62,6 +63,7 @@ mall). It reads only.
 
 | [`after_problems`](#an.stage.compile.after_problems)(shot, mall, \*[, planes_known])   | `[(entity index, why)]` for every `stage.after` the compiler would refuse (an#344): an anchor the shot does not have, the entity itself, a cycle.                                                        |
 |---------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`boil_keys`](#an.stage.compile.boil_keys)(hz, drawings, duration)                | `(time, drawing)` of a boil: drawing `k mod drawings` from `k / hz`, every step of the shot (an#443).                                                                                                    |
 | [`camera_follow_keys`](#an.stage.compile.camera_follow_keys)(state)                        | The keys of `state.shot`'s follow camera, one per frame (an#445).                                                                                                                                        |
 | [`camera_keys`](#an.stage.compile.camera_keys)(shot, \*, width, height)             | [`an.ir.camera.camera_keys()`](an.ir.camera.html.md#an.ir.camera.camera_keys), with its refusal typed for this adapter.                                                           |
 | [`compile_passes_for_stage`](#an.stage.compile.compile_passes_for_stage)()                       | The stage's passes and every registered one, in run order (stable by name).                                                                                                                              |
@@ -145,6 +147,14 @@ A wrapper the parallax pass gives `plane`’s compensation (an#344).
 
 The infix of a container holding a later band of an environment’s planes
 (an#344): `<env>__band_<k>`, `scope=<env>`.
+
+### an.stage.compile.BOIL_SET *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'boil'*
+
+the runtime’s
+path registers it as a draw set, `"0"` the static wobble’s drawing.
+
+* **Type:**
+  The swap set a boiling path’s drawings are keyed in (an#443)
 
 ### an.stage.compile.CAMERA_KEYS_PRODUCT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'camera_keys'*
 
@@ -277,7 +287,7 @@ The field kinds `runtime.js` implements (its `FIELD_KINDS` table; a test
 pins the two). A declared space using any other kind cannot be drawn by the
 stage, so the compiler refuses it instead of the browser failing mid-render.
 
-### an.stage.compile.STAGE_COMPILE_PASSES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[CompilePass](an.genres.registry.html.md#an.genres.registry.CompilePass), ...]* *= (CompilePass(name='scene', run=<function \_scene_pass>, order=100, compiler='stage', builds=None, description='the scene tree, overlay, grain, vocabulary', replace=False), CompilePass(name='counters', run=<function \_counters_pass>, order=195, compiler='stage', builds=None, description='counter text blocks: \`value\` -> a set of strings (an#342)', replace=False), CompilePass(name='actions', run=<function \_actions_pass>, order=200, compiler='stage', builds=None, description='authored actions -> clips', replace=False), CompilePass(name='solve', run=<function \_solve_pass>, order=525, compiler='stage', builds=None, description='joints kept at every frame: the bodies the joints move (ADR 0008, an#512)', replace=False), CompilePass(name='camera_follow', run=<function \_camera_follow_pass>, order=550, compiler='stage', builds=None, description="a following camera's keys, from the compiled motion (an#445)", replace=False), CompilePass(name='camera', run=<function \_camera_pass>, order=600, compiler='stage', builds=None, description='the camera onto the scene root', replace=False), CompilePass(name='parallax', run=<function \_parallax_pass>, order=700, compiler='stage', builds=None, description="planes' parallax", replace=False), CompilePass(name='checks', run=<function \_checks_pass>, order=900, compiler='stage', builds=None, description='targets, easings, stand-ins', replace=False))*
+### an.stage.compile.STAGE_COMPILE_PASSES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[CompilePass](an.genres.registry.html.md#an.genres.registry.CompilePass), ...]* *= (CompilePass(name='scene', run=<function \_scene_pass>, order=100, compiler='stage', builds=None, description='the scene tree, overlay, grain, vocabulary', replace=False), CompilePass(name='counters', run=<function \_counters_pass>, order=195, compiler='stage', builds=None, description='counter text blocks: \`value\` -> a set of strings (an#342)', replace=False), CompilePass(name='actions', run=<function \_actions_pass>, order=200, compiler='stage', builds=None, description='authored actions -> clips', replace=False), CompilePass(name='solve', run=<function \_solve_pass>, order=525, compiler='stage', builds=None, description='joints kept at every frame: the bodies the joints move (ADR 0008, an#512)', replace=False), CompilePass(name='camera_follow', run=<function \_camera_follow_pass>, order=550, compiler='stage', builds=None, description="a following camera's keys, from the compiled motion (an#445)", replace=False), CompilePass(name='camera', run=<function \_camera_pass>, order=600, compiler='stage', builds=None, description='the camera onto the scene root', replace=False), CompilePass(name='parallax', run=<function \_parallax_pass>, order=700, compiler='stage', builds=None, description="planes' parallax", replace=False), CompilePass(name='boil', run=<function \_boil_pass>, order=750, compiler='stage', builds=None, description="a boiling path's drawings (an#443)", replace=False), CompilePass(name='checks', run=<function \_checks_pass>, order=900, compiler='stage', builds=None, description='targets, easings, stand-ins', replace=False))*
 
 The STAGE’s own compile passes, in order. A genre adds passes between them by
 registering [`an.genres.CompilePass`](an.genres.html.md#an.genres.CompilePass) objects for the `"stage"`
@@ -329,6 +339,20 @@ cycle. The one statement both `compile_shot` and `an validate` read.
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
+### an.stage.compile.boil_keys(hz, drawings, duration)
+
+`(time, drawing)` of a boil: drawing `k mod drawings` from `k / hz`,
+every step of the shot (an#443). The steps are on the shot’s own clock, so
+the line changes exactly on them, every render.
+
+```pycon
+>>> boil_keys(12.0, 3, 0.3)
+[(0.0, '0'), (0.08333333333333333, '1'), (0.16666666666666666, '2'), (0.25, '0')]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 ### an.stage.compile.camera_follow_keys(state)
 

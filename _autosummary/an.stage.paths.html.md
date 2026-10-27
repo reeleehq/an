@@ -53,7 +53,7 @@ SVG; a path has none of those, and its colour is decided by the compiler
 
 | [`resolve_path`](#an.stage.paths.resolve_path)(document[, overrides])            | The path an entity draws: its stored document with `overrides` on top.                                                                                                                                                                                                                                                                                     |
 |-------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`drawn_polyline`](#an.stage.paths.drawn_polyline)(desc, entity_id)                | The polyline the compiler puts on the wire for entity `entity_id` drawing `desc` — flattened, closed, wobbled (the wobble is seeded by the entity) — and the index in it of each AUTHORED on-path point: every point of a polyline, `p0 p1 p2 ...` of a cubic chain (not its controls), and the closing return to the first point when `closed` added one. |
+| [`drawn_polyline`](#an.stage.paths.drawn_polyline)(desc, entity_id, \*[, variant]) | The polyline the compiler puts on the wire for entity `entity_id` drawing `desc` — flattened, closed, wobbled (the wobble is seeded by the entity) — and the index in it of each AUTHORED on-path point: every point of a polyline, `p0 p1 p2 ...` of a cubic chain (not its controls), and the closing return to the first point when `closed` added one. |
 | [`draw_on_through`](#an.stage.paths.draw_on_through)(entity_id, path, arrivals, \*) | A draw-on whose tip reaches each authored point at its own time (an#161).                                                                                                                                                                                                                                                                                  |
 
 ### Classes
@@ -80,7 +80,7 @@ thousand pixels long is a few thousand dashes at most.
 Its own versioned document kind, registered from the module that owns the
 schema — the rule `PropDescriptor` and `CharacterDescriptor` follow.
 
-### *class* an.stage.paths.PathDescriptor(\*, kind='PathDescriptor', schema_version='0.1.0', name, points, curve='polyline', samples_per_segment=24, sampling='parameter', color='#c0392b', width=8.0, width_profile=None, cap='round', join='round', trim_start=0.0, trim_end=1.0, dash=None, gap=None, dash_offset=0.0, arrowhead=False, tail_arrowhead=False, head_length=None, head_width=None, closed=False, fill=None, fill_alpha=1.0, wobble=0.0, wobble_wavelength=None, wobble_seed=0, source=None, metadata=<factory>)
+### *class* an.stage.paths.PathDescriptor(\*, kind='PathDescriptor', schema_version='0.1.0', name, points, curve='polyline', samples_per_segment=24, sampling='parameter', color='#c0392b', width=8.0, width_profile=None, cap='round', join='round', trim_start=0.0, trim_end=1.0, dash=None, gap=None, dash_offset=0.0, arrowhead=False, tail_arrowhead=False, head_length=None, head_width=None, closed=False, fill=None, fill_alpha=1.0, wobble=0.0, wobble_wavelength=None, wobble_seed=0, boil_hz=0.0, boil_drawings=3, source=None, metadata=<factory>)
 
 Bases: `BaseModel`
 
@@ -105,6 +105,27 @@ pydantic_core._pydantic_core.ValidationError: 1 validation error for PathDescrip
   Value error, a cubic path takes 3n + 1 points (p0, then c1 c2 p per segment); got 3 [type=value_error, input_value=..., input_type=dict]
 ...
 ```
+
+#### boil_drawings *: [int](https://docs.python.org/3/builtins/functions.html#int)*
+
+How many different drawings the boil cycles through, the first being
+the static wobble’s.
+
+#### boil_hz *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+the wobble is drawn again this many times a second
+(`12` at 24 fps is “on twos”), cycling `boil_drawings` drawings, so
+the line lives. `0` = a wobble drawn once. Needs a `wobble`.
+
+* **Type:**
+  A boil (an#443)
+
+#### *property* boils *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
+
+a boil rate over a wobble (an#443).
+
+* **Type:**
+  Whether the line boils
 
 #### closed *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
 
@@ -249,6 +270,8 @@ from the arc fraction of one point to the next on the polyline the
 compiler draws ([`drawn_polyline()`](#an.stage.paths.drawn_polyline), wobble included, so the tip is ON
 the point), each eased by `easing`, preceded by a `set` of
 `trim_end` to 0 at 0. `arrivals` are absolute shot times, increasing.
+A boiling path’s fractions are its first drawing’s: on its other drawings
+the tip lands within a pixel or so of the point (an#443).
 
 Returns a list of top-level actions for `shot.actions.extend(...)`, as
 [`an.stage.text.reveal_units()`](an.stage.text.html.md#an.stage.text.reveal_units) does.
@@ -263,13 +286,17 @@ Returns a list of top-level actions for `shot.actions.extend(...)`, as
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)
 
-### an.stage.paths.drawn_polyline(desc, entity_id)
+### an.stage.paths.drawn_polyline(desc, entity_id, , variant=0)
 
 The polyline the compiler puts on the wire for entity `entity_id`
 drawing `desc` — flattened, closed, wobbled (the wobble is seeded by
 the entity) — and the index in it of each AUTHORED on-path point: every
 point of a polyline, `p0 p1 p2 ...` of a cubic chain (not its controls),
 and the closing return to the first point when `closed` added one.
+`variant` is which drawing of a boil (an#443): `0` is the static
+wobble’s bytes, drawing `k` is seeded `<entity>:<wobble_seed>:<k>`;
+every drawing has the same points at the same indices, only displaced
+differently.
 
 ```pycon
 >>> pts, anchors = drawn_polyline(PathDescriptor(name="r", points=[(0, 0), (10, 0), (10, 10)], closed=True), "r")

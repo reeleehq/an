@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=1a8f9284"></script>
+    <script src="../../../_static/documentation_options.js?v=2d7718ee"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.301" />
+  <meta name="docsearch:version" content="0.1.302" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1825,6 +1825,101 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<span class="c1">#: The swap set a boiling path's drawings are keyed in (an#443): the runtime's</span>
+<span class="c1">#: path registers it as a draw set, ``"0"`` the static wobble's drawing.</span>
+<span class="n">BOIL_SET</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"boil"</span>
+
+
+<span class="c1">#: A step this close to the shot's end is not a step of the shot (``0.25 s ×</span>
+<span class="c1">#: 12 Hz`` is 3 steps, not 4, whatever the float product rounds to).</span>
+<span class="n">_BOIL_STEP_EPS</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-9</span>
+
+
+<div class="viewcode-block" id="boil_keys">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.compile.html#an.adapters.cutout.boil_keys">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">boil_keys</span><span class="p">(</span><span class="n">hz</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">drawings</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``(time, drawing)`` of a boil: drawing ``k mod drawings`` from ``k / hz``,</span>
+<span class="sd">    every step of the shot (an#443). The steps are on the shot's own clock, so</span>
+<span class="sd">    the line changes exactly on them, every render.</span>
+
+<span class="sd">    &gt;&gt;&gt; boil_keys(12.0, 3, 0.3)</span>
+<span class="sd">    [(0.0, '0'), (0.08333333333333333, '1'), (0.16666666666666666, '2'), (0.25, '0')]</span>
+<span class="sd">    """</span>
+    <span class="n">steps</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">duration</span> <span class="o">*</span> <span class="n">hz</span> <span class="o">-</span> <span class="n">_BOIL_STEP_EPS</span><span class="p">))</span>
+    <span class="k">return</span> <span class="p">[(</span><span class="n">k</span> <span class="o">/</span> <span class="n">hz</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">k</span> <span class="o">%</span> <span class="n">drawings</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">steps</span><span class="p">)]</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_boiling_paths</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">CompileState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``{entity id: boil_hz}`` of the shot's boiling paths, read from their</span>
+<span class="sd">    descriptors as the builder read them (:func:`resolve_path`)."""</span>
+    <span class="n">props</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"props"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">:</span>
+        <span class="n">doc</span> <span class="o">=</span> <span class="n">props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">ref</span><span class="p">)</span> <span class="k">if</span> <span class="n">entity</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"prop"</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">or</span> <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"kind"</span><span class="p">)</span> <span class="o">!=</span> <span class="n">PATH_DOCUMENT_KIND</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">desc</span> <span class="o">=</span> <span class="n">resolve_path</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">entity</span><span class="o">.</span><span class="n">overrides</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">desc</span><span class="o">.</span><span class="n">boils</span><span class="p">:</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">boil_hz</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_boil_pass</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">CompileState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A boiling path's drawing, stepped (an#443): one ``boil`` channel per</span>
+<span class="sd">    path node that carries drawings, stepping through them at its rate, which</span>
+<span class="sd">    is at most the frame rate (a faster boil would draw steps no frame shows,</span>
+<span class="sd">    and a typo'd rate would write a key per step)."""</span>
+    <span class="n">duration</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.001</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">))</span>
+    <span class="n">rates</span> <span class="o">=</span> <span class="n">_boiling_paths</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">stage_tree</span><span class="o">.</span><span class="n">walk_children</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">scene_root</span><span class="p">):</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">visual</span>
+        <span class="n">hz</span> <span class="o">=</span> <span class="n">rates</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hz</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">v</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">v</span><span class="o">.</span><span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">v</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">drawings</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">hz</span> <span class="o">&gt;</span> <span class="n">state</span><span class="o">.</span><span class="n">fps</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: path </span><span class="si">{</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> boils at </span><span class="si">{</span><span class="n">hz</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> Hz, faster "</span>
+                <span class="sa">f</span><span class="s2">"than the shot's </span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">fps</span><span class="si">}</span><span class="s2"> fps: a step no frame shows. Use at most "</span>
+                <span class="sa">f</span><span class="s2">"`boil_hz: </span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">fps</span><span class="si">}</span><span class="s2">` (on ones); `</span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">fps</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">2</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">` is on twos."</span>
+            <span class="p">)</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="n">boil_keys</span><span class="p">(</span><span class="n">hz</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">drawings</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">duration</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: path </span><span class="si">{</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> boils at </span><span class="si">{</span><span class="n">hz</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> Hz, once "</span>
+                <span class="sa">f</span><span class="s2">"every </span><span class="si">{</span><span class="mi">1</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">hz</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> s, and the shot is </span><span class="si">{</span><span class="n">duration</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> s long: it never "</span>
+                <span class="s2">"steps to its next drawing."</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="n">anim_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"__boil__</span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">'/'</span><span class="p">,</span><span class="w"> </span><span class="s1">'_'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+        <span class="k">if</span> <span class="n">anim_id</span> <span class="ow">in</span> <span class="n">state</span><span class="o">.</span><span class="n">animations</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"boil clip id </span><span class="si">{</span><span class="n">anim_id</span><span class="si">!r}</span><span class="s2"> is already taken"</span><span class="p">)</span>
+        <span class="n">state</span><span class="o">.</span><span class="n">animations</span><span class="p">[</span><span class="n">anim_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">AnimationClipJSON</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">anim_id</span><span class="p">,</span>
+            <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span>
+            <span class="n">channels</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">ChannelJSON</span><span class="p">(</span>
+                    <span class="n">target</span><span class="o">=</span><span class="n">path</span><span class="p">,</span>
+                    <span class="nb">property</span><span class="o">=</span><span class="n">BOIL_SET</span><span class="p">,</span>
+                    <span class="n">keyframes</span><span class="o">=</span><span class="p">[</span>
+                        <span class="n">KeyframeJSON</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">easing</span><span class="o">=</span><span class="s2">"step"</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span>
+                    <span class="p">],</span>
+                <span class="p">)</span>
+            <span class="p">],</span>
+        <span class="p">)</span>
+        <span class="n">state</span><span class="o">.</span><span class="n">tracks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">TrackJSON</span><span class="p">(</span>
+                <span class="n">target_root</span><span class="o">=</span><span class="s2">"__boil__"</span><span class="p">,</span>
+                <span class="n">clips</span><span class="o">=</span><span class="p">[</span>
+                    <span class="n">PlacedClipJSON</span><span class="p">(</span>
+                        <span class="n">animation_id</span><span class="o">=</span><span class="n">anim_id</span><span class="p">,</span> <span class="n">start_time</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">duration</span>
+                    <span class="p">)</span>
+                <span class="p">],</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_parallax_pass</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">CompileState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Planes' parallax. After the camera, which reads in the order it happens --</span>
 <span class="sd">    though not load-bearing: the two write disjoint targets. What IS load-bearing</span>
@@ -1941,6 +2036,9 @@ window.runMermaid = runMermaid;</script>
         <span class="s2">"camera"</span><span class="p">,</span> <span class="n">_camera_pass</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">"the camera onto the scene root"</span>
     <span class="p">),</span>
     <span class="n">CompilePass</span><span class="p">(</span><span class="s2">"parallax"</span><span class="p">,</span> <span class="n">_parallax_pass</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">700</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">"planes' parallax"</span><span class="p">),</span>
+    <span class="n">CompilePass</span><span class="p">(</span>
+        <span class="s2">"boil"</span><span class="p">,</span> <span class="n">_boil_pass</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">750</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">"a boiling path's drawings (an#443)"</span>
+    <span class="p">),</span>
     <span class="n">CompilePass</span><span class="p">(</span>
         <span class="s2">"checks"</span><span class="p">,</span> <span class="n">_checks_pass</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">900</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">"targets, easings, stand-ins"</span>
     <span class="p">),</span>
@@ -3446,6 +3544,14 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
     <span class="p">)</span>
     <span class="n">points</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">drawn_polyline</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+    <span class="n">drawings</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">drawn_polyline</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">variant</span><span class="o">=</span><span class="n">k</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">desc</span><span class="o">.</span><span class="n">boil_drawings</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="n">desc</span><span class="o">.</span><span class="n">boils</span>
+        <span class="k">else</span> <span class="kc">None</span>
+    <span class="p">)</span>
     <span class="n">colour</span> <span class="o">=</span> <span class="n">_path_colour</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">style_pack</span><span class="p">,</span> <span class="n">reached</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">NodeJSON</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
@@ -3471,6 +3577,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">fill</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">fill</span><span class="p">,</span>
                 <span class="n">fill_alpha</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">fill_alpha</span><span class="p">,</span>
                 <span class="n">width_profile</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">width_profile</span><span class="p">,</span>
+                <span class="n">drawings</span><span class="o">=</span><span class="n">drawings</span><span class="p">,</span>
             <span class="p">),</span>
         <span class="p">),</span>
     <span class="p">)</span>

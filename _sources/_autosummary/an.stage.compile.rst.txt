@@ -13,6 +13,7 @@ an.stage.compile
       CAMERA_NODE
       AFTER_BANDS_PRODUCT
       CAMERA_KEYS_PRODUCT
+      BOIL_SET
       STAGE_COMPILE_PASSES
       RUNTIME_FIELD_KINDS
       BAND_INFIX
@@ -30,6 +31,7 @@ an.stage.compile
    .. autosummary::
    
       after_problems
+      boil_keys
       camera_follow_keys
       camera_keys
       compile_passes_for_stage

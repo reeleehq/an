@@ -310,7 +310,7 @@ This node’s place among its siblings when its parent sorts them
 (an#403): a nested chain whose declared draw order is not the tree’s
 (a far arm behind the torso it nests under). `None` = insertion order.
 
-### *class* an.stage.serialize.PathJSON(, points, stroke_width, color, cap='round', join='round', trim_start=0.0, trim_end=1.0, head_length=0.0, head_width=0.0, dash=0.0, gap=0.0, dash_offset=0.0, tail_head_length=0.0, tail_head_width=0.0, closed=False, fill=None, fill_alpha=1.0, width_profile=None, \*\*extra_data)
+### *class* an.stage.serialize.PathJSON(, points, stroke_width, color, cap='round', join='round', trim_start=0.0, trim_end=1.0, head_length=0.0, head_width=0.0, dash=0.0, gap=0.0, dash_offset=0.0, tail_head_length=0.0, tail_head_width=0.0, closed=False, fill=None, fill_alpha=1.0, width_profile=None, drawings=None, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -341,6 +341,17 @@ visuals only, so they cannot move a non-path document’s hash.
 
 * **Type:**
   Dash pattern (an#161)
+
+#### drawings *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[list](https://docs.python.org/3/builtins/stdtypes.html#list)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+the polylines `points` is swapped
+for, same length, the `boil` draw set’s keys `"1"`, `"2"`, …
+(`"0"` is `points`); the stage’s `boil` pass steps through them.
+Omitted when unset. (Unrelated to the bench’s “boil” metric, which names
+the DEFECT of a held pose flickering.)
+
+* **Type:**
+  A boil’s other drawings (an#443)
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 
