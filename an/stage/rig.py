@@ -1558,6 +1558,165 @@ def _legacy_baked_face_slots(desc: Any, parents: Mapping[str, str | None]) -> se
     }
 
 
+@dataclass(frozen=True)
+class RestTransform:
+    """A slot's node at rest, in the entity's frame (scene px): the affine that
+    takes a point of the slot's node to the entity's frame, ``(x, y) -> (a·x +
+    c·y + tx, b·x + d·y + ty)`` (the scene graph's own order: scale, then
+    rotate, then translate, down the chain), and whether any node on the chain
+    is ``posed``, turned or scaled at rest (a bone's rest rotation or scale)."""
+
+    a: float = 1.0
+    b: float = 0.0
+    c: float = 0.0
+    d: float = 1.0
+    tx: float = 0.0
+    ty: float = 0.0
+    posed: bool = False
+
+    def apply(self, x: float, y: float) -> tuple[float, float]:
+        """The entity-frame point of the node-local point ``(x, y)``.
+
+        >>> RestTransform(tx=3.0, ty=4.0).apply(1.0, 1.0)
+        (4.0, 5.0)
+        """
+        return (self.a * x + self.c * y + self.tx, self.b * x + self.d * y + self.ty)
+
+    def then(self, x: float, y: float, rotation: float, scale_x: float, scale_y: float) -> "RestTransform":
+        """This transform under a child node at ``(x, y)``, ``rotation`` (radians),
+        scaled by ``scale_x``, ``scale_y``: the child's world transform."""
+        cos, sin = math.cos(rotation), math.sin(rotation)
+        la, lb, lc, ld = cos * scale_x, sin * scale_x, -sin * scale_y, cos * scale_y
+        return RestTransform(
+            a=self.a * la + self.c * lb,
+            b=self.b * la + self.d * lb,
+            c=self.a * lc + self.c * ld,
+            d=self.b * lc + self.d * ld,
+            tx=self.a * x + self.c * y + self.tx,
+            ty=self.b * x + self.d * y + self.ty,
+            posed=self.posed or bool(rotation) or scale_x != 1.0 or scale_y != 1.0,
+        )
+
+
+class _RigGeometry:
+    """Where a rig's slot nodes sit and how they are posed at rest: the ONE
+    place the builder (:func:`build_rig_subtree`) and the rest readers
+    (:func:`rest_world_transforms`) get a slot's local transform from, so a
+    copy of the rule cannot drift from it (an#579)."""
+
+    def __init__(self, desc: Any, *, apply_rest_pose: bool = True) -> None:
+        self.desc = desc
+        self.apply_rest_pose = apply_rest_pose
+        self.bone_of = {b.name: b for b in desc.bones}
+        self.slot_of = {sl.name: sl for sl in desc.slots}
+        self.k = SCENE_PX_PER_VIEW_BOX / float(desc.view_box[3] or 1)
+        self.skin = desc.skins.get("default") or next(iter(desc.skins.values()), Skin())
+        self.bones = bone_positions(desc)
+        self.origin = rig_origin(desc)
+        self.parents = slot_parent_chain(desc)
+        self.bones_mode = nesting_of(desc) == BONES_NESTING
+
+    def _offset(self, slot: str) -> tuple[float, float]:
+        drawn = drawn_attachment(self.desc, self.skin, self.slot_of[slot])
+        return (drawn[1].x, drawn[1].y) if drawn is not None else (0.0, 0.0)
+
+    def local(self, name: str) -> tuple[float, float, dict[str, float]]:
+        """``(x, y, rest)`` of slot ``name``'s node in its parent's frame (scene
+        px), ``rest`` being the rotation and scales its bone's rest pose sets
+        (empty when it has none, or when a part on the same bone carries it)."""
+        slot = self.slot_of[name]
+        parent = self.parents.get(name)
+        nested = parent is not None
+        # Position = the slot's bone, plus the attachment's own offset from it.
+        # Both are needed: five face parts share one `head` bone, so the bone
+        # alone would stack them, and the offset alone would ignore the rig.
+        bone_x, bone_y = bone_x0, bone_y0 = self.bones.get(slot.bone, (0.0, 0.0))
+        if nested:
+            parent_bone = self.slot_of[parent].bone
+            parent_x, parent_y = self.bones.get(parent_bone, (0.0, 0.0))
+            bone_x, bone_y = bone_x0 - parent_x, bone_y0 - parent_y
+            if self.bones_mode:
+                # Relative to the parent BONE: the parent node sits at its bone
+                # plus its own attachment offset, which a chain must not inherit.
+                drawn_parent = drawn_attachment(
+                    self.desc, self.skin, self.slot_of[parent]
+                )
+                if drawn_parent is not None:
+                    bone_x -= drawn_parent[1].x
+                    bone_y -= drawn_parent[1].y
+        else:
+            bone_x, bone_y = bone_x - self.origin[0], bone_y - self.origin[1]
+        ox, oy = self._offset(name)
+        bone_x += ox
+        bone_y += oy
+        # The bone's rest pose (an#339) poses the part that IS on it; a slot
+        # nested under a part on the SAME bone gets it from that parent.
+        rest = (
+            rest_transform(self.bone_of[slot.bone])
+            if self.apply_rest_pose
+            and slot.bone in self.bone_of
+            and not (nested and self.slot_of[parent].bone == slot.bone)
+            else {}
+        )
+        return bone_x * self.k, bone_y * self.k, rest
+
+
+def rest_world_transforms(
+    desc: Any, *, apply_rest_pose: bool | None = None
+) -> dict[str, RestTransform]:
+    """The rest transform of every slot's node in the entity's frame: the
+    builder's own rule (:func:`build_rig_subtree`, ``flat`` or ``bones``
+    nesting, a bone's rest rotation and scale included, a part nested under
+    another composing through it), for a rig that draws no art yet or whose art
+    is missing too. ``apply_rest_pose`` defaults to the descriptor's
+    ``rest_rotation`` (the builder also turns it off for an old document it
+    cannot date: pass what the build decided).
+
+    >>> rig = {"nesting": "bones", "view_box": [0, 0, 345, 345], "origin": [0, 0],
+    ...        "bones": [{"name": "arm", "x": 10, "rotation_deg": 90}, {"name": "hand", "parent": "arm", "y": 20}],
+    ...        "slots": [{"name": "arm", "bone": "arm"}, {"name": "hand", "bone": "hand"}],
+    ...        "skins": {"default": {"slots": {"arm": {"a": {"path": "a.svg"}}, "hand": {"h": {"path": "h.svg"}}}}}}
+    >>> t = rest_world_transforms(rig)
+    >>> t["arm"].posed, (t["arm"].tx, t["arm"].ty)
+    (True, (10.0, 0.0))
+    >>> tuple(round(v, 6) for v in t["hand"].apply(0.0, 0.0))  # 20 below the arm, turned 90 degrees clockwise
+    (-10.0, 0.0)
+    """
+    view = (
+        desc
+        if isinstance(desc, _RigView)
+        else _RigView.model_validate(
+            desc if isinstance(desc, Mapping) else _dump_rig(desc)
+        )
+    )
+    if apply_rest_pose is None:
+        apply_rest_pose = _field_of(view, "rest_rotation") is not False
+    geometry = _RigGeometry(view, apply_rest_pose=apply_rest_pose)
+    out: dict[str, RestTransform] = {}
+
+    def of(name: str, seen: frozenset[str] = frozenset()) -> RestTransform:
+        if name not in out:
+            parent = geometry.parents.get(name)
+            above = (
+                of(parent, seen | {name})
+                if parent is not None and parent not in seen
+                else RestTransform()
+            )
+            x, y, rest = geometry.local(name)
+            out[name] = above.then(
+                x,
+                y,
+                rest.get("rotation", 0.0),
+                rest.get("scale_x", 1.0),
+                rest.get("scale_y", 1.0),
+            )
+        return out[name]
+
+    for name in geometry.slot_of:
+        of(name)
+    return out
+
+
 def build_rig_subtree(
     entity: AssetRef,
     desc_data: dict[str, Any],
@@ -1659,18 +1818,14 @@ def build_rig_subtree(
         # The protection is a guess about an old document (an#407): say so, or
         # an author who added a rotation to an old file sees nothing happen.
         warnings.warn(f"{entity.id!r}: {protected}", RestPoseWarning, stacklevel=2)
-    bone_of = {b.name: b for b in desc.bones}
     ref = entity.ref or entity.id
-    _, _, _, view_box_height = desc.view_box
-    k = SCENE_PX_PER_VIEW_BOX / float(view_box_height or 1)
-
-    skin = desc.skins.get("default") or next(iter(desc.skins.values()), Skin())
-    bones = bone_positions(desc)
-    origin = rig_origin(desc)
-    # Shared with a genre's part paths (`cutan.characters.play`) so a `play`
-    # resolves against the nesting the builder actually uses (an#7, an#340).
-    parents = slot_parent_chain(desc)
-    bones_mode = nesting_of(desc) == BONES_NESTING
+    # Where every node sits and how it is posed at rest: one rule, shared with
+    # `rest_world_transforms` (an#579). `parents` is shared with a genre's part
+    # paths (`cutan.characters.play`) so a `play` resolves against the nesting
+    # the builder actually uses (an#7, an#340).
+    geometry = _RigGeometry(desc, apply_rest_pose=apply_rest_pose)
+    k, skin, parents = geometry.k, geometry.skin, geometry.parents
+    bones_mode, slot_of = geometry.bones_mode, geometry.slot_of
     if bones_mode:
         # A chain interleaved with an unrelated part is no longer refused
         # here (an#430): it is painted from a global list (`paint_order`),
@@ -1683,7 +1838,6 @@ def build_rig_subtree(
                 f"rig {ref!r} cannot be built with `nesting: bones`: "
                 + "; ".join(broken)
             )
-    slot_of = {s.name: s for s in desc.slots}
     skip = (
         set(skip_slots)
         if skip_slots is not None
@@ -1751,25 +1905,7 @@ def build_rig_subtree(
             continue
         attachment_name, attachment = resolved
 
-        # Position = the slot's bone, plus the attachment's own offset from it.
-        # Both are needed: five face parts share one `head` bone, so the bone
-        # alone would stack them, and the offset alone would ignore the rig.
-        bone_x, bone_y = bone_x0, bone_y0 = bones.get(slot.bone, (0.0, 0.0))
-        if nested:
-            parent_bone = slot_of[parent].bone
-            parent_x, parent_y = bones.get(parent_bone, (0.0, 0.0))
-            bone_x, bone_y = bone_x0 - parent_x, bone_y0 - parent_y
-            if bones_mode:
-                # Relative to the parent BONE: the parent node sits at its bone
-                # plus its own attachment offset, which a chain must not inherit.
-                drawn_parent = drawn_attachment(desc, skin, slot_of[parent])
-                if drawn_parent is not None:
-                    bone_x -= drawn_parent[1].x
-                    bone_y -= drawn_parent[1].y
-        else:
-            bone_x, bone_y = bone_x - origin[0], bone_y - origin[1]
-        bone_x += attachment.x
-        bone_y += attachment.y
+        x, y, rest = geometry.local(slot.name)
 
         extent = _box_of(attachment)
         visual = VisualJSON(
@@ -1813,18 +1949,9 @@ def build_rig_subtree(
             if geometry:
                 visual.asset_geometry = geometry
 
-        # The bone's rest pose (an#339) poses the part that IS on it; a slot
-        # nested under a part on the SAME bone gets it from that parent.
-        rest = (
-            rest_transform(bone_of[slot.bone])
-            if apply_rest_pose
-            and slot.bone in bone_of
-            and not (nested and slot_of[parent].bone == slot.bone)
-            else {}
-        )
         node = NodeJSON(
             name=slot.name,
-            transform=TransformJSON(x=bone_x * k, y=bone_y * k, **rest),
+            transform=TransformJSON(x=x, y=y, **rest),
             visual=visual,
         )
         nodes[slot.name] = node
