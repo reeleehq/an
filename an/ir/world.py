@@ -46,7 +46,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Callable, Collection, Mapping, Sequence
 
-from an.base import PLANE_FACTORS_OVERRIDE
+from an.base import PLANE_FACTORS_OVERRIDE, STREAM_OVERRIDE
 from an.ir.compose import (
     delay,
     flatten,
@@ -138,10 +138,6 @@ _FLAT_CHANNEL_EPS: float = 1e-6
 #: The key the lowering records a member's attachment under in the entity's
 #: ``overrides``, for a pass that places it from its host (ADR 0009).
 ATTACHED_OVERRIDE: str = "attached"
-#: The core's record on a slot entity the lowering made (an#516): the id of
-#: the stream it draws. What marks a shot as lowered; an authored entity that
-#: is only NAMED like a slot carries none.
-STREAM_OVERRIDE: str = "stream"
 
 
 class WorldError(ValueError):
@@ -1816,6 +1812,16 @@ class WorldNote:
     entity: str
     message: str
 
+    @property
+    def ir_path(self) -> str:
+        """Where a finding on it points: the shot's entities."""
+        return f"timeline/{self.index}/entities"
+
+    @property
+    def description(self) -> str:
+        """The note as a finding says it (validate and the render alike)."""
+        return f"{self.entity!r}: {self.message}"
+
 
 @dataclass(frozen=True)
 class Lowered:
@@ -1925,8 +1931,9 @@ def _lower_shot(
         named = sorted(eid for eid in listed if _is_slot_id(eid, world.travel))
         if named:
             raise WorldError(
-                f"shot {shot.id!r} lists {named}, named like a stream's slots "
-                "(`<stream id>_<n>`), which the travelling view makes and names; "
+                f"shot {shot.id!r} lists {named}, named like a stream's slots: "
+                "`<stream id>_<n>` is the travelling view's own namespace for the "
+                "slot entities it makes, whether or not slot n exists in a shot; "
                 "rename them (an#516)."
             )
 
@@ -2066,8 +2073,9 @@ def _lower_shot(
 
     # A hand `at` keeps the world's scale unless the author set one: a `scale`
     # of exactly 1.0 is the field's default, and the default means "the world's"
-    # (decided in an#516, not `model_fields_set`: scene.md omits a default, so a
-    # set 1.0 would not survive a round trip). Native size by hand on a world
+    # (decided in an#516, not `model_fields_set`: scene.md and scene.json write
+    # `scale` whether it was set or not, so after one save every hand `at` would
+    # read as set and lose the world's scale). Native size by hand on a world
     # member is a `set` of `scale_x`/`scale_y` 1 at 0, which wins over placement.
     hand: dict[str, tuple[tuple[float, float], float]] = {}
     for e in shot.entities:
@@ -2201,7 +2209,7 @@ def _lower_shot(
         p = placed[member.id]
         if member.kind == "environment":
             if p.in_frame:
-                envs.append((_entity_of(member), None))
+                envs.append((entity_of(member), None))
             continue
         if not p.in_frame:
             if p.note and member.id not in vp.hide:
@@ -2211,7 +2219,7 @@ def _lower_shot(
             stage = StagePlacement(at=p.at, scale=p.scale, after=member.after)
         else:
             stage = StagePlacement(after=member.after) if member.after else None
-        entity = _entity_of(member, stage=stage)
+        entity = entity_of(member, stage=stage)
         depth = p.depth if p.depth is not None else 0.0
         ordered.append(((1.0, -depth, 1000.0 + mi), entity, None))
         where = (
@@ -2369,14 +2377,20 @@ def _lower_shot(
         )
     entities = [e for e, _ in envs] + [e for _, e, _ in ordered]
     origins = [j for _, j in envs] + [j for _, _, j in ordered]
-    cast = [mid for mid, m in positioned.items() if m.kind != "environment"]
+    from an.stage.world import UNDRAWN_KINDS
+
+    cast = [
+        mid
+        for mid, m in positioned.items()
+        if m.kind != "environment" and m.kind not in UNDRAWN_KINDS
+    ]
     if cast and all(extents.get(mid) is None for mid in cast):
         note(
             "info",
             "unplaced",
             "members",
-            "no member of the world could be measured, so the shot draws none of "
-            "them (each is noted); supply the stores their art is in (an#516)",
+            "no member of the world could be measured, so this shot draws none of "
+            "them (each is noted: a store not supplied, or a ref it cannot find; an#516)",
         )
     return (
         shot.model_copy(update={"entities": entities, "actions": actions}),
@@ -2954,7 +2968,7 @@ def _is_slot_id(entity_id: str, travel: Travel) -> bool:
     )
 
 
-def _entity_of(member: WorldMember, *, stage: StagePlacement | None = None) -> AssetRef:
+def entity_of(member: WorldMember, *, stage: StagePlacement | None = None) -> AssetRef:
     """The shot entity a world member becomes. An attached member carries its
     attachment under ``overrides[ATTACHED_OVERRIDE]`` (``{to, at?, scale}``),
     so a pass that places it from its host can find the host in the shot."""
@@ -2974,11 +2988,11 @@ def _entity_of(member: WorldMember, *, stage: StagePlacement | None = None) -> A
 
 def member_of(entity: AssetRef, **placement: Any) -> WorldMember:
     """The world member a shot entity becomes (the inverse of
-    :func:`_entity_of`): its fields as they are, its ``stage`` dropped (a
+    :func:`entity_of`): its fields as they are, its ``stage`` dropped (a
     member is placed by each shot's viewpoint) and its ``after`` kept, with
     ``placement`` (``at``, ``height``, ...) where the world stands it. Its
     ``joints`` stay with the shot: they tie it to other entities of THAT shot,
-    and :func:`_entity_of` gives a member none.
+    and :func:`entity_of` gives a member none.
 
     >>> e = AssetRef(kind="prop", id="lamp", store="props", ref="lamp",
     ...              stage=StagePlacement(at=(1.0, 2.0), after="set/sky"))

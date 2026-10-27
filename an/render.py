@@ -1134,12 +1134,11 @@ def _prepare_shots(
     scene = lowered.scene
     # What the lowering could not do (a member it cannot draw, a refused
     # stream) is said, not dropped (an#516): the same notes validate reports.
-    warn_findings(
-        Finding(
-            n.severity, f"timeline/{n.index}/entities", f"{n.entity!r}: {n.message}"
-        )
-        for n in lowered.notes
-    )
+    said: set[tuple[str, str]] = set()
+    for n in lowered.notes:  # one warning per member and cause, not per shot
+        if (n.entity, n.message) not in said:
+            said.add((n.entity, n.message))
+            warn_findings([Finding(n.severity, n.ir_path, n.description)])
 
     # Cues timed by the picture (an#317), on the settled copy: before the film
     # timeline, captions, the mix and every key read a cue's `at`.

@@ -67,6 +67,7 @@ from pydantic import (
     model_validator,
 )
 
+from an.base import asset_overrides
 from an.ir.assets import AssetSource
 from an.ir.migrate import DocumentKind, migrate, omit_unset, register_kind
 
@@ -429,7 +430,7 @@ def resolve_text(
     'Paris'
     """
     stored = migrate(dict(document), kind=TEXT_DOCUMENT_KIND.name)
-    merged = {**stored, **dict(overrides or {})}
+    merged = {**stored, **asset_overrides(overrides)}
     return TextDescriptor.model_validate(merged)
 
 

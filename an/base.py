@@ -11,7 +11,7 @@ fraction of a second so the CLI is snappy.
 
 from __future__ import annotations
 
-from typing import Literal, TypeAlias, get_args
+from typing import Any, Literal, Mapping, TypeAlias, get_args
 
 # -- Versioning ---------------------------------------------------------------
 
@@ -226,6 +226,29 @@ TRIM_PROPERTIES: frozenset[str] = frozenset({"trim_start", "trim_end", "dash_off
 #: plane's own ``depth``, so a plane at a world depth compiles exactly as one
 #: with that factor written by hand.
 PLANE_FACTORS_OVERRIDE: str = "plane_factors"
+#: The core's marker on a slot entity a travel's lowering made (an#516): the
+#: id of the stream it draws (``an.ir.world``).
+STREAM_OVERRIDE: str = "stream"
+#: Keys the CORE records in an entity's ``overrides``: what attaches it, the
+#: stream slot it is, what holds it and at what angle, the world's plane
+#: factors. Bookkeeping about the entity, not fields of its asset document, so
+#: a resolver that validates overrides against its document (a stroked path,
+#: a text block) leaves them out (an#516); ``tests/test_world.py`` holds the
+#: owners' constants to this set.
+CORE_OVERRIDE_KEYS: frozenset[str] = frozenset(
+    {"attached", STREAM_OVERRIDE, "held_by", "held_rotation", PLANE_FACTORS_OVERRIDE}
+)
+
+
+def asset_overrides(overrides: Mapping[str, Any] | None) -> dict[str, Any]:
+    """``overrides`` without the core's own keys (:data:`CORE_OVERRIDE_KEYS`):
+    what an entity asks of its asset document.
+
+    >>> asset_overrides({"points": [[0, 0]], "stream": "dash", "held_by": "ground"})
+    {'points': [[0, 0]]}
+    """
+    return {k: v for k, v in (overrides or {}).items() if k not in CORE_OVERRIDE_KEYS}
+
 
 #: The draw-order property (an#537): where a node is PAINTED, as the path of the
 #: node it paints just after (``""``: where the stage tree puts it). A string,
