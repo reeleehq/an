@@ -36,16 +36,18 @@ import hashlib
 import math
 import re
 import warnings
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Protocol
 
 from an.base import (
     DEFAULT_RESOLUTION,
+    PAINT_RANKS_OVERRIDE,
     PLANE_REST_VALUES,
     TRANSFORM_PROPERTIES,
     TRIM_PROPERTIES,
+    Z_INDEX_PROPERTY,
     swap_set_name_problem,
 )
 from an.stage.easing import apply_easing
@@ -1231,6 +1233,88 @@ def _parallax_pass(state: CompileState) -> None:
     )
 
 
+def z_index_keys(
+    children: Sequence[str], ranks: Mapping[str, Sequence[tuple[float, float]]]
+) -> dict[str, list[tuple[float, int]]]:
+    """Each ranked child's ``z_index`` from each time on, in one container
+    whose children are ``children`` (an#634): at every time a rank changes, the
+    ranked children take the places the ranked ones hold in ``children``, in
+    rank order; every other child keeps its own place (a plane, an entity the
+    world does not paint by depth). Only a child whose place changes gets keys.
+
+    >>> z_index_keys(["sky", "a", "b"], {"a": [(0, 0), (2, 1)], "b": [(0, 1), (2, 0)]})
+    {'a': [(0.0, 1), (2.0, 2)], 'b': [(0.0, 2), (2.0, 1)]}
+    """
+    places = [i for i, name in enumerate(children) if name in ranks]
+    mine = [children[i] for i in places]
+    times = sorted({float(t) for name in mine for t, _ in ranks[name]})
+    keys: dict[str, list[tuple[float, int]]] = {name: [] for name in mine}
+    for t in times:
+        now = {n: [r for at, r in ranks[n] if at <= t][-1] for n in mine}
+        for place, name in zip(places, sorted(mine, key=now.__getitem__)):
+            if not keys[name] or keys[name][-1][1] != place:
+                keys[name].append((t, place))
+    return {
+        name: ks
+        for name, ks in keys.items()
+        if [z for _, z in ks] != [children.index(name)]
+    }
+
+
+def _paint_ranks_pass(state: CompileState) -> None:
+    """A world's changing paint order (an#634): the entities it ranks
+    (``overrides[PAINT_RANKS_OVERRIDE]``) get, in each container holding them,
+    every child's place as its static ``z_index`` (so the stage sorts the
+    container) and a stepped ``z_index`` channel where their place changes."""
+    ranks = {
+        e.id: e.overrides[PAINT_RANKS_OVERRIDE]
+        for e in state.shot.entities
+        if PAINT_RANKS_OVERRIDE in (e.overrides or {})
+    }
+    if not ranks:
+        return
+    duration = max(0.001, float(state.shot.duration))
+    containers = [state.scene_root] + [
+        n for _, n in stage_tree.walk_children(state.scene_root)
+    ]
+    channels: list[ChannelJSON] = []
+    for container in containers:
+        kids = container.children or []
+        names = [k.name for k in kids]
+        if not ranks.keys() & set(names):
+            continue
+        for i, kid in enumerate(kids):
+            if kid.z_index is not None:
+                raise CutoutCompileError(
+                    f"shot {state.shot.id!r}: {kid.name!r} already has a paint "
+                    "order (`z_index`) among the entities the world orders by depth"
+                )
+            kid.z_index = float(i)
+        for name, keys in z_index_keys(names, ranks).items():
+            channels.append(
+                ChannelJSON(
+                    target=name,
+                    property=Z_INDEX_PROPERTY,
+                    keyframes=[
+                        KeyframeJSON(time=float(t), value=float(z), easing="step")
+                        for t, z in keys
+                    ],
+                )
+            )
+    if not channels:
+        return
+    anim_id = _fresh_clip_id(f"__paint__{state.shot.id}", state.animations)
+    state.animations[anim_id] = AnimationClipJSON(
+        name=anim_id, duration=duration, channels=channels
+    )
+    state.tracks.append(
+        TrackJSON(
+            target_root="__paint__",
+            clips=[PlacedClipJSON(animation_id=anim_id, start_time=0.0, duration=duration)],
+        )
+    )
+
+
 def _paint_orders_needed(root: NodeJSON) -> set[str]:
     """The paint orders a compiled tree asks of its engine (an#430):
     ``container`` for a ``z_index``, ``global`` for a ``paint_order``."""
@@ -1339,6 +1423,12 @@ STAGE_COMPILE_PASSES: tuple[CompilePass, ...] = (
     CompilePass("parallax", _parallax_pass, order=700, description="planes' parallax"),
     CompilePass(
         "boil", _boil_pass, order=750, description="a boiling path's drawings (an#443)"
+    ),
+    CompilePass(
+        "paint_ranks",
+        _paint_ranks_pass,
+        order=800,
+        description="a world's changing paint order, as z_index keys (an#634)",
     ),
     CompilePass(
         "checks", _checks_pass, order=900, description="targets, easings, stand-ins"

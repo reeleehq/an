@@ -97,7 +97,7 @@ def test_a_genre_adds_a_pass_and_an_entity_builder_without_editing_the_stage():
         register_genre(genre)
         doc = _quiet_compile(shot)
         assert [p.name for p in compile_passes_for_stage()][-5:] == [
-            "camera", "stamp", "parallax", "boil", "checks",
+            "stamp", "parallax", "boil", "paint_ranks", "checks",
         ]
     assert [n["name"] for n in doc["scene"]["children"]] == ["dial"]
     assert seen and seen[0], "the pass ran after the actions, before the parallax"

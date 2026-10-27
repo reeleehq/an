@@ -19,7 +19,8 @@ Two spaces are seeded here, and they reproduce today's output EXACTLY:
   ``tint_r/g/b`` (``tint`` itself stays the compiler's authoring sugar, expanded
   into those three before any channel exists, so the wire shape does not move);
   ``paint_after`` (:data:`an.base.PAINT_AFTER_PROPERTY`, an#537) is where the
-  node is painted, ``discrete(switch_at=1)`` in its own write group; every other
+  node is painted, ``discrete(switch_at=1)`` in its own write group, and so is
+  ``z_index`` (:data:`an.base.Z_INDEX_PROPERTY`, an#634); every other
   property names a swap set, ``*@*`` included, and is ``discrete(switch_at=1)``.
 - ``stage.camera`` — the stage's 2D framing camera: ``x``, ``y``, ``zoom``,
   ``rotation``, all plain ``number`` (the compiler lowers them onto ``root``'s
@@ -44,7 +45,7 @@ from dataclasses import dataclass, field
 from fnmatch import fnmatchcase
 from typing import Any, Callable, Mapping, Union
 
-from an.base import PAINT_AFTER_PROPERTY, TRANSFORM_PROPERTIES
+from an.base import PAINT_AFTER_PROPERTY, TRANSFORM_PROPERTIES, Z_INDEX_PROPERTY
 from an.timing.kinds import DiscreteKind, FieldKind, NumberKind, kind_from_spec
 
 #: The write group every swap set on a stage node shares: they all replace the
@@ -313,6 +314,14 @@ def _stage_node() -> PropertySpace:
             description=(
                 "where the node is painted: the path of the node it paints just "
                 "after ('' = where the tree puts it), switched at its own key (an#537)"
+            ),
+        ),
+        FieldDecl(
+            Z_INDEX_PROPERTY,
+            SWAP_KIND,
+            description=(
+                "the node's place among its sorted container's children, switched "
+                "at its own key (an#634)"
             ),
         ),
     )

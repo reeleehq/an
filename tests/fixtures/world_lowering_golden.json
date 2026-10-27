@@ -382,7 +382,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_ranks": [
+         [
+          0.0,
+          0
+         ],
+         [
+          1.5,
+          1
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -398,7 +408,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_ranks": [
+         [
+          0.0,
+          1
+         ],
+         [
+          1.5,
+          2
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -414,7 +434,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_ranks": [
+         [
+          0.0,
+          2
+         ],
+         [
+          1.5,
+          3
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -430,7 +460,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_ranks": [
+         [
+          0.0,
+          3
+         ],
+         [
+          1.5,
+          4
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -446,7 +486,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_ranks": [
+         [
+          0.0,
+          4
+         ],
+         [
+          1.5,
+          5
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -462,7 +512,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_ranks": [
+         [
+          0.0,
+          5
+         ],
+         [
+          1.5,
+          6
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -478,7 +538,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_ranks": [
+         [
+          0.0,
+          6
+         ],
+         [
+          1.5,
+          7
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -494,7 +564,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_ranks": [
+         [
+          0.0,
+          7
+         ],
+         [
+          1.5,
+          8
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -510,7 +590,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_ranks": [
+         [
+          0.0,
+          8
+         ],
+         [
+          1.5,
+          9
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -526,7 +616,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_ranks": [
+         [
+          0.0,
+          9
+         ],
+         [
+          1.5,
+          10
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -542,7 +642,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_ranks": [
+         [
+          0.0,
+          10
+         ],
+         [
+          1.5,
+          0
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -557,7 +667,14 @@
        "id": "left",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "paint_ranks": [
+         [
+          0.0,
+          11
+         ]
+        ]
+       },
        "stage": {
         "at": [
          -75.0,
@@ -571,7 +688,14 @@
        "id": "right",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "paint_ranks": [
+         [
+          0.0,
+          12
+         ]
+        ]
+       },
        "stage": {
         "at": [
          75.0,
@@ -1601,7 +1725,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_ranks": [
+         [
+          0.0,
+          0
+         ],
+         [
+          1.75,
+          1
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -1617,7 +1751,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_ranks": [
+         [
+          0.0,
+          1
+         ],
+         [
+          1.75,
+          2
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -1633,7 +1777,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_ranks": [
+         [
+          0.0,
+          2
+         ],
+         [
+          1.75,
+          3
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -1649,7 +1803,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_ranks": [
+         [
+          0.0,
+          3
+         ],
+         [
+          1.75,
+          4
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -1665,7 +1829,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_ranks": [
+         [
+          0.0,
+          4
+         ],
+         [
+          1.75,
+          5
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -1681,7 +1855,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_ranks": [
+         [
+          0.0,
+          5
+         ],
+         [
+          1.75,
+          6
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -1697,7 +1881,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_ranks": [
+         [
+          0.0,
+          6
+         ],
+         [
+          1.75,
+          7
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -1713,7 +1907,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_ranks": [
+         [
+          0.0,
+          7
+         ],
+         [
+          1.75,
+          8
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -1729,7 +1933,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_ranks": [
+         [
+          0.0,
+          8
+         ],
+         [
+          1.75,
+          9
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -1745,7 +1959,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_ranks": [
+         [
+          0.0,
+          9
+         ],
+         [
+          1.75,
+          10
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -1761,7 +1985,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_ranks": [
+         [
+          0.0,
+          10
+         ],
+         [
+          1.75,
+          0
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -1776,7 +2010,14 @@
        "id": "left",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "paint_ranks": [
+         [
+          0.0,
+          11
+         ]
+        ]
+       },
        "stage": {
         "at": [
          -75.0,
@@ -1790,7 +2031,14 @@
        "id": "right",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "paint_ranks": [
+         [
+          0.0,
+          12
+         ]
+        ]
+       },
        "stage": {
         "at": [
          75.0,

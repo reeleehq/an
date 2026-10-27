@@ -1257,7 +1257,7 @@ def test_a_stream_of_stroked_paths_compiles_with_its_slot_marker(tmp_path):
 
 
 def test_the_core_override_keys_are_the_owners_constants():
-    from an.base import CORE_OVERRIDE_KEYS, PLANE_FACTORS_OVERRIDE
+    from an.base import CORE_OVERRIDE_KEYS, PAINT_RANKS_OVERRIDE, PLANE_FACTORS_OVERRIDE
     from an.ir.world import ATTACHED_OVERRIDE, STREAM_OVERRIDE
     from an.stage.hold import AIM_OVERRIDE, ON_OVERRIDE
 
@@ -1267,6 +1267,7 @@ def test_the_core_override_keys_are_the_owners_constants():
         ON_OVERRIDE,
         AIM_OVERRIDE,
         PLANE_FACTORS_OVERRIDE,
+        PAINT_RANKS_OVERRIDE,
     }
     assert owners == set(CORE_OVERRIDE_KEYS)
 
@@ -1395,20 +1396,71 @@ def test_a_lane_range_is_measured_across_it_not_at_its_ends():
     lower_world(scene, extents=EXTENTS)  # no "two instances in one slot"
 
 
-def test_a_travel_is_not_reported_as_solids_through_each_other(tmp_path):
+def _lane(scene: SceneIR, lane: float) -> SceneIR:
+    (stream,) = scene.world.travel.streams
+    scene.world.travel = scene.world.travel.model_copy(
+        update={"streams": [stream.model_copy(update={"lane": lane})]}
+    )
+    return scene
+
+
+@pytest.mark.parametrize("lane", [1.2, 0.2])
+def test_a_travel_is_not_reported_as_solids_through_each_other(tmp_path, lane):
     """an#632: three shots down a road of poles. A slot hidden between passes
     overlaps nothing, a nearer pole over a farther one is occlusion, and the
-    draw-order check leaves slots to the world. What is left is the paint
-    inversion of a reused slot (an#634), said as such."""
+    draw-order check leaves slots to the world. And since an#634 a slot reused
+    for a farther instance drops behind the nearer ones, so no pole is painted
+    over a nearer one (7 such pairs a shot at lane 1.2 before, 17 at 0.2)."""
     project = _project(tmp_path)
-    scene = _travel_scene(
-        *[Shot(id=f"s{i}", duration=3.0, viewpoint="road") for i in range(3)]
+    scene = _lane(
+        _travel_scene(*[Shot(id=f"s{i}", duration=3.0, viewpoint="road") for i in range(3)]),
+        lane,
     )
     found = _validate(project, scene).findings
     assert not [f for f in found if "drawn through each other" in f.description]
     assert not [f for f in found if "the order flips" in f.description]
-    inversions = [f for f in found if "though it is the farther" in f.description]
-    assert inversions and all("an#634" in f.description for f in inversions)
+    assert not [f for f in found if "though it is the farther" in f.description]
+
+
+def test_a_reused_slot_is_painted_by_the_depth_of_the_instance_it_draws(tmp_path):
+    """an#634: at every frame, the stream's visible slots are painted far to
+    near (the larger, nearer pole later), read off the compiled document's
+    ``z_index`` keys the way the stage sorts the scene's children."""
+    from an.base import PAINT_RANKS_OVERRIDE, Z_INDEX_PROPERTY
+    from an.stage.compile import compile_shot
+    from an.stage.timeline import entity_alpha, timeline_from_scene
+    from an.timing.timeline import evaluate_timeline
+
+    project = _project(tmp_path)
+    scene = _lane(_travel_scene(Shot(id="s1", duration=3.0, viewpoint="road")), 0.2)
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    slots = [e.id for e in shot.entities if e.overrides and "stream" in e.overrides]
+    assert all(PAINT_RANKS_OVERRIDE in e.overrides for e in shot.entities)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        doc = compile_shot(shot, project.mall)
+    kids = {n.name: n for n in doc.scene.children}
+    timeline = timeline_from_scene(doc)
+    changed = 0
+    for i in range(61):
+        t = 3.0 * i / 60
+        pose = evaluate_timeline(timeline, t)
+        seen = [s for s in slots if entity_alpha(doc, pose, s) > 1e-3]
+        z = {s: pose.get((s, Z_INDEX_PROPERTY), kids[s].z_index) for s in seen}
+        changed += any(z[s] != kids[s].z_index for s in seen)
+        scale = {s: pose.get((s, "scale_x"), kids[s].transform.scale_x) for s in seen}
+        by_paint = sorted(seen, key=z.__getitem__)
+        assert [scale[s] for s in by_paint] == sorted(scale[s] for s in by_paint), t
+    assert changed  # the slots were reused, and their order moved with them
+
+
+def test_a_shot_whose_order_holds_carries_no_paint_ranks():
+    """No slot reused (a short shot): nothing recorded, nothing compiled."""
+    from an.base import PAINT_RANKS_OVERRIDE
+
+    scene = _travel_scene(Shot(id="s1", duration=0.2, viewpoint="road"))
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    assert not [e for e in shot.entities if PAINT_RANKS_OVERRIDE in (e.overrides or {})]
 
 
 # --- an#629: a closed-form pass is one exact tween per channel -----------------

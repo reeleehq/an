@@ -85,7 +85,7 @@ import math
 from dataclasses import dataclass
 from typing import Any, Callable, Iterator, Mapping
 
-from an.base import STREAM_OVERRIDE, UNSEEN_ALPHA
+from an.base import STREAM_OVERRIDE, UNSEEN_ALPHA, Z_INDEX_PROPERTY
 from an.genres.registry import (
     CORE_OWNER,
     CheckStage,
@@ -840,7 +840,17 @@ def solid_overlaps(
         ]
         for e in solids
     }
-    rank = {eid: i for i, eid in enumerate(painted_order(doc, {e.id for e in solids}))}
+    places = {
+        n.name: (n.z_index if n.z_index is not None else float(i), i)
+        for i, n in enumerate(doc.scene.children)
+    }
+
+    def painted_at(eid: str, pose: Mapping) -> tuple[float, int]:
+        """Where ``eid`` is painted among the scene's children now: its
+        ``z_index`` channel's value where one writes it (an#634), else its place."""
+        z, i = places.get(eid, (0.0, 0))
+        return (float(pose.get((eid, Z_INDEX_PROPERTY), z)), i)
+
     timeline = timeline_from_scene(doc)
     first: dict[tuple[str, str], Overlap] = {}
     worst: dict[tuple[str, str], float] = {}
@@ -868,7 +878,9 @@ def solid_overlaps(
                     if not one_art:
                         continue  # the world painted them by depth
                     front, back = (
-                        (a, b) if rank.get(a.id, 0) > rank.get(b.id, 0) else (b, a)
+                        (a, b)
+                        if painted_at(a.id, pose) > painted_at(b.id, pose)
+                        else (b, a)
                     )
                     if _area(boxes[front.id]) >= _area(boxes[back.id]):
                         continue  # the nearer one in front: occlusion
@@ -913,8 +925,8 @@ def check_solidity(ctx: Any) -> None:
                 f"{ctx.path}/entities",
                 f"{o.a!r} is painted over {o.b!r} from {o.at:.2f} s though it is the "
                 f"farther of the two, covering up to {o.fraction:.0%} of the smaller: "
-                "a stream's slot reused for a farther instance keeps the paint order "
-                "it had as the shot opened (an#634).",
+                "the stream's slots are painted out of depth order (an#634: a slot "
+                "reused for a farther instance drops behind the nearer ones).",
             )
             continue
         ctx.report.add(

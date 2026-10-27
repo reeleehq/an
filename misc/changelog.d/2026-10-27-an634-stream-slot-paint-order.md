@@ -1,0 +1,1 @@
+- A stream slot reused for a farther instance is painted behind the nearer slots: per-pass paint ranks become a stepped `z_index` channel, a new order property the runtime applies (an#634).

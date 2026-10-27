@@ -46,7 +46,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Callable, Collection, Mapping, Sequence
 
-from an.base import PLANE_FACTORS_OVERRIDE, STREAM_OVERRIDE
+from an.base import PAINT_RANKS_OVERRIDE, PLANE_FACTORS_OVERRIDE, STREAM_OVERRIDE
 from an.ir.compose import (
     delay,
     flatten,
@@ -1145,10 +1145,13 @@ def _travel_entities(
     width: float,
     height: float,
     skip: Sequence[str] = (),
-) -> tuple[list[tuple[AssetRef, float]], list[Any], list[tuple[str, str]]]:
-    """The stream instances a framed shot shows, as ``(entity, depth as the
-    shot opens)`` and their actions, plus the problems found (unsized
-    streams) as ``(stream id, message)``. Entities are SLOTS (`stream_slots`),
+) -> tuple[
+    list[tuple[AssetRef, list[tuple[float, float]]]], list[Any], list[tuple[str, str]]
+]:
+    """The stream instances a framed shot shows, as ``(entity, [(time, depth)]
+    per pass)`` (each pass's start, 0 for the first, and the depth of its
+    instance as the shot opens: what paints it, an#634) and their actions, plus
+    the problems found (unsized streams) as ``(stream id, message)``. Entities are SLOTS (`stream_slots`),
     each drawing the instances that pass through it one after another, so
     the entity count is bounded by what the view shows and never by the
     shot's length; ``skip`` names slot entities the shot already has (a lowered
@@ -1166,7 +1169,7 @@ def _travel_entities(
     reach = float(travel.far)
     min_step = _MIN_SAMPLE_FRAMES / float(fps)
     tol = float(travel.tolerance_px)
-    entities: list[tuple[AssetRef, float]] = []
+    entities: list[tuple[AssetRef, list[tuple[float, float]]]] = []
     actions: list[Any] = []
     problems: list[tuple[str, str]] = []
     skipped = set(skip)
@@ -1315,7 +1318,10 @@ def _travel_entities(
                             after=stream.after,
                         ),
                     ),
-                    ordered[0][2],
+                    [
+                        (p.t_in if i else 0.0, depth0)
+                        for i, (_, p, depth0) in enumerate(ordered)
+                    ],
                 )
             )
             actions.extend(
@@ -1330,6 +1336,66 @@ def _travel_entities(
             )
         )
     return entities, actions, problems
+
+
+def paint_ranks(
+    keys: Mapping[str, Sequence[tuple[float, Any]]],
+) -> dict[str, list[tuple[float, int]]]:
+    """Each entity's rank in the paint order (0 = painted first) from each time
+    on, given its paint key from each time on (``{id: [(time, key)]}``, the
+    first at 0, a key sorting farther-first); ``{}`` when no rank ever changes,
+    so a shot whose order holds carries nothing (an#634).
+
+    A stream slot reused for a farther instance must drop behind the slots now
+    nearer than it, which a paint order fixed as the shot opens cannot say.
+
+    >>> paint_ranks({"near": [(0.0, 2)], "slot": [(0.0, 3), (1.5, 1)]})
+    {'near': [(0.0, 0), (1.5, 1)], 'slot': [(0.0, 1), (1.5, 0)]}
+    >>> paint_ranks({"a": [(0.0, 1)], "b": [(0.0, 2), (1.0, 3)]})
+    {}
+    """
+    times = sorted({t for ks in keys.values() for t, _ in ks})
+    ranks: dict[str, list[tuple[float, int]]] = {eid: [] for eid in keys}
+    for t in times:
+        now = {eid: [k for at, k in ks if at <= t][-1] for eid, ks in keys.items()}
+        for rank, eid in enumerate(sorted(now, key=now.__getitem__)):
+            if not ranks[eid] or ranks[eid][-1][1] != rank:
+                ranks[eid].append((t, rank))
+    if all(len(r) == 1 for r in ranks.values()):
+        return {}
+    return ranks
+
+
+def _with_paint_ranks(
+    ordered: list[tuple[tuple[float, float, float], AssetRef, int | None]],
+    pass_keys: Mapping[str, Sequence[tuple[float, tuple[float, float, float]]]],
+) -> list[tuple[tuple[float, float, float], AssetRef, int | None]]:
+    """``ordered`` (sorted by each entity's key as the shot opens) with each
+    entity's paint ranks recorded under :data:`an.base.PAINT_RANKS_OVERRIDE`
+    when a stream slot's later pass changes the order (:func:`paint_ranks`);
+    the compiler turns them into ``z_index`` keys (an#634)."""
+    if not any(len(ks) > 1 for ks in pass_keys.values()):
+        return ordered
+    ranks = paint_ranks(
+        {e.id: pass_keys.get(e.id) or [(0.0, key)] for key, e, _ in ordered}
+    )
+    if not ranks:
+        return ordered
+    return [
+        (
+            key,
+            e.model_copy(
+                update={
+                    "overrides": {
+                        **(e.overrides or {}),
+                        PAINT_RANKS_OVERRIDE: [list(r) for r in ranks[e.id]],
+                    }
+                }
+            ),
+            j,
+        )
+        for key, e, j in ordered
+    ]
 
 
 def _pass_cost(p: _Pass, *, duration: float) -> int:
@@ -2481,6 +2547,7 @@ def _lower_shot(
                 "its offset is applied at the host's placement as the shot opens, and "
                 "the attachment does not follow the host's motion across the frame.",
             )
+    pass_keys: dict[str, list[tuple[float, tuple[float, float, float]]]] = {}
     if world.travel is not None:
         extra, extra_actions, problems = _travel_entities(
             world.travel,
@@ -2493,10 +2560,12 @@ def _lower_shot(
             skip=list(listed),
         )
         # A slot is sorted by the depth of its first instance as the shot
-        # opens; `after` slots a stream behind a plate, which is where a
-        # travelling view's streams belong.
-        for si, (entity, depth0) in enumerate(extra):
-            ordered.append(((1.0, -depth0, 10_000.0 + si), entity, None))
+        # opens, and each later pass by its own instance's (an#634); `after`
+        # slots a stream behind a plate, which is where a travelling view's
+        # streams belong.
+        for si, (entity, keys) in enumerate(extra):
+            ordered.append(((1.0, -keys[0][1], 10_000.0 + si), entity, None))
+            pass_keys[entity.id] = [(t, (1.0, -d, 10_000.0 + si)) for t, d in keys]
         actions.extend(extra_actions)
         if n_motion and n_motion + len(extra_actions) > budget:
             raise WorldError(
@@ -2508,6 +2577,7 @@ def _lower_shot(
         for stream_id, problem in problems:
             note("warning", "stream", stream_id, problem)
     ordered.sort(key=lambda item: item[0])
+    ordered = _with_paint_ranks(ordered, pass_keys)
     if sightings:
         _depth_order_notes(
             [e for _, e, _ in ordered],

@@ -229,6 +229,11 @@ PLANE_FACTORS_OVERRIDE: str = "plane_factors"
 #: The core's marker on a slot entity a travel's lowering made (an#516): the
 #: id of the stream it draws (``an.ir.world``).
 STREAM_OVERRIDE: str = "stream"
+#: The core's record, on each entity a world paints by depth, of its rank in
+#: the paint order from each time on (``[[time, rank]]``, an#634): set only when
+#: a stream slot reused for a farther instance changes the order, and turned
+#: into ``z_index`` keys by the stage compiler.
+PAINT_RANKS_OVERRIDE: str = "paint_ranks"
 #: At or under this alpha an entity is not seen (a stream slot between its
 #: passes, a fade's end): it cannot jump or swap sides at a cut (an#516), nor
 #: overlap or be drawn through anything at an instant (an#632).
@@ -241,7 +246,14 @@ UNSEEN_ALPHA: float = 1e-3
 #: a text block) leaves them out (an#516); ``tests/test_world.py`` holds the
 #: owners' constants to this set.
 CORE_OVERRIDE_KEYS: frozenset[str] = frozenset(
-    {"attached", STREAM_OVERRIDE, "held_by", "held_rotation", PLANE_FACTORS_OVERRIDE}
+    {
+        "attached",
+        STREAM_OVERRIDE,
+        "held_by",
+        "held_rotation",
+        PLANE_FACTORS_OVERRIDE,
+        PAINT_RANKS_OVERRIDE,
+    }
 )
 
 
@@ -263,11 +275,17 @@ def asset_overrides(overrides: Mapping[str, Any] | None) -> dict[str, Any]:
 #: it (a held item draws just above the part that holds it, an#537).
 PAINT_AFTER_PROPERTY: str = "paint_after"
 
-#: The non-numeric properties the runtime applies itself (outside
-#: :data:`TRANSFORM_PROPERTIES`, which it animates numerically): a node's place
-#: in the paint order. `runtime.js`'s ``ORDER_PROPERTIES`` mirrors it (pinned by
-#: a test).
-ORDER_PROPERTIES: frozenset[str] = frozenset({PAINT_AFTER_PROPERTY})
+#: A node's place among its container's children, switched at its own key (an#634):
+#: the stage paints a sorted container's children by it, the static
+#: ``z_index`` of a node made a channel. Not authorable: the compiler emits it
+#: (a stream slot reused for a farther instance drops behind the nearer ones).
+Z_INDEX_PROPERTY: str = "z_index"
+
+#: The properties the runtime applies itself, outside
+#: :data:`TRANSFORM_PROPERTIES` (which it animates): a node's place in the paint
+#: order, each switched at its own key. `runtime.js`'s ``ORDER_PROPERTIES``
+#: mirrors it (pinned by a test).
+ORDER_PROPERTIES: frozenset[str] = frozenset({PAINT_AFTER_PROPERTY, Z_INDEX_PROPERTY})
 
 #: Characters within which a swap-set name is not addressable: ``/`` would read
 #: as a path segment and ``::`` is the runtime's pose-key separator.

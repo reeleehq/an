@@ -172,14 +172,16 @@ def test_the_runtime_lists_the_same_order_properties():
 
     src = RUNTIME_JS.read_text(encoding="utf-8")
     block = src[src.index("const PAINT_AFTER =") : src.index("const SHARED_WRITES")]
-    (listed,) = re.findall(r"const PAINT_AFTER = '([a-z_]+)'", block)
-    assert {listed} == set(ORDER_PROPERTIES)
-    assert "new Set([PAINT_AFTER])" in block
-    # applyProperty and captureRest spell the one member literally (tests lift
-    # them out on their own): the same name.
+    consts = dict(re.findall(r"const ([A-Z_]+) = '([a-z_]+)'", block))
+    (members,) = re.findall(r"const ORDER_PROPERTIES = new Set\(\[([A-Z_, ]+)\]\)", block)
+    listed = {consts[name.strip()] for name in members.split(",")}
+    assert listed == set(ORDER_PROPERTIES)
+    # applyProperty and captureRest spell each member literally (tests lift
+    # them out on their own): the same names.
     for fn in ("function applyProperty(", "function captureRest("):
         body = src[src.index(fn) : src.index("switch (prop)", src.index(fn))]
-        assert f"prop === '{listed}'" in body, fn
+        for prop in listed:
+            assert f"prop === '{prop}'" in body, (fn, prop)
 
 
 # -- in pixels ---------------------------------------------------------------------
@@ -327,3 +329,40 @@ def test_an_item_held_by_a_part_of_another_held_item_paints_once():
     out = _run(script)
     assert out["shown"].count("spoon") == 1 and out["shown"].count("cup/body") == 1
     assert out["hidden"].count("spoon") == 1
+
+
+# -- z_index: a node's place among its sorted container's children (an#634) -------
+
+
+@requires_node
+def test_a_z_index_key_moves_a_node_among_its_sorted_siblings():
+    """The world's stream slots: siblings given their places as static
+    ``z_index`` (the container sorts), then a ``z_index`` key on one of them
+    paints it elsewhere among them, frame by frame, and nothing reparents."""
+    src = RUNTIME_JS.read_text(encoding="utf-8")
+    lifted = "\n".join(
+        _lift(src, start, start)
+        for start in ("function applyPaintOrder(", "function applyProperty(")
+    )
+    script = (
+        lifted
+        + """
+    const root = new PIXI.Container();
+    new PIXI.Container().addChild(root);
+    for (const [i, name] of ['sky', 'far', 'near'].entries()) {
+        node(name, root)._anZ = i;
+    }
+    applyPaintOrder(root);
+    const frame = () => { log.length = 0; root.updateTransform(); root.render({}); return log.slice(); };
+    const out = {opening: frame()};
+    applyProperty(nodeIndex['near'], 'z_index', 1);  // reused for a farther instance
+    applyProperty(nodeIndex['far'], 'z_index', 2);
+    out.reused = frame();
+    out.parents = ['far', 'near'].map(n => nodeIndex[n].parent === root);
+    console.log(JSON.stringify(out));
+    """
+    )
+    out = _run(script)
+    assert out["opening"] == ["sky", "far", "near"]
+    assert out["reused"] == ["sky", "near", "far"]
+    assert out["parents"] == [True, True]
