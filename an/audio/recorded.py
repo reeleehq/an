@@ -1117,12 +1117,13 @@ def _voice_for(
         )
         report.voices.append(
             f"voices/{key} ({'created' if created else 'kept'}, provider recorded) is set on "
-            f"{len(lines)} line(s) of {speaker!r}, {why}: a per-line voice_ref lives in "
-            "ir/scene.json only, so an edit of scene.md drops it; "
+            f"{len(lines)} line(s) of {speaker!r}, {why}: the line's voice is "
+            "written in scene.md as `(voice <key>)`, so it survives an edit; to bind "
+            "it to the character instead, "
             + (
-                "create the descriptor to bind the voice by it"
+                "create the descriptor"
                 if undescribed
-                else "add the character to its shots to bind the voice by descriptor"
+                else "add the character to its shots"
             )
         )
     else:

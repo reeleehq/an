@@ -381,12 +381,17 @@ _DIALOGUE_TIMING_RE = re.compile(
     r"^\s*(?P<key>pause|at)\s+(?P<value>\d+(?:\.\d*)?|\.\d+)\s*s?\s*$",
     re.IGNORECASE,
 )
+#: ``(voice carl_recorded)``: the line's own entry in the ``voices`` store
+#: (an#492), for a speaker no character entity binds to a voice (a narrator, an
+#: off-screen voice); written only when set, so no existing scene changes.
+_DIALOGUE_VOICE_RE = re.compile(r"^\s*voice\s+(?P<ref>\w[\w.-]*)\s*$", re.IGNORECASE)
 _DIALOGUE_GRAMMAR = (
-    "`speaker [emotion] {direction} (pause 1.5): text` — the emotion in square "
-    "brackets, the delivery direction in braces (comma-separated cues such as "
-    "`{sighs, annoyed}`) and the timing in parentheses are each optional: "
-    "`(pause <s>)` is silence after the previous line, `(at <s>)` a start in "
-    "shot seconds; speaker ids are `[\\w-]+`"
+    "`speaker [emotion] {direction} (pause 1.5) (voice carl): text` — the emotion "
+    "in square brackets, the delivery direction in braces (comma-separated cues "
+    "such as `{sighs, annoyed}`) and the timing and voice in parentheses are each "
+    "optional: `(pause <s>)` is silence after the previous line, `(at <s>)` a "
+    "start in shot seconds, `(voice <key>)` the line's own voice (a key of the "
+    "`voices` store); speaker ids are `[\\w-]+`"
 )
 
 
@@ -434,11 +439,17 @@ def _parse_dialogue_line(line: str, *, where: str) -> Dialogue:
                 raise refuse(f"names two {sugar.name}s")
             kwargs.update(values)
             continue
+        voice = _DIALOGUE_VOICE_RE.match(mod.group("paren"))
+        if voice:
+            if "voice_ref" in kwargs:
+                raise refuse("carries two voices; a line takes one `(voice <key>)`")
+            kwargs["voice_ref"] = voice.group("ref")
+            continue
         timing = _DIALOGUE_TIMING_RE.match(mod.group("paren"))
         if not timing:
             raise refuse(
-                f"has ({mod.group('paren').strip()}), which is not a timing — "
-                "an emotion goes in square brackets"
+                f"has ({mod.group('paren').strip()}), which is not a timing or a "
+                "voice — an emotion goes in square brackets"
             )
         if "pause" in kwargs or "at" in kwargs:
             raise refuse("carries two timings; a line takes one `pause` or one `at`")
@@ -478,6 +489,8 @@ def _format_dialogue_line(line: Dialogue) -> str:
         value = getattr(line, key, None)
         if value is not None:
             head += f" ({key} {_format_seconds(value)})"
+    if line.voice_ref:
+        head += f" (voice {line.voice_ref})"
     return f"{head}: {line.text}"
 
 
@@ -507,9 +520,11 @@ def _extract_dialogue_block(text: str, *, shot_id: str | None = None) -> list[Di
         maya (at 4): Goodbye.
         bob [happy] {excited}: Hi!
         ned {sighs, annoyed}: Fine.
+        narrator (voice carl_recorded): Once upon a time.
 
     ``(pause <s>)`` is silence after the previous line ends; ``(at <s>)`` starts
-    the line at that shot time (an#187). A line that matches none of those
+    the line at that shot time (an#187); ``(voice <key>)`` is the line's own
+    voice, a key of the ``voices`` store (an#492). A line that matches none of those
     shapes is a **parse error**, not a skip: this parser used to drop it
     silently, and ``examples/promote_demo`` was mute for months because its one
     line read ``maya (warm): …`` (an#96).
