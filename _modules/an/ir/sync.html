@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=0c898848"></script>
+    <script src="../../../_static/documentation_options.js?v=c7001885"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.293" />
+  <meta name="docsearch:version" content="0.1.294" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1098,12 +1098,19 @@ window.runMermaid = runMermaid;</script>
     <span class="sa">r</span><span class="s2">"^\s*(?P&lt;key&gt;pause|at)\s+(?P&lt;value&gt;\d+(?:\.\d*)?|\.\d+)\s*s?\s*$"</span><span class="p">,</span>
     <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="c1">#: ``(voice carl_recorded)``: the line's own entry in the ``voices`` store</span>
+<span class="c1">#: (an#492), for a speaker no character entity binds to a voice (a narrator, an</span>
+<span class="c1">#: off-screen voice); written only when set, so no existing scene changes.</span>
+<span class="n">_DIALOGUE_VOICE_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+    <span class="sa">r</span><span class="s2">"^\s*voice\s+(?P&lt;ref&gt;[^\s()][^()]*?)\s*$"</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span>
+<span class="p">)</span>
 <span class="n">_DIALOGUE_GRAMMAR</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="s2">"`speaker [emotion] </span><span class="si">{direction}</span><span class="s2"> (pause 1.5): text` — the emotion in square "</span>
-    <span class="s2">"brackets, the delivery direction in braces (comma-separated cues such as "</span>
-    <span class="s2">"`{sighs, annoyed}`) and the timing in parentheses are each optional: "</span>
-    <span class="s2">"`(pause &lt;s&gt;)` is silence after the previous line, `(at &lt;s&gt;)` a start in "</span>
-    <span class="s2">"shot seconds; speaker ids are `[</span><span class="se">\\</span><span class="s2">w-]+`"</span>
+    <span class="s2">"`speaker [emotion] </span><span class="si">{direction}</span><span class="s2"> (pause 1.5) (voice carl): text` — the emotion "</span>
+    <span class="s2">"in square brackets, the delivery direction in braces (comma-separated cues "</span>
+    <span class="s2">"such as `{sighs, annoyed}`) and the timing and voice in parentheses are each "</span>
+    <span class="s2">"optional: `(pause &lt;s&gt;)` is silence after the previous line, `(at &lt;s&gt;)` a "</span>
+    <span class="s2">"start in shot seconds, `(voice &lt;key&gt;)` the line's own voice (a key of the "</span>
+    <span class="s2">"`voices` store); speaker ids are `[</span><span class="se">\\</span><span class="s2">w-]+`"</span>
 <span class="p">)</span>
 
 
@@ -1151,11 +1158,17 @@ window.runMermaid = runMermaid;</script>
                 <span class="k">raise</span> <span class="n">refuse</span><span class="p">(</span><span class="sa">f</span><span class="s2">"names two </span><span class="si">{</span><span class="n">sugar</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">s"</span><span class="p">)</span>
             <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
             <span class="k">continue</span>
+        <span class="n">voice</span> <span class="o">=</span> <span class="n">_DIALOGUE_VOICE_RE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">mod</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"paren"</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">voice</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">"voice_ref"</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">refuse</span><span class="p">(</span><span class="s2">"carries two voices; a line takes one `(voice &lt;key&gt;)`"</span><span class="p">)</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">"voice_ref"</span><span class="p">]</span> <span class="o">=</span> <span class="n">voice</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"ref"</span><span class="p">)</span>
+            <span class="k">continue</span>
         <span class="n">timing</span> <span class="o">=</span> <span class="n">_DIALOGUE_TIMING_RE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">mod</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"paren"</span><span class="p">))</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">timing</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">refuse</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"has (</span><span class="si">{</span><span class="n">mod</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">'paren'</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="si">}</span><span class="s2">), which is not a timing — "</span>
-                <span class="s2">"an emotion goes in square brackets"</span>
+                <span class="sa">f</span><span class="s2">"has (</span><span class="si">{</span><span class="n">mod</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">'paren'</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="si">}</span><span class="s2">), which is not a timing or a "</span>
+                <span class="s2">"voice — an emotion goes in square brackets"</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="s2">"pause"</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">or</span> <span class="s2">"at"</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">refuse</span><span class="p">(</span><span class="s2">"carries two timings; a line takes one `pause` or one `at`"</span><span class="p">)</span>
@@ -1195,6 +1208,21 @@ window.runMermaid = runMermaid;</script>
         <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">head</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">" (</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">_format_seconds</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="si">}</span><span class="s2">)"</span>
+    <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">voice_ref</span><span class="p">:</span>
+        <span class="n">ref</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">voice_ref</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="ow">not</span> <span class="n">_DIALOGUE_VOICE_RE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">f</span><span class="s2">"voice </span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span> <span class="ow">in</span> <span class="n">ref</span>
+            <span class="ow">or</span> <span class="n">ref</span> <span class="o">!=</span> <span class="n">ref</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="p">):</span>
+            <span class="c1"># Writing it would make scene.md unreadable (the first hand edit</span>
+            <span class="c1"># would then fail to load): refuse here, where nothing is written.</span>
+            <span class="k">raise</span> <span class="n">SceneMarkdownError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"dialogue line </span><span class="si">{</span><span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="si">!r}</span><span class="s2"> has voice_ref=</span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2">, which "</span>
+                <span class="s2">"`(voice &lt;key&gt;)` cannot spell (no parentheses, no line breaks, "</span>
+                <span class="s2">"no leading or trailing space)"</span>
+            <span class="p">)</span>
+        <span class="n">head</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">" (voice </span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2">)"</span>
     <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">head</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="si">}</span><span class="s2">"</span>
 
 
@@ -1224,9 +1252,11 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">        maya (at 4): Goodbye.</span>
 <span class="sd">        bob [happy] {excited}: Hi!</span>
 <span class="sd">        ned {sighs, annoyed}: Fine.</span>
+<span class="sd">        narrator (voice carl_recorded): Once upon a time.</span>
 
 <span class="sd">    ``(pause &lt;s&gt;)`` is silence after the previous line ends; ``(at &lt;s&gt;)`` starts</span>
-<span class="sd">    the line at that shot time (an#187). A line that matches none of those</span>
+<span class="sd">    the line at that shot time (an#187); ``(voice &lt;key&gt;)`` is the line's own</span>
+<span class="sd">    voice, a key of the ``voices`` store (an#492). A line that matches none of those</span>
 <span class="sd">    shapes is a **parse error**, not a skip: this parser used to drop it</span>
 <span class="sd">    silently, and ``examples/promote_demo`` was mute for months because its one</span>
 <span class="sd">    line read ``maya (warm): …`` (an#96).</span>

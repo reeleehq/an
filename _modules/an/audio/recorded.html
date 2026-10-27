@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=0c898848"></script>
+    <script src="../../../_static/documentation_options.js?v=c7001885"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.293" />
+  <meta name="docsearch:version" content="0.1.294" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1894,12 +1894,13 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
         <span class="n">report</span><span class="o">.</span><span class="n">voices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"voices/</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="s1">'created'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">created</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'kept'</span><span class="si">}</span><span class="s2">, provider recorded) is set on "</span>
-            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span><span class="si">}</span><span class="s2"> line(s) of </span><span class="si">{</span><span class="n">speaker</span><span class="si">!r}</span><span class="s2">, </span><span class="si">{</span><span class="n">why</span><span class="si">}</span><span class="s2">: a per-line voice_ref lives in "</span>
-            <span class="s2">"ir/scene.json only, so an edit of scene.md drops it; "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span><span class="si">}</span><span class="s2"> line(s) of </span><span class="si">{</span><span class="n">speaker</span><span class="si">!r}</span><span class="s2">, </span><span class="si">{</span><span class="n">why</span><span class="si">}</span><span class="s2">: the line's voice is "</span>
+            <span class="s2">"written in scene.md as `(voice &lt;key&gt;)`, so it survives an edit; to bind "</span>
+            <span class="s2">"it to the character instead, "</span>
             <span class="o">+</span> <span class="p">(</span>
-                <span class="s2">"create the descriptor to bind the voice by it"</span>
+                <span class="s2">"create the descriptor"</span>
                 <span class="k">if</span> <span class="n">undescribed</span>
-                <span class="k">else</span> <span class="s2">"add the character to its shots to bind the voice by descriptor"</span>
+                <span class="k">else</span> <span class="s2">"add the character to its shots"</span>
             <span class="p">)</span>
         <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>

@@ -5,7 +5,7 @@ Which voice speaks a dialogue line: the character → voice binding (an#194).
 A line resolves its voice — a key of the project’s `voices` store — in this
 order, first hit wins:
 
-1. the line’s own `voice_ref` (set from Python or `ir/scene.json`);
+1. the line’s own `voice_ref` (set from Python, `ir/scene.json` or `(voice <key>)` in `scene.md`, an#492);
 2. the speaking character’s `voice_ref`: the shot entity whose `id` is the
    line’s `speaker`, read from its descriptor in the `characters` store with
    the entity’s `overrides` merged over it (so `overrides: {voice_ref: x}`

@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=0c898848"></script>
+    <script src="../_static/documentation_options.js?v=c7001885"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.293" />
+  <meta name="docsearch:version" content="0.1.294" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -636,7 +636,7 @@
 <p>A line resolves its voice — a key of the project’s <code class="docutils literal notranslate"><span class="pre">voices</span></code> store — in this
 order, first hit wins:</p>
 <ol class="arabic simple">
-<li><p>the line’s own <code class="docutils literal notranslate"><span class="pre">voice_ref</span></code> (set from Python or <code class="docutils literal notranslate"><span class="pre">ir/scene.json</span></code>);</p></li>
+<li><p>the line’s own <code class="docutils literal notranslate"><span class="pre">voice_ref</span></code> (set from Python, <code class="docutils literal notranslate"><span class="pre">ir/scene.json</span></code> or <code class="docutils literal notranslate"><span class="pre">(voice</span> <span class="pre">&lt;key&gt;)</span></code> in <code class="docutils literal notranslate"><span class="pre">scene.md</span></code>, an#492);</p></li>
 <li><p>the speaking character’s <code class="docutils literal notranslate"><span class="pre">voice_ref</span></code>: the shot entity whose <code class="docutils literal notranslate"><span class="pre">id</span></code> is the
 line’s <code class="docutils literal notranslate"><span class="pre">speaker</span></code>, read from its descriptor in the <code class="docutils literal notranslate"><span class="pre">characters</span></code> store with
 the entity’s <code class="docutils literal notranslate"><span class="pre">overrides</span></code> merged over it (so <code class="docutils literal notranslate"><span class="pre">overrides:</span> <span class="pre">{voice_ref:</span> <span class="pre">x}</span></code>
