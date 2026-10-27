@@ -1,1 +1,1 @@
-- `sway_rotation` also warns for a swaying member the holds solver rotates (grasped, placed, `held_by`): the lean and the angle the solver gives it do not add (an#590).
+- `sway_rotation` also warns for a swaying member the holds solver rotates (grasped, placed, `held_by`; the solver's own item list): where the solve rests or carries it, the solver's angle replaces the lean (an#590).

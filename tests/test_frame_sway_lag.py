@@ -249,11 +249,12 @@ def test_animating_the_rotation_of_a_swaying_member_warns():
     assert [n.entity for n in notes if n.kind == "sway_rotation"] == ["right"]
 
 
-@pytest.mark.parametrize("how", ["held_by", "place"])
+@pytest.mark.parametrize("how", ["held_by", "place", "grasp_point", "swap_give"])
 def test_a_swaying_item_the_holds_solver_rotates_warns(how):
-    """an#590: the holds solver sets the rotation of an item it holds or
-    places, which the lean cannot add to: said as for an explicit rotation."""
-    from an.ir.holds import PlaceAction
+    """an#590: the holds solver sets the rotation of an item it holds, grasps
+    (at a point of it too) or places, replacing the lean: said as for an
+    explicit rotation."""
+    from an.ir.holds import GraspAction, PlaceAction, SwapAction
 
     scene = _braking(FrameSway())
     shot = scene.timeline[0]
@@ -264,8 +265,14 @@ def test_a_swaying_item_the_holds_solver_rotates_warns(how):
             AssetRef(kind="prop", id="right", store="props", ref="lamp",
                      overrides={"held_by": "ground"})
         )
-    else:
+    elif how == "place":
         shot.actions.append(PlaceAction(item="right", onto="ground", by="left@hand_r", at=0.2))
+    elif how == "grasp_point":
+        shot.actions.append(GraspAction(item="right@handle", by="left@hand_r", at=0.2))
+    else:
+        shot.actions.append(
+            SwapAction(holder="left@hand_l", take="hat", give="right", by="left@hand_r", at=0.2)
+        )
     notes = lower_world(scene, extents=EXTENTS).notes
     said = [n for n in notes if n.kind == "sway_rotation"]
     assert [n.entity for n in said] == ["right"] and "holds solver" in said[0].message
