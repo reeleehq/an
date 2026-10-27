@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=b5c9d20d"></script>
+    <script src="../../../_static/documentation_options.js?v=11b15614"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.316" />
+  <meta name="docsearch:version" content="0.1.317" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -754,7 +754,12 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: timed transcript: :mod:`an.audio.recorded`); ``None`` otherwise. A</span>
     <span class="c1">#: lip-sync provider that aligns from words prefers these to its own</span>
     <span class="c1">#: transcription, and the audio pipeline stamps them on the line.</span>
-    <span class="n">words</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
+    <span class="n">words</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: The clip's phone timings, ``(phone, start_s, end_s)`` from the clip's</span>
+    <span class="c1">#: start, when an aligner gave them (a TextGrid's ``phones`` tier on a</span>
+    <span class="c1">#: recorded take, an#491); ``None`` otherwise. A lip-sync provider that</span>
+    <span class="c1">#: maps phones to mouth shapes can use them instead of spreading letters.</span>
+    <span class="n">phones</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 
 

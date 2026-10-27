@@ -183,6 +183,13 @@ One entry per voice that has takes in the store.
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`VoiceMeta`](an.audio.tts.html.md#an.audio.tts.VoiceMeta)]
 
+#### phones_for_clip(clip)
+
+The stored phones of the take whose bytes `clip` carries, or `None` (an#491).
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
 #### repeatable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
 
 The same request gives the same bytes, and nothing is billed (an#311).
@@ -190,7 +197,11 @@ The same request gives the same bytes, and nothing is billed (an#311).
 #### synthesis_options(voice_doc, , emotion=None, direction=None, text=None, voice_id=None)
 
 `{"recording": <digest>}` of the take this line has — the audio key
-follows the take, so a re-recorded line is new audio.
+follows the take, so a re-recorded line is new audio. A take with
+phones adds `{"timings": <digest>}` of its words and phones (an#491):
+the same audio imported again with new timings is new audio to the
+caches, so the lip-sync sees them. (Only then: a take without phones
+keys as before.)
 
 A line with no take is refused HERE, when the pipeline resolves every
 line’s request before the first synthesis: nothing of the scene is
@@ -232,7 +243,7 @@ Bases: [`RecordedVoicesError`](#an.audio.recorded.RecordedVoicesError)
 
 A take needs transcribing and no transcriber can run here.
 
-### an.audio.recorded.add_recording(store, , voice, speaker, text, audio, source, words=None, imported_at=None)
+### an.audio.recorded.add_recording(store, , voice, speaker, text, audio, source, words=None, imported_at=None, phones=None)
 
 Put a take (WAV `audio` of `speaker` saying `text`, spoken for
 `voice`) in `store` with its provenance; `(key, record)`.

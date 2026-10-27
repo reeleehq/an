@@ -48,11 +48,18 @@ without external services.
 | [`ElevenLabsTTS`](#an.audio.ElevenLabsTTS)(\*[, api_key, model_id, ...])       | ElevenLabs-backed TTSProvider.                                           |
 | [`MacSayTTS`](#an.audio.MacSayTTS)(\*[, default_voice_id, ...])            | macOS `say`-backed TTSProvider.                                          |
 
-### *class* an.audio.AudioClip(path=None, bytes_=None, duration=0.0, sample_rate=44100, channels=1, voice_id=None, transcript=None, words=None)
+### *class* an.audio.AudioClip(path=None, bytes_=None, duration=0.0, sample_rate=44100, channels=1, voice_id=None, transcript=None, words=None, phones=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A rendered audio clip, on disk or in memory.
+
+#### phones *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The clip’s phone timings, `(phone, start_s, end_s)` from the clip’s
+start, when an aligner gave them (a TextGrid’s `phones` tier on a
+recorded take, an#491); `None` otherwise. A lip-sync provider that
+maps phones to mouth shapes can use them instead of spreading letters.
 
 #### words *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
@@ -272,6 +279,13 @@ One entry per voice that has takes in the store.
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`VoiceMeta`](an.audio.tts.html.md#an.audio.tts.VoiceMeta)]
 
+#### phones_for_clip(clip)
+
+The stored phones of the take whose bytes `clip` carries, or `None` (an#491).
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
 #### repeatable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
 
 The same request gives the same bytes, and nothing is billed (an#311).
@@ -279,7 +293,11 @@ The same request gives the same bytes, and nothing is billed (an#311).
 #### synthesis_options(voice_doc, , emotion=None, direction=None, text=None, voice_id=None)
 
 `{"recording": <digest>}` of the take this line has — the audio key
-follows the take, so a re-recorded line is new audio.
+follows the take, so a re-recorded line is new audio. A take with
+phones adds `{"timings": <digest>}` of its words and phones (an#491):
+the same audio imported again with new timings is new audio to the
+caches, so the lip-sync sees them. (Only then: a take without phones
+keys as before.)
 
 A line with no take is refused HERE, when the pipeline resolves every
 line’s request before the first synthesis: nothing of the scene is

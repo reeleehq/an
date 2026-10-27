@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=b5c9d20d"></script>
+    <script src="../_static/documentation_options.js?v=11b15614"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.316" />
+  <meta name="docsearch:version" content="0.1.317" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -725,7 +725,7 @@ a transcriber’s timed words are matched to the text (<a class="reference inter
 <td><p>Where to cut the recording for each timed segment: its span widened by <code class="docutils literal notranslate"><span class="pre">pad_s</span></code> on each side, never past the midpoint to its neighbour or the recording's ends (<code class="docutils literal notranslate"><span class="pre">total</span></code> seconds).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.audio.transcripts.rebase_words" title="an.audio.transcripts.rebase_words"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rebase_words</span></code></a>(words, start)</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">words</span></code> re-timed from <code class="docutils literal notranslate"><span class="pre">start</span></code> (a cut's start): the clip-relative words a line keeps.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">words</span></code> (or phones: any <code class="docutils literal notranslate"><span class="pre">(label,</span> <span class="pre">start,</span> <span class="pre">end)</span></code> timings) re-timed from <code class="docutils literal notranslate"><span class="pre">start</span></code> (a cut's start): the clip-relative timings a line keeps.</p></td>
 </tr>
 </tbody>
 </table>
@@ -766,7 +766,7 @@ of them a transcribed word actually anchored (the rest are interpolated).</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.audio.transcripts.TranscriptSegment">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.transcripts.</span></span><span class="sig-name descname"><span class="pre">TranscriptSegment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speaker</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">words</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/transcripts.html#TranscriptSegment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.transcripts.TranscriptSegment" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.transcripts.</span></span><span class="sig-name descname"><span class="pre">TranscriptSegment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speaker</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">words</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phones</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/transcripts.html#TranscriptSegment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.transcripts.TranscriptSegment" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>One spoken line of a transcript: its text, and when and who, if known.</p>
 <p><code class="docutils literal notranslate"><span class="pre">start</span></code>/<code class="docutils literal notranslate"><span class="pre">end</span></code> are seconds from the recording’s start, <code class="docutils literal notranslate"><span class="pre">None</span></code> for an
@@ -774,6 +774,13 @@ untimed (plain) transcript; <code class="docutils literal notranslate"><span cla
 when the format carries them (word JSON, TextGrid), else <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.audio.transcripts.TranscriptSegment.phones">
+<span class="sig-name descname"><span class="pre">phones</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.audio.transcripts.TranscriptSegment.phones" title="Link to this definition">#</a></dt>
+<dd><p>The segment’s phone timings, <code class="docutils literal notranslate"><span class="pre">(phone,</span> <span class="pre">start,</span> <span class="pre">end)</span></code> as an aligner
+writes them (a TextGrid’s <code class="docutils literal notranslate"><span class="pre">phones</span></code> tier, an#491), else <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd></dl>
+
 <dl class="py property">
 <dt class="sig sig-object py" id="an.audio.transcripts.TranscriptSegment.timed">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">timed</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span><a class="headerlink" href="#an.audio.transcripts.TranscriptSegment.timed" title="Link to this definition">#</a></dt>
@@ -931,7 +938,7 @@ be a <code class="docutils literal notranslate"><span class="pre">[text,</span> 
 <span class="sig-prename descclassname"><span class="pre">an.audio.transcripts.</span></span><span class="sig-name descname"><span class="pre">parse_srt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/transcripts.html#parse_srt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.transcripts.parse_srt" title="Link to this definition">#</a></dt>
 <dd><p>SubRip cues → timed segments; a <code class="docutils literal notranslate"><span class="pre">speaker:</span></code> prefix names the speaker.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">parse_srt</span><span class="p">(</span><span class="s2">"1</span><span class="se">\n</span><span class="s2">00:00:00,500 --&gt; 00:00:01,000</span><span class="se">\n</span><span class="s2">Hi</span><span class="se">\n</span><span class="s2">there</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
-<span class="go">[TranscriptSegment(text='Hi there', start=0.5, end=1.0, speaker=None, words=None)]</span>
+<span class="go">[TranscriptSegment(text='Hi there', start=0.5, end=1.0, speaker=None, words=None, phones=None)]</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -956,7 +963,7 @@ is one segment.</p>
 <span class="gp">... </span>      <span class="s1">'        intervals [2]:</span><span class="se">\n</span><span class="s1">            xmin = 0.5</span><span class="se">\n</span><span class="s1">            xmax = 0.9</span><span class="se">\n</span><span class="s1">            text = "hello"</span><span class="se">\n</span><span class="s1">'</span>
 <span class="gp">... </span>      <span class="s1">'        intervals [3]:</span><span class="se">\n</span><span class="s1">            xmin = 0.9</span><span class="se">\n</span><span class="s1">            xmax = 1.3</span><span class="se">\n</span><span class="s1">            text = "there"</span><span class="se">\n</span><span class="s1">'</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">parse_textgrid</span><span class="p">(</span><span class="n">tg</span><span class="p">)</span>
-<span class="go">[TranscriptSegment(text='hello there', start=0.5, end=1.3, speaker=None, words=(('hello', 0.5, 0.9), ('there', 0.9, 1.3)))]</span>
+<span class="go">[TranscriptSegment(text='hello there', start=0.5, end=1.3, speaker=None, words=(('hello', 0.5, 0.9), ('there', 0.9, 1.3)), phones=None)]</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -987,7 +994,7 @@ is one segment.</p>
 <dd><p>Read <code class="docutils literal notranslate"><span class="pre">source</span></code> — a path to a transcript file, or the transcript text
 itself — into segments. <code class="docutils literal notranslate"><span class="pre">fmt</span></code> (one of <a class="reference internal" href="#an.audio.transcripts.FORMATS" title="an.audio.transcripts.FORMATS"><code class="xref py py-data docutils literal notranslate"><span class="pre">FORMATS</span></code></a>) overrides detection.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">parse_transcript</span><span class="p">(</span><span class="s2">"carl: Hello.</span><span class="se">\n</span><span class="s2">ned: Hi."</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
-<span class="go">TranscriptSegment(text='Hi.', start=None, end=None, speaker='ned', words=None)</span>
+<span class="go">TranscriptSegment(text='Hi.', start=None, end=None, speaker='ned', words=None, phones=None)</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -1018,7 +1025,7 @@ into segments; <code class="docutils literal notranslate"><span class="pre">fmt<
 <span class="sig-prename descclassname"><span class="pre">an.audio.transcripts.</span></span><span class="sig-name descname"><span class="pre">parse_vtt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/transcripts.html#parse_vtt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.transcripts.parse_vtt" title="Link to this definition">#</a></dt>
 <dd><p>WebVTT cues → timed segments; <code class="docutils literal notranslate"><span class="pre">&lt;v</span> <span class="pre">Name&gt;</span></code> or a <code class="docutils literal notranslate"><span class="pre">speaker:</span></code> prefix names the speaker.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">parse_vtt</span><span class="p">(</span><span class="s2">"WEBVTT</span><span class="se">\n\n</span><span class="s2">00:01.000 --&gt; 00:02.000</span><span class="se">\n</span><span class="s2">&lt;v Carl&gt;Hello&lt;/v&gt;</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
-<span class="go">[TranscriptSegment(text='Hello', start=1.0, end=2.0, speaker='Carl', words=None)]</span>
+<span class="go">[TranscriptSegment(text='Hello', start=1.0, end=2.0, speaker='Carl', words=None, phones=None)]</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -1031,7 +1038,8 @@ into segments; <code class="docutils literal notranslate"><span class="pre">fmt<
 <dl class="py function">
 <dt class="sig sig-object py" id="an.audio.transcripts.rebase_words">
 <span class="sig-prename descclassname"><span class="pre">an.audio.transcripts.</span></span><span class="sig-name descname"><span class="pre">rebase_words</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">words</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/transcripts.html#rebase_words"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.transcripts.rebase_words" title="Link to this definition">#</a></dt>
-<dd><p><code class="docutils literal notranslate"><span class="pre">words</span></code> re-timed from <code class="docutils literal notranslate"><span class="pre">start</span></code> (a cut’s start): the clip-relative words a line keeps.</p>
+<dd><p><code class="docutils literal notranslate"><span class="pre">words</span></code> (or phones: any <code class="docutils literal notranslate"><span class="pre">(label,</span> <span class="pre">start,</span> <span class="pre">end)</span></code> timings) re-timed from
+<code class="docutils literal notranslate"><span class="pre">start</span></code> (a cut’s start): the clip-relative timings a line keeps.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">rebase_words</span><span class="p">([(</span><span class="s2">"hi"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.4</span><span class="p">)],</span> <span class="mf">0.95</span><span class="p">)</span>
 <span class="go">(('hi', 0.05, 0.45),)</span>
 </pre></div>
@@ -1118,6 +1126,7 @@ first word’s start to its last word’s end, with its own <code class="docutil
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.transcripts.FORMATS"><code class="docutils literal notranslate"><span class="pre">FORMATS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.transcripts.TranscriptSegment"><code class="docutils literal notranslate"><span class="pre">TranscriptSegment</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.transcripts.TranscriptSegment.phones"><code class="docutils literal notranslate"><span class="pre">TranscriptSegment.phones</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.transcripts.TranscriptSegment.timed"><code class="docutils literal notranslate"><span class="pre">TranscriptSegment.timed</span></code></a></li>
 </ul>
 </li>

@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=b5c9d20d"></script>
+    <script src="../_static/documentation_options.js?v=11b15614"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.316" />
+  <meta name="docsearch:version" content="0.1.317" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -661,8 +661,13 @@ correction of every pass. A frame that leaves a rigid joint failing is
 solved again with <a class="reference internal" href="#an.kinematics.solver.DFLT_CONFLICT_RETRY" title="an.kinematics.solver.DFLT_CONFLICT_RETRY"><code class="xref py py-data docutils literal notranslate"><span class="pre">DFLT_CONFLICT_RETRY</span></code></a> times the iterations from a
 start nudged by <a class="reference internal" href="#an.kinematics.solver.DFLT_NUDGE" title="an.kinematics.solver.DFLT_NUDGE"><code class="xref py py-data docutils literal notranslate"><span class="pre">DFLT_NUDGE</span></code></a> (a straight chain pushed along its length
 has no sideways correction to buckle with otherwise). If that at least
-halves the failure (<a class="reference internal" href="#an.kinematics.solver.DFLT_CONFLICT_PROGRESS" title="an.kinematics.solver.DFLT_CONFLICT_PROGRESS"><code class="xref py py-data docutils literal notranslate"><span class="pre">DFLT_CONFLICT_PROGRESS</span></code></a>) it was slow convergence,
-and what is left is only reported. If not, it is a conflict, settled per
+halves the failure (<a class="reference internal" href="#an.kinematics.solver.DFLT_CONFLICT_PROGRESS" title="an.kinematics.solver.DFLT_CONFLICT_PROGRESS"><code class="xref py py-data docutils literal notranslate"><span class="pre">DFLT_CONFLICT_PROGRESS</span></code></a>) it was slow convergence:
+the retry is repeated with <code class="docutils literal notranslate"><span class="pre">retry</span></code> times the passes while each round still
+cuts what is left by more than <a class="reference internal" href="#an.kinematics.solver.DFLT_STALL_PROGRESS" title="an.kinematics.solver.DFLT_STALL_PROGRESS"><code class="xref py py-data docutils literal notranslate"><span class="pre">DFLT_STALL_PROGRESS</span></code></a>, up to
+<a class="reference internal" href="#an.kinematics.solver.DFLT_CONVERGE_CAP" title="an.kinematics.solver.DFLT_CONVERGE_CAP"><code class="xref py py-data docutils literal notranslate"><span class="pre">DFLT_CONVERGE_CAP</span></code></a> times <code class="docutils literal notranslate"><span class="pre">iterations</span></code> (an#568). A round that stalls
+is a conflict after all (a grip inside the arm’s length but past its elbow’s
+range converges at first, then sits a pixel short), and what is left after the
+cap is only reported. If not, it is a conflict, settled per
 LOOP: the joints that share a cycle through the held bodies with a failing
 one are tried last-declared first, and the first whose loss lets every
 other joint hold is given up for the frame (a joint on no cycle, such as
@@ -727,6 +732,12 @@ built on a solve is built on its INPUTS (<a class="reference internal" href="#an
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.kinematics.solver.SOLVER_VERSION" title="an.kinematics.solver.SOLVER_VERSION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SOLVER_VERSION</span></code></a></p></td>
 <td><p>Bumped whenever the solve can give a different answer for the same inputs (a changed projection, order, or default): part of every cache key built on this module.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.kinematics.solver.DFLT_CONVERGE_CAP" title="an.kinematics.solver.DFLT_CONVERGE_CAP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_CONVERGE_CAP</span></code></a></p></td>
+<td><p>The most passes a frame whose first retry made progress is given, as a multiple of <code class="docutils literal notranslate"><span class="pre">iterations</span></code>: its retry is repeated with <code class="docutils literal notranslate"><span class="pre">retry</span></code> times the passes while each round still makes progress (an#568).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.kinematics.solver.DFLT_STALL_PROGRESS" title="an.kinematics.solver.DFLT_STALL_PROGRESS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_STALL_PROGRESS</span></code></a></p></td>
+<td><p>A later round STALLS when what is left is more than this fraction of the round before (it cut less than 10%): a conflict, given up.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.kinematics.solver.POSE_CHANNELS" title="an.kinematics.solver.POSE_CHANNELS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">POSE_CHANNELS</span></code></a></p></td>
 <td><p>The pose channels, in the order <code class="xref py py-attr docutils literal notranslate"><span class="pre">SolveResult.poses</span></code> holds them.</p></td>
@@ -806,6 +817,20 @@ convergence (a hard swing), what they do not is a conflict.</p>
 </dd></dl>
 
 <dl class="py data">
+<dt class="sig sig-object py" id="an.kinematics.solver.DFLT_CONVERGE_CAP">
+<span class="sig-prename descclassname"><span class="pre">an.kinematics.solver.</span></span><span class="sig-name descname"><span class="pre">DFLT_CONVERGE_CAP</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">64</span></span><a class="headerlink" href="#an.kinematics.solver.DFLT_CONVERGE_CAP" title="Link to this definition">#</a></dt>
+<dd><p>The most passes a frame whose first retry made progress is given, as a
+multiple of <code class="docutils literal notranslate"><span class="pre">iterations</span></code>: its retry is repeated with <code class="docutils literal notranslate"><span class="pre">retry</span></code> times the
+passes while each round still makes progress (an#568). On 300 random
+out-and-back reaches of a two-link arm in dynamic mode, 126 frames were left
+up to 6 px apart at the single retry (most of them a grip past the elbow’s
+range, a conflict that halved once and then stalled); none at a cap of 64.
+A frame that converges at once pays nothing; a 50-link rope with its end out
+of reach pays ~90 rather than ~40 ms a frame, with 7 rather than 22 frames
+left failing.</p>
+</dd></dl>
+
+<dl class="py data">
 <dt class="sig sig-object py" id="an.kinematics.solver.DFLT_DAMPING">
 <span class="sig-prename descclassname"><span class="pre">an.kinematics.solver.</span></span><span class="sig-name descname"><span class="pre">DFLT_DAMPING</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.02</span></span><a class="headerlink" href="#an.kinematics.solver.DFLT_DAMPING" title="Link to this definition">#</a></dt>
 <dd><p>the one style knob
@@ -863,6 +888,15 @@ before letting the point go: a foot half a unit past the edge still stands.</p>
 </dd></dl>
 
 <dl class="py data">
+<dt class="sig sig-object py" id="an.kinematics.solver.DFLT_STALL_PROGRESS">
+<span class="sig-prename descclassname"><span class="pre">an.kinematics.solver.</span></span><span class="sig-name descname"><span class="pre">DFLT_STALL_PROGRESS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.9</span></span><a class="headerlink" href="#an.kinematics.solver.DFLT_STALL_PROGRESS" title="Link to this definition">#</a></dt>
+<dd><p>A later round STALLS when what is left is more than this fraction of the
+round before (it cut less than 10%): a conflict, given up. Laxer than
+<a class="reference internal" href="#an.kinematics.solver.DFLT_CONFLICT_PROGRESS" title="an.kinematics.solver.DFLT_CONFLICT_PROGRESS"><code class="xref py py-data docutils literal notranslate"><span class="pre">DFLT_CONFLICT_PROGRESS</span></code></a>, which decides the first retry: requiring
+every round to halve gave up a reachable grip that was still converging.</p>
+</dd></dl>
+
+<dl class="py data">
 <dt class="sig sig-object py" id="an.kinematics.solver.DFLT_SUBSTEPS">
 <span class="sig-prename descclassname"><span class="pre">an.kinematics.solver.</span></span><span class="sig-name descname"><span class="pre">DFLT_SUBSTEPS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></span><a class="headerlink" href="#an.kinematics.solver.DFLT_SUBSTEPS" title="Link to this definition">#</a></dt>
 <dd><p>“smaller time steps are more effective
@@ -914,7 +948,7 @@ a joint on the world alone, a body with no extent.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.kinematics.solver.SOLVER_VERSION">
-<span class="sig-prename descclassname"><span class="pre">an.kinematics.solver.</span></span><span class="sig-name descname"><span class="pre">SOLVER_VERSION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'1'</span></span><a class="headerlink" href="#an.kinematics.solver.SOLVER_VERSION" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.kinematics.solver.</span></span><span class="sig-name descname"><span class="pre">SOLVER_VERSION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'2'</span></span><a class="headerlink" href="#an.kinematics.solver.SOLVER_VERSION" title="Link to this definition">#</a></dt>
 <dd><p>Bumped whenever the solve can give a different answer for the same inputs
 (a changed projection, order, or default): part of every cache key built
 on this module.</p>
@@ -1047,7 +1081,7 @@ one pose rather than from each frame’s.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.kinematics.solver.solve">
-<span class="sig-prename descclassname"><span class="pre">an.kinematics.solver.</span></span><span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bodies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joints</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forces</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gravity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iterations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">substeps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">damping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.02</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle_tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed_chains</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drop_conflicts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/kinematics/solver.html#solve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.kinematics.solver.solve" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.kinematics.solver.</span></span><span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bodies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joints</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forces</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gravity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iterations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">substeps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">damping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.02</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle_tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed_chains</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drop_conflicts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">converge_cap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">64</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/kinematics/solver.html#solve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.kinematics.solver.solve" title="Link to this definition">#</a></dt>
 <dd><p>One frame: the poses of all <code class="docutils literal notranslate"><span class="pre">bodies</span></code> that satisfy the joined
 <code class="docutils literal notranslate"><span class="pre">joints</span></code> with the <code class="docutils literal notranslate"><span class="pre">targets</span></code> held, forces and <code class="docutils literal notranslate"><span class="pre">gravity</span></code> acting.</p>
 <p><code class="docutils literal notranslate"><span class="pre">dt=None</span></code> is pose mode: no inertia, no gravity, no pushes (a gravity or
@@ -1060,9 +1094,11 @@ one held in rotation unturnable); a target beyond a chain’s reach shows
 up in <code class="docutils literal notranslate"><span class="pre">unsatisfied</span></code> rather than stretching anything. Hinge and weld
 rests left <code class="docutils literal notranslate"><span class="pre">None</span></code> are the relative angles the bodies have on input.
 A frame that leaves a joint failing is solved again with <code class="docutils literal notranslate"><span class="pre">retry</span></code> times
-the <code class="docutils literal notranslate"><span class="pre">iterations</span></code> (1: never); <code class="docutils literal notranslate"><span class="pre">drop_conflicts</span></code>
-then gives up the joints in conflict, last declared first (module
-docstring); <code class="docutils literal notranslate"><span class="pre">False</span></code> keeps them all and reports what fails. <code class="docutils literal notranslate"><span class="pre">seed</span></code> is reserved for stochastic drivers and does nothing in this
+the <code class="docutils literal notranslate"><span class="pre">iterations</span></code> (1: never), again while each round still cuts what is
+left, up to <code class="docutils literal notranslate"><span class="pre">converge_cap</span></code> times the <code class="docutils literal notranslate"><span class="pre">iterations</span></code>; <code class="docutils literal notranslate"><span class="pre">drop_conflicts</span></code>
+then gives up the joints in conflict (a first retry that did not halve the
+failure, or a later one that stalled), last declared first (module docstring);
+<code class="docutils literal notranslate"><span class="pre">False</span></code> keeps them all and reports what fails. <code class="docutils literal notranslate"><span class="pre">seed</span></code> is reserved for stochastic drivers and does nothing in this
 version: the solve has no randomness.</p>
 <p>A shoulder driven to a point, an upper arm pinned to it, a forearm
 hinged to that, the hand pinned to a handle (the two-link case): the hand
@@ -1174,12 +1210,14 @@ and weld rests are fixed from the starting poses. <code class="docutils literal 
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solver.DFLT_ANGLE_TOLERANCE"><code class="docutils literal notranslate"><span class="pre">DFLT_ANGLE_TOLERANCE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solver.DFLT_CONFLICT_PROGRESS"><code class="docutils literal notranslate"><span class="pre">DFLT_CONFLICT_PROGRESS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solver.DFLT_CONFLICT_RETRY"><code class="docutils literal notranslate"><span class="pre">DFLT_CONFLICT_RETRY</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solver.DFLT_CONVERGE_CAP"><code class="docutils literal notranslate"><span class="pre">DFLT_CONVERGE_CAP</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solver.DFLT_DAMPING"><code class="docutils literal notranslate"><span class="pre">DFLT_DAMPING</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solver.DFLT_ITERATIONS"><code class="docutils literal notranslate"><span class="pre">DFLT_ITERATIONS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solver.DFLT_MAX_DROP_TRIALS"><code class="docutils literal notranslate"><span class="pre">DFLT_MAX_DROP_TRIALS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solver.DFLT_NUDGE"><code class="docutils literal notranslate"><span class="pre">DFLT_NUDGE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solver.DFLT_POSITION_QUANTUM"><code class="docutils literal notranslate"><span class="pre">DFLT_POSITION_QUANTUM</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solver.DFLT_SEGMENT_MARGIN"><code class="docutils literal notranslate"><span class="pre">DFLT_SEGMENT_MARGIN</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solver.DFLT_STALL_PROGRESS"><code class="docutils literal notranslate"><span class="pre">DFLT_STALL_PROGRESS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solver.DFLT_SUBSTEPS"><code class="docutils literal notranslate"><span class="pre">DFLT_SUBSTEPS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solver.DFLT_TOLERANCE"><code class="docutils literal notranslate"><span class="pre">DFLT_TOLERANCE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solver.FramesResult"><code class="docutils literal notranslate"><span class="pre">FramesResult</span></code></a></li>

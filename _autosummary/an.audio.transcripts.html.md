@@ -56,7 +56,7 @@ All times are seconds from the start of the recording they describe.
 | [`align_words`](#an.audio.transcripts.align_words)(reference, timed, \*[, bounds]) | Time the `reference` words (the text the performer was meant to say) by a transcriber's `timed` words of the same audio.                                                                                                                                                                                                       |
 | [`segment_lines`](#an.audio.transcripts.segment_lines)(lines, timed, \*[, bounds])   | Time untimed `lines` (a plain transcript) by a transcriber's `timed` words of the whole recording: the lines' words are aligned as one text ([`align_words()`](#an.audio.transcripts.align_words)) and handed back per line, each line spanning its first word's start to its last word's end, with its own `words`. |
 | [`cut_spans`](#an.audio.transcripts.cut_spans)(segments, \*, total[, pad_s])     | Where to cut the recording for each timed segment: its span widened by `pad_s` on each side, never past the midpoint to its neighbour or the recording's ends (`total` seconds).                                                                                                                                               |
-| [`rebase_words`](#an.audio.transcripts.rebase_words)(words, start)                  | `words` re-timed from `start` (a cut's start): the clip-relative words a line keeps.                                                                                                                                                                                                                                           |
+| [`rebase_words`](#an.audio.transcripts.rebase_words)(words, start)                  | `words` (or phones: any `(label, start, end)` timings) re-timed from `start` (a cut's start): the clip-relative timings a line keeps.                                                                                                                                                                                          |
 
 ### Classes
 
@@ -79,7 +79,7 @@ The share of reference words anchored by a transcribed word, 0..1.
 
 The transcript formats read here, in detection order.
 
-### *class* an.audio.transcripts.TranscriptSegment(text, start=None, end=None, speaker=None, words=None)
+### *class* an.audio.transcripts.TranscriptSegment(text, start=None, end=None, speaker=None, words=None, phones=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -88,6 +88,11 @@ One spoken line of a transcript: its text, and when and who, if known.
 `start`/`end` are seconds from the recording’s start, `None` for an
 untimed (plain) transcript; `words` are the segment’s own word timings
 when the format carries them (word JSON, TextGrid), else `None`.
+
+#### phones *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)], ...] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The segment’s phone timings, `(phone, start, end)` as an aligner
+writes them (a TextGrid’s `phones` tier, an#491), else `None`.
 
 #### *property* timed *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
 
@@ -219,7 +224,7 @@ SubRip cues → timed segments; a `speaker:` prefix names the speaker.
 
 ```pycon
 >>> parse_srt("1\n00:00:00,500 --> 00:00:01,000\nHi\nthere\n")
-[TranscriptSegment(text='Hi there', start=0.5, end=1.0, speaker=None, words=None)]
+[TranscriptSegment(text='Hi there', start=0.5, end=1.0, speaker=None, words=None, phones=None)]
 ```
 
 * **Return type:**
@@ -242,7 +247,7 @@ is one segment.
 ...       '        intervals [2]:\n            xmin = 0.5\n            xmax = 0.9\n            text = "hello"\n'
 ...       '        intervals [3]:\n            xmin = 0.9\n            xmax = 1.3\n            text = "there"\n')
 >>> parse_textgrid(tg)
-[TranscriptSegment(text='hello there', start=0.5, end=1.3, speaker=None, words=(('hello', 0.5, 0.9), ('there', 0.9, 1.3)))]
+[TranscriptSegment(text='hello there', start=0.5, end=1.3, speaker=None, words=(('hello', 0.5, 0.9), ('there', 0.9, 1.3)), phones=None)]
 ```
 
 * **Return type:**
@@ -267,7 +272,7 @@ itself — into segments. `fmt` (one of [`FORMATS`](#an.audio.transcripts.FORMAT
 
 ```pycon
 >>> parse_transcript("carl: Hello.\nned: Hi.")[1]
-TranscriptSegment(text='Hi.', start=None, end=None, speaker='ned', words=None)
+TranscriptSegment(text='Hi.', start=None, end=None, speaker='ned', words=None, phones=None)
 ```
 
 * **Return type:**
@@ -292,7 +297,7 @@ WebVTT cues → timed segments; `<v Name>` or a `speaker:` prefix names the spea
 
 ```pycon
 >>> parse_vtt("WEBVTT\n\n00:01.000 --> 00:02.000\n<v Carl>Hello</v>\n")
-[TranscriptSegment(text='Hello', start=1.0, end=2.0, speaker='Carl', words=None)]
+[TranscriptSegment(text='Hello', start=1.0, end=2.0, speaker='Carl', words=None, phones=None)]
 ```
 
 * **Return type:**
@@ -300,7 +305,8 @@ WebVTT cues → timed segments; `<v Name>` or a `speaker:` prefix names the spea
 
 ### an.audio.transcripts.rebase_words(words, start)
 
-`words` re-timed from `start` (a cut’s start): the clip-relative words a line keeps.
+`words` (or phones: any `(label, start, end)` timings) re-timed from
+`start` (a cut’s start): the clip-relative timings a line keeps.
 
 ```pycon
 >>> rebase_words([("hi", 1.0, 1.4)], 0.95)

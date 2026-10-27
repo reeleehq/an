@@ -27,8 +27,13 @@ correction of every pass. A frame that leaves a rigid joint failing is
 solved again with [`DFLT_CONFLICT_RETRY`](#an.kinematics.solver.DFLT_CONFLICT_RETRY) times the iterations from a
 start nudged by [`DFLT_NUDGE`](#an.kinematics.solver.DFLT_NUDGE) (a straight chain pushed along its length
 has no sideways correction to buckle with otherwise). If that at least
-halves the failure ([`DFLT_CONFLICT_PROGRESS`](#an.kinematics.solver.DFLT_CONFLICT_PROGRESS)) it was slow convergence,
-and what is left is only reported. If not, it is a conflict, settled per
+halves the failure ([`DFLT_CONFLICT_PROGRESS`](#an.kinematics.solver.DFLT_CONFLICT_PROGRESS)) it was slow convergence:
+the retry is repeated with `retry` times the passes while each round still
+cuts what is left by more than [`DFLT_STALL_PROGRESS`](#an.kinematics.solver.DFLT_STALL_PROGRESS), up to
+[`DFLT_CONVERGE_CAP`](#an.kinematics.solver.DFLT_CONVERGE_CAP) times `iterations` (an#568). A round that stalls
+is a conflict after all (a grip inside the arm’s length but past its elbow’s
+range converges at first, then sits a pixel short), and what is left after the
+cap is only reported. If not, it is a conflict, settled per
 LOOP: the joints that share a cycle through the held bodies with a failing
 one are tried last-declared first, and the first whose loss lets every
 other joint hold is given up for the frame (a joint on no cycle, such as
@@ -73,6 +78,8 @@ built on a solve is built on its INPUTS ([`inputs_digest()`](#an.kinematics.solv
 | [`DFLT_POSITION_QUANTUM`](#an.kinematics.solver.DFLT_POSITION_QUANTUM)  | finer than any render shows.                                                                                                                                                                                |
 | [`DFLT_SEGMENT_MARGIN`](#an.kinematics.solver.DFLT_SEGMENT_MARGIN)    | A contact or slide looks this far past a segment's ends (scene units) before letting the point go: a foot half a unit past the edge still stands.                                                           |
 | [`SOLVER_VERSION`](#an.kinematics.solver.SOLVER_VERSION)         | Bumped whenever the solve can give a different answer for the same inputs (a changed projection, order, or default): part of every cache key built on this module.                                          |
+| [`DFLT_CONVERGE_CAP`](#an.kinematics.solver.DFLT_CONVERGE_CAP)      | The most passes a frame whose first retry made progress is given, as a multiple of `iterations`: its retry is repeated with `retry` times the passes while each round still makes progress (an#568).        |
+| [`DFLT_STALL_PROGRESS`](#an.kinematics.solver.DFLT_STALL_PROGRESS)    | A later round STALLS when what is left is more than this fraction of the round before (it cut less than 10%): a conflict, given up.                                                                         |
 | [`POSE_CHANNELS`](#an.kinematics.solver.POSE_CHANNELS)          | The pose channels, in the order `SolveResult.poses` holds them.                                                                                                                                             |
 | [`Targets`](#an.kinematics.solver.Targets)                | `{body name: {channel: value}}`; a channel given is held at its value for the frame (a nail), the others move.                                                                                              |
 
@@ -113,6 +120,18 @@ tolerance): a conflict is what more passes do not fix.
 A solve that leaves a joint failing is run again with this many times the
 iterations before anything is given up: what more passes fix was slow
 convergence (a hard swing), what they do not is a conflict.
+
+### an.kinematics.solver.DFLT_CONVERGE_CAP *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 64*
+
+The most passes a frame whose first retry made progress is given, as a
+multiple of `iterations`: its retry is repeated with `retry` times the
+passes while each round still makes progress (an#568). On 300 random
+out-and-back reaches of a two-link arm in dynamic mode, 126 frames were left
+up to 6 px apart at the single retry (most of them a grip past the elbow’s
+range, a conflict that halved once and then stalled); none at a cap of 64.
+A frame that converges at once pays nothing; a 50-link rope with its end out
+of reach pays ~90 rather than ~40 ms a frame, with 7 rather than 22 frames
+left failing.
 
 ### an.kinematics.solver.DFLT_DAMPING *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.02*
 
@@ -155,6 +174,13 @@ render shows.
 A contact or slide looks this far past a segment’s ends (scene units)
 before letting the point go: a foot half a unit past the edge still stands.
 
+### an.kinematics.solver.DFLT_STALL_PROGRESS *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.9*
+
+A later round STALLS when what is left is more than this fraction of the
+round before (it cut less than 10%): a conflict, given up. Laxer than
+[`DFLT_CONFLICT_PROGRESS`](#an.kinematics.solver.DFLT_CONFLICT_PROGRESS), which decides the first retry: requiring
+every round to halve gave up a reachable grip that was still converging.
+
 ### an.kinematics.solver.DFLT_SUBSTEPS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 4*
 
 “smaller time steps are more effective
@@ -193,7 +219,7 @@ a joint on the world alone, a body with no extent.
 
 The pose channels, in the order `SolveResult.poses` holds them.
 
-### an.kinematics.solver.SOLVER_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '1'*
+### an.kinematics.solver.SOLVER_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '2'*
 
 Bumped whenever the solve can give a different answer for the same inputs
 (a changed projection, order, or default): part of every cache key built
@@ -305,7 +331,7 @@ one pose rather than from each frame’s.
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Pin`](an.kinematics.joints.html.md#an.kinematics.joints.Pin) | [`Hinge`](an.kinematics.joints.html.md#an.kinematics.joints.Hinge) | [`Weld`](an.kinematics.joints.html.md#an.kinematics.joints.Weld) | [`Distance`](an.kinematics.joints.html.md#an.kinematics.joints.Distance) | [`Slide`](an.kinematics.joints.html.md#an.kinematics.joints.Slide) | [`Contact`](an.kinematics.joints.html.md#an.kinematics.joints.Contact)]
 
-### an.kinematics.solver.solve(bodies, joints, , targets=None, forces=(), gravity=None, dt=None, iterations=8, substeps=4, damping=0.02, tolerance=0.25, angle_tolerance=0.001, seed_chains=True, retry=4, drop_conflicts=True, seed=0)
+### an.kinematics.solver.solve(bodies, joints, , targets=None, forces=(), gravity=None, dt=None, iterations=8, substeps=4, damping=0.02, tolerance=0.25, angle_tolerance=0.001, seed_chains=True, retry=4, drop_conflicts=True, seed=0, converge_cap=64)
 
 One frame: the poses of all `bodies` that satisfy the joined
 `joints` with the `targets` held, forces and `gravity` acting.
@@ -320,9 +346,11 @@ one held in rotation unturnable); a target beyond a chain’s reach shows
 up in `unsatisfied` rather than stretching anything. Hinge and weld
 rests left `None` are the relative angles the bodies have on input.
 A frame that leaves a joint failing is solved again with `retry` times
-the `iterations` (1: never); `drop_conflicts`
-then gives up the joints in conflict, last declared first (module
-docstring); `False` keeps them all and reports what fails. `seed` is reserved for stochastic drivers and does nothing in this
+the `iterations` (1: never), again while each round still cuts what is
+left, up to `converge_cap` times the `iterations`; `drop_conflicts`
+then gives up the joints in conflict (a first retry that did not halve the
+failure, or a later one that stalled), last declared first (module docstring);
+`False` keeps them all and reports what fails. `seed` is reserved for stochastic drivers and does nothing in this
 version: the solve has no randomness.
 
 A shoulder driven to a point, an upper arm pinned to it, a forearm

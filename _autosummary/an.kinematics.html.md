@@ -93,6 +93,16 @@ choice (the side its range allows, else the side it already has).
   0.014 units 96 frames later), so a cache key is built on the inputs
   ([`inputs_digest()`](#an.kinematics.inputs_digest), with `SOLVER_VERSION`), never the output.
 
+**A retry that stops converging is a conflict** (an#568). In dynamic mode an
+arm swinging back from a refused grip toward one inside its length but past
+its elbow’s range halved its failure on the first retry, then sat at ~1.2 px
+for any number of passes: it was reported as slow and never given up. The
+retry now repeats while each round still makes progress (up to
+`DFLT_CONVERGE_CAP` × `iterations`) and a stall is resolved as a conflict.
+On 300 random out-and-back reaches, no frame is left failing in either mode
+(126 were, up to 6 px); a 50-link rope with its end out of reach costs ~90
+rather than ~40 ms a frame, with 7 rather than 22 frames failing.
+
 Not in this version: friction (a contact is frictionless: a lamp on a table
 sliding sideways stays where it is until the edge passes), blending a snap
 (a rejoined joint closes its gap in one frame, reported in
@@ -437,7 +447,7 @@ one pose rather than from each frame’s.
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Pin`](an.kinematics.joints.html.md#an.kinematics.joints.Pin) | [`Hinge`](an.kinematics.joints.html.md#an.kinematics.joints.Hinge) | [`Weld`](an.kinematics.joints.html.md#an.kinematics.joints.Weld) | [`Distance`](an.kinematics.joints.html.md#an.kinematics.joints.Distance) | [`Slide`](an.kinematics.joints.html.md#an.kinematics.joints.Slide) | [`Contact`](an.kinematics.joints.html.md#an.kinematics.joints.Contact)]
 
-### an.kinematics.solve(bodies, joints, , targets=None, forces=(), gravity=None, dt=None, iterations=8, substeps=4, damping=0.02, tolerance=0.25, angle_tolerance=0.001, seed_chains=True, retry=4, drop_conflicts=True, seed=0)
+### an.kinematics.solve(bodies, joints, , targets=None, forces=(), gravity=None, dt=None, iterations=8, substeps=4, damping=0.02, tolerance=0.25, angle_tolerance=0.001, seed_chains=True, retry=4, drop_conflicts=True, seed=0, converge_cap=64)
 
 One frame: the poses of all `bodies` that satisfy the joined
 `joints` with the `targets` held, forces and `gravity` acting.
@@ -452,9 +462,11 @@ one held in rotation unturnable); a target beyond a chain’s reach shows
 up in `unsatisfied` rather than stretching anything. Hinge and weld
 rests left `None` are the relative angles the bodies have on input.
 A frame that leaves a joint failing is solved again with `retry` times
-the `iterations` (1: never); `drop_conflicts`
-then gives up the joints in conflict, last declared first (module
-docstring); `False` keeps them all and reports what fails. `seed` is reserved for stochastic drivers and does nothing in this
+the `iterations` (1: never), again while each round still cuts what is
+left, up to `converge_cap` times the `iterations`; `drop_conflicts`
+then gives up the joints in conflict (a first retry that did not halve the
+failure, or a later one that stalled), last declared first (module docstring);
+`False` keeps them all and reports what fails. `seed` is reserved for stochastic drivers and does nothing in this
 version: the solve has no randomness.
 
 A shoulder driven to a point, an upper arm pinned to it, a forearm

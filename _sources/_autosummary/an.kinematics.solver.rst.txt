@@ -20,6 +20,8 @@ an.kinematics.solver
       DFLT_POSITION_QUANTUM
       DFLT_SEGMENT_MARGIN
       SOLVER_VERSION
+      DFLT_CONVERGE_CAP
+      DFLT_STALL_PROGRESS
       POSE_CHANNELS
       Targets
    

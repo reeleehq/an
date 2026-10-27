@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=b5c9d20d"></script>
+    <script src="../_static/documentation_options.js?v=11b15614"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.316" />
+  <meta name="docsearch:version" content="0.1.317" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -914,6 +914,17 @@ voice never falls back to a synthesized one.</p>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="an.audio.recorded.RecordedTTS.phones_for_clip">
+<span class="sig-name descname"><span class="pre">phones_for_clip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">clip</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/recorded.html#RecordedTTS.phones_for_clip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.recorded.RecordedTTS.phones_for_clip" title="Link to this definition">#</a></dt>
+<dd><p>The stored phones of the take whose bytes <code class="docutils literal notranslate"><span class="pre">clip</span></code> carries, or <code class="docutils literal notranslate"><span class="pre">None</span></code> (an#491).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]] | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.audio.recorded.RecordedTTS.repeatable">
 <span class="sig-name descname"><span class="pre">repeatable</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#an.audio.recorded.RecordedTTS.repeatable" title="Link to this definition">#</a></dt>
@@ -924,7 +935,11 @@ voice never falls back to a synthesized one.</p>
 <dt class="sig sig-object py" id="an.audio.recorded.RecordedTTS.synthesis_options">
 <span class="sig-name descname"><span class="pre">synthesis_options</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">voice_doc</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">emotion</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/recorded.html#RecordedTTS.synthesis_options"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.recorded.RecordedTTS.synthesis_options" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">{&quot;recording&quot;:</span> <span class="pre">&lt;digest&gt;}</span></code> of the take this line has — the audio key
-follows the take, so a re-recorded line is new audio.</p>
+follows the take, so a re-recorded line is new audio. A take with
+phones adds <code class="docutils literal notranslate"><span class="pre">{&quot;timings&quot;:</span> <span class="pre">&lt;digest&gt;}</span></code> of its words and phones (an#491):
+the same audio imported again with new timings is new audio to the
+caches, so the lip-sync sees them. (Only then: a take without phones
+keys as before.)</p>
 <p>A line with no take is refused HERE, when the pipeline resolves every
 line’s request before the first synthesis: nothing of the scene is
 produced for a recorded voice that is missing a take. Without a line
@@ -983,7 +998,7 @@ produced for a recorded voice that is missing a take. Without a line
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.audio.recorded.add_recording">
-<span class="sig-prename descclassname"><span class="pre">an.audio.recorded.</span></span><span class="sig-name descname"><span class="pre">add_recording</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">store</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speaker</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">audio</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">words</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imported_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/recorded.html#add_recording"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.recorded.add_recording" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.audio.recorded.</span></span><span class="sig-name descname"><span class="pre">add_recording</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">store</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speaker</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">audio</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">words</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imported_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phones</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/recorded.html#add_recording"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.recorded.add_recording" title="Link to this definition">#</a></dt>
 <dd><p>Put a take (WAV <code class="docutils literal notranslate"><span class="pre">audio</span></code> of <code class="docutils literal notranslate"><span class="pre">speaker</span></code> saying <code class="docutils literal notranslate"><span class="pre">text</span></code>, spoken for
 <code class="docutils literal notranslate"><span class="pre">voice</span></code>) in <code class="docutils literal notranslate"><span class="pre">store</span></code> with its provenance; <code class="docutils literal notranslate"><span class="pre">(key,</span> <span class="pre">record)</span></code>.</p>
 <p><code class="docutils literal notranslate"><span class="pre">source</span></code> is required: a recording with no recorded origin is exactly the
@@ -1232,6 +1247,7 @@ lazy: a take with a timed transcript never needs it.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.RECORD_VERSION"><code class="docutils literal notranslate"><span class="pre">RECORD_VERSION</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.RecordedTTS"><code class="docutils literal notranslate"><span class="pre">RecordedTTS</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.RecordedTTS.list_voices"><code class="docutils literal notranslate"><span class="pre">RecordedTTS.list_voices()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.RecordedTTS.phones_for_clip"><code class="docutils literal notranslate"><span class="pre">RecordedTTS.phones_for_clip()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.RecordedTTS.repeatable"><code class="docutils literal notranslate"><span class="pre">RecordedTTS.repeatable</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.RecordedTTS.synthesis_options"><code class="docutils literal notranslate"><span class="pre">RecordedTTS.synthesis_options()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.RecordedTTS.synthesize"><code class="docutils literal notranslate"><span class="pre">RecordedTTS.synthesize()</span></code></a></li>
