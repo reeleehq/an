@@ -973,20 +973,26 @@ def _depth_window(
     return times[first], times[last]
 
 
-def _depth_runs(
-    depth: Callable[[float], float],
-    a: float,
-    b: float,
-    lo: float,
-    *,
-    step: float,
-) -> list[tuple[float, float]]:
-    """The stretches of ``[a, b]`` during which ``depth >= lo`` (in front of
-    the camera), scanned at ``step`` and widened by a step each side; runs that
-    touch after widening are one."""
+def _grid(a: float, b: float, step: float) -> list[float]:
+    """The times ``[a, b]`` is scanned at: evenly spaced, at most ``step`` apart."""
     n = max(1, int(math.ceil((b - a) / step)))
-    times = [a + (b - a) * i / n for i in range(n + 1)]
-    inside = [depth(t) >= lo for t in times]
+    return [a + (b - a) * i / n for i in range(n + 1)]
+
+
+def _depth_runs(
+    times: Sequence[float],
+    depths: Sequence[float],
+    lo: float,
+) -> list[tuple[float, float]]:
+    """The stretches of ``times`` during which ``depths >= lo`` (in front of
+    the camera), widened by a sample each side; runs that touch after
+    widening are one.
+
+    >>> _depth_runs([0.0, 1.0, 2.0, 3.0, 4.0], [5.0, 0.0, 0.0, 0.0, 5.0], 1.0)
+    [(0.0, 1.0), (3.0, 4.0)]
+    """
+    n = len(times) - 1
+    inside = [d >= lo for d in depths]
     runs: list[list[int]] = []
     for i, ok in enumerate(inside):
         if not ok:
@@ -1685,6 +1691,17 @@ def _sway_members(
     return out
 
 
+@dataclass(frozen=True)
+class _Sighting:
+    """A member in motion as the camera sees it over a shot: its passages, and
+    its depth and screen box at each time of the shot's scan grid (the box is
+    ``None`` when its extent is unknown), for the draw-order check."""
+
+    passes: list[tuple[_Pass, float]]
+    depths: list[float]
+    boxes: list[Box | None]
+
+
 def _member_passes(
     member: WorldMember,
     ctx: _FrameCtx,
@@ -1699,23 +1716,32 @@ def _member_passes(
     min_step: float,
     width: float,
     height: float,
-) -> list[tuple[_Pass, float]]:
+    times: Sequence[float],
+) -> _Sighting:
     """A positioned member in motion relative to the camera, as one passage per
     stretch of the shot it is in front of the camera and on screen (it can
-    leave and come back), each with its depth as it enters. Empty when it
-    never is."""
+    leave and come back), each with its depth as it enters; no passage when
+    it never is. ``times`` is the shot's scan grid (``_grid``), sampled once
+    for the depth runs and the sighting's series."""
     view = ctx.view_fn(frame, course or (lambda t: _member_point(member, tracks, t)))
     focal = ctx.projection.focal
 
     def g(t: float) -> tuple[float, float, float]:
-        rx, ry, depth = view(t)
+        return to_screen(view(t))
+
+    def to_screen(seen: Point3) -> tuple[float, float, float]:
+        rx, ry, depth = seen
         depth = max(depth, near)
         return focal * rx / depth, focal * ry / depth, m * focal / depth
 
+    samples = [view(t) for t in times]
+    depths = [s[2] for s in samples]
+    boxes = [
+        _screen_box((sx, sy), scale, box)
+        for sx, sy, scale in (to_screen(s) for s in samples)
+    ]
     out: list[tuple[_Pass, float]] = []
-    for t0, t1 in _depth_runs(
-        lambda t: view(t)[2], 0.0, ctx.duration, near, step=min_step
-    ):
+    for t0, t1 in _depth_runs(times, depths, near):
         fitted = _fit_pass(
             g,
             t0,
@@ -1729,7 +1755,7 @@ def _member_passes(
         )
         if fitted is not None:
             out.append((fitted, view(fitted.t_in)[2]))
-    return out
+    return _Sighting(out, depths, boxes)
 
 
 # --- lowering ------------------------------------------------------------------
@@ -1932,12 +1958,14 @@ def _lower_shot(
     )
     min_step = _MIN_SAMPLE_FRAMES / float(fps)
     passes: dict[str, list[tuple[_Pass, float]]] = {}
+    grid = _grid(0.0, duration, min_step)
+    sightings: dict[str, _Sighting] = {}  # for the draw-order check
     for mid in sorted(moving):
         member, box = positioned[mid], extents.get(mid)
         m = _unit_scale(member, box, where=f"member {mid!r}")
         if m is None:
             continue  # unmeasured: the static path says so
-        found = _member_passes(
+        sighting = _member_passes(
             member,
             ctx,
             WORLD_FRAME if mid in courses else frame_of[mid],
@@ -1950,9 +1978,11 @@ def _lower_shot(
             min_step=min_step,
             width=width,
             height=height,
+            times=grid,
         )
-        if found:
-            passes[mid] = found
+        if sighting.passes:
+            passes[mid] = sighting.passes
+            sightings[mid] = sighting
     for mid, course in courses.items():
         for change in course.changes:
             _reframe_notes(change, mid, ctx, near=near, note=note)
@@ -2237,6 +2267,21 @@ def _lower_shot(
         for stream_id, problem in problems:
             note("warning", "stream", stream_id, problem)
     ordered.sort(key=lambda item: item[0])
+    if sightings:
+        _depth_order_notes(
+            [e for _, e, _ in ordered],
+            sightings,
+            placed,
+            times=grid,
+            duration=duration,
+            attached=[(mm.id, mm.attached.to) for mm in world.members if mm.attached]
+            + [
+                (e.id, e.overrides[ATTACHED_OVERRIDE]["to"])
+                for _, e, _ in ordered
+                if e.overrides and ATTACHED_OVERRIDE in e.overrides
+            ],
+            note=note,
+        )
     entities = [e for e, _ in envs] + [e for _, e, _ in ordered]
     origins = [j for _, j in envs] + [j for _, _, j in ordered]
     return (
@@ -2244,6 +2289,180 @@ def _lower_shot(
         notes,
         origins,
     )
+
+
+def _depth_order_notes(
+    painted: Sequence[AssetRef],
+    sightings: Mapping[str, _Sighting],
+    placed: Mapping[str, Placed],
+    *,
+    times: Sequence[float],
+    duration: float,
+    attached: Collection[tuple[str, str]],
+    note: Callable[[str, str, str, str], None],
+) -> None:
+    """The ``draw_order`` notes of one framed shot: the members in motion as
+    their sightings saw them, the ones at rest where ``placed`` puts them, on
+    screen the whole shot when in frame."""
+    depths: dict[str, float | Sequence[float]] = {}
+    windows: dict[str, list[tuple[float, float]]] = {}
+    boxes: dict[str, Any] = {}
+    # An attached member rides its host (the attachment pass places it, and its
+    # `placed` depth and box are the host's as the shot opens): not examined.
+    riders = {member for member, _ in attached}
+    for mid, s in sightings.items():
+        if mid in riders:
+            continue
+        depths[mid], boxes[mid] = s.depths, s.boxes
+        windows[mid] = [(p.t_in, p.t_out) for p, _ in s.passes]
+    for mid, p in placed.items():
+        if mid in depths or mid in riders or p.depth is None or not p.in_frame:
+            continue
+        depths[mid], windows[mid] = p.depth, [(0.0, duration)]
+        boxes[mid] = p.box if p.box is not None or p.at is None else (*p.at, *p.at)
+    found = depth_order_problems(
+        painted, times, depths, windows, boxes, attached=attached
+    )
+    for entity_id, message in found[:MAX_DEPTH_ORDER_NOTES]:
+        note("warning", "draw_order", entity_id, message)
+    if len(found) > MAX_DEPTH_ORDER_NOTES:
+        entity_id = found[MAX_DEPTH_ORDER_NOTES][0]
+        note(
+            "warning",
+            "draw_order",
+            entity_id,
+            f"{len(found) - MAX_DEPTH_ORDER_NOTES} more pairs are painted on the "
+            "wrong side of each other in this shot (the first "
+            f"{MAX_DEPTH_ORDER_NOTES} are listed): a crowd passing through itself "
+            "wants a cut, or `stage.after` where the order matters.",
+        )
+
+
+#: Pairs listed per shot; the rest are counted in one closing note.
+MAX_DEPTH_ORDER_NOTES: int = 10
+
+#: A member must be this much nearer (world units) than one painted over it
+#: before it counts as nearer: depth ties and rounding are not an order.
+DEPTH_ORDER_TOLERANCE: float = 1e-6
+
+#: Slack (seconds) on a window's ends when asking whether a scan time is in it.
+_WINDOW_EPS: float = 1e-9
+
+
+def depth_order_problems(
+    painted: Sequence[AssetRef],
+    times: Sequence[float],
+    depths: Mapping[str, float | Sequence[float]],
+    windows: Mapping[str, Sequence[tuple[float, float]]],
+    boxes: Mapping[str, Any] | None = None,
+    *,
+    attached: Collection[tuple[str, str]] = (),
+    tolerance: float = DEPTH_ORDER_TOLERANCE,
+) -> list[tuple[str, str]]:
+    """``(entity, message)`` for each pair of members painted one way
+    (``painted``, back to front) that the camera sees the other way round at
+    some time of the shot, one of them in motion (an#510, catalogue A3). The
+    lowering orders a member by its depth where it first shows, so one that
+    passes another in depth is painted on the wrong side of it from then on.
+
+    The data is sampled once per member at ``times`` (the shot's scan grid):
+    ``depths`` maps a member at rest to its depth and one in motion to its
+    depth at each time; ``windows`` maps each to the ``(t_in, t_out)``
+    stretches it is on screen and in front of the camera; ``boxes`` maps each
+    to its screen box ``(x0, y0, x1, y1)`` (one box at rest, one per time in
+    motion; ``None``, or a member missing, is a box not known, which overlaps
+    everything). A pair counts only at a time both are on screen and their
+    boxes overlap: two members apart on screen can pass in depth unseen. A
+    member not in ``depths`` (a stream slot, a non-member) is not checked,
+    nor a pair where either has a ``stage.after`` (the author's statement of
+    order), nor a pair ``attached`` links (``(member, host)``, either way
+    round): the attachment pass places them. Each pair is reported once, at
+    the first such time.
+
+    >>> from an.ir.schema import AssetRef
+    >>> a, b = (AssetRef(kind="prop", id=i, store="props", ref=i) for i in "ab")
+    >>> times = [0.0, 0.5, 1.0, 1.5, 2.0]
+    >>> walk = [10.0, 8.0, 6.0, 4.0, 2.0]  # `a` walks towards the camera
+    >>> whole = {"a": [(0.0, 2.0)], "b": [(0.0, 2.0)]}
+    >>> [(e, m.split(",")[0]) for e, m in depth_order_problems(
+    ...     [a, b], times, {"a": walk, "b": 5.0}, whole)]
+    [('a', "painted behind 'b' but nearer the camera from 1.50 s")]
+
+    Not while `a` is off screen, nor when the two never overlap on screen,
+    nor when one is attached to the other:
+
+    >>> depth_order_problems([a, b], times, {"a": walk, "b": 5.0},
+    ...     {"a": [(0.0, 1.0)], "b": [(0.0, 2.0)]})
+    []
+    >>> depth_order_problems([a, b], times, {"a": walk, "b": 5.0}, whole,
+    ...     {"a": [(-50.0, 0.0, -40.0, 10.0)] * 5, "b": (40.0, 0.0, 50.0, 10.0)})
+    []
+    >>> depth_order_problems([a, b], times, {"a": walk, "b": 5.0}, whole,
+    ...     attached=[("b", "a")])
+    []
+    """
+    boxes = boxes or {}
+    linked = {frozenset(pair) for pair in attached}
+    n = len(times)
+
+    def series(mid: str) -> tuple[list[float], list[Any], list[bool]]:
+        d, box = depths[mid], boxes.get(mid)
+        if isinstance(d, (int, float)):
+            ds, bs = [float(d)] * n, [box] * n
+        else:
+            ds, bs = list(d), list(box) if box is not None else [None] * n
+        spans = windows.get(mid, ())
+        on = [
+            any(t0 - _WINDOW_EPS <= t <= t1 + _WINDOW_EPS for t0, t1 in spans)
+            for t in times
+        ]
+        return ds, bs, on
+
+    def overlap(p: Any, q: Any) -> bool:
+        if p is None or q is None:
+            return True
+        return p[0] <= q[2] and q[0] <= p[2] and p[1] <= q[3] and q[1] <= p[3]
+
+    members = [e for e in painted if e.id in depths]
+    sampled = {e.id: series(e.id) for e in members}
+    moving = {e.id for e in members if not isinstance(depths[e.id], (int, float))}
+    out: list[tuple[str, str]] = []
+    for i, behind in enumerate(members):
+        if behind.stage and behind.stage.after:
+            continue
+        db, bb, onb = sampled[behind.id]
+        for front in members[i + 1 :]:
+            if behind.id not in moving and front.id not in moving:
+                continue  # both at rest: ordered by their depth, by construction
+            if (front.stage and front.stage.after) or frozenset(
+                (behind.id, front.id)
+            ) in linked:
+                continue
+            df, bf, onf = sampled[front.id]
+            k = next(
+                (
+                    k
+                    for k in range(n)
+                    if onb[k]
+                    and onf[k]
+                    and db[k] < df[k] - tolerance
+                    and overlap(bb[k], bf[k])
+                ),
+                None,
+            )
+            if k is not None:
+                out.append(
+                    (
+                        behind.id,
+                        f"painted behind {front.id!r} but nearer the camera from "
+                        f"{times[k]:.2f} s, where they overlap on screen (depth "
+                        f"{db[k]:.3g} against {df[k]:.3g}): the world orders each "
+                        "member by its depth where it first shows, so it stays on "
+                        "the wrong side. Cut the shot where they pass, or say which "
+                        "is in front with `stage.after`.",
+                    )
+                )
+    return out
 
 
 def _is_slot_id(entity_id: str, travel: Travel) -> bool:

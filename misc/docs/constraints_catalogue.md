@@ -99,7 +99,7 @@ Tolerances below are named, never literal: `SUPPORT_TOLERANCE`, `SKATE_TOLERANCE
 
 **Subsumes.** `StagePlacement.after` and `after_problems` (an#344) as the mechanism and its validity check; `chain_draw_order_problems` and the paint-order capability check (an#430) as preconditions; ADR 0007's "draw order is depth" rule as the derivation.
 
-**Status.** Part (ii) shipped as the `draw_order` check (an#510, `an/verify/constraints.py`): a pair painted one way in a shot and the other way in a later one warns unless `stage.after` changed for either. Part (i), painted order against world depth, is not built (a world's members are skipped: depth already derives their order).
+**Status.** Part (ii) shipped as the `draw_order` check (an#510, `an/verify/constraints.py`): a pair painted one way in a shot and the other way in a later one warns unless `stage.after` changed for either. Part (i) shipped as a lowering note of the same name (an#510, `an.ir.world.depth_order_problems`): the world orders each member by its depth where it first shows, so a member in motion that passes another in depth is painted on the wrong side of it from then on. It warns once per pair, at the first time both are on screen, overlap there and are in the wrong depth order, unless either has a `stage.after` or one is attached to the other. Members at rest are ordered by construction and not checked. Each member's depth and screen box are sampled once on the shot's scan grid, so the check costs members times samples plus a comparison of the series.
 
 #### A4. Attachment and parenting (the weld)
 
@@ -386,7 +386,7 @@ Ranked by (a) how often the error class reached a viewer in the two plot-car rou
 | 1 | spatio-temporal continuity within a shot (no mid-shot jump, no one-frame flicker) | B1 | no | `evaluate_timeline`, `FrameClock` | `an` | small | an#508 |
 | 2 | support, penetration, floating and foot skate | A1, B3 | yes: `contacts` on assets, `support` relation, a surface (`y`, a member's `support_top`, scene-space ground) | `node_box`, rig bones | contacts in the rig: `cutan`; the relation and surface: `an` | medium |  |
 | 3 | solidity between declared solids | A2 | yes: `solid` (default from depth band once scene space lands) | `node_box` | `an` | small | an#509 |
-| 4 | draw order monotone in depth and stable across shots | A3 | no (with scene space) | compiled tree, `z` | `an` | small | an#510 (ii) |
+| 4 | draw order monotone in depth and stable across shots | A3 | no (with scene space) | compiled tree, `z` | `an` | small | an#510 (i), (ii) |
 | 5 | pre-render cadence lint from the IR against the style (tween durations, holds, easing list) | B6 | no (style specs carry it) | flat timeline, style spec | `cutan` | small |  |
 | 6 | causality and audio-visual tolerance for sound cues and dialogue | B7 | `cause` on timed cues | cues, anchors, word timings | `an` | small |  |
 | 7 | the light declaration with `shaded_side` art metadata, plus the art-brief hook | D1 | yes | declarations only | `an` (declaration), `cutan` (art brief) | small |  |
