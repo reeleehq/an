@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=4baef8ef"></script>
+    <script src="../_static/documentation_options.js?v=7c567285"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.335" />
+  <meta name="docsearch:version" content="0.1.336" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -681,58 +681,61 @@ fraction of a second so the CLI is snappy.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.base.PAINT_KEYS_OVERRIDE" title="an.base.PAINT_KEYS_OVERRIDE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PAINT_KEYS_OVERRIDE</span></code></a></p></td>
 <td><p>The core's record, on each entity a world paints by depth, of its paint key from each time on (<code class="docutils literal notranslate"><span class="pre">[[time,</span> <span class="pre">key]]</span></code>, a key sorting farther first, an#634): set when a stream slot is reused, so a slot drawing a farther instance can drop behind nearer ones; the stage compiler orders each run of keyed siblings by them with <code class="docutils literal notranslate"><span class="pre">z_index</span></code> keys.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.UNSEEN_ALPHA" title="an.base.UNSEEN_ALPHA"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UNSEEN_ALPHA</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.SWAY_OVERRIDE" title="an.base.SWAY_OVERRIDE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SWAY_OVERRIDE</span></code></a></p></td>
+<td><p>The core's mark on an entity the world leans with its frame's acceleration (an#504): its <code class="docutils literal notranslate"><span class="pre">rotation</span></code> channel is that lean, which the hold layer takes out of the angle an item it carries comes to rest at (an#659).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.base.UNSEEN_ALPHA" title="an.base.UNSEEN_ALPHA"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UNSEEN_ALPHA</span></code></a></p></td>
 <td><p>At or under this alpha an entity is not seen (a stream slot between its passes, a fade's end): it cannot jump or swap sides at a cut (an#516), nor overlap or be drawn through anything at an instant (an#632).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.base.CORE_OVERRIDE_KEYS" title="an.base.CORE_OVERRIDE_KEYS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CORE_OVERRIDE_KEYS</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.CORE_OVERRIDE_KEYS" title="an.base.CORE_OVERRIDE_KEYS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CORE_OVERRIDE_KEYS</span></code></a></p></td>
 <td><p>what attaches it, the stream slot it is, what holds it and at what angle, the world's plane factors.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.PAINT_AFTER_PROPERTY" title="an.base.PAINT_AFTER_PROPERTY"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PAINT_AFTER_PROPERTY</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.base.PAINT_AFTER_PROPERTY" title="an.base.PAINT_AFTER_PROPERTY"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PAINT_AFTER_PROPERTY</span></code></a></p></td>
 <td><p>where a node is PAINTED, as the path of the node it paints just after (<code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>: where the stage tree puts it).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.base.Z_INDEX_PROPERTY" title="an.base.Z_INDEX_PROPERTY"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Z_INDEX_PROPERTY</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.Z_INDEX_PROPERTY" title="an.base.Z_INDEX_PROPERTY"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Z_INDEX_PROPERTY</span></code></a></p></td>
 <td><p>A node's place among its container's children, switched at its own key (an#634): the stage paints a sorted container's children by it, the static <code class="docutils literal notranslate"><span class="pre">z_index</span></code> of a node made a channel.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.ORDER_PROPERTIES" title="an.base.ORDER_PROPERTIES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ORDER_PROPERTIES</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.base.ORDER_PROPERTIES" title="an.base.ORDER_PROPERTIES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ORDER_PROPERTIES</span></code></a></p></td>
 <td><p>The properties the runtime applies itself, outside <code class="xref py py-data docutils literal notranslate"><span class="pre">TRANSFORM_PROPERTIES</span></code> (which it animates): a node's place in the paint order, each switched at its own key.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.base.SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS" title="an.base.SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS" title="an.base.SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS</span></code></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">/</span></code> would read as a path segment and <code class="docutils literal notranslate"><span class="pre">::</span></code> is the runtime's pose-key separator.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.AUTHORABLE_PROPERTIES" title="an.base.AUTHORABLE_PROPERTIES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AUTHORABLE_PROPERTIES</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.base.AUTHORABLE_PROPERTIES" title="an.base.AUTHORABLE_PROPERTIES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AUTHORABLE_PROPERTIES</span></code></a></p></td>
 <td><p>a compiled transform channel, or the authored colour spelling the compiler expands.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.base.PathStr" title="an.base.PathStr"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PathStr</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.PathStr" title="an.base.PathStr"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PathStr</span></code></a></p></td>
 <td><p>Slash-delimited node path, e.g. <code class="docutils literal notranslate"><span class="pre">&quot;charlie/head/mouth&quot;</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.Seconds" title="an.base.Seconds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Seconds</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.base.Seconds" title="an.base.Seconds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Seconds</span></code></a></p></td>
 <td><p>Time in seconds.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.base.EasingSpec" title="an.base.EasingSpec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EasingSpec</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.EasingSpec" title="an.base.EasingSpec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EasingSpec</span></code></a></p></td>
 <td><p>Either an easing preset name or a 4-tuple cubic-Bézier control [cx1,cy1,cx2,cy2].</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.RendererName" title="an.base.RendererName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RendererName</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.base.RendererName" title="an.base.RendererName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RendererName</span></code></a></p></td>
 <td><p>Which renderer draws a shot.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.base.SUPPORTED_RENDERERS" title="an.base.SUPPORTED_RENDERERS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SUPPORTED_RENDERERS</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.SUPPORTED_RENDERERS" title="an.base.SUPPORTED_RENDERERS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SUPPORTED_RENDERERS</span></code></a></p></td>
 <td><p>The same vocabulary as <a class="reference internal" href="#an.base.RendererName" title="an.base.RendererName"><code class="xref py py-data docutils literal notranslate"><span class="pre">RendererName</span></code></a>, as a runtime tuple — DERIVED from it, because a hand-typed second copy is a second SSOT that drifts on the day a renderer is added and nothing fails.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.TRANSITION_KINDS" title="an.base.TRANSITION_KINDS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TRANSITION_KINDS</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.base.TRANSITION_KINDS" title="an.base.TRANSITION_KINDS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TRANSITION_KINDS</span></code></a></p></td>
 <td><p>The transition kinds a shot may be entered by.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.base.WIPE_DIRECTIONS" title="an.base.WIPE_DIRECTIONS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WIPE_DIRECTIONS</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.WIPE_DIRECTIONS" title="an.base.WIPE_DIRECTIONS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WIPE_DIRECTIONS</span></code></a></p></td>
 <td><p>The ways a <code class="docutils literal notranslate"><span class="pre">wipe</span></code>'s edge can travel across the frame (an#390).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.DEFAULT_TRANSITION_DURATION" title="an.base.DEFAULT_TRANSITION_DURATION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_TRANSITION_DURATION</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.base.DEFAULT_TRANSITION_DURATION" title="an.base.DEFAULT_TRANSITION_DURATION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_TRANSITION_DURATION</span></code></a></p></td>
 <td><p>half a second is a conventional editor's default, short enough not to eat a line of dialogue and long enough to read as deliberate.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.base.DEFAULT_TRANSITION_COLOR" title="an.base.DEFAULT_TRANSITION_COLOR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_TRANSITION_COLOR</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.DEFAULT_TRANSITION_COLOR" title="an.base.DEFAULT_TRANSITION_COLOR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_TRANSITION_COLOR</span></code></a></p></td>
 <td><p>The colour a <code class="docutils literal notranslate"><span class="pre">fade</span></code> passes through when it names none.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.FILM_AUDIO_SAMPLE_RATE" title="an.base.FILM_AUDIO_SAMPLE_RATE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FILM_AUDIO_SAMPLE_RATE</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.base.FILM_AUDIO_SAMPLE_RATE" title="an.base.FILM_AUDIO_SAMPLE_RATE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FILM_AUDIO_SAMPLE_RATE</span></code></a></p></td>
 <td><p>The film mix's sample rate and channel count.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.base.DEFAULT_DUCK_DB" title="an.base.DEFAULT_DUCK_DB"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_DUCK_DB</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.DEFAULT_DUCK_DB" title="an.base.DEFAULT_DUCK_DB"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_DUCK_DB</span></code></a></p></td>
 <td><p>how far a ducked cue drops under dialogue, and how fast it gets there and comes back.</p></td>
 </tr>
 </tbody>
@@ -836,7 +839,7 @@ asset-set name (an#62).</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.base.CORE_OVERRIDE_KEYS">
-<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">CORE_OVERRIDE_KEYS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.15)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'attached',</span> <span class="pre">'held_by',</span> <span class="pre">'held_rotation',</span> <span class="pre">'paint_keys',</span> <span class="pre">'plane_factors',</span> <span class="pre">'stream'})</span></span><a class="headerlink" href="#an.base.CORE_OVERRIDE_KEYS" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">CORE_OVERRIDE_KEYS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.15)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'attached',</span> <span class="pre">'held_by',</span> <span class="pre">'held_rotation',</span> <span class="pre">'leans',</span> <span class="pre">'paint_keys',</span> <span class="pre">'plane_factors',</span> <span class="pre">'stream'})</span></span><a class="headerlink" href="#an.base.CORE_OVERRIDE_KEYS" title="Link to this definition">#</a></dt>
 <dd><p>what attaches it, the
 stream slot it is, what holds it and at what angle, the world’s plane
 factors. Bookkeeping about the entity, not fields of its asset document, so
@@ -1075,6 +1078,14 @@ as a path segment and <code class="docutils literal notranslate"><span class="pr
 </dl>
 </dd></dl>
 
+<dl class="py data">
+<dt class="sig sig-object py" id="an.base.SWAY_OVERRIDE">
+<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">SWAY_OVERRIDE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'leans'</span></span><a class="headerlink" href="#an.base.SWAY_OVERRIDE" title="Link to this definition">#</a></dt>
+<dd><p>The core’s mark on an entity the world leans with its frame’s acceleration
+(an#504): its <code class="docutils literal notranslate"><span class="pre">rotation</span></code> channel is that lean, which the hold layer takes
+out of the angle an item it carries comes to rest at (an#659).</p>
+</dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.base.Seconds">
 <span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">Seconds</span></span><a class="headerlink" href="#an.base.Seconds" title="Link to this definition">#</a></dt>
@@ -1228,6 +1239,7 @@ what an entity asks of its asset document.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.STREAM_OVERRIDE"><code class="docutils literal notranslate"><span class="pre">STREAM_OVERRIDE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.SUPPORTED_RENDERERS"><code class="docutils literal notranslate"><span class="pre">SUPPORTED_RENDERERS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS"><code class="docutils literal notranslate"><span class="pre">SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.SWAY_OVERRIDE"><code class="docutils literal notranslate"><span class="pre">SWAY_OVERRIDE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.Seconds"><code class="docutils literal notranslate"><span class="pre">Seconds</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.TRANSITION_KINDS"><code class="docutils literal notranslate"><span class="pre">TRANSITION_KINDS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.TRIM_PROPERTIES"><code class="docutils literal notranslate"><span class="pre">TRIM_PROPERTIES</span></code></a></li>
