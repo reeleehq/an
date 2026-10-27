@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=5dd371cf"></script>
+    <script src="../../../_static/documentation_options.js?v=7768b615"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.319" />
+  <meta name="docsearch:version" content="0.1.320" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -750,16 +750,18 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Collection</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Protocol</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">DEFAULT_RESOLUTION</span><span class="p">,</span>
+    <span class="n">PAINT_KEYS_OVERRIDE</span><span class="p">,</span>
     <span class="n">PLANE_REST_VALUES</span><span class="p">,</span>
     <span class="n">TRANSFORM_PROPERTIES</span><span class="p">,</span>
     <span class="n">TRIM_PROPERTIES</span><span class="p">,</span>
+    <span class="n">Z_INDEX_PROPERTY</span><span class="p">,</span>
     <span class="n">swap_set_name_problem</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.easing</span><span class="w"> </span><span class="kn">import</span> <span class="n">apply_easing</span>
@@ -1978,6 +1980,146 @@ window.runMermaid = runMermaid;</script>
     <span class="p">)</span>
 
 
+<div class="viewcode-block" id="paint_orders">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.compile.html#an.adapters.cutout.paint_orders">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">paint_orders</span><span class="p">(</span>
+    <span class="n">keys</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]:</span>
+<span class="w">    </span><span class="sd">"""The order (back to front) of the entities in ``keys`` (``{id: [(time,</span>
+<span class="sd">    key)]}``, each key in force from its time on, a smaller key painted</span>
+<span class="sd">    first) at each time any key changes.</span>
+
+<span class="sd">    &gt;&gt;&gt; paint_orders({"near": [(0.0, 2)], "slot": [(0.0, 3), (1.5, 1)]})</span>
+<span class="sd">    [(0.0, ['near', 'slot']), (1.5, ['slot', 'near'])]</span>
+<span class="sd">    """</span>
+    <span class="n">times</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">({</span><span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">ks</span> <span class="ow">in</span> <span class="n">keys</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">ks</span><span class="p">})</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">times</span><span class="p">:</span>
+        <span class="n">now</span> <span class="o">=</span> <span class="p">{</span><span class="n">n</span><span class="p">:</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">at</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">ks</span> <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="n">at</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">t</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">ks</span> <span class="ow">in</span> <span class="n">keys</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">(</span>
+                <span class="n">t</span><span class="p">,</span>
+                <span class="nb">sorted</span><span class="p">(</span>
+                    <span class="n">now</span><span class="p">,</span>
+                    <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">now</span><span class="p">[</span><span class="n">n</span><span class="p">])</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">now</span><span class="p">[</span><span class="n">n</span><span class="p">],</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="n">now</span><span class="p">[</span><span class="n">n</span><span class="p">],</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_keyed_runs</span><span class="p">(</span><span class="n">names</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">opening</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""The runs of consecutive places in ``names`` whose names have a key in</span>
+<span class="sd">    ``opening`` (their keys as the shot opens), each ending where the built</span>
+<span class="sd">    order and the opening keys disagree: a world entity is reordered only</span>
+<span class="sd">    among keyed neighbours built in its own order, never across a plane, a</span>
+<span class="sd">    band, an entity the author placed after a plane among them, or one the</span>
+<span class="sd">    world does not key (an#634).</span>
+
+<span class="sd">    &gt;&gt;&gt; _keyed_runs(["sky", "a", "b", "rail", "c", "d"], {"a": 0, "b": 1, "c": 5, "d": 2})</span>
+<span class="sd">    [[1, 2], [4], [5]]</span>
+<span class="sd">    """</span>
+    <span class="n">runs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">names</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">opening</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">prev</span> <span class="o">=</span> <span class="n">runs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">runs</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">prev</span> <span class="o">==</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">_sort_key</span><span class="p">(</span><span class="n">opening</span><span class="p">[</span><span class="n">names</span><span class="p">[</span><span class="n">prev</span><span class="p">]])</span> <span class="o">&lt;=</span> <span class="n">_sort_key</span><span class="p">(</span>
+            <span class="n">opening</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+        <span class="p">):</span>
+            <span class="n">runs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">runs</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">i</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">runs</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_sort_key</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A paint key as it sorts (a JSON list read back is a tuple)."""</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="n">key</span>
+
+
+<div class="viewcode-block" id="z_index_keys">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.compile.html#an.adapters.cutout.z_index_keys">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">z_index_keys</span><span class="p">(</span>
+    <span class="n">names</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">keys</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]:</span>
+<span class="w">    </span><span class="sd">"""Each keyed child's ``z_index`` from each time it changes (an#634), in</span>
+<span class="sd">    one container whose children are ``names``: within each run of keyed</span>
+<span class="sd">    children (:func:`_keyed_runs`), at every time a key changes, they take the</span>
+<span class="sd">    run's places in key order (:func:`paint_orders`); every other child keeps</span>
+<span class="sd">    its own place. Only a child whose place changes gets keys.</span>
+
+<span class="sd">    &gt;&gt;&gt; z_index_keys(["sky", "a", "b"], {"a": [(0, 0), (2, 3)], "b": [(0, 1)]})</span>
+<span class="sd">    {'a': [(0.0, 1), (2.0, 2)], 'b': [(0.0, 2), (2.0, 1)]}</span>
+<span class="sd">    """</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">places</span> <span class="ow">in</span> <span class="n">_keyed_runs</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="p">{</span><span class="n">n</span><span class="p">:</span> <span class="n">ks</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">ks</span> <span class="ow">in</span> <span class="n">keys</span><span class="o">.</span><span class="n">items</span><span class="p">()}):</span>
+        <span class="n">run</span> <span class="o">=</span> <span class="p">[</span><span class="n">names</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">places</span><span class="p">]</span>
+        <span class="n">moves</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{</span><span class="n">n</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">run</span><span class="p">}</span>
+        <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">order</span> <span class="ow">in</span> <span class="n">paint_orders</span><span class="p">({</span><span class="n">n</span><span class="p">:</span> <span class="n">keys</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">run</span><span class="p">}):</span>
+            <span class="k">for</span> <span class="n">place</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">places</span><span class="p">,</span> <span class="n">order</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">moves</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="ow">or</span> <span class="n">moves</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">place</span><span class="p">:</span>
+                    <span class="n">moves</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">t</span><span class="p">,</span> <span class="n">place</span><span class="p">))</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">n</span><span class="p">:</span> <span class="n">ks</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">ks</span> <span class="ow">in</span> <span class="n">moves</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ks</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">})</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_paint_keys_pass</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">CompileState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A world's changing paint order (an#634): in each container of entities</span>
+<span class="sd">    (:func:`an.stage.tree.entity_containers`) whose keyed children</span>
+<span class="sd">    (``overrides[PAINT_KEYS_OVERRIDE]``) change places, every child gets its</span>
+<span class="sd">    place as a static ``z_index`` (so the stage sorts that container) and each</span>
+<span class="sd">    one that moves a stepped ``z_index`` channel."""</span>
+    <span class="n">keys</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">overrides</span><span class="p">[</span><span class="n">PAINT_KEYS_OVERRIDE</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">entities</span>
+        <span class="k">if</span> <span class="n">PAINT_KEYS_OVERRIDE</span> <span class="ow">in</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">overrides</span> <span class="ow">or</span> <span class="p">{})</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">keys</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">channels</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ChannelJSON</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">container</span> <span class="ow">in</span> <span class="n">stage_tree</span><span class="o">.</span><span class="n">entity_containers</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">scene_root</span><span class="p">):</span>
+        <span class="n">kids</span> <span class="o">=</span> <span class="n">container</span><span class="o">.</span><span class="n">children</span> <span class="ow">or</span> <span class="p">[]</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">kids</span><span class="p">]</span>
+        <span class="n">moves</span> <span class="o">=</span> <span class="n">z_index_keys</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="p">{</span><span class="n">n</span><span class="p">:</span> <span class="n">keys</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">names</span> <span class="k">if</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">})</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">moves</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">kid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">kids</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">kid</span><span class="o">.</span><span class="n">z_index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">kid</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> already has a paint "</span>
+                    <span class="s2">"order (`z_index`) beside entities the world orders by depth"</span>
+                <span class="p">)</span>
+            <span class="n">kid</span><span class="o">.</span><span class="n">z_index</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">channels</span> <span class="o">+=</span> <span class="p">[</span>
+            <span class="n">ChannelJSON</span><span class="p">(</span>
+                <span class="n">target</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+                <span class="nb">property</span><span class="o">=</span><span class="n">Z_INDEX_PROPERTY</span><span class="p">,</span>
+                <span class="n">keyframes</span><span class="o">=</span><span class="p">[</span>
+                    <span class="n">KeyframeJSON</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">z</span><span class="p">),</span> <span class="n">easing</span><span class="o">=</span><span class="s2">"step"</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">ks</span>
+                <span class="p">],</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">ks</span> <span class="ow">in</span> <span class="n">moves</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">channels</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">duration</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.001</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">))</span>
+    <span class="n">anim_id</span> <span class="o">=</span> <span class="n">_fresh_clip_id</span><span class="p">(</span><span class="sa">f</span><span class="s2">"__paint__</span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">animations</span><span class="p">)</span>
+    <span class="n">state</span><span class="o">.</span><span class="n">animations</span><span class="p">[</span><span class="n">anim_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">AnimationClipJSON</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">anim_id</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="n">channels</span>
+    <span class="p">)</span>
+    <span class="n">state</span><span class="o">.</span><span class="n">tracks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="n">TrackJSON</span><span class="p">(</span>
+            <span class="n">target_root</span><span class="o">=</span><span class="s2">"__paint__"</span><span class="p">,</span>
+            <span class="n">clips</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">PlacedClipJSON</span><span class="p">(</span><span class="n">animation_id</span><span class="o">=</span><span class="n">anim_id</span><span class="p">,</span> <span class="n">start_time</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">)</span>
+            <span class="p">],</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_paint_orders_needed</span><span class="p">(</span><span class="n">root</span><span class="p">:</span> <span class="n">NodeJSON</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""The paint orders a compiled tree asks of its engine (an#430):</span>
 <span class="sd">    ``container`` for a ``z_index``, ``global`` for a ``paint_order``."""</span>
@@ -2086,6 +2228,12 @@ window.runMermaid = runMermaid;</script>
     <span class="n">CompilePass</span><span class="p">(</span><span class="s2">"parallax"</span><span class="p">,</span> <span class="n">_parallax_pass</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">700</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">"planes' parallax"</span><span class="p">),</span>
     <span class="n">CompilePass</span><span class="p">(</span>
         <span class="s2">"boil"</span><span class="p">,</span> <span class="n">_boil_pass</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">750</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">"a boiling path's drawings (an#443)"</span>
+    <span class="p">),</span>
+    <span class="n">CompilePass</span><span class="p">(</span>
+        <span class="s2">"paint_keys"</span><span class="p">,</span>
+        <span class="n">_paint_keys_pass</span><span class="p">,</span>
+        <span class="n">order</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">"a world's changing paint order, as z_index keys (an#634)"</span><span class="p">,</span>
     <span class="p">),</span>
     <span class="n">CompilePass</span><span class="p">(</span>
         <span class="s2">"checks"</span><span class="p">,</span> <span class="n">_checks_pass</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">900</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">"targets, easings, stand-ins"</span>

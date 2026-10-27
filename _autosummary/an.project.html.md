@@ -18,6 +18,7 @@ Layout (from spec §11):
 | [`RENDER_REPORTS_GITIGNORE`](#an.project.RENDER_REPORTS_GITIGNORE)   | A render report records what a render on THIS machine found — warnings, exception text — so it is per-machine output, not project source (an#254).   |
 |-----------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`PROBES_GITIGNORE`](#an.project.PROBES_GITIGNORE)           | Probe frames and contact sheets (`an probe`, `an library sheet`, an#347): looks at work in progress, which may show private-study material.          |
+| [`LOCKS_GITIGNORE`](#an.project.LOCKS_GITIGNORE)            | The file locks an options manifest's writers take (`<ref>.json.lock`, an#587): empty, per machine, never project source.                             |
 | [`PROJECT_GITIGNORE`](#an.project.PROJECT_GITIGNORE)          | What a project's `.gitignore` keeps out of version control (`an init` adds each line a `.gitignore` lacks, never removing one).                      |
 
 ### Functions
@@ -34,12 +35,17 @@ Layout (from spec §11):
 | [`Project`](#an.project.Project)(root, mall, scene)   | A loaded an project: directory + mall + current scene.   |
 |-------------------------------------------------------------------------------|----------------------------------------------------------|
 
+### an.project.LOCKS_GITIGNORE *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('artifacts/voice_options/\*.lock',)*
+
+The file locks an options manifest’s writers take (`<ref>.json.lock`,
+an#587): empty, per machine, never project source.
+
 ### an.project.PROBES_GITIGNORE *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('artifacts/probes/',)*
 
 Probe frames and contact sheets (`an probe`, `an library sheet`,
 an#347): looks at work in progress, which may show private-study material.
 
-### an.project.PROJECT_GITIGNORE *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('artifacts/render_reports/', 'artifacts/probes/')*
+### an.project.PROJECT_GITIGNORE *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('artifacts/render_reports/', 'artifacts/probes/', 'artifacts/voice_options/\*.lock')*
 
 What a project’s `.gitignore` keeps out of version control (`an init`
 adds each line a `.gitignore` lacks, never removing one).

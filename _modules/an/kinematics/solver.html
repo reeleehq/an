@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=5dd371cf"></script>
+    <script src="../../../_static/documentation_options.js?v=7768b615"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.319" />
+  <meta name="docsearch:version" content="0.1.320" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -747,8 +747,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">range converges at first, then sits a pixel short), and what is left after the</span>
 <span class="sd">cap is only reported. If not, it is a conflict, settled per</span>
 <span class="sd">LOOP: the joints that share a cycle through the held bodies with a failing</span>
-<span class="sd">one are tried last-declared first, and the first whose loss lets every</span>
-<span class="sd">other joint hold is given up for the frame (a joint on no cycle, such as</span>
+<span class="sd">one are tried last-declared first, and the first whose loss at least halves</span>
+<span class="sd">the failure is given up for the frame (an#641: a rope held at both ends gives</span>
+<span class="sd">up its end, never a link) (a joint on no cycle, such as</span>
 <span class="sd">any joint of a rope hung from one hook, is never a candidate: a tree can</span>
 <span class="sd">always be satisfied). The joints given up are in</span>
 <span class="sd">:attr:`SolveResult.dropped`, and their gaps in ``unsatisfied``. So declare</span>
@@ -825,7 +826,8 @@ window.runMermaid = runMermaid;</script>
 <span class="n">DFLT_CONFLICT_RETRY</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span>
 <span class="c1">#: A failing joint is in conflict when the retry left more than this fraction</span>
 <span class="c1">#: of its failure (residual over tolerance, or range broken over angle</span>
-<span class="c1">#: tolerance): a conflict is what more passes do not fix.</span>
+<span class="c1">#: tolerance): a conflict is what more passes do not fix. Giving a joint up</span>
+<span class="c1">#: settles a conflict when it leaves at most this fraction of the failure.</span>
 <span class="n">DFLT_CONFLICT_PROGRESS</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span>
 <span class="c1">#: The most trial solves :func:`solve` spends looking for the joint to give</span>
 <span class="c1">#: up in a conflict (each is a full solve of the frame).</span>
@@ -844,7 +846,9 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: Bumped whenever the solve can give a different answer for the same inputs</span>
 <span class="c1">#: (a changed projection, order, or default): part of every cache key built</span>
 <span class="c1">#: on this module.</span>
-<span class="n">SOLVER_VERSION</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"2"</span>  <span class="c1"># 2: a slow retry keeps going while it converges (an#568)</span>
+<span class="c1">#: 2: a slow retry keeps going while it converges (an#568); 3: a conflict gives up</span>
+<span class="c1">#: the first candidate that halves the failure (an#641).</span>
+<span class="n">SOLVER_VERSION</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"3"</span>
 <span class="c1">#: The most passes a frame whose first retry made progress is given, as a</span>
 <span class="c1">#: multiple of ``iterations``: its retry is repeated with ``retry`` times the</span>
 <span class="c1">#: passes while each round still makes progress (an#568). On 300 random</span>
@@ -1905,28 +1909,33 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_Attempt</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Give up joints until the frame holds. The candidates are the joints</span>
 <span class="sd">    that share a loop (a cycle through the held bodies) with a failing one,</span>
-<span class="sd">    tried last-declared first; the first whose loss lets everything else</span>
-<span class="sd">    hold is given up. If none does, the one that most reduces the failure is,</span>
-<span class="sd">    provided it at least halves it; else nothing more is. At most</span>
-<span class="sd">    :data:`DFLT_MAX_DROP_TRIALS` trial solves in all."""</span>
+<span class="sd">    tried last-declared first; the first whose loss at least halves the</span>
+<span class="sd">    failure (:data:`DFLT_CONFLICT_PROGRESS`) is given up, so the grip goes</span>
+<span class="sd">    before the structure it reaches with. "Lets everything else hold" was the</span>
+<span class="sd">    rule before an#641, and it is too strict: a rope held at both ends is one</span>
+<span class="sd">    loop, and once its end is given up, the falling rope is a little short of</span>
+<span class="sd">    converged on links that are on no cycle any more, so no candidate let</span>
+<span class="sd">    everything hold and the most-reducing one, an interior link, was given up</span>
+<span class="sd">    and the rope came apart. If no candidate halves the failure, nothing more</span>
+<span class="sd">    is given up. At most :data:`DFLT_MAX_DROP_TRIALS` trial solves in all."""</span>
     <span class="n">trials</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">while</span> <span class="n">result</span><span class="o">.</span><span class="n">failure</span> <span class="ow">and</span> <span class="n">trials</span> <span class="o">&lt;</span> <span class="n">DFLT_MAX_DROP_TRIALS</span><span class="p">:</span>
         <span class="n">failing</span> <span class="o">=</span> <span class="p">{</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">unsatisfied</span><span class="p">}</span> <span class="o">|</span> <span class="p">{</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">limits</span><span class="p">}</span>
         <span class="n">failing</span><span class="o">.</span><span class="n">difference_update</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">dropped</span><span class="p">)</span>
         <span class="n">candidates</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">_loop_mates</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">st</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">rows</span><span class="p">,</span> <span class="n">failing</span><span class="p">),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">best</span><span class="p">:</span> <span class="n">_Attempt</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">enough</span> <span class="o">=</span> <span class="n">DFLT_CONFLICT_PROGRESS</span> <span class="o">*</span> <span class="n">result</span><span class="o">.</span><span class="n">failure</span>
+        <span class="n">settled</span><span class="p">:</span> <span class="n">_Attempt</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">trials</span> <span class="o">&gt;=</span> <span class="n">DFLT_MAX_DROP_TRIALS</span><span class="p">:</span>
                 <span class="k">break</span>
             <span class="n">trials</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="n">trial</span> <span class="o">=</span> <span class="n">attempt</span><span class="p">(</span><span class="n">passes</span><span class="p">,</span> <span class="p">(</span><span class="o">*</span><span class="n">result</span><span class="o">.</span><span class="n">dropped</span><span class="p">,</span> <span class="n">j</span><span class="p">),</span> <span class="n">nudge</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">best</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">trial</span><span class="o">.</span><span class="n">failure</span> <span class="o">&lt;</span> <span class="n">best</span><span class="o">.</span><span class="n">failure</span><span class="p">:</span>
-                <span class="n">best</span> <span class="o">=</span> <span class="n">trial</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">trial</span><span class="o">.</span><span class="n">failure</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">trial</span><span class="o">.</span><span class="n">failure</span> <span class="o">&lt;=</span> <span class="n">enough</span><span class="p">:</span>
+                <span class="n">settled</span> <span class="o">=</span> <span class="n">trial</span>
                 <span class="k">break</span>
-        <span class="k">if</span> <span class="n">best</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">best</span><span class="o">.</span><span class="n">failure</span> <span class="o">&gt;</span> <span class="n">DFLT_CONFLICT_PROGRESS</span> <span class="o">*</span> <span class="n">result</span><span class="o">.</span><span class="n">failure</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">settled</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">break</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="n">best</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">settled</span>
     <span class="k">return</span> <span class="n">result</span>
 
 

@@ -52,6 +52,7 @@ an.audio
    pipeline
    providers
    recorded
+   shared_mixing
    takes
    transcripts
    tts

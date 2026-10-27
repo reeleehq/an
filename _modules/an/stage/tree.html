@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=5dd371cf"></script>
+    <script src="../../../_static/documentation_options.js?v=7768b615"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.319" />
+  <meta name="docsearch:version" content="0.1.320" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -815,6 +815,52 @@ window.runMermaid = runMermaid;</script>
     <span class="n">inner</span> <span class="o">=</span> <span class="n">child_prefix</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">prefix</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">_children</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
         <span class="k">yield from</span> <span class="n">_walk</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">inner</span><span class="p">,</span> <span class="n">ancestors</span> <span class="o">+</span> <span class="p">((</span><span class="n">node</span><span class="p">,</span> <span class="n">path</span><span class="p">),))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">entity_containers</span><span class="p">(</span><span class="n">root</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The containers whose children are entity nodes, in document order: the</span>
+<span class="sd">    synthetic ``root`` and every wrapper under it that indexes its children in</span>
+<span class="sd">    the parent's prefix (``scope=""``: the ``&lt;env&gt;__after_&lt;k&gt;`` that carries a</span>
+<span class="sd">    plane's parallax for the entities placed after it), so each child's path</span>
+<span class="sd">    is its own name.</span>
+
+<span class="sd">    &gt;&gt;&gt; from an.stage.serialize import NodeJSON</span>
+<span class="sd">    &gt;&gt;&gt; root = NodeJSON(name="root", children=[NodeJSON(name="set", children=[NodeJSON(name="sky")]),</span>
+<span class="sd">    ...     NodeJSON(name="set__after_1", scope="", children=[NodeJSON(name="pole_0")])])</span>
+<span class="sd">    &gt;&gt;&gt; [c.name for c in entity_containers(root)]</span>
+<span class="sd">    ['root', 'set__after_1']</span>
+<span class="sd">    """</span>
+    <span class="k">yield</span> <span class="n">root</span>
+    <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">_children</span><span class="p">(</span><span class="n">root</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">_get</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="s2">"scope"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">""</span><span class="p">:</span>
+            <span class="k">yield from</span> <span class="n">entity_containers</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">paint_places</span><span class="p">(</span><span class="n">root</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="o">...</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""Where each entity node of the synthetic ``root`` is painted, as a key</span>
+<span class="sd">    that sorts back to front: per container from the outermost, its sort key</span>
+<span class="sd">    there (``z_index``, else its index) and its index, as a container whose</span>
+<span class="sd">    children carry a ``z_index`` sorts them.</span>
+
+<span class="sd">    &gt;&gt;&gt; from an.stage.serialize import NodeJSON</span>
+<span class="sd">    &gt;&gt;&gt; root = NodeJSON(name="root", children=[NodeJSON(name="b"), NodeJSON(name="a", z_index=-1.0),</span>
+<span class="sd">    ...     NodeJSON(name="w", scope="", children=[NodeJSON(name="c")])])</span>
+<span class="sd">    &gt;&gt;&gt; places = paint_places(root)</span>
+<span class="sd">    &gt;&gt;&gt; sorted(places, key=places.get)</span>
+<span class="sd">    ['a', 'b', 'w', 'c']</span>
+<span class="sd">    """</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="o">...</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">visit</span><span class="p">(</span><span class="n">container</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">outer</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">child</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">_children</span><span class="p">(</span><span class="n">container</span><span class="p">)):</span>
+            <span class="n">z</span> <span class="o">=</span> <span class="n">_get</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="s2">"z_index"</span><span class="p">)</span>
+            <span class="n">here</span> <span class="o">=</span> <span class="p">(</span><span class="o">*</span><span class="n">outer</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">if</span> <span class="n">z</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="n">z</span><span class="p">),</span> <span class="n">i</span><span class="p">))</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">_get</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">)]</span> <span class="o">=</span> <span class="n">here</span>
+            <span class="k">if</span> <span class="n">_get</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="s2">"scope"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">""</span><span class="p">:</span>
+                <span class="n">visit</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">here</span><span class="p">)</span>
+
+    <span class="n">visit</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="p">())</span>
+    <span class="k">return</span> <span class="n">out</span>
 
 
 <div class="viewcode-block" id="walk">

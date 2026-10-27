@@ -10,6 +10,7 @@ an.project
    
       RENDER_REPORTS_GITIGNORE
       PROBES_GITIGNORE
+      LOCKS_GITIGNORE
       PROJECT_GITIGNORE
    
    .. rubric:: Functions

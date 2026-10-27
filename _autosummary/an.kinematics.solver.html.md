@@ -35,8 +35,9 @@ is a conflict after all (a grip inside the arm’s length but past its elbow’s
 range converges at first, then sits a pixel short), and what is left after the
 cap is only reported. If not, it is a conflict, settled per
 LOOP: the joints that share a cycle through the held bodies with a failing
-one are tried last-declared first, and the first whose loss lets every
-other joint hold is given up for the frame (a joint on no cycle, such as
+one are tried last-declared first, and the first whose loss at least halves
+the failure is given up for the frame (an#641: a rope held at both ends gives
+up its end, never a link) (a joint on no cycle, such as
 any joint of a rope hung from one hook, is never a candidate: a tree can
 always be satisfied). The joints given up are in
 `SolveResult.dropped`, and their gaps in `unsatisfied`. So declare
@@ -113,7 +114,8 @@ reported (radians; 1e-3 rad is 0.06 degrees).
 
 A failing joint is in conflict when the retry left more than this fraction
 of its failure (residual over tolerance, or range broken over angle
-tolerance): a conflict is what more passes do not fix.
+tolerance): a conflict is what more passes do not fix. Giving a joint up
+settles a conflict when it leaves at most this fraction of the failure.
 
 ### an.kinematics.solver.DFLT_CONFLICT_RETRY *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 4*
 
@@ -219,11 +221,13 @@ a joint on the world alone, a body with no extent.
 
 The pose channels, in the order `SolveResult.poses` holds them.
 
-### an.kinematics.solver.SOLVER_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '2'*
+### an.kinematics.solver.SOLVER_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '3'*
 
 Bumped whenever the solve can give a different answer for the same inputs
 (a changed projection, order, or default): part of every cache key built
 on this module.
+2: a slow retry keeps going while it converges (an#568); 3: a conflict gives up
+the first candidate that halves the failure (an#641).
 
 ### *class* an.kinematics.solver.SolveResult(bodies, poses, residuals, unsatisfied, limit_violations, dropped=())
 

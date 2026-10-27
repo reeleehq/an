@@ -1214,9 +1214,13 @@ Reconcile a scene’s markdown and JSON inside a project directory
 (`scene.md` and `ir/scene.json`, or the pair of the `scene_file` named;
 a named scene that is not there raises `SceneFileError`).
 
-Strategy in v0.1: Markdown is the human SSOT; if both exist, the JSON is
-regenerated from the Markdown unless mtimes show JSON is newer (which the
-user is told never to do — but we warn instead of silently overwriting).
+The side `_scene_side()` picks is written over the other: Markdown is
+the human SSOT, but pipeline stages (audio, lip-sync) write rich state into
+the JSON that the Markdown cannot represent, so a newer JSON is merged into
+the Markdown (an#275: the author’s text kept) rather than overwritten, and
+a tie that disagrees is warned about (`SyncTieWarning`). After a
+write over an existing file the two mtimes are equalised, so the next sync
+does not flip.
 
 * **Return type:**
   `SyncResult`

@@ -39,6 +39,7 @@
 - [an.audio.pipeline](an.audio.pipeline.html.md): Audio pipeline orchestration: dialogue → audio → visemes → IR mutation.
 - [an.audio.providers](an.audio.providers.html.md): Provider factory: name → concrete TTS/LipSync provider instance.
 - [an.audio.recorded](an.audio.recorded.html.md): Recorded voices: a performer’s takes as the voice of a character (an#490).
+- [an.audio.shared_mixing](an.audio.shared_mixing.html.md): The fleet’s shared audio component, &#96;mixing&#96;, as &#96;an&#96; imports it.
 - [an.audio.takes](an.audio.takes.html.md): Best-of-N takes: re-roll a line, score every take, keep the best, record the choice.
 - [an.audio.transcripts](an.audio.transcripts.html.md): Transcripts as INPUT: SRT, WebVTT, Praat TextGrid, word-timed JSON and plain
 - [an.audio.tts](an.audio.tts.html.md): TTS provider protocol + supporting dataclasses.

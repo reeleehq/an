@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=5dd371cf"></script>
+    <script src="../../../_static/documentation_options.js?v=7768b615"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.319" />
+  <meta name="docsearch:version" content="0.1.320" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -733,7 +733,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">  ``tint_r/g/b`` (``tint`` itself stays the compiler's authoring sugar, expanded</span>
 <span class="sd">  into those three before any channel exists, so the wire shape does not move);</span>
 <span class="sd">  ``paint_after`` (:data:`an.base.PAINT_AFTER_PROPERTY`, an#537) is where the</span>
-<span class="sd">  node is painted, ``discrete(switch_at=1)`` in its own write group; every other</span>
+<span class="sd">  node is painted, ``discrete(switch_at=1)`` in its own write group, and so is</span>
+<span class="sd">  ``z_index`` (:data:`an.base.Z_INDEX_PROPERTY`, an#634); every other</span>
 <span class="sd">  property names a swap set, ``*@*`` included, and is ``discrete(switch_at=1)``.</span>
 <span class="sd">- ``stage.camera`` — the stage's 2D framing camera: ``x``, ``y``, ``zoom``,</span>
 <span class="sd">  ``rotation``, all plain ``number`` (the compiler lowers them onto ``root``'s</span>
@@ -758,7 +759,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fnmatch</span><span class="w"> </span><span class="kn">import</span> <span class="n">fnmatchcase</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Union</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">PAINT_AFTER_PROPERTY</span><span class="p">,</span> <span class="n">TRANSFORM_PROPERTIES</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">PAINT_AFTER_PROPERTY</span><span class="p">,</span> <span class="n">TRANSFORM_PROPERTIES</span><span class="p">,</span> <span class="n">Z_INDEX_PROPERTY</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.kinds</span><span class="w"> </span><span class="kn">import</span> <span class="n">DiscreteKind</span><span class="p">,</span> <span class="n">FieldKind</span><span class="p">,</span> <span class="n">NumberKind</span><span class="p">,</span> <span class="n">kind_from_spec</span>
 
 <span class="c1">#: The write group every swap set on a stage node shares: they all replace the</span>
@@ -1051,6 +1052,14 @@ window.runMermaid = runMermaid;</script>
             <span class="n">description</span><span class="o">=</span><span class="p">(</span>
                 <span class="s2">"where the node is painted: the path of the node it paints just "</span>
                 <span class="s2">"after ('' = where the tree puts it), switched at its own key (an#537)"</span>
+            <span class="p">),</span>
+        <span class="p">),</span>
+        <span class="n">FieldDecl</span><span class="p">(</span>
+            <span class="n">Z_INDEX_PROPERTY</span><span class="p">,</span>
+            <span class="n">SWAP_KIND</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="p">(</span>
+                <span class="s2">"the node's place among its sorted container's children, switched "</span>
+                <span class="s2">"at its own key (an#634)"</span>
             <span class="p">),</span>
         <span class="p">),</span>
     <span class="p">)</span>

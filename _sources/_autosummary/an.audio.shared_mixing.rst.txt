@@ -1,0 +1,19 @@
+an.audio.shared\_mixing
+=======================
+
+.. automodule:: an.audio.shared_mixing
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      MIXING
+      INSTALL_HINT
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      mixing_too_old
+   

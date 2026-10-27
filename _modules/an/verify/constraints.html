@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=5dd371cf"></script>
+    <script src="../../../_static/documentation_options.js?v=7768b615"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.319" />
+  <meta name="docsearch:version" content="0.1.320" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -799,7 +799,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Mapping</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">STREAM_OVERRIDE</span><span class="p">,</span> <span class="n">UNSEEN_ALPHA</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">STREAM_OVERRIDE</span><span class="p">,</span> <span class="n">UNSEEN_ALPHA</span><span class="p">,</span> <span class="n">Z_INDEX_PROPERTY</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.genres.registry</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">CORE_OWNER</span><span class="p">,</span>
     <span class="n">CheckStage</span><span class="p">,</span>
@@ -1570,7 +1570,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    through the pose and the camera at that instant).</span>
 <span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">entity_alpha</span><span class="p">,</span> <span class="n">node_box</span><span class="p">,</span> <span class="n">timeline_from_scene</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.tree</span><span class="w"> </span><span class="kn">import</span> <span class="n">walk_document</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.tree</span><span class="w"> </span><span class="kn">import</span> <span class="n">paint_places</span><span class="p">,</span> <span class="n">walk_document</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">evaluate_timeline</span>
 
     <span class="n">solids</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entities</span> <span class="k">if</span> <span class="n">_is_solid</span><span class="p">(</span><span class="n">e</span><span class="p">)]</span>
@@ -1584,7 +1584,14 @@ window.runMermaid = runMermaid;</script>
         <span class="p">]</span>
         <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">solids</span>
     <span class="p">}</span>
-    <span class="n">rank</span> <span class="o">=</span> <span class="p">{</span><span class="n">eid</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">eid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">painted_order</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">solids</span><span class="p">}))}</span>
+    <span class="n">places</span> <span class="o">=</span> <span class="n">paint_places</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">scene</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">painted_at</span><span class="p">(</span><span class="n">eid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pose</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Where ``eid`` is painted now: its place, with its own container's</span>
+<span class="sd">        sort key read off its ``z_index`` channel where one writes it (an#634)."""</span>
+        <span class="o">*</span><span class="n">outer</span><span class="p">,</span> <span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="o">=</span> <span class="n">places</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="p">((</span><span class="mf">0.0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),))</span>
+        <span class="k">return</span> <span class="p">(</span><span class="o">*</span><span class="n">outer</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">pose</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">eid</span><span class="p">,</span> <span class="n">Z_INDEX_PROPERTY</span><span class="p">),</span> <span class="n">z</span><span class="p">)),</span> <span class="n">i</span><span class="p">))</span>
+
     <span class="n">timeline</span> <span class="o">=</span> <span class="n">timeline_from_scene</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
     <span class="n">first</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">Overlap</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">worst</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
@@ -1612,7 +1619,9 @@ window.runMermaid = runMermaid;</script>
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">one_art</span><span class="p">:</span>
                         <span class="k">continue</span>  <span class="c1"># the world painted them by depth</span>
                     <span class="n">front</span><span class="p">,</span> <span class="n">back</span> <span class="o">=</span> <span class="p">(</span>
-                        <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="k">if</span> <span class="n">rank</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">rank</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">else</span> <span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+                        <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">painted_at</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">pose</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">painted_at</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">pose</span><span class="p">)</span>
+                        <span class="k">else</span> <span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
                     <span class="p">)</span>
                     <span class="k">if</span> <span class="n">_area</span><span class="p">(</span><span class="n">boxes</span><span class="p">[</span><span class="n">front</span><span class="o">.</span><span class="n">id</span><span class="p">])</span> <span class="o">&gt;=</span> <span class="n">_area</span><span class="p">(</span><span class="n">boxes</span><span class="p">[</span><span class="n">back</span><span class="o">.</span><span class="n">id</span><span class="p">]):</span>
                         <span class="k">continue</span>  <span class="c1"># the nearer one in front: occlusion</span>
@@ -1657,8 +1666,8 @@ window.runMermaid = runMermaid;</script>
                 <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">/entities"</span><span class="p">,</span>
                 <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">o</span><span class="o">.</span><span class="n">a</span><span class="si">!r}</span><span class="s2"> is painted over </span><span class="si">{</span><span class="n">o</span><span class="o">.</span><span class="n">b</span><span class="si">!r}</span><span class="s2"> from </span><span class="si">{</span><span class="n">o</span><span class="o">.</span><span class="n">at</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s though it is the "</span>
                 <span class="sa">f</span><span class="s2">"farther of the two, covering up to </span><span class="si">{</span><span class="n">o</span><span class="o">.</span><span class="n">fraction</span><span class="si">:</span><span class="s2">.0%</span><span class="si">}</span><span class="s2"> of the smaller: "</span>
-                <span class="s2">"a stream's slot reused for a farther instance keeps the paint order "</span>
-                <span class="s2">"it had as the shot opened (an#634)."</span><span class="p">,</span>
+                <span class="s2">"the stream's slots are painted out of depth order (an#634: a slot "</span>
+                <span class="s2">"reused for a farther instance drops behind the nearer ones)."</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="k">continue</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
@@ -1694,7 +1703,8 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">painted_order</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">ids</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""The entities among ``ids`` in the order the compiled scene paints them (back to front).</span>
+<span class="w">    </span><span class="sd">"""The entities among ``ids`` in the order the compiled scene paints them</span>
+<span class="sd">    (back to front) as the shot opens (:func:`an.stage.tree.paint_places`).</span>
 
 <span class="sd">    &gt;&gt;&gt; from an.stage.serialize import CutoutSceneJSON, NodeJSON, TimelineJSON</span>
 <span class="sd">    &gt;&gt;&gt; doc = CutoutSceneJSON(</span>
@@ -1704,9 +1714,10 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    &gt;&gt;&gt; painted_order(doc, {"a", "b"})</span>
 <span class="sd">    ['a', 'b']</span>
 <span class="sd">    """</span>
-    <span class="n">kids</span> <span class="o">=</span> <span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">children</span><span class="p">)</span> <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">]</span>
-    <span class="n">kids</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">z_index</span> <span class="k">if</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">z_index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
-    <span class="k">return</span> <span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">kids</span><span class="p">]</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.tree</span><span class="w"> </span><span class="kn">import</span> <span class="n">paint_places</span>
+
+    <span class="n">places</span> <span class="o">=</span> <span class="n">paint_places</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">scene</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">((</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">places</span> <span class="k">if</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="n">places</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">order_flips</span><span class="p">(</span>

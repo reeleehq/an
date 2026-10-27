@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=5dd371cf"></script>
+    <script src="../_static/documentation_options.js?v=7768b615"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.319" />
+  <meta name="docsearch:version" content="0.1.320" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -339,6 +339,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.pipeline.html">an.audio.pipeline</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.recorded.html">an.audio.recorded</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.shared_mixing.html">an.audio.shared_mixing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.takes.html">an.audio.takes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.transcripts.html">an.audio.transcripts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
@@ -2191,9 +2192,13 @@ per-unit actions with holds, not a combinator.)</p>
 <dd><p>Reconcile a scene’s markdown and JSON inside a project directory
 (<code class="docutils literal notranslate"><span class="pre">scene.md</span></code> and <code class="docutils literal notranslate"><span class="pre">ir/scene.json</span></code>, or the pair of the <code class="docutils literal notranslate"><span class="pre">scene_file</span></code> named;
 a named scene that is not there raises <code class="xref py py-class docutils literal notranslate"><span class="pre">SceneFileError</span></code>).</p>
-<p>Strategy in v0.1: Markdown is the human SSOT; if both exist, the JSON is
-regenerated from the Markdown unless mtimes show JSON is newer (which the
-user is told never to do — but we warn instead of silently overwriting).</p>
+<p>The side <code class="xref py py-func docutils literal notranslate"><span class="pre">_scene_side()</span></code> picks is written over the other: Markdown is
+the human SSOT, but pipeline stages (audio, lip-sync) write rich state into
+the JSON that the Markdown cannot represent, so a newer JSON is merged into
+the Markdown (an#275: the author’s text kept) rather than overwritten, and
+a tie that disagrees is warned about (<code class="xref py py-class docutils literal notranslate"><span class="pre">SyncTieWarning</span></code>). After a
+write over an existing file the two mtimes are equalised, so the next sync
+does not flip.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">SyncResult</span></code></span></p>

@@ -38,16 +38,16 @@ Without a target, [`loudness_report()`](#an.audio.loudness.loudness_report) meas
 [`SPREAD_WARNING_DB`](#an.audio.loudness.SPREAD_WARNING_DB) — the render warns, naming each voice’s level.
 
 The measuring and the limiter are the fleet’s shared loudness component,
-`mixing.loudness` (an#563; `pip install 'an[loudness]'`):
+`mixing.loudness` (an#563; `mixing` is a core dependency since an#611):
 `mixing.loudness.level_group()` measures a voice’s lines back to back (looped
 to [`MIN_MEASURE_S`](#an.audio.loudness.MIN_MEASURE_S), channels kept when they agree) and caps the gain, with
 ffmpeg’s `ebur128` injected as its meter ([`METER`](#an.audio.loudness.METER)) so `an` takes no
 scipy; `mixing.loudness.limit_peaks()` is the limiter, moved there unchanged
 (so [`LEVEL_VERSION`](#an.audio.loudness.LEVEL_VERSION) did not move, and a test pins the leveled bytes).
 What stays here is `an`’s own: the voices, the offsets, the hysteresis, the
-makeup pass and the content keys. Without `mixing` installed, leveling raises
-[`LoudnessComponentMissing`](#an.audio.loudness.LoudnessComponentMissing) naming the extra, and the render’s spread
-warning is skipped (as it is without ffmpeg).
+makeup pass and the content keys. A `mixing` too old to have
+`mixing.loudness` raises [`VoiceLoudnessError`](#an.audio.loudness.VoiceLoudnessError) telling the user to
+upgrade it ([`an.audio.shared_mixing.mixing_too_old()`](an.audio.shared_mixing.html.md#an.audio.shared_mixing.mixing_too_old), an#621).
 
 ### Module Attributes
 
@@ -62,13 +62,11 @@ warning is skipped (as it is without ffmpeg).
 | [`MIN_MEASURE_S`](#an.audio.loudness.MIN_MEASURE_S)     | EBU R128 gates in 400 ms blocks, and a voice of only short lines would read as silence.                                                                                                                                             |
 | [`MISS_WARNING_DB`](#an.audio.loudness.MISS_WARNING_DB)   | A leveled voice that ends further than this from its target (the limiter held its peaks, or the gain was capped) is warned about.                                                                                                   |
 | [`METER`](#an.audio.loudness.METER)             | The loudness meter injected into `mixing.loudness` (one of its `METERS`): ffmpeg's `ebur128`, so `an` needs no scipy for its numpy meter.                                                                                           |
-| [`INSTALL_HINT`](#an.audio.loudness.INSTALL_HINT)      | What installs the shared loudness component.                                                                                                                                                                                        |
 
 ### Functions
 
-| [`component_available`](#an.audio.loudness.component_available)()                       | Whether `mixing.loudness` can be imported (what measuring needs).                                                                                                                                                                                                                                                           |
-|----------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`group_loudness`](#an.audio.loudness.group_loudness)(pcms)                        | The integrated loudness of a voice's lines, measured back to back.                                                                                                                                                                                                                                                          |
+|----------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`integrated_loudness`](#an.audio.loudness.integrated_loudness)(pcm)                    | EBU R128 integrated loudness (LUFS) of `pcm`, by [`METER`](#an.audio.loudness.METER) through `mixing.loudness.integrated_lufs()` (`-inf` for silence).                                                                                                                                                   |
 | [`level_voices`](#an.audio.loudness.level_voices)(scene, mall, spec)             | Level every voice of `scene` to `spec` ([`VoiceLoudness`](an.ir.schema.html.md#an.ir.schema.VoiceLoudness)): each line is stamped with its leveled audio (made once per source bytes, gain and ceiling, in the `audio` store) and `Dialogue.leveled`.                                                |
 | [`leveled_audio`](#an.audio.loudness.leveled_audio)(audio, \*, gain_db, peak_db)  | `audio` at `gain_db`, its peaks held at `peak_db` dBFS, as a 16-bit PCM WAV of exactly the length of the decoded source (an MP3 source is stored decoded, as the mux would decode it).                                                                                                                                      |
@@ -86,10 +84,9 @@ warning is skipped (as it is without ffmpeg).
 
 ### Exceptions
 
-| [`LoudnessComponentMissing`](#an.audio.loudness.LoudnessComponentMissing)   | The shared loudness component (`mixing.loudness`) is not installed.                                                   |
-|-----------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------|
-| [`VoiceLoudnessError`](#an.audio.loudness.VoiceLoudnessError)         | The voices cannot be measured or leveled (no ffmpeg, an unreadable line).                                             |
-| [`VoiceLoudnessWarning`](#an.audio.loudness.VoiceLoudnessWarning)       | The film's voices differ in loudness by more than [`SPREAD_WARNING_DB`](#an.audio.loudness.SPREAD_WARNING_DB). |
+| [`VoiceLoudnessError`](#an.audio.loudness.VoiceLoudnessError)   | The voices cannot be measured or leveled (no ffmpeg, an unreadable line).                                             |
+|-----------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------|
+| [`VoiceLoudnessWarning`](#an.audio.loudness.VoiceLoudnessWarning) | The film's voices differ in loudness by more than [`SPREAD_WARNING_DB`](#an.audio.loudness.SPREAD_WARNING_DB). |
 
 ### an.audio.loudness.GAIN_STEP_DB *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
 
@@ -97,10 +94,6 @@ A voice’s gain is rounded to this, so a new line that moves its voice’s
 loudness by less than half of it re-renders nothing else (half a dB is
 below what a listener hears between two lines; the measurement itself is
 to 0.1 LU).
-
-### an.audio.loudness.INSTALL_HINT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= "pip install 'an[loudness]'"*
-
-What installs the shared loudness component.
 
 ### an.audio.loudness.LEVEL_VERSION *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 1*
 
@@ -117,12 +110,6 @@ an#315 review).
 
 * **Type:**
   The limiter’s lookahead and release, seconds
-
-### *exception* an.audio.loudness.LoudnessComponentMissing
-
-Bases: [`VoiceLoudnessError`](#an.audio.loudness.VoiceLoudnessError), [`ImportError`](https://docs.python.org/3/builtins/exceptions.html#ImportError)
-
-The shared loudness component (`mixing.loudness`) is not installed.
 
 ### an.audio.loudness.MAX_GAIN_DB *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 24.0*
 
@@ -179,13 +166,6 @@ The voices cannot be measured or leveled (no ffmpeg, an unreadable line).
 Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
 
 The film’s voices differ in loudness by more than [`SPREAD_WARNING_DB`](#an.audio.loudness.SPREAD_WARNING_DB).
-
-### an.audio.loudness.component_available()
-
-Whether `mixing.loudness` can be imported (what measuring needs).
-
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ### an.audio.loudness.group_loudness(pcms)
 

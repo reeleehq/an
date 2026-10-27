@@ -18,13 +18,11 @@ an.audio.loudness
       MIN_MEASURE_S
       MISS_WARNING_DB
       METER
-      INSTALL_HINT
    
    .. rubric:: Functions
 
    .. autosummary::
    
-      component_available
       group_loudness
       integrated_loudness
       level_voices
@@ -46,7 +44,6 @@ an.audio.loudness
 
    .. autosummary::
    
-      LoudnessComponentMissing
       VoiceLoudnessError
       VoiceLoudnessWarning
    

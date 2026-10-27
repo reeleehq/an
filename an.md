@@ -1,4 +1,4 @@
-> built 2026-10-27 14:00 UTC from 7463dc2 (main) · an 0.1.319. Details: build_info.json
+> built 2026-10-27 15:55 UTC from dafd3a9 (main) · an 0.1.320. Details: build_info.json
 
 # index.html.md
 
@@ -3321,6 +3321,7 @@ audio’s actual length.
 | [`pipeline`](_autosummary/an.audio.pipeline.html.md#module-an.audio.pipeline)             | Audio pipeline orchestration: dialogue → audio → visemes → IR mutation.                                                                                        |
 | [`providers`](_autosummary/an.audio.providers.html.md#module-an.audio.providers)           | Provider factory: name → concrete TTS/LipSync provider instance.                                                                                               |
 | [`recorded`](_autosummary/an.audio.recorded.html.md#module-an.audio.recorded)             | Recorded voices: a performer's takes as the voice of a character (an#490).                                                                                     |
+| [`shared_mixing`](_autosummary/an.audio.shared_mixing.html.md#module-an.audio.shared_mixing)   | The fleet's shared audio component, `mixing`, as `an` imports it.                                                                                              |
 | [`takes`](_autosummary/an.audio.takes.html.md#module-an.audio.takes)                   | Best-of-N takes: re-roll a line, score every take, keep the best, record the choice.                                                                           |
 | [`transcripts`](_autosummary/an.audio.transcripts.html.md#module-an.audio.transcripts)       | Transcripts as INPUT: SRT, WebVTT, Praat TextGrid, word-timed JSON and plain text read into timed segments, and a known text matched to a transcriber's words. |
 | [`tts`](_autosummary/an.audio.tts.html.md#module-an.audio.tts)                       | TTS provider protocol + supporting dataclasses.                                                                                                                |
@@ -3514,16 +3515,16 @@ Without a target, [`loudness_report()`](_autosummary/an.audio.loudness.html.md#a
 [`SPREAD_WARNING_DB`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.SPREAD_WARNING_DB) — the render warns, naming each voice’s level.
 
 The measuring and the limiter are the fleet’s shared loudness component,
-`mixing.loudness` (an#563; `pip install 'an[loudness]'`):
+`mixing.loudness` (an#563; `mixing` is a core dependency since an#611):
 `mixing.loudness.level_group()` measures a voice’s lines back to back (looped
 to [`MIN_MEASURE_S`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.MIN_MEASURE_S), channels kept when they agree) and caps the gain, with
 ffmpeg’s `ebur128` injected as its meter ([`METER`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.METER)) so `an` takes no
 scipy; `mixing.loudness.limit_peaks()` is the limiter, moved there unchanged
 (so [`LEVEL_VERSION`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.LEVEL_VERSION) did not move, and a test pins the leveled bytes).
 What stays here is `an`’s own: the voices, the offsets, the hysteresis, the
-makeup pass and the content keys. Without `mixing` installed, leveling raises
-[`LoudnessComponentMissing`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.LoudnessComponentMissing) naming the extra, and the render’s spread
-warning is skipped (as it is without ffmpeg).
+makeup pass and the content keys. A `mixing` too old to have
+`mixing.loudness` raises [`VoiceLoudnessError`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.VoiceLoudnessError) telling the user to
+upgrade it ([`an.audio.shared_mixing.mixing_too_old()`](_autosummary/an.audio.shared_mixing.html.md#an.audio.shared_mixing.mixing_too_old), an#621).
 
 ### Module Attributes
 
@@ -3538,13 +3539,11 @@ warning is skipped (as it is without ffmpeg).
 | [`MIN_MEASURE_S`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.MIN_MEASURE_S)     | EBU R128 gates in 400 ms blocks, and a voice of only short lines would read as silence.                                                                                                                                             |
 | [`MISS_WARNING_DB`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.MISS_WARNING_DB)   | A leveled voice that ends further than this from its target (the limiter held its peaks, or the gain was capped) is warned about.                                                                                                   |
 | [`METER`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.METER)             | The loudness meter injected into `mixing.loudness` (one of its `METERS`): ffmpeg's `ebur128`, so `an` needs no scipy for its numpy meter.                                                                                           |
-| [`INSTALL_HINT`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.INSTALL_HINT)      | What installs the shared loudness component.                                                                                                                                                                                        |
 
 ### Functions
 
-| [`component_available`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.component_available)()                       | Whether `mixing.loudness` can be imported (what measuring needs).                                                                                                                                                                                                                                                           |
-|----------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`group_loudness`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.group_loudness)(pcms)                        | The integrated loudness of a voice's lines, measured back to back.                                                                                                                                                                                                                                                          |
+|----------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`integrated_loudness`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.integrated_loudness)(pcm)                    | EBU R128 integrated loudness (LUFS) of `pcm`, by [`METER`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.METER) through `mixing.loudness.integrated_lufs()` (`-inf` for silence).                                                                                                                                                   |
 | [`level_voices`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.level_voices)(scene, mall, spec)             | Level every voice of `scene` to `spec` ([`VoiceLoudness`](_autosummary/an.ir.schema.html.md#an.ir.schema.VoiceLoudness)): each line is stamped with its leveled audio (made once per source bytes, gain and ceiling, in the `audio` store) and `Dialogue.leveled`.                                                |
 | [`leveled_audio`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.leveled_audio)(audio, \*, gain_db, peak_db)  | `audio` at `gain_db`, its peaks held at `peak_db` dBFS, as a 16-bit PCM WAV of exactly the length of the decoded source (an MP3 source is stored decoded, as the mux would decode it).                                                                                                                                      |
@@ -3562,10 +3561,9 @@ warning is skipped (as it is without ffmpeg).
 
 ### Exceptions
 
-| [`LoudnessComponentMissing`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.LoudnessComponentMissing)   | The shared loudness component (`mixing.loudness`) is not installed.                                                   |
-|-----------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------|
-| [`VoiceLoudnessError`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.VoiceLoudnessError)         | The voices cannot be measured or leveled (no ffmpeg, an unreadable line).                                             |
-| [`VoiceLoudnessWarning`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.VoiceLoudnessWarning)       | The film's voices differ in loudness by more than [`SPREAD_WARNING_DB`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.SPREAD_WARNING_DB). |
+| [`VoiceLoudnessError`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.VoiceLoudnessError)   | The voices cannot be measured or leveled (no ffmpeg, an unreadable line).                                             |
+|-----------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------|
+| [`VoiceLoudnessWarning`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.VoiceLoudnessWarning) | The film's voices differ in loudness by more than [`SPREAD_WARNING_DB`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.SPREAD_WARNING_DB). |
 
 ### an.audio.loudness.GAIN_STEP_DB *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
 
@@ -3573,10 +3571,6 @@ A voice’s gain is rounded to this, so a new line that moves its voice’s
 loudness by less than half of it re-renders nothing else (half a dB is
 below what a listener hears between two lines; the measurement itself is
 to 0.1 LU).
-
-### an.audio.loudness.INSTALL_HINT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= "pip install 'an[loudness]'"*
-
-What installs the shared loudness component.
 
 ### an.audio.loudness.LEVEL_VERSION *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 1*
 
@@ -3593,12 +3587,6 @@ an#315 review).
 
 * **Type:**
   The limiter’s lookahead and release, seconds
-
-### *exception* an.audio.loudness.LoudnessComponentMissing
-
-Bases: [`VoiceLoudnessError`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.VoiceLoudnessError), [`ImportError`](https://docs.python.org/3/builtins/exceptions.html#ImportError)
-
-The shared loudness component (`mixing.loudness`) is not installed.
 
 ### an.audio.loudness.MAX_GAIN_DB *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 24.0*
 
@@ -3655,13 +3643,6 @@ The voices cannot be measured or leveled (no ffmpeg, an unreadable line).
 Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
 
 The film’s voices differ in loudness by more than [`SPREAD_WARNING_DB`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.SPREAD_WARNING_DB).
-
-### an.audio.loudness.component_available()
-
-Whether `mixing.loudness` can be imported (what measuring needs).
-
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ### an.audio.loudness.group_loudness(pcms)
 
@@ -4935,6 +4916,56 @@ The length of a PCM WAV, seconds.
 
 * **Return type:**
   [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+
+# _autosummary/an.audio.shared_mixing.html.md
+
+# an.audio.shared_mixing
+
+The fleet’s shared audio component, `mixing`, as `an` imports it.
+
+`mixing` is a core dependency (an#611), so the way a part of it goes missing
+is a `mixing` older than that part. [`mixing_too_old()`](_autosummary/an.audio.shared_mixing.html.md#an.audio.shared_mixing.mixing_too_old) is the one wording
+of that failure, used around the lazy imports in [`an.audio.loudness`](_autosummary/an.audio.loudness.html.md#module-an.audio.loudness)
+(`mixing.loudness`) and [`an.audio.effects`](_autosummary/an.audio.effects.html.md#module-an.audio.effects) (`mixing.filtergraph`). The
+imports themselves stay written out where they are, so the licence firewall
+(`tests/test_captions.py::test_an_never_imports_mixing`) still reads them.
+
+```pycon
+>>> with mixing_too_old(needed_for="testing", error=RuntimeError):
+...     from mixing import no_such_part
+Traceback (most recent call last):
+  ...
+RuntimeError: testing needs mixing.no_such_part, which the installed mixing is too old to have: `pip install -U mixing`
+```
+
+### Module Attributes
+
+| [`MIXING`](_autosummary/an.audio.shared_mixing.html.md#an.audio.shared_mixing.MIXING)       | The package, and what the user runs when theirs predates a part `an` needs.   |
+|---------------------------------------------------------------|-------------------------------------------------------------------------------|
+| [`INSTALL_HINT`](_autosummary/an.audio.shared_mixing.html.md#an.audio.shared_mixing.INSTALL_HINT) |                                                                               |
+
+### Functions
+
+| [`mixing_too_old`](_autosummary/an.audio.shared_mixing.html.md#an.audio.shared_mixing.mixing_too_old)(\*, needed_for, error)   | Run an import of a part of `mixing`; an `ImportError` becomes `error`, saying the installed `mixing` is too old when it lacks the part, else what failed.   |
+|------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+
+### an.audio.shared_mixing.INSTALL_HINT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'pip install mixing'*
+
+… and when it is not installed at all (an install with `--no-deps`).
+
+### an.audio.shared_mixing.MIXING *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'mixing'*
+
+The package, and what the user runs when theirs predates a part `an` needs.
+
+### an.audio.shared_mixing.mixing_too_old(, needed_for, error)
+
+Run an import of a part of `mixing`; an `ImportError` becomes
+`error`, saying the installed `mixing` is too old when it lacks the
+part, else what failed.
+
+* **Return type:**
+  [`Iterator`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterator)[[`None`](https://docs.python.org/3/builtins/constants.html#None)]
 
 
 # _autosummary/an.audio.takes.html.md
@@ -6686,35 +6717,37 @@ fraction of a second so the CLI is snappy.
 
 ### Module Attributes
 
-| [`SCHEMA_VERSION`](_autosummary/an.base.html.md#an.base.SCHEMA_VERSION)                     | Current Scene IR schema version.                                                                                                                                                                                                                                                                                                 |
-|-------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`COMPATIBLE_VERSION`](_autosummary/an.base.html.md#an.base.COMPATIBLE_VERSION)                 | Minimum Scene IR version this code can still read without migration.                                                                                                                                                                                                                                                             |
-| [`DEFAULT_SUPERSAMPLE`](_autosummary/an.base.html.md#an.base.DEFAULT_SUPERSAMPLE)                | Render at this many times the declared resolution, then resolve back with an exact block mean.                                                                                                                                                                                                                                   |
-| [`MP4_FASTSTART_ARGS`](_autosummary/an.base.html.md#an.base.MP4_FASTSTART_ARGS)                 | Put the mp4's `moov` atom in front of `mdat`, so a player can start before the file has finished downloading.                                                                                                                                                                                                                    |
-| [`BT709_SCALE_FILTER`](_autosummary/an.base.html.md#an.base.BT709_SCALE_FILTER)                 | The RGB->YUV conversion `an` performs, stated EXPLICITLY rather than left to the encoder flags to imply.                                                                                                                                                                                                                         |
-| [`EASING_PRESETS`](_autosummary/an.base.html.md#an.base.EASING_PRESETS)                     | Named easing presets.                                                                                                                                                                                                                                                                                                            |
-| [`COLOUR_PROPERTY`](_autosummary/an.base.html.md#an.base.COLOUR_PROPERTY)                    | The property names the cutout runtime animates NUMERICALLY.                                                                                                                                                                                                                                                                      |
-| [`PLANE_REST_VALUES`](_autosummary/an.base.html.md#an.base.PLANE_REST_VALUES)                  | a node targeted with any of them is drawn on a plane tilted away from the camera (`rotation_x`, radians, positive = the top recedes; `perspective`, the eye's distance in frame heights; `plane_fade_start`/`plane_fade_end`, the far fade, scene px up the plane from the hinge, off while the end is `<= 0`).                  |
-| [`TRIM_PROPERTIES`](_autosummary/an.base.html.md#an.base.TRIM_PROPERTIES)                    | The path-only properties inside `TRANSFORM_PROPERTIES` (an#160; the name predates `dash_offset`, an#161): trim and the dash phase.                                                                                                                                                                                               |
-| [`PLANE_FACTORS_OVERRIDE`](_autosummary/an.base.html.md#an.base.PLANE_FACTORS_OVERRIDE)             | The key the world's lowering records the parallax factors derived from an environment member's `depths` under, in the entity's `overrides` (`{plane name: factor}`, an#503): the compiler reads them where it reads a plane's own `depth`, so a plane at a world depth compiles exactly as one with that factor written by hand. |
-| [`STREAM_OVERRIDE`](_autosummary/an.base.html.md#an.base.STREAM_OVERRIDE)                    | the id of the stream it draws (`an.ir.world`).                                                                                                                                                                                                                                                                                   |
-| [`UNSEEN_ALPHA`](_autosummary/an.base.html.md#an.base.UNSEEN_ALPHA)                       | At or under this alpha an entity is not seen (a stream slot between its passes, a fade's end): it cannot jump or swap sides at a cut (an#516), nor overlap or be drawn through anything at an instant (an#632).                                                                                                                  |
-| [`CORE_OVERRIDE_KEYS`](_autosummary/an.base.html.md#an.base.CORE_OVERRIDE_KEYS)                 | what attaches it, the stream slot it is, what holds it and at what angle, the world's plane factors.                                                                                                                                                                                                                             |
-| [`PAINT_AFTER_PROPERTY`](_autosummary/an.base.html.md#an.base.PAINT_AFTER_PROPERTY)               | where a node is PAINTED, as the path of the node it paints just after (`""`: where the stage tree puts it).                                                                                                                                                                                                                      |
-| [`ORDER_PROPERTIES`](_autosummary/an.base.html.md#an.base.ORDER_PROPERTIES)                   | The non-numeric properties the runtime applies itself (outside `TRANSFORM_PROPERTIES`, which it animates numerically): a node's place in the paint order.                                                                                                                                                                        |
-| [`SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS`](_autosummary/an.base.html.md#an.base.SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS) | `/` would read as a path segment and `::` is the runtime's pose-key separator.                                                                                                                                                                                                                                                   |
-| [`AUTHORABLE_PROPERTIES`](_autosummary/an.base.html.md#an.base.AUTHORABLE_PROPERTIES)              | a compiled transform channel, or the authored colour spelling the compiler expands.                                                                                                                                                                                                                                              |
-| [`PathStr`](_autosummary/an.base.html.md#an.base.PathStr)                            | Slash-delimited node path, e.g. `"charlie/head/mouth"`.                                                                                                                                                                                                                                                                          |
-| [`Seconds`](_autosummary/an.base.html.md#an.base.Seconds)                            | Time in seconds.                                                                                                                                                                                                                                                                                                                 |
-| [`EasingSpec`](_autosummary/an.base.html.md#an.base.EasingSpec)                         | Either an easing preset name or a 4-tuple cubic-Bézier control [cx1,cy1,cx2,cy2].                                                                                                                                                                                                                                                |
-| [`RendererName`](_autosummary/an.base.html.md#an.base.RendererName)                       | Which renderer draws a shot.                                                                                                                                                                                                                                                                                                     |
-| [`SUPPORTED_RENDERERS`](_autosummary/an.base.html.md#an.base.SUPPORTED_RENDERERS)                | The same vocabulary as [`RendererName`](_autosummary/an.base.html.md#an.base.RendererName), as a runtime tuple — DERIVED from it, because a hand-typed second copy is a second SSOT that drifts on the day a renderer is added and nothing fails.                                                                                      |
-| [`TRANSITION_KINDS`](_autosummary/an.base.html.md#an.base.TRANSITION_KINDS)                   | The transition kinds a shot may be entered by.                                                                                                                                                                                                                                                                                   |
-| [`WIPE_DIRECTIONS`](_autosummary/an.base.html.md#an.base.WIPE_DIRECTIONS)                    | The ways a `wipe`'s edge can travel across the frame (an#390).                                                                                                                                                                                                                                                                   |
-| [`DEFAULT_TRANSITION_DURATION`](_autosummary/an.base.html.md#an.base.DEFAULT_TRANSITION_DURATION)        | half a second is a conventional editor's default, short enough not to eat a line of dialogue and long enough to read as deliberate.                                                                                                                                                                                              |
-| [`DEFAULT_TRANSITION_COLOR`](_autosummary/an.base.html.md#an.base.DEFAULT_TRANSITION_COLOR)           | The colour a `fade` passes through when it names none.                                                                                                                                                                                                                                                                           |
-| [`FILM_AUDIO_SAMPLE_RATE`](_autosummary/an.base.html.md#an.base.FILM_AUDIO_SAMPLE_RATE)             | The film mix's sample rate and channel count.                                                                                                                                                                                                                                                                                    |
-| [`DEFAULT_DUCK_DB`](_autosummary/an.base.html.md#an.base.DEFAULT_DUCK_DB)                    | how far a ducked cue drops under dialogue, and how fast it gets there and comes back.                                                                                                                                                                                                                                            |
+| [`SCHEMA_VERSION`](_autosummary/an.base.html.md#an.base.SCHEMA_VERSION)                     | Current Scene IR schema version.                                                                                                                                                                                                                                                                                                            |
+|-------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`COMPATIBLE_VERSION`](_autosummary/an.base.html.md#an.base.COMPATIBLE_VERSION)                 | Minimum Scene IR version this code can still read without migration.                                                                                                                                                                                                                                                                        |
+| [`DEFAULT_SUPERSAMPLE`](_autosummary/an.base.html.md#an.base.DEFAULT_SUPERSAMPLE)                | Render at this many times the declared resolution, then resolve back with an exact block mean.                                                                                                                                                                                                                                              |
+| [`MP4_FASTSTART_ARGS`](_autosummary/an.base.html.md#an.base.MP4_FASTSTART_ARGS)                 | Put the mp4's `moov` atom in front of `mdat`, so a player can start before the file has finished downloading.                                                                                                                                                                                                                               |
+| [`BT709_SCALE_FILTER`](_autosummary/an.base.html.md#an.base.BT709_SCALE_FILTER)                 | The RGB->YUV conversion `an` performs, stated EXPLICITLY rather than left to the encoder flags to imply.                                                                                                                                                                                                                                    |
+| [`EASING_PRESETS`](_autosummary/an.base.html.md#an.base.EASING_PRESETS)                     | Named easing presets.                                                                                                                                                                                                                                                                                                                       |
+| [`COLOUR_PROPERTY`](_autosummary/an.base.html.md#an.base.COLOUR_PROPERTY)                    | The property names the cutout runtime animates NUMERICALLY.                                                                                                                                                                                                                                                                                 |
+| [`PLANE_REST_VALUES`](_autosummary/an.base.html.md#an.base.PLANE_REST_VALUES)                  | a node targeted with any of them is drawn on a plane tilted away from the camera (`rotation_x`, radians, positive = the top recedes; `perspective`, the eye's distance in frame heights; `plane_fade_start`/`plane_fade_end`, the far fade, scene px up the plane from the hinge, off while the end is `<= 0`).                             |
+| [`TRIM_PROPERTIES`](_autosummary/an.base.html.md#an.base.TRIM_PROPERTIES)                    | The path-only properties inside `TRANSFORM_PROPERTIES` (an#160; the name predates `dash_offset`, an#161): trim and the dash phase.                                                                                                                                                                                                          |
+| [`PLANE_FACTORS_OVERRIDE`](_autosummary/an.base.html.md#an.base.PLANE_FACTORS_OVERRIDE)             | The key the world's lowering records the parallax factors derived from an environment member's `depths` under, in the entity's `overrides` (`{plane name: factor}`, an#503): the compiler reads them where it reads a plane's own `depth`, so a plane at a world depth compiles exactly as one with that factor written by hand.            |
+| [`STREAM_OVERRIDE`](_autosummary/an.base.html.md#an.base.STREAM_OVERRIDE)                    | the id of the stream it draws (`an.ir.world`).                                                                                                                                                                                                                                                                                              |
+| [`PAINT_KEYS_OVERRIDE`](_autosummary/an.base.html.md#an.base.PAINT_KEYS_OVERRIDE)                | The core's record, on each entity a world paints by depth, of its paint key from each time on (`[[time, key]]`, a key sorting farther first, an#634): set when a stream slot is reused, so a slot drawing a farther instance can drop behind nearer ones; the stage compiler orders each run of keyed siblings by them with `z_index` keys. |
+| [`UNSEEN_ALPHA`](_autosummary/an.base.html.md#an.base.UNSEEN_ALPHA)                       | At or under this alpha an entity is not seen (a stream slot between its passes, a fade's end): it cannot jump or swap sides at a cut (an#516), nor overlap or be drawn through anything at an instant (an#632).                                                                                                                             |
+| [`CORE_OVERRIDE_KEYS`](_autosummary/an.base.html.md#an.base.CORE_OVERRIDE_KEYS)                 | what attaches it, the stream slot it is, what holds it and at what angle, the world's plane factors.                                                                                                                                                                                                                                        |
+| [`PAINT_AFTER_PROPERTY`](_autosummary/an.base.html.md#an.base.PAINT_AFTER_PROPERTY)               | where a node is PAINTED, as the path of the node it paints just after (`""`: where the stage tree puts it).                                                                                                                                                                                                                                 |
+| [`Z_INDEX_PROPERTY`](_autosummary/an.base.html.md#an.base.Z_INDEX_PROPERTY)                   | A node's place among its container's children, switched at its own key (an#634): the stage paints a sorted container's children by it, the static `z_index` of a node made a channel.                                                                                                                                                       |
+| [`ORDER_PROPERTIES`](_autosummary/an.base.html.md#an.base.ORDER_PROPERTIES)                   | The properties the runtime applies itself, outside `TRANSFORM_PROPERTIES` (which it animates): a node's place in the paint order, each switched at its own key.                                                                                                                                                                             |
+| [`SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS`](_autosummary/an.base.html.md#an.base.SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS) | `/` would read as a path segment and `::` is the runtime's pose-key separator.                                                                                                                                                                                                                                                              |
+| [`AUTHORABLE_PROPERTIES`](_autosummary/an.base.html.md#an.base.AUTHORABLE_PROPERTIES)              | a compiled transform channel, or the authored colour spelling the compiler expands.                                                                                                                                                                                                                                                         |
+| [`PathStr`](_autosummary/an.base.html.md#an.base.PathStr)                            | Slash-delimited node path, e.g. `"charlie/head/mouth"`.                                                                                                                                                                                                                                                                                     |
+| [`Seconds`](_autosummary/an.base.html.md#an.base.Seconds)                            | Time in seconds.                                                                                                                                                                                                                                                                                                                            |
+| [`EasingSpec`](_autosummary/an.base.html.md#an.base.EasingSpec)                         | Either an easing preset name or a 4-tuple cubic-Bézier control [cx1,cy1,cx2,cy2].                                                                                                                                                                                                                                                           |
+| [`RendererName`](_autosummary/an.base.html.md#an.base.RendererName)                       | Which renderer draws a shot.                                                                                                                                                                                                                                                                                                                |
+| [`SUPPORTED_RENDERERS`](_autosummary/an.base.html.md#an.base.SUPPORTED_RENDERERS)                | The same vocabulary as [`RendererName`](_autosummary/an.base.html.md#an.base.RendererName), as a runtime tuple — DERIVED from it, because a hand-typed second copy is a second SSOT that drifts on the day a renderer is added and nothing fails.                                                                                                 |
+| [`TRANSITION_KINDS`](_autosummary/an.base.html.md#an.base.TRANSITION_KINDS)                   | The transition kinds a shot may be entered by.                                                                                                                                                                                                                                                                                              |
+| [`WIPE_DIRECTIONS`](_autosummary/an.base.html.md#an.base.WIPE_DIRECTIONS)                    | The ways a `wipe`'s edge can travel across the frame (an#390).                                                                                                                                                                                                                                                                              |
+| [`DEFAULT_TRANSITION_DURATION`](_autosummary/an.base.html.md#an.base.DEFAULT_TRANSITION_DURATION)        | half a second is a conventional editor's default, short enough not to eat a line of dialogue and long enough to read as deliberate.                                                                                                                                                                                                         |
+| [`DEFAULT_TRANSITION_COLOR`](_autosummary/an.base.html.md#an.base.DEFAULT_TRANSITION_COLOR)           | The colour a `fade` passes through when it names none.                                                                                                                                                                                                                                                                                      |
+| [`FILM_AUDIO_SAMPLE_RATE`](_autosummary/an.base.html.md#an.base.FILM_AUDIO_SAMPLE_RATE)             | The film mix's sample rate and channel count.                                                                                                                                                                                                                                                                                               |
+| [`DEFAULT_DUCK_DB`](_autosummary/an.base.html.md#an.base.DEFAULT_DUCK_DB)                    | how far a ducked cue drops under dialogue, and how fast it gets there and comes back.                                                                                                                                                                                                                                                       |
 
 ### Functions
 
@@ -6812,7 +6845,7 @@ asset-set name (an#62).
 
 Minimum Scene IR version this code can still read without migration.
 
-### an.base.CORE_OVERRIDE_KEYS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'attached', 'held_by', 'held_rotation', 'plane_factors', 'stream'})*
+### an.base.CORE_OVERRIDE_KEYS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'attached', 'held_by', 'held_rotation', 'paint_keys', 'plane_factors', 'stream'})*
 
 what attaches it, the
 stream slot it is, what holds it and at what angle, the world’s plane
@@ -6907,12 +6940,12 @@ not a re-encode. Verified on ffmpeg 8.1 – elementary-stream sha256
 identical, video/audio packet totals identical, file size identical,
 decoded YUV sha256 identical, wall time unchanged.
 
-### an.base.ORDER_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'paint_after'})*
+### an.base.ORDER_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'paint_after', 'z_index'})*
 
-The non-numeric properties the runtime applies itself (outside
-`TRANSFORM_PROPERTIES`, which it animates numerically): a node’s place
-in the paint order. `runtime.js`’s `ORDER_PROPERTIES` mirrors it (pinned by
-a test).
+The properties the runtime applies itself, outside
+`TRANSFORM_PROPERTIES` (which it animates): a node’s place in the paint
+order, each switched at its own key. `runtime.js`’s `ORDER_PROPERTIES`
+mirrors it (pinned by a test).
 
 ### an.base.PAINT_AFTER_PROPERTY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'paint_after'*
 
@@ -6925,6 +6958,14 @@ it (a held item draws just above the part that holds it, an#537).
 
 * **Type:**
   The draw-order property (an#537)
+
+### an.base.PAINT_KEYS_OVERRIDE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'paint_keys'*
+
+The core’s record, on each entity a world paints by depth, of its paint key
+from each time on (`[[time, key]]`, a key sorting farther first, an#634):
+set when a stream slot is reused, so a slot drawing a farther instance can
+drop behind nearer ones; the stage compiler orders each run of keyed
+siblings by them with `z_index` keys.
 
 ### an.base.PLANE_FACTORS_OVERRIDE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'plane_factors'*
 
@@ -7022,6 +7063,13 @@ overlap or be drawn through anything at an instant (an#632).
 ### an.base.WIPE_DIRECTIONS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('left', 'right', 'up', 'down')*
 
 The ways a `wipe`’s edge can travel across the frame (an#390).
+
+### an.base.Z_INDEX_PROPERTY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'z_index'*
+
+A node’s place among its container’s children, switched at its own key (an#634):
+the stage paints a sorted container’s children by it, the static
+`z_index` of a node made a channel. Not authorable: the compiler emits it
+(a stream slot reused for a farther instance drops behind the nearer ones).
 
 ### an.base.asset_overrides(overrides)
 
@@ -21033,9 +21081,13 @@ Reconcile a scene’s markdown and JSON inside a project directory
 (`scene.md` and `ir/scene.json`, or the pair of the `scene_file` named;
 a named scene that is not there raises `SceneFileError`).
 
-Strategy in v0.1: Markdown is the human SSOT; if both exist, the JSON is
-regenerated from the Markdown unless mtimes show JSON is newer (which the
-user is told never to do — but we warn instead of silently overwriting).
+The side `_scene_side()` picks is written over the other: Markdown is
+the human SSOT, but pipeline stages (audio, lip-sync) write rich state into
+the JSON that the Markdown cannot represent, so a newer JSON is merged into
+the Markdown (an#275: the author’s text kept) rather than overwritten, and
+a tie that disagrees is warned about (`SyncTieWarning`). After a
+write over an existing file the two mtimes are equalised, so the next sync
+does not flip.
 
 * **Return type:**
   `SyncResult`
@@ -25241,8 +25293,9 @@ is a conflict after all (a grip inside the arm’s length but past its elbow’s
 range converges at first, then sits a pixel short), and what is left after the
 cap is only reported. If not, it is a conflict, settled per
 LOOP: the joints that share a cycle through the held bodies with a failing
-one are tried last-declared first, and the first whose loss lets every
-other joint hold is given up for the frame (a joint on no cycle, such as
+one are tried last-declared first, and the first whose loss at least halves
+the failure is given up for the frame (an#641: a rope held at both ends gives
+up its end, never a link) (a joint on no cycle, such as
 any joint of a rope hung from one hook, is never a candidate: a tree can
 always be satisfied). The joints given up are in
 `SolveResult.dropped`, and their gaps in `unsatisfied`. So declare
@@ -25319,7 +25372,8 @@ reported (radians; 1e-3 rad is 0.06 degrees).
 
 A failing joint is in conflict when the retry left more than this fraction
 of its failure (residual over tolerance, or range broken over angle
-tolerance): a conflict is what more passes do not fix.
+tolerance): a conflict is what more passes do not fix. Giving a joint up
+settles a conflict when it leaves at most this fraction of the failure.
 
 ### an.kinematics.solver.DFLT_CONFLICT_RETRY *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 4*
 
@@ -25425,11 +25479,13 @@ a joint on the world alone, a body with no extent.
 
 The pose channels, in the order `SolveResult.poses` holds them.
 
-### an.kinematics.solver.SOLVER_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '2'*
+### an.kinematics.solver.SOLVER_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '3'*
 
 Bumped whenever the solve can give a different answer for the same inputs
 (a changed projection, order, or default): part of every cache key built
 on this module.
+2: a slow retry keeps going while it converges (an#568); 3: a conflict gives up
+the first candidate that halves the failure (an#641).
 
 ### *class* an.kinematics.solver.SolveResult(bodies, poses, residuals, unsatisfied, limit_violations, dropped=())
 
@@ -31917,6 +31973,7 @@ Layout (from spec §11):
 | [`RENDER_REPORTS_GITIGNORE`](_autosummary/an.project.html.md#an.project.RENDER_REPORTS_GITIGNORE)   | A render report records what a render on THIS machine found — warnings, exception text — so it is per-machine output, not project source (an#254).   |
 |-----------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`PROBES_GITIGNORE`](_autosummary/an.project.html.md#an.project.PROBES_GITIGNORE)           | Probe frames and contact sheets (`an probe`, `an library sheet`, an#347): looks at work in progress, which may show private-study material.          |
+| [`LOCKS_GITIGNORE`](_autosummary/an.project.html.md#an.project.LOCKS_GITIGNORE)            | The file locks an options manifest's writers take (`<ref>.json.lock`, an#587): empty, per machine, never project source.                             |
 | [`PROJECT_GITIGNORE`](_autosummary/an.project.html.md#an.project.PROJECT_GITIGNORE)          | What a project's `.gitignore` keeps out of version control (`an init` adds each line a `.gitignore` lacks, never removing one).                      |
 
 ### Functions
@@ -31933,12 +31990,17 @@ Layout (from spec §11):
 | [`Project`](_autosummary/an.project.html.md#an.project.Project)(root, mall, scene)   | A loaded an project: directory + mall + current scene.   |
 |-------------------------------------------------------------------------------|----------------------------------------------------------|
 
+### an.project.LOCKS_GITIGNORE *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('artifacts/voice_options/\*.lock',)*
+
+The file locks an options manifest’s writers take (`<ref>.json.lock`,
+an#587): empty, per machine, never project source.
+
 ### an.project.PROBES_GITIGNORE *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('artifacts/probes/',)*
 
 Probe frames and contact sheets (`an probe`, `an library sheet`,
 an#347): looks at work in progress, which may show private-study material.
 
-### an.project.PROJECT_GITIGNORE *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('artifacts/render_reports/', 'artifacts/probes/')*
+### an.project.PROJECT_GITIGNORE *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('artifacts/render_reports/', 'artifacts/probes/', 'artifacts/voice_options/\*.lock')*
 
 What a project’s `.gitignore` keeps out of version control (`an init`
 adds each line a `.gitignore` lacks, never removing one).
@@ -34557,27 +34619,29 @@ mall). It reads only.
 
 ### Functions
 
-| [`after_problems`](_autosummary/an.stage.compile.html.md#an.stage.compile.after_problems)(shot, mall, \*[, planes_known])   | `[(entity index, why)]` for every `stage.after` the compiler would refuse (an#344): an anchor the shot does not have, the entity itself, a cycle.                                                        |
-|---------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`boil_keys`](_autosummary/an.stage.compile.html.md#an.stage.compile.boil_keys)(hz, drawings, duration)                | `(time, drawing)` of a boil: drawing `k mod drawings` from `k / hz`, every step of the shot (an#443).                                                                                                    |
-| [`camera_follow_keys`](_autosummary/an.stage.compile.html.md#an.stage.compile.camera_follow_keys)(state)                        | The keys of `state.shot`'s follow camera, one per frame (an#445).                                                                                                                                        |
-| [`camera_keys`](_autosummary/an.stage.compile.html.md#an.stage.compile.camera_keys)(shot, \*, width, height)             | [`an.ir.camera.camera_keys()`](_autosummary/an.ir.camera.html.md#an.ir.camera.camera_keys), with its refusal typed for this adapter.                                                           |
-| [`compile_passes_for_stage`](_autosummary/an.stage.compile.html.md#an.stage.compile.compile_passes_for_stage)()                       | The stage's passes and every registered one, in run order (stable by name).                                                                                                                              |
-| [`compile_shot`](_autosummary/an.stage.compile.html.md#an.stage.compile.compile_shot)(shot[, mall, fps, width, ...])      | Compile a single cutout-style `Shot` to its JS-runtime JSON form.                                                                                                                                        |
-| [`duplicate_paths`](_autosummary/an.stage.compile.html.md#an.stage.compile.duplicate_paths)(root[, overlay])                 | Paths the runtime would index twice (its `nodeIndex` is later-wins, so the first node would silently stop answering).                                                                                    |
-| [`entity_spaces_of`](_autosummary/an.stage.compile.html.md#an.stage.compile.entity_spaces_of)(shot)                           | `{entity id: space}` for each entity whose kind declares a space other than the kernel default -- what the compiled document records so the default evaluator agrees with validate and compile (an#245). |
-| [`foreground_node_name`](_autosummary/an.stage.compile.html.md#an.stage.compile.foreground_node_name)(entity_id)                  | The node name an environment's foreground planes live under.                                                                                                                                             |
-| [`node_path_suggestions`](_autosummary/an.stage.compile.html.md#an.stage.compile.node_path_suggestions)(target, paths, \*[, n])    | The built node paths a mistyped `target` most plausibly meant.                                                                                                                                           |
-| [`note_raster_rig`](_autosummary/an.stage.compile.html.md#an.stage.compile.note_raster_rig)(entity, desc_data, pack, raster) | Record a rig with raster parts that a colour-setting pack is applied to.                                                                                                                                 |
-| [`parse_tint`](_autosummary/an.stage.compile.html.md#an.stage.compile.parse_tint)(value, \*, where)                     | A `#rrggbb` string to three multipliers in 0..1.                                                                                                                                                         |
-| [`plane_parents`](_autosummary/an.stage.compile.html.md#an.stage.compile.plane_parents)(env, entity_id)                    | `{plane name: the node path its channels must target}`.                                                                                                                                                  |
-| [`retire_front_spelling`](_autosummary/an.stage.compile.html.md#an.stage.compile.retire_front_spelling)(shot)                      | `shot` with every `<env>__front/<plane>` target spelled `<env>/<plane>`, and the `(old, new)` pairs rewritten.                                                                                           |
-| [`scene_builders`](_autosummary/an.stage.compile.html.md#an.stage.compile.scene_builders)()                                 | `{entity kind: builder}`: the stage's, and every registered one.                                                                                                                                         |
-| [`space_definitions`](_autosummary/an.stage.compile.html.md#an.stage.compile.space_definitions)(entity_spaces)                 | `{space name: definition}` for every space `entity_spaces` names -- what the compiled document embeds as `meta.spaces` so `runtime.js` evaluates each declared entity in its space (an#287).             |
-| [`stage_replacements`](_autosummary/an.stage.compile.html.md#an.stage.compile.stage_replacements)()                             | `{stage pass or builder: the genre replacing it}` -- recorded in the compiled document's `meta.extensions` when non-empty.                                                                               |
-| [`step_times`](_autosummary/an.stage.compile.html.md#an.stage.compile.step_times)(start, duration, step_hz)             | Clip-local times at which a stepped tween updates its pose (an#89).                                                                                                                                      |
-| [`style_pack_for`](_autosummary/an.stage.compile.html.md#an.stage.compile.style_pack_for)(scene_meta, styles_store)         | The `StylePack` a scene declares, or `None` (an#112).                                                                                                                                                    |
-| [`unknown_target_message`](_autosummary/an.stage.compile.html.md#an.stage.compile.unknown_target_message)(target, paths)            | One sentence saying `target` is not a built node, with suggestions.                                                                                                                                      |
+| [`after_problems`](_autosummary/an.stage.compile.html.md#an.stage.compile.after_problems)(shot, mall, \*[, planes_known])   | `[(entity index, why)]` for every `stage.after` the compiler would refuse (an#344): an anchor the shot does not have, the entity itself, a cycle.                                                                                                                                                                                                 |
+|---------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`boil_keys`](_autosummary/an.stage.compile.html.md#an.stage.compile.boil_keys)(hz, drawings, duration)                | `(time, drawing)` of a boil: drawing `k mod drawings` from `k / hz`, every step of the shot (an#443).                                                                                                                                                                                                                                             |
+| [`camera_follow_keys`](_autosummary/an.stage.compile.html.md#an.stage.compile.camera_follow_keys)(state)                        | The keys of `state.shot`'s follow camera, one per frame (an#445).                                                                                                                                                                                                                                                                                 |
+| [`camera_keys`](_autosummary/an.stage.compile.html.md#an.stage.compile.camera_keys)(shot, \*, width, height)             | [`an.ir.camera.camera_keys()`](_autosummary/an.ir.camera.html.md#an.ir.camera.camera_keys), with its refusal typed for this adapter.                                                                                                                                                                                                    |
+| [`compile_passes_for_stage`](_autosummary/an.stage.compile.html.md#an.stage.compile.compile_passes_for_stage)()                       | The stage's passes and every registered one, in run order (stable by name).                                                                                                                                                                                                                                                                       |
+| [`compile_shot`](_autosummary/an.stage.compile.html.md#an.stage.compile.compile_shot)(shot[, mall, fps, width, ...])      | Compile a single cutout-style `Shot` to its JS-runtime JSON form.                                                                                                                                                                                                                                                                                 |
+| [`duplicate_paths`](_autosummary/an.stage.compile.html.md#an.stage.compile.duplicate_paths)(root[, overlay])                 | Paths the runtime would index twice (its `nodeIndex` is later-wins, so the first node would silently stop answering).                                                                                                                                                                                                                             |
+| [`entity_spaces_of`](_autosummary/an.stage.compile.html.md#an.stage.compile.entity_spaces_of)(shot)                           | `{entity id: space}` for each entity whose kind declares a space other than the kernel default -- what the compiled document records so the default evaluator agrees with validate and compile (an#245).                                                                                                                                          |
+| [`foreground_node_name`](_autosummary/an.stage.compile.html.md#an.stage.compile.foreground_node_name)(entity_id)                  | The node name an environment's foreground planes live under.                                                                                                                                                                                                                                                                                      |
+| [`node_path_suggestions`](_autosummary/an.stage.compile.html.md#an.stage.compile.node_path_suggestions)(target, paths, \*[, n])    | The built node paths a mistyped `target` most plausibly meant.                                                                                                                                                                                                                                                                                    |
+| [`note_raster_rig`](_autosummary/an.stage.compile.html.md#an.stage.compile.note_raster_rig)(entity, desc_data, pack, raster) | Record a rig with raster parts that a colour-setting pack is applied to.                                                                                                                                                                                                                                                                          |
+| [`paint_orders`](_autosummary/an.stage.compile.html.md#an.stage.compile.paint_orders)(keys)                               | The order (back to front) of the entities in `keys` (`{id: [(time, key)]}`, each key in force from its time on, a smaller key painted first) at each time any key changes.                                                                                                                                                                        |
+| [`parse_tint`](_autosummary/an.stage.compile.html.md#an.stage.compile.parse_tint)(value, \*, where)                     | A `#rrggbb` string to three multipliers in 0..1.                                                                                                                                                                                                                                                                                                  |
+| [`plane_parents`](_autosummary/an.stage.compile.html.md#an.stage.compile.plane_parents)(env, entity_id)                    | `{plane name: the node path its channels must target}`.                                                                                                                                                                                                                                                                                           |
+| [`retire_front_spelling`](_autosummary/an.stage.compile.html.md#an.stage.compile.retire_front_spelling)(shot)                      | `shot` with every `<env>__front/<plane>` target spelled `<env>/<plane>`, and the `(old, new)` pairs rewritten.                                                                                                                                                                                                                                    |
+| [`scene_builders`](_autosummary/an.stage.compile.html.md#an.stage.compile.scene_builders)()                                 | `{entity kind: builder}`: the stage's, and every registered one.                                                                                                                                                                                                                                                                                  |
+| [`space_definitions`](_autosummary/an.stage.compile.html.md#an.stage.compile.space_definitions)(entity_spaces)                 | `{space name: definition}` for every space `entity_spaces` names -- what the compiled document embeds as `meta.spaces` so `runtime.js` evaluates each declared entity in its space (an#287).                                                                                                                                                      |
+| [`stage_replacements`](_autosummary/an.stage.compile.html.md#an.stage.compile.stage_replacements)()                             | `{stage pass or builder: the genre replacing it}` -- recorded in the compiled document's `meta.extensions` when non-empty.                                                                                                                                                                                                                        |
+| [`step_times`](_autosummary/an.stage.compile.html.md#an.stage.compile.step_times)(start, duration, step_hz)             | Clip-local times at which a stepped tween updates its pose (an#89).                                                                                                                                                                                                                                                                               |
+| [`style_pack_for`](_autosummary/an.stage.compile.html.md#an.stage.compile.style_pack_for)(scene_meta, styles_store)         | The `StylePack` a scene declares, or `None` (an#112).                                                                                                                                                                                                                                                                                             |
+| [`unknown_target_message`](_autosummary/an.stage.compile.html.md#an.stage.compile.unknown_target_message)(target, paths)            | One sentence saying `target` is not a built node, with suggestions.                                                                                                                                                                                                                                                                               |
+| [`z_index_keys`](_autosummary/an.stage.compile.html.md#an.stage.compile.z_index_keys)(names, keys)                        | Each keyed child's `z_index` from each time it changes (an#634), in one container whose children are `names`: within each run of keyed children (`_keyed_runs()`), at every time a key changes, they take the run's places in key order ([`paint_orders()`](_autosummary/an.stage.compile.html.md#an.stage.compile.paint_orders)); every other child keeps its own place. |
 
 ### Classes
 
@@ -34783,7 +34847,7 @@ The field kinds `runtime.js` implements (its `FIELD_KINDS` table; a test
 pins the two). A declared space using any other kind cannot be drawn by the
 stage, so the compiler refuses it instead of the browser failing mid-render.
 
-### an.stage.compile.STAGE_COMPILE_PASSES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[CompilePass](_autosummary/an.genres.registry.html.md#an.genres.registry.CompilePass), ...]* *= (CompilePass(name='scene', run=<function \_scene_pass>, order=100, compiler='stage', builds=None, description='the scene tree, overlay, grain, vocabulary', replace=False), CompilePass(name='counters', run=<function \_counters_pass>, order=195, compiler='stage', builds=None, description='counter text blocks: \`value\` -> a set of strings (an#342)', replace=False), CompilePass(name='actions', run=<function \_actions_pass>, order=200, compiler='stage', builds=None, description='authored actions -> clips', replace=False), CompilePass(name='solve', run=<function \_solve_pass>, order=525, compiler='stage', builds=None, description='joints kept at every frame: the bodies the joints move (ADR 0008, an#512)', replace=False), CompilePass(name='camera_follow', run=<function \_camera_follow_pass>, order=550, compiler='stage', builds=None, description="a following camera's keys, from the compiled motion (an#445)", replace=False), CompilePass(name='camera_dolly', run=<function \_camera_dolly_pass>, order=575, compiler='stage', builds=None, description="a dollying camera's keys, one per frame (an#478)", replace=False), CompilePass(name='camera', run=<function \_camera_pass>, order=600, compiler='stage', builds=None, description='the camera onto the scene root', replace=False), CompilePass(name='parallax', run=<function \_parallax_pass>, order=700, compiler='stage', builds=None, description="planes' parallax", replace=False), CompilePass(name='boil', run=<function \_boil_pass>, order=750, compiler='stage', builds=None, description="a boiling path's drawings (an#443)", replace=False), CompilePass(name='checks', run=<function \_checks_pass>, order=900, compiler='stage', builds=None, description='targets, easings, stand-ins', replace=False))*
+### an.stage.compile.STAGE_COMPILE_PASSES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[CompilePass](_autosummary/an.genres.registry.html.md#an.genres.registry.CompilePass), ...]* *= (CompilePass(name='scene', run=<function \_scene_pass>, order=100, compiler='stage', builds=None, description='the scene tree, overlay, grain, vocabulary', replace=False), CompilePass(name='counters', run=<function \_counters_pass>, order=195, compiler='stage', builds=None, description='counter text blocks: \`value\` -> a set of strings (an#342)', replace=False), CompilePass(name='actions', run=<function \_actions_pass>, order=200, compiler='stage', builds=None, description='authored actions -> clips', replace=False), CompilePass(name='solve', run=<function \_solve_pass>, order=525, compiler='stage', builds=None, description='joints kept at every frame: the bodies the joints move (ADR 0008, an#512)', replace=False), CompilePass(name='camera_follow', run=<function \_camera_follow_pass>, order=550, compiler='stage', builds=None, description="a following camera's keys, from the compiled motion (an#445)", replace=False), CompilePass(name='camera_dolly', run=<function \_camera_dolly_pass>, order=575, compiler='stage', builds=None, description="a dollying camera's keys, one per frame (an#478)", replace=False), CompilePass(name='camera', run=<function \_camera_pass>, order=600, compiler='stage', builds=None, description='the camera onto the scene root', replace=False), CompilePass(name='parallax', run=<function \_parallax_pass>, order=700, compiler='stage', builds=None, description="planes' parallax", replace=False), CompilePass(name='boil', run=<function \_boil_pass>, order=750, compiler='stage', builds=None, description="a boiling path's drawings (an#443)", replace=False), CompilePass(name='paint_keys', run=<function \_paint_keys_pass>, order=800, compiler='stage', builds=None, description="a world's changing paint order, as z_index keys (an#634)", replace=False), CompilePass(name='checks', run=<function \_checks_pass>, order=900, compiler='stage', builds=None, description='targets, easings, stand-ins', replace=False))*
 
 The STAGE’s own compile passes, in order. A genre adds passes between them by
 registering [`an.genres.CompilePass`](_autosummary/an.genres.html.md#an.genres.CompilePass) objects for the `"stage"`
@@ -34991,6 +35055,20 @@ Public (an#338) because a genre that builds a rig calls it before
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
+### an.stage.compile.paint_orders(keys)
+
+The order (back to front) of the entities in `keys` (`{id: [(time,
+key)]}`, each key in force from its time on, a smaller key painted
+first) at each time any key changes.
+
+```pycon
+>>> paint_orders({"near": [(0.0, 2)], "slot": [(0.0, 3), (1.5, 1)]})
+[(0.0, ['near', 'slot']), (1.5, ['slot', 'near'])]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]]
+
 ### an.stage.compile.parse_tint(value, , where)
 
 A `#rrggbb` string to three multipliers in 0..1.
@@ -35146,6 +35224,22 @@ reports it), so the two say the same thing about the same path.
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.stage.compile.z_index_keys(names, keys)
+
+Each keyed child’s `z_index` from each time it changes (an#634), in
+one container whose children are `names`: within each run of keyed
+children (`_keyed_runs()`), at every time a key changes, they take the
+run’s places in key order ([`paint_orders()`](_autosummary/an.stage.compile.html.md#an.stage.compile.paint_orders)); every other child keeps
+its own place. Only a child whose place changes gets keys.
+
+```pycon
+>>> z_index_keys(["sky", "a", "b"], {"a": [(0, 0), (2, 3)], "b": [(0, 1)]})
+{'a': [(0.0, 1), (2.0, 2)], 'b': [(0.0, 2), (2.0, 1)]}
+```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`int`](https://docs.python.org/3/builtins/functions.html#int)]]]
 
 
 # _autosummary/an.stage.counters.html.md
@@ -45170,7 +45264,8 @@ Two spaces are seeded here, and they reproduce today’s output EXACTLY:
   > `tint_r/g/b` (`tint` itself stays the compiler’s authoring sugar, expanded
   > into those three before any channel exists, so the wire shape does not move);
   > `paint_after` ([`an.base.PAINT_AFTER_PROPERTY`](_autosummary/an.base.html.md#an.base.PAINT_AFTER_PROPERTY), an#537) is where the
-  > node is painted, `discrete(switch_at=1)` in its own write group; every other
+  > node is painted, `discrete(switch_at=1)` in its own write group, and so is
+  > `z_index` ([`an.base.Z_INDEX_PROPERTY`](_autosummary/an.base.html.md#an.base.Z_INDEX_PROPERTY), an#634); every other
   > property names a swap set, `*@*` included, and is `discrete(switch_at=1)`.
 - `stage.camera` — the stage’s 2D framing camera: `x`, `y`, `zoom`,
   `rotation`, all plain `number` (the compiler lowers them onto `root`’s
@@ -45283,7 +45378,7 @@ The declaration governing `prop`, or `None`.
 
 The kind of a property no declaration matches.
 
-### an.timing.spaces.STAGE_NODE *: [PropertySpace](_autosummary/an.timing.spaces.html.md#an.timing.spaces.PropertySpace)* *= PropertySpace(name='stage.node', fields=(FieldDecl(pattern='alpha', kind=NumberKind(space='linear'), unit='fraction', writes=None, description=''), FieldDecl(pattern='dash_offset', kind=NumberKind(space='linear'), unit='px', writes=None, description=''), FieldDecl(pattern='perspective', kind=NumberKind(space='linear'), unit='frame_height', writes=None, description=''), FieldDecl(pattern='pivot_x', kind=NumberKind(space='linear'), unit='px', writes=None, description=''), FieldDecl(pattern='pivot_y', kind=NumberKind(space='linear'), unit='px', writes=None, description=''), FieldDecl(pattern='plane_fade_end', kind=NumberKind(space='linear'), unit='px', writes=None, description=''), FieldDecl(pattern='plane_fade_start', kind=NumberKind(space='linear'), unit='px', writes=None, description=''), FieldDecl(pattern='rotation', kind=NumberKind(space='linear'), unit='rad', writes=None, description=''), FieldDecl(pattern='rotation_rad', kind=NumberKind(space='linear'), unit='rad', writes='rotation', description=''), FieldDecl(pattern='rotation_x', kind=NumberKind(space='linear'), unit='rad', writes=None, description=''), FieldDecl(pattern='scale_x', kind=NumberKind(space='linear'), unit='ratio', writes=None, description=''), FieldDecl(pattern='scale_y', kind=NumberKind(space='linear'), unit='ratio', writes=None, description=''), FieldDecl(pattern='skew_x', kind=NumberKind(space='linear'), unit='rad', writes=None, description=''), FieldDecl(pattern='skew_y', kind=NumberKind(space='linear'), unit='rad', writes=None, description=''), FieldDecl(pattern='tint_b', kind=NumberKind(space='linear'), unit='fraction', writes=None, description=''), FieldDecl(pattern='tint_g', kind=NumberKind(space='linear'), unit='fraction', writes=None, description=''), FieldDecl(pattern='tint_r', kind=NumberKind(space='linear'), unit='fraction', writes=None, description=''), FieldDecl(pattern='trim_end', kind=NumberKind(space='linear'), unit='fraction', writes=None, description=''), FieldDecl(pattern='trim_start', kind=NumberKind(space='linear'), unit='fraction', writes=None, description=''), FieldDecl(pattern='x', kind=NumberKind(space='linear'), unit='px', writes=None, description=''), FieldDecl(pattern='y', kind=NumberKind(space='linear'), unit='px', writes=None, description=''), FieldDecl(pattern='paint_after', kind=DiscreteKind(switch_at=1), unit=None, writes=None, description="where the node is painted: the path of the node it paints just after ('' = where the tree puts it), switched at its own key (an#537)"), FieldDecl(pattern='\*@\*', kind=DiscreteKind(switch_at=1), unit=None, writes='<swap>', description='a variant swap set (viseme@happy): replacement animation'), FieldDecl(pattern='\*', kind=DiscreteKind(switch_at=1), unit=None, writes='<swap>', description='any other property names a swap set: replacement animation')), version=1, description='a node of the 2D stage engine: transform properties interpolate as plain numbers; every other property is a swap set that switches at its own key', undeclared=DiscreteKind(switch_at=0.5))*
+### an.timing.spaces.STAGE_NODE *: [PropertySpace](_autosummary/an.timing.spaces.html.md#an.timing.spaces.PropertySpace)* *= PropertySpace(name='stage.node', fields=(FieldDecl(pattern='alpha', kind=NumberKind(space='linear'), unit='fraction', writes=None, description=''), FieldDecl(pattern='dash_offset', kind=NumberKind(space='linear'), unit='px', writes=None, description=''), FieldDecl(pattern='perspective', kind=NumberKind(space='linear'), unit='frame_height', writes=None, description=''), FieldDecl(pattern='pivot_x', kind=NumberKind(space='linear'), unit='px', writes=None, description=''), FieldDecl(pattern='pivot_y', kind=NumberKind(space='linear'), unit='px', writes=None, description=''), FieldDecl(pattern='plane_fade_end', kind=NumberKind(space='linear'), unit='px', writes=None, description=''), FieldDecl(pattern='plane_fade_start', kind=NumberKind(space='linear'), unit='px', writes=None, description=''), FieldDecl(pattern='rotation', kind=NumberKind(space='linear'), unit='rad', writes=None, description=''), FieldDecl(pattern='rotation_rad', kind=NumberKind(space='linear'), unit='rad', writes='rotation', description=''), FieldDecl(pattern='rotation_x', kind=NumberKind(space='linear'), unit='rad', writes=None, description=''), FieldDecl(pattern='scale_x', kind=NumberKind(space='linear'), unit='ratio', writes=None, description=''), FieldDecl(pattern='scale_y', kind=NumberKind(space='linear'), unit='ratio', writes=None, description=''), FieldDecl(pattern='skew_x', kind=NumberKind(space='linear'), unit='rad', writes=None, description=''), FieldDecl(pattern='skew_y', kind=NumberKind(space='linear'), unit='rad', writes=None, description=''), FieldDecl(pattern='tint_b', kind=NumberKind(space='linear'), unit='fraction', writes=None, description=''), FieldDecl(pattern='tint_g', kind=NumberKind(space='linear'), unit='fraction', writes=None, description=''), FieldDecl(pattern='tint_r', kind=NumberKind(space='linear'), unit='fraction', writes=None, description=''), FieldDecl(pattern='trim_end', kind=NumberKind(space='linear'), unit='fraction', writes=None, description=''), FieldDecl(pattern='trim_start', kind=NumberKind(space='linear'), unit='fraction', writes=None, description=''), FieldDecl(pattern='x', kind=NumberKind(space='linear'), unit='px', writes=None, description=''), FieldDecl(pattern='y', kind=NumberKind(space='linear'), unit='px', writes=None, description=''), FieldDecl(pattern='paint_after', kind=DiscreteKind(switch_at=1), unit=None, writes=None, description="where the node is painted: the path of the node it paints just after ('' = where the tree puts it), switched at its own key (an#537)"), FieldDecl(pattern='z_index', kind=DiscreteKind(switch_at=1), unit=None, writes=None, description="the node's place among its sorted container's children, switched at its own key (an#634)"), FieldDecl(pattern='\*@\*', kind=DiscreteKind(switch_at=1), unit=None, writes='<swap>', description='a variant swap set (viseme@happy): replacement animation'), FieldDecl(pattern='\*', kind=DiscreteKind(switch_at=1), unit=None, writes='<swap>', description='any other property names a swap set: replacement animation')), version=1, description='a node of the 2D stage engine: transform properties interpolate as plain numbers; every other property is a swap set that switches at its own key', undeclared=DiscreteKind(switch_at=0.5))*
 
 P3 moves their registration
 into `an.stage`. Kernel code resolves them by name (`get_space`).
@@ -47386,20 +47481,18 @@ scene: the scene file to read, inside the project (default scene.md; for example
 
 # About this build
 
-This documentation was built on **2026-10-27 14:00 UTC** from commit <a href="https://github.com/reeleehq/an/commit/7463dc24e49b38eac93812cb631561ff69b73dbb"><code>7463dc2</code></a> on branch <code>main</code>, for **an 0.1.319** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-27 15:55 UTC** from commit <a href="https://github.com/reeleehq/an/commit/dafd3a96dae8571b89379b0e6cbaeb1b8a232454"><code>dafd3a9</code></a> on branch <code>main</code>, for **an 0.1.320** (from <code>pyproject.toml</code>).
 
-#### WARNING
-The documentation and the package may be misaligned:
-
-- The documented version (0.1.319) is ahead of the latest release on PyPI (0.1.318): these docs describe unreleased code.
+#### NOTE
+Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
 
 ## Source
 
 |                     |                                                                                                                                                    |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/an/commit/7463dc24e49b38eac93812cb631561ff69b73dbb"><code>7463dc24e49b38eac93812cb631561ff69b73dbb</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/an/commit/dafd3a96dae8571b89379b0e6cbaeb1b8a232454"><code>dafd3a96dae8571b89379b0e6cbaeb1b8a232454</code></a> |
 | Branch              | <code>main</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.319</code>                                                                                                                               |
+| Tags at this commit | none                                                                                                                                               |
 | Working tree        | clean                                                                                                                                              |
 | Remote              | <code>https://github.com/reeleehq/an</code>                                                                                                        |
 
@@ -47408,9 +47501,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/an</code>                                                                   |
-| Run          | <a href="https://github.com/reeleehq/an/actions/runs/40515820024">40515820024</a>          |
+| Run          | <a href="https://github.com/reeleehq/an/actions/runs/40521905527">40521905527</a>          |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>76e582f28838070d3266ba674cff5fd415c6eb97</code> (in the history of the built commit) |
+| Event commit | <code>2967e03790c5c313116945647b7d7b4101a75fe5</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -47435,13 +47528,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.318/">0.1.318</a>, older than the documented version (0.1.319).
+Latest release: <a href="https://pypi.org/project/an/0.1.320/">0.1.320</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/an && cd an
-git checkout 7463dc24e49b38eac93812cb631561ff69b73dbb
+git checkout dafd3a96dae8571b89379b0e6cbaeb1b8a232454
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

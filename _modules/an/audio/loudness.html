@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=5dd371cf"></script>
+    <script src="../../../_static/documentation_options.js?v=7768b615"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.319" />
+  <meta name="docsearch:version" content="0.1.320" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -750,16 +750,16 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">:data:`SPREAD_WARNING_DB` — the render warns, naming each voice's level.</span>
 
 <span class="sd">The measuring and the limiter are the fleet's shared loudness component,</span>
-<span class="sd">:mod:`mixing.loudness` (an#563; ``pip install 'an[loudness]'``):</span>
+<span class="sd">:mod:`mixing.loudness` (an#563; ``mixing`` is a core dependency since an#611):</span>
 <span class="sd">:func:`mixing.loudness.level_group` measures a voice's lines back to back (looped</span>
 <span class="sd">to :data:`MIN_MEASURE_S`, channels kept when they agree) and caps the gain, with</span>
 <span class="sd">ffmpeg's ``ebur128`` injected as its meter (:data:`METER`) so ``an`` takes no</span>
 <span class="sd">scipy; :func:`mixing.loudness.limit_peaks` is the limiter, moved there unchanged</span>
 <span class="sd">(so :data:`LEVEL_VERSION` did not move, and a test pins the leveled bytes).</span>
 <span class="sd">What stays here is ``an``'s own: the voices, the offsets, the hysteresis, the</span>
-<span class="sd">makeup pass and the content keys. Without ``mixing`` installed, leveling raises</span>
-<span class="sd">:class:`LoudnessComponentMissing` naming the extra, and the render's spread</span>
-<span class="sd">warning is skipped (as it is without ffmpeg).</span>
+<span class="sd">makeup pass and the content keys. A ``mixing`` too old to have</span>
+<span class="sd">``mixing.loudness`` raises :class:`VoiceLoudnessError` telling the user to</span>
+<span class="sd">upgrade it (:func:`an.audio.shared_mixing.mixing_too_old`, an#621).</span>
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
@@ -772,6 +772,8 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">MutableMapping</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.shared_mixing</span><span class="w"> </span><span class="kn">import</span> <span class="n">mixing_too_old</span>
 
 <span class="c1">#: Bumped whenever a leveled line's bytes would change for the same inputs</span>
 <span class="c1">#: (the limiter, its window, the encoding); part of every leveled line's key.</span>
@@ -805,8 +807,6 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: The loudness meter injected into :mod:`mixing.loudness` (one of its</span>
 <span class="c1">#: ``METERS``): ffmpeg's ``ebur128``, so ``an`` needs no scipy for its numpy meter.</span>
 <span class="n">METER</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"ffmpeg_ebur128"</span>
-<span class="c1">#: What installs the shared loudness component.</span>
-<span class="n">INSTALL_HINT</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"pip install 'an[loudness]'"</span>
 <span class="c1">#: 16-bit full scale.</span>
 <span class="n">_INT16_FULL_SCALE</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">32768.0</span>
 
@@ -815,13 +815,6 @@ window.runMermaid = runMermaid;</script>
 <a class="viewcode-back" href="../../../_autosummary/an.audio.loudness.html#an.audio.loudness.VoiceLoudnessError">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">VoiceLoudnessError</span><span class="p">(</span><span class="ne">RuntimeError</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""The voices cannot be measured or leveled (no ffmpeg, an unreadable line)."""</span></div>
-
-
-
-<div class="viewcode-block" id="LoudnessComponentMissing">
-<a class="viewcode-back" href="../../../_autosummary/an.audio.loudness.html#an.audio.loudness.LoudnessComponentMissing">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">LoudnessComponentMissing</span><span class="p">(</span><span class="n">VoiceLoudnessError</span><span class="p">,</span> <span class="ne">ImportError</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""The shared loudness component (:mod:`mixing.loudness`) is not installed."""</span></div>
 
 
 
@@ -851,38 +844,12 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_install_hint</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""How to get the component: the extra, or (when ``mixing`` is there but</span>
-<span class="sd">    predates ``mixing.loudness``, 0.0.64) an upgrade, which the extra would not do."""</span>
-    <span class="kn">import</span><span class="w"> </span><span class="nn">importlib.util</span>
-
-    <span class="k">if</span> <span class="n">importlib</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">find_spec</span><span class="p">(</span><span class="s2">"mixing"</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">"upgrade mixing (`pip install -U mixing`; mixing.loudness is in 0.0.64 and later)"</span>
-    <span class="k">return</span> <span class="n">INSTALL_HINT</span>
-
-
 <span class="k">def</span><span class="w"> </span><span class="nf">_component</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">""":mod:`mixing.loudness`, or :class:`LoudnessComponentMissing` naming the extra."""</span>
-    <span class="k">try</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">""":mod:`mixing.loudness`, or :class:`VoiceLoudnessError` when the installed</span>
+<span class="sd">    ``mixing`` predates it."""</span>
+    <span class="k">with</span> <span class="n">mixing_too_old</span><span class="p">(</span><span class="n">needed_for</span><span class="o">=</span><span class="s2">"leveling voices"</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="n">VoiceLoudnessError</span><span class="p">):</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">mixing</span><span class="w"> </span><span class="kn">import</span> <span class="n">loudness</span>
-    <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">LoudnessComponentMissing</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"leveling voices needs the shared loudness component "</span>
-            <span class="sa">f</span><span class="s2">"(mixing.loudness): </span><span class="si">{</span><span class="n">_install_hint</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span>
-        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
     <span class="k">return</span> <span class="n">loudness</span>
-
-
-<div class="viewcode-block" id="component_available">
-<a class="viewcode-back" href="../../../_autosummary/an.audio.loudness.html#an.audio.loudness.component_available">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">component_available</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Whether :mod:`mixing.loudness` can be imported (what measuring needs)."""</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">_component</span><span class="p">()</span>
-    <span class="k">except</span> <span class="n">LoudnessComponentMissing</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">False</span>
-    <span class="k">return</span> <span class="kc">True</span></div>
-
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_decode</span><span class="p">(</span><span class="n">audio</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_Pcm</span><span class="p">:</span>

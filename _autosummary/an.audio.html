@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=5dd371cf"></script>
+    <script src="../_static/documentation_options.js?v=7768b615"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.319" />
+  <meta name="docsearch:version" content="0.1.320" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -339,6 +339,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.pipeline.html">an.audio.pipeline</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.recorded.html">an.audio.recorded</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.shared_mixing.html">an.audio.shared_mixing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.takes.html">an.audio.takes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.transcripts.html">an.audio.transcripts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
@@ -1427,19 +1428,22 @@ audio’s actual length.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="an.audio.recorded.html#module-an.audio.recorded" title="an.audio.recorded"><code class="xref py py-obj docutils literal notranslate"><span class="pre">recorded</span></code></a></p></td>
 <td><p>Recorded voices: a performer's takes as the voice of a character (an#490).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.takes.html#module-an.audio.takes" title="an.audio.takes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">takes</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.shared_mixing.html#module-an.audio.shared_mixing" title="an.audio.shared_mixing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shared_mixing</span></code></a></p></td>
+<td><p>The fleet's shared audio component, <code class="xref py py-mod docutils literal notranslate"><span class="pre">mixing</span></code>, as <code class="docutils literal notranslate"><span class="pre">an</span></code> imports it.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="an.audio.takes.html#module-an.audio.takes" title="an.audio.takes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">takes</span></code></a></p></td>
 <td><p>Best-of-N takes: re-roll a line, score every take, keep the best, record the choice.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.audio.transcripts.html#module-an.audio.transcripts" title="an.audio.transcripts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transcripts</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.transcripts.html#module-an.audio.transcripts" title="an.audio.transcripts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transcripts</span></code></a></p></td>
 <td><p>Transcripts as INPUT: SRT, WebVTT, Praat TextGrid, word-timed JSON and plain text read into timed segments, and a known text matched to a transcriber's words.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.tts.html#module-an.audio.tts" title="an.audio.tts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tts</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.audio.tts.html#module-an.audio.tts" title="an.audio.tts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tts</span></code></a></p></td>
 <td><p>TTS provider protocol + supporting dataclasses.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.audio.voice_design.html#module-an.audio.voice_design" title="an.audio.voice_design"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voice_design</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.voice_design.html#module-an.audio.voice_design" title="an.audio.voice_design"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voice_design</span></code></a></p></td>
 <td><p>Design a project's voices from their written notes, then let the writer choose.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.voices.html#module-an.audio.voices" title="an.audio.voices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voices</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.audio.voices.html#module-an.audio.voices" title="an.audio.voices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voices</span></code></a></p></td>
 <td><p>Which voice speaks a dialogue line: the character → voice binding (an#194).</p></td>
 </tr>
 </tbody>

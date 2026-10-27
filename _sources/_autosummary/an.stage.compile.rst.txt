@@ -41,6 +41,7 @@ an.stage.compile
       foreground_node_name
       node_path_suggestions
       note_raster_rig
+      paint_orders
       parse_tint
       plane_parents
       retire_front_spelling
@@ -50,6 +51,7 @@ an.stage.compile
       step_times
       style_pack_for
       unknown_target_message
+      z_index_keys
    
    .. rubric:: Classes
 

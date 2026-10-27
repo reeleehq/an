@@ -41,6 +41,7 @@
 - [an.audio.pipeline](_autosummary/an.audio.pipeline.html.md): Audio pipeline orchestration: dialogue → audio → visemes → IR mutation.
 - [an.audio.providers](_autosummary/an.audio.providers.html.md): Provider factory: name → concrete TTS/LipSync provider instance.
 - [an.audio.recorded](_autosummary/an.audio.recorded.html.md): Recorded voices: a performer’s takes as the voice of a character (an#490).
+- [an.audio.shared_mixing](_autosummary/an.audio.shared_mixing.html.md): The fleet’s shared audio component, &#96;mixing&#96;, as &#96;an&#96; imports it.
 - [an.audio.takes](_autosummary/an.audio.takes.html.md): Best-of-N takes: re-roll a line, score every take, keep the best, record the choice.
 - [an.audio.transcripts](_autosummary/an.audio.transcripts.html.md): Transcripts as INPUT: SRT, WebVTT, Praat TextGrid, word-timed JSON and plain
 - [an.audio.tts](_autosummary/an.audio.tts.html.md): TTS provider protocol + supporting dataclasses.
@@ -236,7 +237,7 @@
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [an.world_cli](_autosummary/an.world_cli.html.md): &#96;an world …&#96;: the scene’s world from the shell (ADR 0009).
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-27 14:00 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-27 15:55 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
 
 ## Optional
 

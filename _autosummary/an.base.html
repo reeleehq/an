@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=5dd371cf"></script>
+    <script src="../_static/documentation_options.js?v=7768b615"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.319" />
+  <meta name="docsearch:version" content="0.1.320" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -339,6 +339,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.pipeline.html">an.audio.pipeline</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.recorded.html">an.audio.recorded</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.shared_mixing.html">an.audio.shared_mixing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.takes.html">an.audio.takes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.transcripts.html">an.audio.transcripts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
@@ -677,17 +678,23 @@ fraction of a second so the CLI is snappy.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.base.STREAM_OVERRIDE" title="an.base.STREAM_OVERRIDE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">STREAM_OVERRIDE</span></code></a></p></td>
 <td><p>the id of the stream it draws (<code class="docutils literal notranslate"><span class="pre">an.ir.world</span></code>).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.base.UNSEEN_ALPHA" title="an.base.UNSEEN_ALPHA"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UNSEEN_ALPHA</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.base.PAINT_KEYS_OVERRIDE" title="an.base.PAINT_KEYS_OVERRIDE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PAINT_KEYS_OVERRIDE</span></code></a></p></td>
+<td><p>The core's record, on each entity a world paints by depth, of its paint key from each time on (<code class="docutils literal notranslate"><span class="pre">[[time,</span> <span class="pre">key]]</span></code>, a key sorting farther first, an#634): set when a stream slot is reused, so a slot drawing a farther instance can drop behind nearer ones; the stage compiler orders each run of keyed siblings by them with <code class="docutils literal notranslate"><span class="pre">z_index</span></code> keys.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.UNSEEN_ALPHA" title="an.base.UNSEEN_ALPHA"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UNSEEN_ALPHA</span></code></a></p></td>
 <td><p>At or under this alpha an entity is not seen (a stream slot between its passes, a fade's end): it cannot jump or swap sides at a cut (an#516), nor overlap or be drawn through anything at an instant (an#632).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.CORE_OVERRIDE_KEYS" title="an.base.CORE_OVERRIDE_KEYS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CORE_OVERRIDE_KEYS</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.base.CORE_OVERRIDE_KEYS" title="an.base.CORE_OVERRIDE_KEYS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CORE_OVERRIDE_KEYS</span></code></a></p></td>
 <td><p>what attaches it, the stream slot it is, what holds it and at what angle, the world's plane factors.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.base.PAINT_AFTER_PROPERTY" title="an.base.PAINT_AFTER_PROPERTY"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PAINT_AFTER_PROPERTY</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.PAINT_AFTER_PROPERTY" title="an.base.PAINT_AFTER_PROPERTY"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PAINT_AFTER_PROPERTY</span></code></a></p></td>
 <td><p>where a node is PAINTED, as the path of the node it paints just after (<code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>: where the stage tree puts it).</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.base.Z_INDEX_PROPERTY" title="an.base.Z_INDEX_PROPERTY"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Z_INDEX_PROPERTY</span></code></a></p></td>
+<td><p>A node's place among its container's children, switched at its own key (an#634): the stage paints a sorted container's children by it, the static <code class="docutils literal notranslate"><span class="pre">z_index</span></code> of a node made a channel.</p></td>
+</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.base.ORDER_PROPERTIES" title="an.base.ORDER_PROPERTIES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ORDER_PROPERTIES</span></code></a></p></td>
-<td><p>The non-numeric properties the runtime applies itself (outside <code class="xref py py-data docutils literal notranslate"><span class="pre">TRANSFORM_PROPERTIES</span></code>, which it animates numerically): a node's place in the paint order.</p></td>
+<td><p>The properties the runtime applies itself, outside <code class="xref py py-data docutils literal notranslate"><span class="pre">TRANSFORM_PROPERTIES</span></code> (which it animates): a node's place in the paint order, each switched at its own key.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.base.SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS" title="an.base.SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS</span></code></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">/</span></code> would read as a path segment and <code class="docutils literal notranslate"><span class="pre">::</span></code> is the runtime's pose-key separator.</p></td>
@@ -829,7 +836,7 @@ asset-set name (an#62).</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.base.CORE_OVERRIDE_KEYS">
-<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">CORE_OVERRIDE_KEYS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.15)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'attached',</span> <span class="pre">'held_by',</span> <span class="pre">'held_rotation',</span> <span class="pre">'plane_factors',</span> <span class="pre">'stream'})</span></span><a class="headerlink" href="#an.base.CORE_OVERRIDE_KEYS" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">CORE_OVERRIDE_KEYS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.15)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'attached',</span> <span class="pre">'held_by',</span> <span class="pre">'held_rotation',</span> <span class="pre">'paint_keys',</span> <span class="pre">'plane_factors',</span> <span class="pre">'stream'})</span></span><a class="headerlink" href="#an.base.CORE_OVERRIDE_KEYS" title="Link to this definition">#</a></dt>
 <dd><p>what attaches it, the
 stream slot it is, what holds it and at what angle, the world’s plane
 factors. Bookkeeping about the entity, not fields of its asset document, so
@@ -944,11 +951,11 @@ decoded YUV sha256 identical, wall time unchanged.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.base.ORDER_PROPERTIES">
-<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">ORDER_PROPERTIES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.15)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'paint_after'})</span></span><a class="headerlink" href="#an.base.ORDER_PROPERTIES" title="Link to this definition">#</a></dt>
-<dd><p>The non-numeric properties the runtime applies itself (outside
-<code class="xref py py-data docutils literal notranslate"><span class="pre">TRANSFORM_PROPERTIES</span></code>, which it animates numerically): a node’s place
-in the paint order. <code class="code docutils literal notranslate"><span class="pre">runtime.js</span></code>’s <code class="docutils literal notranslate"><span class="pre">ORDER_PROPERTIES</span></code> mirrors it (pinned by
-a test).</p>
+<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">ORDER_PROPERTIES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.15)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'paint_after',</span> <span class="pre">'z_index'})</span></span><a class="headerlink" href="#an.base.ORDER_PROPERTIES" title="Link to this definition">#</a></dt>
+<dd><p>The properties the runtime applies itself, outside
+<code class="xref py py-data docutils literal notranslate"><span class="pre">TRANSFORM_PROPERTIES</span></code> (which it animates): a node’s place in the paint
+order, each switched at its own key. <code class="code docutils literal notranslate"><span class="pre">runtime.js</span></code>’s <code class="docutils literal notranslate"><span class="pre">ORDER_PROPERTIES</span></code>
+mirrors it (pinned by a test).</p>
 </dd></dl>
 
 <dl class="py data">
@@ -965,6 +972,16 @@ it (a held item draws just above the part that holds it, an#537).</p>
 <dd class="field-odd"><p>The draw-order property (an#537)</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.base.PAINT_KEYS_OVERRIDE">
+<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">PAINT_KEYS_OVERRIDE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'paint_keys'</span></span><a class="headerlink" href="#an.base.PAINT_KEYS_OVERRIDE" title="Link to this definition">#</a></dt>
+<dd><p>The core’s record, on each entity a world paints by depth, of its paint key
+from each time on (<code class="docutils literal notranslate"><span class="pre">[[time,</span> <span class="pre">key]]</span></code>, a key sorting farther first, an#634):
+set when a stream slot is reused, so a slot drawing a farther instance can
+drop behind nearer ones; the stage compiler orders each run of keyed
+siblings by them with <code class="docutils literal notranslate"><span class="pre">z_index</span></code> keys.</p>
 </dd></dl>
 
 <dl class="py data">
@@ -1094,6 +1111,15 @@ overlap or be drawn through anything at an instant (an#632).</p>
 <dd><p>The ways a <code class="docutils literal notranslate"><span class="pre">wipe</span></code>’s edge can travel across the frame (an#390).</p>
 </dd></dl>
 
+<dl class="py data">
+<dt class="sig sig-object py" id="an.base.Z_INDEX_PROPERTY">
+<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">Z_INDEX_PROPERTY</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'z_index'</span></span><a class="headerlink" href="#an.base.Z_INDEX_PROPERTY" title="Link to this definition">#</a></dt>
+<dd><p>A node’s place among its container’s children, switched at its own key (an#634):
+the stage paints a sorted container’s children by it, the static
+<code class="docutils literal notranslate"><span class="pre">z_index</span></code> of a node made a channel. Not authorable: the compiler emits it
+(a stream slot reused for a farther instance drops behind the nearer ones).</p>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="an.base.asset_overrides">
 <span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">asset_overrides</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">overrides</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/base.html#asset_overrides"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.base.asset_overrides" title="Link to this definition">#</a></dt>
@@ -1193,6 +1219,7 @@ what an entity asks of its asset document.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.MP4_FASTSTART_ARGS"><code class="docutils literal notranslate"><span class="pre">MP4_FASTSTART_ARGS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.ORDER_PROPERTIES"><code class="docutils literal notranslate"><span class="pre">ORDER_PROPERTIES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.PAINT_AFTER_PROPERTY"><code class="docutils literal notranslate"><span class="pre">PAINT_AFTER_PROPERTY</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.PAINT_KEYS_OVERRIDE"><code class="docutils literal notranslate"><span class="pre">PAINT_KEYS_OVERRIDE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.PLANE_FACTORS_OVERRIDE"><code class="docutils literal notranslate"><span class="pre">PLANE_FACTORS_OVERRIDE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.PLANE_REST_VALUES"><code class="docutils literal notranslate"><span class="pre">PLANE_REST_VALUES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.PathStr"><code class="docutils literal notranslate"><span class="pre">PathStr</span></code></a></li>
@@ -1206,6 +1233,7 @@ what an entity asks of its asset document.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.TRIM_PROPERTIES"><code class="docutils literal notranslate"><span class="pre">TRIM_PROPERTIES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.UNSEEN_ALPHA"><code class="docutils literal notranslate"><span class="pre">UNSEEN_ALPHA</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.WIPE_DIRECTIONS"><code class="docutils literal notranslate"><span class="pre">WIPE_DIRECTIONS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.Z_INDEX_PROPERTY"><code class="docutils literal notranslate"><span class="pre">Z_INDEX_PROPERTY</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.asset_overrides"><code class="docutils literal notranslate"><span class="pre">asset_overrides()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.swap_set_name_problem"><code class="docutils literal notranslate"><span class="pre">swap_set_name_problem()</span></code></a></li>
 </ul>
