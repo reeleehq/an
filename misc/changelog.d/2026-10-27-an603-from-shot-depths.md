@@ -1,1 +1,0 @@
-- `an world from-shot` (an#603): a ref placed at several scales seeds ONE height and several depths (its largest placement at the master's depth), so a second viewpoint sees parallax, when those depths agree with the master's draw order; the default depth makes the tallest character, not the tallest thing, 1.7 tall.

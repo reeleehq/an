@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-10-27
+- `an world from-shot` (an#603): a ref placed at several scales seeds ONE height and several depths (its largest placement at the master's depth), so a second viewpoint sees parallax, when those depths agree with the master's draw order; the default depth makes the tallest character, not the tallest thing, 1.7 tall.
 - Holds: with no `solve.ground`, a carrier whose rig is placed by its base (an `origin` one of its parts' painted bottom rests on: a figure's feet) puts things on that point's line, read from the gesture-free solve, so an arm hanging below the feet is no longer the floor; a rig placed by its middle, and a character rig (no `origin`), keep the lowest of their parts (an#601).
 - Transcript artifacts (an#607): a take's recorded reference (`transcripts/<key>@<sha256>`) reads back the content it pinned; `artifact:takes/a` finds a transcript keyed `takes/a` though the mall has a `takes` store; `an cache gc` collects transcript blobs no record and no take names.
 - Boil follow-ups (an#609): a boil whose rate is not a multiple or divisor of the shot's `step_hz` warns (the line and the pose step on different frames); two synthetic clips (boil, parallax) whose node paths read alike once their slashes are underscores take `~2`, `~3` suffixes instead of refusing the scene, every existing id unchanged; an authored `<path>:boil` action is refused by naming `boil_hz`.
