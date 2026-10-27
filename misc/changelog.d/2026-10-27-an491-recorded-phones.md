@@ -1,1 +1,0 @@
-- Recorded voices: a TextGrid's `phones` tier rides with a take (cut, stored, and handed to the lip-sync provider on `AudioClip.phones`, fresh or read back) (an#491).

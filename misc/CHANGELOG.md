@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-10-27
+- Recorded voices: a TextGrid's `phones` tier rides with a take (cut, stored, and handed to the lip-sync provider on `AudioClip.phones`, fresh or read back) (an#491).
 - The solve keeps retrying a slowly converging frame while each round halves what is left (up to `DFLT_CONVERGE_CAP` × iterations), and a retry that stalls is a conflict: the frame after a refused grip no longer leaves joints apart in dynamic mode; `SOLVER_VERSION` 2 (an#568).
 - Validate: the solidity check skips an entity unseen at an instant, treats two slots of one stream as occlusion when the nearer is in front and reports the reverse as a paint inversion (an#634), and the draw-order check leaves slots to the world's depth order (an#632).
 - A travel past its `max_actions` stops fitting as soon as a running lower bound of its actions crosses the budget, instead of fitting every pass first (an#516, slice B).
