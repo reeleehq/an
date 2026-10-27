@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-10-27
+- `solve_frames` leads back a grip lost out of reach that one frame cannot take (a long rope hanging far from its end): a pull toward a point walking to the grip at `regrip_speed`, taken within a unit, never a link given up in its place; `SolveResult.out_of_reach`; `SOLVER_VERSION` 5 (an#645).
 - A slack chain of more than two links held at both ends is seeded on a circular arc (`an.kinematics.chains.arc_chain`): a straight rope in pose mode now bends and keeps its end; `SOLVER_VERSION` 4 (an#646).
 - A render, `an voices design`, `audition` and `reroll` warn once, before anything is billed, when the installed `mixing` lacks a part `an` uses or is absent (`MixingTooOldWarning`; the parts are imported, not a version compared, an#644).
 - An audition reel is written under the manifest lock, only while its option is still the same voice (a re-design in between leaves the newer reel alone, the late reel is neither kept nor reported, and the call warns, `VoiceDesignWarning`); `run_auditions(keep=)` replaces `on_reel`; the audition reels and `an.library.registry` write atomically through `dol.atomic_write` (an#649).
