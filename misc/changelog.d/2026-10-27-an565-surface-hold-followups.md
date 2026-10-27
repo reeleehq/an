@@ -1,0 +1,1 @@
+- Surface holds (an#565): a gesture reads the ground, like a surface, as it is at contact; an item put "below the hand" on a surface is moved in so its ink does not hang over an end; an item sunk into every support is said to be in the ground; `_surface_holder` is a resolver bound once per schedule.
