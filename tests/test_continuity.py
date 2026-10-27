@@ -106,7 +106,7 @@ def test_a_shot_can_continue_a_later_one_and_a_cycle_is_refused(tmp_path):
     a = _bedtime().model_copy(update={"continue_from": "next"})
     with pytest.raises(ContinuityError, match="cycle"):
         continue_shots(_scene(a, _studio(continue_from="bed")), mall, fps=FPS)
-    with pytest.raises(ContinuityError, match="names no other shot"):
+    with pytest.raises(ContinuityError, match="names no shot"):
         continue_shots(_scene(_studio(continue_from="nope")), mall, fps=FPS)
 
 
@@ -120,13 +120,13 @@ def test_a_sibling_scene_file_is_read_from_the_project(tmp_path):
         _scene(_studio(continue_from="scene.bedtime.md#bed")), mall, fps=FPS
     )
     assert _opening(scene.timeline[0], mall)[("lamp", "x")] == pytest.approx(120.0)
-    with pytest.raises(ContinuityError, match="has no shot 'gone'"):
+    with pytest.raises(ContinuityError, match="names no shot of 'scene.bedtime.md'"):
         continue_shots(
             _scene(_studio(continue_from="scene.bedtime.md#gone")), mall, fps=FPS
         )
 
 
-def test_validate_reports_a_continuation_that_cannot_resolve_and_no_jump_after_one(
+def test_validate_reports_a_continuation_that_cannot_resolve_at_its_shot(
     tmp_path,
 ):
     mall = _mall(tmp_path)
@@ -138,12 +138,13 @@ def test_validate_reports_a_continuation_that_cannot_resolve_and_no_jump_after_o
 
     bad = findings(_scene(_studio(continue_from="nope")))
     assert any(
-        f.severity == "error" and "names no other shot" in f.description for f in bad
+        f.severity == "error"
+        and "names no shot" in f.description
+        and f.ir_path == "timeline/0/continue_from"
+        for f in bad
     )
-    jumped = findings(_scene(_bedtime(), _studio()))
-    assert any("jumps across the cut" in f.description for f in jumped)
-    carried = findings(_scene(_bedtime(), _studio(continue_from="bed")))
-    assert not any("jumps across the cut" in f.description for f in carried)
+    world = _scene(_bedtime(), _studio(continue_from="nope"))
+    assert any("names no shot" in f.description for f in findings(world))
 
 
 def test_continue_round_trips_through_scene_md_and_omits_when_unset():
@@ -153,30 +154,107 @@ def test_continue_round_trips_through_scene_md_and_omits_when_unset():
     assert "continue_from" not in _bedtime().model_dump()
 
 
-def test_a_held_item_carries_its_holder_and_aim_not_its_place():
-    """A hand holds it as the source ends: the next shot opens with the same
-    hand holding it at the same angle (`held_by`, `held_rotation`)."""
-    ends = {
-        "musket": EntityEnd(
-            {
-                ("musket", "x"): 5.0,
-                ("musket", "rotation"): 0.7,
-                ("musket", "alpha"): 1.0,
-            },
-            holder="napoleon@hand_r",
-        ),
-        "sabre": EntityEnd(
-            {("sabre", "x"): -30.0, ("sabre", "rotation"): 0.0}, holder="ground"
-        ),
-    }
-    shot = Shot(
+def _shot_of(*ids) -> Shot:
+    return Shot(
         id="s", duration=1.0,
-        entities=[AssetRef(kind="prop", id=i, store="props", ref=i) for i in ("musket", "sabre")],
+        entities=[AssetRef(kind="prop", id=i, store="props", ref=i) for i in ids],
     )  # fmt: skip
-    out = _carried(shot, ends, fps=FPS)
-    musket, sabre = out.entities
-    assert musket.overrides == {"held_by": "napoleon@hand_r", "held_rotation": 0.7}
-    assert sabre.overrides == {"held_by": "ground"}
+
+
+def _end(eid, holder, **channels):
+    base = {"x": 5.0, "y": 7.0, "rotation": 0.7, "scale_x": 1.0, "scale_y": 1.0}
+    return EntityEnd(
+        {(eid, k): v for k, v in {**base, **channels}.items()}, holder=holder
+    )
+
+
+def test_a_held_item_carries_its_holder_by_kind():
+    """A hand in this shot keeps holding it, aimed (no place carried); a hand
+    this shot lacks leaves it where it was; a place or the floor holds it
+    without an aim (the floor keeps its x)."""
+    ends = {
+        "musket": _end("musket", "napoleon@hand_r"),
+        "pistol": _end("pistol", "hannibal@hand_l"),
+        "book": _end("book", "world@10,20"),
+        "sabre": _end("sabre", "ground"),
+    }
+    out = _carried(
+        _shot_of("napoleon", "musket", "pistol", "book", "sabre"), ends, fps=FPS
+    )
+    by_id = {e.id: e.overrides for e in out.entities}
+    assert by_id["musket"] == {"held_by": "napoleon@hand_r", "held_rotation": 0.7}
+    assert by_id["pistol"] is None, "its holder is not in this shot"
+    assert by_id["book"] == {"held_by": "world@10,20"}
+    assert by_id["sabre"] == {"held_by": "ground"}
     carried = {(a.target, a.property) for a in out.actions}
-    assert ("musket", "x") not in carried and ("musket", "alpha") in carried
-    assert ("sabre", "x") in carried
+    assert ("musket", "x") not in carried and ("pistol", "x") in carried
+    assert ("book", "x") not in carried and ("book", "rotation") in carried
+    assert ("sabre", "x") in carried and ("sabre", "y") not in carried
+
+
+def test_a_tween_from_where_it_is_glides_from_the_carried_value(tmp_path):
+    mall = _mall(tmp_path)
+    glide = TweenAction(target="lamp", property="x", to_value=0.0, duration=0.5)
+    scene = continue_shots(
+        _scene(_bedtime(), _studio(continue_from="bed", actions=[glide])), mall, fps=FPS
+    )
+    assert _opening(scene.timeline[1], mall)[("lamp", "x")] == pytest.approx(120.0)
+
+
+def test_two_files_sharing_a_shot_id_are_not_a_cycle(tmp_path):
+    """A: s1 -> intro, intro -> scene.b.md#y; B: y -> intro (B's own)."""
+    mall = _mall(tmp_path)
+    b = _scene(
+        _bedtime().model_copy(update={"id": "intro"}),
+        _studio(continue_from="intro").model_copy(update={"id": "y"}),
+    )
+    (tmp_path / "p" / "scene.b.md").write_text(ir_to_markdown(b), encoding="utf-8")
+    a = _scene(
+        _studio(continue_from="intro").model_copy(update={"id": "s1"}),
+        _studio(continue_from="scene.b.md#y").model_copy(update={"id": "intro"}),
+    )
+    scene = continue_shots(a, mall, fps=FPS)
+    assert _opening(scene.timeline[0], mall)[("lamp", "x")] == pytest.approx(120.0)
+
+
+def test_validate_reads_a_sibling_file_and_names_the_authors_actions(tmp_path):
+    mall = _mall(tmp_path)
+    (tmp_path / "p" / "scene.bedtime.md").write_text(
+        ir_to_markdown(_scene(_bedtime())), encoding="utf-8"
+    )
+    typo = SetAction(target="lamp", property="nope_prop", value=1.0, at=0.2)
+    scene = _scene(_studio(continue_from="scene.bedtime.md#bed", actions=[typo]))
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        report = validate_semantic(
+            scene, available_props=mall["props"], available_scenes=mall["scenes"]
+        )
+    assert not [f for f in report.findings if "continue" in f.ir_path], report.findings
+    on_actions = [f.ir_path for f in report.findings if "/actions/" in f.ir_path]
+    assert on_actions and all(p.startswith("timeline/0/actions/0") for p in on_actions)
+
+
+def test_a_cut_between_two_framings_leaves_placement_to_the_world(tmp_path):
+    """Wide shot, then a close-up that continues it: the world places the
+    lamp in the close-up; continuity carries no screen placement for it."""
+    from an.ir.schema import Viewpoint, World, WorldMember
+    from an.stage.world import lower_scene
+
+    mall = _mall(tmp_path)
+    world = World(
+        members=[WorldMember(kind="prop", id="lamp", store="props", ref="lamp",
+                             at=(0.0, 0.4, 2.0), height=0.8)],
+        viewpoints={
+            "wide": Viewpoint(at=(0.0, 0.0, 0.0), focal=300.0),
+            "cu": Viewpoint(subject="lamp", size="close_up", focal=300.0),
+        },
+    )  # fmt: skip
+    scene = _scene(
+        Shot(id="w", duration=0.5, viewpoint="wide"),
+        Shot(id="c", duration=0.5, viewpoint="cu", continue_from="w"),
+    ).model_copy(update={"world": world})
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        lowered = lower_scene(scene, mall, fps=FPS)
+    carried = {(a.target, a.property) for a in lowered.scene.timeline[1].actions}
+    assert ("lamp", "x") not in carried and ("lamp", "alpha") in carried

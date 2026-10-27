@@ -17,6 +17,7 @@ extents, film starts, then :func:`an.ir.world.lower_world`.
 from __future__ import annotations
 
 import dataclasses
+from pathlib import Path
 
 import warnings
 from typing import TYPE_CHECKING, Any, Mapping
@@ -268,7 +269,8 @@ def lower_scene(
     *,
     fps: float | None = None,
     film_starts: list[float] | None = None,
-    continue_stack: tuple[tuple[str | None, str], ...] = (),
+    project_dir: str | Path | None = None,
+    continues: bool = True,
 ) -> Lowered:
     """``scene`` as the compiler should see it: every framed shot's placements
     derived from the world (:func:`an.ir.world.lower_world`), with the
@@ -276,7 +278,9 @@ def lower_scene(
     assembled timeline (so a travel's streams keep phase across cuts). A scene
     without a world comes back as it is, at no cost. Then every shot's
     ``continue:`` is resolved (:func:`an.continuity.continue_shots`, an#542):
-    a shot that continues another opens as that one ends.
+    a shot that continues another opens as that one ends (``project_dir``:
+    where a sibling scene file is read; default the mall's; ``continues``:
+    off for the world alone, as `an validate` reports the two apart).
 
     Raises :class:`an.ir.world.WorldError` for a viewpoint that cannot be
     resolved; `an validate` reports the same error instead of raising.
@@ -285,12 +289,41 @@ def lower_scene(
     []
     """
     lowered = _lower_world(scene, mall, fps=fps, film_starts=film_starts)
+    return (
+        with_continues(lowered, mall, fps=fps, project_dir=project_dir)
+        if continues
+        else lowered
+    )
+
+
+def with_continues(
+    lowered: Lowered,
+    mall: Mapping[str, Mapping] | None,
+    *,
+    fps: float | None = None,
+    project_dir: str | Path | None = None,
+) -> Lowered:
+    """``lowered`` with every ``continue:`` resolved (an#542), and how many
+    actions each continued shot gained in front of the author's."""
     from an.continuity import continue_shots
 
-    continued = continue_shots(lowered.scene, mall, fps=fps, stack=continue_stack)
+    continued = continue_shots(lowered.scene, mall, fps=fps, project_dir=project_dir)
     if continued is lowered.scene:
         return lowered
-    return dataclasses.replace(lowered, scene=continued)
+    carried = {
+        i: len(new.actions) - len(old.actions)
+        for i, (old, new) in enumerate(zip(lowered.scene.timeline, continued.timeline))
+        if new is not old
+    }
+    return dataclasses.replace(lowered, scene=continued, carried=carried)
+
+
+def lower_scene_world(
+    scene: SceneIR, mall: Mapping[str, Mapping] | None, *, fps: float | None = None
+) -> SceneIR:
+    """``scene`` lowered through its world only: what a continuation reads a
+    sibling scene file as (:func:`an.continuity.continue_shots`)."""
+    return _lower_world(scene, mall, fps=fps, film_starts=None).scene
 
 
 def _lower_world(

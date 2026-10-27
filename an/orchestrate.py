@@ -162,6 +162,7 @@ def validate_project(
         available_environments=project.mall.get("environments"),
         available_styles=project.mall.get("styles"),
         available_sounds=project.mall.get("sounds"),
+        available_scenes=project.mall.get("scenes"),
         available_library_lock=project.mall.get("library_lock"),
         available_recordings=project.mall.get("recordings"),
         fps=fps,

@@ -52,6 +52,12 @@ class ScenesStore(MutableMapping):
         self._md_path, self._json_path = resolved.md_path, resolved.json_path
 
     @property
+    def project_dir(self) -> Path:
+        """The project folder this store's scene file is in (its sibling scene
+        files are there too: a ``continue:`` reads them, an#542)."""
+        return self._root
+
+    @property
     def md_path(self) -> Path:
         return self._md_path
 

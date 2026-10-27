@@ -36,13 +36,13 @@ from pathlib import Path
 from typing import Any
 
 from an.ir.schema import SceneIR, SetAction, Shot, TweenAction
-from an.ir.world import WorldError
 
 __all__ = [
     "ContinuityError",
     "EntityEnd",
     "continue_shots",
     "end_states",
+    "opened_channels",
     "parse_continue",
 ]
 
@@ -55,15 +55,25 @@ ROOT_TRANSFORM: tuple[str, ...] = ("x", "y", "rotation", "scale_x", "scale_y")
 UNCARRIED_PROPERTIES: frozenset[str] = frozenset({"paint_after", "viseme"})
 #: Holders that leave an item where it lies, carried as its transform.
 _UNHELD: frozenset[str] = frozenset({"staged", "air"})
+#: The plain floor: it holds an item at its own x, on the ground line.
+_GROUND: str = "ground"
+
+#: A scene file as continuity keys it (``None``: the scene being resolved).
+FileKey = str | None
 
 
-class ContinuityError(WorldError):
+class ContinuityError(ValueError):
     """A ``continue:`` that cannot be resolved: an unknown shot or scene file,
-    a cycle, or a source shot that does not compile. A :class:`WorldError`, so
-    it is reported where the scene the compiler sees is (``an validate``)."""
+    a cycle, or a source shot that does not compile. ``shot`` is the shot
+    whose ``continue:`` it is: ``an validate`` reports it at that shot's
+    ``continue_from``; a render raises it."""
+
+    def __init__(self, message: str, *, shot: str | None = None) -> None:
+        super().__init__(message)
+        self.shot = shot
 
 
-def parse_continue(ref: str) -> tuple[str | None, str]:
+def parse_continue(ref: str) -> tuple[FileKey, str]:
     """``(scene file or None, shot id)`` of a ``continue:`` value."""
     file, sep, shot = ref.rpartition(CONTINUE_SEPARATOR)
     if not sep:
@@ -72,7 +82,7 @@ def parse_continue(ref: str) -> tuple[str | None, str]:
         raise ContinuityError(
             f"continue: {ref!r} names no shot (write `<shot>` or `<scene file>#<shot>`)"
         )
-    return file.strip(), shot.strip()
+    return Path(file.strip()).as_posix(), shot.strip()
 
 
 @dataclass
@@ -87,13 +97,16 @@ class EntityEnd:
 
 def end_states(doc: Any, entity_ids: list[str], *, at: float) -> dict[str, EntityEnd]:
     """``{entity id: EntityEnd}`` of a compiled document evaluated at ``at``:
-    each entity's own transform, then every animated channel of its nodes."""
+    each entity's own transform (an alias such as ``rotation_rad`` folded into
+    the property it writes), then every animated channel of its nodes, one
+    per write group."""
     from an.stage.timeline import (
         _node_chain,
         _pose_for,
         evaluate_timeline,
         timeline_from_scene,
         transform_of,
+        write_group,
     )
 
     pose = evaluate_timeline(timeline_from_scene(doc), at)
@@ -107,38 +120,75 @@ def end_states(doc: Any, entity_ids: list[str], *, at: float) -> dict[str, Entit
         except Exception:  # noqa: BLE001 — not drawn (a voice): nothing to carry
             continue
         own = _pose_for(pose, path) or {}
-        t = transform_of(node, own)
-        channels = {(eid, prop): float(getattr(t, prop)) for prop in ROOT_TRANSFORM}
-        channels[(eid, "alpha")] = float(
-            own.get((path.rsplit("/", 1)[-1], "alpha"), node.transform.alpha)
-        )
+        name = path.rsplit("/", 1)[-1]
+        folded = {
+            (name, write_group(prop)): value
+            for (_, prop), value in own.items()
+            if write_group(prop) in ROOT_TRANSFORM and isinstance(value, (int, float))
+        }
+        t = transform_of(node, {**own, **folded})
+        channels: dict[tuple[str, str], Any] = {
+            (eid, prop): float(getattr(t, prop)) for prop in ROOT_TRANSFORM
+        }
+        channels[(eid, "alpha")] = float(own.get((name, "alpha"), node.transform.alpha))
+        groups = {(eid, write_group(p)) for _, p in channels}
         for (target, prop), value in pose.items():
             if prop in UNCARRIED_PROPERTIES:
                 continue
-            if target == path or target.startswith(path + "/"):
-                channels[(eid + target[len(path) :], prop)] = value
+            if target != path and not target.startswith(path + "/"):
+                continue
+            key = (eid + target[len(path) :], prop)
+            group = (key[0], write_group(prop))
+            if group in groups and key not in channels:
+                continue  # an alias of a channel already carried
+            channels[key] = value
+            groups.add(group)
         timeline = holders.get(eid)
         out[eid] = EntityEnd(channels, timeline[-1][1] if timeline else None)
     return out
 
 
-def _opened(shot: Shot, *, fps: float) -> set[tuple[str, str]]:
-    """``(target, property)`` the shot sets or tweens in its first frame."""
+def opened_channels(shot: Shot, *, fps: float) -> set[tuple[str, str]]:
+    """``(target, write group)`` the shot itself gives a value in its first
+    frame: a ``set``, or a ``tween`` with a ``from``. A tween from where the
+    entity is (no ``from``) starts from the carried value, so it opens nothing."""
     from an.ir.compose import flatten, parallel
+    from an.stage.timeline import write_group
 
     first = 1.0 / float(fps)
     return {
-        (f.action.target, f.action.property)
+        (f.action.target, write_group(f.action.property))
         for f in flatten(parallel(*shot.actions))
-        if isinstance(f.action, (SetAction, TweenAction)) and f.start < first
+        if f.start < first
+        and (
+            isinstance(f.action, SetAction)
+            or (isinstance(f.action, TweenAction) and f.action.from_value is not None)
+        )
     }
 
 
-def _carried(shot: Shot, ends: Mapping[str, EntityEnd], *, fps: float) -> Shot:
-    """``shot`` opening as ``ends`` (the shared entities' end states)."""
-    from an.stage.hold import AIM_OVERRIDE, ON_OVERRIDE
+def _carried(
+    shot: Shot,
+    ends: Mapping[str, EntityEnd],
+    *,
+    fps: float,
+    placed_by_world: frozenset[str] = frozenset(),
+) -> Shot:
+    """``shot`` opening as ``ends`` (the shared entities' end states).
 
-    opened = _opened(shot, fps=fps)
+    ``placed_by_world``: entities the world places in THIS shot under another
+    viewpoint than the source's, whose screen placement is not carried (a cut
+    between two framings is a cut; the world places them)."""
+    from an.stage.hold import (
+        AIM_OVERRIDE,
+        ON_OVERRIDE,
+        _is_place_target,
+        _is_surface_target,
+    )
+    from an.stage.timeline import write_group
+
+    opened = opened_channels(shot, fps=fps)
+    present = {e.id for e in shot.entities}
     sets: list[SetAction] = []
     entities = []
     for entity in shot.entities:
@@ -147,22 +197,41 @@ def _carried(shot: Shot, ends: Mapping[str, EntityEnd], *, fps: float) -> Shot:
             entities.append(entity)
             continue
         overrides = dict(entity.overrides or {})
-        held = end.holder is not None and end.holder not in _UNHELD
-        in_hand = held and not end.holder.startswith("ground")
-        if held and ON_OVERRIDE not in overrides:
-            overrides[ON_OVERRIDE] = "ground" if not in_hand else end.holder
-            if in_hand and AIM_OVERRIDE not in overrides:
-                overrides[AIM_OVERRIDE] = end.channels[(entity.id, "rotation")]
+        skip: set[str] = set(ROOT_TRANSFORM) if entity.id in placed_by_world else set()
+        holder = end.holder
+        if (
+            holder is not None
+            and holder not in _UNHELD
+            and ON_OVERRIDE not in overrides
+        ):
+            if holder == _GROUND:
+                overrides[ON_OVERRIDE] = holder
+                skip.add("y")  # the floor sets its height; it keeps its x
+            elif _is_place_target(holder) or _is_surface_target(holder):
+                overrides[ON_OVERRIDE] = holder
+                skip |= {"x", "y"}  # the place puts it there
+            elif holder.partition("@")[0].split("/")[0] in present:
+                overrides[ON_OVERRIDE] = holder  # the same hand holds it
+                overrides.setdefault(
+                    AIM_OVERRIDE, end.channels[(entity.id, "rotation")]
+                )
+                skip |= set(ROOT_TRANSFORM)  # the hand places it, aimed
+            # a holder this shot does not have: the item stays where it was
         for (target, prop), value in end.channels.items():
-            if (target, prop) in opened:
+            if (target, write_group(prop)) in opened:
                 continue  # the shot's own opening wins
-            if in_hand and target == entity.id and prop in ROOT_TRANSFORM:
-                continue  # the hand places it, aimed by `held_rotation`
+            if target == entity.id and prop in skip:
+                continue
             sets.append(SetAction(target=target, property=prop, value=value, at=0.0))
         entities.append(entity.model_copy(update={"overrides": overrides or None}))
     return shot.model_copy(
         update={"entities": entities, "actions": [*sets, *shot.actions]}
     )
+
+
+def _viewpoint_key(shot: Shot) -> Any:
+    vp = shot.viewpoint
+    return vp if vp is None or isinstance(vp, str) else vp.model_dump_json()
 
 
 def continue_shots(
@@ -172,76 +241,87 @@ def continue_shots(
     fps: float | None = None,
     project_dir: str | Path | None = None,
     read_scene: Callable[[Path, str], SceneIR] | None = None,
+    lower_world: Callable[..., SceneIR] | None = None,
     compile_shot: Callable[..., Any] | None = None,
-    stack: tuple[tuple[str | None, str], ...] = (),
 ) -> SceneIR:
-    """``scene`` with every ``continue:`` resolved (see the module docstring).
+    """``scene`` (already world-lowered) with every ``continue:`` resolved.
 
     ``project_dir`` is where a sibling scene file is read from (default: the
-    mall's ``scenes`` store root); ``read_scene`` and ``compile_shot`` are the
-    loader and compiler (:func:`an.ir.sync.read_scene`,
-    :func:`an.stage.compile.compile_shot`); ``stack`` the ``(file, shot)``
-    sources being resolved above this call, for the cycle check. A scene
-    without ``continue:`` comes back as it is.
+    mall's ``scenes`` store's :attr:`~an.stores.scenes.ScenesStore.project_dir`).
+    The seams: ``read_scene`` (:func:`an.ir.sync.read_scene`), ``lower_world``
+    (``(scene, mall, *, fps) -> scene``, :func:`an.stage.world.lower_scene_world`)
+    and ``compile_shot`` (:func:`an.stage.compile.compile_shot`). Each source
+    is resolved once, and only the shots a continuation needs are: a sibling
+    file's other shots are not compiled. A scene without ``continue:`` comes
+    back as it is.
     """
     if not any(s.continue_from for s in scene.timeline):
         return scene
     from an.ir.sync import read_scene as _read
     from an.stage.compile import compile_shot as _compile
+    from an.stage.world import lower_scene_world
 
     read_scene = read_scene or _read
     compile_shot = compile_shot or _compile
+    lower_world = lower_world or lower_scene_world
     rate = float(fps if fps is not None else scene.meta.fps)
     root = project_dir if project_dir is not None else _project_dir(mall)
-    timeline = list(scene.timeline)
-    resolved: set[int] = set()
+    scenes: dict[FileKey, SceneIR] = {None: scene}
+    done: dict[tuple[FileKey, int], Shot] = {}
 
-    def source_of(index: int, stack: tuple) -> tuple[Shot, SceneIR]:
-        shot = timeline[index]
-        file, sid = parse_continue(shot.continue_from)
-        key = (file, sid)
-        if key in stack:
-            chain = " -> ".join(
-                f"{f or ''}{CONTINUE_SEPARATOR}{s}" for f, s in (*stack, key)
-            )
-            raise ContinuityError(
-                f"shot {shot.id!r}: `continue: {shot.continue_from}` closes a cycle ({chain})"
-            )
-        if file is None:
-            j = next((k for k, s in enumerate(timeline) if s.id == sid), None)
-            if j is None or j == index:
-                raise ContinuityError(
-                    f"shot {shot.id!r}: `continue: {sid}` names no other shot of this "
-                    f"scene (its shots: {[s.id for s in timeline]})"
-                )
-            if timeline[j].continue_from and j not in resolved:
-                resolve(j, (*stack, key))
-            return timeline[j], scene
+    def load(file: FileKey, *, asked_by: str) -> SceneIR:
+        if file in scenes:
+            return scenes[file]
         if root is None:
             raise ContinuityError(
-                f"shot {shot.id!r}: `continue: {file}{CONTINUE_SEPARATOR}{sid}` reads "
-                "a sibling scene file, and no project folder is known"
+                f"shot {asked_by!r} continues a shot of {file!r}, a sibling scene "
+                "file, and no project folder is known",
+                shot=asked_by,
             )
         try:
             other = read_scene(Path(root), file)
         except Exception as e:  # noqa: BLE001 — named, not swallowed
             raise ContinuityError(
-                f"shot {shot.id!r}: scene file {file!r} cannot be read ({e})"
+                f"shot {asked_by!r}: scene file {file!r} cannot be read ({e})",
+                shot=asked_by,
             ) from e
-        from an.stage.world import lower_scene
+        scenes[file] = lower_world(other, mall, fps=rate)
+        return scenes[file]
 
-        other = lower_scene(other, mall, fps=rate, continue_stack=(*stack, key)).scene
-        match = next((s for s in other.timeline if s.id == sid), None)
-        if match is None:
-            raise ContinuityError(
-                f"shot {shot.id!r}: {file!r} has no shot {sid!r} "
-                f"(its shots: {[s.id for s in other.timeline]})"
+    def where(file: FileKey) -> str:
+        return "this scene" if file is None else repr(file)
+
+    def resolved(file: FileKey, index: int, stack: tuple) -> Shot:
+        key = (file, index)
+        if key in done:
+            return done[key]
+        owner = load(file, asked_by="?")
+        shot = owner.timeline[index]
+        if key in stack:
+            chain = " -> ".join(
+                f"{f or ''}{CONTINUE_SEPARATOR}{scenes[f].timeline[i].id}"
+                for f, i in (*stack, key)
             )
-        return match, other
+            raise ContinuityError(
+                f"shot {shot.id!r}: `continue:` closes a cycle ({chain})", shot=shot.id
+            )
+        if shot.continue_from:
+            shot = carried(file, index, shot, (*stack, key))
+        done[key] = shot
+        return shot
 
-    def resolve(index: int, stack: tuple) -> None:
-        shot = timeline[index]
-        source, owner = source_of(index, stack)
+    def carried(file: FileKey, index: int, shot: Shot, stack: tuple) -> Shot:
+        src_file, sid = parse_continue(shot.continue_from)
+        src_file = file if src_file is None else src_file
+        owner = load(src_file, asked_by=shot.id)
+        j = next((k for k, s in enumerate(owner.timeline) if s.id == sid), None)
+        if j is None:
+            raise ContinuityError(
+                f"shot {shot.id!r}: `continue: {shot.continue_from}` names no shot "
+                f"of {where(src_file)} (its shots: {[s.id for s in owner.timeline]})",
+                shot=shot.id,
+            )
+        source = resolved(src_file, j, stack)
         shared = [
             e.id for e in shot.entities if e.id in {s.id for s in source.entities}
         ]
@@ -258,19 +338,32 @@ def continue_shots(
                 )
         except Exception as e:  # noqa: BLE001 — the source's own error, named here
             raise ContinuityError(
-                f"shot {shot.id!r} continues {source.id!r}, which does not compile ({e})"
+                f"shot {shot.id!r} continues {source.id!r} of {where(src_file)}, "
+                f"which does not compile ({e})",
+                shot=shot.id,
             ) from e
-        ends = end_states(doc, shared, at=float(source.duration))
-        timeline[index] = _carried(shot, ends, fps=rate)
-        resolved.add(index)
+        world = scenes[file].world
+        members = {m.id for m in world.members} if world is not None else set()
+        across = (
+            shot.viewpoint is not None
+            and source.viewpoint is not None
+            and _viewpoint_key(shot) != _viewpoint_key(source)
+        )
+        return _carried(
+            shot,
+            end_states(doc, shared, at=float(source.duration)),
+            fps=rate,
+            placed_by_world=frozenset(members if across else ()),
+        )
 
-    for i, shot in enumerate(timeline):
-        if shot.continue_from and i not in resolved:
-            resolve(i, stack)
+    timeline = [
+        resolved(None, i, ()) if s.continue_from else s
+        for i, s in enumerate(scene.timeline)
+    ]
     return scene.model_copy(update={"timeline": timeline})
 
 
 def _project_dir(mall: Mapping[str, Any] | None) -> Path | None:
-    """The project folder a mall was built over: its ``scenes`` store's root."""
-    root = getattr((mall or {}).get("scenes"), "_root", None)
+    """The project folder a mall was built over, from its ``scenes`` store."""
+    root = getattr((mall or {}).get("scenes"), "project_dir", None)
     return Path(root) if root is not None else None

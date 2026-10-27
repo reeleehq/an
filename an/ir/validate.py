@@ -1472,6 +1472,7 @@ def validate_semantic(
     available_library_lock: Mapping[str, Any] | None = None,
     available_styles: Mapping[str, Any] | None = None,
     available_recordings: Mapping[str, Any] | None = None,
+    available_scenes: Mapping[str, Any] | None = None,
     only: "Collection[str] | None" = None,
     fps: float | None = None,
 ) -> ValidationReport:
@@ -1499,6 +1500,11 @@ def validate_semantic(
     against the lockfile (``warning`` on disagreement) and every pinned
     check-out against its library version (``info`` when it has been edited).
 
+    ``available_scenes`` is the project's scenes store (``mall["scenes"]``):
+    its project folder is where a ``continue: <scene file>#<shot>`` reads the
+    sibling scene file from (an#542). Without it, such a continuation is an
+    error naming the missing folder.
+
     The checks are a REGISTRY (:func:`an.genres.registry.register_check`):
     the core's own register below, a genre's when it is loaded (the cut-out
     genre's `play`, `expression`, turn and view checks), and they run in
@@ -1524,6 +1530,7 @@ def validate_semantic(
                 ("environments", available_environments),
                 ("styles", available_styles),
                 ("recordings", available_recordings),
+                ("scenes", available_scenes),
             )
             if store is not None
         },
@@ -1544,12 +1551,8 @@ def validate_semantic(
     for check in selected("scene"):
         _run_check(check, ctx)
     if has_world(scene) or any(s.continue_from for s in scene.timeline):
-        from an.continuity import ContinuityError
-
         try:
             ctx.lowered = _lowered(ctx)
-        except ContinuityError as e:  # an#542: a `continue:` that cannot resolve
-            ctx.report.add("error", "timeline", str(e))
         except WorldError as e:
             ctx.report.add("error", "world", str(e))
         except Exception as e:  # noqa: BLE001 — a finding, never a traceback (ADR 0009)
@@ -1562,6 +1565,7 @@ def validate_semantic(
         for check in selected("shot"):
             _run_check(check, ctx)
         _name_authored_entities(ctx, i, first)
+        _name_authored_actions(ctx, i, first)
     ctx.shot = ctx.index = None
     for check in selected("finish"):
         _run_check(check, ctx)
@@ -1569,6 +1573,30 @@ def validate_semantic(
 
 
 _ENTITY_PATH_RE = re.compile(r"^(timeline/(\d+)/entities)/(\d+)(.*)$")
+
+
+_ACTION_PATH_RE = re.compile(r"^(timeline/(\d+))/actions/(\d+)(.*)$")
+
+
+def _name_authored_actions(ctx: ValidationContext, index: int, first: int) -> None:
+    """A continued shot (an#542) carries its opening ``set``s in front of the
+    author's actions: rewrite ``timeline/<i>/actions/<k>`` in the findings
+    added since ``first`` to the author's index, or to the shot's
+    ``continue_from`` for a carried one (its line is the ``continue:``)."""
+    lowered = ctx.lowered
+    carried = lowered.carried.get(index, 0) if lowered is not None else 0
+    if not carried:
+        return
+    for finding in ctx.report.findings[first:]:
+        m = _ACTION_PATH_RE.match(finding.ir_path)
+        if m is None or int(m.group(2)) != index:
+            continue
+        k = int(m.group(3))
+        finding.ir_path = (
+            f"{m.group(1)}/continue_from"
+            if k < carried
+            else f"{m.group(1)}/actions/{k - carried}{m.group(4)}"
+        )
 
 
 def _name_authored_entities(ctx: ValidationContext, index: int, first: int) -> None:
@@ -1596,16 +1624,34 @@ def _name_authored_entities(ctx: ValidationContext, index: int, first: int) -> N
 
 
 def _lowered(ctx: ValidationContext) -> Any:
-    """The scene lowered through its world (ADR 0009), computed once. The
+    """The scene lowered through its world (ADR 0009) and its continuations
+    (an#542), computed once; a continuation that cannot resolve is reported
+    at its shot and leaves the world-lowered scene. The
     stage measures the members' extents by compiling each one's specimen; a
     stand-in's warnings are the compile's own, not this read's."""
     import warnings
 
     from an.stage.world import lower_scene
 
+    from an.continuity import ContinuityError
+    from an.stage.world import with_continues
+
+    fps = ctx.memo.get(_RENDER_FPS)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        return lower_scene(ctx.scene, ctx.stores, fps=ctx.memo.get(_RENDER_FPS))
+        lowered = lower_scene(ctx.scene, ctx.stores, fps=fps, continues=False)
+        try:
+            return with_continues(lowered, ctx.stores, fps=fps)
+        except (
+            ContinuityError
+        ) as e:  # an#542: reported at the shot; the world's checks still run
+            shot = getattr(e, "shot", None)
+            index = next(
+                (i for i, s in enumerate(ctx.scene.timeline) if s.id == shot), None
+            )
+            path = "timeline" if index is None else f"timeline/{index}/continue_from"
+            ctx.report.add("error", path, str(e))
+            return lowered
 
 
 def _run_check(check: Any, ctx: ValidationContext) -> None:

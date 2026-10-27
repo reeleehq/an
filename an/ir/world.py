@@ -1821,6 +1821,10 @@ class Lowered:
     scene: SceneIR
     notes: list[WorldNote] = field(default_factory=list)
     origins: dict[int, list[int | None]] = field(default_factory=dict)
+    #: Per continued shot (an#542), how many actions its ``continue:`` put
+    #: before the author's, so a finding's ``actions/<k>`` can name the
+    #: author's line.
+    carried: dict[int, int] = field(default_factory=dict)
 
     def notes_for(self, index: int) -> list[WorldNote]:
         return [n for n in self.notes if n.index == index]
