@@ -221,3 +221,62 @@ def test_seeking_back_restores_the_first_drawing():
         ]
     )
     assert node_json(script) == {"swapped": True, "restored": True}
+
+
+# --- an#609 -------------------------------------------------------------------------
+
+
+def test_a_boil_out_of_step_with_the_poses_is_warned():
+    shot = Shot(
+        id="s",
+        duration=0.5,
+        entities=[AssetRef(kind="prop", id="route", store="props", ref="route")],
+    )
+    mall = {"props": {"route": {**ROUTE, "boil_hz": 12}}}
+    from an.stage.compile import CutoutCompileWarning
+
+    with pytest.warns(CutoutCompileWarning, match="read as a stutter"):
+        compile_shot(shot, mall, fps=24, width=320, height=240, step_hz=8)
+    import warnings
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")  # on 6s, a 12 Hz boil steps with the poses
+        compile_shot(shot, mall, fps=24, width=320, height=240, step_hz=6)
+
+
+def test_an_authored_boil_action_is_refused_by_naming_boil_hz():
+    from an.ir.compose import set_
+    from an.stage.compile import CutoutCompileError
+
+    shot = Shot(
+        id="s",
+        duration=0.5,
+        entities=[AssetRef(kind="prop", id="route", store="props", ref="route")],
+        actions=[set_("route", BOIL_SET, "1", at=0.0)],
+    )
+    with pytest.raises(CutoutCompileError, match="compiled from its `boil_hz`"):
+        compile_shot(
+            shot,
+            {"props": {"route": {**ROUTE, "boil_hz": 12}}},
+            fps=24,
+            width=320,
+            height=240,
+        )
+
+
+def test_a_boil_action_on_something_that_is_not_a_path_gets_the_ordinary_refusal():
+    from an.ir.compose import set_
+    from an.stage.compile import CutoutCompileError
+
+    shot = Shot(
+        id="s",
+        duration=0.5,
+        entities=[
+            AssetRef(kind="environment", id="set", store="environments", ref="e")
+        ],
+        actions=[set_("set", BOIL_SET, "1", at=0.0)],
+    )
+    env = {"kind": "EnvironmentDescriptor", "name": "e", "planes": [{"name": "sky"}]}
+    with pytest.raises(CutoutCompileError) as err:
+        compile_shot(shot, {"environments": {"e": env}}, fps=24, width=320, height=240)
+    assert "boil_hz" not in str(err.value)

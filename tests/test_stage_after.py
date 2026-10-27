@@ -227,3 +227,37 @@ def test_a_path_indexed_twice_is_refused_at_compile():
     shot = _shot(_prop("disc", "set/sky"), _prop("set__band_1"))
     with pytest.raises(CutoutCompileError, match="twice"):
         _compile(shot, mall)
+
+
+def test_two_parallax_clips_whose_ids_read_alike_both_compile():
+    """an#609: environment `a` plane `b_c` and environment `a_b` plane `c` join
+    to one synthetic id; the second takes `~2` instead of refusing the scene,
+    and both planes move."""
+    from an.stage.timeline import timeline_from_scene
+    from an.timing import evaluate_timeline
+
+    def env(plane):
+        return {"kind": "EnvironmentDescriptor", "name": plane, "planes": [
+            {"name": plane, "art": {"kind": "fill", "color": "#102040"}, "depth": 0.25}]}  # fmt: skip
+
+    shot = Shot(
+        id="s",
+        renderer="stage",
+        duration=1.0,
+        camera=Camera(keys=[CameraKey(at=0.0, x=0.0), CameraKey(at=1.0, x=100.0)]),
+        entities=[
+            AssetRef(kind="environment", id="a", store="environments", ref="e1"),
+            AssetRef(kind="environment", id="a_b", store="environments", ref="e2"),
+        ],
+    )
+    doc = compile_shot(
+        shot,
+        {"environments": {"e1": env("b_c"), "e2": env("c")}},
+        fps=24,
+        width=320,
+        height=240,
+    )
+    ids = sorted(a for a in doc.animations if a.startswith("__parallax__"))
+    assert ids == ["__parallax__s_a_b_c_x", "__parallax__s_a_b_c_x~2"]
+    pose = evaluate_timeline(timeline_from_scene(doc), 0.5)
+    assert pose[("a/b_c", "x")] == pose[("a_b/c", "x")] != 0.0

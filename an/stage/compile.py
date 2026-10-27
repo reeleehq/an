@@ -1118,6 +1118,22 @@ def _boiling_paths(state: CompileState) -> dict[str, float]:
     return out
 
 
+def _in_step(a: float, b: float) -> bool:
+    """Whether rates ``a`` and ``b`` step together: one a whole multiple of the other.
+
+    >>> _in_step(12, 6), _in_step(12, 8), _in_step(4, 12)
+    (True, False, True)
+    """
+    hi, lo = max(a, b), min(a, b)
+    ratio = hi / lo
+    return abs(ratio - round(ratio)) <= _BOIL_STEP_EPS * ratio
+
+
+def _is_path_entity(entity_id: str, vocab: Any) -> bool:
+    """Whether ``entity_id``'s node draws a stroked path (its refusals name paths)."""
+    return entity_id in (getattr(vocab, "path_nodes", None) or ())
+
+
 def _boil_pass(state: CompileState) -> None:
     """A boiling path's drawing, stepped (an#443): one ``boil`` channel per
     path node that carries drawings, stepping through them at its rate, which
@@ -1137,16 +1153,26 @@ def _boil_pass(state: CompileState) -> None:
                 f"`boil_hz: {state.fps}` (on ones); `{state.fps / 2:g}` is on twos."
             )
         keys = boil_keys(hz, len(v.path.drawings) + 1, duration)
+        if state.step_hz and not _in_step(hz, float(state.step_hz)):
+            warnings.warn(
+                f"shot {state.shot.id!r}: path {node.name!r} boils at {hz:g} Hz and the "
+                f"shot's poses step at {state.step_hz:g} Hz, on no common grid: the two "
+                "beat against each other and read as a stutter. Boil at a multiple or a "
+                f"divisor of {state.step_hz:g} (`boil_hz: {state.step_hz:g}`).",
+                CutoutCompileWarning,
+                stacklevel=2,
+            )
         if len(keys) < 2:
             warnings.warn(
                 f"shot {state.shot.id!r}: path {node.name!r} boils at {hz:g} Hz, once "
                 f"every {1 / hz:g} s, and the shot is {duration:g} s long: it never "
                 "steps to its next drawing.",
+                CutoutCompileWarning,
                 stacklevel=2,
             )
-        anim_id = f"__boil__{state.shot.id}_{path.replace('/', '_')}"
-        if anim_id in state.animations:
-            raise CutoutCompileError(f"boil clip id {anim_id!r} is already taken")
+        anim_id = _fresh_clip_id(
+            f"__boil__{state.shot.id}_{path.replace('/', '_')}", state.animations
+        )
         state.animations[anim_id] = AnimationClipJSON(
             name=anim_id,
             duration=duration,
@@ -2481,7 +2507,9 @@ def _add_parallax_clips(
                         f"its `{prop}`; animate the entity inside it instead."
                     )
                 _add_compensation_clip(
-                    f"__parallax__{shot.id}_{band.wrapper}_{prop}",
+                    _fresh_clip_id(
+                        f"__parallax__{shot.id}_{band.wrapper}_{prop}", animations
+                    ),
                     band.wrapper,
                     prop,
                     keys,
@@ -2530,7 +2558,9 @@ def _emit_plane_compensation(
                     "move the action to a child node."
                 )
             _add_compensation_clip(
-                f"__parallax__{shot_id}_{entity_id}_{plane.name}_{prop}",
+                _fresh_clip_id(
+                    f"__parallax__{shot_id}_{entity_id}_{plane.name}_{prop}", animations
+                ),
                 target,
                 prop,
                 keys,
@@ -2539,6 +2569,25 @@ def _emit_plane_compensation(
                 animations,
                 tracks,
             )
+
+
+def _fresh_clip_id(base: str, animations: Mapping[str, Any]) -> str:
+    """``base``, or ``base~2``, ``base~3``... when a synthetic clip already took
+    it (an#609): two parallax clips whose names read alike once joined by
+    underscores (environment ``a`` plane ``b_c``, environment ``a_b`` plane
+    ``c``) are two clips, not a refused scene. The first keeps the bare id, so
+    every id that compiled before is unchanged. (A boil clip is named by its
+    unique entity id and cannot collide; it asks too, as a backstop.)
+
+    >>> _fresh_clip_id("p", {}), _fresh_clip_id("p", {"p": 0, "p~2": 0})
+    ('p', 'p~3')
+    """
+    if base not in animations:
+        return base
+    n = 2
+    while f"{base}~{n}" in animations:
+        n += 1
+    return f"{base}~{n}"
 
 
 def _add_compensation_clip(
@@ -3997,6 +4046,13 @@ def _check_swap_action(
                     declared_sets[set_name] = declared_sets[set_name] | frozenset(
                         key_map
                     )
+        if not declared_sets and prop == BOIL_SET and _is_path_entity(entity_id, vocab):
+            raise CutoutCompileError(
+                f"action targets {target!r}:{prop!r}: `{BOIL_SET}` is a boiling path's "
+                "own channel, compiled from its `boil_hz` (an#443), not one an action "
+                "sets. Set `boil_hz` on the path (`overrides: {boil_hz: 0}` keeps one "
+                "shot's line still)."
+            )
         if not declared_sets:
             raise CutoutCompileError(
                 f"action targets {target!r}:{prop!r}, which is not a transform "
