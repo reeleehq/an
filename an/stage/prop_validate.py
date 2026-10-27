@@ -54,7 +54,11 @@ def _art_file_problems(file: Path) -> list[str]:
     self-contained (one rule, both commands)."""
     from an.ir.validate import _svg_self_containment_problems
 
-    return _svg_self_containment_problems(file) if file.is_file() else ["is not in the folder"]
+    return (
+        _svg_self_containment_problems(file)
+        if file.is_file()
+        else ["is not in the folder"]
+    )
 
 
 def validate_prop(
