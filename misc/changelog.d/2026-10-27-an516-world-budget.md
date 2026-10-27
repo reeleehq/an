@@ -1,0 +1,1 @@
+- A travel past its `max_actions` stops fitting as soon as a running lower bound of its actions crosses the budget, instead of fitting every pass first (an#516, slice B).

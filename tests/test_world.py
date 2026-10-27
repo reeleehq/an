@@ -1339,3 +1339,26 @@ def test_screen_direction_skips_an_entity_unseen_on_a_side(tmp_path):
 
     assert swaps(), "seen on both sides: the swap is reported"
     assert swaps(SetAction(target="left", property="alpha", value=0.0, at=0.0)) == []
+
+
+def test_a_travel_past_its_budget_stops_fitting_early(monkeypatch):
+    """S9: the budget is counted as passes are fitted, so a refused road stops
+    fitting once it is past, instead of fitting every pass first."""
+    import an.ir.world as world_mod
+
+    calls = []
+    real = world_mod._fit_pass
+
+    def counting(*a, **k):
+        calls.append(1)
+        return real(*a, **k)
+
+    monkeypatch.setattr(world_mod, "_fit_pass", counting)
+    scene = _travel_scene(Shot(id="s1", duration=6.0, viewpoint="road"))
+    lower_world(scene, extents=EXTENTS)
+    every = len(calls)
+    calls.clear()
+    scene.world.travel = scene.world.travel.model_copy(update={"max_actions": 20})
+    with pytest.raises(WorldError, match="at least .* actions, already past"):
+        lower_world(scene, extents=EXTENTS)
+    assert 0 < len(calls) < every / 2, (len(calls), every)

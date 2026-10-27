@@ -1054,6 +1054,8 @@ def _travel_entities(
     actions: list[Any] = []
     problems: list[tuple[str, str]] = []
     skipped = set(skip)
+    budget = int(travel.max_actions)
+    spent = 0  # a lower bound of the actions fitted so far (an#516, S9)
     for stream in travel.streams:
         box = extents.get(stream.id)
         m = _unit_scale(stream, box, where=f"stream {stream.id!r}")
@@ -1150,6 +1152,13 @@ def _travel_entities(
             if fitted is None:
                 continue  # never on screen during this shot
             passes.setdefault(k % slots, []).append((k, fitted, depth0))
+            spent += _pass_cost(fitted, duration=duration)
+            if spent > budget:  # stop fitting: the rest can only add
+                raise WorldError(
+                    _over_budget(
+                        f"at least {spent} actions, already", travel, duration=duration
+                    )
+                )
         for slot in sorted(passes):
             entity_id = f"{stream.id}_{slot}"
             if entity_id in skipped:
@@ -1190,16 +1199,33 @@ def _travel_entities(
             actions.extend(
                 _pass_actions(entity_id, [p for _, p, _ in ordered], duration=duration)
             )
-    budget = int(travel.max_actions)
     if len(actions) > budget:
         raise WorldError(
-            f"this shot's travel lowers to {len(actions)} actions for "
-            f"{len(entities)} stream entities, past the travel's `max_actions` "
-            f"({budget}). Space the streams further apart (`every`), bring `far` "
-            f"in ({travel.far:g}), raise `tolerance_px` ({travel.tolerance_px:g}), "
-            f"cut the shot ({duration:g} s), or raise `max_actions` knowingly."
+            _over_budget(
+                f"{len(actions)} actions for {len(entities)} stream entities, which is",
+                travel,
+                duration=duration,
+            )
         )
     return entities, actions, problems
+
+
+def _pass_cost(p: _Pass, *, duration: float) -> int:
+    """The actions one pass adds to its slot, not counting the hide before a
+    slot's first pass (one per slot): a lower bound, so a running total of
+    them refuses only what the full count would."""
+    return len(_pass_actions("_", [p], duration=duration)) - (1 if p.t_in > 0 else 0)
+
+
+def _over_budget(spent: str, travel: Travel, *, duration: float) -> str:
+    """The refusal of a travel past its ``max_actions``, with its levers."""
+    return (
+        f"this shot's travel lowers to {spent} past the travel's `max_actions` "
+        f"({int(travel.max_actions)}). Space the streams further apart (`every`), "
+        f"bring `far` in ({travel.far:g}), raise `tolerance_px` "
+        f"({travel.tolerance_px:g}), cut the shot ({duration:g} s), or raise "
+        "`max_actions` knowingly."
+    )
 
 
 # --- frames: actions on frame channels, members in motion ------------------------
