@@ -1,0 +1,1 @@
+- A render, `an voices design` and `an voices audition` warn once, before anything is billed, when the installed `mixing` is older than `MIN_MIXING` (0.0.72) or absent (`MixingTooOldWarning`, an#644).

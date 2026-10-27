@@ -80,3 +80,44 @@ def test_a_mixing_that_is_absent_or_broken_is_not_called_too_old(monkeypatch):
             raise ImportError(
                 "cannot import name 'part' from 'mixing' (x.py)", name="mixing"
             )
+
+
+@pytest.mark.parametrize(
+    "entry", ["an.render:render_project", "an.audio.voice_design:design_project_voices",
+              "an.audio.voice_design:audition_project_voices"],
+)
+def test_an_old_mixing_is_said_once_before_anything_is_billed(monkeypatch, tmp_path, entry):
+    """an#644: the entry points that may bill warn first, once per process,
+    when the installed mixing is older than MIN_MIXING."""
+    import importlib
+    import importlib.metadata
+    import warnings
+
+    from an.audio import shared_mixing
+
+    module, name = entry.split(":")
+    call = getattr(importlib.import_module(module), name)
+    monkeypatch.setattr(importlib.metadata, "version", lambda dist: "0.0.60")
+    shared_mixing.warn_if_mixing_too_old.cache_clear()
+    try:
+        with pytest.warns(shared_mixing.MixingTooOldWarning, match="0.0.60 is older than"):
+            with pytest.raises(Exception):  # no project here: it fails after the warning
+                call(tmp_path)
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", shared_mixing.MixingTooOldWarning)
+            shared_mixing.warn_if_mixing_too_old()  # said once
+    finally:
+        shared_mixing.warn_if_mixing_too_old.cache_clear()
+
+
+def test_a_missing_or_unversioned_mixing_is_judged_sanely(monkeypatch):
+    import importlib.metadata
+
+    from an.audio.shared_mixing import mixing_version_problem
+
+    def absent(name):
+        raise importlib.metadata.PackageNotFoundError(name)
+
+    monkeypatch.setattr(importlib.metadata, "version", absent)
+    assert "not installed" in mixing_version_problem()
+    assert mixing_version_problem(installed="local") is None

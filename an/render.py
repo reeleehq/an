@@ -280,6 +280,9 @@ def render_project(
 
     Returns the absolute path of the final output file (under ``output/``).
     """
+    from an.audio.shared_mixing import warn_if_mixing_too_old
+
+    warn_if_mixing_too_old()  # before anything is synthesized (an#644)
     resolved = resolve_scene_file(project_dir, scene_file)
     output_name = resolved.output_for(output_name)
     project: Project = load(project_dir, scene_file=resolved)

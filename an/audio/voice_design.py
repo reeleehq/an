@@ -96,6 +96,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from an.audio.shared_mixing import warn_if_mixing_too_old
 from an.ir.sync import DEFAULT_SCENE_FILE
 
 __all__ = [
@@ -1420,6 +1421,7 @@ def design_project_voices(
     """
     from an.ir.sync import resolve_scene_file
 
+    warn_if_mixing_too_old()  # before anything is billed (an#644)
     # A scene file named and not there is a refusal, not "no lines" (an#554).
     scene_file = resolve_scene_file(project_dir, scene_file)
     voices, options, samples = _project_stores(project_dir)
@@ -1453,7 +1455,9 @@ def design_project_voices(
         # Reels an audition recorded while this design ran are kept (an#587).
         with options.locked(ref):
             if isinstance(stored := _previous_entries(options).get(ref), Mapping):
-                _carry_reels(stored, entry)  # a damaged one is replaced: it was paid for
+                _carry_reels(
+                    stored, entry
+                )  # a damaged one is replaced: it was paid for
             options[ref] = entry
     return manifest
 
@@ -1654,6 +1658,7 @@ def audition_project_voices(
     from an.audio.providers import make_tts
     from an.ir.sync import resolve_scene_file
 
+    warn_if_mixing_too_old()  # before anything is billed (an#644)
     sf = resolve_scene_file(project_dir, scene_file)
     tts = tts if tts is not None else make_tts(DESIGN_PROVIDER)
     _, manifests, _ = _project_stores(project_dir)
