@@ -473,3 +473,33 @@ def test_the_pre_per_scene_fields_are_only_the_default_scenes_while_they_are_its
     later = {**legacy, "audition_path": "artifacts/voice_auditions/scenes/scene.b/j_A.wav",
              "auditions": {"scene.b.md": {"audition": "j_A", "audition_key": "k2"}}}
     assert _scene_record(later, default) is None  # the top level is scene b's now
+
+
+def test_a_manifest_from_before_per_scene_records_keeps_the_default_scenes_reel(tmp_path):
+    """an#571 review: running scene b first must not make scene.md pay again for its old reel."""
+    from an.ir.schema import Meta, SceneIR
+    from an.stores import build_project_mall
+
+    root = _project(tmp_path, _shot("a", 10.0))
+    one = _shot("a", 10.0)
+    one.dialogue = [Dialogue(speaker="x", text="First scene.", voice_ref="jerry")]
+    _set_shots(root, one)
+    other = _shot("a", 10.0)
+    other.dialogue = [Dialogue(speaker="x", text="Scene b.", voice_ref="jerry")]
+    build_project_mall(root, ensure=True, scene_file="scene.b.md")["scenes"]["main"] = SceneIR(
+        meta=Meta(title="B"), timeline=[other]
+    )
+    mall = load(root).mall
+    mall["voices"]["jerry"] = {"provider": "elevenlabs", "model_id": "eleven_v3", "notes": NOTES,
+                               "library": {"accent": "irish"}}
+    design_project_voices(root, designer=FakeDesigner(n=1), library=FakeLibrary(n=1))
+    tts = FakeTTS(seconds=0.25)
+    audition_project_voices(root, ["jerry"], tts=tts, options=["L1"], announce=None)
+    path = Path(root) / "artifacts" / "voice_options" / "jerry.json"
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    for o in manifest["options"]:
+        o.pop("auditions", None)  # the manifest as an older build wrote it
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+    audition_project_voices(root, ["jerry"], tts=tts, options=["L1"], announce=None, scene_file="scene.b.md")
+    audition_project_voices(root, ["jerry"], tts=tts, options=["L1"], announce=None)
+    assert len(tts.requests) == 2  # scene.md's reel from the old manifest was a hit
