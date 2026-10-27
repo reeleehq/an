@@ -1387,6 +1387,11 @@ _PaintKeys = dict[str, list[tuple[float, _PaintKey]]]
 #: far two rates may differ and still be one (float noise only; an#658).
 _ALIKE_TOLERANCE: float = 1e-9
 
+#: Seconds: two times the paint keys change that are closer than this are one
+#: (float noise, as a crossing computed at 0.9999999999999999 beside a pass
+#: beginning at 1.0; an#658).
+_BREAKPOINT_TOLERANCE: float = 1e-9
+
 
 def _rest_paint_keys(
     rest: Mapping[str, _PaintKey],
@@ -1504,9 +1509,13 @@ def _slot_pieces(
 
 
 def _piece_crossings(a: _DepthPiece, b: _DepthPiece, *, near: float) -> list[float]:
-    """The times ``a`` and ``b`` swap depth, where both are defined and in
-    front of the camera (``near`` or deeper): exact between knots, each being
-    linear there.
+    """The times ``a`` and ``b`` swap depth where both are defined, exact
+    between knots, each being linear there: where one crosses the other, comes
+    level with it, or leaves a tie with it (a tie that then splits is keyed
+    from the split, not by the tiebreak). A crossing behind the camera counts
+    too (two receding entities emerge in front in the swapped order); only
+    when both stay nearer than ``near`` over the whole span they share, so
+    neither is ever seen, are there none.
 
     >>> line = _DepthPiece(0.0, 4.0, (0.0, 4.0), (10.0, 2.0))
     >>> _piece_crossings(line, _DepthPiece(0.0, 4.0, (0.0, 4.0), (5.0, 5.0)), near=0.5)
@@ -1518,17 +1527,18 @@ def _piece_crossings(a: _DepthPiece, b: _DepthPiece, *, near: float) -> list[flo
     if min(a.depths) > max(b.depths) or min(b.depths) > max(a.depths):
         return []
     times = sorted({lo, hi, *(t for t in (*a.times, *b.times) if lo < t < hi)})
-    diffs = [a.at(t) - b.at(t) for t in times]
+    pairs = [(a.at(t), b.at(t)) for t in times]
+    if all(da < near and db < near for da, db in pairs):
+        return []
+    diffs = [da - db for da, db in pairs]
     out: list[float] = []
     for (t0, d0), (t1, d1) in zip(zip(times, diffs), zip(times[1:], diffs[1:])):
         if d0 * d1 < 0.0:
-            t = t0 + (t1 - t0) * d0 / (d0 - d1)
-        elif d1 == 0.0 and t1 < hi and d0 != 0.0:
-            t = t1
-        else:
-            continue
-        if a.at(t) >= near:
-            out.append(t)
+            out.append(t0 + (t1 - t0) * d0 / (d0 - d1))
+        elif d1 == 0.0 and d0 != 0.0 and t1 < hi:  # comes level
+            out.append(t1)
+        elif d0 == 0.0 and d1 != 0.0 and t0 > lo:  # a tie splits
+            out.append(t0)
     return out
 
 
@@ -1542,8 +1552,9 @@ def _depth_paint_keys(
     the pieces tiling the shot) keyed, in each stretch between two
     consecutive times any two of them swap depth or a piece begins, at its
     depth at the stretch's middle (an#658): within a stretch no two swap, so
-    keys read at one instant order them for all of it. A key repeats only
-    when it changes (a member at rest has one).
+    keys read at one instant order them for all of it. Times closer than
+    :data:`_BREAKPOINT_TOLERANCE` are one. A key repeats only when it changes
+    (a member at rest has one).
 
     >>> rest = [_DepthPiece(0.0, 4.0, (0.0, 4.0), (5.0, 5.0))]
     >>> pole = [_DepthPiece(0.0, 4.0, (0.0, 4.0), (10.0, 2.0))]
@@ -1559,7 +1570,11 @@ def _depth_paint_keys(
             for pa in curves[a][0]:
                 for pb in curves[b][0]:
                     times.update(_piece_crossings(pa, pb, near=near))
-    starts = sorted(times)
+    starts = [0.0]
+    for t in sorted(times):
+        apart = t - starts[-1] > _BREAKPOINT_TOLERANCE
+        if apart and t < duration - _BREAKPOINT_TOLERANCE:
+            starts.append(t)
     middles = [(t0 + t1) / 2.0 for t0, t1 in zip(starts, [*starts[1:], duration])]
     out: _PaintKeys = {}
     for eid in ids:
@@ -1609,7 +1624,9 @@ def _crossing_paint_keys(
     When everything that moves moves alike (closed-form passes and movers on
     one line at one rate), the slots and movers keep their opening keys and
     only the members at rest are keyed again, at the crossings
-    (:func:`_rest_paint_keys`). Otherwise (streams at different rates, a rate
+    (:func:`_rest_paint_keys`). A mover's opening key is its depth at 0, as a
+    slot's is, even when it enters view later (its key as placed is its depth
+    as it enters view, which the others' keys are not in terms of). Otherwise (streams at different rates, a rate
     0 among them, a scanned pass, a member walking or turning with the camera)
     every one of them is keyed at its depth in each stretch between swaps
     (:func:`_depth_paint_keys`)."""
@@ -1621,12 +1638,18 @@ def _crossing_paint_keys(
         math.isclose(r, closed[0], rel_tol=_ALIKE_TOLERANCE, abs_tol=_ALIKE_TOLERANCE)
         for r in closed
     ):
-        return _rest_paint_keys(
-            rest,
-            [passes for _, passes in slots]
-            + [[(0.0, movers[mid][0][0], r)] for mid, r in mover_rates.items()],
-            duration=duration,
-        )
+        opening: _PaintKeys = {
+            mid: [(0.0, (1.0, -d[0], k[2]))] for mid, (d, k) in movers.items()
+        }
+        return {
+            **opening,
+            **_rest_paint_keys(
+                rest,
+                [passes for _, passes in slots]
+                + [[(0.0, movers[mid][0][0], r)] for mid, r in mover_rates.items()],
+                duration=duration,
+            ),
+        }
     whole = (0.0, duration)
     curves: dict[str, tuple[Sequence[_DepthPiece], float]] = {
         eid: ([_DepthPiece(*whole, whole, (-k[1], -k[1]))], k[2])

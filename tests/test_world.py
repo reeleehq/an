@@ -1938,3 +1938,98 @@ def test_a_member_moving_with_the_road_passes_one_at_rest(tmp_path, monkeypatch)
         return None
 
     assert ("left", "right") in _assert_painted_far_to_near(tmp_path, scene, depth_of)
+
+
+def test_a_member_entering_view_late_is_keyed_at_its_opening_depth(tmp_path, monkeypatch):
+    """an#658 review: the car backs away (the road recedes), and ``left``
+    stands behind the camera as the shot opens, entering view at about 0.6 s.
+    Its key is its depth at 0 (as every slot's and member's at rest is), not
+    its depth as it enters view, so it stays painted over the poles farther
+    than it for the rest of the shot."""
+    seen = _spy_passes(monkeypatch)
+    scene = _lane(_travel_scene(Shot(id="s1", duration=3.0, viewpoint="road")), 0.2)
+    scene.world.travel = scene.world.travel.model_copy(update={"direction": (0.0, 0.0, -1.0)})
+    left = scene.world.members[0]
+    scene.world.members[0] = left.model_copy(update={"frame": "world", "at": (-0.3, 0.4, -2.0)})
+
+    def depth_of(name: str, t: float) -> float | None:
+        if name == "left":
+            return -2.0 + 4.0 * t
+        if name == "right":
+            return 2.0
+        if name in seen:
+            return _spied_depth(seen, name, t, duration=3.0)
+        return None
+
+    crossed = _assert_painted_far_to_near(tmp_path, scene, depth_of)
+    assert ("left", "right") in crossed, crossed
+
+
+def _key_at(keys: list, t: float) -> tuple:
+    """The paint key in force at ``t`` (the last one recorded at or before it)."""
+    return [k for s, k in keys if s <= t][-1]
+
+
+def _line(lo: float, hi: float, d_lo: float, d_hi: float):
+    from an.ir.world import _DepthPiece
+
+    return _DepthPiece(lo, hi, (lo, hi), (d_lo, d_hi))
+
+
+def test_a_crossing_behind_the_near_plane_still_swaps_the_keys():
+    """an#658 review: ``a`` and ``b`` recede at 2 and 4 per second and cross at
+    0.8 s at depth 0.4, behind the near plane (0.5); they emerge in front with
+    ``b`` the farther, so from there on ``b`` is keyed under ``a``, though the
+    stretch they crossed in (to a third entity's next pass, at 1 s) began
+    before either was visible."""
+    from an.ir.world import _depth_paint_keys
+
+    keys = _depth_paint_keys(
+        {
+            "a": ([_line(0.0, 2.0, -1.2, 2.8)], 0.0),
+            "b": ([_line(0.0, 2.0, -2.8, 5.2)], 1.0),
+            "c": ([_line(0.0, 1.0, 20.0, 20.0), _line(1.0, 2.0, 20.0, 20.0)], 2.0),
+        },
+        duration=2.0,
+        near=0.5,
+    )
+    t = 0.9  # a at 0.6, b at 0.8: both in front of the near plane
+    assert _key_at(keys["b"], t) < _key_at(keys["a"], t)  # b farther, painted first
+
+
+def test_a_tie_that_splits_is_keyed_after_the_split():
+    """an#658 review: ``b`` comes level with ``a`` (at rest at 5) at 1 s, stays
+    level to 2 s, then comes nearer: from 2 s on it is keyed over ``a`` by its
+    depth, not by the tiebreak."""
+    from an.ir.world import _DepthPiece, _depth_paint_keys
+
+    knots = (0.0, 1.0, 2.0, 3.0)
+    keys = _depth_paint_keys(
+        {
+            "a": ([_line(0.0, 3.0, 5.0, 5.0)], 1.0),
+            "b": ([_DepthPiece(0.0, 3.0, knots, (6.0, 5.0, 5.0, 4.0))], 0.0),
+        },
+        duration=3.0,
+        near=0.5,
+    )
+    t = 2.5  # b at 4.5, nearer than a
+    assert _key_at(keys["a"], t) < _key_at(keys["b"], t)  # a painted first
+
+
+def test_breakpoints_a_float_noise_apart_are_one():
+    """an#658 review: a crossing computed at 0.9999999999999999 and a pass
+    beginning at 1.0 are one breakpoint, not a stretch of no length."""
+    from an.ir.world import _depth_paint_keys
+
+    rate = 0.1 + 0.2  # 0.30000000000000004
+    keys = _depth_paint_keys(
+        {
+            "a": ([_line(0.0, 3.0, 0.1, 0.1 + 3.0 * rate)], 0.0),
+            "b": ([_line(0.0, 3.0, 0.1 + rate, 0.1 + rate)], 1.0),
+            "c": ([_line(0.0, 1.0, 20.0, 20.0), _line(1.0, 3.0, 20.0, 20.0)], 2.0),
+        },
+        duration=3.0,
+        near=0.0,
+    )
+    times = sorted({t for ks in keys.values() for t, _ in ks})
+    assert all(t1 - t0 > 1e-6 for t0, t1 in zip(times, times[1:])), times
