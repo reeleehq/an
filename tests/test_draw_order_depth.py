@@ -180,3 +180,26 @@ def test_the_check_is_data_sampled_once_per_member_and_cheap():
     start = time.perf_counter()
     depth_order_problems(painted, times, depths, windows)
     assert time.perf_counter() - start < 2.0  # generous: ~10 ms on a laptop
+
+
+def test_an_attached_member_on_a_moving_host_is_not_checked_against_the_others():
+    """an#510 review: its placed depth is the host's as the shot opens, not where it rides."""
+    from an.ir.schema import Attachment
+    from tests.test_world_frames import _lamp
+
+    scene = _passing(0.8)
+    scene.world.members.append(_lamp("hat", attached=Attachment(to="left")))
+    notes = [
+        n
+        for n in lower_world(scene, extents={**EXTENTS}).notes
+        if n.kind == "draw_order"
+    ]
+    assert all("hat" not in n.message for n in notes)
+
+
+def test_a_crowd_is_summarised_after_the_cap(monkeypatch):
+    import an.ir.world as world
+
+    monkeypatch.setattr(world, "MAX_DEPTH_ORDER_NOTES", 0)
+    (note,) = _notes(_passing(0.8))
+    assert "1 more pairs are painted on the wrong side" in note.message

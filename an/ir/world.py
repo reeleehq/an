@@ -2307,19 +2307,39 @@ def _depth_order_notes(
     depths: dict[str, float | Sequence[float]] = {}
     windows: dict[str, list[tuple[float, float]]] = {}
     boxes: dict[str, Any] = {}
+    # An attached member rides its host (the attachment pass places it, and its
+    # `placed` depth and box are the host's as the shot opens): not examined.
+    riders = {member for member, _ in attached}
     for mid, s in sightings.items():
+        if mid in riders:
+            continue
         depths[mid], boxes[mid] = s.depths, s.boxes
         windows[mid] = [(p.t_in, p.t_out) for p, _ in s.passes]
     for mid, p in placed.items():
-        if mid in depths or p.depth is None or not p.in_frame:
+        if mid in depths or mid in riders or p.depth is None or not p.in_frame:
             continue
         depths[mid], windows[mid] = p.depth, [(0.0, duration)]
         boxes[mid] = p.box if p.box is not None or p.at is None else (*p.at, *p.at)
-    for entity_id, message in depth_order_problems(
+    found = depth_order_problems(
         painted, times, depths, windows, boxes, attached=attached
-    ):
+    )
+    for entity_id, message in found[:MAX_DEPTH_ORDER_NOTES]:
         note("warning", "draw_order", entity_id, message)
+    if len(found) > MAX_DEPTH_ORDER_NOTES:
+        entity_id = found[MAX_DEPTH_ORDER_NOTES][0]
+        note(
+            "warning",
+            "draw_order",
+            entity_id,
+            f"{len(found) - MAX_DEPTH_ORDER_NOTES} more pairs are painted on the "
+            "wrong side of each other in this shot (the first "
+            f"{MAX_DEPTH_ORDER_NOTES} are listed): a crowd passing through itself "
+            "wants a cut, or `stage.after` where the order matters.",
+        )
 
+
+#: Pairs listed per shot; the rest are counted in one closing note.
+MAX_DEPTH_ORDER_NOTES: int = 10
 
 #: A member must be this much nearer (world units) than one painted over it
 #: before it counts as nearer: depth ties and rounding are not an order.
