@@ -4,7 +4,7 @@ The curves, their solvers and the full registry live in the timing kernel
 (:mod:`an.timing.easing`). This module keeps the path every stage caller already
 imports, and it states what the STAGE implements: ``runtime.js`` evaluates the
 legacy names in :data:`an.base.EASING_PRESETS`, a cubic-Bézier control
-4-tuple and ``perspective(k)`` (an#629), nothing else, so :func:`apply_easing`
+4-tuple and ``projective(k)`` (an#629), nothing else, so :func:`apply_easing`
 here refuses any other name. That
 refusal is what ``an validate`` and the compiler use to say "the evaluators know
 this easing" — a curve the kernel knows but the stage runtime does not would
@@ -45,7 +45,7 @@ def apply_easing(spec: EasingSpec | None, t: float) -> float:
     - ``None`` → linear (passthrough)
     - a string preset name (must be a key of ``EASING_FUNCS``)
     - a 4-element sequence of cubic-Bézier control points (the legacy solver)
-    - ``perspective(k)``: a projection of linear motion (an#629)
+    - ``projective(k)``: a projection of linear motion (an#629)
 
     Raises ``ValueError`` for unknown preset names or malformed sequences.
 

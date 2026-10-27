@@ -1038,7 +1038,7 @@ def _fit_pass(
     ``depth`` (the instance's depth at shot time ``t``) is given for a pass
     seen in closed form (the camera translating at a constant velocity, its
     orientation fixed): every channel of ``g`` is then a projection of linear
-    motion, which ``perspective(k)`` draws exactly between the window's two
+    motion, which ``projective(k)`` draws exactly between the window's two
     ends (an#629), so each channel is ONE tween, with no fitting."""
     window = _on_screen_window(
         g, t_in, t_out, box, width=width, height=height, step=min_step
@@ -1047,7 +1047,8 @@ def _fit_pass(
         return None
     t_in, t_out = window
     if depth is not None:
-        ease = f"perspective({depth(t_out) / depth(t_in):.17g})"
+        ratio = depth(t_out) / depth(t_in)
+        ease = "linear" if ratio == 1.0 else f"projective({ratio:.17g})"
         a, b = g(t_in), g(t_out)
         exact = {
             prop: [(t_in, t_out, a[i], b[i], ease)]

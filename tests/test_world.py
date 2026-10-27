@@ -616,7 +616,8 @@ def test_a_lowered_travelling_shot_compiles_and_moves_as_the_world_says(tmp_path
             if exact is None or abs(exact[0]) > W / 2 or abs(exact[1]) > H / 2:
                 continue
             sx, sy = screen_position(doc, entity.id, pose=pose)
-            assert (sx - W / 2, sy - H / 2) == pytest.approx(exact[:2], abs=1.5)
+            # exact (an#629): one projective tween per channel
+            assert (sx - W / 2, sy - H / 2) == pytest.approx(exact[:2], abs=1e-6)
             checked += 1
     assert checked > 20
 
@@ -1415,7 +1416,7 @@ def test_a_travel_is_not_reported_as_solids_through_each_other(tmp_path):
 
 def test_a_closed_form_pass_is_one_perspective_tween_per_channel_and_exact():
     """A point at lateral X, height Y, depth z0 - v·t: its projection is drawn
-    by `perspective(z_out / z_in)` between the window's ends, exactly."""
+    by `projective(z_out / z_in)` between the window's ends, exactly."""
     from an.ir.world import _fit_pass
     from an.timing.easing import apply_easing
 
@@ -1433,7 +1434,7 @@ def test_a_closed_form_pass_is_one_perspective_tween_per_channel_and_exact():
     )  # fmt: skip
     for prop, i in (("x", 0), ("y", 1), ("scale_x", 2)):
         ((ta, tb, va, vb, ease),) = p.channels[prop]
-        assert ease.startswith("perspective(")
+        assert ease.startswith("projective(")
         for k in range(1, 20):
             t = ta + (tb - ta) * k / 20
             drawn = va + (vb - va) * apply_easing(ease, (t - ta) / (tb - ta))

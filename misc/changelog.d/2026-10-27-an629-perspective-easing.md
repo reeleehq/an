@@ -1,1 +1,0 @@
-- `perspective(k)` easing (Python, `runtime.js`, the timing contract 1.17.0) and a travel's closed-form passes lowered to one exact tween per channel with it: a minute of road is about a third of the actions (an#629).

@@ -73,22 +73,24 @@
         return by(u);
     }
 
+    // `easing.py::projective`: a projection f·X/z with X and z linear in time
+    // between its two ends (an#629); k > 0 the depth ratio, end over start.
+    function projectiveCurve(k) {
+        if (!(k > 0) || !isFinite(k)) {
+            throw new Error('projective(k) takes a depth ratio k > 0, got ' + k);
+        }
+        return u => (u > 0 ? u / (u + (1 - u) / k) : 0);
+    }
+
     function applyEasing(spec, t) {
         if (spec == null) return t;
         if (typeof spec === 'string') {
             const fn = EASINGS[spec];
             if (fn) return fn(t);
-            // `perspective(k)` (an#629, `easing.py::perspective`): the one
-            // parametrised call the value-typed rule takes, a projection f·X/z
-            // with X and z linear in time between its two ends.
-            const m = /^\s*perspective\(\s*([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?)\s*\)\s*$/.exec(spec);
-            if (m) {
-                const k = parseFloat(m[1]);
-                if (!(k > 0) || !isFinite(k)) {
-                    throw new Error('perspective(k) takes a depth ratio k > 0, got ' + m[1]);
-                }
-                return k * t / (1 + (k - 1) * t);
-            }
+            // `projective(k)` (an#629, `easing.py::projective`): the one
+            // parametrised call the value-typed rule takes.
+            const m = /^\s*projective\(\s*([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?)\s*\)\s*$/.exec(spec);
+            if (m) return projectiveCurve(parseFloat(m[1]))(t);
             throw new Error('unknown easing: ' + spec);
         }
         if (Array.isArray(spec) && spec.length === 4) {
@@ -1763,20 +1765,16 @@
                         JSON.stringify(parts[0]) + ' is not a whole number');
                 }
                 curve = cssSteps(count, parts.length === 2 ? parts[1] : 'jump-end');
-            } else if (name === 'perspective') {
+            } else if (name === 'projective') {
                 const nums = parseEasingNumbers(args, spec);
                 if (nums.length !== 1) {
                     throw new Error('easing ' + JSON.stringify(spec) +
-                        ': perspective takes 1 number, got ' + nums.length);
+                        ': projective takes 1 number, got ' + nums.length);
                 }
-                const k = nums[0];
-                if (!(k > 0) || !isFinite(k)) {
-                    throw new Error('perspective(k) takes a depth ratio k > 0, got ' + k);
-                }
-                curve = u => k * u / (1 + (k - 1) * u);
+                curve = projectiveCurve(nums[0]);
             } else {
                 throw new Error('unknown easing function ' + JSON.stringify(name) + ' in ' +
-                    JSON.stringify(spec) + '; known: cubic-bezier(), steps(), perspective()');
+                    JSON.stringify(spec) + '; known: cubic-bezier(), steps(), projective()');
             }
         }
         contractCurves.set(spec, curve);

@@ -88,12 +88,13 @@ def _battery() -> list[dict]:
         cases.append(
             {"keyframes": [_kf(0.0, 0.0, easing), _kf(1.0, 10.0)], "kind": "numeric"}
         )
-    # A travelling stream's exact pass (an#629): `perspective(k)` coming closer,
+    # A travelling stream's exact pass (an#629): `projective(k)` coming closer,
     # moving away, and k written with every digit the lowering writes.
     for easing in [
-        "perspective(0.25)",
-        "perspective(3)",
-        "perspective(0.83333333333333337)",
+        "projective(0.25)",
+        "projective(3)",
+        "projective(0.83333333333333337)",
+        "projective(1e-300)",
     ]:
         cases.append(
             {"keyframes": [_kf(0.0, 4.0, easing), _kf(1.0, 900.0)], "kind": "numeric"}
@@ -215,6 +216,7 @@ def _js_results(cases) -> list[list]:
     pieces = [
         _extract_js_block(src, "const EASINGS ="),
         _extract_js_block(src, "function cubicBezier"),
+        _extract_js_block(src, "function projectiveCurve"),
         _extract_js_block(src, "function applyEasing"),
         _extract_js_block(src, "function evaluateChannel"),
     ]
@@ -299,6 +301,7 @@ def test_both_sides_validate_easing_on_non_numeric_segments():
     pieces = [
         _extract_js_block(src, "const EASINGS ="),
         _extract_js_block(src, "function cubicBezier"),
+        _extract_js_block(src, "function projectiveCurve"),
         _extract_js_block(src, "function applyEasing"),
         _extract_js_block(src, "function evaluateChannel"),
     ]
