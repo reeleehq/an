@@ -260,3 +260,68 @@ def test_a_sway_dumps_only_what_differs_from_its_defaults_and_round_trips():
 def test_lag_filter_refuses_a_step_that_is_not_positive():
     with pytest.raises(ValueError, match="dt"):
         lag_filter([0.0, 1.0], lag=0.3, dt=0.0)
+
+
+def test_a_set_that_jumps_the_frame_is_a_cut_not_an_impulse():
+    """an#580: a position step read as an acceleration twitched the riders to the cap."""
+    from an.ir.compose import delay, sequence, set_
+
+    scene = _braking(FrameSway())
+    scene.timeline[0].actions[-1] = sequence(delay(1.0), set_("car", "at_z", 5.0))
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    for t in (0.9, 0.97, 1.0, 1.02, 1.1):
+        assert abs(_rotation_at(shot, "right", t) or 0.0) < 0.01, t
+
+
+def test_the_stencil_slides_off_a_jump_and_is_zero_where_it_cannot():
+    tree = FrameTree(
+        {"car": Frame()},
+        tracks={"car": {"at_z": Track([TrackEvent(1.0, 1.0, to=5.0)])}},
+    )
+    assert tree.jump_times("car") == [1.0]
+    for t in (0.99, 1.0, 1.01):
+        assert tree.acceleration("car", t, dt=0.04) == (0.0, 0.0, 0.0)
+    # No room on either side inside the window: zero, not the step's impulse.
+    assert tree.acceleration("car", 1.0, dt=0.5, within=(0.9, 1.1)) == (0.0, 0.0, 0.0)
+
+
+def test_leaving_a_swaying_frame_settles_as_the_frame_did():
+    from an.ir.reframe import reframe
+
+    scene = _braking(FrameSway(settle=0.4))
+    scene.timeline[0].actions.append(reframe("right", to="world", at=0.5))
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    before = _rotation_at(shot, "right", 0.5)
+    assert abs(before) > 0.1
+    assert abs(_rotation_at(shot, "right", 0.55)) > 0.5 * abs(before)  # not upright at once
+    assert abs(_rotation_at(shot, "right", 1.5)) < 0.1 * abs(before)  # but gone in time
+
+
+def test_the_max_actions_refusal_names_the_sway_leans_it_counted():
+    from an.ir.schema import Travel
+    from an.ir.world import WorldError
+
+    scene = _braking(FrameSway())
+    scene.world.travel = Travel(speed=1.0, max_actions=1)
+    with pytest.raises(WorldError, match="sway leans"):
+        lower_world(scene, extents=EXTENTS)
+
+
+def test_a_tween_from_an_explicit_value_is_a_step_too():
+    tree = FrameTree(
+        {"car": Frame()},
+        tracks={"car": {"at_z": Track([TrackEvent(1.0, 3.0, to=10.0, from_=5.0)])}},
+    )
+    assert tree.jump_times("car") == [1.0]
+    assert tree.acceleration("car", 1.0, dt=0.04) == pytest.approx((0.0, 0.0, 0.0), abs=1.0)
+
+
+def test_a_jump_in_the_first_instants_still_leaves_the_far_side_to_read():
+    """The stencil slides to the other side when one side leaves the shot."""
+    tree = FrameTree(
+        {"car": Frame()},
+        tracks={"car": {"at_z": Track([TrackEvent(0.05, 0.15, to=1.0, from_=0.0)])}},
+    )
+    # from_=0.0 makes 0.05 a step; the ramp after it is real motion on the right side
+    a = tree.acceleration("car", 0.0, dt=1 / 24, within=(0.0, 1.0))
+    assert a == tree.acceleration("car", 0.05 + 1 / 24, dt=1 / 24, within=(0.0, 1.0))

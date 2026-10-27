@@ -433,7 +433,9 @@ def level_voices(
         level = VoiceLevel(voice, lufs, lines=len(lines))
         levels.append(level)
         for caught in capped:
-            if caught.category is UserWarning:  # the component capped the gain: said per voice
+            if (
+                caught.category is UserWarning
+            ):  # the component capped the gain: said per voice
                 warnings.warn(
                     f"voice {voice!r}: {caught.message}",
                     VoiceLoudnessWarning,
