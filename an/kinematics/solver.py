@@ -6,7 +6,8 @@ method and the measurements behind it are in the package docstring
 (:mod:`an.kinematics`); in one line: extended position-based dynamics on 2D
 rigid bodies [Müller et al. 2020], Gauss–Seidel over the joints, a fixed
 number of substeps and iterations, hinge limits as angular projections, the
-two-link closed form as the initial guess.
+two-link closed form (or, for a longer slack chain, an arc) as the initial
+guess.
 
 **Two modes.** With ``dt=None`` (``pose``) the bodies are projected onto the
 joints from where they stand, with no inertia and no gravity: the answer is
@@ -73,7 +74,7 @@ from typing import Any
 import numpy as np
 
 from an.kinematics.bodies import WORLD, Body, Point, inertia, local_offset, mass
-from an.kinematics.chains import two_bone
+from an.kinematics.chains import arc_chain, two_bone
 from an.kinematics.joints import (
     Contact,
     Distance,
@@ -133,8 +134,9 @@ DFLT_SEGMENT_MARGIN: float = 0.5
 #: (a changed projection, order, or default): part of every cache key built
 #: on this module.
 #: 2: a slow retry keeps going while it converges (an#568); 3: a conflict gives up
-#: the first candidate that halves the failure (an#641).
-SOLVER_VERSION: str = "3"
+#: the first candidate that halves the failure (an#641); 4: a slack chain of more
+#: than two links held at both ends is seeded on an arc (an#646).
+SOLVER_VERSION: str = "4"
 #: The most passes a frame whose first retry made progress is given, as a
 #: multiple of ``iterations``: its retry is repeated with ``retry`` times the
 #: passes while each round still makes progress (an#568). On 300 random
@@ -838,7 +840,10 @@ def _out_of_reach(st: _State, rows: list[_Row], tolerance: float) -> list[int]:
 
 def _seed_chains(st: _State, rows: list[_Row], tolerance: float) -> None:
     """Pose every chain whose both ends are held (anchored to the world, a
-    fixed body or one held in x and y) by the two-link closed form: the
+    fixed body or one held in x and y) by the two-link closed form (a chain of
+    more than two links it cannot fold, or folds only past a hinge range, is
+    also laid on an arc, :func:`_arc_seed`, and the seed that breaks less is
+    kept, an#646): the
     first link is the first bone, the rest of the chain (a forearm and a
     hand) is held rigid at its current angles, clamped into their ranges,
     and is the second. Of the two bend sides it takes the one the hinge
@@ -939,9 +944,24 @@ def _seed_chains(st: _State, rows: list[_Row], tolerance: float) -> None:
                 best = (v, bend)
             if v == 0.0:
                 break
-        if best is not None:
+        # A chain of more than two links the two-link form cannot fold, or
+        # folds only by breaking a hinge range (its tail rigid at its current
+        # angles): laid on an arc too, and the seed that breaks less is kept
+        # (an#646).
+        arc = None
+        if len(links) > 2 and (best is None or best[0] > 0.0):
+            laid = _arc_seed(
+                st,
+                links,
+                (rx, ry),
+                (gx, gy),
+                bend=current,
+                violation=lambda: violation(joint_ids),
+            )
+            arc = violation(joint_ids) if laid else None
+        if best is not None and (arc is None or best[0] <= arc):
             pose(*two_bone((rx, ry), (gx, gy), (l1, l2), bend=best[1]))
-        elif (gx, gy) != (rx, ry):
+        elif arc is None and (gx, gy) != (rx, ry):
             # Out of reach: point the chain at the target (straight when
             # it is too far, folded when too near); the projection then
             # reports the grip, and a conflict gives it up.
@@ -951,9 +971,51 @@ def _seed_chains(st: _State, rows: list[_Row], tolerance: float) -> None:
                 phi if too_far or l1 >= l2 else phi + math.pi,
                 phi if too_far or l1 < l2 else phi + math.pi,
             )
-        else:  # on the root: no direction to take, so nothing is guessed
+        elif arc is None:  # on the root: no direction to take, nothing is guessed
             for i, (x, y, th) in zip(bodies, saved):
                 st.x[i], st.y[i], st.th[i] = x, y, th
+        # else: the arc is laid
+
+
+def _arc_seed(
+    st: _State,
+    links: list,
+    root: tuple[float, float],
+    target: tuple[float, float],
+    *,
+    bend: int,
+    violation: Callable[[], float],
+) -> bool:
+    """Lay a chain of more than two links held at both ends nearer than its
+    length on a circular arc (:func:`an.kinematics.chains.arc_chain`): the
+    rigid tail the two-link form uses is too long to fold, and a straight
+    chain pushed along its length has no sideways correction to buckle with
+    (an#646). Each link goes from its entry point to its exit point along
+    the arc. Of the two sides, the one ``bend`` names unless only the other
+    keeps the hinge ranges; a straight chain has no side of its own (its
+    cross product is 0), so it sags to ``+1``, down on a y-down screen.
+    Returns whether it laid the chain (else the chain is left as it was)."""
+    lengths = [math.hypot(ex - nx, ey - ny) for _i, (nx, ny), (ex, ey), _j in links]
+
+    def lay(angles: list[float]) -> None:
+        x, y = root
+        for (i, entry, exit_, _j), theta, length in zip(links, angles, lengths):
+            _pose_link(st, i, *entry, *exit_, x, y, theta)
+            x, y = x + length * math.cos(theta), y + length * math.sin(theta)
+
+    best: tuple[float, list[float]] | None = None
+    for side in (bend, -bend):
+        angles = arc_chain(root, target, lengths, bend=side)
+        if angles is None:
+            return False
+        lay(angles)
+        v = violation()
+        if v == 0.0:
+            return True
+        if best is None or v < best[0]:
+            best = (v, angles)
+    lay(best[1])
+    return True
 
 
 def _pose_link_at(

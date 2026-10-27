@@ -586,3 +586,60 @@ def test_a_rope_gives_up_its_end_never_a_link():
     assert {j for d in r.dropped for j in d} == {n}, r.dropped
     worst = max(g for u in r.unsatisfied for j, g in u if j != n)
     assert worst < 1.0, worst
+
+
+def test_a_slack_rope_bends_in_pose_mode_and_keeps_its_end():
+    """an#646: a 50-link rope laid straight, its end held at 70% of its
+    length. The two-link seed holds the 49-link tail rigid and straight, too
+    long to fold, so the end was given up on every frame (130 px). Seeded on
+    an arc it holds, every joint, every frame."""
+    bodies, joints = _rope(50, 10.0)
+    r = solve_frames(
+        bodies, joints, frames=5, dt=None,
+        targets_at=lambda k: {"end": {"x": 350.0, "y": 0.0}},
+    )
+    assert r.dropped == ((),) * 5
+    assert r.unsatisfied == ((),) * 5
+
+
+def test_an_arc_of_unequal_links_ends_on_the_target_on_the_side_asked():
+    """an#646: `arc_chain` with unequal links, on each side."""
+    from an.kinematics import arc_chain
+
+    lengths = [3.0, 1.0, 2.0, 4.0, 1.5]
+    for bend in (1, -1):
+        angles = arc_chain((1.0, 2.0), (6.0, 5.0), lengths, bend=bend)
+        tip = (
+            1.0 + sum(l * math.cos(a) for l, a in zip(lengths, angles)),
+            2.0 + sum(l * math.sin(a) for l, a in zip(lengths, angles)),
+        )
+        assert tip == pytest.approx((6.0, 5.0), abs=1e-9)
+        # the first link turns counter-clockwise of the chord for bend=+1
+        chord = math.atan2(3.0, 5.0)
+        assert (angles[0] - chord) * bend > 0
+
+
+@pytest.mark.parametrize("limits", [(0.0, 0.6), (-0.6, 0.0)])
+def test_a_chain_that_can_bend_one_way_only_keeps_its_end_frame_to_frame(limits):
+    """an#646 review: 10 hinged links that bend only one way, the end moving
+    in; the two-link seed folds the curled tail past the hinge range, the arc
+    on the side the range allows does not. Every frame holds."""
+    from an.kinematics import Hinge
+
+    n, link = 10, 10.0
+    bodies = [
+        Body(f"p{k}", x=k * link, y=0.0, width=link, height=2.0, origin=(0.0, 0.5))
+        for k in range(n)
+    ]
+    bodies.append(Body("end", x=n * link * 0.7, y=0.0, width=2.0, height=2.0, fixed=True))
+    joints = [Pin(Point("p0", 0.0, 0.5), Point(WORLD, 0.0, 0.0))]
+    joints += [
+        Hinge(Point(f"p{k}", 0.0, 0.5), Point(f"p{k - 1}", 1.0, 0.5), limits=limits)
+        for k in range(1, n)
+    ]
+    joints.append(Pin(Point(f"p{n - 1}", 1.0, 0.5), Point("end", 0.5, 0.5)))
+    r = solve_frames(
+        bodies, joints, frames=12, dt=None,
+        targets_at=lambda k: {"end": {"x": 70.0 - 4 * k, "y": 3.0 * k}},
+    )
+    assert r.dropped == ((),) * 12 and r.limit_violations == ((),) * 12
