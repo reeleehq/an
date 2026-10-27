@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=63789c9c"></script>
+    <script src="../../../_static/documentation_options.js?v=548016f6"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.295" />
+  <meta name="docsearch:version" content="0.1.296" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1304,10 +1304,32 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: cabin plate and a sky plate).</span>
     <span class="n">frame</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">_FRAME_FIELD</span>
     <span class="n">planes</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: An environment's planes at a depth, ``{plane name: z}`` in world units</span>
+    <span class="c1">#: from the camera along its look direction (an#503): the parallax factor of</span>
+    <span class="c1">#: a plane is DERIVED from it, ``z_ref / z`` with ``z_ref`` the depth of the</span>
+    <span class="c1">#: viewpoint's subject (else of what the shot shows: the character plane), so</span>
+    <span class="c1">#: a plane declares where it is and not how fast it scrolls. A plane</span>
+    <span class="c1">#: with a depth must keep the descriptor's own ``depth`` (1.0) and</span>
+    <span class="c1">#: ``parallax`` unset: two spellings of one fact are refused. What is at</span>
+    <span class="c1">#: infinity is a plane in a ``far`` frame, not a depth.</span>
+    <span class="n">depths</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="nd">@model_validator</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"after"</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_one_way_to_place_it</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"WorldMember"</span><span class="p">:</span>
         <span class="n">where</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"world member </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">"</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">depths</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span> <span class="o">!=</span> <span class="s2">"environment"</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2"> is not an environment: only an environment has `depths` "</span>
+                    <span class="s2">"(the world depth of each of its planes)."</span>
+                <span class="p">)</span>
+            <span class="n">bad</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">depths</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="mi">0</span> <span class="o">&lt;</span> <span class="n">v</span> <span class="o">&lt;</span> <span class="nb">float</span><span class="p">(</span><span class="s2">"inf"</span><span class="p">))}</span>
+            <span class="k">if</span> <span class="n">bad</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2"> has plane depths </span><span class="si">{</span><span class="n">bad</span><span class="si">}</span><span class="s2">: a depth is a positive, finite "</span>
+                    <span class="s2">"distance in world units (what is at infinity is a plane in a "</span>
+                    <span class="s2">"`far` frame)."</span>
+                <span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stage</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2"> carries `stage`: a member is placed by each shot's "</span>
@@ -1372,6 +1394,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="s2">"units_per_px"</span><span class="p">,</span>
                 <span class="s2">"attached"</span><span class="p">,</span>
                 <span class="s2">"after"</span><span class="p">,</span>
+                <span class="s2">"depths"</span><span class="p">,</span>
                 <span class="s2">"frame"</span><span class="p">,</span>
                 <span class="s2">"planes"</span><span class="p">,</span>
             <span class="p">)</span>

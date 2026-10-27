@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=63789c9c"></script>
+    <script src="../../../_static/documentation_options.js?v=548016f6"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.295" />
+  <meta name="docsearch:version" content="0.1.296" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1713,7 +1713,10 @@ window.runMermaid = runMermaid;</script>
     <span class="n">env_store</span> <span class="o">=</span> <span class="p">(</span><span class="n">stores</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"environments"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">env_store</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.environments</span><span class="w"> </span><span class="kn">import</span> <span class="n">ENVIRONMENT_DOCUMENT_KIND</span><span class="p">,</span> <span class="n">EnvironmentDescriptor</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.environments</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+        <span class="n">ENVIRONMENT_DOCUMENT_KIND</span><span class="p">,</span>
+        <span class="n">environment_from_document</span><span class="p">,</span>
+    <span class="p">)</span>
 
     <span class="n">factors</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">:</span>
@@ -1732,9 +1735,7 @@ window.runMermaid = runMermaid;</script>
             <span class="c1"># MIGRATED, as the compiler reads it — a pre-flight that validates</span>
             <span class="c1"># a document differently from the thing it predicts is its own</span>
             <span class="c1"># defect, which is the rule `_rig_document` already follows.</span>
-            <span class="n">env</span> <span class="o">=</span> <span class="n">EnvironmentDescriptor</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span>
-                <span class="n">migrate</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">raw</span><span class="p">),</span> <span class="n">kind</span><span class="o">=</span><span class="n">ENVIRONMENT_DOCUMENT_KIND</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-            <span class="p">)</span>
+            <span class="n">env</span> <span class="o">=</span> <span class="n">environment_from_document</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">entity</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — a malformed descriptor is another check's</span>
             <span class="k">continue</span>
         <span class="c1"># `factors()`, not `depth`: `parallax` OVERRIDES `depth`, so reading the</span>
@@ -1791,6 +1792,7 @@ window.runMermaid = runMermaid;</script>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.environments</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
         <span class="n">ENVIRONMENT_DOCUMENT_KIND</span><span class="p">,</span>
         <span class="n">EnvironmentDescriptor</span><span class="p">,</span>
+        <span class="n">environment_from_document</span><span class="p">,</span>
         <span class="n">frame_rect</span><span class="p">,</span>
         <span class="n">plane_rect</span><span class="p">,</span>
         <span class="n">uncovered_part</span><span class="p">,</span>
@@ -1809,9 +1811,7 @@ window.runMermaid = runMermaid;</script>
         <span class="p">):</span>
             <span class="k">return</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">env</span> <span class="o">=</span> <span class="n">EnvironmentDescriptor</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span>
-                <span class="n">migrate</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">raw</span><span class="p">),</span> <span class="n">kind</span><span class="o">=</span><span class="n">ENVIRONMENT_DOCUMENT_KIND</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-            <span class="p">)</span>
+            <span class="n">env</span> <span class="o">=</span> <span class="n">environment_from_document</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">entity</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — a malformed descriptor is another check's</span>
             <span class="k">return</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">env</span><span class="o">.</span><span class="n">planes</span><span class="p">:</span>
@@ -3406,6 +3406,78 @@ window.runMermaid = runMermaid;</script>
                 <span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_report_plane_depths</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">,</span> <span class="n">world</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">env_store</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The planes an environment member gives a world depth (``depths``, an#503)</span>
+<span class="sd">    exist in the environment and carry no parallax of their own: one fact has</span>
+<span class="sd">    one spelling. Reported once per member, at the first framed shot."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.frames</span><span class="w"> </span><span class="kn">import</span> <span class="n">FrameTree</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.environments</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+        <span class="n">ENVIRONMENT_DOCUMENT_KIND</span><span class="p">,</span>
+        <span class="n">EnvironmentDescriptor</span><span class="p">,</span>
+        <span class="n">own_parallax</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">member</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">world</span><span class="o">.</span><span class="n">members</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">member</span><span class="o">.</span><span class="n">depths</span> <span class="ow">or</span> <span class="p">(</span><span class="s2">"plane_depths"</span><span class="p">,</span> <span class="n">member</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> <span class="ow">in</span> <span class="n">ctx</span><span class="o">.</span><span class="n">memo</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">memo</span><span class="p">[(</span><span class="s2">"plane_depths"</span><span class="p">,</span> <span class="n">member</span><span class="o">.</span><span class="n">id</span><span class="p">)]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">raw</span> <span class="o">=</span> <span class="n">env_store</span><span class="p">[</span><span class="n">member</span><span class="o">.</span><span class="n">ref</span><span class="p">]</span>
+            <span class="n">env</span> <span class="o">=</span> <span class="n">EnvironmentDescriptor</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span>
+                <span class="n">migrate</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">raw</span><span class="p">),</span> <span class="n">kind</span><span class="o">=</span><span class="n">ENVIRONMENT_DOCUMENT_KIND</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — a missing or malformed environment is another check's</span>
+            <span class="k">continue</span>
+        <span class="n">planes</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">env</span><span class="o">.</span><span class="n">planes</span><span class="p">}</span>
+        <span class="n">frames</span> <span class="o">=</span> <span class="n">world</span><span class="o">.</span><span class="n">all_frames</span><span class="p">()</span>
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">FrameTree</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">member</span><span class="o">.</span><span class="n">depths</span><span class="p">):</span>
+            <span class="n">where</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"world/members/</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">"</span>
+            <span class="n">frame</span> <span class="o">=</span> <span class="p">(</span><span class="n">member</span><span class="o">.</span><span class="n">planes</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="ow">or</span> <span class="n">member</span><span class="o">.</span><span class="n">frame</span>
+            <span class="k">if</span> <span class="n">frame</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span>
+                <span class="n">frames</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">coupling</span> <span class="o">==</span> <span class="s2">"far"</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">tree</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+            <span class="p">):</span>
+                <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                    <span class="s2">"error"</span><span class="p">,</span>
+                    <span class="n">where</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">"plane </span><span class="si">{</span><span class="n">member</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> has a world depth but is in frame "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">frame</span><span class="si">!r}</span><span class="s2">, coupled by rotation only: that is at infinity, "</span>
+                    <span class="s2">"factor 0. Drop the depth."</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">planes</span><span class="p">:</span>
+                <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                    <span class="s2">"error"</span><span class="p">,</span>
+                    <span class="n">where</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">"member </span><span class="si">{</span><span class="n">member</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> gives plane </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> a world depth, but "</span>
+                    <span class="sa">f</span><span class="s2">"environment </span><span class="si">{</span><span class="n">member</span><span class="o">.</span><span class="n">ref</span><span class="si">!r}</span><span class="s2"> has no such plane (its planes: "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">planes</span><span class="p">)</span><span class="si">}</span><span class="s2">)."</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="n">own_parallax</span><span class="p">(</span><span class="n">planes</span><span class="p">[</span><span class="n">name</span><span class="p">]):</span>
+                <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                    <span class="s2">"error"</span><span class="p">,</span>
+                    <span class="n">where</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">"plane </span><span class="si">{</span><span class="n">member</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> has a world depth (</span><span class="si">{</span><span class="n">member</span><span class="o">.</span><span class="n">depths</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">) "</span>
+                    <span class="sa">f</span><span class="s2">"and a parallax of its own (depth </span><span class="si">{</span><span class="n">planes</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">depth</span><span class="si">}</span><span class="s2">, parallax "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">planes</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">parallax</span><span class="si">}</span><span class="s2">): two spellings of one fact. Keep the "</span>
+                    <span class="s2">"descriptor's depth at 1.0 and let the world depth derive the factor, "</span>
+                    <span class="s2">"or drop the world depth."</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">frame</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="ow">and</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">planes</span>
+                <span class="ow">and</span> <span class="ow">not</span> <span class="n">tree</span><span class="o">.</span><span class="n">is_still</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">frames</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">coupling</span> <span class="o">==</span> <span class="s2">"far"</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">tree</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="n">frame</span><span class="p">))</span>
+            <span class="p">):</span>
+                <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                    <span class="s2">"warning"</span><span class="p">,</span>
+                    <span class="n">where</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">"plane </span><span class="si">{</span><span class="n">member</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> has a world depth and is in frame "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">frame</span><span class="si">!r}</span><span class="s2">, which moves: the derived factor assumes the plane "</span>
+                    <span class="s2">"stays still relative to the camera's frame. A plane in a frame "</span>
+                    <span class="s2">"that moves relative to the camera is not derived yet (an#503)."</span><span class="p">,</span>
+                <span class="p">)</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_core_viewpoint</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""What the world did to this framed shot (ADR 0009): the members it</span>
 <span class="sd">    added (info), a hand placement that disagrees with it (warning), a listed</span>
@@ -3426,10 +3498,14 @@ window.runMermaid = runMermaid;</script>
     <span class="n">env_store</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">stores</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"environments"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">world</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">env_store</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span>
+    <span class="n">_report_plane_depths</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">world</span><span class="p">,</span> <span class="n">env_store</span><span class="p">)</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.frames</span><span class="w"> </span><span class="kn">import</span> <span class="n">FrameTree</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">WORLD_FRAME</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.world</span><span class="w"> </span><span class="kn">import</span> <span class="n">viewpoint_of</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.environments</span><span class="w"> </span><span class="kn">import</span> <span class="n">ENVIRONMENT_DOCUMENT_KIND</span><span class="p">,</span> <span class="n">EnvironmentDescriptor</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.environments</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+        <span class="n">ENVIRONMENT_DOCUMENT_KIND</span><span class="p">,</span>
+        <span class="n">environment_from_document</span><span class="p">,</span>
+    <span class="p">)</span>
 
     <span class="n">travel</span> <span class="o">=</span> <span class="n">world</span><span class="o">.</span><span class="n">travel</span>
     <span class="n">frames</span> <span class="o">=</span> <span class="n">world</span><span class="o">.</span><span class="n">all_frames</span><span class="p">()</span>
@@ -3461,9 +3537,7 @@ window.runMermaid = runMermaid;</script>
         <span class="p">):</span>
             <span class="k">continue</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">env</span> <span class="o">=</span> <span class="n">EnvironmentDescriptor</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span>
-                <span class="n">migrate</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">raw</span><span class="p">),</span> <span class="n">kind</span><span class="o">=</span><span class="n">ENVIRONMENT_DOCUMENT_KIND</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-            <span class="p">)</span>
+            <span class="n">env</span> <span class="o">=</span> <span class="n">environment_from_document</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">entity</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — a malformed descriptor is another check's</span>
             <span class="k">continue</span>
         <span class="n">member</span> <span class="o">=</span> <span class="n">members</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>

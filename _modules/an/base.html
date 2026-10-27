@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../_static/documentation_options.js?v=63789c9c"></script>
+    <script src="../../_static/documentation_options.js?v=548016f6"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.295" />
+  <meta name="docsearch:version" content="0.1.296" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -933,6 +933,13 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: name predates `dash_offset`, an#161): trim and the dash phase. A node that</span>
 <span class="c1">#: draws no path refuses all of them.</span>
 <span class="n">TRIM_PROPERTIES</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"trim_start"</span><span class="p">,</span> <span class="s2">"trim_end"</span><span class="p">,</span> <span class="s2">"dash_offset"</span><span class="p">})</span>
+
+<span class="c1">#: The key the world's lowering records the parallax factors derived from an</span>
+<span class="c1">#: environment member's ``depths`` under, in the entity's ``overrides``</span>
+<span class="c1">#: (``{plane name: factor}``, an#503): the compiler reads them where it reads a</span>
+<span class="c1">#: plane's own ``depth``, so a plane at a world depth compiles exactly as one</span>
+<span class="c1">#: with that factor written by hand.</span>
+<span class="n">PLANE_FACTORS_OVERRIDE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"plane_factors"</span>
 
 <span class="c1">#: The draw-order property (an#537): where a node is PAINTED, as the path of the</span>
 <span class="c1">#: node it paints just after (``""``: where the stage tree puts it). A string,</span>

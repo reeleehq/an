@@ -1718,7 +1718,7 @@ root and a travel with a `speed` adds `vehicle`.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.WorldMember(\*, kind, id, store, ref, overrides=None, stage=None, library=None, joints=<factory>, at=None, height=None, width=None, units_per_px=None, attached=None, after=None, frame=None, planes=None, \*\*extra_data)
+### *class* an.ir.schema.WorldMember(\*, kind, id, store, ref, overrides=None, stage=None, library=None, joints=<factory>, at=None, height=None, width=None, units_per_px=None, attached=None, after=None, frame=None, planes=None, depths=None, \*\*extra_data)
 
 Bases: [`AssetRef`](#an.ir.schema.AssetRef)
 
@@ -1740,6 +1740,17 @@ another instead of positioned, or it is an environment (present in every
 framed shot, placed by nothing: plates are per shot). `after` is the
 draw anchor a shot’s `stage.after` would be. A member never carries
 `stage`: the viewpoint places it.
+
+#### depths *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+An environment’s planes at a depth, `{plane name: z}` in world units
+from the camera along its look direction (an#503): the parallax factor of
+a plane is DERIVED from it, `z_ref / z` with `z_ref` the depth of the
+viewpoint’s subject (else of what the shot shows: the character plane), so
+a plane declares where it is and not how fast it scrolls. A plane
+with a depth must keep the descriptor’s own `depth` (1.0) and
+`parallax` unset: two spellings of one fact are refused. What is at
+infinity is a plane in a `far` frame, not a depth.
 
 #### frame *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 

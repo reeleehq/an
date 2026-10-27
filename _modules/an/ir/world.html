@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=63789c9c"></script>
+    <script src="../../../_static/documentation_options.js?v=548016f6"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.295" />
+  <meta name="docsearch:version" content="0.1.296" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -758,6 +758,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Collection</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">PLANE_FACTORS_OVERRIDE</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.compose</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">delay</span><span class="p">,</span>
     <span class="n">flatten</span><span class="p">,</span>
@@ -3035,6 +3036,10 @@ window.runMermaid = runMermaid;</script>
         <span class="k">for</span> <span class="n">stream_id</span><span class="p">,</span> <span class="n">problem</span> <span class="ow">in</span> <span class="n">problems</span><span class="p">:</span>
             <span class="n">note</span><span class="p">(</span><span class="s2">"warning"</span><span class="p">,</span> <span class="s2">"stream"</span><span class="p">,</span> <span class="n">stream_id</span><span class="p">,</span> <span class="n">problem</span><span class="p">)</span>
     <span class="n">ordered</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">item</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">envs</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">_with_plane_factors</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">members</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">),</span> <span class="n">placed</span><span class="p">,</span> <span class="n">vp</span><span class="p">,</span> <span class="n">note</span><span class="p">),</span> <span class="n">j</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">envs</span>
+    <span class="p">]</span>
     <span class="k">if</span> <span class="n">sightings</span><span class="p">:</span>
         <span class="n">_depth_order_notes</span><span class="p">(</span>
             <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">ordered</span><span class="p">],</span>
@@ -3057,6 +3062,78 @@ window.runMermaid = runMermaid;</script>
         <span class="n">notes</span><span class="p">,</span>
         <span class="n">origins</span><span class="p">,</span>
     <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">parallax_factor</span><span class="p">(</span><span class="n">z</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">z_ref</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The parallax factor of a plane ``z`` deep when what the shot shows is</span>
+<span class="sd">    ``z_ref`` deep: a camera translating by ``d`` shifts the plane by ``f * d / z``</span>
+<span class="sd">    and the character plane by ``f * d / z_ref``, so relative to it the plane</span>
+<span class="sd">    moves by ``z_ref / z`` (a plane at the reference depth is 1, which emits</span>
+<span class="sd">    nothing; a far one tends to 0).</span>
+
+<span class="sd">    &gt;&gt;&gt; parallax_factor(20.0, 2.0), parallax_factor(2.0, 2.0), parallax_factor(1.0, 2.0)</span>
+<span class="sd">    (0.1, 1.0, 2.0)</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">z_ref</span> <span class="o">/</span> <span class="n">z</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">reference_depth</span><span class="p">(</span><span class="n">placed</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Placed</span><span class="p">],</span> <span class="n">viewpoint</span><span class="p">:</span> <span class="n">Viewpoint</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The depth of the character plane in a shot: the viewpoint's subject(s),</span>
+<span class="sd">    when it names any that the shot shows, else everything the shot shows from</span>
+<span class="sd">    the world (an attached member rides its host and is not counted again).</span>
+<span class="sd">    ``None`` when nothing is shown. Depths are the camera's, as the shot opens.</span>
+
+<span class="sd">    &gt;&gt;&gt; from an.ir.schema import Viewpoint</span>
+<span class="sd">    &gt;&gt;&gt; shown = {"a": Placed("a", (0, 0), 1.0, 2.0, None, True, "world"),</span>
+<span class="sd">    ...          "b": Placed("b", (0, 0), 1.0, 6.0, None, True, "world")}</span>
+<span class="sd">    &gt;&gt;&gt; reference_depth(shown, Viewpoint()), reference_depth(shown, Viewpoint(subject="b"))</span>
+<span class="sd">    (4.0, 6.0)</span>
+<span class="sd">    """</span>
+    <span class="n">subjects</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">[</span><span class="n">viewpoint</span><span class="o">.</span><span class="n">subject</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">viewpoint</span><span class="o">.</span><span class="n">subject</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+        <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="n">viewpoint</span><span class="o">.</span><span class="n">subject</span> <span class="ow">or</span> <span class="p">[])</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">depths</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">depth</span>
+            <span class="k">for</span> <span class="n">mid</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">placed</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">mid</span> <span class="ow">in</span> <span class="n">ids</span> <span class="ow">and</span> <span class="n">p</span><span class="o">.</span><span class="n">depth</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">p</span><span class="o">.</span><span class="n">in_frame</span> <span class="ow">and</span> <span class="n">p</span><span class="o">.</span><span class="n">via</span> <span class="o">==</span> <span class="s2">"world"</span>
+        <span class="p">]</span>
+
+    <span class="n">shown</span> <span class="o">=</span> <span class="n">depths</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">subjects</span><span class="p">))</span> <span class="ow">or</span> <span class="n">depths</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">placed</span><span class="p">))</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">shown</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">shown</span><span class="p">)</span> <span class="k">if</span> <span class="n">shown</span> <span class="k">else</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_with_plane_factors</span><span class="p">(</span>
+    <span class="n">entity</span><span class="p">:</span> <span class="n">AssetRef</span><span class="p">,</span>
+    <span class="n">member</span><span class="p">:</span> <span class="n">WorldMember</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">placed</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Placed</span><span class="p">],</span>
+    <span class="n">viewpoint</span><span class="p">:</span> <span class="n">Viewpoint</span><span class="p">,</span>
+    <span class="n">note</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AssetRef</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``entity`` (an environment) carrying the factors its member's ``depths``</span>
+<span class="sd">    derive (:data:`PLANE_FACTORS_OVERRIDE`); unchanged without ``depths``. A</span>
+<span class="sd">    plane's depth is its distance from the camera along the look direction, and</span>
+<span class="sd">    its factor ``z_ref / z`` is relative to :func:`reference_depth`, so it is the</span>
+<span class="sd">    shot's own: the same plane scrolls differently from a wider or a closer</span>
+<span class="sd">    viewpoint, as parallax does."""</span>
+    <span class="k">if</span> <span class="n">member</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">member</span><span class="o">.</span><span class="n">depths</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">entity</span>
+    <span class="n">z_ref</span> <span class="o">=</span> <span class="n">reference_depth</span><span class="p">(</span><span class="n">placed</span><span class="p">,</span> <span class="n">viewpoint</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">z_ref</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">note</span><span class="p">(</span>
+            <span class="s2">"warning"</span><span class="p">,</span>
+            <span class="s2">"plane_depths"</span><span class="p">,</span>
+            <span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+            <span class="s2">"its planes have world depths but the shot shows no member to measure "</span>
+            <span class="s2">"them against: the planes keep their own parallax factors."</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">entity</span>
+    <span class="n">factors</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">parallax_factor</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">z_ref</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">member</span><span class="o">.</span><span class="n">depths</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="n">overrides</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">overrides</span> <span class="ow">or</span> <span class="p">{}),</span> <span class="n">PLANE_FACTORS_OVERRIDE</span><span class="p">:</span> <span class="n">factors</span><span class="p">}</span>
+    <span class="k">return</span> <span class="n">entity</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"overrides"</span><span class="p">:</span> <span class="n">overrides</span><span class="p">})</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_depth_order_notes</span><span class="p">(</span>
