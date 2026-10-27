@@ -1318,18 +1318,8 @@ def _project_reels(project_dir: str | Path, scene_file: Any = DEFAULT_SCENE_FILE
     from an.ir.sync import resolve_scene_file
     from an.stores.artifacts import _BlobStore
 
-    class _WavStore(_BlobStore):
+    class _WavStore(_BlobStore):  # writes atomically, as every blob store (an#665)
         EXT = "wav"
-
-        def __setitem__(self, key: str, value: bytes) -> None:
-            # Whole or not at all (an#649): a reel a record says is current is
-            # never half written. Only here: on Windows a replace onto a file
-            # another handle holds is refused, which a render's output can be.
-            from dol import atomic_write
-
-            p = self._path(key)
-            p.parent.mkdir(parents=True, exist_ok=True)
-            atomic_write(p, bytes(value))
 
     sf = resolve_scene_file(project_dir, scene_file)
     return _WavStore(Path(project_dir) / sf.per_scene_dir(AUDITIONS_DIR))

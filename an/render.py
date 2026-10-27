@@ -646,9 +646,10 @@ def _render_film(
     else:
         _ffmpeg_concat([r.mp4_path for r in shot_results], output_path)
 
-    # Also write to the output store for parity with other artifacts.
-    with open(output_path, "rb") as f:
-        project.mall["output"][output_name] = f.read()
+    # Also write to the output store for parity with other artifacts. Read and
+    # closed first: the store's file can be this very file, and Windows will not
+    # replace a file a handle still holds (an#665).
+    project.mall["output"][output_name] = Path(output_path).read_bytes()
 
     _write_caption_sidecar(
         project.mall, output_name, scene, captions, pages, fps=effective_fps
@@ -1487,8 +1488,8 @@ def _archive_shot(project: Project, shot: Shot, result: RenderResult) -> None:
     person to look at; nothing reads it back (pillar 11). The cache is
     ``mall["shot_cache"]``, keyed by content.
     """
-    with open(result.mp4_path, "rb") as f:
-        project.mall["shots"][shot.id] = f.read()
+    # Read and closed before the store writes (an#665).
+    project.mall["shots"][shot.id] = Path(result.mp4_path).read_bytes()
 
 
 def _resolve_parallel(parallel: int | str | None, *, n_shots: int) -> int:

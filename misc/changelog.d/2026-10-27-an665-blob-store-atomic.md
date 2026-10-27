@@ -1,0 +1,1 @@
+- Every artifact store writes atomically again (`dol.atomic_write`): the render reads and closes its output (and a shot's mp4) before storing it, so Windows can replace the file (an#665).
