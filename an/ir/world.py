@@ -2479,7 +2479,24 @@ def _lower_shot(
     from an.stage.hold import hold_declarations
 
     # The items the holds solver sets the rotation of (an#590): its own list.
-    held = set(hold_declarations(shot).items) if swayed else set()
+    holds = hold_declarations(shot) if swayed else None
+    # Held as the shot opens (`held_by`): the solver rests it at an angle read
+    # off the first frame, which a lean would tip for good (an#651), so it does
+    # not lean. One a verb takes later leans until then; the solver's angle
+    # replaces the lean while it holds it (an#590).
+    resting = set(holds.initial) if holds else set()
+    handled = set(holds.items) - resting if holds else set()
+    for mid in sorted(resting & swayed.keys()):
+        del swayed[mid]
+        note(
+            "warning",
+            "sway_rotation",
+            mid,
+            "its frame sways, and the holds solver holds it as the shot opens "
+            "(`held_by`): it does not lean; it rests and is carried at the angles "
+            "the solver gives it (an#651). To see it lean, let a swaying holder "
+            "carry it, or drop `held_by`.",
+        )
     for mid, lean in swayed.items():
         actions.extend(lean)
         if mid in rotated:
@@ -2490,17 +2507,15 @@ def _lower_shot(
                 "its frame sways (it leans with the frame's acceleration) and the "
                 "shot also animates its `rotation`: the two fight. Drop one.",
             )
-        elif mid in held:
+        elif mid in handled:
             note(
                 "warning",
                 "sway_rotation",
                 mid,
                 "its frame sways (it leans with the frame's acceleration), and the "
                 "holds solver also sets its `rotation` (it is grasped, placed or "
-                "`held_by` something): where the solve rests or carries it, the "
-                "solver's angle replaces the lean, and a rest taken while the "
-                "frame leans keeps that lean after it stops (an#590). Drop the "
-                "hold or `held_by`, or take it out of the swaying frame.",
+                "released): it leans until a hand takes it; from then on the "
+                "solver's angle replaces the lean (an#590).",
             )
     for member in world.members:
         if (

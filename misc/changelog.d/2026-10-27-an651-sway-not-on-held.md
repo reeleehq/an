@@ -1,0 +1,1 @@
+- A swaying item `held_by` something as the shot opens is not given a lean (the solver rests it at its own angle): it no longer stays tipped after its frame stops; one grasped later leans until the grasp (an#651).

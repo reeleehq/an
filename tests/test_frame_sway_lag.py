@@ -360,3 +360,77 @@ def test_a_jump_in_the_first_instants_still_leaves_the_far_side_to_read():
     # from_=0.0 makes 0.05 a step; the ramp after it is real motion on the right side
     a = tree.acceleration("car", 0.0, dt=1 / 24, within=(0.0, 1.0))
     assert a == tree.acceleration("car", 0.05 + 1 / 24, dt=1 / 24, within=(0.0, 1.0))
+
+
+def test_a_resting_item_in_a_braking_car_is_not_left_tipped(tmp_path):
+    """an#651: a lamp the holds solver rests on the ground (``held_by:
+    ground`` with a ground line) in a braking car took its rest angle from the
+    leaning first frame and stayed tipped ~64 degrees after the car stopped.
+    The world leaves its rotation to the solver: it rests upright throughout."""
+    import warnings
+
+    from an.ir.schema import AssetRef, SolveSettings
+    from an.stage.compile import compile_shot
+    from an.stage.timeline import timeline_from_scene
+    from an.timing.timeline import evaluate_timeline
+    from tests.test_world import _project
+
+    scene = _braking(FrameSway())
+    shot = scene.timeline[0]
+    shot.solve = SolveSettings(ground=300)
+    shot.entities.append(
+        AssetRef(kind="prop", id="right", store="props", ref="lamp",
+                 overrides={"held_by": "ground"})
+    )
+    lowered = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    assert _rotation_at(lowered, "right", 0.5) in (None, 0.0)  # no lean emitted
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        doc = compile_shot(lowered, _project(tmp_path).mall)
+    timeline = timeline_from_scene(doc)
+    for t in (0.0, 0.5, 1.5, 1.9):
+        assert evaluate_timeline(timeline, t).get(("right", "rotation"), 0.0) == pytest.approx(0.0, abs=1e-6), t
+
+
+def test_an_item_grasped_later_leans_with_the_car_until_then(tmp_path):
+    """an#651 review: only an item held as the shot opens (`held_by`) is left
+    to the solver from the start; one a hand takes at 1.5 s leans with the
+    braking car (as its holder does) until then."""
+    import warnings
+
+    from an.ir import grasp
+    from an.ir.compose import delay, sequence
+    from an.ir.schema import Meta, Resolution, SceneIR, SolveSettings, World, WorldMember
+    from an.stage.compile import compile_shot
+    from an.stage.timeline import timeline_from_scene
+    from an.timing.timeline import evaluate_timeline
+    from tests._hold_fixture import make_project, scene as hold_scene
+
+    project = make_project(tmp_path / "p", hold_scene(""))
+    in_car = dict(store="props", frame="car", kind="prop")
+    world = World(
+        members=[
+            WorldMember(id="fig", ref="figure", at=(0.0, 0.4, 2.0), height=0.8, **in_car),
+            WorldMember(id="stick", ref="stick", at=(0.15, 0.4, 2.0), height=0.3, **in_car),
+        ],
+        frames={"car": Frame(sway=FrameSway())},
+        viewpoints={"side": Viewpoint(at=(-8.0, -1.0, 5.0), look=(90.0, 0.0, 0.0), focal=300.0)},
+    )
+    shot = Shot(
+        id="s", duration=2.0, viewpoint="side", solve=SolveSettings(ground=300),
+        actions=[
+            tween("car", "at_z", to=10.0, duration=1.0, from_=0.0, easing="ease_out"),
+            sequence(delay(1.5), grasp("fig/arm_r", "stick", reach=0.3, retract=0.1)),
+        ],
+    )
+    sc = SceneIR(meta=Meta(fps=24, resolution=Resolution(width=320, height=240)),
+                 world=world, timeline=[shot])
+    box = (-5.0, -20.0, 5.0, 0.0)
+    low = lower_world(sc, extents={k: box for k in ("fig", "stick")}).scene.timeline[0]
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        doc = compile_shot(low, project.mall, fps=24, width=320, height=240)
+    pose = evaluate_timeline(timeline_from_scene(doc), 0.5)
+    lean = pose.get(("fig", "rotation"), 0.0)
+    assert abs(lean) > 0.5
+    assert pose.get(("stick", "rotation"), 0.0) == pytest.approx(lean, abs=1e-3)
