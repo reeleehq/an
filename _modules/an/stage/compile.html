@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=1899a2c1"></script>
+    <script src="../../../_static/documentation_options.js?v=bce126d8"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.326" />
+  <meta name="docsearch:version" content="0.1.327" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1992,19 +1992,15 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    &gt;&gt;&gt; paint_orders({"near": [(0.0, 2)], "slot": [(0.0, 3), (1.5, 1)]})</span>
 <span class="sd">    [(0.0, ['near', 'slot']), (1.5, ['slot', 'near'])]</span>
 <span class="sd">    """</span>
-    <span class="n">times</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">({</span><span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">ks</span> <span class="ow">in</span> <span class="n">keys</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">ks</span><span class="p">})</span>
+    <span class="n">changes</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">ks</span> <span class="ow">in</span> <span class="n">keys</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">ks</span><span class="p">:</span>
+            <span class="n">changes</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">_sort_key</span><span class="p">(</span><span class="n">k</span><span class="p">)))</span>
+    <span class="n">now</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">times</span><span class="p">:</span>
-        <span class="n">now</span> <span class="o">=</span> <span class="p">{</span><span class="n">n</span><span class="p">:</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">at</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">ks</span> <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="n">at</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">t</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">ks</span> <span class="ow">in</span> <span class="n">keys</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
-        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-            <span class="p">(</span>
-                <span class="n">t</span><span class="p">,</span>
-                <span class="nb">sorted</span><span class="p">(</span>
-                    <span class="n">now</span><span class="p">,</span>
-                    <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">now</span><span class="p">[</span><span class="n">n</span><span class="p">])</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">now</span><span class="p">[</span><span class="n">n</span><span class="p">],</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="n">now</span><span class="p">[</span><span class="n">n</span><span class="p">],</span>
-                <span class="p">),</span>
-            <span class="p">)</span>
-        <span class="p">)</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">changes</span><span class="p">):</span>  <span class="c1"># each key read once: linear in the keys (an#648)</span>
+        <span class="n">now</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">changes</span><span class="p">[</span><span class="n">t</span><span class="p">])</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">t</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">now</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">now</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">)))</span>
     <span class="k">return</span> <span class="n">out</span></div>
 
 
@@ -2066,6 +2062,32 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_beside_their_hosts</span><span class="p">(</span>
+    <span class="n">names</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">keys</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]:</span>
+<span class="w">    </span><span class="sd">"""The keys of the children ``names`` of one container, without those of</span>
+<span class="sd">    an entity riding a host (its keys are the host's plus a two-item suffix,</span>
+<span class="sd">    an#648) that is not among them: built apart (the host in a plane's</span>
+<span class="sd">    wrapper), it would ride a key no sibling has, so it keeps its place.</span>
+
+<span class="sd">    &gt;&gt;&gt; keys = {"pole": [(0, [1, 5])], "lamp": [(0, [1, 5, 1, 0])], "far": [(0, [1, 9, 1, 0])],</span>
+<span class="sd">    ...         "hat": [(0, [1, 9, 1, 0, 1, 0])]}</span>
+<span class="sd">    &gt;&gt;&gt; sorted(_beside_their_hosts(["pole", "lamp", "far", "hat"], keys))</span>
+<span class="sd">    ['lamp', 'pole']</span>
+<span class="sd">    """</span>
+    <span class="n">mine</span> <span class="o">=</span> <span class="p">{</span><span class="n">n</span><span class="p">:</span> <span class="n">keys</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">names</span> <span class="k">if</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">}</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>  <span class="c1"># a rider of a dropped rider has no host here either</span>
+        <span class="n">opening</span> <span class="o">=</span> <span class="p">{</span><span class="n">_sort_key</span><span class="p">(</span><span class="n">ks</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">ks</span> <span class="ow">in</span> <span class="n">mine</span><span class="o">.</span><span class="n">values</span><span class="p">()}</span>
+        <span class="n">kept</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">n</span><span class="p">:</span> <span class="n">ks</span>
+            <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">ks</span> <span class="ow">in</span> <span class="n">mine</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ks</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="mi">3</span> <span class="ow">or</span> <span class="n">_sort_key</span><span class="p">(</span><span class="n">ks</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="ow">in</span> <span class="n">opening</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kept</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">mine</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">kept</span>
+        <span class="n">mine</span> <span class="o">=</span> <span class="n">kept</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_paint_keys_pass</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">CompileState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""A world's changing paint order (an#634): in each container of entities</span>
 <span class="sd">    (:func:`an.stage.tree.entity_containers`) whose keyed children</span>
@@ -2083,7 +2105,7 @@ window.runMermaid = runMermaid;</script>
     <span class="k">for</span> <span class="n">container</span> <span class="ow">in</span> <span class="n">stage_tree</span><span class="o">.</span><span class="n">entity_containers</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">scene_root</span><span class="p">):</span>
         <span class="n">kids</span> <span class="o">=</span> <span class="n">container</span><span class="o">.</span><span class="n">children</span> <span class="ow">or</span> <span class="p">[]</span>
         <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">kids</span><span class="p">]</span>
-        <span class="n">moves</span> <span class="o">=</span> <span class="n">z_index_keys</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="p">{</span><span class="n">n</span><span class="p">:</span> <span class="n">keys</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">names</span> <span class="k">if</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">})</span>
+        <span class="n">moves</span> <span class="o">=</span> <span class="n">z_index_keys</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">_beside_their_hosts</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">keys</span><span class="p">))</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">moves</span><span class="p">:</span>
             <span class="k">continue</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">kid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">kids</span><span class="p">):</span>
