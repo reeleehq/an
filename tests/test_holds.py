@@ -1056,3 +1056,27 @@ def test_the_floor_is_where_the_figure_stands_not_its_lowest_part(tmp_path):
         for y in (-100.0, 100.0)
     )
     assert lowest == pytest.approx(GROUND, abs=1e-3)
+
+
+def test_a_rig_placed_by_its_middle_is_not_standing_on_it(tmp_path):
+    """an#601 review: an `origin` above a bone is where a rig is placed, not
+    what it stands on. A stand placed by its middle lets go of the stick with
+    no `solve.ground`: the stick falls to the stand's base, not its middle."""
+    import json as _json
+
+    from an.project import load
+
+    entities = """- {kind: prop, id: stand, store: props, ref: stand, stage: {at: [160, 200]}}
+- {kind: prop, id: stick, store: props, ref: stick, stage: {at: [160, 100], scale: 0.5, after: stand}, overrides: {held_by: stand@hand}}
+"""
+    actions = "- {kind: release, item: stick, at: 1.0}"
+    root = tmp_path / "p"
+    make_project(root, scene(actions, entities=entities, shot="duration: 3.0"))
+    stand = root / "assets" / "props" / "stand"
+    doc = _json.loads((stand / "prop.json").read_text(encoding="utf-8"))
+    doc["origin"] = [200.0, 325.0]  # 75 units above its foot
+    (stand / "prop.json").write_text(_json.dumps(doc), encoding="utf-8")
+    doc = _compile(load(root))
+    base = 200.0 + 75.0 * K
+    lowest = _stage(doc, "stick", 2.9, point=INK_BOTTOM)[1]
+    assert lowest == pytest.approx(base, abs=1.0), lowest
