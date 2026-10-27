@@ -1,4 +1,4 @@
-> built 2026-10-27 04:19 UTC from 5179a5a (main) · an 0.1.294. Details: build_info.json
+> built 2026-10-27 04:37 UTC from d77c46a (main) · an 0.1.295. Details: build_info.json
 
 # index.html.md
 
@@ -44668,7 +44668,8 @@ The core’s constraints:
 - `draw_order` (an#510, catalogue A3): two entities painted one way in one
   shot and the other way in a later one, with no change of `stage.after`
   between them. `order_flips()` is the pure function under it. (The
-  within-shot half, painted order against world depth, is not built.)
+  within-shot half, painted order against world depth for a member in motion, is the
+  lowering’s: `an.ir.world.depth_order_problems`, reported as a `draw_order` note.)
 - `jump_cut` (catalogue C4, the 30-degree rule): two consecutive shots of one
   subject from nearly the same angle and size. `jump_cut_between()` is the
   pure function under it.
@@ -46034,18 +46035,20 @@ scene: the scene file to read, inside the project (default scene.md; for example
 
 # About this build
 
-This documentation was built on **2026-10-27 04:19 UTC** from commit <a href="https://github.com/reeleehq/an/commit/5179a5ad26f2dc7a7c6cd1e77de21deb4be54a8b"><code>5179a5a</code></a> on branch <code>main</code>, for **an 0.1.294** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-27 04:37 UTC** from commit <a href="https://github.com/reeleehq/an/commit/d77c46a7cdb2f476a36eeac2a0cde9c377f60c75"><code>d77c46a</code></a> on branch <code>main</code>, for **an 0.1.295** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.1.295) is ahead of the latest release on PyPI (0.1.294): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                    |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/an/commit/5179a5ad26f2dc7a7c6cd1e77de21deb4be54a8b"><code>5179a5ad26f2dc7a7c6cd1e77de21deb4be54a8b</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/an/commit/d77c46a7cdb2f476a36eeac2a0cde9c377f60c75"><code>d77c46a7cdb2f476a36eeac2a0cde9c377f60c75</code></a> |
 | Branch              | <code>main</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.294</code>                                                                                                                               |
+| Tags at this commit | <code>0.1.295</code>                                                                                                                               |
 | Working tree        | clean                                                                                                                                              |
 | Remote              | <code>https://github.com/reeleehq/an</code>                                                                                                        |
 
@@ -46054,9 +46057,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/an</code>                                                                   |
-| Run          | <a href="https://github.com/reeleehq/an/actions/runs/40448244253">40448244253</a>          |
+| Run          | <a href="https://github.com/reeleehq/an/actions/runs/40449953774">40449953774</a>          |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>508c2418bb8a4660ce650c6a8e1fcf8314713ca9</code> (in the history of the built commit) |
+| Event commit | <code>67ce0fcb394099509438158ef14b8cef692550d3</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -46081,13 +46084,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.294/">0.1.294</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.294/">0.1.294</a>, older than the documented version (0.1.295).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/an && cd an
-git checkout 5179a5ad26f2dc7a7c6cd1e77de21deb4be54a8b
+git checkout d77c46a7cdb2f476a36eeac2a0cde9c377f60c75
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
