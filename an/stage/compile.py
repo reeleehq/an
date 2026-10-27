@@ -1317,17 +1317,22 @@ def _beside_their_hosts(
     an#648) that is not among them: built apart (the host in a plane's
     wrapper), it would ride a key no sibling has, so it keeps its place.
 
-    >>> keys = {"pole": [(0, [1, 5])], "lamp": [(0, [1, 5, 1, 0])], "far": [(0, [1, 9, 1, 0])]}
-    >>> sorted(_beside_their_hosts(["pole", "lamp", "far"], keys))
+    >>> keys = {"pole": [(0, [1, 5])], "lamp": [(0, [1, 5, 1, 0])], "far": [(0, [1, 9, 1, 0])],
+    ...         "hat": [(0, [1, 9, 1, 0, 1, 0])]}
+    >>> sorted(_beside_their_hosts(["pole", "lamp", "far", "hat"], keys))
     ['lamp', 'pole']
     """
     mine = {n: keys[n] for n in names if n in keys}
-    opening = {_sort_key(ks[0][1]) for ks in mine.values()}
-    return {
-        n: ks
-        for n, ks in mine.items()
-        if len(ks[0][1]) <= 3 or _sort_key(ks[0][1])[:-2] in opening
-    }
+    while True:  # a rider of a dropped rider has no host here either
+        opening = {_sort_key(ks[0][1]) for ks in mine.values()}
+        kept = {
+            n: ks
+            for n, ks in mine.items()
+            if len(ks[0][1]) <= 3 or _sort_key(ks[0][1])[:-2] in opening
+        }
+        if len(kept) == len(mine):
+            return kept
+        mine = kept
 
 
 def _paint_keys_pass(state: CompileState) -> None:

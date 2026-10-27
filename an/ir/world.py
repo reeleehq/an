@@ -41,7 +41,6 @@ from __future__ import annotations
 import bisect
 import json
 import math
-from bisect import bisect_right
 import random
 import re
 from dataclasses import dataclass, field
@@ -1353,79 +1352,68 @@ def _is_slot(entity: AssetRef) -> bool:
     return STREAM_OVERRIDE in (entity.overrides or {})
 
 
-def _depth_at(t: float, depth0: float, rate: float | None) -> float:
-    return depth0 + rate * t if rate is not None else depth0
-
-
-def _crossings(
-    slots: Sequence[tuple[AssetRef, Sequence[_PassDepth]]],
-    rest_depths: Sequence[float],
-    *,
-    duration: float,
-) -> set[float]:
-    """The times a closed-form pass's depth crosses one of ``rest_depths``,
-    within the pass (from its start to the next pass's, or the shot's end)."""
-    out: set[float] = set()
-    for _, passes in slots:
-        for i, (start, depth0, rate) in enumerate(passes):
-            if not rate:
-                continue
-            end = passes[i + 1][0] if i + 1 < len(passes) else duration
-            for depth in rest_depths:
-                t = (depth - depth0) / rate
-                if start < t < end:
-                    out.add(t)
-    return out
-
-
 def _slot_paint_keys(
     slots: Sequence[tuple[AssetRef, Sequence[_PassDepth]]],
-    rest_depths: Sequence[float],
+) -> dict[str, list[tuple[float, tuple[float, float, float]]]]:
+    """Each stream slot's paint key from each pass on: ``(1.0, -depth,
+    tiebreak)`` at its instance's depth as the shot opens (a key sorting
+    farther first). Every instance of a closed-form stream moves alike, so
+    that depth orders them for the whole pass (an#634).
+
+    >>> e = AssetRef(kind="prop", id="p0", store="props", ref="p")
+    >>> _slot_paint_keys([(e, [(0.0, 10.0, -4.0), (2.0, 30.0, -4.0)])])
+    {'p0': [(0.0, (1.0, -10.0, 10000.0)), (2.0, (1.0, -30.0, 10000.0))]}
+    """
+    return {
+        entity.id: [
+            (start, (1.0, -depth0, SLOT_TIEBREAK + si)) for start, depth0, _ in passes
+        ]
+        for si, (entity, passes) in enumerate(slots)
+    }
+
+
+def _rest_paint_keys(
+    rest: Mapping[str, tuple[float, float, float]],
+    slots: Sequence[tuple[AssetRef, Sequence[_PassDepth]]],
     *,
     duration: float,
 ) -> dict[str, list[tuple[float, tuple[float, float, float]]]]:
-    """Each stream slot's paint key from each time on (``(1.0, -depth,
-    tiebreak)``, a key sorting farther first). Among one stream's slots every
-    instance moves alike, so its depth as the shot opens orders it for the
-    whole pass (an#634). An entity at rest (``rest_depths``, the depths of
-    the members that do not move relative to the camera) is passed: where a
-    closed-form pass crosses one's depth, every slot is keyed again, for each
-    stretch between two such times at its depth in the middle of it (the
-    order cannot change inside one, and the middle is never the crossing
-    itself), so the instance goes from behind the entity to in front of it
-    (an#648). A scanned pass keeps its opening depth.
+    """The paint keys of the members at rest relative to the camera
+    (``rest``: ``{id: (1.0, -depth, tiebreak)}``) when the streams pass them
+    (an#648). The slots keep their depth as the shot opens; a member at depth
+    ``d`` is then, in those terms, at ``d - rate * t``, so it is keyed again
+    at each time a closed-form pass crosses its depth, for each stretch at its
+    middle (never on a crossing). Anything moving like the streams (a member
+    standing in the world) keeps its opening key and stays right. Only when
+    every closed-form pass shares one rate; otherwise ``{}`` (an#658).
 
-    >>> e = lambda i: AssetRef(kind="prop", id=f"p{i}", store="props", ref="p")
-    >>> keys = _slot_paint_keys([(e(0), [(0.0, 10.0, -4.0)])], [6.0], duration=2.0)
-    >>> [(t, -k[1]) for t, k in keys["p0"]]
-    [(0.0, 8.0), (1.0, 4.0)]
-
-    Receding (a rear view): behind the entity from the crossing on.
-
-    >>> keys = _slot_paint_keys([(e(0), [(0.0, 2.0, 4.0)])], [6.0], duration=3.0)
-    >>> [(t, -k[1] > 6.0) for t, k in keys["p0"]]
-    [(0.0, False), (1.0, True)]
+    >>> e = AssetRef(kind="prop", id="p0", store="props", ref="p")
+    >>> keys = _rest_paint_keys({"lamp": (1.0, -6.0, 3.0)}, [(e, [(0.0, 10.0, -4.0)])], duration=2.0)
+    >>> [(t, -k[1]) for t, k in keys["lamp"]]
+    [(0.0, 8.0), (1.0, 12.0)]
     """
-    crossings = _crossings(slots, rest_depths, duration=duration)
+    rates = {rate for _, passes in slots for _, _, rate in passes if rate}
+    if len(rates) != 1 or not rest:
+        return {}
+    (rate,) = rates
+    crossings: set[float] = set()
+    for _, passes in slots:
+        for i, (start, depth0, r) in enumerate(passes):
+            end = passes[i + 1][0] if i + 1 < len(passes) else duration
+            for _, minus_depth, _ in rest.values():
+                t = (-minus_depth - depth0) / rate
+                if r and start < t < end:
+                    crossings.add(t)
     if not crossings:
-        return {
-            entity.id: [
-                (start, (1.0, -depth0, SLOT_TIEBREAK + si))
-                for start, depth0, _ in passes
-            ]
-            for si, (entity, passes) in enumerate(slots)
-        }
-    times = sorted({p[0] for _, passes in slots for p in passes} | crossings)
+        return {}
+    times = sorted({0.0} | crossings)
     middles = [(a + b) / 2.0 for a, b in zip(times, [*times[1:], duration])]
-    out: dict[str, list[tuple[float, tuple[float, float, float]]]] = {}
-    for si, (entity, passes) in enumerate(slots):
-        starts = [p[0] for p in passes]
-        keys = []
-        for t, mid in zip(times, middles):
-            _, depth0, rate = passes[max(0, bisect_right(starts, t) - 1)]
-            keys.append((t, (1.0, -_depth_at(mid, depth0, rate), SLOT_TIEBREAK + si)))
-        out[entity.id] = keys
-    return out
+    return {
+        eid: [
+            (t, (1.0, minus_depth + rate * mid, tie)) for t, mid in zip(times, middles)
+        ]
+        for eid, (_, minus_depth, tie) in rest.items()
+    }
 
 
 def _with_paint_keys(
@@ -2667,17 +2655,19 @@ def _lower_shot(
         # streams belong.
         for si, (entity, keys) in enumerate(extra):
             ordered.append(((1.0, -keys[0][1], SLOT_TIEBREAK + si), entity, None))
+        pass_keys.update(_slot_paint_keys(extra))
         pass_keys.update(
-            _slot_paint_keys(
-                extra,
-                [
-                    placed[e.id].depth
-                    for _, e, _ in ordered
+            _rest_paint_keys(
+                {
+                    e.id: key
+                    for key, e, _ in ordered
                     if e.id in placed
                     and e.id not in moving
                     and not _is_slot(e)
                     and placed[e.id].depth is not None
-                ],
+                    and key[0] == 1.0
+                },
+                extra,
                 duration=duration,
             )
         )
