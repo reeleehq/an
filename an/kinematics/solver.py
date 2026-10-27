@@ -68,7 +68,7 @@ import hashlib
 import json
 import math
 from collections.abc import Callable, Collection, Mapping, Sequence
-from dataclasses import dataclass, fields, replace
+from dataclasses import dataclass, field, fields, replace
 from typing import Any
 
 import numpy as np
@@ -124,9 +124,11 @@ DFLT_REGRIP_SPEED: float = 600.0
 #: A led grip is taken (its pin enforced again) once its gap is this small
 #: (scene units): the rejoin the stage's own check calls a snap is over 2.
 DFLT_REGRIP_SNAP: float = 1.0
-#: The strength of that lead (a :class:`Force` pull toward the walking point):
-#: a compliant pull, which closes no loop a conflict could settle by giving up
-#: a link.
+#: The strength of that lead (a :class:`Force` pull toward the walking point,
+#: which closes no loop a conflict could settle by giving up a link), for
+#: bodies of the kinematics' own scale (a link of 10 by 2 units); a caller whose
+#: bodies weigh more scales it (the stage: :data:`an.stage.solve.REGRIP_MASS_SCALE`).
+#: Too stiff, it drags a chain past a range it cannot keep (an#568's elbow).
 DFLT_REGRIP_STRENGTH: float = 1e6
 #: The most trial solves :func:`solve` spends looking for the joint to give
 #: up in a conflict (each is a full solve of the frame).
@@ -148,8 +150,9 @@ DFLT_SEGMENT_MARGIN: float = 0.5
 #: 2: a slow retry keeps going while it converges (an#568); 3: a conflict gives up
 #: the first candidate that halves the failure (an#641); 4: a slack chain of more
 #: than two links held at both ends is seeded on an arc (an#646); 5: a grip lost
-#: out of reach is led back over several frames (an#645).
-SOLVER_VERSION: str = "5"
+#: out of reach is led back over several frames (an#645); 6: the stage's per-frame
+#: solve leads lost grips back too (an#668).
+SOLVER_VERSION: str = "6"
 #: The most passes a frame whose first retry made progress is given, as a
 #: multiple of ``iterations``: its retry is repeated with ``retry`` times the
 #: passes while each round still makes progress (an#568). On 300 random
@@ -1598,9 +1601,7 @@ def solve_frames(
     poses, unsat, lims, snaps, drops = [], [], [], [], []
     tolerance = options.get("tolerance", DFLT_TOLERANCE)
     step = (regrip_speed or 0.0) * dt if dt is not None else 0.0
-    lost: set[int] = set()  # grips the geometry ruled out on the frame before
-    walking: dict[int, float] = {}  # grips being led back: the gap last frame
-    regained: set[int] = set()  # grips the lead took back, held since
+    regrip = Regrip()
     for k in range(frames):
         frame_joints = base
         if joints_at is not None:
@@ -1622,86 +1623,29 @@ def solve_frames(
         else:
             targets = targets_at[k]
 
-        # A grip lost out of reach and back within it, farther than one frame
-        # can close (a long chain hanging far from it), is led back: unjoined
-        # for the frame, its free point pulled (a Force, which closes no loop)
-        # toward a point that walks toward the grip at `regrip_speed`; within
-        # a step the grip itself is tried, and if taking it would tear the
-        # chain the frame is pulled straight at it instead (an#645). Only in
-        # dynamic mode: a pose has no time to walk in.
-        def lead(grips: Collection[int], walked: Mapping[int, float], **kw: Any):
-            return _regrip_leads(
-                current, frame_joints, targets, grips, walked, tolerance=tolerance, **kw
-            )
-
-        # Led grips walk on (within a snap they are tried themselves); a grip
-        # back within reach is tried itself first, as a short chain or an arm
-        # swings back at once.
-        leads, within = (
-            lead(walking.keys(), walking, step=step) if step > 0.0 else ({}, set())
-        )
-
-        def frame(led: Mapping[int, tuple[Point, Any, float]]) -> SolveResult:
+        def solve_with(
+            joints_now: Sequence[Joint], more: Sequence[Force]
+        ) -> SolveResult:
             return solve(
                 current,
-                [
-                    replace(fj, joined=False) if i in led else fj
-                    for i, fj in enumerate(frame_joints)
-                ],
+                joints_now,
                 targets=targets,
-                forces=(
-                    *forces,
-                    *(
-                        Force(free, toward=toward, strength=regrip_strength)
-                        for free, toward, _gap in led.values()
-                    ),
-                ),
+                forces=(*forces, *more),
                 gravity=gravity,
                 dt=dt,
                 **options,
             )
 
-        r = frame(leads)
-        before = set(drops[-1]) if drops else set()
-        trying = (within | lost) - leads.keys() if step > 0.0 else set()
-        refused = set(r.dropped) & trying
-        tore = set(r.dropped) - trying - set(r.out_of_reach) - before - leads.keys()
-        if trying and (refused or tore):
-            # The grip refused, or taking it gives a link up: led instead, a
-            # step at a time from out of reach, straight at it from within a
-            # snap, and tried again next frame.
-            leads.update(lead(trying - within, {}, step=step)[0])
-            leads.update(lead(trying & within, {}, step=0.0, snap=-1.0)[0])
-            r = frame(leads)
-        torn = set(r.dropped) - regained - set(r.out_of_reach) - before - leads.keys()
-        if torn and regained:
-            # A link is given up while a grip the lead took back holds: the
-            # grip goes first, as it would in any conflict (an#641), and is led
-            # back again.
-            leads.update(lead(regained, {}, step=0.0, snap=-1.0)[0])
-            r = frame(leads)
-        # A grip taken back and given up again in a conflict (a long rope
-        # swinging under its own weight) is led back like one lost out of reach.
-        relost = regained & set(r.dropped)
-        regained = (
-            (regained | (within - set(r.dropped))) - leads.keys() - set(r.dropped)
+        r = solve_regripping(
+            regrip,
+            current,
+            frame_joints,
+            targets,
+            solve_with=solve_with,
+            step=step,
+            strength=regrip_strength,
+            tolerance=tolerance,
         )
-        walking = {}
-        if leads:  # led, not held: given up, at the gap the grip still has
-            walking = {j: _gap(r.bodies, frame_joints[j]) for j in leads}
-            r = replace(
-                r,
-                dropped=tuple(sorted({*r.dropped, *leads})),
-                unsatisfied=tuple(
-                    sorted(
-                        {
-                            **dict(r.unsatisfied),
-                            **{j: g for j, g in walking.items() if g > tolerance},
-                        }.items()
-                    )
-                ),
-            )
-        lost = set(r.out_of_reach) | (relost - leads.keys())
         snaps += [(k, j, gap) for j, gap in reengaged if j not in r.dropped]
         enforced_before = [
             joint.joined and j not in r.dropped for j, joint in enumerate(frame_joints)
@@ -1729,6 +1673,118 @@ def _with_rest(frame_joint: Joint, base_joint: Joint) -> Joint:
     if isinstance(frame_joint, (Hinge, Weld)) and frame_joint.rest is None:
         return replace(frame_joint, rest=getattr(base_joint, "rest", None))
     return frame_joint
+
+
+@dataclass
+class Regrip:
+    """What a run of frames carries from one frame to the next to lead lost
+    grips back (an#645): the grips the geometry ruled out (or a conflict took
+    from a grip the lead had taken back) on the frame before, those being led
+    with their gap, those the lead took back, and the frame before's drops."""
+
+    lost: set[int] = field(default_factory=set)
+    walking: dict[int, float] = field(default_factory=dict)
+    regained: set[int] = field(default_factory=set)
+    dropped: set[int] = field(default_factory=set)
+
+
+def solve_regripping(
+    state: Regrip,
+    bodies: Sequence[Body],
+    joints: Sequence[Joint],
+    targets: Targets | None,
+    *,
+    solve_with: Callable[[Sequence[Joint], Sequence[Force]], SolveResult],
+    step: float,
+    strength: float = DFLT_REGRIP_STRENGTH,
+    tolerance: float = DFLT_TOLERANCE,
+) -> SolveResult:
+    """One frame of a run (``solve_with(joints, extra_forces)`` solves it)
+    that leads lost grips back, updating ``state`` (an#645). A grip lost out
+    of reach and back within it, farther than the frame can close (a long
+    chain hanging far from it), is unjoined and its free point pulled (a
+    :class:`Force`, which closes no loop) toward a point walking toward the
+    grip ``step`` per frame; within :data:`DFLT_REGRIP_SNAP` the grip is
+    tried itself, and if taking it would give it or a link up it is pulled
+    straight at it instead. A link given up while a grip the lead took back
+    holds gives up that grip instead (an#641). ``step`` 0 (pose mode, no
+    time to walk in) leads nothing. The :func:`solve_frames` loop and the
+    stage's per-frame solve both run their frames through it (an#668)."""
+
+    def lead(grips: Collection[int], walked: Mapping[int, float], **kw: Any):
+        return _regrip_leads(
+            bodies, joints, targets, grips, walked, tolerance=tolerance, **kw
+        )
+
+    def frame(led: Mapping[int, tuple[Point, Any, float]]) -> SolveResult:
+        return solve_with(
+            [replace(j, joined=False) if i in led else j for i, j in enumerate(joints)],
+            [
+                Force(free, toward=toward, strength=strength)
+                for free, toward, _g in led.values()
+            ],
+        )
+
+    # Led grips walk on (within a snap they are tried themselves); a grip
+    # back within reach is tried itself first, as a short chain or an arm
+    # swings back at once.
+    leads, within = (
+        lead(state.walking.keys(), state.walking, step=step)
+        if step > 0.0
+        else ({}, set())
+    )
+    r = frame(leads)
+    trying = (within | state.lost) - leads.keys() if step > 0.0 else set()
+    refused = set(r.dropped) & trying
+    tore = set(r.dropped) - trying - set(r.out_of_reach) - state.dropped - leads.keys()
+    if trying and (refused or tore):
+        # The grip refused, or taking it gives a link up: led instead, a step
+        # at a time from out of reach, straight at it from within a snap, and
+        # tried again next frame. (Re-solved only when something is led now.)
+        n = len(leads)
+        leads.update(lead(trying - within, {}, step=step)[0])
+        leads.update(lead(trying & within, {}, step=0.0, snap=-1.0)[0])
+        if len(leads) > n:
+            r = frame(leads)
+    torn = (
+        set(r.dropped)
+        - state.regained
+        - set(r.out_of_reach)
+        - state.dropped
+        - leads.keys()
+    )
+    if torn and state.regained:
+        # A link is given up while a grip the lead took back holds: the grip
+        # goes first, as it would in any conflict (an#641), and is led back.
+        n = len(leads)
+        leads.update(lead(state.regained, {}, step=0.0, snap=-1.0)[0])
+        if len(leads) > n:
+            r = frame(leads)
+    # A grip taken back and given up again in a conflict (a long rope swinging
+    # under its own weight) is led back like one lost out of reach.
+    relost = state.regained & set(r.dropped)
+    state.regained = (
+        (state.regained | (within - set(r.dropped))) - leads.keys() - set(r.dropped)
+    )
+    state.walking = {}
+    if leads:  # led, not held: given up, at the gap the grip still has
+        state.walking = {j: _gap(r.bodies, joints[j]) for j in leads}
+
+        r = replace(
+            r,
+            dropped=tuple(sorted({*r.dropped, *leads})),
+            unsatisfied=tuple(
+                sorted(
+                    {
+                        **dict(r.unsatisfied),
+                        **{j: g for j, g in state.walking.items() if g > tolerance},
+                    }.items()
+                )
+            ),
+        )
+    state.lost = set(r.out_of_reach) | (relost - leads.keys())
+    state.dropped = set(r.dropped)
+    return r
 
 
 def _regrip_leads(

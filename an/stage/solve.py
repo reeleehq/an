@@ -1439,6 +1439,13 @@ def _along(path: Sequence[tuple[float, float]], f: float) -> tuple[float, float]
     return path[-1]
 
 
+#: How much more the stage's bodies weigh than the kinematics' own (a body's
+#: mass is its area: a stage forearm is thousands of px², a test rope's link 20
+#: units²), so the lead that walks a lost grip back pulls as firmly here: at the
+#: kinematics' strength a stage arm hovered short of its pin (an#668).
+REGRIP_MASS_SCALE: float = 100.0
+
+
 def run_solve(
     doc: Any,
     puppet: Puppet,
@@ -1454,6 +1461,12 @@ def run_solve(
     from dataclasses import replace
 
     from an.kinematics import Body, Point, Weld, WORLD, inputs_digest, solve
+    from an.kinematics.solver import (
+        DFLT_REGRIP_SPEED,
+        DFLT_REGRIP_STRENGTH,
+        Regrip,
+        solve_regripping,
+    )
     from an.stage.timeline import (
         _pose_for,
         evaluate_timeline,
@@ -1479,6 +1492,7 @@ def run_solve(
     current: list[Any] | None = None
     joined_before: list[bool] | None = None
     frames_inputs: list[Any] = []
+    regrip = Regrip()
     for k, t in enumerate(times):
         pose = evaluate_timeline(timeline, t)
         world = _world_matrices(doc, [*order, *extra_paths], pose, nodes)
@@ -1654,7 +1668,19 @@ def run_solve(
                 joints[j] = replace(
                     joints[j], b=Point(WORLD, *_body_point(first.pose(b.body), b))
                 )
-        r = solve(current, joints, **options)
+        # A grip lost out of reach is led back over several frames when one
+        # frame cannot take it, as `solve_frames` does (an#645, an#668).
+        r = solve_regripping(
+            regrip,
+            current,
+            joints,
+            options["targets"],
+            solve_with=lambda js, more, cur=current: solve(
+                cur, js, forces=more, **options
+            ),
+            step=DFLT_REGRIP_SPEED * dt if dt is not None else 0.0,
+            strength=DFLT_REGRIP_STRENGTH * REGRIP_MASS_SCALE,
+        )
         frames_inputs.append([joints, targets])
         current = list(r.bodies)
         joined_before = joined_now

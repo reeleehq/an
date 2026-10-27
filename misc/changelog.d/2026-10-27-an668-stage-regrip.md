@@ -1,0 +1,1 @@
+- The stage's per-frame solve leads a lost grip back over several frames, as `solve_frames` does: both run each frame through `an.kinematics.solver.solve_regripping`; `SOLVER_VERSION` 6 (an#668).

@@ -640,3 +640,31 @@ def test_a_shot_that_does_not_compile_says_its_cause_at_most_twice(tmp_path):
     assert 1 <= sum("does not read" in m for m in said) <= 2
     assert sum("did NOT run" in m for m in said) == 1
     assert not [m for m in said if "were NOT checked" in m]
+
+
+def test_the_stage_leads_a_lost_pin_back_and_holds_it_again(tmp_path):
+    """an#668: a dynamic shot, the torso carried away (the hand's pin out of
+    reach) and back. The stage solves frame by frame through the same lead as
+    `solve_frames` (an#645): the pin is held again within a few frames of
+    coming back in reach (at the stage's mass scale; at the kinematics' own
+    strength the hand hovered 8 to 20 px short for the rest of the shot)."""
+    from an.bench.core_corpus import stage_copy as corpus_copy
+    from an.stage.solve import solve_report
+
+    root = corpus_copy(ROOT / "misc" / "bench" / "corpus" / "joint_pin", tmp_path / "p")
+    project = load(root)
+    data = project.scene.timeline[0].model_dump()
+    data.update(
+        duration=2.0,
+        solve={"gravity": "down", "mode": "dynamic"},
+        actions=[
+            {"kind": "tween", "target": "puppet/torso", "property": "x",
+             "from_value": -100.0, "to_value": -400.0, "duration": 0.5, "start": 0.0},
+            {"kind": "tween", "target": "puppet/torso", "property": "x",
+             "from_value": -400.0, "to_value": -100.0, "duration": 0.25, "start": 0.75},
+            {"kind": "pin", "point": "puppet/fore@hand", "to": "world@-378,-38"},
+        ],
+    )
+    doc = _compile(project, Shot.model_validate(data))
+    spans = solve_report(doc)["dropped"]
+    assert spans and max(s["until"] for s in spans) <= 0.6, spans
