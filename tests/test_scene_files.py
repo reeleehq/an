@@ -8,6 +8,7 @@ project reaches.
 
 from __future__ import annotations
 
+import json
 import os
 import time
 from pathlib import Path
@@ -441,16 +442,53 @@ def test_read_only_commands_leave_every_scene_file_untouched(tmp_path):
     assert _snapshot(root) == before
 
 
-def test_read_scene_is_what_a_sync_then_a_read_gives(tmp_path):
+@pytest.mark.parametrize(
+    "case", ["md_newer", "json_newer", "tie_agrees", "tie_disagrees", "json_only", "md_only"]
+)
+def test_read_scene_is_what_a_sync_then_a_read_gives(tmp_path, case):
+    """`read_scene` decides like `sync` does, in every branch of the pair, and writes nothing."""
+    import shutil
+
     from an.ir.sync import read_scene
 
-    root = _stale_json_project(tmp_path)
-    in_memory = read_scene(root, "scene.studio.md")
-    assert in_memory.meta.duration == 2  # the newer Markdown, not the stale JSON
-    synced = load(root, scene_file="scene.studio.md").scene
+    root = _two_scene_project(tmp_path)
+    load(root, scene_file="scene.studio.md")
+    name, md, js = "scene.studio.md", root / "scene.studio.md", root / "ir" / "scene.studio.json"
+    now = time.time()
+    edited = _STUDIO.replace("duration: 1\nfps", "duration: 2\nfps")
+    if case == "md_newer":
+        md.write_text(edited, encoding="utf-8")
+        os.utime(md, (now + 10, now + 10))
+    elif case == "json_newer":
+        doc = json.loads(js.read_text(encoding="utf-8"))
+        doc["meta"]["title"] = "From JSON"
+        js.write_text(json.dumps(doc), encoding="utf-8")
+        os.utime(js, (now + 10, now + 10))
+    elif case in ("tie_agrees", "tie_disagrees"):
+        if case == "tie_disagrees":
+            md.write_text(edited, encoding="utf-8")
+        os.utime(md, (now, now))
+        os.utime(js, (now, now))
+    elif case == "json_only":  # only the default scene may lack its Markdown
+        name, md, js = "scene.md", root / "scene.md", root / "ir" / "scene.json"
+        load(root)
+        md.unlink()
+    else:
+        js.unlink()
+    twin = tmp_path / "twin"
+    shutil.copytree(root, twin, copy_function=shutil.copy2)
+    before = _snapshot(root)
+    in_memory = read_scene(root, name)
+    assert _snapshot(root) == before
+    synced = load(twin, scene_file=name).scene
     assert in_memory.model_dump() == synced.model_dump()
+
+
+def test_read_scene_refuses_a_scene_that_is_not_there(tmp_path):
+    from an.ir.sync import read_scene
+
     with pytest.raises(SceneFileError):
-        read_scene(root, "scene.nope.md")
+        read_scene(_two_scene_project(tmp_path), "scene.nope.md")
 
 
 def test_a_sync_free_load_has_a_read_only_scene_view(tmp_path):

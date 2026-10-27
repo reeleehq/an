@@ -225,12 +225,15 @@ def load(
     scene_file: str | Path | SceneFile = DEFAULT_SCENE_FILE,
     sync: bool = True,
 ) -> Project:
-    """Load an existing project. Reconciles scene.md / ir/scene.json first.
+    """Load an existing project. Reconciles scene.md / ir/scene.json first
+    (unless ``sync=False``).
 
     ``sync=False`` is the read-only load (an#573): the scene is read past a
     stale pair with :func:`an.ir.sync.read_scene` and nothing is written to the
     scene files; ``project.mall["scenes"]`` is then a read-only view of that
-    scene. For commands that only look (``an cache info``, ``gc --dry-run``).
+    scene. For commands that only look (``an cache info``, ``an cache gc``, ``credits``,
+    ``world show``). ``an validate`` keeps syncing: it reports the sync's own
+    warnings (a tie that disagrees) as findings, which this path does not emit.
 
     ``scene_file`` names another scene of the project (``scene.studio.md``, its
     JSON twin ``ir/scene.studio.json``, an#539; resolved by
