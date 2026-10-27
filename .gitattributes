@@ -12,5 +12,5 @@ an/stage/runtime/vendor/pixi.LICENSE.txt -text
 misc/bench/golden/**/*.png -text
 tests/fixtures/png/*.png -text
 
-# Two PRs each adding a line under the same date must rebase without a conflict: keep both lines.
+# New entries go in misc/changelog.d/ fragments (an#469); this stays for the folds and old branches.
 misc/CHANGELOG.md merge=union

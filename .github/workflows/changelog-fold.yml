@@ -1,0 +1,43 @@
+# Fold the changelog fragments of merged PRs into misc/CHANGELOG.md (an#469).
+#
+# A PR adds misc/changelog.d/<date>-an<issue>-<slug>.md instead of editing the
+# changelog (parallel PRs conflicted on it). After a merge to main that brings
+# fragments, this commits the fold. The commit says [skip ci], like the version
+# bot's, so it starts nothing (and so cannot start this workflow again).
+name: Fold changelog fragments
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "misc/changelog.d/*.md"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: changelog-fold
+  cancel-in-progress: false
+
+jobs:
+  fold:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Fold
+        run: python3 misc/changelog.py fold
+      - name: Commit and push (rebase onto what the version bot pushed meanwhile)
+        run: |
+          if git diff --quiet; then echo "nothing to fold"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add misc/CHANGELOG.md misc/changelog.d
+          git commit -m "**CI** Folded changelog fragments [skip ci]"
+          for attempt in 1 2 3; do
+            git pull --rebase origin main && git push origin HEAD:main && exit 0
+            sleep $((attempt * 5))
+          done
+          exit 1
