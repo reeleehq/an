@@ -116,6 +116,8 @@ def test_a_boil_faster_than_the_frame_rate_is_refused_and_a_slow_one_warned():
         _compiled({**ROUTE, "boil_hz": 200})
     with pytest.warns(UserWarning, match="never steps"):
         _compiled({**ROUTE, "boil_hz": 1}, duration=0.5)
+    with pytest.warns(UserWarning, match="never steps"):  # exactly one step long
+        _compiled({**ROUTE, "boil_hz": 2}, duration=0.5)
 
 
 def test_a_boiling_path_draws_on_with_its_own_trim_channel():

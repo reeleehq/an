@@ -1136,7 +1136,8 @@ def _boil_pass(state: CompileState) -> None:
                 f"than the shot's {state.fps} fps: a step no frame shows. Use at most "
                 f"`boil_hz: {state.fps}` (on ones); `{state.fps / 2:g}` is on twos."
             )
-        if hz * duration < 1.0:
+        keys = boil_keys(hz, len(v.path.drawings) + 1, duration)
+        if len(keys) < 2:
             warnings.warn(
                 f"shot {state.shot.id!r}: path {node.name!r} boils at {hz:g} Hz, once "
                 f"every {1 / hz:g} s, and the shot is {duration:g} s long: it never "
@@ -1155,7 +1156,7 @@ def _boil_pass(state: CompileState) -> None:
                     property=BOIL_SET,
                     keyframes=[
                         KeyframeJSON(time=t, value=key, easing="step")
-                        for t, key in boil_keys(hz, len(v.path.drawings) + 1, duration)
+                        for t, key in keys
                     ],
                 )
             ],
