@@ -1,1 +1,0 @@
-- World follow-ups (an#516, slice A): slot entities carry `overrides.stream`; an authored slot-like id is refused; a missing world member ref is a validate error and the render warns lowering notes; cut checks skip entities hidden on a side; a shot with no measurable member says so.
