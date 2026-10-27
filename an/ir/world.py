@@ -1135,9 +1135,11 @@ def _depth_runs(
 _CAMERA_SAMPLES: int = 33
 
 
-#: A stream pass's paint depth: ``(start time, depth as the shot opens, depth
-#: rate per second or None)`` (an#648).
-_PassDepth = tuple[float, float, "float | None"]
+#: A stream pass's paint depth: ``(start time, depth as the shot opens, its
+#: motion)``, the motion being the depth's rate per second in a closed-form
+#: pass, or in a scanned one its depths on the shot's scan grid (`_grid`;
+#: an#648, an#658).
+_PassDepth = tuple[float, float, "float | tuple[float, ...]"]
 
 
 def _travel_entities(
@@ -1152,9 +1154,10 @@ def _travel_entities(
     skip: Sequence[str] = (),
 ) -> tuple[list[tuple[AssetRef, list[_PassDepth]]], list[Any], list[tuple[str, str]]]:
     """The stream instances a framed shot shows, as ``(entity, [(time, depth,
-    rate)] per pass)`` (each pass's start, 0 for the first; the depth of its
+    motion)] per pass)`` (each pass's start, 0 for the first; the depth of its
     instance as the shot opens, and its depth's rate of change in a closed-form
-    pass, ``None`` in a scanned one: what paints it, an#634, an#648) and their
+    pass, its depths on the shot's scan grid in a scanned one: what paints it,
+    an#634, an#648, an#658) and their
     actions, plus the problems found (unsized streams) as ``(stream id,
     message)``. Entities are SLOTS (`stream_slots`),
     each drawing the instances that pass through it one after another, so
@@ -1173,6 +1176,7 @@ def _travel_entities(
     direction = _unit(tuple(map(float, travel.direction)))  # type: ignore[arg-type]
     reach = float(travel.far)
     min_step = _MIN_SAMPLE_FRAMES / float(fps)
+    grid = _grid(0.0, duration, min_step)  # the lowering's scan grid
     tol = float(travel.tolerance_px)
     entities: list[tuple[AssetRef, list[_PassDepth]]] = []
     actions: list[Any] = []
@@ -1223,7 +1227,9 @@ def _travel_entities(
                 stream, travel, ctx, frame, box=box, m=m, width=width, height=height
             ),
         )
-        passes: dict[int, list[tuple[int, _Pass, tuple[float, float | None]]]] = {}
+        passes: dict[
+            int, list[tuple[int, _Pass, tuple[float, float | tuple[float, ...]]]]
+        ] = {}
         for k, p in stream_instances(stream, travel, s_min=s_lo, s_max=s_hi):
             view = ctx.view_fn(frame, lambda t, p=p: p)
             if closed is not None:
@@ -1243,7 +1249,6 @@ def _travel_entities(
                     if t_out <= t_in:
                         continue
             else:
-                depth0, rate = view(0.0)[2], None
                 scanned = _depth_window(
                     lambda t: view(t)[2],
                     0.0,
@@ -1255,6 +1260,8 @@ def _travel_entities(
                 if scanned is None:
                     continue
                 t_in, t_out = scanned
+                rate = tuple(view(t)[2] for t in grid)
+                depth0 = rate[0]
 
             def g(t: float, view: Callable = view) -> tuple[float, float, float]:
                 rx, ry, depth = view(t)
@@ -1372,34 +1379,54 @@ def _slot_paint_keys(
     }
 
 
+_PaintKey = tuple[float, float, float]
+_PaintKeys = dict[str, list[tuple[float, _PaintKey]]]
+
+#: How far (relative to its depth) a moving member's sampled depths may stray
+#: from a straight line at the streams' rate and still move like them, and how
+#: far two rates may differ and still be one (float noise only; an#658).
+_ALIKE_TOLERANCE: float = 1e-9
+
+#: Seconds: two times the paint keys change that are closer than this are one
+#: (float noise, as a crossing computed at 0.9999999999999999 beside a pass
+#: beginning at 1.0; an#658).
+_BREAKPOINT_TOLERANCE: float = 1e-9
+
+
 def _rest_paint_keys(
-    rest: Mapping[str, tuple[float, float, float]],
-    slots: Sequence[tuple[AssetRef, Sequence[_PassDepth]]],
+    rest: Mapping[str, _PaintKey],
+    passes: Sequence[Sequence[_PassDepth]],
     *,
     duration: float,
-) -> dict[str, list[tuple[float, tuple[float, float, float]]]]:
+) -> _PaintKeys:
     """The paint keys of the members at rest relative to the camera
-    (``rest``: ``{id: (1.0, -depth, tiebreak)}``) when the streams pass them
+    (``rest``: ``{id: (1.0, -depth, tiebreak)}``) when what moves alike (the
+    closed-form ``passes``, one list per slot or moving member) passes them
     (an#648). The slots keep their depth as the shot opens; a member at depth
     ``d`` is then, in those terms, at ``d - rate * t``, so it is keyed again
     at each time a closed-form pass crosses its depth, for each stretch at its
     middle (never on a crossing). Anything moving like the streams (a member
     standing in the world) keeps its opening key and stays right. Only when
-    every closed-form pass shares one rate; otherwise ``{}`` (an#658).
+    every pass shares one nonzero rate; otherwise ``{}`` (the general form is
+    :func:`_crossing_paint_keys`'s, an#658).
 
-    >>> e = AssetRef(kind="prop", id="p0", store="props", ref="p")
-    >>> keys = _rest_paint_keys({"lamp": (1.0, -6.0, 3.0)}, [(e, [(0.0, 10.0, -4.0)])], duration=2.0)
+    >>> keys = _rest_paint_keys({"lamp": (1.0, -6.0, 3.0)}, [[(0.0, 10.0, -4.0)]], duration=2.0)
     >>> [(t, -k[1]) for t, k in keys["lamp"]]
     [(0.0, 8.0), (1.0, 12.0)]
     """
-    rates = {rate for _, passes in slots for _, _, rate in passes if rate}
-    if len(rates) != 1 or not rest:
+    rates = [rate for slot in passes for _, _, rate in slot if rate]
+    if not rates or not rest:
         return {}
-    (rate,) = rates
+    rate = rates[0]
+    if not all(
+        math.isclose(r, rate, rel_tol=_ALIKE_TOLERANCE, abs_tol=_ALIKE_TOLERANCE)
+        for r in rates
+    ):
+        return {}
     crossings: set[float] = set()
-    for _, passes in slots:
-        for i, (start, depth0, r) in enumerate(passes):
-            end = passes[i + 1][0] if i + 1 < len(passes) else duration
+    for slot in passes:
+        for i, (start, depth0, r) in enumerate(slot):
+            end = slot[i + 1][0] if i + 1 < len(slot) else duration
             for _, minus_depth, _ in rest.values():
                 t = (-minus_depth - depth0) / rate
                 if r and start < t < end:
@@ -1414,6 +1441,229 @@ def _rest_paint_keys(
         ]
         for eid, (_, minus_depth, tie) in rest.items()
     }
+
+
+@dataclass(frozen=True)
+class _DepthPiece:
+    """One stretch ``[lo, hi]`` of an entity's depth over a shot, linear
+    between its knots ``(times, depths)`` (an#658): a closed-form pass is one
+    line, a scanned one or a member in motion its samples on the scan grid.
+
+    >>> _DepthPiece(0.0, 2.0, (0.0, 2.0), (10.0, 6.0)).at(0.5)
+    9.0
+    """
+
+    lo: float
+    hi: float
+    times: tuple[float, ...]
+    depths: tuple[float, ...]
+
+    def at(self, t: float) -> float:
+        """The depth at ``t``, linear between knots, held past the ends."""
+        times, depths = self.times, self.depths
+        i = bisect.bisect_right(times, t)
+        if i <= 0:
+            return depths[0]
+        if i >= len(times):
+            return depths[-1]
+        t0, t1 = times[i - 1], times[i]
+        u = (t - t0) / (t1 - t0) if t1 > t0 else 0.0
+        return depths[i - 1] + (depths[i] - depths[i - 1]) * u
+
+
+def _piece(
+    lo: float,
+    hi: float,
+    motion: float | Sequence[float],
+    *,
+    depth0: float,
+    grid: Sequence[float],
+) -> _DepthPiece:
+    """The depth over ``[lo, hi]`` of a closed-form motion (``depth0 + motion
+    * t``) or of depths sampled on ``grid``, as one :class:`_DepthPiece`.
+
+    >>> _piece(1.0, 2.0, -4.0, depth0=10.0, grid=()).depths
+    (6.0, 2.0)
+    >>> _piece(0.5, 1.5, (9.0, 8.0, 6.0), depth0=9.0, grid=(0.0, 1.0, 2.0)).depths
+    (8.5, 8.0, 7.0)
+    """
+    if isinstance(motion, (int, float)):
+        ends = (depth0 + motion * lo, depth0 + motion * hi)
+        return _DepthPiece(lo, hi, (lo, hi), ends)
+    whole = _DepthPiece(grid[0], grid[-1], tuple(grid), tuple(motion))
+    inside = [t for t in grid if lo < t < hi]
+    times = (lo, *inside, hi)
+    return _DepthPiece(lo, hi, times, tuple(whole.at(t) for t in times))
+
+
+def _slot_pieces(
+    passes: Sequence[_PassDepth], *, duration: float, grid: Sequence[float]
+) -> list[_DepthPiece]:
+    """A slot's depth over the shot, one piece per pass from its start to the
+    next one's (the slot draws that instance until then)."""
+    ends = [start for start, _, _ in passes[1:]] + [duration]
+    return [
+        _piece(start, end, motion, depth0=depth0, grid=grid)
+        for (start, depth0, motion), end in zip(passes, ends)
+    ]
+
+
+def _piece_crossings(a: _DepthPiece, b: _DepthPiece, *, near: float) -> list[float]:
+    """The times ``a`` and ``b`` swap depth where both are defined, exact
+    between knots, each being linear there: where one crosses the other, comes
+    level with it, or leaves a tie with it (a tie that then splits is keyed
+    from the split, not by the tiebreak). A crossing behind the camera counts
+    too (two receding entities emerge in front in the swapped order); only
+    when both stay nearer than ``near`` over the whole span they share, so
+    neither is ever seen, are there none.
+
+    >>> line = _DepthPiece(0.0, 4.0, (0.0, 4.0), (10.0, 2.0))
+    >>> _piece_crossings(line, _DepthPiece(0.0, 4.0, (0.0, 4.0), (5.0, 5.0)), near=0.5)
+    [2.5]
+    """
+    lo, hi = max(a.lo, b.lo), min(a.hi, b.hi)
+    if hi <= lo:
+        return []
+    if min(a.depths) > max(b.depths) or min(b.depths) > max(a.depths):
+        return []
+    times = sorted({lo, hi, *(t for t in (*a.times, *b.times) if lo < t < hi)})
+    pairs = [(a.at(t), b.at(t)) for t in times]
+    if all(da < near and db < near for da, db in pairs):
+        return []
+    diffs = [da - db for da, db in pairs]
+    out: list[float] = []
+    for (t0, d0), (t1, d1) in zip(zip(times, diffs), zip(times[1:], diffs[1:])):
+        if d0 * d1 < 0.0:
+            out.append(t0 + (t1 - t0) * d0 / (d0 - d1))
+        elif d1 == 0.0 and d0 != 0.0 and t1 < hi:  # comes level
+            out.append(t1)
+        elif d0 == 0.0 and d1 != 0.0 and t0 > lo:  # a tie splits
+            out.append(t0)
+    return out
+
+
+def _depth_paint_keys(
+    curves: Mapping[str, tuple[Sequence[_DepthPiece], float]],
+    *,
+    duration: float,
+    near: float,
+) -> _PaintKeys:
+    """Every entity of ``curves`` (``{id: (its depth's pieces, tiebreak)}``,
+    the pieces tiling the shot) keyed, in each stretch between two
+    consecutive times any two of them swap depth or a piece begins, at its
+    depth at the stretch's middle (an#658): within a stretch no two swap, so
+    keys read at one instant order them for all of it. Times closer than
+    :data:`_BREAKPOINT_TOLERANCE` are one. A key repeats only when it changes
+    (a member at rest has one).
+
+    >>> rest = [_DepthPiece(0.0, 4.0, (0.0, 4.0), (5.0, 5.0))]
+    >>> pole = [_DepthPiece(0.0, 4.0, (0.0, 4.0), (10.0, 2.0))]
+    >>> keys = _depth_paint_keys({"lamp": (rest, 0.0), "pole": (pole, 1.0)}, duration=4.0, near=0.5)
+    >>> [(t, -k[1]) for t, k in keys["pole"]], [(t, -k[1]) for t, k in keys["lamp"]]
+    ([(0.0, 7.5), (2.5, 3.5)], [(0.0, 5.0)])
+    """
+    ids = sorted(curves)
+    times = {0.0}
+    for i, a in enumerate(ids):
+        times.update(p.lo for p in curves[a][0] if 0.0 < p.lo < duration)
+        for b in ids[i + 1 :]:
+            for pa in curves[a][0]:
+                for pb in curves[b][0]:
+                    times.update(_piece_crossings(pa, pb, near=near))
+    starts = [0.0]
+    for t in sorted(times):
+        apart = t - starts[-1] > _BREAKPOINT_TOLERANCE
+        if apart and t < duration - _BREAKPOINT_TOLERANCE:
+            starts.append(t)
+    middles = [(t0 + t1) / 2.0 for t0, t1 in zip(starts, [*starts[1:], duration])]
+    out: _PaintKeys = {}
+    for eid in ids:
+        pieces, tie = curves[eid]
+        los = [p.lo for p in pieces]
+        keys: list[tuple[float, _PaintKey]] = []
+        for t, mid in zip(starts, middles):
+            piece = pieces[max(0, bisect.bisect_right(los, mid) - 1)]
+            key = (1.0, -piece.at(mid), tie)
+            if not keys or keys[-1][1] != key:
+                keys.append((t, key))
+        out[eid] = keys
+    return out
+
+
+def _alike_rate(depths: Sequence[float], *, grid: Sequence[float]) -> float | None:
+    """The rate of ``depths`` (sampled on ``grid``) when they lie on one line,
+    else ``None`` (an#658).
+
+    >>> _alike_rate([8.0, 6.0, 4.0], grid=[0.0, 0.5, 1.0]), _alike_rate([8.0, 7.0, 4.0], grid=[0.0, 0.5, 1.0])
+    (-4.0, None)
+    """
+    if len(grid) < 2:
+        return 0.0
+    rate = (depths[-1] - depths[0]) / (grid[-1] - grid[0])
+    scale = _ALIKE_TOLERANCE * (1.0 + max(abs(d) for d in depths))
+    if all(abs(d - depths[0] - rate * t) <= scale for d, t in zip(depths, grid)):
+        return rate
+    return None
+
+
+def _crossing_paint_keys(
+    rest: Mapping[str, _PaintKey],
+    slots: Sequence[tuple[AssetRef, Sequence[_PassDepth]]],
+    movers: Mapping[str, tuple[Sequence[float], _PaintKey]],
+    *,
+    duration: float,
+    grid: Sequence[float],
+    near: float,
+) -> _PaintKeys:
+    """The paint keys of the depth-ordered entities where their order changes
+    within the shot (an#648, an#658), on top of :func:`_slot_paint_keys`: the
+    members at rest relative to the camera (``rest``: ``{id: key}``), the
+    stream ``slots`` and the members in motion (``movers``: ``{id: (depths on
+    grid, key)}``).
+
+    When everything that moves moves alike (closed-form passes and movers on
+    one line at one rate), the slots and movers keep their opening keys and
+    only the members at rest are keyed again, at the crossings
+    (:func:`_rest_paint_keys`). A mover's opening key is its depth at 0, as a
+    slot's is, even when it enters view later (its key as placed is its depth
+    as it enters view, which the others' keys are not in terms of). Otherwise (streams at different rates, a rate
+    0 among them, a scanned pass, a member walking or turning with the camera)
+    every one of them is keyed at its depth in each stretch between swaps
+    (:func:`_depth_paint_keys`)."""
+    motions = [m for _, passes in slots for _, _, m in passes]
+    mover_rates = {mid: _alike_rate(d, grid=grid) for mid, (d, _) in movers.items()}
+    rates = [*motions, *mover_rates.values()]
+    closed = [r for r in rates if isinstance(r, (int, float))]
+    if len(closed) == len(rates) and all(
+        math.isclose(r, closed[0], rel_tol=_ALIKE_TOLERANCE, abs_tol=_ALIKE_TOLERANCE)
+        for r in closed
+    ):
+        opening: _PaintKeys = {
+            mid: [(0.0, (1.0, -d[0], k[2]))] for mid, (d, k) in movers.items()
+        }
+        return {
+            **opening,
+            **_rest_paint_keys(
+                rest,
+                [passes for _, passes in slots]
+                + [[(0.0, movers[mid][0][0], r)] for mid, r in mover_rates.items()],
+                duration=duration,
+            ),
+        }
+    whole = (0.0, duration)
+    curves: dict[str, tuple[Sequence[_DepthPiece], float]] = {
+        eid: ([_DepthPiece(*whole, whole, (-k[1], -k[1]))], k[2])
+        for eid, k in rest.items()
+    }
+    curves.update(
+        (mid, ([_DepthPiece(*whole, tuple(grid), tuple(d))], k[2]))
+        for mid, (d, k) in movers.items()
+    )
+    curves.update(
+        (e.id, (_slot_pieces(passes, duration=duration, grid=grid), SLOT_TIEBREAK + si))
+        for si, (e, passes) in enumerate(slots)
+    )
+    return _depth_paint_keys(curves, duration=duration, near=near)
 
 
 def _with_paint_keys(
@@ -2672,7 +2922,7 @@ def _lower_shot(
             ordered.append(((1.0, -keys[0][1], SLOT_TIEBREAK + si), entity, None))
         pass_keys.update(_slot_paint_keys(extra))
         pass_keys.update(
-            _rest_paint_keys(
+            _crossing_paint_keys(
                 {
                     e.id: key
                     for key, e, _ in ordered
@@ -2683,7 +2933,14 @@ def _lower_shot(
                     and key[0] == 1.0
                 },
                 extra,
+                {
+                    e.id: (sightings[e.id].depths, key)
+                    for key, e, _ in ordered
+                    if e.id in sightings and key[0] == 1.0
+                },
                 duration=duration,
+                grid=grid,
+                near=near,
             )
         )
         actions.extend(extra_actions)
@@ -2696,6 +2953,12 @@ def _lower_shot(
             )
         for stream_id, problem in problems:
             note("warning", "stream", stream_id, problem)
+    # Built in the order of the first keys, which the compiler's runs read as
+    # the opening order (an#658: two that swap as the shot opens).
+    ordered = [
+        (pass_keys[e.id][0][1] if e.id in pass_keys else key, e, j)
+        for key, e, j in ordered
+    ]
     ordered.sort(key=lambda item: item[0])
     ordered = _with_paint_keys(
         ordered,
