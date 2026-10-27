@@ -1501,6 +1501,7 @@ def merge_redesign(
             named.add(voice)
     if retired:
         entry["retired"] = retired
+    _carry_reels(previous, entry)
     if chosen and chosen.get("voice_id"):
         designed = next(
             (
@@ -1524,6 +1525,24 @@ def merge_redesign(
             ),
         }
     return entry
+
+
+def _carry_reels(previous: Mapping, entry: MutableMapping) -> None:
+    """Keep the reel records (:data:`AUDITION_RECORD_KEYS`, :data:`AUDITIONS_KEY`)
+    of every option of ``entry`` whose voice the previous design's option of
+    the same label already had (a library voice found again): its reels are on
+    disk, and their content keys still say whether they are current (an#588)."""
+    before = {
+        (o.get("option"), o.get("voice_id")): o
+        for o in previous.get("options", ())
+        if o.get("voice_id")
+    }
+    for o in entry.get("options", ()):
+        old = before.get((o.get("option"), o.get("voice_id")))
+        if old is not None:
+            o.update(
+                {k: old[k] for k in (*AUDITION_RECORD_KEYS, AUDITIONS_KEY) if k in old}
+            )
 
 
 def _check_previous_entry(entry: Any, *, ref: str) -> None:
@@ -1557,6 +1576,36 @@ def _voice_row(row: Any) -> bool:
     return isinstance(row, Mapping) and (
         row.get("voice_id") is None or isinstance(row.get("voice_id"), str)
     )
+
+
+def _with_reel(entry: Mapping, option: Mapping, *, scene: str) -> dict:
+    """``entry`` (a voice's options manifest as stored now) with ``option``'s
+    reel recorded on its option of the same label and voice: the latest reel's
+    fields (:data:`AUDITION_RECORD_KEYS`) and ``scene``'s own record under
+    :data:`AUDITIONS_KEY`. Every other option, and the other scenes' records
+    of this one, stay as stored, so a reel another run recorded since this one
+    read the manifest is kept (an#587). An option no longer there (designed
+    again since) records nothing.
+
+    >>> stored = {"options": [{"option": "A", "voice_id": "v1", "auditions": {"b.md": {"audition": "r_b"}}},
+    ...                       {"option": "B", "voice_id": "v2", "audition": "other_run"}]}
+    >>> mine = {"option": "A", "voice_id": "v1", "audition": "r_a", "auditions": {"scene.md": {"audition": "r_a"}}}
+    >>> new = _with_reel(stored, mine, scene="scene.md")
+    >>> new["options"][0]["audition"], sorted(new["options"][0]["auditions"]), new["options"][1]["audition"]
+    ('r_a', ['b.md', 'scene.md'], 'other_run')
+    """
+    out = dict(entry)
+    out["options"] = [dict(o) for o in entry.get("options", ())]
+    for o in out["options"]:
+        if (o.get("option"), o.get("voice_id")) != (
+            option.get("option"),
+            option.get("voice_id"),
+        ):
+            continue
+        o.update({k: option[k] for k in AUDITION_RECORD_KEYS if k in option})
+        mine = option.get(AUDITIONS_KEY) or {}
+        o[AUDITIONS_KEY] = {**mine, **(o.get(AUDITIONS_KEY) or {}), scene: mine[scene]}
+    return out
 
 
 def audition_project_voices(
@@ -1633,9 +1682,12 @@ def audition_project_voices(
         job.option[AUDITION_PATH_KEY] = (reels_dir / f"{job.reel}.wav").as_posix()
         made = {k: job.option[k] for k in AUDITION_RECORD_KEYS if k in job.option}
         job.option.setdefault(AUDITIONS_KEY, {})[sf.name] = made
-        manifests[job.ref] = entries[
-            job.ref
-        ]  # written per reel: a later failure loses nothing paid
+        # Written per reel, so a later failure loses nothing paid; into the
+        # manifest as it is NOW, so a run beside this one keeps its reels (an#587).
+        with manifests.locked(job.ref):
+            manifests[job.ref] = _with_reel(
+                manifests[job.ref], job.option, scene=sf.name
+            )
 
     run_auditions(
         jobs, reels=reels, tts=tts, gap_s=gap_s, announce=announce, on_reel=record

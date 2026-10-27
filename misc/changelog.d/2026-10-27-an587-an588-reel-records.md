@@ -1,0 +1,1 @@
+- Two audition runs at once keep each other's reels: each reel is recorded into the manifest as it is now, under a file lock, and JSON stores write atomically (an#587); designing again keeps the reel records of a voice it finds again (an#588).

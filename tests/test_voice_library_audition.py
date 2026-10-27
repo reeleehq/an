@@ -503,3 +503,66 @@ def test_a_manifest_from_before_per_scene_records_keeps_the_default_scenes_reel(
     audition_project_voices(root, ["jerry"], tts=tts, options=["L1"], announce=None, scene_file="scene.b.md")
     audition_project_voices(root, ["jerry"], tts=tts, options=["L1"], announce=None)
     assert len(tts.requests) == 2  # scene.md's reel from the old manifest was a hit
+
+
+def _two_scene_project(tmp_path):
+    """jerry speaks in scene.md and in scene.b.md; one library option, L1."""
+    from an.ir.schema import Meta, SceneIR
+    from an.stores import build_project_mall
+
+    root = _project(tmp_path, _shot("a", 10.0))
+    one = _shot("a", 10.0)
+    one.dialogue = [Dialogue(speaker="x", text="First scene.", voice_ref="jerry")]
+    _set_shots(root, one)
+    other = _shot("a", 10.0)
+    other.dialogue = [Dialogue(speaker="x", text="Scene b.", voice_ref="jerry")]
+    build_project_mall(root, ensure=True, scene_file="scene.b.md")["scenes"]["main"] = SceneIR(
+        meta=Meta(title="B"), timeline=[other]
+    )
+    load(root).mall["voices"]["jerry"] = {"provider": "elevenlabs", "model_id": "eleven_v3",
+                                          "notes": NOTES, "library": {"accent": "irish"}}
+    design_project_voices(root, designer=FakeDesigner(n=1), library=FakeLibrary(n=1))
+    return root
+
+
+def test_two_audition_runs_at_once_keep_each_others_reels(tmp_path):
+    """an#587: scene.b.md's run records its reel while scene.md's run, which
+    read the manifest before, is synthesizing. scene.md's record must not
+    erase it, so a third run of scene.b.md bills nothing."""
+    root = _two_scene_project(tmp_path)
+    other = FakeTTS(seconds=0.25)
+
+    class Interleaved(FakeTTS):
+        def synthesize(self, text, voice_id, **kw):
+            if not self.requests:  # the other terminal finishes meanwhile
+                audition_project_voices(root, ["jerry"], tts=other, options=["L1"],
+                                        announce=None, scene_file="scene.b.md")
+            return super().synthesize(text, voice_id, **kw)
+
+    audition_project_voices(root, ["jerry"], tts=Interleaved(seconds=0.25), options=["L1"],
+                            announce=None)
+    manifest = json.loads((Path(root) / "artifacts" / "voice_options" / "jerry.json")
+                          .read_text(encoding="utf-8"))
+    (l1,) = [o for o in manifest["options"] if o["option"] == "L1"]
+    assert sorted(l1["auditions"]) == ["scene.b.md", "scene.md"]
+    billed = len(other.requests)
+    audition_project_voices(root, ["jerry"], tts=other, options=["L1"], announce=None,
+                            scene_file="scene.b.md")
+    assert len(other.requests) == billed
+
+
+def test_designing_again_keeps_the_reels_of_a_voice_it_finds_again(tmp_path):
+    """an#588: the library finds the same voice for L1 again, so its reel
+    (on disk, its content key unchanged) is not billed again."""
+    root = _two_scene_project(tmp_path)
+    tts = FakeTTS(seconds=0.25)
+    audition_project_voices(root, ["jerry"], tts=tts, options=["L1"], announce=None)
+    billed = len(tts.requests)
+    design_project_voices(root, designer=FakeDesigner(n=1), library=FakeLibrary(n=1))
+    audition_project_voices(root, ["jerry"], tts=tts, options=["L1"], announce=None)
+    assert len(tts.requests) == billed
+    # A designed option is a new voice each time: its reel is not carried.
+    manifest = json.loads((Path(root) / "artifacts" / "voice_options" / "jerry.json")
+                          .read_text(encoding="utf-8"))
+    designed = [o for o in manifest["options"] if o.get("kind") != "library"]
+    assert designed and all("auditions" not in o and "audition" not in o for o in designed)
