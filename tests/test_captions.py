@@ -6,6 +6,7 @@ cannot disagree — across a dissolve, which shortens the film.
 from __future__ import annotations
 
 import ast
+import shutil
 import subprocess
 import sys
 import warnings
@@ -637,6 +638,8 @@ def test_the_loudness_component_loads_no_media_stack():
             pytest.skip("the `loudness` extra (mixing) is not installed")
     except ImportError:
         pytest.skip("the `loudness` extra (mixing) is not installed")
+    if shutil.which("ffmpeg") is None:  # the measurement runs ffmpeg's ebur128
+        pytest.skip("needs the ffmpeg binary on PATH")
     code = (
         "import sys, an.audio.loudness as m\n"
         "m.component_available()\n"
