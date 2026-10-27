@@ -4,6 +4,9 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-10-27
+- `sync` and `read_scene` share one decision, `_scene_side` (the newer side wins, the Markdown on a tie that disagrees); `_settle_a_tie` is gone (an#584).
+- Two audition runs at once keep each other's reels, and design, choose and cast keep them too: every write of an options manifest takes its file lock (`JsonDirStore.locked`, dol), records into the manifest as stored now, and JSON stores write atomically (an#587); designing again keeps the reel records of an option whose label and voice it finds again (an#588); `an init` ignores the lock files.
+- A stream slot reused for a farther instance is painted behind the nearer slots: the world records paint keys, the compiler steps a `z_index` channel (a new order property the runtime applies, the camera root now sorted) over each run of keyed siblings, never across what the author placed (an#634).
 - The `an` skill's planes-of-movement reference is checked: each YAML example validates against the scene schema with no key the schema does not know (an#505).
 - The solve gives up the first candidate (last declared first) whose loss at least halves a conflict's failure, so a rope held at both ends gives up its end, never a link (it came apart by hundreds of px); `SOLVER_VERSION` 3 (an#641). Re-gripping a far end over several frames is an#645.
 - Loudness and voice effects say a `mixing` too old for them one way (`an.audio.shared_mixing.mixing_too_old`: upgrade it); the "mixing not installed" machinery is gone, the `loudness` extra is an empty alias, and the render's voice-spread report now raises on a too-old `mixing` instead of skipping silently (an#621).
