@@ -557,6 +557,47 @@ def _remove_blob(store: Any, h: str, layout) -> None:
     store.delete_blob(h)
 
 
+def _collect_transcripts(mall: Any, report: GcReport, *, horizon: float) -> None:
+    """The transcript contents nothing names any more (an#607): no catalog
+    record and no take (:func:`an.audio.recorded.recorded_transcript_pins`),
+    reported as the ``transcripts`` derived store. Kept: one written after
+    ``horizon`` or whose write time is unknown (a remote store: it may be a
+    transcript being recorded now), and everything when a record or a take
+    cannot be read (it might name any of them). Re-checked on disk at the last
+    moment, as the shot cache's blobs are."""
+    from an.audio.recorded import recorded_transcript_pins
+    from an.stores.transcripts import TRANSCRIPTS_STORE, orphan_transcript_blobs
+
+    store = mall.get(TRANSCRIPTS_STORE)
+    if store is None:
+        return
+    layout = _fs_layout(store)
+    if layout is None:
+        return  # a remote store cannot say when a blob was written: keep them all
+    try:
+        named = recorded_transcript_pins(mall.get("recordings") or {})
+        orphans = orphan_transcript_blobs(store, named=named)
+        sizes = _blobs(store)
+    except Exception:  # noqa: BLE001 — unknown: keep everything this run, after the
+        return  # shot cache was collected, so a listing error never loses its report
+    for h in orphans:
+        size, written = sizes.get(h, (0, None))
+        if written is None or written >= horizon:
+            continue
+        if not report.dry_run:
+            try:
+                if (layout[1] / h).stat().st_mtime >= horizon:
+                    continue  # written again since the listing
+                _remove_blob(store, h, layout)
+            except FileNotFoundError:
+                continue  # someone else removed it: neither deleted here nor failed
+            except (OSError, KeyError):
+                report.failed.append(h)
+                continue
+        report.deleted_derived.setdefault(TRANSCRIPTS_STORE, []).append(h)
+        report.derived_freed += size
+
+
 def _protection_horizon(project_root: Path, now: float) -> float:
     """Anything written at or after this time is left alone: the earlier of
     this collection's start and every live render's start, less the slack."""
@@ -617,11 +658,12 @@ def collect_garbage(
     project = load(project_dir, sync=False)  # a collection reads the scene (an#573)
     store = project.mall.get(SHOT_CACHE_STORE)
     report = GcReport(dry_run=dry_run)
-    if store is None:
-        return report
-    others = other_scenes(project_dir)
     now = time.time() if now is None else now
     horizon = _protection_horizon(project.root, now)
+    if store is None:
+        _collect_transcripts(project.mall, report, horizon=horizon)
+        return report
+    others = other_scenes(project_dir)
     entries = inventory(store)
     blobs = _blobs(store)
     report.bytes_before = sum(size for size, _ in blobs.values())
@@ -692,6 +734,7 @@ def collect_garbage(
             shot_cache_kept_bytes=report.bytes_before - sum(doomed_blobs.values()),
             dry_run=True, report=report,
         )  # fmt: skip
+        _collect_transcripts(project.mall, report, horizon=horizon)
         return report
     layout = _fs_layout(store)
     # Records first, then blobs: a record must never name a blob that is gone.
@@ -730,6 +773,8 @@ def collect_garbage(
         shot_cache_kept_bytes=report.bytes_before - report.freed_bytes,
         dry_run=False, report=report,
     )  # fmt: skip
+    # Last, after every refusal: a collection that refuses deletes nothing.
+    _collect_transcripts(project.mall, report, horizon=horizon)
     return report
 
 

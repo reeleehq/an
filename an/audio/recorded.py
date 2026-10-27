@@ -1256,6 +1256,28 @@ def _unrecorded_lines(
     return n
 
 
+def recorded_transcript_pins(recordings: Mapping) -> set[str]:
+    """The transcript contents the takes in ``recordings`` were cut by: the pin
+    of each one's ``source.extra.transcript_artifact`` (an#607). Raises
+    ``ValueError`` when a record cannot be read (a collection then keeps
+    everything: an unknown take might name any of them)."""
+    from an.stores.transcripts import pin_of
+
+    pins = set()
+    for key in list(recordings):
+        record = recordings[key]
+        if not isinstance(record, Mapping):
+            raise ValueError(f"recording {key!r} is not a record")
+        source = record.get("source") or {}
+        extra = source.get("extra") if isinstance(source, Mapping) else None
+        if not isinstance(extra or {}, Mapping):
+            raise ValueError(f"recording {key!r} has a malformed source")
+        pin = pin_of((extra or {}).get("transcript_artifact"))
+        if pin:
+            pins.add(pin)
+    return pins
+
+
 def import_recordings(
     project: str | Path,
     audio: str | Path | Sequence[str | Path],
