@@ -128,7 +128,22 @@ class CameraKey(_IRModel):
     zoom: float = Field(default=1.0, gt=0, allow_inf_nan=False)
     #: Camera roll, radians.
     rotation: float = Field(default=0.0, allow_inf_nan=False)
+    #: How far the camera has travelled toward the scene (an#478), as a
+    #: fraction of its distance to the character plane: ``0.2`` is a fifth of
+    #: the way, negative is backing away. Unlike ``zoom`` it grows each plane by
+    #: its depth (a pinhole camera): the foreground most, the sky not at all.
+    #: Below ``1``: at ``1`` the camera stands on the character plane.
+    dolly: float = Field(default=0.0, lt=1.0, allow_inf_nan=False)
     easing: EasingSpec | None = None
+
+    @model_serializer(mode="wrap")
+    def _omit_no_dolly(self, handler):
+        """No dolly, no key: every camera key written before an#478 dumps
+        byte-identically."""
+        data = handler(self)
+        if isinstance(data, dict) and not self.dolly:
+            data.pop("dolly", None)
+        return data
 
 
 #: A camera shake's defaults (an#429): how long a jolt lasts, how far the frame

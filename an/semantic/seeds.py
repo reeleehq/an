@@ -32,11 +32,14 @@ from __future__ import annotations
 import inspect
 from collections.abc import Iterable
 from functools import lru_cache
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from an.genres.registry import CORE_OWNER
 from an.semantic.entries import Entry
 from an.semantic.registry import register_entry, register_view
+
+if TYPE_CHECKING:
+    from an.semantic.views import ViewSpace
 
 __all__ = [
     "CAMERA_MOVE_DESCRIPTIONS",
@@ -56,6 +59,8 @@ CAMERA_MOVE_VERSIONS: dict[str, str] = {
     "pan_right": "1",
     "tilt_up": "1",
     "tilt_down": "1",
+    "dolly_in": "1",
+    "dolly_out": "1",
 }
 
 #: One sentence per camera move, in production terms.
@@ -69,6 +74,8 @@ CAMERA_MOVE_DESCRIPTIONS: dict[str, str] = {
     "pan_right": "truck the camera right across the frame",
     "tilt_up": "move the camera up across the frame (spans the frame height)",
     "tilt_down": "move the camera down across the frame",
+    "dolly_in": "travel into the scene: each plane grows by its depth (the character plane ×1.25 like push_in, the foreground more, the sky not at all), eased",
+    "dolly_out": "travel back out of the scene: the character plane shrinks ×0.8, the background less, eased",
 }
 
 
@@ -242,15 +249,30 @@ def _easings() -> Iterable[tuple[Entry, str]]:
 #: How the engines lower a framing move (an#257), said once for every move.
 CAMERA_MOVE_USAGE: str = (
     "spelled `camera: {move: <name>}` on a shot (sugar over `camera.keys`). A path "
-    "through the framing2d view space (`params.path`, time 0..1 over the shot; x/y "
-    "in frame widths/heights, zoom a ratio): the stage engine re-renders the scene "
-    "into the moving frame (no resolution loss); a crop engine moves a crop over "
-    "fixed pixels"
+    "through its view space (`params.space`: framing2d, or multiplane for a dolly; "
+    "`params.path`, time 0..1 over the shot; x/y in frame widths/heights, zoom a "
+    "ratio, dolly a fraction of the way to the character plane): the stage engine "
+    "re-renders the scene into the moving frame (no resolution loss); a crop engine "
+    "moves a crop over fixed pixels and lowers no dolly"
 )
 
 
+def camera_move_space(name: str) -> "ViewSpace":
+    """The view space a named move travels through: ``multiplane`` for a dolly
+    (an#478), else ``framing2d``.
+
+    >>> camera_move_space("dolly_in").entry.name, camera_move_space("push_in").entry.name
+    ('multiplane', 'framing2d')
+    """
+    from an.ir.camera import CAMERA_MOVES
+    from an.semantic.views import FRAMING_2D, MULTIPLANE
+
+    dollies = any(k.dolly for k in CAMERA_MOVES[name](1.0))
+    return MULTIPLANE if dollies else FRAMING_2D
+
+
 def camera_move_path(name: str) -> list[dict[str, Any]]:
-    """The move as keys in the framing2d view space, read off :data:`an.ir.camera.CAMERA_MOVES`.
+    """The move as keys in its view space (:func:`camera_move_space`), read off :data:`an.ir.camera.CAMERA_MOVES`.
 
     Derived, never restated: the move's own key list at a unit duration, with
     every axis the move changes (x/y in frame spans, as ``camera_keys`` scales
@@ -260,9 +282,9 @@ def camera_move_path(name: str) -> list[dict[str, Any]]:
     ([{'at': 0.0, 'zoom': 1.0}, {'at': 1.0, 'zoom': 1.25}], [{'at': 0.0, 'x': 0.0}, {'at': 1.0, 'x': -1.0}])
     """
     from an.ir.camera import CAMERA_MOVES
-    from an.semantic.views import FRAMING_2D
 
-    rest = {k: v["default"] for k, v in FRAMING_2D.entry.params["properties"].items()}
+    space = camera_move_space(name)
+    rest = {k: v["default"] for k, v in space.entry.params["properties"].items()}
     keys = CAMERA_MOVES[name](1.0)
     moved = [
         a for a, r in rest.items() if any(float(getattr(k, a, r)) != r for k in keys)
@@ -275,9 +297,9 @@ def camera_move_path(name: str) -> list[dict[str, Any]]:
 
 def _camera_moves() -> Iterable[tuple[Entry, str]]:
     from an.ir.camera import CAMERA_MOVES
-    from an.semantic.views import FRAMING_2D
 
     for name in CAMERA_MOVES:
+        space = camera_move_space(name)
         yield (
             Entry(
                 f"camera.{name}",
@@ -290,13 +312,13 @@ def _camera_moves() -> Iterable[tuple[Entry, str]]:
                     "type": "object",
                     "properties": {
                         "space": {
-                            "const": FRAMING_2D.entry.term,
-                            "default": FRAMING_2D.entry.term,
+                            "const": space.entry.term,
+                            "default": space.entry.term,
                         },
                         "path": {"type": "array", "default": camera_move_path(name)},
                     },
                 },
-                requires=(FRAMING_2D.requirement,),
+                requires=(space.requirement,),
             ),
             CORE_OWNER,
         )

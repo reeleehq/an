@@ -34,6 +34,7 @@ from an.semantic.entries import Entry
 
 __all__ = [
     "FRAMING_2D",
+    "MULTIPLANE",
     "ORBIT_3D",
     "ViewField",
     "ViewSpace",
@@ -118,17 +119,33 @@ def view_space(
 #: The 2D framing space: where the frame is, how close, how rolled. Every
 #: engine that shows a flat picture lowers it — by cropping pixels (burns) or by
 #: re-rendering into the frame (the stage engine).
+FRAMING_2D_FIELDS: tuple[ViewField, ...] = (
+    ViewField("x", "frame widths", description="+x moves the view right"),
+    ViewField("y", "frame heights", description="+y moves the view down"),
+    ViewField("zoom", "ratio", "log", 1.0, "on-screen magnification; > 1 is closer"),
+    ViewField("rotation", "rad", "angle", description="the view's roll"),
+)
 FRAMING_2D: ViewSpace = view_space(
     "framing2d",
-    (
-        ViewField("x", "frame widths", description="+x moves the view right"),
-        ViewField("y", "frame heights", description="+y moves the view down"),
-        ViewField(
-            "zoom", "ratio", "log", 1.0, "on-screen magnification; > 1 is closer"
-        ),
-        ViewField("rotation", "rad", "angle", description="the view's roll"),
-    ),
+    FRAMING_2D_FIELDS,
     description="a 2D framing of a flat picture: position, zoom (log), roll (angle)",
+)
+
+#: The multiplane space (an#478): the 2D framing plus how far the camera has
+#: travelled into a scene of planes at depths, so each plane grows by its own
+#: depth. A crop engine cannot lower it (its pixels have no depth); the stage
+#: engine does, from its planes' parallax factors.
+MULTIPLANE: ViewSpace = view_space(
+    "multiplane",
+    (
+        *FRAMING_2D_FIELDS,
+        ViewField(
+            "dolly",
+            "character-plane distance",
+            description="travel toward the scene; 0.2 is a fifth of the way to the character plane",
+        ),
+    ),
+    description="a 2D framing that also travels in depth through planes (a dolly)",
 )
 
 #: The 3D orbit space: a camera on a sphere around a target (previz's turntable).
@@ -148,4 +165,4 @@ ORBIT_3D: ViewSpace = view_space(
 )
 
 #: The view spaces the core declares (registered by :mod:`an.semantic.seeds`).
-CORE_VIEW_SPACES: tuple[ViewSpace, ...] = (FRAMING_2D, ORBIT_3D)
+CORE_VIEW_SPACES: tuple[ViewSpace, ...] = (FRAMING_2D, MULTIPLANE, ORBIT_3D)

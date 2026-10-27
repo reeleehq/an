@@ -1,0 +1,1 @@
+- `dolly_in` / `dolly_out` and `CameraKey.dolly`: the camera travels into a scene of planes, each growing by its depth (a pinhole camera), sampled per frame; the `multiplane` view space; contract 1.16.0 (an#478).

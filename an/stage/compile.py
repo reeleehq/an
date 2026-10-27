@@ -113,7 +113,7 @@ from an.stage.serialize import (
 from an.stage.raster import art_size, is_raster, short_digest, versioned_src
 from an.ir.camera import CAMERA_MOVES, PAN_FRACTION, CameraError  # noqa: F401  (re-exported)
 from an.ir.camera import camera_keys as _camera_keys
-from an.ir.camera import camera_shake_offsets
+from an.ir.camera import camera_shake_offsets, dolly_frames
 from an.ir.migrate import DocumentKind, migrate
 from an.stage.environments import PLANE_FILL_SPAN as _PLANE_FILL_SPAN
 from an.stage.environments import (
@@ -122,6 +122,7 @@ from an.stage.environments import (
     Plane,
     PlaneFactorError,
     environment_from_document,
+    plane_transform,
 )
 from an.stage.props import PROP_DOCUMENT_KIND, PropDescriptor
 from an.stage.paths import (
@@ -1035,6 +1036,21 @@ def _camera_follow_pass(state: CompileState) -> None:
     state.products[CAMERA_KEYS_PRODUCT] = camera_follow_keys(state)
 
 
+def _camera_dolly_pass(state: CompileState) -> None:
+    """A dollying camera (an#478): its keys, one per frame (:func:`dolly_frames`),
+    so the root's zoom is the character plane's pinhole growth at every frame
+    and the parallax pass grows each plane by its own. A camera with no
+    ``dolly`` is left exactly as it was."""
+    keys = state.products.get(CAMERA_KEYS_PRODUCT)
+    if keys is None:
+        keys = camera_keys(state.shot, width=state.width, height=state.height)
+    framed = dolly_frames(
+        keys, duration=max(0.001, float(state.shot.duration)), fps=state.fps
+    )
+    if framed is not keys:
+        state.products[CAMERA_KEYS_PRODUCT] = framed
+
+
 def camera_follow_keys(state: CompileState) -> list[CameraKey]:
     """The keys of ``state.shot``'s follow camera, one per frame (an#445)."""
     from an.stage.timeline import (
@@ -1310,6 +1326,12 @@ STAGE_COMPILE_PASSES: tuple[CompilePass, ...] = (
         _camera_follow_pass,
         order=550,
         description="a following camera's keys, from the compiled motion (an#445)",
+    ),
+    CompilePass(
+        "camera_dolly",
+        _camera_dolly_pass,
+        order=575,
+        description="a dollying camera's keys, one per frame (an#478)",
     ),
     CompilePass(
         "camera", _camera_pass, order=600, description="the camera onto the scene root"
@@ -2452,9 +2474,10 @@ def _add_parallax_clips(
     it does not fight this — which is exactly what the collision check below
     refuses.
 
-    **Translation only.** `root.scale` and `root.rotation` multiply the whole
-    composed expression, so no per-plane factor can cancel them: a `depth = 0`
-    plate still grows under a push-in. Depth-aware zoom is the dolly, deferred.
+    **A zoom is not compensated; a dolly is.** `root.scale` and `root.rotation`
+    multiply the whole composed expression, so a `depth = 0` plate still grows
+    under a push-in. A dolly (an#478) scales each plane by its depth on top of
+    the root (:func:`_plane_compensations`).
 
     Ordering note, since the call site's comment used to overstate it: running
     this after the camera is TIDY, not load-bearing. The two passes write
@@ -2493,13 +2516,9 @@ def _add_parallax_clips(
             if band.environment != entity.id:
                 continue
             (plane,) = [p for p in env.planes if p.name == band.plane]
-            fx, fy = plane.factors()
-            for factor, prop in ((fx, "x"), (fy, "y")):
-                if factor == 1.0:
-                    continue
-                values = [(1.0 - factor) * float(getattr(k, prop)) for k in keys]
-                if all(v == 0.0 for v in values):
-                    continue
+            for prop, values in _plane_compensations(
+                plane, keys, rest=(0.0, 0.0), where=f"shot {shot.id!r}"
+            ):
                 if (band.wrapper, prop) in authored:
                     raise CutoutCompileError(
                         f"shot {shot.id!r}: {band.wrapper!r} carries plane "
@@ -2534,20 +2553,10 @@ def _emit_plane_compensation(
     """The per-plane half of :func:`_add_parallax_clips`."""
     parents = plane_parents(env, entity_id)
     for plane in env.planes:
-        fx, fy = plane.factors()
-        ox, oy = plane.offset
         target = f"{parents[plane.name]}/{plane.name}"
-        for factor, prop, cam_field, rest in (
-            (fx, "x", "x", float(ox)),
-            (fy, "y", "y", float(oy)),
+        for prop, values in _plane_compensations(
+            plane, keys, rest=plane.offset, where=f"shot {shot_id!r}"
         ):
-            if factor == 1.0:
-                continue  # rides the camera; emitting nothing is the point
-            values = [
-                rest + (1.0 - factor) * float(getattr(k, cam_field)) for k in keys
-            ]
-            if all(v == rest for v in values):
-                continue  # the camera does not move on this axis
             if (target, prop) in authored:
                 raise CutoutCompileError(
                     f"shot {shot_id!r}: plane {target!r} has depth {plane.depth} so "
@@ -2569,6 +2578,45 @@ def _emit_plane_compensation(
                 animations,
                 tracks,
             )
+
+
+def _plane_compensations(
+    plane: Plane,
+    keys: list[CameraKey],
+    *,
+    rest: tuple[float, float],
+    where: str,
+) -> list[tuple[str, list[float]]]:
+    """``(property, value per key)`` the stage drives on a node that carries
+    ``plane``'s parallax, at ``rest`` when the camera is: only the channels
+    that move, from :func:`an.stage.environments.plane_transform` at each key.
+
+    Without a dolly that is ``x0 + (1 − f)·cam`` per axis and no scale, the
+    translation-only parallax of an#110; a plane at depth 1 rides the camera
+    and emits nothing. Under a dolly (an#478) the plane also scales by its
+    depth, uniformly; one the dolly would reach is refused.
+
+    >>> keys = [CameraKey(at=0.0), CameraKey(at=1.0, x=100.0, dolly=0.2)]
+    >>> [(p, [round(v, 3) for v in vs]) for p, vs in
+    ...  _plane_compensations(Plane(name="fg", depth=1.4), keys, rest=(0, 0), where="s")]
+    [('x', [0.0, -55.556]), ('scale_x', [1.0, 1.111]), ('scale_y', [1.0, 1.111])]
+    """
+    try:
+        poses = [
+            plane_transform(plane, rest=rest, camera=(k.x, k.y), dolly=k.dolly)
+            for k in keys
+        ]
+    except CameraError as e:
+        raise CutoutCompileError(f"{where}: {e}") from e
+    out: list[tuple[str, list[float]]] = []
+    for i, axis in enumerate(("x", "y")):
+        moves = [pose[i] for pose in poses]
+        if any(v != float(rest[i]) for v in moves):
+            out.append((axis, moves))
+    scales = [pose[2] for pose in poses]
+    if any(s != 1.0 for s in scales):
+        out += [("scale_x", scales), ("scale_y", scales)]
+    return out
 
 
 def _fresh_clip_id(base: str, animations: Mapping[str, Any]) -> str:
