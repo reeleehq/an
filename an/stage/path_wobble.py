@@ -17,8 +17,9 @@ other.
 - **The ends stay put.** The amplitude ramps up over the first and down over
   the last wavelength, so a route still starts and ends where it was drawn
   to, and an arrowhead's tip lands on its target.
-- **Static.** One displacement per path. A *boil* (a wobble that changes on
-  twos) is several displaced polylines on a step channel; not built.
+- **Static.** One displacement per seed. A *boil* (a wobble that changes on
+  twos, an#443) is several of them, seeded ``<seed>:<k>``, on a step channel:
+  :func:`an.stage.paths.drawn_polyline` draws each, the compiler steps them.
 
 >>> pts = wobble_polyline([(0.0, 0.0), (200.0, 0.0)], amplitude=4.0, wavelength=50.0, seed="route:0")
 >>> pts[0], pts[-1]  # the ends are where they were
@@ -52,9 +53,11 @@ __all__ = [
 #: curve, not a zig-zag, at any amplitude a stroke should take.
 WOBBLE_SAMPLES_PER_WAVELENGTH: int = 8
 
-#: The most points a wobbled path may carry. Every point is redrawn each
-#: frame a trim or dash moves; past this the wavelength is too short for the
-#: path's length (a hair-fine wobble over a long route).
+#: The most points a wobbled path may put on the wire, every drawing of a boil
+#: counted (an#443): each is redrawn every frame a trim, dash or boil step
+#: moves it, and each is in the compiled document. Past this the wavelength
+#: is too short for the path's length (a hair-fine wobble over a long route),
+#: or the boil has too many drawings.
 MAX_WOBBLE_POINTS: int = 20_000
 
 _HASH_SPAN: float = float(2**64)

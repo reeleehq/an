@@ -1,0 +1,46 @@
+{
+  "blessed_at": "2026-10-27T06:03:55Z",
+  "chromium_build": "140.0.7339.16",
+  "criterion": "sha256 of the DECODED RGB array, never the file bytes: Chromium 1187 -> 1223 changes every PNG file and zero pixels.",
+  "fps": 24,
+  "frames": [
+    {
+      "bytes": 1719,
+      "file": "f0001-chromium140.0.7339.16.png",
+      "frame_key": "f0001",
+      "index": 1,
+      "local_index": 1,
+      "sha256": "2f795c1b58f44c2ebb02860108073cfe5f1b12fb108a26229fa9c662e9a8e8cf",
+      "shot_id": "boil",
+      "time": 0.041666666666666664
+    },
+    {
+      "bytes": 1957,
+      "file": "f0002-chromium140.0.7339.16.png",
+      "frame_key": "f0002",
+      "index": 2,
+      "local_index": 2,
+      "sha256": "01e0156ea0d0cc09e6d24373e350749cbdac2c1dd7c0d45cfd9bd51ec1b1676d",
+      "shot_id": "boil",
+      "time": 0.08333333333333333
+    }
+  ],
+  "git": {
+    "branch": "path-boil",
+    "dirty": true,
+    "sha": "a9aaa5bed7c4feafce615b8bb90df81283b13850"
+  },
+  "reason": "an#443 review: PathJSON.variants renamed drawings, boil_hz no longer on the wire (contract move; pixels unchanged)",
+  "removed": [],
+  "resolution": [
+    320,
+    240
+  ],
+  "scene": "path_boil",
+  "scene_contract_sha256": "cbfccfad82dbbfb31da077fd029e7225208affce5a348d73e2bc71cada14dc67",
+  "shot_ids": [
+    "boil"
+  ],
+  "source": "misc/bench/corpus/path_boil",
+  "what_moves": "two boiling paths (an#443): the wobbled frame of `path_wobble` drawn three ways and a dashed, trimmed arrow drawn two ways, both stepping to their next drawing every 1/12 s. Nothing else moves, so the two goldens straddle a step: frame 1 is drawing 0 (the static wobble's bytes), frame 2 is drawing 1; a change to the variant seeds, the step clock or the runtime's draw set moves frame 2 only."
+}

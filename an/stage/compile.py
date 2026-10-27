@@ -1081,6 +1081,98 @@ def camera_follow_keys(state: CompileState) -> list[CameraKey]:
     ]
 
 
+#: The swap set a boiling path's drawings are keyed in (an#443): the runtime's
+#: path registers it as a draw set, ``"0"`` the static wobble's drawing.
+BOIL_SET: str = "boil"
+
+
+#: A step this close to the shot's end is not a step of the shot (``0.25 s ×
+#: 12 Hz`` is 3 steps, not 4, whatever the float product rounds to).
+_BOIL_STEP_EPS: float = 1e-9
+
+
+def boil_keys(hz: float, drawings: int, duration: float) -> list[tuple[float, str]]:
+    """``(time, drawing)`` of a boil: drawing ``k mod drawings`` from ``k / hz``,
+    every step of the shot (an#443). The steps are on the shot's own clock, so
+    the line changes exactly on them, every render.
+
+    >>> boil_keys(12.0, 3, 0.3)
+    [(0.0, '0'), (0.08333333333333333, '1'), (0.16666666666666666, '2'), (0.25, '0')]
+    """
+    steps = max(1, math.ceil(duration * hz - _BOIL_STEP_EPS))
+    return [(k / hz, str(k % drawings)) for k in range(steps)]
+
+
+def _boiling_paths(state: CompileState) -> dict[str, float]:
+    """``{entity id: boil_hz}`` of the shot's boiling paths, read from their
+    descriptors as the builder read them (:func:`resolve_path`)."""
+    props = state.mall.get("props") or {}
+    out: dict[str, float] = {}
+    for entity in state.shot.entities:
+        doc = props.get(entity.ref) if entity.kind == "prop" else None
+        if not isinstance(doc, Mapping) or doc.get("kind") != PATH_DOCUMENT_KIND.name:
+            continue
+        desc = resolve_path(doc, entity.overrides)
+        if desc.boils:
+            out[entity.id] = float(desc.boil_hz)
+    return out
+
+
+def _boil_pass(state: CompileState) -> None:
+    """A boiling path's drawing, stepped (an#443): one ``boil`` channel per
+    path node that carries drawings, stepping through them at its rate, which
+    is at most the frame rate (a faster boil would draw steps no frame shows,
+    and a typo'd rate would write a key per step)."""
+    duration = max(0.001, float(state.shot.duration))
+    rates = _boiling_paths(state)
+    for path, node in stage_tree.walk_children(state.scene_root):
+        v = node.visual
+        hz = rates.get(node.name)
+        if hz is None or v is None or v.path is None or not v.path.drawings:
+            continue
+        if hz > state.fps:
+            raise CutoutCompileError(
+                f"shot {state.shot.id!r}: path {node.name!r} boils at {hz:g} Hz, faster "
+                f"than the shot's {state.fps} fps: a step no frame shows. Use at most "
+                f"`boil_hz: {state.fps}` (on ones); `{state.fps / 2:g}` is on twos."
+            )
+        keys = boil_keys(hz, len(v.path.drawings) + 1, duration)
+        if len(keys) < 2:
+            warnings.warn(
+                f"shot {state.shot.id!r}: path {node.name!r} boils at {hz:g} Hz, once "
+                f"every {1 / hz:g} s, and the shot is {duration:g} s long: it never "
+                "steps to its next drawing.",
+                stacklevel=2,
+            )
+        anim_id = f"__boil__{state.shot.id}_{path.replace('/', '_')}"
+        if anim_id in state.animations:
+            raise CutoutCompileError(f"boil clip id {anim_id!r} is already taken")
+        state.animations[anim_id] = AnimationClipJSON(
+            name=anim_id,
+            duration=duration,
+            channels=[
+                ChannelJSON(
+                    target=path,
+                    property=BOIL_SET,
+                    keyframes=[
+                        KeyframeJSON(time=t, value=key, easing="step")
+                        for t, key in keys
+                    ],
+                )
+            ],
+        )
+        state.tracks.append(
+            TrackJSON(
+                target_root="__boil__",
+                clips=[
+                    PlacedClipJSON(
+                        animation_id=anim_id, start_time=0.0, duration=duration
+                    )
+                ],
+            )
+        )
+
+
 def _parallax_pass(state: CompileState) -> None:
     """Planes' parallax. After the camera, which reads in the order it happens --
     though not load-bearing: the two write disjoint targets. What IS load-bearing
@@ -1197,6 +1289,9 @@ STAGE_COMPILE_PASSES: tuple[CompilePass, ...] = (
         "camera", _camera_pass, order=600, description="the camera onto the scene root"
     ),
     CompilePass("parallax", _parallax_pass, order=700, description="planes' parallax"),
+    CompilePass(
+        "boil", _boil_pass, order=750, description="a boiling path's drawings (an#443)"
+    ),
     CompilePass(
         "checks", _checks_pass, order=900, description="targets, easings, stand-ins"
     ),
@@ -2666,6 +2761,14 @@ def _build_path_subtree(
         )
     )
     points, _ = drawn_polyline(desc, entity.id)
+    drawings = (
+        [
+            drawn_polyline(desc, entity.id, variant=k)[0]
+            for k in range(1, desc.boil_drawings)
+        ]
+        if desc.boils
+        else None
+    )
     colour = _path_colour(desc, entity, style_pack, reached)
     return NodeJSON(
         name=entity.id,
@@ -2691,6 +2794,7 @@ def _build_path_subtree(
                 fill=desc.fill,
                 fill_alpha=desc.fill_alpha,
                 width_profile=desc.width_profile,
+                drawings=drawings,
             ),
         ),
     )

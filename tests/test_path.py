@@ -1091,4 +1091,4 @@ def test_an_unknown_field_names_the_closest_ones_and_lists_them_all():
         PathDescriptor(name="r", points=L_POINTS, arrowhead_start=True)
     msg = str(err.value)
     assert "'arrowhead_start' (did you mean" in msg and "'tail_arrowhead'" in msg
-    assert "The fields are: arrowhead, cap, closed" in msg
+    assert "The fields are: arrowhead, boil_drawings, boil_hz, cap, closed" in msg

@@ -119,6 +119,12 @@ class PathJSON(_JSONModel):
     #: path's length; the runtime fills ``path_geometry``'s ``outlines``.
     #: Omitted when unset.
     width_profile: list[tuple[float, float]] | None = None
+    #: A boil's other drawings (an#443): the polylines ``points`` is swapped
+    #: for, same length, the ``boil`` draw set's keys ``"1"``, ``"2"``, ...
+    #: (``"0"`` is ``points``); the stage's ``boil`` pass steps through them.
+    #: Omitted when unset. (Unrelated to the bench's "boil" metric, which names
+    #: the DEFECT of a held pose flickering.)
+    drawings: list[list[tuple[float, float]]] | None = None
 
     @model_serializer(mode="wrap")
     def _omit_absent_tail(self, handler):
@@ -130,6 +136,8 @@ class PathJSON(_JSONModel):
             data.pop("closed", None)
         if isinstance(data, dict) and self.width_profile is None:
             data.pop("width_profile", None)
+        if isinstance(data, dict) and self.drawings is None:
+            data.pop("drawings", None)
         if isinstance(data, dict) and self.fill is None:
             data.pop("fill", None)
             data.pop("fill_alpha", None)

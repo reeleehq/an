@@ -846,8 +846,9 @@
     function drawPath(g) {
         const st = g._anPath;
         const spec = st.spec;
+        const points = st.points || spec.points;
         const geo = pathGeometry(
-            spec.points, st.trim_start, st.trim_end,
+            points, st.trim_start, st.trim_end,
             spec.head_length || 0, spec.head_width || 0,
             spec.dash || 0, spec.gap || 0, st.dash_offset,
             spec.tail_head_length || 0, spec.tail_head_width || 0,
@@ -859,7 +860,7 @@
             // A closed shape's region (an#161): under the stroke, never trimmed.
             g.lineStyle(0);
             g.beginFill(parseColor(spec.fill), spec.fill_alpha != null ? spec.fill_alpha : 1.0);
-            g.drawPolygon(spec.points.flat());
+            g.drawPolygon(points.flat());
             g.endFill();
         }
         // A closed path drawn whole joins at its first point instead of ending
@@ -914,10 +915,30 @@
         const g = new PIXI.Graphics();
         g._anPath = {
             spec: spec,
+            // The drawing in use: `points`, or a boil's other drawing (an#443).
+            points: spec.points,
             trim_start: spec.trim_start != null ? spec.trim_start : 0,
             trim_end: spec.trim_end != null ? spec.trim_end : 1,
             dash_offset: spec.dash_offset != null ? spec.dash_offset : 0,
         };
+        if (Array.isArray(spec.drawings) && spec.drawings.length) {
+            // A boil (an#443): the compiler drew the line several ways; the
+            // `boil` swap set picks one ("0" is `points`), and every trim,
+            // dash, taper and head is drawn on it exactly as on `points`.
+            const all = [spec.points].concat(spec.drawings);
+            g._anDrawSets = {
+                boil: {
+                    keys: all.map((_, k) => String(k)),
+                    rest: '0',
+                    apply(child, key) {
+                        const next = all[Number(key)];
+                        if (child._anPath.points === next) return;
+                        child._anPath.points = next;
+                        drawPath(child);
+                    },
+                },
+            };
+        }
         drawPath(g);
         return g;
     }
