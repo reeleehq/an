@@ -1,32 +1,32 @@
 {
   "schema_version": 1,
-  "built_at": "2026-10-27T19:02:31Z",
+  "built_at": "2026-10-27T20:03:07Z",
   "package": {
     "name": "an",
-    "version": "0.1.331",
+    "version": "0.1.332",
     "display_name": "an",
     "source": "pyproject.toml"
   },
   "git": {
     "available": true,
-    "commit": "70ad4d42eed1fb36dfddf0442b5bb69104afcb1e",
-    "short_commit": "70ad4d4",
+    "commit": "551bba5bc6be3895a7b0b1d9b8fd5d1cf4411d1d",
+    "short_commit": "551bba5",
     "branch": "main",
     "tags": [],
     "dirty": false,
     "remote_url": "https://github.com/reeleehq/an",
-    "commit_url": "https://github.com/reeleehq/an/commit/70ad4d42eed1fb36dfddf0442b5bb69104afcb1e",
+    "commit_url": "https://github.com/reeleehq/an/commit/551bba5bc6be3895a7b0b1d9b8fd5d1cf4411d1d",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "reeleehq/an",
-    "sha": "fd2c08d5a81655a3bdf3440bc02246fa870a2d66",
+    "sha": "8fb3fc30b2248850f631334ffb91aa1218689606",
     "sha_in_history": true,
     "ref": "refs/heads/main",
     "ref_name": "main",
-    "run_id": "40560376510",
-    "run_url": "https://github.com/reeleehq/an/actions/runs/40560376510",
+    "run_id": "40564970243",
+    "run_url": "https://github.com/reeleehq/an/actions/runs/40564970243",
     "server_url": "https://github.com"
   },
   "tools": {
@@ -56,15 +56,15 @@
   },
   "site": {
     "modules_documented": 229,
-    "objects_documented": 3256
+    "objects_documented": 3265
   },
   "pypi": {
     "checked": true,
-    "latest": "0.1.331",
+    "latest": "0.1.332",
     "relation": "same",
     "error": null
   },
-  "reproduce": "git clone https://github.com/reeleehq/an && cd an\ngit checkout 70ad4d42eed1fb36dfddf0442b5bb69104afcb1e\npip install \"epythet==0.2.22\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/reeleehq/an && cd an\ngit checkout 551bba5bc6be3895a7b0b1d9b8fd5d1cf4411d1d\npip install \"epythet==0.2.22\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
     "aligned": true,

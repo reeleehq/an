@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=b7dfe248"></script>
+    <script src="../_static/documentation_options.js?v=80276822"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.331" />
+  <meta name="docsearch:version" content="0.1.332" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -636,8 +636,8 @@
   <section id="module-an.music_cli">
 <span id="an-music-cli"></span><h1>an.music_cli<a class="headerlink" href="#module-an.music_cli" title="Link to this heading">#</a></h1>
 <p><code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">music</span> <span class="pre">…</span></code>: acquire a licensed music library from the shell (an#470).</p>
-<p>A thin projection of <a class="reference internal" href="an.music_library.html#module-an.music_library" title="an.music_library"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.music_library</span></code></a>, wired into the CLI by
-<code class="xref py py-data docutils literal notranslate"><span class="pre">an.tools._dispatch_namespaces</span></code>.</p>
+<p>A thin projection of <code class="xref py py-mod docutils literal notranslate"><span class="pre">foley.sources.music_library</span></code> through an’s bridge,
+<a class="reference internal" href="an.music_library.html#module-an.music_library" title="an.music_library"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.music_library</span></code></a>, wired into the CLI by <code class="xref py py-data docutils literal notranslate"><span class="pre">an.tools._dispatch_namespaces</span></code>.</p>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
@@ -656,7 +656,8 @@ sha256, licence, the URL the bytes came from and the library’s page, the
 attribution, and any metadata the titles file gives) and <code class="code docutils literal notranslate"><span class="pre">ATTRIBUTION.md</span></code>
 (the blocks to paste under a video) into OUT. A rerun keeps the files the
 previous <code class="code docutils literal notranslate"><span class="pre">tracks.csv</span></code> recorded, digest checked, and exits 1 when a title
-could not be fetched (the table still lists it, with why). A paid library (artlist,
+could not be fetched, or its licence does not allow the use (the table
+still lists it, with why). A paid library (artlist,
 epidemic_sound) downloads nothing: its rows are a wishlist.</p>
 <p>library: a registered library (incompetech, artlist, epidemic_sound)
 titles_from: a JSON list of titles, a JSON object {title: {metadata}}, or a text file (a video description) whose credits name LIBRARY

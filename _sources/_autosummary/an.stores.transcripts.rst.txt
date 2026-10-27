@@ -9,7 +9,6 @@ an.stores.transcripts
    .. autosummary::
    
       TRANSCRIPTS_STORE
-      ARTIFACT_REF_PREFIX
       FORMAT_MIME
    
    .. rubric:: Functions
@@ -20,7 +19,6 @@ an.stores.transcripts
       is_artifact_ref
       linked_transcript
       orphan_transcript_blobs
-      parse_artifact_ref
       pin_of
       record_transcript
       transcripts_store

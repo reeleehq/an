@@ -2,8 +2,8 @@
 
 `an music …`: acquire a licensed music library from the shell (an#470).
 
-A thin projection of [`an.music_library`](an.music_library.html.md#module-an.music_library), wired into the CLI by
-`an.tools._dispatch_namespaces`.
+A thin projection of `foley.sources.music_library` through an’s bridge,
+[`an.music_library`](an.music_library.html.md#module-an.music_library), wired into the CLI by `an.tools._dispatch_namespaces`.
 
 ### Functions
 
@@ -19,7 +19,8 @@ sha256, licence, the URL the bytes came from and the library’s page, the
 attribution, and any metadata the titles file gives) and `ATTRIBUTION.md`
 (the blocks to paste under a video) into OUT. A rerun keeps the files the
 previous `tracks.csv` recorded, digest checked, and exits 1 when a title
-could not be fetched (the table still lists it, with why). A paid library (artlist,
+could not be fetched, or its licence does not allow the use (the table
+still lists it, with why). A paid library (artlist,
 epidemic_sound) downloads nothing: its rows are a wishlist.
 
 library: a registered library (incompetech, artlist, epidemic_sound)

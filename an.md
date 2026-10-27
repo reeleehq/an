@@ -1,4 +1,4 @@
-> built 2026-10-27 19:02 UTC from 70ad4d4 (main) · an 0.1.331. Details: build_info.json
+> built 2026-10-27 20:03 UTC from 551bba5 (main) · an 0.1.332. Details: build_info.json
 
 # index.html.md
 
@@ -7815,7 +7815,7 @@ because a timing-sensitive pool is one more thing to explain if the pixels
 ever do differ; `strict_assets=True` because a stand-in asset renders
 happily as a DIFFERENT picture (an#33).
 
-### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_boil': Fixture(path='misc/bench/corpus/path_boil', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.041666666666666664, 0.08333333333333333), golden_note="two boiling paths (an#443): the wobbled frame of \`path_wobble\` drawn three ways and a dashed, trimmed arrow drawn two ways, both stepping to their next drawing every 1/12 s. Nothing else moves, so the two goldens straddle a step: frame 1 is drawing 0 (the static wobble's bytes), frame 2 is drawing 1; a change to the variant seeds, the step clock or the runtime's draw set moves frame 2 only."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'path_shape': Fixture(path='misc/bench/corpus/path_shape', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='closed and filled paths (an#161): a badge drawn whole (fill under a mitred border joined at its first corner, no caps there), and a region as two entities, a border-less fill whose node \`alpha\` fades 0 -> 1 under a closed border that draws itself on (\`trim_end\` 0 -> 1). Frame 0 shows only the badge; a regression in the fill, the closing join, the fill staying untrimmed or a \`width: 0\` path drawing a stroke moves a golden.'), 'path_taper': Fixture(path='misc/bench/corpus/path_taper', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="variable-width paths (an#161), drawn as filled outlines: a wobbled brush stroke swelling from nothing to 1.2x and back to a point, and an arrow widening 0.2x -> 1x along a mitred polyline that draws itself on with its head on the tip. The width is anchored to the WHOLE path, so the arrow's base does not thin as it grows; a regression in the profile, the miter, the anchoring or the fill-instead-of-stroke rule moves a golden."), 'path_wobble': Fixture(path='misc/bench/corpus/path_wobble', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='two hand-drawn paths (an#161): a solid frame wobbling 3 px at a 60 px wavelength, and an arrow wobbling 4 px that draws itself on (\`trim_end\` 0 -> 1). The wobble is compile-time (seeded by the entity id, no trigonometry), so the frame is the same in both goldens and only the route grows; a change to the noise, the seed, the end envelope or the resampling moves both.'), 'rig_chain': Fixture(path='misc/bench/corpus/rig_chain', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a desk-lamp prop with \`nesting: bones\` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."), 'rig_interleave': Fixture(path='misc/bench/corpus/rig_interleave', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="the rig_chain desk lamp (\`nesting: bones\`, base -> upper arm -> forearm -> shade) with an UNRELATED panel ordered between the upper arm (1) and the forearm (3) (an#430): the panel covers the upper arm's top and the forearm crosses OVER the panel, which no sort of one container's items can give. Painted from the entity's global \`paint_order\`. The same three tweens as rig_chain move the arm between the goldens. A regression that painted the chain together (the panel over both arms, or under both) moves a golden."), 'rig_order': Fixture(path='misc/bench/corpus/rig_order', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a nested chain drawn BEHIND the part it hangs from (an#403): \`rig_chain\`'s desk lamp in \`nesting: bones\` with the whole arm (upper, forearm, shade: draw orders 1-3) behind its base (4). The base's container sorts its own drawing after the arm (\`sortableChildren\`, \`z_index\`), which the stage used to refuse. Between the goldens the arm swings as in \`rig_chain\`; where it passes over the base the base is in front. A regression in the runtime's sort, the compiler's \`z_index\` or the chain refusal moves a golden."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'rect', 'path'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_boil': Fixture(path='misc/bench/corpus/path_boil', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.041666666666666664, 0.08333333333333333), golden_note="two boiling paths (an#443): the wobbled frame of \`path_wobble\` drawn three ways and a dashed, trimmed arrow drawn two ways, both stepping to their next drawing every 1/12 s. Nothing else moves, so the two goldens straddle a step: frame 1 is drawing 0 (the static wobble's bytes), frame 2 is drawing 1; a change to the variant seeds, the step clock or the runtime's draw set moves frame 2 only."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'path_shape': Fixture(path='misc/bench/corpus/path_shape', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='closed and filled paths (an#161): a badge drawn whole (fill under a mitred border joined at its first corner, no caps there), and a region as two entities, a border-less fill whose node \`alpha\` fades 0 -> 1 under a closed border that draws itself on (\`trim_end\` 0 -> 1). Frame 0 shows only the badge; a regression in the fill, the closing join, the fill staying untrimmed or a \`width: 0\` path drawing a stroke moves a golden.'), 'path_taper': Fixture(path='misc/bench/corpus/path_taper', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="variable-width paths (an#161), drawn as filled outlines: a wobbled brush stroke swelling from nothing to 1.2x and back to a point, and an arrow widening 0.2x -> 1x along a mitred polyline that draws itself on with its head on the tip. The width is anchored to the WHOLE path, so the arrow's base does not thin as it grows; a regression in the profile, the miter, the anchoring or the fill-instead-of-stroke rule moves a golden."), 'path_wobble': Fixture(path='misc/bench/corpus/path_wobble', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='two hand-drawn paths (an#161): a solid frame wobbling 3 px at a 60 px wavelength, and an arrow wobbling 4 px that draws itself on (\`trim_end\` 0 -> 1). The wobble is compile-time (seeded by the entity id, no trigonometry), so the frame is the same in both goldens and only the route grows; a change to the noise, the seed, the end envelope or the resampling moves both.'), 'rig_chain': Fixture(path='misc/bench/corpus/rig_chain', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a desk-lamp prop with \`nesting: bones\` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."), 'rig_interleave': Fixture(path='misc/bench/corpus/rig_interleave', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="the rig_chain desk lamp (\`nesting: bones\`, base -> upper arm -> forearm -> shade) with an UNRELATED panel ordered between the upper arm (1) and the forearm (3) (an#430): the panel covers the upper arm's top and the forearm crosses OVER the panel, which no sort of one container's items can give. Painted from the entity's global \`paint_order\`. The same three tweens as rig_chain move the arm between the goldens. A regression that painted the chain together (the panel over both arms, or under both) moves a golden."), 'rig_order': Fixture(path='misc/bench/corpus/rig_order', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a nested chain drawn BEHIND the part it hangs from (an#403): \`rig_chain\`'s desk lamp in \`nesting: bones\` with the whole arm (upper, forearm, shade: draw orders 1-3) behind its base (4). The base's container sorts its own drawing after the arm (\`sortableChildren\`, \`z_index\`), which the stage used to refuse. Between the goldens the arm swings as in \`rig_chain\`; where it passes over the base the base is in front. A regression in the runtime's sort, the compiler's \`z_index\` or the chain refusal moves a golden."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
 The core corpus (see the module docstring).
 
@@ -8034,7 +8034,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_boil': Fixture(path='misc/bench/corpus/path_boil', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.041666666666666664, 0.08333333333333333), golden_note="two boiling paths (an#443): the wobbled frame of \`path_wobble\` drawn three ways and a dashed, trimmed arrow drawn two ways, both stepping to their next drawing every 1/12 s. Nothing else moves, so the two goldens straddle a step: frame 1 is drawing 0 (the static wobble's bytes), frame 2 is drawing 1; a change to the variant seeds, the step clock or the runtime's draw set moves frame 2 only."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'path_shape': Fixture(path='misc/bench/corpus/path_shape', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='closed and filled paths (an#161): a badge drawn whole (fill under a mitred border joined at its first corner, no caps there), and a region as two entities, a border-less fill whose node \`alpha\` fades 0 -> 1 under a closed border that draws itself on (\`trim_end\` 0 -> 1). Frame 0 shows only the badge; a regression in the fill, the closing join, the fill staying untrimmed or a \`width: 0\` path drawing a stroke moves a golden.'), 'path_taper': Fixture(path='misc/bench/corpus/path_taper', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="variable-width paths (an#161), drawn as filled outlines: a wobbled brush stroke swelling from nothing to 1.2x and back to a point, and an arrow widening 0.2x -> 1x along a mitred polyline that draws itself on with its head on the tip. The width is anchored to the WHOLE path, so the arrow's base does not thin as it grows; a regression in the profile, the miter, the anchoring or the fill-instead-of-stroke rule moves a golden."), 'path_wobble': Fixture(path='misc/bench/corpus/path_wobble', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='two hand-drawn paths (an#161): a solid frame wobbling 3 px at a 60 px wavelength, and an arrow wobbling 4 px that draws itself on (\`trim_end\` 0 -> 1). The wobble is compile-time (seeded by the entity id, no trigonometry), so the frame is the same in both goldens and only the route grows; a change to the noise, the seed, the end envelope or the resampling moves both.'), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'rig_chain': Fixture(path='misc/bench/corpus/rig_chain', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a desk-lamp prop with \`nesting: bones\` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."), 'rig_interleave': Fixture(path='misc/bench/corpus/rig_interleave', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="the rig_chain desk lamp (\`nesting: bones\`, base -> upper arm -> forearm -> shade) with an UNRELATED panel ordered between the upper arm (1) and the forearm (3) (an#430): the panel covers the upper arm's top and the forearm crosses OVER the panel, which no sort of one container's items can give. Painted from the entity's global \`paint_order\`. The same three tweens as rig_chain move the arm between the goldens. A regression that painted the chain together (the panel over both arms, or under both) moves a golden."), 'rig_order': Fixture(path='misc/bench/corpus/rig_order', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a nested chain drawn BEHIND the part it hangs from (an#403): \`rig_chain\`'s desk lamp in \`nesting: bones\` with the whole arm (upper, forearm, shade: draw orders 1-3) behind its base (4). The base's container sorts its own drawing after the arm (\`sortableChildren\`, \`z_index\`), which the stage used to refuse. Between the goldens the arm swings as in \`rig_chain\`; where it passes over the base the base is in front. A regression in the runtime's sort, the compiler's \`z_index\` or the chain refusal moves a golden."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'rect', 'path'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_boil': Fixture(path='misc/bench/corpus/path_boil', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.041666666666666664, 0.08333333333333333), golden_note="two boiling paths (an#443): the wobbled frame of \`path_wobble\` drawn three ways and a dashed, trimmed arrow drawn two ways, both stepping to their next drawing every 1/12 s. Nothing else moves, so the two goldens straddle a step: frame 1 is drawing 0 (the static wobble's bytes), frame 2 is drawing 1; a change to the variant seeds, the step clock or the runtime's draw set moves frame 2 only."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'path_shape': Fixture(path='misc/bench/corpus/path_shape', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='closed and filled paths (an#161): a badge drawn whole (fill under a mitred border joined at its first corner, no caps there), and a region as two entities, a border-less fill whose node \`alpha\` fades 0 -> 1 under a closed border that draws itself on (\`trim_end\` 0 -> 1). Frame 0 shows only the badge; a regression in the fill, the closing join, the fill staying untrimmed or a \`width: 0\` path drawing a stroke moves a golden.'), 'path_taper': Fixture(path='misc/bench/corpus/path_taper', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="variable-width paths (an#161), drawn as filled outlines: a wobbled brush stroke swelling from nothing to 1.2x and back to a point, and an arrow widening 0.2x -> 1x along a mitred polyline that draws itself on with its head on the tip. The width is anchored to the WHOLE path, so the arrow's base does not thin as it grows; a regression in the profile, the miter, the anchoring or the fill-instead-of-stroke rule moves a golden."), 'path_wobble': Fixture(path='misc/bench/corpus/path_wobble', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='two hand-drawn paths (an#161): a solid frame wobbling 3 px at a 60 px wavelength, and an arrow wobbling 4 px that draws itself on (\`trim_end\` 0 -> 1). The wobble is compile-time (seeded by the entity id, no trigonometry), so the frame is the same in both goldens and only the route grows; a change to the noise, the seed, the end envelope or the resampling moves both.'), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'rig_chain': Fixture(path='misc/bench/corpus/rig_chain', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a desk-lamp prop with \`nesting: bones\` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."), 'rig_interleave': Fixture(path='misc/bench/corpus/rig_interleave', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="the rig_chain desk lamp (\`nesting: bones\`, base -> upper arm -> forearm -> shade) with an UNRELATED panel ordered between the upper arm (1) and the forearm (3) (an#430): the panel covers the upper arm's top and the forearm crosses OVER the panel, which no sort of one container's items can give. Painted from the entity's global \`paint_order\`. The same three tweens as rig_chain move the arm between the goldens. A regression that painted the chain together (the panel over both arms, or under both) moves a golden."), 'rig_order': Fixture(path='misc/bench/corpus/rig_order', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a nested chain drawn BEHIND the part it hangs from (an#403): \`rig_chain\`'s desk lamp in \`nesting: bones\` with the whole arm (upper, forearm, shade: draw orders 1-3) behind its base (4). The base's container sorts its own drawing after the arm (\`sortableChildren\`, \`z_index\`), which the stage used to refuse. Between the goldens the arm swings as in \`rig_chain\`; where it passes over the base the base is in front. A regression in the runtime's sort, the compiler's \`z_index\` or the chain refusal moves a golden."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
 The cut-out scenes of the original corpus moved to `cutan` (`cutan.bench.CUTOUT_FIXTURES`, an#225); this
 is the core’s: `prop_swap` and the core corpus (`an.bench.core_corpus`).
@@ -18497,7 +18497,7 @@ which decides how long a dissolve’s overlap is.
 | [`media`](_autosummary/an.media.html.md#module-an.media)                 | Frames to deliverables, engine-independent: the frame stage's resolves and the sinks.                                                                   |
 | [`motion`](_autosummary/an.motion.html.md#module-an.motion)               | Motion presets: a named vocabulary of moves, as authoring macros.                                                                                       |
 | [`music_cli`](_autosummary/an.music_cli.html.md#module-an.music_cli)         | `an music …`: acquire a licensed music library from the shell (an#470).                                                                                 |
-| [`music_library`](_autosummary/an.music_library.html.md#module-an.music_library) | Acquire a licensed music library, with provenance (an#470).                                                                                             |
+| [`music_library`](_autosummary/an.music_library.html.md#module-an.music_library) | Acquire a licensed music library, with provenance: an's bridge to foley (an#470, an#656).                                                               |
 | [`orchestrate`](_autosummary/an.orchestrate.html.md#module-an.orchestrate)     | Orchestrator: validate → audio → render → verify.                                                                                                       |
 | [`paint`](_autosummary/an.paint.html.md#module-an.paint)                 | Paint: what fills a shape when one flat colour is not enough -- a gradient.                                                                             |
 | [`paths`](_autosummary/an.paths.html.md#module-an.paths)                 | Moved to [`an.stage.paths`](_autosummary/an.stage.paths.html.md#module-an.stage.paths) (an#247); this path is a LIVE alias of it.               |
@@ -25424,26 +25424,26 @@ built on a solve is built on its INPUTS ([`inputs_digest()`](_autosummary/an.kin
 
 ### Module Attributes
 
-| [`DFLT_ITERATIONS`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_ITERATIONS)        | Gauss–Seidel passes over the joints per substep (dynamic) or per solve (pose).                                                                                                                                                                                   |
-|-------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`DFLT_SUBSTEPS`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_SUBSTEPS)          | "smaller time steps are more effective than more iterations" (Catto 2024), and four keeps a 24 fps frame under a quarter of its period of free fall at 980 px/s².                                                                                                |
-| [`DFLT_DAMPING`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_DAMPING)           | the one style knob a puppet has for how long it swings.                                                                                                                                                                                                          |
-| [`DFLT_TOLERANCE`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_TOLERANCE)         | A joined joint whose points are further apart than this after the solve is reported as unsatisfied (scene units; a quarter pixel is below what a render shows).                                                                                                  |
-| [`DFLT_ANGLE_TOLERANCE`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_ANGLE_TOLERANCE)   | A hinge or weld whose angle is outside its range by more than this is reported (radians; 1e-3 rad is 0.06 degrees).                                                                                                                                              |
-| [`DFLT_CONFLICT_RETRY`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_CONFLICT_RETRY)    | A solve that leaves a joint failing is run again with this many times the iterations before anything is given up: what more passes fix was slow convergence (a hard swing), what they do not is a conflict.                                                      |
-| [`DFLT_CONFLICT_PROGRESS`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_CONFLICT_PROGRESS) | A failing joint is in conflict when the retry left more than this fraction of its failure (residual over tolerance, or range broken over angle tolerance): a conflict is what more passes do not fix.                                                            |
-| [`DFLT_REGRIP_SPEED`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_REGRIP_SPEED)      | How fast (scene units per second of film) the free end of a chain is led back to a grip it lost out of reach and that is back within reach, when one frame cannot close the gap (an#645): a 50-link rope 600 units from its end takes it back in about a second. |
-| [`DFLT_REGRIP_SNAP`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_REGRIP_SNAP)       | A led grip is taken (its pin enforced again) once its gap is this small (scene units): the rejoin the stage's own check calls a snap is over 2.                                                                                                                  |
-| [`DFLT_REGRIP_STRENGTH`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_REGRIP_STRENGTH)   | The strength of that lead (a `Force` pull toward the walking point): a compliant pull, which closes no loop a conflict could settle by giving up a link.                                                                                                         |
-| [`DFLT_MAX_DROP_TRIALS`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_MAX_DROP_TRIALS)   | The most trial solves [`solve()`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.solve) spends looking for the joint to give up in a conflict (each is a full solve of the frame).                                                                                        |
-| [`DFLT_NUDGE`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_NUDGE)             | Radians each free body is turned by on a retry, alternating in sign (see `_nudge`): far below what a frame shows, enough to buckle a straight chain pushed along its length.                                                                                     |
-| [`DFLT_POSITION_QUANTUM`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_POSITION_QUANTUM)  | finer than any render shows.                                                                                                                                                                                                                                     |
-| [`DFLT_SEGMENT_MARGIN`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_SEGMENT_MARGIN)    | A contact or slide looks this far past a segment's ends (scene units) before letting the point go: a foot half a unit past the edge still stands.                                                                                                                |
-| [`SOLVER_VERSION`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.SOLVER_VERSION)         | Bumped whenever the solve can give a different answer for the same inputs (a changed projection, order, or default): part of every cache key built on this module.                                                                                               |
-| [`DFLT_CONVERGE_CAP`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_CONVERGE_CAP)      | The most passes a frame whose first retry made progress is given, as a multiple of `iterations`: its retry is repeated with `retry` times the passes while each round still makes progress (an#568).                                                             |
-| [`DFLT_STALL_PROGRESS`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_STALL_PROGRESS)    | A later round STALLS when what is left is more than this fraction of the round before (it cut less than 10%): a conflict, given up.                                                                                                                              |
-| [`POSE_CHANNELS`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.POSE_CHANNELS)          | The pose channels, in the order `SolveResult.poses` holds them.                                                                                                                                                                                                  |
-| [`Targets`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.Targets)                | `{body name: {channel: value}}`; a channel given is held at its value for the frame (a nail), the others move.                                                                                                                                                   |
+| [`DFLT_ITERATIONS`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_ITERATIONS)        | Gauss–Seidel passes over the joints per substep (dynamic) or per solve (pose).                                                                                                                                                                                                                        |
+|-------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`DFLT_SUBSTEPS`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_SUBSTEPS)          | "smaller time steps are more effective than more iterations" (Catto 2024), and four keeps a 24 fps frame under a quarter of its period of free fall at 980 px/s².                                                                                                                                     |
+| [`DFLT_DAMPING`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_DAMPING)           | the one style knob a puppet has for how long it swings.                                                                                                                                                                                                                                               |
+| [`DFLT_TOLERANCE`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_TOLERANCE)         | A joined joint whose points are further apart than this after the solve is reported as unsatisfied (scene units; a quarter pixel is below what a render shows).                                                                                                                                       |
+| [`DFLT_ANGLE_TOLERANCE`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_ANGLE_TOLERANCE)   | A hinge or weld whose angle is outside its range by more than this is reported (radians; 1e-3 rad is 0.06 degrees).                                                                                                                                                                                   |
+| [`DFLT_CONFLICT_RETRY`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_CONFLICT_RETRY)    | A solve that leaves a joint failing is run again with this many times the iterations before anything is given up: what more passes fix was slow convergence (a hard swing), what they do not is a conflict.                                                                                           |
+| [`DFLT_CONFLICT_PROGRESS`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_CONFLICT_PROGRESS) | A failing joint is in conflict when the retry left more than this fraction of its failure (residual over tolerance, or range broken over angle tolerance): a conflict is what more passes do not fix.                                                                                                 |
+| [`DFLT_REGRIP_SPEED`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_REGRIP_SPEED)      | How fast (scene units per second of film) the free end of a chain is led back to a grip it lost out of reach and that is back within reach, when one frame cannot close the gap (an#645): a 50-link rope 600 units from its end takes it back in about a second.                                      |
+| [`DFLT_REGRIP_SNAP`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_REGRIP_SNAP)       | A led grip is taken (its pin enforced again) once its gap is this small (scene units): the rejoin the stage's own check calls a snap is over 2.                                                                                                                                                       |
+| [`DFLT_REGRIP_STRENGTH`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_REGRIP_STRENGTH)   | The strength of that lead (a `Force` pull toward the walking point, which closes no loop a conflict could settle by giving up a link), for bodies of the kinematics' own scale (a link of 10 by 2 units); a caller whose bodies weigh more scales it (the stage: `an.stage.solve.REGRIP_MASS_SCALE`). |
+| [`DFLT_MAX_DROP_TRIALS`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_MAX_DROP_TRIALS)   | The most trial solves [`solve()`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.solve) spends looking for the joint to give up in a conflict (each is a full solve of the frame).                                                                                                                             |
+| [`DFLT_NUDGE`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_NUDGE)             | Radians each free body is turned by on a retry, alternating in sign (see `_nudge`): far below what a frame shows, enough to buckle a straight chain pushed along its length.                                                                                                                          |
+| [`DFLT_POSITION_QUANTUM`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_POSITION_QUANTUM)  | finer than any render shows.                                                                                                                                                                                                                                                                          |
+| [`DFLT_SEGMENT_MARGIN`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_SEGMENT_MARGIN)    | A contact or slide looks this far past a segment's ends (scene units) before letting the point go: a foot half a unit past the edge still stands.                                                                                                                                                     |
+| [`SOLVER_VERSION`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.SOLVER_VERSION)         | Bumped whenever the solve can give a different answer for the same inputs (a changed projection, order, or default): part of every cache key built on this module.                                                                                                                                    |
+| [`DFLT_CONVERGE_CAP`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_CONVERGE_CAP)      | The most passes a frame whose first retry made progress is given, as a multiple of `iterations`: its retry is repeated with `retry` times the passes while each round still makes progress (an#568).                                                                                                  |
+| [`DFLT_STALL_PROGRESS`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_STALL_PROGRESS)    | A later round STALLS when what is left is more than this fraction of the round before (it cut less than 10%): a conflict, given up.                                                                                                                                                                   |
+| [`POSE_CHANNELS`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.POSE_CHANNELS)          | The pose channels, in the order `SolveResult.poses` holds them.                                                                                                                                                                                                                                       |
+| [`Targets`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.Targets)                | `{body name: {channel: value}}`; a channel given is held at its value for the frame (a nail), the others move.                                                                                                                                                                                        |
 
 ### Functions
 
@@ -25454,11 +25454,13 @@ built on a solve is built on its INPUTS ([`inputs_digest()`](_autosummary/an.kin
 | [`resolve_rests`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.resolve_rests)(bodies, joints)                     | `joints` with every `rest=None` hinge and weld given the relative angle the bodies have now, so a run of frames measures its limits from one pose rather than from each frame's.                                                                  |
 | [`solve`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.solve)(bodies, joints, \*[, targets, forces, ...]) | One frame: the poses of all `bodies` that satisfy the joined `joints` with the `targets` held, forces and `gravity` acting.                                                                                                                       |
 | [`solve_frames`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.solve_frames)(bodies, joints, \*, frames, dt)      | `frames` solves in a row, each starting from the last: the caller's time dimension.                                                                                                                                                               |
+| [`solve_regripping`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.solve_regripping)(state, bodies, joints, ...)      | One frame of a run (`solve_with(joints, extra_forces)` solves it) that leads lost grips back, updating `state` (an#645).                                                                                                                          |
 
 ### Classes
 
 | [`FramesResult`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.FramesResult)(bodies, poses, unsatisfied, ...)     | A run of frames: `poses` is `(frames, bodies, 4)`; `unsatisfied` and `limit_violations` are per frame; `snaps` lists every joint that is enforced again after a frame it was not (the caller rejoined it, or a conflict had dropped it) as `(frame, joint index, distance)`, the gap it closes in one frame (the caller decides whether to blend or to refuse it; in dynamic mode a large gap yanks the bodies it joins); `final` is the last frame's bodies, ready to continue the run; `dropped` the joints each frame gave up in a conflict.   |
 |----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`Regrip`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.Regrip)([lost, walking, regained, dropped])        | What a run of frames carries from one frame to the next to lead lost grips back (an#645): the grips the geometry ruled out (or a conflict took from a grip the lead had taken back) on the frame before, those being led with their gap, those the lead took back, and the frame before's drops.                                                                                                                                                                                                                                                  |
 | [`SolveResult`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.SolveResult)(bodies, poses, residuals, ...[, ...]) | What one frame's solve found.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 
 ### Exceptions
@@ -25546,9 +25548,11 @@ takes it back in about a second.
 
 ### an.kinematics.solver.DFLT_REGRIP_STRENGTH *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 1000000.0*
 
-The strength of that lead (a `Force` pull toward the walking point):
-a compliant pull, which closes no loop a conflict could settle by giving up
-a link.
+The strength of that lead (a `Force` pull toward the walking point,
+which closes no loop a conflict could settle by giving up a link), for
+bodies of the kinematics’ own scale (a link of 10 by 2 units); a caller whose
+bodies weigh more scales it (the stage: `an.stage.solve.REGRIP_MASS_SCALE`).
+Too stiff, it drags a chain past a range it cannot keep (an#568’s elbow).
 
 ### an.kinematics.solver.DFLT_SEGMENT_MARGIN *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
 
@@ -25600,7 +25604,16 @@ a joint on the world alone, a body with no extent.
 
 The pose channels, in the order `SolveResult.poses` holds them.
 
-### an.kinematics.solver.SOLVER_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '5'*
+### *class* an.kinematics.solver.Regrip(lost=set(), walking=dict(), regained=set(), dropped=set())
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+What a run of frames carries from one frame to the next to lead lost
+grips back (an#645): the grips the geometry ruled out (or a conflict took
+from a grip the lead had taken back) on the frame before, those being led
+with their gap, those the lead took back, and the frame before’s drops.
+
+### an.kinematics.solver.SOLVER_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '6'*
 
 Bumped whenever the solve can give a different answer for the same inputs
 (a changed projection, order, or default): part of every cache key built
@@ -25608,7 +25621,8 @@ on this module.
 2: a slow retry keeps going while it converges (an#568); 3: a conflict gives up
 the first candidate that halves the failure (an#641); 4: a slack chain of more
 than two links held at both ends is seeded on an arc (an#646); 5: a grip lost
-out of reach is led back over several frames (an#645).
+out of reach is led back over several frames (an#645); 6: the stage’s per-frame
+solve leads lost grips back too (an#668).
 
 ### *class* an.kinematics.solver.SolveResult(bodies, poses, residuals, unsatisfied, limit_violations, dropped=(), out_of_reach=())
 
@@ -25798,6 +25812,23 @@ A part unjoined falls, and is caught where it is when rejoined:
 
 * **Return type:**
   [`FramesResult`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.FramesResult)
+
+### an.kinematics.solver.solve_regripping(state, bodies, joints, targets, , solve_with, step, strength=1000000.0, tolerance=0.25)
+
+One frame of a run (`solve_with(joints, extra_forces)` solves it)
+that leads lost grips back, updating `state` (an#645). A grip lost out
+of reach and back within it, farther than the frame can close (a long
+chain hanging far from it), is unjoined and its free point pulled (a
+`Force`, which closes no loop) toward a point walking toward the
+grip `step` per frame; within [`DFLT_REGRIP_SNAP`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_REGRIP_SNAP) the grip is
+tried itself, and if taking it would give it or a link up it is pulled
+straight at it instead. A link given up while a grip the lead took back
+holds gives up that grip instead (an#641). `step` 0 (pose mode, no
+time to walk in) leads nothing. The [`solve_frames()`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.solve_frames) loop and the
+stage’s per-frame solve both run their frames through it (an#668).
+
+* **Return type:**
+  [`SolveResult`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.SolveResult)
 
 
 # _autosummary/an.library.affordances.html.md
@@ -31369,8 +31400,8 @@ compiler’s) matter to text, whose line breaks depend on the frame.
 
 `an music …`: acquire a licensed music library from the shell (an#470).
 
-A thin projection of [`an.music_library`](_autosummary/an.music_library.html.md#module-an.music_library), wired into the CLI by
-`an.tools._dispatch_namespaces`.
+A thin projection of `foley.sources.music_library` through an’s bridge,
+[`an.music_library`](_autosummary/an.music_library.html.md#module-an.music_library), wired into the CLI by `an.tools._dispatch_namespaces`.
 
 ### Functions
 
@@ -31386,7 +31417,8 @@ sha256, licence, the URL the bytes came from and the library’s page, the
 attribution, and any metadata the titles file gives) and `ATTRIBUTION.md`
 (the blocks to paste under a video) into OUT. A rerun keeps the files the
 previous `tracks.csv` recorded, digest checked, and exits 1 when a title
-could not be fetched (the table still lists it, with why). A paid library (artlist,
+could not be fetched, or its licence does not allow the use (the table
+still lists it, with why). A paid library (artlist,
 epidemic_sound) downloads nothing: its rows are a wishlist.
 
 library: a registered library (incompetech, artlist, epidemic_sound)
@@ -31402,74 +31434,75 @@ pause: seconds before a second request to the same host
 
 # an.music_library
 
-Acquire a licensed music library, with provenance (an#470).
+Acquire a licensed music library, with provenance: an’s bridge to foley (an#470, an#656).
 
-A production that scores itself from free libraries wrote the same script each
-time: turn the titles a channel credits into download URLs, fetch them politely,
-check each file is audio, record where it came from and under which licence,
-and collect the attribution lines the licence asks for. [`acquire()`](_autosummary/an.music_library.html.md#an.music_library.acquire) is that
-script, and `an music add-library` its command:
+The library itself lives in foley (`foley.sources.music_library`): the
+registry (`incompetech`, and the paid `artlist` and `epidemic_sound`,
+whose titles become wishlist rows), the direct and Wayback mirrors, the polite
+fetch with `429` / `Retry-After` resilience, the audio probe, the licence
+gate, the tracks table and the credit parser. `an music add-library`
+([`an.music_cli`](_autosummary/an.music_cli.html.md#module-an.music_cli)) is its command:
 
 > an music add-library incompetech –titles-from usage.json –out audio/macleod
-- **A library is data** ([`MusicLibrary`](_autosummary/an.music_library.html.md#an.music_library.MusicLibrary)): who made it, its licence, the
-  attribution it asks for, the names a video credits it by, and the rule from
-  a title to the file’s URL. The registry ([`MUSIC_LIBRARIES`](_autosummary/an.music_library.html.md#an.music_library.MUSIC_LIBRARIES),
-  [`register_music_library()`](_autosummary/an.music_library.html.md#an.music_library.register_music_library)) holds `incompetech` (Kevin MacLeod, CC BY
-  > 4.0) and two paid libraries, `artlist` and `epidemic_sound`, which never
-  > download: their titles become wishlist rows to license by hand. A library
-  > whose licence this package has not checked is registered by the caller, who
-  > vouches for it.
-- **Every step is a seam** (keyword arguments with working defaults):
-  `fetch` (`url -> bytes`, [`polite_fetch()`](_autosummary/an.music_library.html.md#an.music_library.polite_fetch)), `mirrors` (where else
-  a URL’s bytes may be: [`direct()`](_autosummary/an.music_library.html.md#an.music_library.direct), then [`wayback()`](_autosummary/an.music_library.html.md#an.music_library.wayback), the Internet
-  Archive’s raw copy, the only route to a site that refuses scripts),
-  `verify` (`bytes -> seconds`, [`ffprobe_verify()`](_autosummary/an.music_library.html.md#an.music_library.ffprobe_verify)), `sleep` (the
-  pause before a second request to the same host) and `out` (any
-  `{file name: bytes}` store; a folder by default).
-- **A row is an** [`an.ir.assets.AssetSource`](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource), the provenance a sound in
-  the project’s store carries: `url` is where the bytes came from (the
-  mirror that served them), `source_page_url` the library’s own address.
-  A title that fails is a `failed` row with its reasons; the batch goes on. A
-  file whose digest a previous run recorded (`kept`) is not fetched again,
-  so a rerun resumes.
+
+What stays here is what is an’s:
+
+- [`asset_source()`](_autosummary/an.music_library.html.md#an.music_library.asset_source), the bridge: one foley row (an
+  `AcquiredTrack`, or its `.row()` read
+  > back from a tracks table) as an [`an.ir.assets.AssetSource`](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource), the
+  > provenance a sound in the project’s store carries. foley’s licence ids become
+  > an’s codes ([`license_code()`](_autosummary/an.music_library.html.md#an.music_library.license_code): `CC-BY-4.0` is `cc-by-4.0`; foley’s
+  > `unknown`, a paid library’s, is `None`, which an reads as UNKNOWN); the
+  > library’s own address is `source_page_url`; `rights_verified`, the mirror
+  > and a titles file’s metadata ride as extras.
+- [`acquire()`](_autosummary/an.music_library.html.md#an.music_library.acquire), foley’s with an’s `pause` knob (seconds before a second
+  request to one host), which becomes foley’s per-host `rate`.
+
+The rest of foley’s surface the command and its tests use (`MUSIC_LIBRARIES`,
+[`tracks_table()`](_autosummary/an.music_library.html.md#an.music_library.tracks_table), [`attribution_text()`](_autosummary/an.music_library.html.md#an.music_library.attribution_text), [`titles_by_library()`](_autosummary/an.music_library.html.md#an.music_library.titles_by_library), …) is
+re-exported by name, and loaded on first use: `import an` never imports foley.
 
 ```pycon
->>> lib = MUSIC_LIBRARIES["incompetech"]
->>> lib.track_url("Sneaky Snitch")
-'https://incompetech.com/music/royalty-free/mp3-royaltyfree/Sneaky%20Snitch.mp3'
->>> print(lib.attribution_for("Sneaky Snitch"))
-"Sneaky Snitch" Kevin MacLeod (incompetech.com)
-Licensed under Creative Commons: By Attribution 4.0 License
-http://creativecommons.org/licenses/by/4.0/
+>>> license_code("CC-BY-4.0"), license_code("unknown")
+('cc-by-4.0', None)
+>>> src = asset_source({"title": "Sneaky Snitch", "library": "incompetech",
+...                     "status": "acquired", "license": "CC-BY-4.0",
+...                     "source_page_url": "https://incompetech.com/x.mp3",
+...                     "rights_verified": True, "mirror": "wayback"})
+>>> src.provider, src.id, src.license, src.source_page_url
+('incompetech', 'Sneaky Snitch', 'cc-by-4.0', 'https://incompetech.com/x.mp3')
+>>> src.model_extra
+{'rights_verified': True, 'mirror': 'wayback'}
 ```
 
 ### Module Attributes
 
-| [`MUSIC_LIBRARIES`](_autosummary/an.music_library.html.md#an.music_library.MUSIC_LIBRARIES)   | The registered libraries, by name.   |
-|--------------------------------------------------------------------|--------------------------------------|
+| [`DFLT_PAUSE_S`](_autosummary/an.music_library.html.md#an.music_library.DFLT_PAUSE_S)        | a library is someone's website).                                     |
+|----------------------------------------------------------------------|----------------------------------------------------------------------|
+| [`FOLEY_LICENSE_CODES`](_autosummary/an.music_library.html.md#an.music_library.FOLEY_LICENSE_CODES) | `unknown` (a paid library claims no rights) is `None`, an's UNKNOWN. |
 
 ### Functions
 
-| [`acquire`](_autosummary/an.music_library.html.md#an.music_library.acquire)(library, titles, \*, out[, fetch, ...])   | Download `titles` of `library` into `out`, verified, one row each.                                                                                                                                                   |
-|----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`attribution_text`](_autosummary/an.music_library.html.md#an.music_library.attribution_text)(rows)                            | The attribution blocks to paste under a video, one per track that has one (acquired or kept), blank-line separated, each once.                                                                                       |
-| [`direct`](_autosummary/an.music_library.html.md#an.music_library.direct)(url)                                       | The URL itself: the library's own server.                                                                                                                                                                            |
-| [`ffprobe_verify`](_autosummary/an.music_library.html.md#an.music_library.ffprobe_verify)(data)                              | The duration of the audio `data`, in seconds; [`MusicLibraryError`](_autosummary/an.music_library.html.md#an.music_library.MusicLibraryError) when it is empty, has no audio stream, or no duration (an error page saved as `.mp3` is all three). |
-| [`files_store`](_autosummary/an.music_library.html.md#an.music_library.files_store)(out)                                  | `out` as a `{file name: bytes}` store: a folder (made if missing) becomes a `dol.Files` over it; a mapping is used as it is.                                                                                         |
-| [`kept_digests`](_autosummary/an.music_library.html.md#an.music_library.kept_digests)(table)                               | `{file: sha256}` of the acquired or kept rows of a tracks table ([`tracks_table()`](_autosummary/an.music_library.html.md#an.music_library.tracks_table)'s text): what a rerun may keep.                                                     |
-| [`polite_fetch`](_autosummary/an.music_library.html.md#an.music_library.polite_fetch)(url, \*[, timeout, max_bytes])       | `url`'s bytes, asked for with a named user agent.                                                                                                                                                                    |
-| [`register_music_library`](_autosummary/an.music_library.html.md#an.music_library.register_music_library)(library, \*[, replace])    | Add `library` to [`MUSIC_LIBRARIES`](_autosummary/an.music_library.html.md#an.music_library.MUSIC_LIBRARIES) (`replace` to redefine one).                                                                                                       |
-| [`safe_file_name`](_autosummary/an.music_library.html.md#an.music_library.safe_file_name)(title, \*[, suffix])               | `title` as a file name: NFC, path separators as `-`, no leading dot.                                                                                                                                                 |
-| [`titles_by_library`](_autosummary/an.music_library.html.md#an.music_library.titles_by_library)(description)                    | The titles a video description credits, by registered library.                                                                                                                                                       |
-| [`titles_from_json`](_autosummary/an.music_library.html.md#an.music_library.titles_from_json)(text)                            | A titles file's JSON: a list of titles, or `{title: {metadata}}`.                                                                                                                                                    |
-| [`tracks_table`](_autosummary/an.music_library.html.md#an.music_library.tracks_table)(rows)                                | The tracks table as CSV text: `TRACK_COLUMNS`, then any extra the rows carry, in name order.                                                                                                                         |
-| [`wayback`](_autosummary/an.music_library.html.md#an.music_library.wayback)(url)                                      | The Internet Archive's raw copy of `url` (`WAYBACK_RAW`).                                                                                                                                                            |
+| [`acquire`](_autosummary/an.music_library.html.md#an.music_library.acquire)(library, titles, \*, out[, pause, config])   | foley's `acquire()`, paced by `pause`.                                                                                                                                                                                                                                            |
+|-------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`asset_source`](_autosummary/an.music_library.html.md#an.music_library.asset_source)(track, \*[, codes])                     | One foley row as an's [`AssetSource`](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource).                                                                                                                                                                      |
+| [`attribution_text`](_autosummary/an.music_library.html.md#an.music_library.attribution_text)(rows)                               | The attribution blocks to paste under a video, one per track that has one (acquired or kept), blank-line separated, each once.                                                                                                                                                    |
+| [`files_store`](_autosummary/an.music_library.html.md#an.music_library.files_store)(out)                                     | `out` as a `{file name: bytes}` store: a mapping is used as it is; a folder becomes foley's file store over it (`foley.stores.make_byte_store()`, which makes the folder on its first write).                                                                                     |
+| [`kept_digests`](_autosummary/an.music_library.html.md#an.music_library.kept_digests)(table)                                  | `{file: sha256}` of the acquired or kept rows of a tracks table: what a rerun may keep.                                                                                                                                                                                           |
+| [`kept_sources`](_autosummary/an.music_library.html.md#an.music_library.kept_sources)(table)                                  | `{file: {"sha256", "url", "mirror"}}` of the acquired or kept rows of a tracks table: [`kept_digests()`](_autosummary/an.music_library.html.md#an.music_library.kept_digests) with where each file came from, so a kept row still says which URL and mirror served it (`acquire(kept=...)` takes either). |
+| [`license_code`](_autosummary/an.music_library.html.md#an.music_library.license_code)(license_id, \*[, codes])                | foley's licence id as an's code: `codes` first, else the id in lowercase.                                                                                                                                                                                                         |
+| [`probe_verify`](_autosummary/an.music_library.html.md#an.music_library.probe_verify)(data, \*[, probe, has_audio, suffix])   | The duration of the audio `data`, in seconds.                                                                                                                                                                                                                                     |
+| [`register_music_library`](_autosummary/an.music_library.html.md#an.music_library.register_music_library)(library, \*[, replace])       | Add `library` to `MUSIC_LIBRARIES` (`replace` to redefine one).                                                                                                                                                                                                                   |
+| [`titles_by_library`](_autosummary/an.music_library.html.md#an.music_library.titles_by_library)(description, \*[, libraries])      | The titles a video description credits, by library (default: the registered ones).                                                                                                                                                                                                |
+| [`titles_from_json`](_autosummary/an.music_library.html.md#an.music_library.titles_from_json)(text)                               | A titles file's JSON: a list of titles, or `{title: {metadata}}`.                                                                                                                                                                                                                 |
+| [`tracks_table`](_autosummary/an.music_library.html.md#an.music_library.tracks_table)(rows)                                   | The tracks table as CSV text: `TRACK_COLUMNS`, then any metadata the rows carry, in name order.                                                                                                                                                                                   |
+| [`wayback`](_autosummary/an.music_library.html.md#an.music_library.wayback)(url)                                         | The Internet Archive's raw copy of `url` (`WAYBACK_RAW`).                                                                                                                                                                                                                         |
 
 ### Classes
 
-| [`AcquiredTrack`](_autosummary/an.music_library.html.md#an.music_library.AcquiredTrack)(title, library, status, source)   | One row of the tracks table: a title, what became of it, and its provenance.   |
-|--------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
-| [`MusicLibrary`](_autosummary/an.music_library.html.md#an.music_library.MusicLibrary)(name, author, license[, ...])      | One library: who made it, under which licence, and where a title's file is.    |
+| [`AcquiredTrack`](_autosummary/an.music_library.html.md#an.music_library.AcquiredTrack)(title, library, status, license)   | One row of the tracks table: a title, what became of it, and its provenance.   |
+|---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| [`MusicLibrary`](_autosummary/an.music_library.html.md#an.music_library.MusicLibrary)(name, author[, license_url, ...])   | One library: who made it, under which licence, and where a title's file is.    |
 
 ### Exceptions
 
@@ -31477,15 +31510,21 @@ http://creativecommons.org/licenses/by/4.0/
 |----------------------------------------------------------------------|------------------------------------------------------------------------|
 | [`MusicToolMissing`](_autosummary/an.music_library.html.md#an.music_library.MusicToolMissing)    | A tool every title needs is missing: the batch stops before it starts. |
 
-### *class* an.music_library.AcquiredTrack(title, library, status, source, file=None, duration_s=None, error=None)
+### *class* an.music_library.AcquiredTrack(title, library, status, license, file=None, sha256=None, duration_s=None, url=None, mirror=None, page_url=None, credited_by=(), metadata=dict(), error=None)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: `SerializableMixin`
 
 One row of the tracks table: a title, what became of it, and its provenance.
 
+`url` is the URL that served the bytes (a mirror’s), `mirror` that mirror’s
+name, `page_url` the library’s own address for the title; `credited_by` the
+videos that credit it and `metadata` a titles file’s other fields (`feel`,
+`genre`, …).
+
 #### row()
 
-The row as the tracks table writes it (a list joined by 
+The row as the tracks table writes it: flat and JSON-safe (a list joined
+by 
 
 ```
 ``
@@ -31497,28 +31536,48 @@ The row as the tracks table writes it (a list joined by
 ``
 ```
 
-, a
-mapping as JSON).
+, a mapping as JSON).
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
-### an.music_library.MUSIC_LIBRARIES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [MusicLibrary](_autosummary/an.music_library.html.md#an.music_library.MusicLibrary)]* *= {'artlist': MusicLibrary(name='artlist', author='Artlist', license=None, track_url=None, license_url=None, attribution='"{title}" {author}', author_url=None, aliases=('Artlist',), file_name=<function safe_file_name>), 'epidemic_sound': MusicLibrary(name='epidemic_sound', author='Epidemic Sound', license=None, track_url=None, license_url=None, attribution='"{title}" {author}', author_url=None, aliases=('Epidemic Sound', 'Epidemic'), file_name=<function safe_file_name>), 'incompetech': MusicLibrary(name='incompetech', author='Kevin MacLeod', license='cc-by-4.0', track_url=<function \_incompetech_url>, license_url='http://creativecommons.org/licenses/by/4.0/', attribution='"{title}" {author} (incompetech.com)\\nLicensed under Creative Commons: By Attribution 4.0 License\\n{license_url}', author_url='https://incompetech.com', aliases=('Kevin MacLeod', 'incompetech', 'incompetech.com'), file_name=<function safe_file_name>)}*
+### an.music_library.DFLT_PAUSE_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 2.0*
 
-The registered libraries, by name.
+a library
+is someone’s website).
 
-### *class* an.music_library.MusicLibrary(name, author, license, track_url=None, license_url=None, attribution='"{title}" {author}', author_url=None, aliases=(), file_name=<function safe_file_name>)
+* **Type:**
+  Seconds before a second request to one host (foley’s default pace
+
+### an.music_library.FOLEY_LICENSE_CODES *: [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)]* *= {'unknown': None}*
+
+`unknown` (a paid
+library claims no rights) is `None`, an’s UNKNOWN.
+
+* **Type:**
+  foley licence ids whose an code is not the id in lowercase
+
+### *class* an.music_library.MusicLibrary(name, author, license_url=None, track_url=None, attribution='"{title}" {author}', author_url=None, aliases=(), file_name=<function safe_file_name>)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One library: who made it, under which licence, and where a title’s file is.
 
-`license` is `None` for a PAID library (its titles become wishlist rows,
-never downloads); `track_url` is then unused. `attribution` is a
-template over `{title}`, `{author}` and `{license_url}`. `aliases`
-are the names a video description credits it by (`From Epidemic Sound:`,
-`Kevin MacLeod (incompetech.com)`); `file_name` the name a title is
-saved under.
+`license_url` is the URL of its Creative Commons licence, read by
+`license_id_from_cc_url()`; `None` makes the library
+PAID (its titles become wishlist rows, never downloads; `track_url` is then
+unused). `track_url` is the `title -> URL` rule (`title_url()` builds one
+from a template). `attribution` is a template over `{title}`, `{author}`
+and `{license_url}`. `aliases` are the names a video description credits it
+by (`From Epidemic Sound:`, `Kevin MacLeod (incompetech.com)`);
+`file_name` the name a title is saved under.
+
+#### attribution_for(title)
+
+The library’s attribution for `title`, from its template.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 #### file_name(, suffix='.mp3')
 
@@ -31532,6 +31591,18 @@ saved under.
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
+#### *property* license_id *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+The foley licence id its licence URL maps to (`'unknown'` when paid).
+
+#### *property* paid *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
+
+Whether the library has no free licence (wishlist rows only).
+
+#### *property* rights_verified *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
+
+Whether foley recognises the licence outright (never for a paid library).
+
 ### *exception* an.music_library.MusicLibraryError
 
 Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
@@ -31544,100 +31615,150 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A tool every title needs is missing: the batch stops before it starts.
 
-### an.music_library.acquire(library, titles, \*, out, fetch=<function polite_fetch>, mirrors=(<function direct>, <function wayback>), verify=<function ffprobe_verify>, pause=2.0, sleep=<built-in function sleep>, kept=None)
+### an.music_library.acquire(library, titles, , out, pause=2.0, config=None, \*\*kwargs)
 
-Download `titles` of `library` into `out`, verified, one row each.
+foley’s `acquire()`, paced by `pause`.
 
-`titles` is a list, or `{title: metadata}` whose metadata (`credited_by`:
-the videos that credit it; a catalogue’s `feel`, `genre`, …) is kept
-on the row. Each title is fetched from each of `mirrors` in turn until one
-gives bytes `verify` accepts; `pause` seconds pass before a second
-request to the same host. `kept` is `{file name: sha256}` a previous run
-recorded ([`kept_digests()`](_autosummary/an.music_library.html.md#an.music_library.kept_digests)): a file in `out` with that digest is kept,
-any other is fetched again. A paid library downloads nothing and returns
-wishlist rows.
+`pause` is the seconds before a second request to one host (`0`: no
+pause), foley’s `rate` unless `config` states its own. `config` and every
+other keyword (`fetch`, `mirrors`, `verify`, `kept`, `intended_use`,
+`clock`, `sleep`, …) go to foley as they are. Bridge the rows with
+[`asset_source()`](_autosummary/an.music_library.html.md#an.music_library.asset_source).
 
+* **Raises:**
+  [**MusicLibraryError**](_autosummary/an.music_library.html.md#an.music_library.MusicLibraryError) – For a negative `pause`, and whatever foley’s
+      `acquire` refuses.
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`AcquiredTrack`](_autosummary/an.music_library.html.md#an.music_library.AcquiredTrack)]
 
+### an.music_library.asset_source(track, , codes={'unknown': None})
+
+One foley row as an’s [`AssetSource`](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource).
+
+`track` is a foley `AcquiredTrack` or its `.row()` (as a tracks table
+reads back). `library` is the `provider`, `title` the `id`, the
+licence id an’s code ([`license_code()`](_autosummary/an.music_library.html.md#an.music_library.license_code)); `url` (the mirror that served
+the bytes), `source_page_url` (the library’s own address), the licence URL,
+author, attribution and `sha256` keep their names. The acquisition’s own
+columns (`ROW_ONLY`) stay in the table; every other column
+(`rights_verified`, `commercial_ok`, `mirror`, `credited_by`, a titles
+file’s metadata) rides as an extra; a licence flag read back from CSV
+(`FLAG_COLUMNS`) is a boolean again. Empty cells are dropped. A track also
+gives its licence’s `creator_url` as `author_url` and whether its terms let
+the bytes be kept as `cacheable`.
+
+* **Return type:**
+  [`AssetSource`](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource)
+
 ### an.music_library.attribution_text(rows)
 
-The attribution blocks to paste under a video, one per track that has
-one (acquired or kept), blank-line separated, each once.
+The attribution blocks to paste under a video, one per track that has one
+(acquired or kept), blank-line separated, each once.
+
+Each block is `foley.provenance.credits.attribution_line()` of the row’s
+licence: the library’s own wording, verbatim.
 
 ```pycon
->>> src = AssetSource(provider="x", attribution='"A" B')
->>> attribution_text([AcquiredTrack("A", "x", ACQUIRED, src)] * 2)
-'"A" B\n'
+>>> from foley.sources.music_library import MUSIC_LIBRARIES, track_license
+>>> lic = track_license(MUSIC_LIBRARIES["incompetech"], "A")
+>>> print(attribution_text([AcquiredTrack("A", "incompetech", ACQUIRED, lic)] * 2))
+"A" Kevin MacLeod (incompetech.com)
+Licensed under Creative Commons: By Attribution 4.0 License
+http://creativecommons.org/licenses/by/4.0/
 ```
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.music_library.direct(url)
-
-The URL itself: the library’s own server.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-### an.music_library.ffprobe_verify(data)
-
-The duration of the audio `data`, in seconds; [`MusicLibraryError`](_autosummary/an.music_library.html.md#an.music_library.MusicLibraryError)
-when it is empty, has no audio stream, or no duration (an error page saved
-as `.mp3` is all three). Probed from a temporary file: from a pipe,
-ffprobe reports no duration.
-
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ### an.music_library.files_store(out)
 
-`out` as a `{file name: bytes}` store: a folder (made if missing)
-becomes a `dol.Files` over it; a mapping is used as it is.
+`out` as a `{file name: bytes}` store: a mapping is used as it is; a folder
+becomes foley’s file store over it (`foley.stores.make_byte_store()`, which
+makes the folder on its first write).
 
 * **Return type:**
   [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)]
 
 ### an.music_library.kept_digests(table)
 
-`{file: sha256}` of the acquired or kept rows of a tracks table
-([`tracks_table()`](_autosummary/an.music_library.html.md#an.music_library.tracks_table)’s text): what a rerun may keep.
+`{file: sha256}` of the acquired or kept rows of a tracks table: what a rerun
+may keep. `table` is [`tracks_table()`](_autosummary/an.music_library.html.md#an.music_library.tracks_table)’s CSV text, or the rows themselves
+([`AcquiredTrack`](_autosummary/an.music_library.html.md#an.music_library.AcquiredTrack) or their [`row()`](_autosummary/an.music_library.html.md#an.music_library.AcquiredTrack.row) dicts, read back
+from JSON).
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
-### an.music_library.polite_fetch(url, , timeout=60.0, max_bytes=67108864)
+### an.music_library.kept_sources(table)
 
-`url`’s bytes, asked for with a named user agent. An HTTP error raises;
-so does a text page (an error page served with 200) and a body over
-`max_bytes`, before it is read.
-
-* **Return type:**
-  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
-
-### an.music_library.register_music_library(library, , replace=False)
-
-Add `library` to [`MUSIC_LIBRARIES`](_autosummary/an.music_library.html.md#an.music_library.MUSIC_LIBRARIES) (`replace` to redefine one).
+`{file: {"sha256", "url", "mirror"}}` of the acquired or kept rows of a
+tracks table: [`kept_digests()`](_autosummary/an.music_library.html.md#an.music_library.kept_digests) with where each file came from, so a kept row
+still says which URL and mirror served it (`acquire(kept=...)` takes either).
 
 * **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
 
-### an.music_library.safe_file_name(title, , suffix='.mp3')
+### an.music_library.license_code(license_id, , codes={'unknown': None})
 
-`title` as a file name: NFC, path separators as `-`, no leading dot.
+foley’s licence id as an’s code: `codes` first, else the id in lowercase.
 
 ```pycon
->>> safe_file_name("AC/DC"), safe_file_name("../../escape")
-('AC-DC.mp3', '-..-escape.mp3')
+>>> license_code("CC0-1.0"), license_code("unknown"), license_code(None)
+('cc0-1.0', None, None)
 ```
 
 * **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
-### an.music_library.titles_by_library(description)
+### an.music_library.probe_verify(data, , probe=None, has_audio=None, suffix='.mp3')
 
-The titles a video description credits, by registered library.
+The duration of the audio `data`, in seconds.
+
+The bytes are written to a temporary file named with `suffix` (from a pipe,
+ffprobe reports no duration). `has_audio(path) -> True | False | None` must
+say `True` (default `has_audio_stream()`; `None`,
+“cannot tell”, is a refusal), then `probe(path) -> seconds | None` reads the
+length (default `default_probe()`).
+
+```pycon
+>>> probe_verify(b"ID3...", probe=lambda path: 61.5, has_audio=lambda path: True)
+61.5
+>>> probe_verify(b"<html>403</html>", probe=lambda path: 3.0,
+...              has_audio=lambda path: False)
+Traceback (most recent call last):
+...
+foley.sources.music_library.libraries.MusicLibraryError: the file has no audio stream
+>>> probe_verify(b"ID3...", probe=lambda path: None, has_audio=lambda path: True)
+Traceback (most recent call last):
+...
+foley.sources.music_library.libraries.MusicLibraryError: the file has no readable duration (not audio)
+```
+
+* **Raises:**
+  [**MusicLibraryError**](_autosummary/an.music_library.html.md#an.music_library.MusicLibraryError) – When the file is empty, has no audio stream (or one
+      cannot be confirmed), or has no readable duration.
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+### an.music_library.register_music_library(library, , replace=False)
+
+Add `library` to `MUSIC_LIBRARIES` (`replace` to redefine one).
+
+A free library is checked for one licence right only, keeping the files
+(`cache_bytes_ok`); the uses a production makes of them are gated per title by
+`acquire()` (`intended_use`).
+
+* **Raises:**
+  [**MusicLibraryError**](_autosummary/an.music_library.html.md#an.music_library.MusicLibraryError) – If the name is taken (and not `replace`), or a free
+      library has no `track_url` rule or a licence that does not allow
+      keeping the files (a ShareAlike / NoDerivatives licence, refused on
+      purpose; a licence URL foley cannot read; a licence whose flags say no).
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.music_library.titles_by_library(description, , libraries=None)
+
+The titles a video description credits, by library (default: the registered ones).
 
 A line naming a library (by name or alias, with `From`/`Music by`/
 `Music:` and a parenthetical allowed around it) opens its block, and each
@@ -31671,12 +31792,14 @@ A titles file’s JSON: a list of titles, or `{title: {metadata}}`.
 (['A', 'B'], {'A': {'feel': 'Bright'}})
 ```
 
+* **Raises:**
+  [**MusicLibraryError**](_autosummary/an.music_library.html.md#an.music_library.MusicLibraryError) – If `text` is not JSON, or not one of those two shapes.
 * **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] | [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
+  [`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]]
 
 ### an.music_library.tracks_table(rows)
 
-The tracks table as CSV text: `TRACK_COLUMNS`, then any extra the
+The tracks table as CSV text: `TRACK_COLUMNS`, then any metadata the
 rows carry, in name order.
 
 * **Return type:**
@@ -33710,7 +33833,7 @@ One sentence per camera move, in production terms.
 
 Version of each named camera move (ADR 0003). Bump one when its keys change.
 
-### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions, closing_transition}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.camera.follow', kind='field', version='1', name='shot.camera.follow', title='', description='a camera that follows an entity', usage="camera.follow (optional): {target: <entity id or node path>, axes: x|y|xy, lag: <seconds, optional: the camera trails the target with this time constant>} — the camera tracks the target, keeping it where it stood at the shot's start (a walk across a long set); planes parallax with it. Instead of a move or keys (hold is fine); a shake layers on top.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera.shake', kind='field', version='1', name='shot.camera.shake', title='', description='a jolt of the frame inside the shot', usage='camera.shake (optional): jolts of the frame layered on the move or keys — [{at: s, duration: 0.4, amplitude: 0.015, frequency: 24, decay: true, seed: 0}], amplitude a fraction of the frame height; for an impact, a slam, an explosion. The frame is at rest before \`at\` and after the end; shakes may not overlap or run past the shot.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. On a text block, 'text' swaps a replacement set's string ('texts', unit 'block'; the value is a key) and 'value' is a counter block's number ('counter'; set or tween a number, lowered at compile to the strings the frames show). Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, '#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / plane_fade_start / plane_fade_end tilt the node's plane away from the camera (radians, frame heights, plane px), and then pivot_y slides its content along the plane. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve" | "wipe", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. \\'wipe\\' overlaps the same way, but a hard edge sweeps across the frame in direction (\\'left\\', \\'right\\', \\'up\\' or \\'down\\': the way the edge travels). A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.closing_transition', kind='field', version='1', name='meta.closing_transition', title='', description='how the film ends', usage="meta.closing_transition (optional): how the film ENDS — {kind: 'fade', duration: seconds, color: '#rrggbb'}: the last shot's last duration fades to color (its final frame IS the color) and the sound fades with it; the film's length is unchanged. Omitted (or 'cut') = it ends on its last frame. A dissolve is refused.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
+### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions, closing_transition}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.camera.follow', kind='field', version='1', name='shot.camera.follow', title='', description='a camera that follows an entity', usage="camera.follow (optional): {target: <entity id or node path>, axes: x|y|xy, lag: <seconds, optional: the camera trails the target with this time constant>} — the camera tracks the target, keeping it where it stood at the shot's start (a walk across a long set); planes parallax with it. Instead of a move or keys (hold is fine); a shake layers on top.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera.shake', kind='field', version='1', name='shot.camera.shake', title='', description='a jolt of the frame inside the shot', usage='camera.shake (optional): jolts of the frame layered on the move or keys — [{at: s, duration: 0.4, amplitude: 0.015, frequency: 24, decay: true, seed: 0}], amplitude a fraction of the frame height; for an impact, a slam, an explosion. The frame is at rest before \`at\` and after the end; shakes may not overlap or run past the shot.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. On a text block, 'text' swaps a replacement set's string ('texts', unit 'block'; the value is a key) and 'value' is a counter block's number ('counter'; set or tween a number, lowered at compile to the strings the frames show). Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, '#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / plane_fade_start / plane_fade_end tilt the node's plane away from the camera (radians, frame heights, plane px), and then pivot_y slides its content along the plane. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve" | "wipe", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. \\'wipe\\' overlaps the same way, but a hard edge sweeps across the frame in direction (\\'left\\', \\'right\\', \\'up\\' or \\'down\\': the way the edge travels). A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.closing_transition', kind='field', version='1', name='meta.closing_transition', title='', description='how the film ends', usage="meta.closing_transition (optional): how the film ENDS — {kind: 'fade', duration: seconds, color: '#rrggbb'}: the last shot's last duration fades to color (its final frame IS the color) and the sound fades with it; the film's length is unchanged. Omitted (or 'cut') = it ends on its last frame. A dissolve is refused.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
 
 the core).
 
@@ -42642,6 +42765,12 @@ A transcript is a document the takes are cut BY, before any take exists and
 often covering several, so it is its own store rather than a sidecar of a
 recording.
 
+A reference is `artifact:[<store>/]<key>[@<sha256>]`, the store
+[`TRANSCRIPTS_STORE`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.TRANSCRIPTS_STORE) when it names none: `lacing.ArtifactRef` parses and
+formats it and `lacing.resolve_in_mall` reads what it names (an#670), so the
+spelling is lacing’s, shared with reelee; this module only turns their
+refusals into the [`TranscriptLinkError`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.TranscriptLinkError) that says which part is missing.
+
 ```pycon
 >>> store = in_memory_transcripts_store()
 >>> art = record_transcript(store, "take1", "1\n00:00:00,000 --> 00:00:01,000\nHello.\n")
@@ -42654,22 +42783,20 @@ recording.
 
 ### Module Attributes
 
-| [`TRANSCRIPTS_STORE`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.TRANSCRIPTS_STORE)   | The mall key of the transcripts store.                                                                                                                                                                                                                     |
-|----------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`ARTIFACT_REF_PREFIX`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.ARTIFACT_REF_PREFIX) | How a transcript artifact is named where a path is expected: `artifact:<store>/<key>`, or `artifact:<key>` in [`TRANSCRIPTS_STORE`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.TRANSCRIPTS_STORE) (reelee's `artifact:<id>` spelling, with the store an#493 adds in front). |
-| [`FORMAT_MIME`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.FORMAT_MIME)         | The media type each transcript format is recorded under (and read back from).                                                                                                                                                                              |
+| [`TRANSCRIPTS_STORE`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.TRANSCRIPTS_STORE)   | The mall key of the transcripts store.                                        |
+|----------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| [`FORMAT_MIME`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.FORMAT_MIME)         | The media type each transcript format is recorded under (and read back from). |
 
 ### Functions
 
-| [`in_memory_transcripts_store`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.in_memory_transcripts_store)()                   | A transcripts store held in dicts: for tests, and a mall with no disk.                                                                                                                                                                                                                                                                                       |
-|--------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`is_artifact_ref`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.is_artifact_ref)(item)                           | Whether `item` names a transcript artifact: an `artifact:` reference or a `lacing.Artifact`.                                                                                                                                                                                                                                                                 |
-| [`linked_transcript`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.linked_transcript)(item, mall, \*[, store_name]) | The transcript `item` names: `artifact:[<store>/]<key>[@<sha256>]` ([`parse_artifact_ref()`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.parse_artifact_ref)), or a `lacing.Artifact` (filed in `store_name`), read through `mall`.                                                                                                                                             |
-| [`orphan_transcript_blobs`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.orphan_transcript_blobs)(store, \*[, named])     | The transcript contents of `store` that no catalog record and nothing in `named` (the pins a take's provenance records, an#607) names: what re-recording a key left behind.                                                                                                                                                                                  |
-| [`parse_artifact_ref`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.parse_artifact_ref)(ref, mall, \*[, store_name]) | `(store, key, pin)` of `artifact:[<store>/]<key>[@<sha256>]` (an#607): the first segment names a store of `mall` when it is one that holds the key (else the whole name is a key of `store_name`, so a transcript keyed `takes/a` is found though the mall has a `takes` store); `pin` is the content a recorded reference names, `None` when it names none. |
-| [`pin_of`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.pin_of)(reference)                               | The content digest a recorded reference pins (`<store>/<key>@<sha256>`).                                                                                                                                                                                                                                                                                     |
-| [`record_transcript`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.record_transcript)(store, key, text, \*[, ...])  | Keep `text` (a transcript, or a `Path` to one; its format detected, a file's suffix first, unless `fmt` says) in `store` under `key`; return its `lacing.Artifact`.                                                                                                                                                                                          |
-| [`transcripts_store`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.transcripts_store)(root)                         | A filesystem transcripts store under `root` (lacing's layout).                                                                                                                                                                                                                                                                                               |
+| [`in_memory_transcripts_store`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.in_memory_transcripts_store)()                   | A transcripts store held in dicts: for tests, and a mall with no disk.                                                                                                                                                                                                       |
+|--------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`is_artifact_ref`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.is_artifact_ref)(item)                           | Whether `item` names a transcript artifact: an `artifact:` reference (`lacing.ArtifactRef` reads it) or a `lacing.Artifact`.                                                                                                                                                 |
+| [`linked_transcript`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.linked_transcript)(item, mall, \*[, store_name]) | The transcript `item` names: `artifact:[<store>/]<key>[@<sha256>]` (`lacing.ArtifactRef`: the first segment names a store of `mall` that holds the rest, else the whole name is a key of `store_name`), or a `lacing.Artifact` (filed in `store_name`), read through `mall`. |
+| [`orphan_transcript_blobs`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.orphan_transcript_blobs)(store, \*[, named])     | The transcript contents of `store` that no catalog record and nothing in `named` (the pins a take's provenance records, an#607) names: what re-recording a key left behind.                                                                                                  |
+| [`pin_of`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.pin_of)(reference)                               | The content digest a recorded reference pins (`<store>/<key>@<sha256>`, read by `lacing.ArtifactRef` with or without its `artifact:` prefix); `None` when it pins none or is not a reference.                                                                                |
+| [`record_transcript`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.record_transcript)(store, key, text, \*[, ...])  | Keep `text` (a transcript, or a `Path` to one; its format detected, a file's suffix first, unless `fmt` says) in `store` under `key`; return its `lacing.Artifact`.                                                                                                          |
+| [`transcripts_store`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.transcripts_store)(root)                         | A filesystem transcripts store under `root` (lacing's layout).                                                                                                                                                                                                               |
 
 ### Classes
 
@@ -42681,12 +42808,6 @@ recording.
 | [`TranscriptCatalogUnreadable`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.TranscriptCatalogUnreadable)   | A transcripts catalog record cannot be read: what it names is unknown, so nothing can be said to be named by nothing (an#607).   |
 |--------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
 | [`TranscriptLinkError`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.TranscriptLinkError)           | A transcript artifact that cannot be found or read.                                                                              |
-
-### an.stores.transcripts.ARTIFACT_REF_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'artifact:'*
-
-How a transcript artifact is named where a path is expected:
-`artifact:<store>/<key>`, or `artifact:<key>` in [`TRANSCRIPTS_STORE`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.TRANSCRIPTS_STORE)
-(reelee’s `artifact:<id>` spelling, with the store an#493 adds in front).
 
 ### an.stores.transcripts.FORMAT_MIME *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'json': 'application/json', 'plain': 'text/plain', 'srt': 'application/x-subrip', 'textgrid': 'text/x-praat-textgrid', 'vtt': 'text/vtt'}*
 
@@ -42726,7 +42847,7 @@ A transcripts store held in dicts: for tests, and a mall with no disk.
 ### an.stores.transcripts.is_artifact_ref(item)
 
 Whether `item` names a transcript artifact: an `artifact:` reference
-or a `lacing.Artifact`.
+(`lacing.ArtifactRef` reads it) or a `lacing.Artifact`.
 
 ```pycon
 >>> is_artifact_ref("artifact:transcripts/t"), is_artifact_ref("take.srt")
@@ -42741,12 +42862,23 @@ False
 ### an.stores.transcripts.linked_transcript(item, mall, , store_name='transcripts')
 
 The transcript `item` names: `artifact:[<store>/]<key>[@<sha256>]`
-([`parse_artifact_ref()`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.parse_artifact_ref)), or a `lacing.Artifact` (filed in
-`store_name`), read through `mall`. A pinned reference (what a take’s
-provenance records) reads exactly those bytes, even after the key was
-recorded again. Raises [`TranscriptLinkError`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.TranscriptLinkError) for a store the mall
-has not, one that is not an artifact store, a key or content it does not
-hold, or a record whose `mime` is not a transcript format.
+(`lacing.ArtifactRef`: the first segment names a store of `mall` that
+holds the rest, else the whole name is a key of `store_name`), or a
+`lacing.Artifact` (filed in `store_name`), read through `mall`. A
+pinned reference (what a take’s provenance records) reads exactly those
+bytes, even after the key was recorded again or removed. Raises
+[`TranscriptLinkError`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.TranscriptLinkError) for text that is not a reference, a store the
+mall has not, one that is not an artifact store, a key or content it does
+not hold, bytes that do not match their pin, or a record whose `mime` is
+not a transcript format.
+
+```pycon
+>>> mall = {"transcripts": in_memory_transcripts_store()}
+>>> linked_transcript("artifact:transcripts/nope", mall)
+Traceback (most recent call last):
+...
+an.stores.transcripts.TranscriptLinkError: 'artifact:transcripts/nope': no transcript 'nope' in the 'transcripts' store
+```
 
 * **Return type:**
   [`LinkedTranscript`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.LinkedTranscript)
@@ -42771,32 +42903,17 @@ True
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
-### an.stores.transcripts.parse_artifact_ref(ref, mall, , store_name='transcripts')
-
-`(store, key, pin)` of `artifact:[<store>/]<key>[@<sha256>]` (an#607):
-the first segment names a store of `mall` when it is one that holds the
-key (else the whole name is a key of `store_name`, so a transcript keyed
-`takes/a` is found though the mall has a `takes` store); `pin` is the
-content a recorded reference names, `None` when it names none.
-
-```pycon
->>> mall = {"transcripts": {"takes/a": 1}, "takes": {}}
->>> parse_artifact_ref("artifact:takes/a", mall)
-('transcripts', 'takes/a', None)
->>> parse_artifact_ref("artifact:transcripts/k@" + "0" * 64, mall)[1:]
-('k', '0000000000000000000000000000000000000000000000000000000000000000')
-```
-
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)]
-
 ### an.stores.transcripts.pin_of(reference)
 
-The content digest a recorded reference pins (`<store>/<key>@<sha256>`).
+The content digest a recorded reference pins (`<store>/<key>@<sha256>`,
+read by `lacing.ArtifactRef` with or without its `artifact:` prefix);
+`None` when it pins none or is not a reference.
 
 ```pycon
 >>> pin_of("transcripts/k@" + "a" * 64) == "a" * 64, pin_of("transcripts/k")
 (True, None)
+>>> pin_of("transcripts/my take@" + "A" * 64) == "a" * 64  # an older an's key
+True
 ```
 
 * **Return type:**
@@ -47609,7 +47726,7 @@ scene: the scene file to read, inside the project (default scene.md; for example
 
 # About this build
 
-This documentation was built on **2026-10-27 19:02 UTC** from commit <a href="https://github.com/reeleehq/an/commit/70ad4d42eed1fb36dfddf0442b5bb69104afcb1e"><code>70ad4d4</code></a> on branch <code>main</code>, for **an 0.1.331** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-27 20:03 UTC** from commit <a href="https://github.com/reeleehq/an/commit/551bba5bc6be3895a7b0b1d9b8fd5d1cf4411d1d"><code>551bba5</code></a> on branch <code>main</code>, for **an 0.1.332** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -47618,7 +47735,7 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                    |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/an/commit/70ad4d42eed1fb36dfddf0442b5bb69104afcb1e"><code>70ad4d42eed1fb36dfddf0442b5bb69104afcb1e</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/an/commit/551bba5bc6be3895a7b0b1d9b8fd5d1cf4411d1d"><code>551bba5bc6be3895a7b0b1d9b8fd5d1cf4411d1d</code></a> |
 | Branch              | <code>main</code>                                                                                                                                  |
 | Tags at this commit | none                                                                                                                                               |
 | Working tree        | clean                                                                                                                                              |
@@ -47629,9 +47746,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/an</code>                                                                   |
-| Run          | <a href="https://github.com/reeleehq/an/actions/runs/40560376510">40560376510</a>          |
+| Run          | <a href="https://github.com/reeleehq/an/actions/runs/40564970243">40564970243</a>          |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>fd2c08d5a81655a3bdf3440bc02246fa870a2d66</code> (in the history of the built commit) |
+| Event commit | <code>8fb3fc30b2248850f631334ffb91aa1218689606</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -47656,13 +47773,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.331/">0.1.331</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.332/">0.1.332</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/an && cd an
-git checkout 70ad4d42eed1fb36dfddf0442b5bb69104afcb1e
+git checkout 551bba5bc6be3895a7b0b1d9b8fd5d1cf4411d1d
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

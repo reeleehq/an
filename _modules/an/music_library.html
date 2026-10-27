@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../_static/documentation_options.js?v=b7dfe248"></script>
+    <script src="../../_static/documentation_options.js?v=80276822"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.331" />
+  <meta name="docsearch:version" content="0.1.332" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -712,728 +712,244 @@ window.runMermaid = runMermaid;</script>
                 <article class="bd-article">
                   
   <h1>Source code for an.music_library</h1><div class="highlight"><pre>
-<span></span><span class="sd">"""Acquire a licensed music library, with provenance (an#470).</span>
+<span></span><span class="sd">"""Acquire a licensed music library, with provenance: an's bridge to foley (an#470, an#656).</span>
 
-<span class="sd">A production that scores itself from free libraries wrote the same script each</span>
-<span class="sd">time: turn the titles a channel credits into download URLs, fetch them politely,</span>
-<span class="sd">check each file is audio, record where it came from and under which licence,</span>
-<span class="sd">and collect the attribution lines the licence asks for. :func:`acquire` is that</span>
-<span class="sd">script, and ``an music add-library`` its command:</span>
+<span class="sd">The library itself lives in foley (:mod:`foley.sources.music_library`): the</span>
+<span class="sd">registry (``incompetech``, and the paid ``artlist`` and ``epidemic_sound``,</span>
+<span class="sd">whose titles become wishlist rows), the direct and Wayback mirrors, the polite</span>
+<span class="sd">fetch with ``429`` / ``Retry-After`` resilience, the audio probe, the licence</span>
+<span class="sd">gate, the tracks table and the credit parser. ``an music add-library``</span>
+<span class="sd">(:mod:`an.music_cli`) is its command:</span>
 
 <span class="sd">    an music add-library incompetech --titles-from usage.json --out audio/macleod</span>
 
-<span class="sd">- **A library is data** (:class:`MusicLibrary`): who made it, its licence, the</span>
-<span class="sd">  attribution it asks for, the names a video credits it by, and the rule from</span>
-<span class="sd">  a title to the file's URL. The registry (:data:`MUSIC_LIBRARIES`,</span>
-<span class="sd">  :func:`register_music_library`) holds ``incompetech`` (Kevin MacLeod, CC BY</span>
-<span class="sd">  4.0) and two paid libraries, ``artlist`` and ``epidemic_sound``, which never</span>
-<span class="sd">  download: their titles become wishlist rows to license by hand. A library</span>
-<span class="sd">  whose licence this package has not checked is registered by the caller, who</span>
-<span class="sd">  vouches for it.</span>
-<span class="sd">- **Every step is a seam** (keyword arguments with working defaults):</span>
-<span class="sd">  ``fetch`` (``url -&gt; bytes``, :func:`polite_fetch`), ``mirrors`` (where else</span>
-<span class="sd">  a URL's bytes may be: :func:`direct`, then :func:`wayback`, the Internet</span>
-<span class="sd">  Archive's raw copy, the only route to a site that refuses scripts),</span>
-<span class="sd">  ``verify`` (``bytes -&gt; seconds``, :func:`ffprobe_verify`), ``sleep`` (the</span>
-<span class="sd">  pause before a second request to the same host) and ``out`` (any</span>
-<span class="sd">  ``{file name: bytes}`` store; a folder by default).</span>
-<span class="sd">- **A row is an** :class:`an.ir.assets.AssetSource`, the provenance a sound in</span>
-<span class="sd">  the project's store carries: ``url`` is where the bytes came from (the</span>
-<span class="sd">  mirror that served them), ``source_page_url`` the library's own address.</span>
-<span class="sd">  A title that fails is a ``failed`` row with its reasons; the batch goes on. A</span>
-<span class="sd">  file whose digest a previous run recorded (``kept``) is not fetched again,</span>
-<span class="sd">  so a rerun resumes.</span>
+<span class="sd">What stays here is what is an's:</span>
 
-<span class="sd">&gt;&gt;&gt; lib = MUSIC_LIBRARIES["incompetech"]</span>
-<span class="sd">&gt;&gt;&gt; lib.track_url("Sneaky Snitch")</span>
-<span class="sd">'https://incompetech.com/music/royalty-free/mp3-royaltyfree/Sneaky%20Snitch.mp3'</span>
-<span class="sd">&gt;&gt;&gt; print(lib.attribution_for("Sneaky Snitch"))</span>
-<span class="sd">"Sneaky Snitch" Kevin MacLeod (incompetech.com)</span>
-<span class="sd">Licensed under Creative Commons: By Attribution 4.0 License</span>
-<span class="sd">http://creativecommons.org/licenses/by/4.0/</span>
+<span class="sd">- :func:`asset_source`, the bridge: one foley row (an</span>
+<span class="sd">  :class:`~foley.sources.music_library.AcquiredTrack`, or its ``.row()`` read</span>
+<span class="sd">  back from a tracks table) as an :class:`an.ir.assets.AssetSource`, the</span>
+<span class="sd">  provenance a sound in the project's store carries. foley's licence ids become</span>
+<span class="sd">  an's codes (:func:`license_code`: ``CC-BY-4.0`` is ``cc-by-4.0``; foley's</span>
+<span class="sd">  ``unknown``, a paid library's, is ``None``, which an reads as UNKNOWN); the</span>
+<span class="sd">  library's own address is ``source_page_url``; ``rights_verified``, the mirror</span>
+<span class="sd">  and a titles file's metadata ride as extras.</span>
+<span class="sd">- :func:`acquire`, foley's with an's ``pause`` knob (seconds before a second</span>
+<span class="sd">  request to one host), which becomes foley's per-host ``rate``.</span>
+
+<span class="sd">The rest of foley's surface the command and its tests use (:data:`MUSIC_LIBRARIES`,</span>
+<span class="sd">:func:`tracks_table`, :func:`attribution_text`, :func:`titles_by_library`, ...) is</span>
+<span class="sd">re-exported by name, and loaded on first use: ``import an`` never imports foley.</span>
+
+<span class="sd">&gt;&gt;&gt; license_code("CC-BY-4.0"), license_code("unknown")</span>
+<span class="sd">('cc-by-4.0', None)</span>
+<span class="sd">&gt;&gt;&gt; src = asset_source({"title": "Sneaky Snitch", "library": "incompetech",</span>
+<span class="sd">...                     "status": "acquired", "license": "CC-BY-4.0",</span>
+<span class="sd">...                     "source_page_url": "https://incompetech.com/x.mp3",</span>
+<span class="sd">...                     "rights_verified": True, "mirror": "wayback"})</span>
+<span class="sd">&gt;&gt;&gt; src.provider, src.id, src.license, src.source_page_url</span>
+<span class="sd">('incompetech', 'Sneaky Snitch', 'cc-by-4.0', 'https://incompetech.com/x.mp3')</span>
+<span class="sd">&gt;&gt;&gt; src.model_extra</span>
+<span class="sd">{'rights_verified': True, 'mirror': 'wayback'}</span>
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">http.client</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">unicodedata</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">urllib.request</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">MutableMapping</span><span class="p">,</span> <span class="n">Sequence</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">urllib.parse</span><span class="w"> </span><span class="kn">import</span> <span class="n">quote</span><span class="p">,</span> <span class="n">urlparse</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">importlib</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.assets</span><span class="w"> </span><span class="kn">import</span> <span class="n">AssetSource</span>
 
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>  <span class="c1"># foley loads on first use, never with `import an`</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">foley.sources.music_library</span><span class="w"> </span><span class="kn">import</span> <span class="n">AcquiredTrack</span>
+
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"ACQUIRED"</span><span class="p">,</span>
+    <span class="s2">"DFLT_PAUSE_S"</span><span class="p">,</span>
+    <span class="s2">"FAILED"</span><span class="p">,</span>
+    <span class="s2">"FOLEY_LICENSE_CODES"</span><span class="p">,</span>
+    <span class="s2">"KEPT"</span><span class="p">,</span>
     <span class="s2">"MUSIC_LIBRARIES"</span><span class="p">,</span>
+    <span class="s2">"REFUSED"</span><span class="p">,</span>
+    <span class="s2">"WISHLIST"</span><span class="p">,</span>
     <span class="s2">"AcquiredTrack"</span><span class="p">,</span>
     <span class="s2">"MusicLibrary"</span><span class="p">,</span>
     <span class="s2">"MusicLibraryError"</span><span class="p">,</span>
     <span class="s2">"MusicToolMissing"</span><span class="p">,</span>
     <span class="s2">"acquire"</span><span class="p">,</span>
+    <span class="s2">"asset_source"</span><span class="p">,</span>
     <span class="s2">"attribution_text"</span><span class="p">,</span>
-    <span class="s2">"direct"</span><span class="p">,</span>
-    <span class="s2">"ffprobe_verify"</span><span class="p">,</span>
     <span class="s2">"files_store"</span><span class="p">,</span>
     <span class="s2">"kept_digests"</span><span class="p">,</span>
-    <span class="s2">"polite_fetch"</span><span class="p">,</span>
+    <span class="s2">"kept_sources"</span><span class="p">,</span>
+    <span class="s2">"license_code"</span><span class="p">,</span>
+    <span class="s2">"probe_verify"</span><span class="p">,</span>
     <span class="s2">"register_music_library"</span><span class="p">,</span>
-    <span class="s2">"safe_file_name"</span><span class="p">,</span>
     <span class="s2">"titles_by_library"</span><span class="p">,</span>
     <span class="s2">"titles_from_json"</span><span class="p">,</span>
     <span class="s2">"tracks_table"</span><span class="p">,</span>
     <span class="s2">"wayback"</span><span class="p">,</span>
 <span class="p">]</span>
 
-<span class="c1">#: Seconds between two requests to one host: a library is someone's website.</span>
+<span class="c1">#: Where the music library lives.</span>
+<span class="n">FOLEY_MODULE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"foley.sources.music_library"</span>
+<span class="c1">#: foley's names an re-exports, loaded from :data:`FOLEY_MODULE` on first use.</span>
+<span class="n">FOLEY_NAMES</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span>
+    <span class="p">{</span>
+        <span class="s2">"ACQUIRED"</span><span class="p">,</span>
+        <span class="s2">"FAILED"</span><span class="p">,</span>
+        <span class="s2">"KEPT"</span><span class="p">,</span>
+        <span class="s2">"MUSIC_LIBRARIES"</span><span class="p">,</span>
+        <span class="s2">"REFUSED"</span><span class="p">,</span>
+        <span class="s2">"WISHLIST"</span><span class="p">,</span>
+        <span class="s2">"AcquiredTrack"</span><span class="p">,</span>
+        <span class="s2">"MusicLibrary"</span><span class="p">,</span>
+        <span class="s2">"MusicLibraryError"</span><span class="p">,</span>
+        <span class="s2">"MusicToolMissing"</span><span class="p">,</span>
+        <span class="s2">"attribution_text"</span><span class="p">,</span>
+        <span class="s2">"files_store"</span><span class="p">,</span>
+        <span class="s2">"kept_digests"</span><span class="p">,</span>
+        <span class="s2">"kept_sources"</span><span class="p">,</span>
+        <span class="s2">"probe_verify"</span><span class="p">,</span>
+        <span class="s2">"register_music_library"</span><span class="p">,</span>
+        <span class="s2">"titles_by_library"</span><span class="p">,</span>
+        <span class="s2">"titles_from_json"</span><span class="p">,</span>
+        <span class="s2">"tracks_table"</span><span class="p">,</span>
+        <span class="s2">"wayback"</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+<span class="c1">#: Seconds before a second request to one host (foley's default pace: a library</span>
+<span class="c1">#: is someone's website).</span>
 <span class="n">DFLT_PAUSE_S</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span>
-<span class="c1">#: How a download introduces itself.</span>
-<span class="n">USER_AGENT</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"an-music-library (+https://github.com/reeleehq/an)"</span>
-<span class="c1">#: Seconds a download may take before it counts as failed.</span>
-<span class="n">DFLT_TIMEOUT_S</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">60.0</span>
-<span class="c1">#: The largest file a download keeps: a music track is a few MB; a body past</span>
-<span class="c1">#: this is not one.</span>
-<span class="n">DFLT_MAX_BYTES</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span>
-<span class="c1">#: The Internet Archive's raw-file form of a URL (``id_``: the bytes as</span>
-<span class="c1">#: archived, not the archive's page around them; ``2``: the latest capture).</span>
-<span class="n">WAYBACK_RAW</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"https://web.archive.org/web/2id_/</span><span class="si">{url}</span><span class="s2">"</span>
-<span class="c1">#: The extension a track is saved with when its library names no other.</span>
-<span class="n">DFLT_SUFFIX</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">".mp3"</span>
-<span class="c1">#: The row statuses.</span>
-<span class="n">ACQUIRED</span><span class="p">,</span> <span class="n">KEPT</span><span class="p">,</span> <span class="n">FAILED</span><span class="p">,</span> <span class="n">WISHLIST</span> <span class="o">=</span> <span class="s2">"acquired"</span><span class="p">,</span> <span class="s2">"kept"</span><span class="p">,</span> <span class="s2">"failed"</span><span class="p">,</span> <span class="s2">"wishlist"</span>
-<span class="c1">#: The tracks table's columns, in order (a row's other extras, a catalogue's</span>
-<span class="c1">#: ``feel`` or ``genre``, follow in name order).</span>
-<span class="n">TRACK_COLUMNS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="s2">"title"</span><span class="p">,</span>
-    <span class="s2">"library"</span><span class="p">,</span>
-    <span class="s2">"status"</span><span class="p">,</span>
-    <span class="s2">"file"</span><span class="p">,</span>
-    <span class="s2">"duration_s"</span><span class="p">,</span>
-    <span class="s2">"sha256"</span><span class="p">,</span>
-    <span class="s2">"license"</span><span class="p">,</span>
+<span class="n">SECONDS_PER_MINUTE</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">60.0</span>
+<span class="c1">#: foley licence ids whose an code is not the id in lowercase: ``unknown`` (a paid</span>
+<span class="c1">#: library claims no rights) is ``None``, an's UNKNOWN.</span>
+<span class="n">FOLEY_LICENSE_CODES</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"unknown"</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
+<span class="c1">#: The row columns that describe the acquisition, not the asset: they stay in the</span>
+<span class="c1">#: tracks table. ``title`` and ``library`` become ``id`` and ``provider``.</span>
+<span class="n">ROW_ONLY</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"status"</span><span class="p">,</span> <span class="s2">"file"</span><span class="p">,</span> <span class="s2">"duration_s"</span><span class="p">,</span> <span class="s2">"error"</span><span class="p">})</span>
+<span class="c1">#: The licence flags a row carries: a tracks table read back from CSV gives them as</span>
+<span class="c1">#: ``"True"`` / ``"False"``, which :func:`asset_source` makes booleans again.</span>
+<span class="n">FLAG_COLUMNS</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"rights_verified"</span><span class="p">,</span> <span class="s2">"commercial_ok"</span><span class="p">})</span>
+<span class="c1">#: How a CSV cell spells a flag.</span>
+<span class="n">CSV_BOOLEANS</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"True"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"False"</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
+<span class="c1">#: Row columns an :class:`AssetSource` field of the same name takes as is.</span>
+<span class="n">SAME_NAME</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"url"</span><span class="p">,</span>
     <span class="s2">"license_url"</span><span class="p">,</span>
     <span class="s2">"author"</span><span class="p">,</span>
-    <span class="s2">"url"</span><span class="p">,</span>
     <span class="s2">"source_page_url"</span><span class="p">,</span>
-    <span class="s2">"mirror"</span><span class="p">,</span>
     <span class="s2">"attribution"</span><span class="p">,</span>
-    <span class="s2">"credited_by"</span><span class="p">,</span>
-    <span class="s2">"error"</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="c1">#: The columns a titles file's metadata fills (the rest the library states).</span>
-<span class="n">METADATA_COLUMNS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"credited_by"</span><span class="p">,)</span>
-<span class="c1">#: What a fetch, a verification or a store write may raise for ONE title (an</span>
-<span class="c1">#: HTTP or URL error is an ``OSError``; a :class:`MusicLibraryError` a</span>
-<span class="c1">#: ``ValueError``); anything else is a bug and stops the batch.</span>
-<span class="n">_TITLE_ERRORS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">type</span><span class="p">[</span><span class="ne">BaseException</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="ne">OSError</span><span class="p">,</span>
-    <span class="ne">ValueError</span><span class="p">,</span>
-    <span class="ne">KeyError</span><span class="p">,</span>
-    <span class="n">http</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">HTTPException</span><span class="p">,</span>
+    <span class="s2">"sha256"</span><span class="p">,</span>
 <span class="p">)</span>
 
 
-<div class="viewcode-block" id="MusicLibraryError">
-<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.MusicLibraryError">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">MusicLibraryError</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""A library, a title or a file that cannot be used, and why."""</span></div>
+<span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""foley's re-exported names (:data:`FOLEY_NAMES`), imported on first use."""</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">FOLEY_NAMES</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">FOLEY_MODULE</span><span class="p">),</span> <span class="n">name</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"module </span><span class="si">{</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s2"> has no attribute </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
 
 
-
-<div class="viewcode-block" id="MusicToolMissing">
-<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.MusicToolMissing">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">MusicToolMissing</span><span class="p">(</span><span class="ne">RuntimeError</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""A tool every title needs is missing: the batch stops before it starts."""</span></div>
+<span class="k">def</span><span class="w"> </span><span class="fm">__dir__</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">globals</span><span class="p">())</span> <span class="o">|</span> <span class="n">FOLEY_NAMES</span><span class="p">)</span>
 
 
+<div class="viewcode-block" id="license_code">
+<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.license_code">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">license_code</span><span class="p">(</span>
+    <span class="n">license_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">codes</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="n">FOLEY_LICENSE_CODES</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""foley's licence id as an's code: ``codes`` first, else the id in lowercase.</span>
 
-<div class="viewcode-block" id="safe_file_name">
-<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.safe_file_name">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">safe_file_name</span><span class="p">(</span><span class="n">title</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">suffix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_SUFFIX</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""``title`` as a file name: NFC, path separators as ``-``, no leading dot.</span>
-
-<span class="sd">    &gt;&gt;&gt; safe_file_name("AC/DC"), safe_file_name("../../escape")</span>
-<span class="sd">    ('AC-DC.mp3', '-..-escape.mp3')</span>
+<span class="sd">    &gt;&gt;&gt; license_code("CC0-1.0"), license_code("unknown"), license_code(None)</span>
+<span class="sd">    ('cc0-1.0', None, None)</span>
 <span class="sd">    """</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="n">unicodedata</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="s2">"NFC"</span><span class="p">,</span> <span class="n">title</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="s2">"-"</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"</span><span class="se">\\</span><span class="s2">"</span><span class="p">,</span> <span class="s2">"-"</span><span class="p">)</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">". "</span><span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"title </span><span class="si">{</span><span class="n">title</span><span class="si">!r}</span><span class="s2"> gives no file name"</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">name</span> <span class="o">+</span> <span class="n">suffix</span></div>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">license_id</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">license_id</span> <span class="ow">in</span> <span class="n">codes</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">codes</span><span class="p">[</span><span class="n">license_id</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">license_id</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span></div>
 
 
 
-<div class="viewcode-block" id="MusicLibrary">
-<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.MusicLibrary">[docs]</a>
-<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">MusicLibrary</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""One library: who made it, under which licence, and where a title's file is.</span>
+<div class="viewcode-block" id="asset_source">
+<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.asset_source">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">asset_source</span><span class="p">(</span>
+    <span class="n">track</span><span class="p">:</span> <span class="n">AcquiredTrack</span> <span class="o">|</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">codes</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="n">FOLEY_LICENSE_CODES</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AssetSource</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""One foley row as an's :class:`~an.ir.assets.AssetSource`.</span>
 
-<span class="sd">    ``license`` is ``None`` for a PAID library (its titles become wishlist rows,</span>
-<span class="sd">    never downloads); ``track_url`` is then unused. ``attribution`` is a</span>
-<span class="sd">    template over ``{title}``, ``{author}`` and ``{license_url}``. ``aliases``</span>
-<span class="sd">    are the names a video description credits it by (``From Epidemic Sound:``,</span>
-<span class="sd">    ``Kevin MacLeod (incompetech.com)``); ``file_name`` the name a title is</span>
-<span class="sd">    saved under.</span>
+<span class="sd">    ``track`` is a foley ``AcquiredTrack`` or its ``.row()`` (as a tracks table</span>
+<span class="sd">    reads back). ``library`` is the ``provider``, ``title`` the ``id``, the</span>
+<span class="sd">    licence id an's code (:func:`license_code`); ``url`` (the mirror that served</span>
+<span class="sd">    the bytes), ``source_page_url`` (the library's own address), the licence URL,</span>
+<span class="sd">    author, attribution and ``sha256`` keep their names. The acquisition's own</span>
+<span class="sd">    columns (:data:`ROW_ONLY`) stay in the table; every other column</span>
+<span class="sd">    (``rights_verified``, ``commercial_ok``, ``mirror``, ``credited_by``, a titles</span>
+<span class="sd">    file's metadata) rides as an extra; a licence flag read back from CSV</span>
+<span class="sd">    (:data:`FLAG_COLUMNS`) is a boolean again. Empty cells are dropped. A track also</span>
+<span class="sd">    gives its licence's ``creator_url`` as ``author_url`` and whether its terms let</span>
+<span class="sd">    the bytes be kept as ``cacheable``.</span>
 <span class="sd">    """</span>
+    <span class="n">row</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">track</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">track</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="n">track</span><span class="o">.</span><span class="n">row</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">FLAG_COLUMNS</span> <span class="o">&amp;</span> <span class="n">row</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">row</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">CSV_BOOLEANS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+    <span class="n">fields</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">track</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="n">fields</span><span class="p">[</span><span class="s2">"author_url"</span><span class="p">]</span> <span class="o">=</span> <span class="n">track</span><span class="o">.</span><span class="n">license</span><span class="o">.</span><span class="n">creator_url</span>
+        <span class="n">fields</span><span class="p">[</span><span class="s2">"cacheable"</span><span class="p">]</span> <span class="o">=</span> <span class="n">track</span><span class="o">.</span><span class="n">license</span><span class="o">.</span><span class="n">cache_bytes_ok</span>
+    <span class="n">rest</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">k</span><span class="p">:</span> <span class="n">v</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">row</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">"title"</span><span class="p">,</span> <span class="s2">"library"</span><span class="p">,</span> <span class="s2">"license"</span><span class="p">,</span> <span class="o">*</span><span class="n">SAME_NAME</span><span class="p">,</span> <span class="o">*</span><span class="n">ROW_ONLY</span><span class="p">}</span>
+    <span class="p">}</span>
+    <span class="n">fields</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">k</span><span class="p">:</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">SAME_NAME</span><span class="p">},</span> <span class="o">**</span><span class="n">rest</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">AssetSource</span><span class="p">(</span>
+        <span class="n">provider</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s2">"library"</span><span class="p">],</span>
+        <span class="nb">id</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s2">"title"</span><span class="p">],</span>
+        <span class="n">license</span><span class="o">=</span><span class="n">license_code</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"license"</span><span class="p">),</span> <span class="n">codes</span><span class="o">=</span><span class="n">codes</span><span class="p">),</span>
+        <span class="o">**</span><span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">fields</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">v</span> <span class="o">!=</span> <span class="s2">""</span><span class="p">},</span>
+    <span class="p">)</span></div>
 
-    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">author</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">license</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
-    <span class="n">track_url</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">license_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">attribution</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'"</span><span class="si">{title}</span><span class="s1">" </span><span class="si">{author}</span><span class="s1">'</span>
-    <span class="n">author_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">aliases</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
-    <span class="n">file_name</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">safe_file_name</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">paid</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">license</span> <span class="ow">is</span> <span class="kc">None</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">attribution_for</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">attribution</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-            <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">author</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">author</span><span class="p">,</span> <span class="n">license_url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">license_url</span> <span class="ow">or</span> <span class="s2">""</span>
-        <span class="p">)</span></div>
-
-
-
-<span class="c1">#: The registered libraries, by name.</span>
-<span class="n">MUSIC_LIBRARIES</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">MusicLibrary</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-
-
-<div class="viewcode-block" id="register_music_library">
-<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.register_music_library">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">register_music_library</span><span class="p">(</span><span class="n">library</span><span class="p">:</span> <span class="n">MusicLibrary</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">replace</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Add ``library`` to :data:`MUSIC_LIBRARIES` (``replace`` to redefine one)."""</span>
-    <span class="k">if</span> <span class="n">library</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">MUSIC_LIBRARIES</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">replace</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"music library </span><span class="si">{</span><span class="n">library</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> is already registered; pass replace=True"</span>
-        <span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">library</span><span class="o">.</span><span class="n">paid</span> <span class="ow">and</span> <span class="n">library</span><span class="o">.</span><span class="n">track_url</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"music library </span><span class="si">{</span><span class="n">library</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> is free but has no track_url rule"</span>
-        <span class="p">)</span>
-    <span class="n">MUSIC_LIBRARIES</span><span class="p">[</span><span class="n">library</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">library</span></div>
-
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_incompetech_url</span><span class="p">(</span><span class="n">title</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Kevin MacLeod's rule: the MP3 is the title, quoted, under one folder."""</span>
-    <span class="k">return</span> <span class="s2">"https://incompetech.com/music/royalty-free/mp3-royaltyfree/"</span> <span class="o">+</span> <span class="n">quote</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">title</span><span class="si">}</span><span class="s2">.mp3"</span>
-    <span class="p">)</span>
-
-
-<span class="n">register_music_library</span><span class="p">(</span>
-    <span class="n">MusicLibrary</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s2">"incompetech"</span><span class="p">,</span>
-        <span class="n">author</span><span class="o">=</span><span class="s2">"Kevin MacLeod"</span><span class="p">,</span>
-        <span class="n">license</span><span class="o">=</span><span class="s2">"cc-by-4.0"</span><span class="p">,</span>
-        <span class="n">license_url</span><span class="o">=</span><span class="s2">"http://creativecommons.org/licenses/by/4.0/"</span><span class="p">,</span>
-        <span class="n">author_url</span><span class="o">=</span><span class="s2">"https://incompetech.com"</span><span class="p">,</span>
-        <span class="n">track_url</span><span class="o">=</span><span class="n">_incompetech_url</span><span class="p">,</span>
-        <span class="c1"># The wording incompetech asks for, verbatim.</span>
-        <span class="n">attribution</span><span class="o">=</span><span class="p">(</span>
-            <span class="s1">'"</span><span class="si">{title}</span><span class="s1">" </span><span class="si">{author}</span><span class="s1"> (incompetech.com)</span><span class="se">\n</span><span class="s1">'</span>
-            <span class="s2">"Licensed under Creative Commons: By Attribution 4.0 License</span><span class="se">\n</span><span class="s2">"</span>
-            <span class="s2">"</span><span class="si">{license_url}</span><span class="s2">"</span>
-        <span class="p">),</span>
-        <span class="n">aliases</span><span class="o">=</span><span class="p">(</span><span class="s2">"Kevin MacLeod"</span><span class="p">,</span> <span class="s2">"incompetech"</span><span class="p">,</span> <span class="s2">"incompetech.com"</span><span class="p">),</span>
-    <span class="p">)</span>
-<span class="p">)</span>
-<span class="n">register_music_library</span><span class="p">(</span>
-    <span class="n">MusicLibrary</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"artlist"</span><span class="p">,</span> <span class="n">author</span><span class="o">=</span><span class="s2">"Artlist"</span><span class="p">,</span> <span class="n">license</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">aliases</span><span class="o">=</span><span class="p">(</span><span class="s2">"Artlist"</span><span class="p">,))</span>
-<span class="p">)</span>
-<span class="n">register_music_library</span><span class="p">(</span>
-    <span class="n">MusicLibrary</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s2">"epidemic_sound"</span><span class="p">,</span>
-        <span class="n">author</span><span class="o">=</span><span class="s2">"Epidemic Sound"</span><span class="p">,</span>
-        <span class="n">license</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">aliases</span><span class="o">=</span><span class="p">(</span><span class="s2">"Epidemic Sound"</span><span class="p">,</span> <span class="s2">"Epidemic"</span><span class="p">),</span>
-    <span class="p">)</span>
-<span class="p">)</span>
-
-
-<div class="viewcode-block" id="direct">
-<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.direct">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">direct</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""The URL itself: the library's own server."""</span>
-    <span class="k">return</span> <span class="n">url</span></div>
-
-
-
-<div class="viewcode-block" id="wayback">
-<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.wayback">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">wayback</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""The Internet Archive's raw copy of ``url`` (:data:`WAYBACK_RAW`).</span>
-
-<span class="sd">    &gt;&gt;&gt; wayback("https://example.org/a.mp3")</span>
-<span class="sd">    'https://web.archive.org/web/2id_/https://example.org/a.mp3'</span>
-<span class="sd">    """</span>
-    <span class="k">return</span> <span class="n">WAYBACK_RAW</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">)</span></div>
-
-
-
-<span class="c1">#: Where to look for a file, in order.</span>
-<span class="n">DFLT_MIRRORS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">direct</span><span class="p">,</span> <span class="n">wayback</span><span class="p">)</span>
-
-
-<div class="viewcode-block" id="polite_fetch">
-<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.polite_fetch">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">polite_fetch</span><span class="p">(</span>
-    <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_TIMEOUT_S</span><span class="p">,</span> <span class="n">max_bytes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DFLT_MAX_BYTES</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""``url``'s bytes, asked for with a named user agent. An HTTP error raises;</span>
-<span class="sd">    so does a text page (an error page served with 200) and a body over</span>
-<span class="sd">    ``max_bytes``, before it is read."""</span>
-    <span class="n">request</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">"User-Agent"</span><span class="p">:</span> <span class="n">USER_AGENT</span><span class="p">})</span>
-    <span class="k">with</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span> <span class="k">as</span> <span class="n">response</span><span class="p">:</span>  <span class="c1"># noqa: S310</span>
-        <span class="n">kind</span> <span class="o">=</span> <span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"Content-Type"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">";"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">kind</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"text/"</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2"> is a </span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s2"> page, not audio"</span><span class="p">)</span>
-        <span class="n">size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"Content-Length"</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">size</span> <span class="o">&gt;</span> <span class="n">max_bytes</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2"> is </span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2"> bytes, over </span><span class="si">{</span><span class="n">max_bytes</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">max_bytes</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">max_bytes</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2"> is over </span><span class="si">{</span><span class="n">max_bytes</span><span class="si">}</span><span class="s2"> bytes"</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">data</span></div>
-
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_ffprobe</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="n">exe</span> <span class="o">=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">"ffprobe"</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">exe</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">MusicToolMissing</span><span class="p">(</span>
-            <span class="s2">"verifying a track needs ffprobe (it comes with ffmpeg: "</span>
-            <span class="s2">"https://ffmpeg.org/download.html)"</span>
-        <span class="p">)</span>
-    <span class="k">return</span> <span class="n">exe</span>
-
-
-<div class="viewcode-block" id="ffprobe_verify">
-<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.ffprobe_verify">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">ffprobe_verify</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""The duration of the audio ``data``, in seconds; :class:`MusicLibraryError`</span>
-<span class="sd">    when it is empty, has no audio stream, or no duration (an error page saved</span>
-<span class="sd">    as ``.mp3`` is all three). Probed from a temporary file: from a pipe,</span>
-<span class="sd">    ffprobe reports no duration."""</span>
-    <span class="n">exe</span> <span class="o">=</span> <span class="n">_ffprobe</span><span class="p">()</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">data</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span><span class="s2">"the file is empty"</span><span class="p">)</span>
-    <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tmp</span><span class="p">:</span>
-        <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span> <span class="o">/</span> <span class="s2">"track"</span>
-        <span class="n">path</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-        <span class="n">probe</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
-            <span class="p">[</span><span class="n">exe</span><span class="p">,</span> <span class="s2">"-v"</span><span class="p">,</span> <span class="s2">"error"</span><span class="p">,</span> <span class="s2">"-show_entries"</span><span class="p">,</span> <span class="s2">"stream=codec_type:format=duration"</span><span class="p">,</span>
-             <span class="s2">"-of"</span><span class="p">,</span> <span class="s2">"json"</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)],</span>
-            <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="p">)</span>  <span class="c1"># fmt: skip</span>
-    <span class="n">info</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">probe</span><span class="o">.</span><span class="n">stdout</span> <span class="ow">or</span> <span class="s2">"</span><span class="si">{}</span><span class="s2">"</span><span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"codec_type"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"audio"</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"streams"</span><span class="p">,</span> <span class="p">())):</span>
-        <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span><span class="s2">"the file has no audio stream"</span><span class="p">)</span>
-    <span class="n">duration</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"format"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"duration"</span><span class="p">)</span> <span class="ow">or</span> <span class="mf">0.0</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">duration</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span><span class="s2">"the file has no duration"</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">duration</span></div>
-
-
-
-<div class="viewcode-block" id="AcquiredTrack">
-<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.AcquiredTrack">[docs]</a>
-<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">AcquiredTrack</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""One row of the tracks table: a title, what became of it, and its provenance."""</span>
-
-    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">library</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">status</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">source</span><span class="p">:</span> <span class="n">AssetSource</span>
-    <span class="n">file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">duration_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">error</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-
-<div class="viewcode-block" id="AcquiredTrack.row">
-<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.AcquiredTrack.row">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">row</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">"""The row as the tracks table writes it (a list joined by ``; ``, a</span>
-<span class="sd">        mapping as JSON)."""</span>
-        <span class="n">src</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">exclude_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="p">{</span><span class="s2">"provider"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">})</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">"title"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">title</span><span class="p">,</span>
-            <span class="s2">"library"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">library</span><span class="p">,</span>
-            <span class="s2">"status"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">,</span>
-            <span class="s2">"file"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">,</span>
-            <span class="s2">"duration_s"</span><span class="p">:</span> <span class="kc">None</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">duration_s</span> <span class="ow">is</span> <span class="kc">None</span>
-            <span class="k">else</span> <span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">duration_s</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-            <span class="s2">"error"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">,</span>
-            <span class="o">**</span><span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">src</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span> <span class="o">!=</span> <span class="p">{}},</span>
-        <span class="p">}</span>
-        <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">_cell</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">out</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span></div>
-</div>
-
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_cell</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
-        <span class="k">return</span> <span class="s2">"; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">value</span>
 
 
 <div class="viewcode-block" id="acquire">
 <a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.acquire">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">acquire</span><span class="p">(</span>
-    <span class="n">library</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">MusicLibrary</span><span class="p">,</span>
-    <span class="n">titles</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span>
+    <span class="n">library</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">titles</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
-    <span class="n">out</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="n">MutableMapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">],</span>
-    <span class="n">fetch</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">bytes</span><span class="p">]</span> <span class="o">=</span> <span class="n">polite_fetch</span><span class="p">,</span>
-    <span class="n">mirrors</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="n">DFLT_MIRRORS</span><span class="p">,</span>
-    <span class="n">verify</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">bytes</span><span class="p">],</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">ffprobe_verify</span><span class="p">,</span>
+    <span class="n">out</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="n">pause</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_PAUSE_S</span><span class="p">,</span>
-    <span class="n">sleep</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">float</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">,</span>
-    <span class="n">kept</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">config</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">AcquiredTrack</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""Download ``titles`` of ``library`` into ``out``, verified, one row each.</span>
+<span class="w">    </span><span class="sd">"""foley's :func:`~foley.sources.music_library.acquire`, paced by ``pause``.</span>
 
-<span class="sd">    ``titles`` is a list, or ``{title: metadata}`` whose metadata (``credited_by``:</span>
-<span class="sd">    the videos that credit it; a catalogue's ``feel``, ``genre``, ...) is kept</span>
-<span class="sd">    on the row. Each title is fetched from each of ``mirrors`` in turn until one</span>
-<span class="sd">    gives bytes ``verify`` accepts; ``pause`` seconds pass before a second</span>
-<span class="sd">    request to the same host. ``kept`` is ``{file name: sha256}`` a previous run</span>
-<span class="sd">    recorded (:func:`kept_digests`): a file in ``out`` with that digest is kept,</span>
-<span class="sd">    any other is fetched again. A paid library downloads nothing and returns</span>
-<span class="sd">    wishlist rows.</span>
+<span class="sd">    ``pause`` is the seconds before a second request to one host (``0``: no</span>
+<span class="sd">    pause), foley's ``rate`` unless ``config`` states its own. ``config`` and every</span>
+<span class="sd">    other keyword (``fetch``, ``mirrors``, ``verify``, ``kept``, ``intended_use``,</span>
+<span class="sd">    ``clock``, ``sleep``, ...) go to foley as they are. Bridge the rows with</span>
+<span class="sd">    :func:`asset_source`.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        MusicLibraryError: For a negative ``pause``, and whatever foley's</span>
+<span class="sd">            ``acquire`` refuses.</span>
 <span class="sd">    """</span>
-    <span class="n">lib</span> <span class="o">=</span> <span class="n">_library</span><span class="p">(</span><span class="n">library</span><span class="p">)</span>
-    <span class="n">meta</span> <span class="o">=</span> <span class="n">_titles_meta</span><span class="p">(</span><span class="n">titles</span><span class="p">,</span> <span class="n">lib</span><span class="p">)</span>
-    <span class="n">store</span> <span class="o">=</span> <span class="n">files_store</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
-    <span class="n">kept</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">kept</span> <span class="ow">or</span> <span class="p">{})</span>
-    <span class="k">if</span> <span class="n">verify</span> <span class="ow">is</span> <span class="n">ffprobe_verify</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">lib</span><span class="o">.</span><span class="n">paid</span><span class="p">:</span>
-        <span class="n">_ffprobe</span><span class="p">()</span>  <span class="c1"># stop before the first download, not after it</span>
-    <span class="n">names</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">lib</span><span class="o">.</span><span class="n">paid</span> <span class="k">else</span> <span class="n">_file_names</span><span class="p">(</span><span class="n">lib</span><span class="p">,</span> <span class="n">meta</span><span class="p">)</span>
-    <span class="n">hosts</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">foley.sources.music_library</span><span class="w"> </span><span class="kn">import</span> <span class="n">MusicLibraryError</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">foley.sources.music_library</span><span class="w"> </span><span class="kn">import</span> <span class="n">acquire</span> <span class="k">as</span> <span class="n">foley_acquire</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">wait</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">host</span> <span class="o">=</span> <span class="n">urlparse</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">netloc</span>
-        <span class="k">if</span> <span class="n">host</span> <span class="ow">in</span> <span class="n">hosts</span><span class="p">:</span>
-            <span class="n">sleep</span><span class="p">(</span><span class="n">pause</span><span class="p">)</span>
-        <span class="n">hosts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">host</span><span class="p">)</span>
-
-    <span class="n">rows</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">AcquiredTrack</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">title</span><span class="p">,</span> <span class="n">extra</span> <span class="ow">in</span> <span class="n">meta</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">source</span> <span class="o">=</span> <span class="n">AssetSource</span><span class="p">(</span>
-            <span class="n">provider</span><span class="o">=</span><span class="n">lib</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-            <span class="nb">id</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
-            <span class="n">license</span><span class="o">=</span><span class="n">lib</span><span class="o">.</span><span class="n">license</span><span class="p">,</span>
-            <span class="n">license_url</span><span class="o">=</span><span class="n">lib</span><span class="o">.</span><span class="n">license_url</span><span class="p">,</span>
-            <span class="n">author</span><span class="o">=</span><span class="n">lib</span><span class="o">.</span><span class="n">author</span><span class="p">,</span>
-            <span class="n">author_url</span><span class="o">=</span><span class="n">lib</span><span class="o">.</span><span class="n">author_url</span><span class="p">,</span>
-            <span class="n">attribution</span><span class="o">=</span><span class="kc">None</span> <span class="k">if</span> <span class="n">lib</span><span class="o">.</span><span class="n">paid</span> <span class="k">else</span> <span class="n">lib</span><span class="o">.</span><span class="n">attribution_for</span><span class="p">(</span><span class="n">title</span><span class="p">),</span>
-            <span class="o">**</span><span class="n">extra</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="k">if</span> <span class="n">lib</span><span class="o">.</span><span class="n">paid</span><span class="p">:</span>
-            <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">AcquiredTrack</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">lib</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">WISHLIST</span><span class="p">,</span> <span class="n">source</span><span class="p">))</span>
-            <span class="k">continue</span>
-        <span class="n">page</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">track_url</span><span class="p">(</span><span class="n">title</span><span class="p">),</span> <span class="n">names</span><span class="p">[</span><span class="n">title</span><span class="p">]</span>
-        <span class="n">source</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"source_page_url"</span><span class="p">:</span> <span class="n">page</span><span class="p">})</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">kept</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">store</span><span class="p">:</span>
-                <span class="n">data</span> <span class="o">=</span> <span class="n">store</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
-                <span class="k">if</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span> <span class="o">==</span> <span class="n">kept</span><span class="p">[</span><span class="n">name</span><span class="p">]:</span>
-                    <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                        <span class="n">_row</span><span class="p">(</span><span class="n">lib</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">KEPT</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">verify</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
-                    <span class="p">)</span>
-                    <span class="k">continue</span>
-            <span class="n">data</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">mirror</span> <span class="o">=</span> <span class="n">_fetch_verified</span><span class="p">(</span>
-                <span class="n">page</span><span class="p">,</span> <span class="n">mirrors</span><span class="o">=</span><span class="n">mirrors</span><span class="p">,</span> <span class="n">fetch</span><span class="o">=</span><span class="n">fetch</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="n">wait</span>
-            <span class="p">)</span>
-            <span class="n">store</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span>
-        <span class="k">except</span> <span class="n">_TITLE_ERRORS</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">AcquiredTrack</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">lib</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">FAILED</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
-            <span class="k">continue</span>
-        <span class="n">source</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"url"</span><span class="p">:</span> <span class="n">url</span><span class="p">,</span> <span class="s2">"mirror"</span><span class="p">:</span> <span class="n">mirror</span><span class="p">})</span>
-        <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_row</span><span class="p">(</span><span class="n">lib</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">ACQUIRED</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">duration</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">rows</span></div>
-
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_fetch_verified</span><span class="p">(</span>
-    <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="o">*</span><span class="p">,</span>
-    <span class="n">mirrors</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">]],</span>
-    <span class="n">fetch</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">bytes</span><span class="p">],</span>
-    <span class="n">verify</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">bytes</span><span class="p">],</span> <span class="nb">float</span><span class="p">],</span>
-    <span class="n">wait</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">],</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""``(bytes, seconds, the URL that served them, its mirror's name)`` from</span>
-<span class="sd">    the first of ``mirrors`` whose bytes ``verify`` accepts; every mirror's</span>
-<span class="sd">    reason in one :class:`MusicLibraryError` when none does."""</span>
-    <span class="n">reasons</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">mirror</span> <span class="ow">in</span> <span class="n">mirrors</span><span class="p">:</span>
-        <span class="n">where</span> <span class="o">=</span> <span class="n">mirror</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
-        <span class="n">wait</span><span class="p">(</span><span class="n">where</span><span class="p">)</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="n">fetch</span><span class="p">(</span><span class="n">where</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">verify</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">where</span><span class="p">,</span> <span class="n">mirror</span><span class="o">.</span><span class="vm">__name__</span>
-        <span class="k">except</span> <span class="n">_TITLE_ERRORS</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="n">reasons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">mirror</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-    <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span><span class="s2">"; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">reasons</span><span class="p">))</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_titles_meta</span><span class="p">(</span><span class="n">titles</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">lib</span><span class="p">:</span> <span class="n">MusicLibrary</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
-<span class="w">    </span><span class="sd">"""``titles`` as ``{title: metadata}``, refused when it is neither a list of</span>
-<span class="sd">    titles nor such a mapping, or when metadata would restate the library."""</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">titles</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)):</span>
-        <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span><span class="s2">"titles is one string; pass a list of titles"</span><span class="p">)</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">titles</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
-        <span class="n">meta</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">title</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">titles</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">title</span><span class="si">!r}</span><span class="s2">: metadata must be an object (</span><span class="se">{{</span><span class="s2">'feel': ...</span><span class="se">}}</span><span class="s2">), got </span><span class="si">{</span><span class="n">m</span><span class="si">!r}</span><span class="s2">"</span>
-                <span class="p">)</span>
-            <span class="n">meta</span><span class="p">[</span><span class="n">title</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">meta</span> <span class="o">=</span> <span class="p">{</span><span class="n">t</span><span class="p">:</span> <span class="p">{}</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">titles</span><span class="p">}</span>
-    <span class="n">reserved</span> <span class="o">=</span> <span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">AssetSource</span><span class="o">.</span><span class="n">model_fields</span><span class="p">)</span> <span class="o">|</span> <span class="nb">set</span><span class="p">(</span><span class="n">TRACK_COLUMNS</span><span class="p">))</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span>
-        <span class="n">METADATA_COLUMNS</span>
-    <span class="p">)</span>
-    <span class="k">for</span> <span class="n">title</span><span class="p">,</span> <span class="n">extra</span> <span class="ow">in</span> <span class="n">meta</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">title</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"a title must be a non-empty string, got </span><span class="si">{</span><span class="n">title</span><span class="si">!r}</span><span class="s2">"</span>
-            <span class="p">)</span>
-        <span class="n">clash</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">extra</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">reserved</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">clash</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">title</span><span class="si">!r}</span><span class="s2">: its metadata sets </span><span class="si">{</span><span class="n">clash</span><span class="si">}</span><span class="s2">, which the library or the "</span>
-                <span class="sa">f</span><span class="s2">"table states (</span><span class="si">{</span><span class="n">lib</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">); drop them from the titles file"</span>
-            <span class="p">)</span>
-    <span class="k">return</span> <span class="n">meta</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_file_names</span><span class="p">(</span><span class="n">lib</span><span class="p">:</span> <span class="n">MusicLibrary</span><span class="p">,</span> <span class="n">meta</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""``{title: file name}``, refused when two titles share a file (as a</span>
-<span class="sd">    case-insensitive disk sees it)."""</span>
-    <span class="n">names</span> <span class="o">=</span> <span class="p">{</span><span class="n">title</span><span class="p">:</span> <span class="n">lib</span><span class="o">.</span><span class="n">file_name</span><span class="p">(</span><span class="n">title</span><span class="p">)</span> <span class="k">for</span> <span class="n">title</span> <span class="ow">in</span> <span class="n">meta</span><span class="p">}</span>
-    <span class="n">seen</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">title</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">key</span> <span class="o">=</span> <span class="n">unicodedata</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="s2">"NFC"</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">casefold</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"titles </span><span class="si">{</span><span class="n">seen</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="si">!r}</span><span class="s2"> and </span><span class="si">{</span><span class="n">title</span><span class="si">!r}</span><span class="s2"> would both be saved as </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">"</span>
-            <span class="p">)</span>
-        <span class="n">seen</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">title</span>
-    <span class="k">return</span> <span class="n">names</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_library</span><span class="p">(</span><span class="n">library</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">MusicLibrary</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MusicLibrary</span><span class="p">:</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">MusicLibrary</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">library</span>
-    <span class="k">if</span> <span class="n">library</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">MUSIC_LIBRARIES</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"no music library </span><span class="si">{</span><span class="n">library</span><span class="si">!r}</span><span class="s2">; registered: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">MUSIC_LIBRARIES</span><span class="p">)</span><span class="si">}</span><span class="s2"> "</span>
-            <span class="s2">"(register_music_library adds one, with the licence you vouch for)"</span>
-        <span class="p">)</span>
-    <span class="k">return</span> <span class="n">MUSIC_LIBRARIES</span><span class="p">[</span><span class="n">library</span><span class="p">]</span>
-
-
-<div class="viewcode-block" id="files_store">
-<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.files_store">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">files_store</span><span class="p">(</span>
-    <span class="n">out</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="n">MutableMapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">],</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MutableMapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""``out`` as a ``{file name: bytes}`` store: a folder (made if missing)</span>
-<span class="sd">    becomes a ``dol.Files`` over it; a mapping is used as it is."""</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">MutableMapping</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">out</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">dol</span><span class="w"> </span><span class="kn">import</span> <span class="n">Files</span>
-
-    <span class="n">Path</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">Files</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">out</span><span class="p">))</span></div>
-
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_row</span><span class="p">(</span>
-    <span class="n">lib</span><span class="p">:</span> <span class="n">MusicLibrary</span><span class="p">,</span>
-    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">status</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">source</span><span class="p">:</span> <span class="n">AssetSource</span><span class="p">,</span>
-    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span>
-    <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AcquiredTrack</span><span class="p">:</span>
-    <span class="k">return</span> <span class="n">AcquiredTrack</span><span class="p">(</span>
-        <span class="n">title</span><span class="p">,</span>
-        <span class="n">lib</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-        <span class="n">status</span><span class="p">,</span>
-        <span class="n">source</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"sha256"</span><span class="p">:</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()}),</span>
-        <span class="n">file</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
-        <span class="n">duration_s</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span>
-    <span class="p">)</span>
-
-
-<div class="viewcode-block" id="tracks_table">
-<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.tracks_table">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">tracks_table</span><span class="p">(</span><span class="n">rows</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">AcquiredTrack</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""The tracks table as CSV text: :data:`TRACK_COLUMNS`, then any extra the</span>
-<span class="sd">    rows carry, in name order."""</span>
-    <span class="n">dicts</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">row</span><span class="p">()</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">]</span>
-    <span class="n">extras</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">({</span><span class="n">k</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dicts</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">d</span><span class="p">}</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">TRACK_COLUMNS</span><span class="p">))</span>
-    <span class="n">buffer</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">()</span>
-    <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictWriter</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="n">fieldnames</span><span class="o">=</span><span class="p">[</span><span class="o">*</span><span class="n">TRACK_COLUMNS</span><span class="p">,</span> <span class="o">*</span><span class="n">extras</span><span class="p">])</span>
-    <span class="n">writer</span><span class="o">.</span><span class="n">writeheader</span><span class="p">()</span>
-    <span class="n">writer</span><span class="o">.</span><span class="n">writerows</span><span class="p">(</span><span class="n">dicts</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">buffer</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span></div>
-
-
-
-<div class="viewcode-block" id="kept_digests">
-<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.kept_digests">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">kept_digests</span><span class="p">(</span><span class="n">table</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""``{file: sha256}`` of the acquired or kept rows of a tracks table</span>
-<span class="sd">    (:func:`tracks_table`'s text): what a rerun may keep."""</span>
-    <span class="k">return</span> <span class="p">{</span>
-        <span class="n">r</span><span class="p">[</span><span class="s2">"file"</span><span class="p">]:</span> <span class="n">r</span><span class="p">[</span><span class="s2">"sha256"</span><span class="p">]</span>
-        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictReader</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">(</span><span class="n">table</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"status"</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="n">ACQUIRED</span><span class="p">,</span> <span class="n">KEPT</span><span class="p">)</span> <span class="ow">and</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"file"</span><span class="p">)</span> <span class="ow">and</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"sha256"</span><span class="p">)</span>
-    <span class="p">}</span></div>
-
-
-
-<div class="viewcode-block" id="attribution_text">
-<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.attribution_text">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">attribution_text</span><span class="p">(</span><span class="n">rows</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">AcquiredTrack</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""The attribution blocks to paste under a video, one per track that has</span>
-<span class="sd">    one (acquired or kept), blank-line separated, each once.</span>
-
-<span class="sd">    &gt;&gt;&gt; src = AssetSource(provider="x", attribution='"A" B')</span>
-<span class="sd">    &gt;&gt;&gt; attribution_text([AcquiredTrack("A", "x", ACQUIRED, src)] * 2)</span>
-<span class="sd">    '"A" B\\n'</span>
-<span class="sd">    """</span>
-    <span class="n">blocks</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span>
-        <span class="n">r</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">attribution</span>
-        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span>
-        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status</span> <span class="ow">in</span> <span class="p">(</span><span class="n">ACQUIRED</span><span class="p">,</span> <span class="n">KEPT</span><span class="p">)</span> <span class="ow">and</span> <span class="n">r</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">attribution</span>
-    <span class="p">)</span>
-    <span class="k">return</span> <span class="s2">"</span><span class="se">\n\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">blocks</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span> <span class="k">if</span> <span class="n">blocks</span> <span class="k">else</span> <span class="s2">""</span><span class="p">)</span></div>
-
-
-
-<div class="viewcode-block" id="titles_from_json">
-<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.titles_from_json">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">titles_from_json</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
-<span class="w">    </span><span class="sd">"""A titles file's JSON: a list of titles, or ``{title: {metadata}}``.</span>
-
-<span class="sd">    &gt;&gt;&gt; titles_from_json('["A", "B"]'), titles_from_json('{"A": {"feel": "Bright"}}')</span>
-<span class="sd">    (['A', 'B'], {'A': {'feel': 'Bright'}})</span>
-<span class="sd">    """</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">titles</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
-    <span class="k">except</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"the titles file is not JSON (</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
-    <span class="n">shapes</span> <span class="o">=</span> <span class="s1">'a list of titles (["A", "B"]) or an object ({"A": {"feel": "Bright"}})'</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">titles</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">titles</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">titles</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">titles</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">titles</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
-        <span class="k">return</span> <span class="n">titles</span>
-    <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"the titles file must hold </span><span class="si">{</span><span class="n">shapes</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span></div>
-
-
-
-<span class="c1">#: What a credit line may carry before its title: a timestamp (``0:00``,</span>
-<span class="c1">#: ``(1:02:03) -``) and a label (``Song:``, ``Track -``).</span>
-<span class="n">_TIMESTAMP</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"^\(?\d{1,2}:\d</span><span class="si">{2}</span><span class="s2">(?::\d</span><span class="si">{2}</span><span class="s2">)?\)?\s*[-–—|:]?\s*"</span><span class="p">)</span>
-<span class="n">_LABEL</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"^(?:song|track|title)\s*[:\-–—]\s*"</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
-<span class="c1">#: The attribution form, ``"Title" Author (site)``.</span>
-<span class="n">_QUOTED</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">'^["“](?P&lt;title&gt;[^"”]+)["”]\s*(?:by\s+|[-–—]\s*)?(?P&lt;who&gt;.*)$'</span><span class="p">)</span>
-<span class="c1">#: What may wrap a library's name in a header (``From Epidemic Sound:``,</span>
-<span class="c1">#: ``Music by Kevin MacLeod (incompetech.com)``, ``Music: Artlist``).</span>
-<span class="n">_HEADER_PREFIX</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
-    <span class="sa">r</span><span class="s2">"^(?:from|music\s+by|music\s+from|music)\b\s*[:\-–]?\s*"</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span>
-<span class="p">)</span>
-<span class="n">_PARENS</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"\s*\([^)]*\)"</span><span class="p">)</span>
-<span class="c1">#: Lines in a credit block that are not titles: a link, the licence's words.</span>
-<span class="n">_NOISE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"https?://|^www\.|licen[cs]ed under|creative\s+commons"</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
-
-
-<div class="viewcode-block" id="titles_by_library">
-<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.titles_by_library">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">titles_by_library</span><span class="p">(</span><span class="n">description</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
-<span class="w">    </span><span class="sd">"""The titles a video description credits, by registered library.</span>
-
-<span class="sd">    A line naming a library (by name or alias, with ``From``/``Music by``/</span>
-<span class="sd">    ``Music:`` and a parenthetical allowed around it) opens its block, and each</span>
-<span class="sd">    following line is a title until a blank line; a timestamp, a</span>
-<span class="sd">    ``Song:``/``Track:`` label, quotes and bullets are stripped, and links and</span>
-<span class="sd">    licence lines skipped. The attribution form (``"Title" Kevin MacLeod</span>
-<span class="sd">    (incompetech.com)``) credits its title wherever it stands.</span>
-
-<span class="sd">    &gt;&gt;&gt; text = '''Music:</span>
-<span class="sd">    ... From Epidemic Sound:</span>
-<span class="sd">    ... - 0:00 Night Owl</span>
-<span class="sd">    ... - Song: "Morning Light"</span>
-<span class="sd">    ... https://www.epidemicsound.com/</span>
-<span class="sd">    ...</span>
-<span class="sd">    ... "Sneaky Snitch" Kevin MacLeod (incompetech.com)</span>
-<span class="sd">    ... Licensed under Creative Commons: By Attribution 4.0 License'''</span>
-<span class="sd">    &gt;&gt;&gt; titles_by_library(text)</span>
-<span class="sd">    {'epidemic_sound': ['Night Owl', 'Morning Light'], 'incompetech': ['Sneaky Snitch']}</span>
-<span class="sd">    """</span>
-    <span class="n">names</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="n">alias</span><span class="o">.</span><span class="n">casefold</span><span class="p">():</span> <span class="n">lib</span><span class="o">.</span><span class="n">name</span>
-        <span class="k">for</span> <span class="n">lib</span> <span class="ow">in</span> <span class="n">MUSIC_LIBRARIES</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">alias</span> <span class="ow">in</span> <span class="p">(</span><span class="n">lib</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="o">*</span><span class="n">lib</span><span class="o">.</span><span class="n">aliases</span><span class="p">)</span>
-    <span class="p">}</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">library_named</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">bare</span> <span class="o">=</span> <span class="n">_PARENS</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">":"</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-        <span class="n">bare</span> <span class="o">=</span> <span class="n">_HEADER_PREFIX</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="n">bare</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">":"</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">names</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">bare</span><span class="o">.</span><span class="n">casefold</span><span class="p">())</span>
-
-    <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">credit</span><span class="p">(</span><span class="n">library</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">titles</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="p">[])</span>
-        <span class="k">if</span> <span class="n">title</span> <span class="ow">and</span> <span class="n">title</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">titles</span><span class="p">:</span>
-            <span class="n">titles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
-
-    <span class="n">current</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">description</span><span class="o">.</span><span class="n">splitlines</span><span class="p">():</span>
-        <span class="n">text</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">"-•*·"</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">text</span><span class="p">:</span>
-            <span class="n">current</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="k">continue</span>
-        <span class="k">if</span> <span class="n">_NOISE</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
-            <span class="k">continue</span>
-        <span class="n">quoted</span> <span class="o">=</span> <span class="n">_QUOTED</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">quoted</span> <span class="ow">and</span> <span class="p">(</span><span class="n">library</span> <span class="o">:=</span> <span class="n">library_named</span><span class="p">(</span><span class="n">quoted</span><span class="p">[</span><span class="s2">"who"</span><span class="p">])):</span>
-            <span class="n">credit</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">quoted</span><span class="p">[</span><span class="s2">"title"</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
-            <span class="k">continue</span>
-        <span class="k">if</span> <span class="n">library</span> <span class="o">:=</span> <span class="n">library_named</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
-            <span class="n">current</span> <span class="o">=</span> <span class="n">library</span>
-            <span class="n">out</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="p">[])</span>
-            <span class="k">continue</span>
-        <span class="k">if</span> <span class="n">current</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">title</span> <span class="o">=</span> <span class="n">_LABEL</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="n">_TIMESTAMP</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="n">text</span><span class="p">))</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">'"“”'</span><span class="p">)</span>
-            <span class="n">credit</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="n">title</span><span class="p">)</span>
-    <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">out</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span><span class="p">}</span></div>
+    <span class="k">if</span> <span class="n">pause</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"pause is seconds, at least 0; got </span><span class="si">{</span><span class="n">pause</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">config</span> <span class="ow">or</span> <span class="p">{})</span>
+    <span class="k">if</span> <span class="s2">"rate"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
+        <span class="n">config</span><span class="p">[</span><span class="s2">"rate"</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"per_min"</span><span class="p">:</span> <span class="n">SECONDS_PER_MINUTE</span> <span class="o">/</span> <span class="n">pause</span><span class="p">}</span> <span class="k">if</span> <span class="n">pause</span> <span class="k">else</span> <span class="p">{}</span>
+    <span class="k">return</span> <span class="n">foley_acquire</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">titles</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">out</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 </pre></div>
 

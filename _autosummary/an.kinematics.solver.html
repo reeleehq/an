@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=b7dfe248"></script>
+    <script src="../_static/documentation_options.js?v=80276822"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.331" />
+  <meta name="docsearch:version" content="0.1.332" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -728,7 +728,7 @@ built on a solve is built on its INPUTS (<a class="reference internal" href="#an
 <td><p>A led grip is taken (its pin enforced again) once its gap is this small (scene units): the rejoin the stage's own check calls a snap is over 2.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.kinematics.solver.DFLT_REGRIP_STRENGTH" title="an.kinematics.solver.DFLT_REGRIP_STRENGTH"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_REGRIP_STRENGTH</span></code></a></p></td>
-<td><p>The strength of that lead (a <code class="xref py py-class docutils literal notranslate"><span class="pre">Force</span></code> pull toward the walking point): a compliant pull, which closes no loop a conflict could settle by giving up a link.</p></td>
+<td><p>The strength of that lead (a <code class="xref py py-class docutils literal notranslate"><span class="pre">Force</span></code> pull toward the walking point, which closes no loop a conflict could settle by giving up a link), for bodies of the kinematics' own scale (a link of 10 by 2 units); a caller whose bodies weigh more scales it (the stage: <code class="xref py py-data docutils literal notranslate"><span class="pre">an.stage.solve.REGRIP_MASS_SCALE</span></code>).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.kinematics.solver.DFLT_MAX_DROP_TRIALS" title="an.kinematics.solver.DFLT_MAX_DROP_TRIALS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_MAX_DROP_TRIALS</span></code></a></p></td>
 <td><p>The most trial solves <a class="reference internal" href="#an.kinematics.solver.solve" title="an.kinematics.solver.solve"><code class="xref py py-func docutils literal notranslate"><span class="pre">solve()</span></code></a> spends looking for the joint to give up in a conflict (each is a full solve of the frame).</p></td>
@@ -781,6 +781,9 @@ built on a solve is built on its INPUTS (<a class="reference internal" href="#an
 <tr class="row-even"><td><p><a class="reference internal" href="#an.kinematics.solver.solve_frames" title="an.kinematics.solver.solve_frames"><code class="xref py py-obj docutils literal notranslate"><span class="pre">solve_frames</span></code></a>(bodies, joints, *, frames, dt)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">frames</span></code> solves in a row, each starting from the last: the caller's time dimension.</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.kinematics.solver.solve_regripping" title="an.kinematics.solver.solve_regripping"><code class="xref py py-obj docutils literal notranslate"><span class="pre">solve_regripping</span></code></a>(state, bodies, joints, ...)</p></td>
+<td><p>One frame of a run (<code class="docutils literal notranslate"><span class="pre">solve_with(joints,</span> <span class="pre">extra_forces)</span></code> solves it) that leads lost grips back, updating <code class="docutils literal notranslate"><span class="pre">state</span></code> (an#645).</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -790,7 +793,10 @@ built on a solve is built on its INPUTS (<a class="reference internal" href="#an
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.kinematics.solver.FramesResult" title="an.kinematics.solver.FramesResult"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FramesResult</span></code></a>(bodies, poses, unsatisfied, ...)</p></td>
 <td><p>A run of frames: <code class="docutils literal notranslate"><span class="pre">poses</span></code> is <code class="docutils literal notranslate"><span class="pre">(frames,</span> <span class="pre">bodies,</span> <span class="pre">4)</span></code>; <code class="docutils literal notranslate"><span class="pre">unsatisfied</span></code> and <code class="docutils literal notranslate"><span class="pre">limit_violations</span></code> are per frame; <code class="docutils literal notranslate"><span class="pre">snaps</span></code> lists every joint that is enforced again after a frame it was not (the caller rejoined it, or a conflict had dropped it) as <code class="docutils literal notranslate"><span class="pre">(frame,</span> <span class="pre">joint</span> <span class="pre">index,</span> <span class="pre">distance)</span></code>, the gap it closes in one frame (the caller decides whether to blend or to refuse it; in dynamic mode a large gap yanks the bodies it joins); <code class="docutils literal notranslate"><span class="pre">final</span></code> is the last frame's bodies, ready to continue the run; <code class="docutils literal notranslate"><span class="pre">dropped</span></code> the joints each frame gave up in a conflict.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.kinematics.solver.SolveResult" title="an.kinematics.solver.SolveResult"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SolveResult</span></code></a>(bodies, poses, residuals, ...[, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.kinematics.solver.Regrip" title="an.kinematics.solver.Regrip"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Regrip</span></code></a>([lost, walking, regained, dropped])</p></td>
+<td><p>What a run of frames carries from one frame to the next to lead lost grips back (an#645): the grips the geometry ruled out (or a conflict took from a grip the lead had taken back) on the frame before, those being led with their gap, those the lead took back, and the frame before's drops.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.kinematics.solver.SolveResult" title="an.kinematics.solver.SolveResult"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SolveResult</span></code></a>(bodies, poses, residuals, ...[, ...])</p></td>
 <td><p>What one frame's solve found.</p></td>
 </tr>
 </tbody>
@@ -912,9 +918,11 @@ takes it back in about a second.</p>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.kinematics.solver.DFLT_REGRIP_STRENGTH">
 <span class="sig-prename descclassname"><span class="pre">an.kinematics.solver.</span></span><span class="sig-name descname"><span class="pre">DFLT_REGRIP_STRENGTH</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1000000.0</span></span><a class="headerlink" href="#an.kinematics.solver.DFLT_REGRIP_STRENGTH" title="Link to this definition">#</a></dt>
-<dd><p>The strength of that lead (a <code class="xref py py-class docutils literal notranslate"><span class="pre">Force</span></code> pull toward the walking point):
-a compliant pull, which closes no loop a conflict could settle by giving up
-a link.</p>
+<dd><p>The strength of that lead (a <code class="xref py py-class docutils literal notranslate"><span class="pre">Force</span></code> pull toward the walking point,
+which closes no loop a conflict could settle by giving up a link), for
+bodies of the kinematics’ own scale (a link of 10 by 2 units); a caller whose
+bodies weigh more scales it (the stage: <code class="xref py py-data docutils literal notranslate"><span class="pre">an.stage.solve.REGRIP_MASS_SCALE</span></code>).
+Too stiff, it drags a chain past a range it cannot keep (an#568’s elbow).</p>
 </dd></dl>
 
 <dl class="py data">
@@ -983,16 +991,29 @@ a joint on the world alone, a body with no extent.</p>
 <dd><p>The pose channels, in the order <code class="xref py py-attr docutils literal notranslate"><span class="pre">SolveResult.poses</span></code> holds them.</p>
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="an.kinematics.solver.Regrip">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.kinematics.solver.</span></span><span class="sig-name descname"><span class="pre">Regrip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lost</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">set()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">walking</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">dict()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regained</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">set()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">set()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/kinematics/solver.html#Regrip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.kinematics.solver.Regrip" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>What a run of frames carries from one frame to the next to lead lost
+grips back (an#645): the grips the geometry ruled out (or a conflict took
+from a grip the lead had taken back) on the frame before, those being led
+with their gap, those the lead took back, and the frame before’s drops.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
 <dl class="py data">
 <dt class="sig sig-object py" id="an.kinematics.solver.SOLVER_VERSION">
-<span class="sig-prename descclassname"><span class="pre">an.kinematics.solver.</span></span><span class="sig-name descname"><span class="pre">SOLVER_VERSION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'5'</span></span><a class="headerlink" href="#an.kinematics.solver.SOLVER_VERSION" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.kinematics.solver.</span></span><span class="sig-name descname"><span class="pre">SOLVER_VERSION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'6'</span></span><a class="headerlink" href="#an.kinematics.solver.SOLVER_VERSION" title="Link to this definition">#</a></dt>
 <dd><p>Bumped whenever the solve can give a different answer for the same inputs
 (a changed projection, order, or default): part of every cache key built
 on this module.
 2: a slow retry keeps going while it converges (an#568); 3: a conflict gives up
 the first candidate that halves the failure (an#641); 4: a slack chain of more
 than two links held at both ends is seeded on an arc (an#646); 5: a grip lost
-out of reach is led back over several frames (an#645).</p>
+out of reach is led back over several frames (an#645); 6: the stage’s per-frame
+solve leads lost grips back too (an#668).</p>
 </dd></dl>
 
 <dl class="py class">
@@ -1206,6 +1227,27 @@ and weld rests are fixed from the starting poses. <code class="docutils literal 
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="an.kinematics.solver.solve_regripping">
+<span class="sig-prename descclassname"><span class="pre">an.kinematics.solver.</span></span><span class="sig-name descname"><span class="pre">solve_regripping</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bodies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joints</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">solve_with</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/kinematics/solver.html#solve_regripping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.kinematics.solver.solve_regripping" title="Link to this definition">#</a></dt>
+<dd><p>One frame of a run (<code class="docutils literal notranslate"><span class="pre">solve_with(joints,</span> <span class="pre">extra_forces)</span></code> solves it)
+that leads lost grips back, updating <code class="docutils literal notranslate"><span class="pre">state</span></code> (an#645). A grip lost out
+of reach and back within it, farther than the frame can close (a long
+chain hanging far from it), is unjoined and its free point pulled (a
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Force</span></code>, which closes no loop) toward a point walking toward the
+grip <code class="docutils literal notranslate"><span class="pre">step</span></code> per frame; within <a class="reference internal" href="#an.kinematics.solver.DFLT_REGRIP_SNAP" title="an.kinematics.solver.DFLT_REGRIP_SNAP"><code class="xref py py-data docutils literal notranslate"><span class="pre">DFLT_REGRIP_SNAP</span></code></a> the grip is
+tried itself, and if taking it would give it or a link up it is pulled
+straight at it instead. A link given up while a grip the lead took back
+holds gives up that grip instead (an#641). <code class="docutils literal notranslate"><span class="pre">step</span></code> 0 (pose mode, no
+time to walk in) leads nothing. The <a class="reference internal" href="#an.kinematics.solver.solve_frames" title="an.kinematics.solver.solve_frames"><code class="xref py py-func docutils literal notranslate"><span class="pre">solve_frames()</span></code></a> loop and the
+stage’s per-frame solve both run their frames through it (an#668).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.kinematics.solver.SolveResult" title="an.kinematics.solver.SolveResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">SolveResult</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 
@@ -1274,6 +1316,7 @@ and weld rests are fixed from the starting poses. <code class="docutils literal 
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solver.FramesResult"><code class="docutils literal notranslate"><span class="pre">FramesResult</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solver.KinematicsError"><code class="docutils literal notranslate"><span class="pre">KinematicsError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solver.POSE_CHANNELS"><code class="docutils literal notranslate"><span class="pre">POSE_CHANNELS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solver.Regrip"><code class="docutils literal notranslate"><span class="pre">Regrip</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solver.SOLVER_VERSION"><code class="docutils literal notranslate"><span class="pre">SOLVER_VERSION</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solver.SolveResult"><code class="docutils literal notranslate"><span class="pre">SolveResult</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solver.SolveResult.ok"><code class="docutils literal notranslate"><span class="pre">SolveResult.ok</span></code></a></li>
@@ -1288,6 +1331,7 @@ and weld rests are fixed from the starting poses. <code class="docutils literal 
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solver.resolve_rests"><code class="docutils literal notranslate"><span class="pre">resolve_rests()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solver.solve"><code class="docutils literal notranslate"><span class="pre">solve()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solver.solve_frames"><code class="docutils literal notranslate"><span class="pre">solve_frames()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solver.solve_regripping"><code class="docutils literal notranslate"><span class="pre">solve_regripping()</span></code></a></li>
 </ul>
   </nav></div>
 

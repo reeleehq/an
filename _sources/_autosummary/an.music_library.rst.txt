@@ -8,21 +8,22 @@ an.music\_library
 
    .. autosummary::
    
-      MUSIC_LIBRARIES
+      DFLT_PAUSE_S
+      FOLEY_LICENSE_CODES
    
    .. rubric:: Functions
 
    .. autosummary::
    
       acquire
+      asset_source
       attribution_text
-      direct
-      ffprobe_verify
       files_store
       kept_digests
-      polite_fetch
+      kept_sources
+      license_code
+      probe_verify
       register_music_library
-      safe_file_name
       titles_by_library
       titles_from_json
       tracks_table
