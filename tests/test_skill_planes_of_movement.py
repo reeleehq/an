@@ -58,8 +58,15 @@ def _unknown_keys(value: Any, where: str = "") -> list[str]:
     return []
 
 
-def test_the_reference_has_its_examples():
-    assert [next(iter(e)) for e in _examples()] == ["world", "actions"]
+def test_the_reference_has_examples_this_test_can_read():
+    examples = _examples()
+    assert examples, f"no YAML example in {REFERENCE.name}"
+    for example in examples:
+        assert isinstance(example, dict) and len(example) == 1, (
+            f"an example of {REFERENCE.name} is one top-level key: {list(example)}"
+        )
+        (key,) = example
+        assert key in READERS, f"no reader for a `{key}:` example; add one to READERS"
 
 
 @pytest.mark.parametrize("example", _examples(), ids=lambda e: next(iter(e)))

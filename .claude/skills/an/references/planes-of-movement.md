@@ -70,7 +70,7 @@ actions:
 - `motion: ballistic` is `p + v·dt + ½·g·dt²` in the world (`gravity` per action, 9.81 by default); without it the member follows its own `<member>:at_*` actions that start at or after `at`, in the new frame's units.
 - `at` is shot time. A scene with no `reframe` lowers exactly as before.
 
-Not yet: a plane at a world depth (an#503); a landing (a ballistic member falls through the floor; a tween that straddles the reframe stops at the reframe instant, except that a flight keeps its velocity).
+Not yet: a landing (a ballistic member falls through the floor; a tween that straddles the reframe stops at the reframe instant, except that a flight keeps its velocity).
 
 ## Lag and sway (an#504)
 
