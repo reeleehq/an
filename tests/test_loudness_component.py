@@ -160,3 +160,18 @@ def test_a_render_says_an_old_mixing_before_it_makes_anything(monkeypatch, tmp_p
                 render_mod.render_project(root)
     finally:
         shared_mixing.warn_if_mixing_too_old.cache_clear()
+
+
+def test_a_reroll_says_an_old_mixing_first(monkeypatch):
+    """an#644: `an voices reroll` (retake_lines) is billed too."""
+    from an.audio import shared_mixing
+    from an.audio.pipeline import retake_lines
+    from an.ir.schema import Meta, SceneIR
+
+    _too_old(monkeypatch, "filtergraph")
+    shared_mixing.warn_if_mixing_too_old.cache_clear()
+    try:
+        with pytest.warns(shared_mixing.MixingTooOldWarning, match="too old to have"):
+            assert retake_lines(SceneIR(meta=Meta(title="t")), {}, "x", tts=object()) == []
+    finally:
+        shared_mixing.warn_if_mixing_too_old.cache_clear()
