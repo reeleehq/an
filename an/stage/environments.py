@@ -26,17 +26,13 @@ coordinates — a ratio, not a distance:
 `> 1.0`      foreground: nearer than the characters, moving faster
 ===========  ===============================================================
 
-**`depth` governs translation only, and that is a stated limit rather than an
-oversight.** The compensation is on `x`/`y`; `root.scale` and `root.rotation`
-multiply the whole composed expression, so no per-plane factor can cancel
-them. Measured: a `depth = 0` plane under `push_in` grows 1.0 → 1.25× and
-drifts, exactly like the character plane.
-
-Depth-aware zoom is the **dolly**, and the design of record defers it with its
-reason: a true dolly grows the foreground ×1.40 while the moon grows ×1.02,
-where today's `push_in` grows both ×1.25 — precisely the uniform zoom the 1937
-multiplane camera was built to replace. Until `dolly_in` exists, pair a
-`depth = 0` plate with a pan, not a zoom.
+**A zoom is flat; a dolly has depth.** Under `push_in` (a zoom) every plane
+grows alike: `root.scale` multiplies the whole composed expression, so a
+`depth = 0` plane grows 1.0 → 1.25× like the character plane. Under
+`dolly_in` (an#478) the camera travels into the planes, and each grows by its
+own depth: the foreground ×1.39, the character plane ×1.25, a moon at 0.08
+×1.02, which is what the 1937 multiplane camera was built for. Use a dolly
+when depth should read; a zoom when the whole frame should.
 
 Sign trap, pinned here because every surveyed tool disagrees: **larger depth =
 nearer = faster.** Unity's z-derived factor uses the INVERSE convention
@@ -454,13 +450,17 @@ def plane_rect(
     art_size: tuple[float, float] | None,
     *,
     camera: tuple[float, float] = (0.0, 0.0),
+    dolly: float = 0.0,
 ) -> Rect | None:
-    """Where ``plane`` is drawn, in scene pixels, with the camera at ``camera``.
+    """Where ``plane`` is drawn, in scene pixels, with the camera at ``camera``
+    having travelled ``dolly`` (an#478).
 
     The compiler's own geometry, restated for a pre-flight: the box is the
     declared `size` or the art's extent (``art_size``), the art is fitted into
     it by `fit`, placed by `anchor` at `offset`, and the plane's parallax
-    compensation moves it by ``(1 − f) · camera`` per axis. ``None`` when the
+    compensation moves it by ``(1 − f) · camera`` per axis; under a dolly it
+    also scales by :func:`an.ir.camera.plane_dolly_scale` about its position
+    (a :class:`an.ir.camera.CameraError` when the dolly reaches it). ``None`` when the
     extent cannot be known (an image whose art cannot be measured and whose
     `fit` makes the drawn size depend on it) — an unknown, not a hole.
 
@@ -483,9 +483,14 @@ def plane_rect(
                 return None
             k = min(w / art_size[0], h / art_size[1])
             w, h = art_size[0] * k, art_size[1] * k
+    from an.ir.camera import plane_dolly_scale
+
     fx, fy = plane.factors()
-    x = plane.offset[0] + (1.0 - fx) * camera[0]
-    y = plane.offset[1] + (1.0 - fy) * camera[1]
+    sx = plane_dolly_scale(fx, dolly, plane=plane.name)
+    sy = plane_dolly_scale(fy, dolly, plane=plane.name)
+    x = sx * plane.offset[0] + (1.0 - sx * fx) * camera[0]
+    y = sy * plane.offset[1] + (1.0 - sy * fy) * camera[1]
+    w, h = w * sx, h * sy
     # A `fill` is emitted as a centred rect — the compiler does not pass the
     # anchor to it. An image honours the anchor, and so does a gradient with a
     # declared size; one without covers the canvas, centred, like a fill.

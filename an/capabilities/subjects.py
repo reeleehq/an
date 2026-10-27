@@ -265,7 +265,9 @@ def _derive_environment(
 #: the stage engine re-renders a framing2d view (its ``stage.camera`` property
 #: space). When P3's ``Engine`` protocol gives engines a ``view_spaces`` member,
 #: the stage engine declares it and this table empties.
-DFLT_ENGINE_VIEW_SPACES: dict[str, tuple[str, ...]] = {"cutout": ("framing2d",)}
+DFLT_ENGINE_VIEW_SPACES: dict[str, tuple[str, ...]] = {
+    "cutout": ("framing2d", "multiplane")
+}
 #: The capability prefix of a view space an engine lowers (``space.framing2d``).
 VIEW_SPACE_PREFIX: str = "space."
 

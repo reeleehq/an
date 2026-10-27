@@ -113,7 +113,7 @@ from an.stage.serialize import (
 from an.stage.raster import art_size, is_raster, short_digest, versioned_src
 from an.ir.camera import CAMERA_MOVES, PAN_FRACTION, CameraError  # noqa: F401  (re-exported)
 from an.ir.camera import camera_keys as _camera_keys
-from an.ir.camera import camera_shake_offsets, dolly_frames, dolly_growth
+from an.ir.camera import camera_shake_offsets, dolly_frames, plane_dolly_scale
 from an.ir.migrate import DocumentKind, migrate
 from an.stage.environments import PLANE_FILL_SPAN as _PLANE_FILL_SPAN
 from an.stage.environments import (
@@ -2473,9 +2473,10 @@ def _add_parallax_clips(
     it does not fight this — which is exactly what the collision check below
     refuses.
 
-    **Translation only.** `root.scale` and `root.rotation` multiply the whole
-    composed expression, so no per-plane factor can cancel them: a `depth = 0`
-    plate still grows under a push-in. Depth-aware zoom is the dolly, deferred.
+    **A zoom is not compensated; a dolly is.** `root.scale` and `root.rotation`
+    multiply the whole composed expression, so a `depth = 0` plate still grows
+    under a push-in. A dolly (an#478) scales each plane by its depth on top of
+    the root (:func:`_plane_compensations`).
 
     Ordering note, since the call site's comment used to overstate it: running
     this after the camera is TIDY, not load-bearing. The two passes write
@@ -2590,11 +2591,11 @@ def _plane_compensations(
     that move.
 
     Per axis of factor ``f``: ``x = s·x0 + cam·(1 − s·f)`` and ``scale_x = s``,
-    where ``s = (1 − dolly) / (1 − f·dolly)`` is the plane's pinhole growth
-    over the root's (:func:`an.ir.camera.dolly_growth`, an#478). Without a
-    dolly ``s`` is exactly 1: ``x0 + (1 − f)·cam``, the translation-only
-    parallax of an#110, and no scale. A plane at ``f = 1`` rides the camera and
-    emits nothing; one the dolly would reach is refused.
+    where ``s`` is the plane's pinhole growth over the root's
+    (:func:`an.ir.camera.plane_dolly_scale`, an#478). Without a dolly ``s`` is
+    exactly 1: ``x0 + (1 − f)·cam``, the translation-only parallax of an#110,
+    and no scale. A plane at ``f = 1`` rides the camera and emits nothing; one
+    the dolly would reach is refused.
 
     >>> keys = [CameraKey(at=0.0), CameraKey(at=1.0, x=100.0, dolly=0.2)]
     >>> [(p, [round(v, 3) for v in vs]) for p, vs in
@@ -2605,17 +2606,12 @@ def _plane_compensations(
     for factor, axis, x0 in zip(plane.factors(), ("x", "y"), rest):
         if factor == 1.0:
             continue  # rides the camera; emitting nothing is the point
-        reached = [k.dolly for k in keys if factor * k.dolly >= 1.0]
-        if reached:
-            raise CutoutCompileError(
-                f"{where}: the camera dollies {max(reached):g} of the way to the "
-                f"character plane, which takes it past plane {plane.name!r} (depth "
-                f"{factor:g}, at {1.0 / factor:g} of that distance). Dolly less, or "
-                "move the plane further back."
-            )
-        scales = [
-            dolly_growth(factor, k.dolly) / dolly_growth(1.0, k.dolly) for k in keys
-        ]
+        try:
+            scales = [
+                plane_dolly_scale(factor, k.dolly, plane=plane.name) for k in keys
+            ]
+        except CameraError as e:
+            raise CutoutCompileError(f"{where}: {e}") from e
         moves = [
             s * float(x0) + float(getattr(k, axis)) * (1.0 - s * factor)
             for k, s in zip(keys, scales)

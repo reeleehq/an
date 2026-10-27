@@ -35,6 +35,7 @@ __all__ = [
     "camera_shake_offsets",
     "dolly_frames",
     "dolly_growth",
+    "plane_dolly_scale",
 ]
 
 #: How far a pan travels, as a fraction of the canvas width (a tilt uses the
@@ -302,6 +303,26 @@ def dolly_growth(factor: float, dolly: float) -> float:
     (1.25, 1.389, 1.0)
     """
     return 1.0 / (1.0 - factor * dolly)
+
+
+def plane_dolly_scale(factor: float, dolly: float, *, plane: str = "") -> float:
+    """The scale a plane of parallax ``factor`` takes ON TOP of the root's zoom
+    when the camera has travelled ``dolly`` (an#478): its growth over the
+    character plane's, ``(1 − dolly) / (1 − factor · dolly)``. Exactly ``1.0``
+    without a dolly or at ``factor`` 1. A dolly that reaches the plane (the
+    camera at or past it) is a :class:`CameraError`.
+
+    >>> plane_dolly_scale(1.0, 0.2), plane_dolly_scale(0.0, 0.0), round(plane_dolly_scale(0.0, 0.2), 3)
+    (1.0, 1.0, 0.8)
+    """
+    if factor * dolly >= 1.0:
+        raise CameraError(
+            f"the camera dollies {dolly:g} of the way to the character plane, "
+            f"which takes it past plane {plane or '?'!r} (depth {factor:g}, at "
+            f"{1.0 / factor:g} of that distance). Dolly less, or move the plane "
+            "further back."
+        )
+    return dolly_growth(factor, dolly) / dolly_growth(1.0, dolly)
 
 
 def dolly_frames(

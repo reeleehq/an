@@ -114,6 +114,8 @@ Every core name a scene may use, with its version and the spectrum levels it acc
 | `pan_right` | 1 | a, b-name | truck the camera right across the frame |
 | `tilt_up` | 1 | a, b-name | move the camera up across the frame (spans the frame height) |
 | `tilt_down` | 1 | a, b-name | move the camera down across the frame |
+| `dolly_in` | 1 | a, b-name | travel into the scene: each plane grows by its depth (the character plane ×1.25 like push_in, the foreground more, the sky not at all), eased |
+| `dolly_out` | 1 | a, b-name | travel back out of the scene: the character plane shrinks ×0.8, the background less, eased |
 <!-- vocabulary:end -->
 
 ## Turning and facing

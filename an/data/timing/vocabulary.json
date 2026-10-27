@@ -2151,6 +2151,82 @@
    }
   },
   {
+   "id": "camera.dolly_in",
+   "kind": "camera_move",
+   "name": "dolly_in",
+   "version": "1",
+   "title": "",
+   "description": "travel into the scene: each plane grows by its depth (the character plane ×1.25 like push_in, the foreground more, the sky not at all), eased",
+   "levels": [
+    "a",
+    "b-name"
+   ],
+   "usage": "spelled `camera: {move: <name>}` on a shot (sugar over `camera.keys`). A path through its view space (`params.space`: framing2d, or multiplane for a dolly; `params.path`, time 0..1 over the shot; x/y in frame widths/heights, zoom a ratio, dolly a fraction of the way to the character plane): the stage engine re-renders the scene into the moving frame (no resolution loss); a crop engine moves a crop over fixed pixels and lowers no dolly",
+   "params": {
+    "type": "object",
+    "properties": {
+     "space": {
+      "const": "multiplane",
+      "default": "multiplane"
+     },
+     "path": {
+      "type": "array",
+      "default": [
+       {
+        "at": 0.0,
+        "dolly": 0.0
+       },
+       {
+        "at": 1.0,
+        "dolly": 0.2
+       }
+      ]
+     }
+    }
+   },
+   "requires": [
+    "space.multiplane"
+   ]
+  },
+  {
+   "id": "camera.dolly_out",
+   "kind": "camera_move",
+   "name": "dolly_out",
+   "version": "1",
+   "title": "",
+   "description": "travel back out of the scene: the character plane shrinks ×0.8, the background less, eased",
+   "levels": [
+    "a",
+    "b-name"
+   ],
+   "usage": "spelled `camera: {move: <name>}` on a shot (sugar over `camera.keys`). A path through its view space (`params.space`: framing2d, or multiplane for a dolly; `params.path`, time 0..1 over the shot; x/y in frame widths/heights, zoom a ratio, dolly a fraction of the way to the character plane): the stage engine re-renders the scene into the moving frame (no resolution loss); a crop engine moves a crop over fixed pixels and lowers no dolly",
+   "params": {
+    "type": "object",
+    "properties": {
+     "space": {
+      "const": "multiplane",
+      "default": "multiplane"
+     },
+     "path": {
+      "type": "array",
+      "default": [
+       {
+        "at": 0.0,
+        "dolly": 0.0
+       },
+       {
+        "at": 1.0,
+        "dolly": -0.25
+       }
+      ]
+     }
+    }
+   },
+   "requires": [
+    "space.multiplane"
+   ]
+  },
+  {
    "id": "camera.hold",
    "kind": "camera_move",
    "name": "hold",
@@ -2161,7 +2237,7 @@
     "a",
     "b-name"
    ],
-   "usage": "spelled `camera: {move: <name>}` on a shot (sugar over `camera.keys`). A path through the framing2d view space (`params.path`, time 0..1 over the shot; x/y in frame widths/heights, zoom a ratio): the stage engine re-renders the scene into the moving frame (no resolution loss); a crop engine moves a crop over fixed pixels",
+   "usage": "spelled `camera: {move: <name>}` on a shot (sugar over `camera.keys`). A path through its view space (`params.space`: framing2d, or multiplane for a dolly; `params.path`, time 0..1 over the shot; x/y in frame widths/heights, zoom a ratio, dolly a fraction of the way to the character plane): the stage engine re-renders the scene into the moving frame (no resolution loss); a crop engine moves a crop over fixed pixels and lowers no dolly",
    "params": {
     "type": "object",
     "properties": {
@@ -2190,7 +2266,7 @@
     "a",
     "b-name"
    ],
-   "usage": "spelled `camera: {move: <name>}` on a shot (sugar over `camera.keys`). A path through the framing2d view space (`params.path`, time 0..1 over the shot; x/y in frame widths/heights, zoom a ratio): the stage engine re-renders the scene into the moving frame (no resolution loss); a crop engine moves a crop over fixed pixels",
+   "usage": "spelled `camera: {move: <name>}` on a shot (sugar over `camera.keys`). A path through its view space (`params.space`: framing2d, or multiplane for a dolly; `params.path`, time 0..1 over the shot; x/y in frame widths/heights, zoom a ratio, dolly a fraction of the way to the character plane): the stage engine re-renders the scene into the moving frame (no resolution loss); a crop engine moves a crop over fixed pixels and lowers no dolly",
    "params": {
     "type": "object",
     "properties": {
@@ -2228,7 +2304,7 @@
     "a",
     "b-name"
    ],
-   "usage": "spelled `camera: {move: <name>}` on a shot (sugar over `camera.keys`). A path through the framing2d view space (`params.path`, time 0..1 over the shot; x/y in frame widths/heights, zoom a ratio): the stage engine re-renders the scene into the moving frame (no resolution loss); a crop engine moves a crop over fixed pixels",
+   "usage": "spelled `camera: {move: <name>}` on a shot (sugar over `camera.keys`). A path through its view space (`params.space`: framing2d, or multiplane for a dolly; `params.path`, time 0..1 over the shot; x/y in frame widths/heights, zoom a ratio, dolly a fraction of the way to the character plane): the stage engine re-renders the scene into the moving frame (no resolution loss); a crop engine moves a crop over fixed pixels and lowers no dolly",
    "params": {
     "type": "object",
     "properties": {
@@ -2266,7 +2342,7 @@
     "a",
     "b-name"
    ],
-   "usage": "spelled `camera: {move: <name>}` on a shot (sugar over `camera.keys`). A path through the framing2d view space (`params.path`, time 0..1 over the shot; x/y in frame widths/heights, zoom a ratio): the stage engine re-renders the scene into the moving frame (no resolution loss); a crop engine moves a crop over fixed pixels",
+   "usage": "spelled `camera: {move: <name>}` on a shot (sugar over `camera.keys`). A path through its view space (`params.space`: framing2d, or multiplane for a dolly; `params.path`, time 0..1 over the shot; x/y in frame widths/heights, zoom a ratio, dolly a fraction of the way to the character plane): the stage engine re-renders the scene into the moving frame (no resolution loss); a crop engine moves a crop over fixed pixels and lowers no dolly",
    "params": {
     "type": "object",
     "properties": {
@@ -2304,7 +2380,7 @@
     "a",
     "b-name"
    ],
-   "usage": "spelled `camera: {move: <name>}` on a shot (sugar over `camera.keys`). A path through the framing2d view space (`params.path`, time 0..1 over the shot; x/y in frame widths/heights, zoom a ratio): the stage engine re-renders the scene into the moving frame (no resolution loss); a crop engine moves a crop over fixed pixels",
+   "usage": "spelled `camera: {move: <name>}` on a shot (sugar over `camera.keys`). A path through its view space (`params.space`: framing2d, or multiplane for a dolly; `params.path`, time 0..1 over the shot; x/y in frame widths/heights, zoom a ratio, dolly a fraction of the way to the character plane): the stage engine re-renders the scene into the moving frame (no resolution loss); a crop engine moves a crop over fixed pixels and lowers no dolly",
    "params": {
     "type": "object",
     "properties": {
@@ -2342,7 +2418,7 @@
     "a",
     "b-name"
    ],
-   "usage": "spelled `camera: {move: <name>}` on a shot (sugar over `camera.keys`). A path through the framing2d view space (`params.path`, time 0..1 over the shot; x/y in frame widths/heights, zoom a ratio): the stage engine re-renders the scene into the moving frame (no resolution loss); a crop engine moves a crop over fixed pixels",
+   "usage": "spelled `camera: {move: <name>}` on a shot (sugar over `camera.keys`). A path through its view space (`params.space`: framing2d, or multiplane for a dolly; `params.path`, time 0..1 over the shot; x/y in frame widths/heights, zoom a ratio, dolly a fraction of the way to the character plane): the stage engine re-renders the scene into the moving frame (no resolution loss); a crop engine moves a crop over fixed pixels and lowers no dolly",
    "params": {
     "type": "object",
     "properties": {
@@ -2380,7 +2456,7 @@
     "a",
     "b-name"
    ],
-   "usage": "spelled `camera: {move: <name>}` on a shot (sugar over `camera.keys`). A path through the framing2d view space (`params.path`, time 0..1 over the shot; x/y in frame widths/heights, zoom a ratio): the stage engine re-renders the scene into the moving frame (no resolution loss); a crop engine moves a crop over fixed pixels",
+   "usage": "spelled `camera: {move: <name>}` on a shot (sugar over `camera.keys`). A path through its view space (`params.space`: framing2d, or multiplane for a dolly; `params.path`, time 0..1 over the shot; x/y in frame widths/heights, zoom a ratio, dolly a fraction of the way to the character plane): the stage engine re-renders the scene into the moving frame (no resolution loss); a crop engine moves a crop over fixed pixels and lowers no dolly",
    "params": {
     "type": "object",
     "properties": {
@@ -2418,7 +2494,7 @@
     "a",
     "b-name"
    ],
-   "usage": "spelled `camera: {move: <name>}` on a shot (sugar over `camera.keys`). A path through the framing2d view space (`params.path`, time 0..1 over the shot; x/y in frame widths/heights, zoom a ratio): the stage engine re-renders the scene into the moving frame (no resolution loss); a crop engine moves a crop over fixed pixels",
+   "usage": "spelled `camera: {move: <name>}` on a shot (sugar over `camera.keys`). A path through its view space (`params.space`: framing2d, or multiplane for a dolly; `params.path`, time 0..1 over the shot; x/y in frame widths/heights, zoom a ratio, dolly a fraction of the way to the character plane): the stage engine re-renders the scene into the moving frame (no resolution loss); a crop engine moves a crop over fixed pixels and lowers no dolly",
    "params": {
     "type": "object",
     "properties": {
@@ -2456,7 +2532,7 @@
     "a",
     "b-name"
    ],
-   "usage": "spelled `camera: {move: <name>}` on a shot (sugar over `camera.keys`). A path through the framing2d view space (`params.path`, time 0..1 over the shot; x/y in frame widths/heights, zoom a ratio): the stage engine re-renders the scene into the moving frame (no resolution loss); a crop engine moves a crop over fixed pixels",
+   "usage": "spelled `camera: {move: <name>}` on a shot (sugar over `camera.keys`). A path through its view space (`params.space`: framing2d, or multiplane for a dolly; `params.path`, time 0..1 over the shot; x/y in frame widths/heights, zoom a ratio, dolly a fraction of the way to the character plane): the stage engine re-renders the scene into the moving frame (no resolution loss); a crop engine moves a crop over fixed pixels and lowers no dolly",
    "params": {
     "type": "object",
     "properties": {
@@ -3103,6 +3179,58 @@
       "scale": "angle",
       "default": 0.0,
       "description": "the view's roll"
+     }
+    }
+   }
+  },
+  {
+   "id": "view.multiplane",
+   "kind": "view_space",
+   "name": "multiplane",
+   "version": "1",
+   "title": "",
+   "description": "a 2D framing that also travels in depth through planes (a dolly)",
+   "levels": [
+    "a"
+   ],
+   "usage": "axes: x (frame widths, linear), y (frame heights, linear), zoom (ratio, log), rotation (rad, angle), dolly (character-plane distance, linear)",
+   "params": {
+    "type": "object",
+    "properties": {
+     "x": {
+      "type": "number",
+      "unit": "frame widths",
+      "scale": "linear",
+      "default": 0.0,
+      "description": "+x moves the view right"
+     },
+     "y": {
+      "type": "number",
+      "unit": "frame heights",
+      "scale": "linear",
+      "default": 0.0,
+      "description": "+y moves the view down"
+     },
+     "zoom": {
+      "type": "number",
+      "unit": "ratio",
+      "scale": "log",
+      "default": 1.0,
+      "description": "on-screen magnification; > 1 is closer"
+     },
+     "rotation": {
+      "type": "number",
+      "unit": "rad",
+      "scale": "angle",
+      "default": 0.0,
+      "description": "the view's roll"
+     },
+     "dolly": {
+      "type": "number",
+      "unit": "character-plane distance",
+      "scale": "linear",
+      "default": 0.0,
+      "description": "travel toward the scene; 0.2 is a fifth of the way to the character plane"
      }
     }
    }

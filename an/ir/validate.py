@@ -25,7 +25,13 @@ from an.base import AUTHORABLE_PROPERTIES, TRANSFORM_PROPERTIES
 from an.audio.effects import TRIM_SILENCE, VoiceEffectError, voice_effects
 from an.audio.voices import speaker_voice_ref
 from an.stores._common import art_exists_for
-from an.ir.camera import CAMERA_MOVES, CameraError, camera_keys, camera_shake_offsets
+from an.ir.camera import (
+    CAMERA_MOVES,
+    CameraError,
+    camera_keys,
+    camera_shake_offsets,
+    dolly_growth,
+)
 from an.ir.compose import flatten
 from an.ir.migrate import DocumentMigrationError, migrate
 from an.ir.sync import SceneValidationError, scene_from_json_doc
@@ -1097,17 +1103,31 @@ def _check_framing(
 
     if len(keys) < 2:
         keys = [CameraKey()]  # no move: the resting frame
-    for key in keys:
-        rects = [
-            plane_rect(plane, art, camera=(float(key.x), float(key.y)))
-            for plane, art in planes
+    try:
+        poses = [
+            (
+                key,
+                [
+                    plane_rect(
+                        plane, art, camera=(float(key.x), float(key.y)), dolly=key.dolly
+                    )
+                    for plane, art in planes
+                ],
+            )
+            for key in keys
         ]
+    except (
+        CameraError
+    ) as e:  # a dolly through a plane: the compiler refuses it (an#478)
+        report.add("error", f"{path}/camera", str(e))
+        return
+    for key, rects in poses:
         if any(r is None for r in rects):
             return
         view = frame_rect(
             x=float(key.x),
             y=float(key.y),
-            zoom=float(key.zoom),
+            zoom=float(key.zoom) * dolly_growth(1.0, key.dolly),
             rotation=float(key.rotation),
             width=float(width),
             height=float(height),
