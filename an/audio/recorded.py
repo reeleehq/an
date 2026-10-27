@@ -773,13 +773,12 @@ def _linked(transcript: Any, mall: Mapping[str, Any]) -> Any:
         except TranscriptLinkError as e:
             raise RecordedVoicesError(str(e)) from None
 
-    if (
-        isinstance(transcript, str)
-        and is_artifact_ref(transcript)
-        and "," in transcript
-    ):
-        # the CLI's spelling of one artifact per take: `--transcript artifact:a,artifact:b`
-        return [one(part.strip()) for part in transcript.split(",") if part.strip()]
+    if isinstance(transcript, str) and "," in transcript:
+        parts = [part.strip() for part in transcript.split(",") if part.strip()]
+        if any(is_artifact_ref(part) for part in parts):
+            # the CLI's spelling of one transcript per take, an artifact or a
+            # file each: `--transcript artifact:transcripts/a,b.srt`
+            return [one(part) for part in parts]
     if (
         transcript is None
         or isinstance(transcript, (str, Path))
@@ -866,8 +865,8 @@ def _transcripts_for(
         items = list(transcript)
 
     def kind_of(item: str | Path | LinkedTranscript) -> str:
-        if isinstance(item, LinkedTranscript):
-            return item.fmt
+        if isinstance(item, LinkedTranscript):  # a plain one reads as plain text does
+            return "text" if item.fmt == "plain" else item.fmt
         p = Path(item) if len(str(item)) < 4096 else None
         if p is not None and p.is_file():
             return p.suffix.lstrip(".").lower() or "text"

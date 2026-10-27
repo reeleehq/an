@@ -726,11 +726,8 @@ def test_a_transcript_artifact_in_the_store_times_the_take_and_its_provenance_na
         root, _take(tmp_path), transcript=transcript, license=LICENSE
     )
     assert [t.line for t in report.takes] == ["s1/0", "s1/1"]
-    expected = (
-        "transcripts/take1"
-        if named == "by reference"
-        else f"transcripts/{artifact.asset_id}"
-    )
+    # by reference or as the artifact, the take names the key AND the bytes it read
+    expected = f"transcripts/take1@{artifact.asset_id}"
     for record in _records(root).values():
         extra = record["source"]["extra"]
         assert extra["transcript"] == "srt" and extra["transcript_artifact"] == expected
@@ -754,7 +751,55 @@ def test_a_transcript_artifact_that_is_not_there_is_refused_by_name(tmp_path):
             transcript="artifact:transcripts/nope",
             license=LICENSE,
         )
-    with pytest.raises(RecordedVoicesError, match="no 'elsewhere' store"):
+    with pytest.raises(RecordedVoicesError, match="no transcript 'elsewhere/x'"):
         import_recordings(
             root, _take(tmp_path), transcript="artifact:elsewhere/x", license=LICENSE
         )
+
+
+def test_a_linked_transcript_is_read_by_its_content_and_its_format(tmp_path):
+    """A BOM does not hide the format; a VTT and a plain transcript read as
+    they do from a file; a key may hold slashes; the mixed CLI form pairs an
+    artifact and a file, one per take."""
+    from an.stores.transcripts import linked_transcript, record_transcript
+
+    root = _project(tmp_path)
+    mall = load(root).mall
+    vtt = "\ufeffWEBVTT\n\n00:00.500 --> 00:01.500\ncarl: Hello.\n"
+    art = record_transcript(mall["transcripts"], "session/a", vtt)
+    assert art.mime == "text/vtt"
+    linked = linked_transcript("artifact:transcripts/session/a", mall)
+    assert linked.fmt == "vtt" and linked.ref == f"transcripts/session/a@{art.asset_id}"
+    assert (
+        linked_transcript("artifact:session/a", mall).ref == linked.ref
+    )  # store implied
+    record_transcript(mall["transcripts"], "plain", "carl: Hello there, Ned.\n")
+    assert linked_transcript("artifact:transcripts/plain", mall).fmt == "plain"
+    first, second = (
+        _take(tmp_path, "a.wav", bursts=((0.5, 1.5),)),
+        _take(tmp_path, "b.wav", bursts=((0.5, 1.5),)),
+    )
+    record_transcript(mall["transcripts"], "one", f"carl: {HELLO}\n")
+    other = tmp_path / "two.txt"
+    other.write_text(f"carl: {FINE}\n", encoding="utf-8")
+    report = import_recordings(
+        root,
+        [first, second],
+        transcript=f"{other},artifact:transcripts/one".replace(str(other), str(other)),
+        license=LICENSE,
+        write=False,
+    )
+    assert len(report.takes) == 2
+
+
+def test_what_is_not_a_transcript_artifact_is_refused_by_name(tmp_path):
+    from an.stores.transcripts import TranscriptLinkError, linked_transcript
+
+    root = _project(tmp_path)
+    mall = load(root).mall
+    with pytest.raises(TranscriptLinkError, match="not transcript artifacts"):
+        linked_transcript("artifact:scenes/main", mall)
+    import_recordings(root, _take(tmp_path), transcript=_srt(tmp_path), license=LICENSE)
+    key = next(iter(load(root).mall[RECORDINGS_STORE]))
+    with pytest.raises(TranscriptLinkError, match="not transcript artifacts"):
+        linked_transcript(f"artifact:recordings/{key}", mall)
