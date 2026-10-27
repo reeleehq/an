@@ -1,0 +1,1 @@
+- Loudness and voice effects say a `mixing` too old for them one way (`an.audio.shared_mixing.mixing_module`: upgrade it); the "mixing not installed" machinery is gone and the `loudness` extra is an empty alias (an#621).

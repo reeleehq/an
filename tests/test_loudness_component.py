@@ -1,8 +1,8 @@
-"""Voice leveling without the shared loudness component (an#563).
+"""A ``mixing`` too old for the parts ``an`` uses (an#563, an#621).
 
-``an.audio.loudness`` measures and limits through ``mixing.loudness`` (the
-``loudness`` extra). Absent, leveling raises a typed, install-hinting error and
-the render's spread warning is skipped, as it is without ffmpeg.
+``mixing`` is a core dependency (an#611), so the one way ``mixing.loudness`` or
+``mixing.filtergraph`` can be missing is an older ``mixing``. Both say so the
+same way, through :func:`an.audio.shared_mixing.mixing_module`: upgrade it.
 """
 
 from __future__ import annotations
@@ -11,48 +11,47 @@ import sys
 
 import pytest
 
-from an.audio import loudness
+from an.audio import effects, loudness
 
 
-@pytest.fixture
-def no_mixing(monkeypatch):
-    monkeypatch.setitem(sys.modules, "mixing.loudness", None)  # import raises
+def _too_old(monkeypatch, part: str) -> None:
+    """The installed ``mixing`` without ``mixing.<part>``."""
+    monkeypatch.setitem(sys.modules, f"mixing.{part}", None)  # import raises
     if "mixing" in sys.modules:  # and the package no longer hands out the module
-        monkeypatch.delattr(sys.modules["mixing"], "loudness", raising=False)
+        monkeypatch.delattr(sys.modules["mixing"], part, raising=False)
 
 
-def test_leveling_without_mixing_names_the_extra(monkeypatch):
-    monkeypatch.setitem(sys.modules, "mixing", None)  # no mixing at all
-    monkeypatch.setitem(sys.modules, "mixing.loudness", None)
-    assert not loudness.component_available()
-    with pytest.raises(loudness.LoudnessComponentMissing, match=r"an\[loudness\]"):
+def test_leveling_on_a_mixing_too_old_says_upgrade_it(monkeypatch):
+    _too_old(monkeypatch, "loudness")
+    with pytest.raises(
+        loudness.VoiceLoudnessError, match=r"leveling voices needs mixing\.loudness.*pip install -U mixing"
+    ):
         loudness.limit_peaks([[2.0]], ceiling=1.0)
 
 
-def test_an_older_mixing_is_told_to_upgrade_not_to_install_the_extra(no_mixing):
-    """mixing is there but predates `mixing.loudness`: the extra is already satisfied."""
-    import importlib.util
-
-    if importlib.util.find_spec("mixing") is None:
-        pytest.skip("mixing is not installed")
-    assert not loudness.component_available()
-    with pytest.raises(loudness.LoudnessComponentMissing, match="upgrade mixing"):
-        loudness.limit_peaks([[2.0]], ceiling=1.0)
-    assert issubclass(loudness.LoudnessComponentMissing, loudness.VoiceLoudnessError)
-    assert issubclass(loudness.LoudnessComponentMissing, ImportError)
-    assert issubclass(loudness.LoudnessComponentMissing, loudness.VoiceLoudnessError)
-    assert issubclass(loudness.LoudnessComponentMissing, ImportError)
+def test_a_voice_effect_on_a_mixing_too_old_says_upgrade_it(monkeypatch):
+    _too_old(monkeypatch, "filtergraph")
+    with pytest.raises(
+        effects.VoiceEffectError,
+        match=r"voice-effect chain needs mixing\.filtergraph.*pip install -U mixing",
+    ):
+        effects.filter_chain({"pitch_semitones": 4.0})
+    assert effects.filter_chain({}) == ""  # no chain asked for: mixing not needed
 
 
-def test_the_spread_report_is_skipped_without_the_component(no_mixing, monkeypatch):
+def test_the_render_spread_report_on_a_mixing_too_old_is_loud(monkeypatch):
+    """Not skipped as when mixing was optional: the render says what to upgrade."""
     from an.audio import pipeline
     from an.ir.schema import Dialogue, Meta, SceneIR, Shot
 
+    _too_old(monkeypatch, "loudness")
     monkeypatch.setattr(pipeline.shutil, "which", lambda name: "/bin/ffmpeg")
+    monkeypatch.setattr(loudness, "voiced_lines", lambda scene, mall: {"a": [], "b": []})
     scene = SceneIR(
         meta=Meta(title="t"),
         timeline=[
             Shot(id="s", duration=1.0, dialogue=[Dialogue(speaker="a", text="x")])
         ],
     )
-    pipeline._voice_loudness(scene, {"audio": {}}, report=True)  # no error, no warning
+    with pytest.raises(loudness.VoiceLoudnessError, match="pip install -U mixing"):
+        pipeline._voice_loudness(scene, {"audio": {}}, report=True)

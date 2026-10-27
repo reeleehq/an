@@ -36,16 +36,16 @@ Without a target, :func:`loudness_report` measures the voices and
 :data:`SPREAD_WARNING_DB` — the render warns, naming each voice's level.
 
 The measuring and the limiter are the fleet's shared loudness component,
-:mod:`mixing.loudness` (an#563; ``pip install 'an[loudness]'``):
+:mod:`mixing.loudness` (an#563; ``mixing`` is a core dependency since an#611):
 :func:`mixing.loudness.level_group` measures a voice's lines back to back (looped
 to :data:`MIN_MEASURE_S`, channels kept when they agree) and caps the gain, with
 ffmpeg's ``ebur128`` injected as its meter (:data:`METER`) so ``an`` takes no
 scipy; :func:`mixing.loudness.limit_peaks` is the limiter, moved there unchanged
 (so :data:`LEVEL_VERSION` did not move, and a test pins the leveled bytes).
 What stays here is ``an``'s own: the voices, the offsets, the hysteresis, the
-makeup pass and the content keys. Without ``mixing`` installed, leveling raises
-:class:`LoudnessComponentMissing` naming the extra, and the render's spread
-warning is skipped (as it is without ffmpeg).
+makeup pass and the content keys. A ``mixing`` too old to have
+``mixing.loudness`` raises :class:`VoiceLoudnessError` telling the user to
+upgrade it (:func:`an.audio.shared_mixing.mixing_module`, an#621).
 """
 
 from __future__ import annotations
@@ -58,6 +58,8 @@ import wave
 from collections.abc import Mapping, MutableMapping
 from dataclasses import dataclass
 from typing import Any
+
+from an.audio.shared_mixing import mixing_module
 
 #: Bumped whenever a leveled line's bytes would change for the same inputs
 #: (the limiter, its window, the encoding); part of every leveled line's key.
@@ -92,17 +94,12 @@ MISS_WARNING_DB: float = 1.0
 #: ``METERS``): ffmpeg's ``ebur128``, so ``an`` needs no scipy for its numpy meter.
 METER: str = "ffmpeg_ebur128"
 #: What installs the shared loudness component.
-INSTALL_HINT: str = "pip install 'an[loudness]'"
 #: 16-bit full scale.
 _INT16_FULL_SCALE: float = 32768.0
 
 
 class VoiceLoudnessError(RuntimeError):
     """The voices cannot be measured or leveled (no ffmpeg, an unreadable line)."""
-
-
-class LoudnessComponentMissing(VoiceLoudnessError, ImportError):
-    """The shared loudness component (:mod:`mixing.loudness`) is not installed."""
 
 
 class VoiceLoudnessWarning(UserWarning):
@@ -128,35 +125,12 @@ def _require_ffmpeg(doing: str) -> None:
         )
 
 
-def _install_hint() -> str:
-    """How to get the component: the extra, or (when ``mixing`` is there but
-    predates ``mixing.loudness``, 0.0.64) an upgrade, which the extra would not do."""
-    import importlib.util
-
-    if importlib.util.find_spec("mixing") is not None:
-        return "upgrade mixing (`pip install -U mixing`; mixing.loudness is in 0.0.64 and later)"
-    return INSTALL_HINT
-
-
 def _component() -> Any:
-    """:mod:`mixing.loudness`, or :class:`LoudnessComponentMissing` naming the extra."""
-    try:
-        from mixing import loudness
-    except ImportError as e:
-        raise LoudnessComponentMissing(
-            f"leveling voices needs the shared loudness component "
-            f"(mixing.loudness): {_install_hint()}"
-        ) from e
-    return loudness
-
-
-def component_available() -> bool:
-    """Whether :mod:`mixing.loudness` can be imported (what measuring needs)."""
-    try:
-        _component()
-    except LoudnessComponentMissing:
-        return False
-    return True
+    """:mod:`mixing.loudness`, or :class:`VoiceLoudnessError` when the installed
+    ``mixing`` predates it."""
+    return mixing_module(
+        "loudness", needed_for="leveling voices", error=VoiceLoudnessError
+    )
 
 
 def _decode(audio: bytes) -> _Pcm:
