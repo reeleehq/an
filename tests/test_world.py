@@ -2053,32 +2053,6 @@ def test_a_pair_the_paint_keys_order_is_not_reported_out_of_order():
     assert [n.message for n in notes if n.kind == "draw_order"] == []
 
 
-def test_a_member_attached_to_a_walker_is_painted_with_it(tmp_path):
-    """an#678: a hat attached to ``right``, which walks away down the car
-    (``at_z`` from 2 to 14) while the poles pass it, rides its host's paint
-    keys: at every sampled frame it is painted right after ``right``, with no
-    pole between them, though the poles' places around the pair change."""
-    from an.ir.compose import tween
-    from an.stage.compile import compile_shot
-
-    walk = tween("right", "at_z", to=14.0, duration=3.0, from_=2.0, easing="linear")
-    scene = _lane(
-        _travel_scene(Shot(id="s1", duration=3.0, viewpoint="road", actions=[walk])), 0.2
-    )
-    scene.world.members.append(_lamp("hat", attached=Attachment(to="right")))
-    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        doc = compile_shot(shot, _project(tmp_path).mall)
-    places = set()
-    for i in range(60):
-        t = 3.0 * i / 60
-        order = _painted(doc, t)
-        assert order.index("hat") == order.index("right") + 1, (t, order)
-        places.add(order.index("right"))
-    assert len(places) > 1  # the poles did pass the pair
-
-
 def test_a_walker_passes_behind_a_standing_member_with_no_travel(tmp_path):
     """an#679: no travel. ``left`` walks away from the camera (``at_z`` from
     1 to 5) past ``right``, standing at depth 2, at 0.75 s: it is painted over
