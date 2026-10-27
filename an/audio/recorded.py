@@ -56,6 +56,7 @@ from __future__ import annotations
 import datetime as _dt
 import difflib
 import hashlib
+import json
 import io
 import re
 import shutil
@@ -123,6 +124,9 @@ PROVIDER_NAME: str = "recorded"
 RECORDINGS_STORE: str = "recordings"
 #: The ``synthesize`` keyword (and audio-key option) naming the take by digest.
 RECORDING_OPTION: str = "recording"
+#: The audio-key option of a take with phones: a digest of its words and
+#: phones, so new timings on the same audio re-sync (an#491).
+TIMINGS_OPTION: str = "timings"
 #: The shape of a record in the store; raised when a field changes meaning.
 RECORD_VERSION: int = 1
 #: The voice document a speaker's takes are bound to, when ``voice`` names none.
@@ -395,7 +399,11 @@ class RecordedTTS:
         voice_id: str | None = None,
     ) -> dict[str, Any]:
         """``{"recording": <digest>}`` of the take this line has — the audio key
-        follows the take, so a re-recorded line is new audio.
+        follows the take, so a re-recorded line is new audio. A take with
+        phones adds ``{"timings": <digest>}`` of its words and phones (an#491):
+        the same audio imported again with new timings is new audio to the
+        caches, so the lip-sync sees them. (Only then: a take without phones
+        keys as before.)
 
         A line with no take is refused HERE, when the pipeline resolves every
         line's request before the first synthesis: nothing of the scene is
@@ -409,7 +417,13 @@ class RecordedTTS:
             raise RecordingMissingError(
                 f"voice {voice_id!r} is recorded, but there is no take of {text!r}; {IMPORT_HINT}"
             )
-        return {RECORDING_OPTION: found[1]["sha256"]}
+        record = found[1]
+        options = {RECORDING_OPTION: record["sha256"]}
+        if record.get("phones"):
+            options[TIMINGS_OPTION] = hashlib.sha256(
+                json.dumps([record.get("words"), record["phones"]]).encode()
+            ).hexdigest()
+        return options
 
     def synthesize(
         self,

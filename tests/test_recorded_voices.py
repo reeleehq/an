@@ -948,33 +948,32 @@ def _textgrid(
     return "\n".join(out) + "\n"
 
 
-ALIGNED = _textgrid(
-    {
-        "utterances": [
-            (0.0, 0.5, ""),
-            (0.5, 1.5, f"carl: {HELLO}"),
-            (1.5, 2.5, ""),
-            (2.5, 3.3, f"carl: {FINE}"),
-        ],
-        "words": [
-            (0.5, 0.8, "Hello"),
-            (0.8, 1.1, "there"),
-            (1.1, 1.5, "Ned"),
-            (2.5, 2.9, "Fine"),
-            (2.9, 3.3, "thanks"),
-        ],
-        "phones": [
-            (0.0, 0.5, "sil"),
-            (0.5, 0.6, "HH"),
-            (0.6, 0.7, "AH0"),
-            (0.7, 0.8, "L"),
-            (0.8, 1.1, "DH"),
-            (1.1, 1.5, "N"),
-            (2.5, 2.9, "F"),
-            (2.9, 3.3, "TH"),
-        ],
-    }
-)
+_TG_TIERS = {
+    "utterances": [
+        (0.0, 0.5, ""),
+        (0.5, 1.5, f"carl: {HELLO}"),
+        (1.5, 2.5, ""),
+        (2.5, 3.3, f"carl: {FINE}"),
+    ],
+    "words": [
+        (0.5, 0.8, "Hello"),
+        (0.8, 1.1, "there"),
+        (1.1, 1.5, "Ned"),
+        (2.5, 2.9, "Fine"),
+        (2.9, 3.3, "thanks"),
+    ],
+    "phones": [
+        (0.0, 0.5, "sil"),
+        (0.5, 0.6, "HH"),
+        (0.6, 0.7, "AH0"),
+        (0.7, 0.8, "L"),
+        (0.8, 1.1, "DH"),
+        (1.1, 1.5, "N"),
+        (2.5, 2.9, "F"),
+        (2.9, 3.3, "TH"),
+    ],
+}
+ALIGNED = _textgrid(_TG_TIERS)
 
 
 def test_a_textgrid_phones_tier_is_read_beside_the_words():
@@ -1025,3 +1024,47 @@ def test_a_takes_phones_reach_the_lip_sync_fresh_and_read_back(tmp_path):
             pytest.approx(0.65),
             pytest.approx(1.05),
         )  # cut at 0.45
+
+
+def test_textgrid_tiers_are_named_as_aligners_name_them():
+    """an#491 review: a phones tier is never read as the words; MFA names its
+    tiers per speaker (`carl - words`); silence and markers are not speech."""
+    from an.audio.transcripts import parse_textgrid
+
+    phones_first = _textgrid(
+        {"phones": [(0.5, 0.6, "HH"), (0.6, 0.9, "AH0")], "words": [(0.5, 0.9, "hey")]}
+    )
+    (seg,) = parse_textgrid(phones_first)
+    assert seg.words == (("hey", 0.5, 0.9),) and seg.phones[0][0] == "HH"
+    mfa = _textgrid(
+        {
+            "carl - words": [(0.5, 0.9, "hey"), (0.9, 1.0, "SIL")],
+            "carl - phones": [
+                (0.5, 0.6, "HH"),
+                (0.6, 0.9, "EY1"),
+                (0.9, 1.0, "+breath+"),
+            ],
+        }
+    )
+    (seg,) = parse_textgrid(mfa)
+    assert seg.words == (("hey", 0.5, 0.9),)
+    assert [p[0] for p in seg.phones] == ["HH", "EY1"]
+
+
+def test_new_phones_on_the_same_audio_reach_the_lip_sync(tmp_path):
+    """an#491 review: the same take imported again with phones (it had only
+    words) is new audio to the caches, so the lip-sync is asked again."""
+    root = _project(tmp_path)
+    words_only = _textgrid({k: v for k, v in _TG_TIERS.items() if k != "phones"})
+    grid = tmp_path / "take.TextGrid"
+    grid.write_text(words_only, encoding="utf-8")
+    take = _take(tmp_path)
+    import_recordings(root, take, transcript=grid, license=LICENSE)
+    proj = load(root)
+    produce_audio_for_scene(proj.scene, proj.mall, lipsync=NullLipSync(), announce=None)
+    grid.write_text(ALIGNED, encoding="utf-8")
+    import_recordings(root, take, transcript=grid, license=LICENSE)
+    proj = load(root)
+    lipsync = _Listening()
+    produce_audio_for_scene(proj.scene, proj.mall, lipsync=lipsync, announce=None)
+    assert any(p and p[0][0] == "HH" for p in lipsync.heard), lipsync.heard

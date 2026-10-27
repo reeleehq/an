@@ -432,9 +432,35 @@ _TG_LINE_TIERS: tuple[str, ...] = (
 _TG_WORD_TIERS: tuple[str, ...] = ("words", "word", "ortho", "orthography")
 #: The names a forced aligner gives its phone tier (Montreal Forced Aligner:
 #: ``phones``; others ``phonemes``), read beside the words (an#491).
-_TG_PHONE_TIERS: tuple[str, ...] = ("phones", "phone", "phonemes", "phoneme")
-#: Interval labels that are silence, not speech: dropped from words and phones.
-_TG_SILENCE: frozenset[str] = frozenset({"sil", "sp", "spn", "<unk>", "<eps>"})
+_TG_PHONE_TIERS: tuple[str, ...] = ("phones", "phone", "phonemes", "phoneme", "mau")
+#: Interval labels that are silence, not speech (compared lower-case): dropped
+#: from words and phones, as is any label in ``<…>``, ``[…]`` or ``+…+``
+#: (WebMAUS's ``<p:>``, a ``+breath+``, a ``[noise]``).
+_TG_SILENCE: frozenset[str] = frozenset({"sil", "sp", "spn", ""})
+_TG_BRACKETS: tuple[tuple[str, str], ...] = (("<", ">"), ("[", "]"), ("+", "+"))
+
+
+def _is_speech(label: str) -> bool:
+    """Whether a TextGrid interval label is speech (not silence or a marker).
+
+    >>> [_is_speech(x) for x in ("hello", "SIL", "<p:>", "+breath+", "[noise]", "AH0")]
+    [True, False, False, False, False, True]
+    """
+    text = label.strip()
+    if text.lower() in _TG_SILENCE:
+        return False
+    return not any(text.startswith(a) and text.endswith(b) for a, b in _TG_BRACKETS)
+
+
+def _tier_named(tiers: Mapping[str, Any], names: Sequence[str]) -> str | None:
+    """The tier whose name, or whose name after ``" - "`` (MFA's
+    ``"<speaker> - phones"``), is one of ``names`` (case-insensitive)."""
+    for want in names:
+        for name in tiers:
+            bare = name.lower().rsplit(" - ", 1)[-1].strip()
+            if bare == want:
+                return name
+    return None
 
 
 def _textgrid_tiers(text: str) -> dict[str, list[tuple[float, float, str]]]:
@@ -485,14 +511,17 @@ def parse_textgrid(text: str) -> list[TranscriptSegment]:
     tiers = _textgrid_tiers(text)
     if not tiers:
         raise ValueError("no IntervalTier found in the TextGrid")
-    lowered = {name.lower(): name for name in tiers}
-    word_tier = next(
-        (lowered[n] for n in _TG_WORD_TIERS if n in lowered), next(iter(tiers))
+    phone_tier = _tier_named(tiers, _TG_PHONE_TIERS)
+    line_tier = _tier_named(tiers, _TG_LINE_TIERS)
+    # Without a tier named for words, the first tier that is neither the
+    # phones nor the lines (a phones tier read as words would put "HH AH0" in
+    # the captions, an#491).
+    word_tier = _tier_named(tiers, _TG_WORD_TIERS) or next(
+        (n for n in tiers if n not in (phone_tier, line_tier)), next(iter(tiers))
     )
-    words = [(t, a, b) for a, b, t in tiers[word_tier] if t and t not in _TG_SILENCE]
-    phone_tier = next((lowered[n] for n in _TG_PHONE_TIERS if n in lowered), None)
+    words = [(t, a, b) for a, b, t in tiers[word_tier] if _is_speech(t)]
     phones = (
-        [(t, a, b) for a, b, t in tiers[phone_tier] if t and t not in _TG_SILENCE]
+        [(t, a, b) for a, b, t in tiers[phone_tier] if _is_speech(t)]
         if phone_tier is not None and phone_tier != word_tier
         else []
     )
@@ -501,7 +530,6 @@ def parse_textgrid(text: str) -> list[TranscriptSegment]:
         inside = tuple(x for x in timings if x[1] >= a - 1e-6 and x[2] <= b + 1e-6)
         return inside or None
 
-    line_tier = next((lowered[n] for n in _TG_LINE_TIERS if n in lowered), None)
     if line_tier is None:
         if not words:
             return []
