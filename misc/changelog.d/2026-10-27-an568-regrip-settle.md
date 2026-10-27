@@ -1,1 +1,0 @@
-- The solve converges on the frame after a refusal (a grip given up, held again): that frame gets `DFLT_REGRIP_SETTLE` (16) times the passes; `SOLVER_VERSION` 2 (an#568).

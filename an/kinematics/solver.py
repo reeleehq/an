@@ -25,8 +25,10 @@ correction of every pass. A frame that leaves a rigid joint failing is
 solved again with :data:`DFLT_CONFLICT_RETRY` times the iterations from a
 start nudged by :data:`DFLT_NUDGE` (a straight chain pushed along its length
 has no sideways correction to buckle with otherwise). If that at least
-halves the failure (:data:`DFLT_CONFLICT_PROGRESS`) it was slow convergence,
-and what is left is only reported. If not, it is a conflict, settled per
+halves the failure (:data:`DFLT_CONFLICT_PROGRESS`) it was slow convergence:
+the retry is repeated with ``retry`` times the passes while each round still
+halves what is left, up to :data:`DFLT_CONVERGE_CAP` times ``iterations``
+(an#568), and what is then left is only reported. If not, it is a conflict, settled per
 LOOP: the joints that share a cycle through the held bodies with a failing
 one are tried last-declared first, and the first whose loss lets every
 other joint hold is given up for the frame (a joint on no cycle, such as
@@ -125,14 +127,16 @@ DFLT_SEGMENT_MARGIN: float = 0.5
 #: Bumped whenever the solve can give a different answer for the same inputs
 #: (a changed projection, order, or default): part of every cache key built
 #: on this module.
-SOLVER_VERSION: str = "2"  # 2: the frame after a refusal is settled (an#568)
-#: How many times the passes a frame after a refusal gets (a joint given up on
-#: the frame before, held again now: the arm swings from pointing at an
-#: unreachable target to the reachable one in one frame). Measured on a
-#: two-link reach in dynamic mode over 300 random out-and-back paths: 21
-#: such frames left a joint 0.3-1.1 px apart at 8 passes, 2 at 32, none at
-#: 128 (an#568). Only those frames pay for it.
-DFLT_REGRIP_SETTLE: int = 16
+SOLVER_VERSION: str = "2"  # 2: a slow retry keeps going while it converges (an#568)
+#: The most passes a slowly converging frame is given, as a multiple of
+#: ``iterations``: its retry is repeated with ``retry`` times the passes while
+#: each round at least halves what is left (an#568). A near-straight chain in
+#: dynamic mode (an arm swinging back from a refused, unreachable grip; a grip
+#: near full reach) converges slowly: on 300 random out-and-back reaches of a
+#: two-link arm, 108 frames were left up to 6 px apart at the single retry, 4
+#: with a cap of 16, none at 64. A frame that converges pays nothing; a long
+#: rope that under-converges on most frames pays the cap there.
+DFLT_CONVERGE_CAP: int = 64
 
 #: The pose channels, in the order :attr:`SolveResult.poses` holds them.
 POSE_CHANNELS: tuple[str, ...] = ("x", "y", "rotation", "scale")
@@ -992,6 +996,7 @@ def solve(
     retry: int = DFLT_CONFLICT_RETRY,
     drop_conflicts: bool = True,
     seed: int = 0,
+    converge_cap: int = DFLT_CONVERGE_CAP,
 ) -> SolveResult:
     """One frame: the poses of all ``bodies`` that satisfy the joined
     ``joints`` with the ``targets`` held, forces and ``gravity`` acting.
@@ -1006,9 +1011,11 @@ def solve(
     up in ``unsatisfied`` rather than stretching anything. Hinge and weld
     rests left ``None`` are the relative angles the bodies have on input.
     A frame that leaves a joint failing is solved again with ``retry`` times
-    the ``iterations`` (1: never); ``drop_conflicts``
-    then gives up the joints in conflict, last declared first (module
-    docstring); ``False`` keeps them all and reports what fails. ``seed`` is reserved for stochastic drivers and does nothing in this
+    the ``iterations`` (1: never), again while each round still halves what
+    is left, up to ``converge_cap`` times the ``iterations``; ``drop_conflicts``
+    then gives up the joints in conflict (a retry that did not halve the
+    failure, or stopped halving it), last declared first (module docstring);
+    ``False`` keeps them all and reports what fails. ``seed`` is reserved for stochastic drivers and does nothing in this
     version: the solve has no randomness.
 
     A shoulder driven to a point, an upper arm pinned to it, a forearm
@@ -1112,9 +1119,19 @@ def solve(
     if result.failure and retry > 1:
         # Slow to converge, a singular start (a straight chain pushed along
         # its length), or a conflict? More passes from a nudged start first.
-        retried = attempt(iterations * retry, unreachable, nudge=True)
+        passes = iterations * retry
+        retried = attempt(passes, unreachable, nudge=True)
         slow = retried.failure <= DFLT_CONFLICT_PROGRESS * result.failure
         result = retried if retried.failure <= result.failure else result
+        # Slow: keep going while each round at least halves what is left, up to
+        # the cap. One that stops halving has STALLED short of holding: that is
+        # a conflict too (an#568: a grip within the arm's length but past its
+        # elbow's range halved once, then sat at 1.2 px for any number of passes).
+        while slow and result.failure and passes * retry <= iterations * converge_cap:
+            passes *= retry
+            more = attempt(passes, unreachable, nudge=True)
+            slow = more.failure <= DFLT_CONFLICT_PROGRESS * result.failure
+            result = more if more.failure <= result.failure else result
         if drop_conflicts and result.failure and not slow:
             result = _give_up_conflicts(result, attempt, passes=iterations * retry)
     if not all(math.isfinite(v) for v in result.st.as_array().flat):
@@ -1507,7 +1524,7 @@ def solve_frames(
             forces=forces,
             gravity=gravity,
             dt=dt,
-            **settled(options, refused_before=bool(drops and drops[-1])),
+            **options,
         )
         snaps += [(k, j, gap) for j, gap in reengaged if j not in r.dropped]
         enforced_before = [
@@ -1530,22 +1547,6 @@ def solve_frames(
         final=current,
         dropped=tuple(drops),
     )
-
-
-def settled(options: Mapping[str, Any], *, refused_before: bool) -> dict[str, Any]:
-    """``options`` for one frame of a run: with :data:`DFLT_REGRIP_SETTLE`
-    times the passes when the frame before gave a joint up (an#568), so the
-    frame that holds it again converges instead of being left apart.
-
-    >>> settled({"iterations": 8}, refused_before=True)["iterations"]
-    128
-    >>> settled({}, refused_before=False)
-    {}
-    """
-    if not refused_before:
-        return dict(options)
-    passes = options.get("iterations", DFLT_ITERATIONS)
-    return {**options, "iterations": passes * DFLT_REGRIP_SETTLE}
 
 
 def _with_rest(frame_joint: Joint, base_joint: Joint) -> Joint:

@@ -89,11 +89,15 @@ choice (the side its range allows, else the side it already has).
   0.014 units 96 frames later), so a cache key is built on the inputs
   (:func:`inputs_digest`, with :data:`SOLVER_VERSION`), never the output.
 
-**The frame after a refusal** (a joint given up, held again now) is solved
-with :data:`~an.kinematics.solver.DFLT_REGRIP_SETTLE` times the passes
-(:func:`settled`, an#568): in dynamic mode the arm swings from pointing at the
-unreachable target to the reachable one in that one frame, and at the default
-passes it was left up to 1.1 px apart there.
+**A retry that stops converging is a conflict** (an#568). In dynamic mode an
+arm swinging back from a refused grip toward one inside its length but past
+its elbow's range halved its failure on the first retry, then sat at ~1.2 px
+for any number of passes: it was reported as slow and never given up. The
+retry now repeats while each round halves what is left (up to
+``DFLT_CONVERGE_CAP`` × ``iterations``) and a stall is resolved as a conflict.
+On 300 random out-and-back reaches, no frame is left failing in either mode
+(108 were, up to 6 px); a 50-link rope with its end out of reach costs ~86
+rather than ~48 ms a frame, with 7 rather than 22 frames failing.
 
 Not in this version: friction (a contact is frictionless: a lamp on a table
 sliding sideways stays where it is until the edge passes), blending a snap
@@ -126,7 +130,6 @@ from an.kinematics.solver import (
     inputs_digest,
     quantize,
     resolve_rests,
-    settled,
     solve,
     solve_frames,
 )
@@ -150,7 +153,6 @@ __all__ = [
     "two_bone",
     "solve",
     "solve_frames",
-    "settled",
     "resolve_rests",
     "SolveResult",
     "FramesResult",

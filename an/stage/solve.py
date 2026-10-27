@@ -1453,7 +1453,7 @@ def run_solve(
     run records too (``evaluated``, ``extra``): the items the hold layer moves."""
     from dataclasses import replace
 
-    from an.kinematics import Body, Point, Weld, WORLD, inputs_digest, settled, solve
+    from an.kinematics import Body, Point, Weld, WORLD, inputs_digest, solve
     from an.stage.timeline import (
         _pose_for,
         evaluate_timeline,
@@ -1624,17 +1624,13 @@ def run_solve(
             for j, (was, now) in enumerate(zip(joined_before, joined_now)):
                 if now and not was:
                     run.snaps.append((k, j, _gap(current, joints[j])))
-        options = settled(
-            dict(
-                targets=targets or None,
-                gravity=settings.gravity,
-                dt=dt,
-                iterations=settings.iterations,
-                substeps=settings.substeps,
-                damping=settings.damping,
-            ),
-            # the frame after a refusal converges (an#568)
-            refused_before=bool(run.dropped and run.dropped[-1]),
+        options = dict(
+            targets=targets or None,
+            gravity=settings.gravity,
+            dt=dt,
+            iterations=settings.iterations,
+            substeps=settings.substeps,
+            damping=settings.damping,
         )
         directed = [
             j
