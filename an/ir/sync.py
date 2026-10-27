@@ -71,7 +71,7 @@ from an.genres.registry import (
     register_action_kind,
 )
 from an.ir.schema import AssetRef, Dialogue, Meta, SceneIR, Shot, World
-from an.util import _read_text, _write_json, _write_text
+from an.util import is_windows_reserved, _read_text, _write_json, _write_text
 
 
 #: Two files whose mtimes are closer than this are "the same age" to `sync`,
@@ -1312,16 +1312,24 @@ PER_SCENE_SUBDIR: str = "scenes"
 #: not end with ``.`` (Windows drops the dot, so ``a.`` and ``a`` collide).
 _OUTPUT_NAME_RE = re.compile(r"\w[\w.-]*(?<!\.)")
 
-#: Names Windows reserves for devices, whatever the extension (``con``,
-#: ``nul.mp4``): an output file of that name cannot be created there.
-WINDOWS_RESERVED_NAMES: frozenset[str] = frozenset(
-    {"con", "prn", "aux", "nul"}
-    | {f"{dev}{n}" for dev in ("com", "lpt") for n in range(1, 10)}
-)
-
 #: Files that may be a scene before they have been read (no ``ir/<stem>.json``
 #: yet): a render of one would write its output name, so that name is taken.
+#: Only these claim a name unread; any other ``.md`` claims its own once a
+#: command has read it.
 SCENE_FILE_GLOB: str = "scene*.md"
+
+
+def _output_stem_problem(stem: str) -> str | None:
+    """Why ``stem`` cannot be an output name on every platform, or ``None``:
+    a Windows device name, a trailing dot (Windows drops it, so ``a.`` is ``a``)
+    or a leading dash (read as a command-line flag)."""
+    if is_windows_reserved(stem):
+        return "is a reserved device name on Windows"
+    if stem.endswith("."):
+        return "ends with '.', which Windows drops"
+    if stem.startswith("-"):
+        return "starts with '-', which reads as a command-line flag"
+    return None
 
 
 class SceneFileError(ValueError):
@@ -1393,10 +1401,9 @@ class SceneFile:
                 "'_', '-' and '.'; not starting with '.' or '-', not ending with "
                 "'.'), not a path"
             )
-        if output_name.split(".")[0].lower() in WINDOWS_RESERVED_NAMES:
+        if problem := _output_stem_problem(output_name):
             raise SceneFileError(
-                f"output name {output_name!r} is a reserved device name on Windows; "
-                "pick another --output-name"
+                f"output name {output_name!r} {problem}: pick another --output-name"
             )
         if not self.is_default and output_name.lower() == DEFAULT_OUTPUT_NAME:
             raise SceneFileError(
@@ -1498,6 +1505,11 @@ def resolve_scene_file(
             f"scene file {name!r} would render to output/{DEFAULT_OUTPUT_NAME}.mp4, "
             f"the default scene's ({DEFAULT_SCENE_FILE}) output: rename the file "
             f"(for example scene.{stem}.md)"
+        )
+    if not is_default and (problem := _output_stem_problem(stem)):
+        raise SceneFileError(
+            f"scene file {name!r} would render to output/{stem}.mp4, a name that "
+            f"{problem}: rename the file"
         )
     md_path = pdir / name
     if must_exist and not is_default and not md_path.exists():
