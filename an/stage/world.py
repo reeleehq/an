@@ -17,14 +17,13 @@ extents, film starts, then :func:`an.ir.world.lower_world`.
 from __future__ import annotations
 
 import warnings
-from dataclasses import replace
 from typing import TYPE_CHECKING, Any, Mapping
 
 from an.ir.schema import AssetRef, SceneIR, World, stage_specimen
 from an.ir.world import Box, Lowered, WorldError, has_world, lower_world
 
 if TYPE_CHECKING:
-    from an.ir.world_from_shot import SeededWorld
+    from an.ir.world_from_shot import SeededMembers
 
 __all__ = [
     "lower_scene",
@@ -182,27 +181,29 @@ def seed_world(
     *,
     focal: float | None = None,
     depth: float | None = None,
-    viewpoint: str | None = None,
-) -> tuple[SceneIR, "SeededWorld"]:
+) -> tuple[SceneIR, "SeededMembers"]:
     """``scene`` with a world derived from its hand-placed shot ``shot_id``
-    (:func:`an.ir.world_from_shot.world_from_shot`, an#514), the shot's art
-    measured here (:func:`native_box`); the shot then names the new viewpoint
-    (``viewpoint``, default: the shot's id) and keeps its own ``stage`` lines,
-    which agree with the world. ``focal`` is the lens in pixels (default: the
-    viewpoint's default field of view at the scene's width, recorded as that
-    field of view so the world frames the same at any resolution).
+    (:func:`an.ir.world_from_shot.seed_members`, an#514): the members, and one
+    viewpoint named after the shot, a camera at the origin with ``focal``
+    (pixels; default: the default field of view, so the world frames the same
+    at any resolution). The shot names that viewpoint and keeps its own
+    ``stage`` lines, which agree with the world. The art is measured here,
+    as the lowering measures it (:func:`native_box`; a measurement that fails
+    leaves the entity out, said in ``skipped``).
 
     Raises ``ValueError`` for a scene that already has a world, an unknown
-    shot, or one that places nothing by hand.
+    shot or one that already names a viewpoint, and what
+    :func:`~an.ir.world_from_shot.seed_members` refuses.
 
     >>> seed_world(SceneIR(), {}, "a")
     Traceback (most recent call last):
     ...
     ValueError: no shot 'a' in the scene (its shots: [])
     """
+    from an.genres.registry import entity_kind
     from an.ir.schema import Viewpoint
     from an.ir.world import focal_length
-    from an.ir.world_from_shot import world_from_shot
+    from an.ir.world_from_shot import seed_members
 
     if scene.world is not None:
         raise ValueError(
@@ -216,25 +217,29 @@ def seed_world(
             f"{[s.id for s in scene.timeline]})"
         )
     shot = scene.timeline[index]
+    if shot.viewpoint is not None:
+        raise ValueError(f"shot {shot_id!r} already names a viewpoint")
     width = int(scene.meta.resolution.width)
     height = int(scene.meta.resolution.height)
-    extents = {
-        e.id: native_box(e, mall, width=width, height=height)
+    drawn = [
+        e
         for e in shot.entities
         if e.kind != "environment"
-    }
-    lens = Viewpoint(focal=focal)
-    seeded = world_from_shot(
+        and getattr(entity_kind(e.kind), "specimen", None) is not None
+    ]
+    extents: dict[str, Box | None] = {}
+    for e in drawn:
+        try:
+            extents[e.id] = native_box(e, mall, width=width, height=height)
+        except Exception:  # noqa: BLE001 — unmeasured is a reason to leave it out, as `member_extents` says
+            extents[e.id] = None
+    lens = Viewpoint(at=(0.0, 0.0, 0.0), focal=focal)
+    seeded = seed_members(
         shot, extents=extents, focal=focal_length(lens, width=width), depth=depth
     )
-    if focal is None:  # the default lens, kept as a field of view
-        seeded = replace(
-            seeded, viewpoint=seeded.viewpoint.model_copy(update={"focal": None})
-        )
-    name = viewpoint or shot.id
-    world = seeded.world.model_copy(update={"viewpoints": {name: seeded.viewpoint}})
+    world = World(members=seeded.members, viewpoints={shot_id: lens})
     timeline = list(scene.timeline)
-    timeline[index] = shot.model_copy(update={"viewpoint": name})
+    timeline[index] = shot.model_copy(update={"viewpoint": shot_id})
     return scene.model_copy(update={"world": world, "timeline": timeline}), seeded
 
 

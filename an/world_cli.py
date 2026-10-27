@@ -125,7 +125,6 @@ def from_shot(
     shot: str,
     focal: float = 0.0,
     depth: float = 0.0,
-    viewpoint: str = "",
     dry_run: bool = False,
     scene: str = DEFAULT_SCENE_FILE,
 ) -> str:
@@ -135,7 +134,8 @@ def from_shot(
     one depth, its screen position and scale inverted (x = sx·Z/f, height =
     scale·native·Z/f), so the world lowers back to the placements the shot
     already has; its environments become members as they are. The shot keeps
-    its `stage` lines (they agree with the world) and names the new viewpoint.
+    its `stage` lines (they agree with the world) and names the new viewpoint,
+    called after it.
     The other shots then take viewpoints by hand. The scene file is updated
     through the store: the prose around its blocks is kept.
 
@@ -143,7 +143,6 @@ def from_shot(
     shot: the master shot's id
     focal: the lens in pixels (default: the default field of view at the scene's width)
     depth: the depth every member stands at, in world units (default: where the tallest is 1.7 tall, so units read as metres)
-    viewpoint: the new viewpoint's name (default: the shot's id)
     dry_run: print what would be written, and write nothing
     scene: the scene file to read, inside the project (default scene.md)
     """
@@ -158,16 +157,15 @@ def from_shot(
             shot,
             focal=focal or None,
             depth=depth or None,
-            viewpoint=viewpoint or None,
         )
     except ValueError as e:
         raise SystemExit(f"an world from-shot: {e}") from None
     lines = [
-        f"viewpoint {viewpoint or shot!r}: at (0, 0, 0)"
+        f"viewpoint {shot!r}: at (0, 0, 0)"
         + (f", focal {focal:g}" if focal else ", the default field of view"),
         f"members at depth {seeded.depth:.4g}:",
     ]
-    for m in seeded.world.members:
+    for m in seeded.members:
         where = (
             f"at ({m.at[0]:.4g}, {m.at[1]:.4g}, {m.at[2]:.4g}) height {m.height:.4g}"
             if m.at is not None

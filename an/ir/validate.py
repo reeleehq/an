@@ -2527,7 +2527,11 @@ def _core_cut_continuity(ctx: ValidationContext) -> None:
         if not before or not after:
             continue
         prev, shot = shots[i - 1], shots[i]
-        if _viewpoint_key(prev) != _viewpoint_key(shot):
+        if (
+            prev.viewpoint is not None
+            and shot.viewpoint is not None
+            and _viewpoint_key(prev) != _viewpoint_key(shot)
+        ):
             continue  # a cut between two framings of one world is a cut, not a jump (ADR 0009)
         for entity_id in [e for e in after if e in before]:
             ended, starts = before[entity_id][1], after[entity_id][0]

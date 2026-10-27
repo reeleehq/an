@@ -45,7 +45,17 @@ def _project(tmp_path: Path):
                     for eid, (at, scale) in HAND.items()
                 ],
             ),
-            Shot(id="close", duration=0.5, entities=[_lamp("near")]),
+            # the next shot, placed by hand, continues the near lamp where it was
+            Shot(
+                id="close",
+                duration=0.5,
+                entities=[
+                    _lamp(
+                        "near",
+                        stage=StagePlacement(at=HAND["near"][0], scale=HAND["near"][1]),
+                    )
+                ],
+            ),
         ],
     )
     text = ir_to_markdown(scene).replace(
@@ -108,17 +118,80 @@ def test_the_scene_files_prose_is_kept_and_a_dry_run_writes_nothing(tmp_path):
 
 def test_what_cannot_be_inverted_is_refused_or_left_out(tmp_path):
     project = _project(tmp_path)
+    empty = project.scene.timeline[1].model_copy(update={"entities": [_lamp("near")]})
     with pytest.raises(ValueError, match="places nothing by hand"):
-        seed_world(project.scene, project.mall, "close")
+        seed_world(
+            project.scene.model_copy(
+                update={"timeline": [project.scene.timeline[0], empty]}
+            ),
+            project.mall,
+            "close",
+        )
     with pytest.raises(ValueError, match="no shot 'nope'"):
         seed_world(project.scene, project.mall, "nope")
-    scene, seeded = seed_world(project.scene, project.mall, "master")
+    scene, _seeded = seed_world(project.scene, project.mall, "master")
     with pytest.raises(ValueError, match="already has a `world`"):
         seed_world(scene, project.mall, "master")
-    loose = project.scene.timeline[0].model_copy(
-        update={"entities": [*project.scene.timeline[0].entities, _lamp("loose")]}
-    )
+    master = project.scene.timeline[0]
+
+    def with_entities(*entities):
+        shot = master.model_copy(update={"entities": list(entities)})
+        return project.scene.model_copy(update={"timeline": [shot]})
+
+    # Listed after the members, an unplaced lamp stays on top, placed by hand.
     _, seeded = seed_world(
-        project.scene.model_copy(update={"timeline": [loose]}), project.mall, "master"
+        with_entities(*master.entities, _lamp("loose")), project.mall, "master"
     )
-    assert "loose" in seeded.skipped and "stage.at" in seeded.skipped["loose"]
+    assert "stage.at" in seeded.skipped["loose"]
+    # Listed before them, it would move on top of them: refused, with the fix.
+    with pytest.raises(ValueError, match="'loose' would be left out.*listed before"):
+        seed_world(
+            with_entities(_lamp("loose"), *master.entities), project.mall, "master"
+        )
+    # A voice is no member of a picture, and is not reported as left out.
+    voice = AssetRef(kind="voice", id="v", store="voices", ref="v")
+    _, seeded = seed_world(
+        with_entities(voice, *master.entities), project.mall, "master"
+    )
+    assert "v" not in seeded.skipped
+
+
+def test_an_asset_that_cannot_be_read_is_left_out_not_a_traceback(tmp_path):
+    project = _project(tmp_path)
+    broken = _lamp("broken", stage=StagePlacement(at=(0.0, 0.0)))
+    broken = broken.model_copy(update={"ref": "no_such_prop"})
+    shot = project.scene.timeline[0]
+    shot = shot.model_copy(update={"entities": [*shot.entities, broken]})
+    scene = project.scene.model_copy(update={"timeline": [shot]})
+    _, seeded = seed_world(scene, project.mall, "master")
+    assert set(m.id for m in seeded.members) == set(HAND)
+
+
+def test_a_cut_from_a_framed_to_a_hand_placed_shot_is_still_checked_for_jumps(tmp_path):
+    """Seeding frames the master; the next shot is placed by hand. A lamp that
+    jumps across that cut is still a jump (an#514 review): only a cut between
+    two viewpoints of one world is exempt."""
+    project = _project(tmp_path)
+    from_shot(str(project.root), "master")
+    project = load(project.root)
+    close = project.scene.timeline[1]
+    jumped = close.model_copy(
+        update={
+            "entities": [
+                _lamp("near", stage=StagePlacement(at=(100.0, -50.0), scale=0.6))
+            ]
+        }
+    )
+    scene = project.scene.model_copy(
+        update={"timeline": [project.scene.timeline[0], jumped]}
+    )
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        report = validate_semantic(
+            scene,
+            available_props=project.mall["props"],
+            available_environments=project.mall["environments"],
+        )
+    assert any(
+        "'near'" in f.description and "jump" in f.description for f in report.findings
+    )
