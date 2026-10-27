@@ -1,1 +1,0 @@
-- The solve keeps retrying a slowly converging frame while each round halves what is left (up to `DFLT_CONVERGE_CAP` × iterations), and a retry that stalls is a conflict: the frame after a refused grip no longer leaves joints apart in dynamic mode; `SOLVER_VERSION` 2 (an#568).
