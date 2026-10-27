@@ -1,1 +1,0 @@
-- The voice-effect chain is built by `mixing.filtergraph.resample_pitch_filter` (mixing is now a core dependency); `CHAIN_VERSION` 3: an integer `asetrate` and an exact `atempo`, so effected lines re-process once from their cached raw takes (an#611).
