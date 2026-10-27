@@ -305,3 +305,23 @@ def test_the_max_actions_refusal_names_the_sway_leans_it_counted():
     scene.world.travel = Travel(speed=1.0, max_actions=1)
     with pytest.raises(WorldError, match="sway leans"):
         lower_world(scene, extents=EXTENTS)
+
+
+def test_a_tween_from_an_explicit_value_is_a_step_too():
+    tree = FrameTree(
+        {"car": Frame()},
+        tracks={"car": {"at_z": Track([TrackEvent(1.0, 3.0, to=10.0, from_=5.0)])}},
+    )
+    assert tree.jump_times("car") == [1.0]
+    assert tree.acceleration("car", 1.0, dt=0.04) == pytest.approx((0.0, 0.0, 0.0), abs=1.0)
+
+
+def test_a_jump_in_the_first_instants_still_leaves_the_far_side_to_read():
+    """The stencil slides to the other side when one side leaves the shot."""
+    tree = FrameTree(
+        {"car": Frame()},
+        tracks={"car": {"at_z": Track([TrackEvent(0.05, 0.15, to=1.0, from_=0.0)])}},
+    )
+    # from_=0.0 makes 0.05 a step; the ramp after it is real motion on the right side
+    a = tree.acceleration("car", 0.0, dt=1 / 24, within=(0.0, 1.0))
+    assert a == tree.acceleration("car", 0.05 + 1 / 24, dt=1 / 24, within=(0.0, 1.0))

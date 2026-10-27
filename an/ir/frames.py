@@ -79,6 +79,35 @@ _ACCEL_DT: float = 1e-2
 _JUMP_EPS_S: float = 1e-6
 
 
+def _whole_stencil_centre(
+    t: float,
+    h: float,
+    jumps: Sequence[float],
+    within: tuple[float, float] | None,
+) -> float | None:
+    """The centre nearest ``t`` of a three-point stencil of step ``h`` that
+    spans no jump (a step lands at its time, so ``(c - h, c + h]`` holds none)
+    and stays inside ``within``; ``t`` itself when it already does, ``None``
+    when no centre does.
+
+    >>> _whole_stencil_centre(1.0, 0.1, [1.0], None)
+    1.1
+    >>> round(_whole_stencil_centre(0.0, 0.05, [0.05], (0.0, 0.2)), 6)
+    0.1
+    >>> _whole_stencil_centre(0.0, 0.1, [0.05], (0.0, 0.15)) is None
+    True
+    """
+
+    def whole(c: float) -> bool:
+        fits = within is None or (within[0] <= c - h and c + h <= within[1])
+        return fits and not any(c - h < j <= c + h for j in jumps)
+
+    candidates = [t]
+    for j in jumps:
+        candidates += [j + h, j - h - _JUMP_EPS_S]
+    return min((c for c in candidates if whole(c)), key=lambda c: abs(c - t), default=None)
+
+
 class FrameError(ValueError):
     """A frame tree that cannot be built or evaluated (an unknown frame)."""
 
@@ -492,9 +521,9 @@ class FrameTree:
         and a window narrower than ``2·dt`` shrinks the step to half of it, so
         a motion that starts at the window's edge is not read as an impulse.
 
-        A ``set`` that steps the frame (:meth:`jump_times`) is a cut, not an
-        acceleration: a stencil that would span one slides to the side of it
-        that stays whole, and where neither side fits the answer is zero.
+        A step of the frame (:meth:`jump_times`) is a cut, not an acceleration: a
+        stencil that would span one slides to the nearest centre that stays
+        whole, and where none does the answer is zero.
 
         >>> from an.ir.schema import Frame, FrameMoving
         >>> tree = FrameTree({"car": Frame(moving=FrameMoving(speed=20.0))})
@@ -514,16 +543,10 @@ class FrameTree:
             if h <= 0:
                 return _ZERO
             t = min(max(t, lo + h), hi - h)
-        jumps = self.jump_times(name)
-        for _ in range(len(jumps) + 1):  # one slide per jump, at most
-            jump = next((j for j in jumps if t - h < j <= t + h), None)
-            if jump is None:
-                break
-            t = jump + h if jump <= t else jump - h - _JUMP_EPS_S
-            if within is not None and not (within[0] <= t - h and t + h <= within[1]):
-                return _ZERO
-        else:
-            return _ZERO  # still spanning one after sliding past each
+        centre = _whole_stencil_centre(t, h, self.jump_times(name), within)
+        if centre is None:
+            return _ZERO
+        t = centre
         a, b, c = (
             self.world_pose(name, t + k * h, film_start=film_start).at
             for k in (-1, 0, 1)
@@ -531,8 +554,9 @@ class FrameTree:
         return tuple((ai - 2 * bi + ci) / (h * h) for ai, bi, ci in zip(a, b, c))  # type: ignore[return-value]
 
     def jump_times(self, name: str) -> list[float]:
-        """The shot times at which a ``set`` steps a channel of ``name`` or of a
-        frame above it (an instant, not a motion), sorted.
+        """The shot times at which a channel of ``name`` or of a frame above it
+        steps (an instant, not a motion), sorted: a ``set``, and a tween that
+        starts from an explicit ``from_`` (it snaps there first).
 
         >>> tree = FrameTree({"car": Frame()}, tracks={"car": {"at_z": Track([TrackEvent(1.0, 1.0, to=5.0)])}})
         >>> tree.jump_times("car")
@@ -543,7 +567,7 @@ class FrameTree:
             for n in self.chain(name)
             for track in self.tracks.get(n, {}).values()
             for ev in track.events
-            if ev.end <= ev.start
+            if ev.end <= ev.start or ev.from_ is not None
         )
 
     def sway_frame(self, name: str) -> str | None:
