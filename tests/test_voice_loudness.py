@@ -7,6 +7,7 @@ and -23 LUFS: 19 dB) with tones of those levels, spoken in short syllables.
 
 from __future__ import annotations
 
+import importlib.util
 import io
 import math
 import warnings
@@ -27,6 +28,21 @@ from an.audio.pipeline import produce_audio_for_scene
 from an.audio.tts import AudioClip
 from an.ir.schema import Dialogue, Meta, SceneIR, Shot, VoiceLoudness
 from tests.test_shot_cache import fake_render  # noqa: F401 — the fixture, by name
+
+def _has_mixing_loudness() -> bool:
+    try:
+        return importlib.util.find_spec("mixing.loudness") is not None
+    except ImportError:  # no `mixing` at all
+        return False
+
+
+# The measuring and the limiter are mixing.loudness's (an#563, the `loudness`
+# extra): without it there is nothing here to test (tests/test_loudness_component.py
+# covers its absence). A mark, not `importorskip`: the tests are skipped, never
+# dropped from collection (tests/test_browser_gate.py).
+pytestmark = pytest.mark.skipif(
+    not _has_mixing_loudness(), reason="the `loudness` extra (mixing) is not installed"
+)
 
 RATE = 22050
 #: The issue's measured levels, per voice (LUFS, as synthesized).
@@ -72,7 +88,9 @@ class _LevelTTS:
         level = LEVELS.get(voice_id, -20.0) - (8.0 if "whisper" in text else 0.0)
         level += 1.0 if "a little louder" in text else 0.0
         data = _speech(level, seconds, seed=len(text))
-        return AudioClip(bytes_=data, duration=seconds, voice_id=voice_id, transcript=text)
+        return AudioClip(
+            bytes_=data, duration=seconds, voice_id=voice_id, transcript=text
+        )
 
     def list_voices(self):
         return []
@@ -96,7 +114,9 @@ def _scene(loudness=None, extra_line: str | None = None) -> SceneIR:
             for k in range(3)
         ]
         if voice == "clone_b":  # a whisper first: the voice is measured whole
-            lines[0] = Dialogue(speaker=voice, text="a whisper of clone_b", voice_ref=voice)
+            lines[0] = Dialogue(
+                speaker=voice, text="a whisper of clone_b", voice_ref=voice
+            )
         if extra_line and voice == "clone_a":
             lines.append(Dialogue(speaker=voice, text=extra_line, voice_ref=voice))
         shots.append(Shot(id=f"s{i}", duration=8.0, dialogue=lines))
@@ -112,7 +132,9 @@ def _mall(**voices):
 
 
 def _run(scene, mall, tts=None):
-    return produce_audio_for_scene(scene, mall, tts=tts or _LevelTTS(), lipsync=_NoLipSync())
+    return produce_audio_for_scene(
+        scene, mall, tts=tts or _LevelTTS(), lipsync=_NoLipSync()
+    )
 
 
 def _levels(scene, mall) -> dict[str, float]:
@@ -131,7 +153,9 @@ def test_the_limiter_holds_the_ceiling_and_moves_nothing_in_time():
     out = limit_peaks(x, ceiling=0.5, window=40)
     assert np.abs(out).max() <= 0.5 + 1e-12
     assert out.shape == x.shape
-    assert np.abs(out[1000]).max() == pytest.approx(0.5)  # the peak is still where it was
+    assert np.abs(out[1000]).max() == pytest.approx(
+        0.5
+    )  # the peak is still where it was
     far = np.ones(len(x), bool)
     far[900:1100] = False
     assert np.array_equal(out[far], x[far])  # away from the peak, untouched
@@ -154,7 +178,9 @@ def test_the_issues_19_db_spread_is_brought_within_a_db_and_a_half():
         scene = _run(_scene(VoiceLoudness(target_lufs=-16)), mall)
     leveled = _levels(scene, mall)
     assert max(leveled.values()) - min(leveled.values()) <= 1.5, leveled
-    assert all(abs(v + 16) <= 1.0 for v in leveled.values()), leveled  # the limiter's toll made up
+    assert all(abs(v + 16) <= 1.0 for v in leveled.values()), (
+        leveled
+    )  # the limiter's toll made up
     assert not [w for w in caught if "reaches" in str(w.message)]
 
 
@@ -168,12 +194,15 @@ def test_leveling_changes_no_timing_and_holds_the_peaks():
         for line, raw_line in zip(shot.dialogue, raw_shot.dialogue):
             assert line.audio_ref != raw_line.audio_ref
             assert (line.start, line.duration) == (raw_line.start, raw_line.duration)
-            with wave.open(io.BytesIO(mall["audio"][line.audio_ref])) as a, wave.open(
-                io.BytesIO(raw_mall["audio"][raw_line.audio_ref])
-            ) as b:
+            with (
+                wave.open(io.BytesIO(mall["audio"][line.audio_ref])) as a,
+                wave.open(io.BytesIO(raw_mall["audio"][raw_line.audio_ref])) as b,
+            ):
                 assert a.getnframes() == b.getnframes()
                 s = np.frombuffer(a.readframes(a.getnframes()), "<i2") / 32768
-            assert np.abs(s).max() <= 10 ** (-1.5 / 20)  # held after 16-bit rounding too
+            assert np.abs(s).max() <= 10 ** (
+                -1.5 / 20
+            )  # held after 16-bit rounding too
 
 
 @pytest.mark.ffmpeg
@@ -213,7 +242,12 @@ def test_a_voice_offset_and_a_silent_voice():
 
     class _Silent(_LevelTTS):
         def synthesize(self, text, voice_id="default", **kw):
-            return AudioClip(bytes_=silence.getvalue(), duration=1.0, voice_id=voice_id, transcript=text)
+            return AudioClip(
+                bytes_=silence.getvalue(),
+                duration=1.0,
+                voice_id=voice_id,
+                transcript=text,
+            )
 
     quiet_mall, plain_mall = _mall(), _mall()
     quiet = _run(_scene(-16), quiet_mall, _Silent())
@@ -254,14 +288,19 @@ def test_a_voices_own_dynamics_between_lines_are_kept():
     mall = _mall()
     scene = _run(_scene(-36), mall)
     (shot,) = [s for s in scene.timeline if s.dialogue[0].speaker == "clone_b"]
-    whisper, normal = (integrated_loudness(_decode(mall["audio"][d.audio_ref])) for d in shot.dialogue[:2])
+    whisper, normal = (
+        integrated_loudness(_decode(mall["audio"][d.audio_ref]))
+        for d in shot.dialogue[:2]
+    )
     assert normal - whisper == pytest.approx(8.0, abs=1.0)
 
 
 #: sha256 of ``leveled_audio`` on a fixed fixture, by LEVEL_VERSION. NEVER edit a
 #: row: a red here means leveled bytes changed (limiter, window, encoding) —
 #: bump LEVEL_VERSION, which moves every leveled key, and ADD a row.
-LEVEL_GOLDEN: dict[int, str] = {1: "53a9646282646360d14aa6f3bf861ca587217532ea9a542986c56727aaec13b0"}
+LEVEL_GOLDEN: dict[int, str] = {
+    1: "53a9646282646360d14aa6f3bf861ca587217532ea9a542986c56727aaec13b0"
+}
 
 
 def test_leveled_bytes_change_only_with_the_level_version():
@@ -275,6 +314,33 @@ def test_leveled_bytes_change_only_with_the_level_version():
         "leveled bytes changed: bump LEVEL_VERSION and ADD a row (never edit one)"
     )
     assert loudness.LEVEL_VERSION in LEVEL_GOLDEN
+
+
+#: sha256 of every leveled line of the four-voice scene at -16 LUFS (speaker,
+#: gain, sha256 of the leveled bytes, in timeline order), recorded from the
+#: implementation BEFORE an#563 moved the meter and the limiter to
+#: mixing.loudness: the move changed no gain and no byte. Never edit; a red here
+#: means a leveled line changed, which needs a LEVEL_VERSION bump.
+SCENE_GOLDEN: str = "01788ba233bd2e1c8a1318ac17296e5a38eada28c04672b37042979f2ef4b798"
+
+
+@pytest.mark.ffmpeg
+def test_leveling_a_scene_is_byte_identical_to_before_the_shared_component():
+    import hashlib
+    import json
+
+    mall = _mall()
+    scene = _run(_scene(VoiceLoudness(target_lufs=-16)), mall)
+    rows = [
+        [
+            d.speaker,
+            d.leveled["gain_db"],
+            hashlib.sha256(mall["audio"][d.audio_ref]).hexdigest(),
+        ]
+        for s in scene.timeline
+        for d in s.dialogue
+    ]
+    assert hashlib.sha256(json.dumps(rows).encode()).hexdigest() == SCENE_GOLDEN, rows
 
 
 @pytest.mark.ffmpeg
@@ -297,7 +363,9 @@ def test_a_take_resynthesised_under_the_same_request_is_leveled_again():
     assert raw in mall["audio"]
     del mall["audio"][raw]  # the raw take is lost; the request is the same
     again = _run(_scene(-16), mall, tts)
-    (line,) = [d for s in again.timeline for d in s.dialogue if d.text == "line 1 of narrator"]
+    (line,) = [
+        d for s in again.timeline for d in s.dialogue if d.text == "line 1 of narrator"
+    ]
     assert line.audio_ref != old["line 1 of narrator"]
 
 
@@ -329,11 +397,18 @@ class _Fixed(_LevelTTS):
         data = self.by_voice[voice_id]
         with wave.open(io.BytesIO(data)) as w:
             seconds = w.getnframes() / w.getframerate()
-        return AudioClip(bytes_=data, duration=seconds, voice_id=voice_id, transcript=text)
+        return AudioClip(
+            bytes_=data, duration=seconds, voice_id=voice_id, transcript=text
+        )
 
 
 def _two_voices(narrator: bytes, other: bytes, target=-20):
-    by = {"narrator": narrator, "clone_a": other, "clone_b": narrator, "clone_c": narrator}
+    by = {
+        "narrator": narrator,
+        "clone_a": other,
+        "clone_b": narrator,
+        "clone_c": narrator,
+    }
     mall = _mall()
     scene = _run(_scene(target), mall, _Fixed(by))
     return scene, mall
@@ -341,7 +416,9 @@ def _two_voices(narrator: bytes, other: bytes, target=-20):
 
 @pytest.mark.ffmpeg
 def test_a_voice_of_only_short_lines_is_leveled_not_taken_for_silence():
-    short = _speech(-35, 0.12, seed=1)  # three of these are under one 400 ms gating block
+    short = _speech(
+        -35, 0.12, seed=1
+    )  # three of these are under one 400 ms gating block
     scene, mall = _two_voices(_speech(-20, 1.5, seed=2), short)
     levels = _levels(scene, mall)
     assert levels["clone_a"] == pytest.approx(-20, abs=1.5)
@@ -356,7 +433,12 @@ def test_room_tone_is_not_raised_past_the_gain_cap():
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always")
         scene, mall = _two_voices(_speech(-20, 1.5, seed=2), tone)
-    gains = {d.leveled["gain_db"] for s in scene.timeline for d in s.dialogue if d.speaker == "clone_a"}
+    gains = {
+        d.leveled["gain_db"]
+        for s in scene.timeline
+        for d in s.dialogue
+        if d.speaker == "clone_a"
+    }
     assert gains == {MAX_GAIN_DB}
     assert any("capped" in str(w.message) for w in caught)
 
@@ -378,8 +460,18 @@ def test_a_warm_run_decodes_and_measures_nothing(monkeypatch):
     scene = _run(_scene(-16), mall, tts)
     calls = {"measure": 0, "produce": 0}
     real_measure, real_produce = loudness.integrated_loudness, pipeline._produce_line
-    monkeypatch.setattr(loudness, "integrated_loudness", lambda p: calls.__setitem__("measure", calls["measure"] + 1) or real_measure(p))
-    monkeypatch.setattr(pipeline, "_produce_line", lambda *a, **k: calls.__setitem__("produce", calls["produce"] + 1) or real_produce(*a, **k))
+    monkeypatch.setattr(
+        loudness,
+        "integrated_loudness",
+        lambda p: calls.__setitem__("measure", calls["measure"] + 1) or real_measure(p),
+    )
+    monkeypatch.setattr(
+        pipeline,
+        "_produce_line",
+        lambda *a, **k: (
+            calls.__setitem__("produce", calls["produce"] + 1) or real_produce(*a, **k)
+        ),
+    )
     _run(scene, mall, tts)  # the same, stamped scene: nothing changed
     assert calls == {"measure": 0, "produce": 0}
 
@@ -425,7 +517,9 @@ def test_the_spread_is_said_once_not_on_every_warm_render():
 
 
 @pytest.mark.ffmpeg
-def test_gc_after_a_target_edit_keys_the_new_leveling_in_memory(tmp_path, monkeypatch, fake_render):
+def test_gc_after_a_target_edit_keys_the_new_leveling_in_memory(
+    tmp_path, monkeypatch, fake_render
+):
     """an#315 review: after `target_lufs` changes and before any render, the
     collector re-levels in memory (an#311's overlay): it neither refuses nor
     writes to the audio store."""
@@ -448,5 +542,7 @@ def test_gc_after_a_target_edit_keys_the_new_leveling_in_memory(tmp_path, monkey
     audio = set(load(root).mall["audio"])
     target(-24)
     report = _gc(root)
-    assert not [p for p, _ in report.reach.skipped if p["tts"] == "voice"]  # keyed, not skipped
+    assert not [
+        p for p, _ in report.reach.skipped if p["tts"] == "voice"
+    ]  # keyed, not skipped
     assert set(load(root).mall["audio"]) == audio  # the new leveling stayed in memory

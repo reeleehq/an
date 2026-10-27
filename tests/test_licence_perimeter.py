@@ -88,6 +88,16 @@ MCP_EXTRA_CLOSURE: tuple[str, ...] = (
 )
 
 
+#: Distributions the `loudness` extra adds (an#563): mixing is MIT, its base
+#: install's config2py, xdol and i2 Apache-2.0 (dol `an` already ships).
+LOUDNESS_EXTRA_CLOSURE: tuple[str, ...] = (
+    "mixing",
+    "config2py",
+    "xdol",
+    "i2",
+)
+
+
 def _declared_licence(name: str) -> str:
     """The DECLARATION, in order of precision — never the licence document.
 
@@ -121,11 +131,13 @@ def _installed(name: str) -> bool:
 
 @pytest.mark.parametrize(
     "name,extra",
-    [(n, "vision") for n in VISION_EXTRA_CLOSURE] + [(n, "mcp") for n in MCP_EXTRA_CLOSURE],
+    [(n, "vision") for n in VISION_EXTRA_CLOSURE]
+    + [(n, "mcp") for n in MCP_EXTRA_CLOSURE]
+    + [(n, "loudness") for n in LOUDNESS_EXTRA_CLOSURE],
 )
 def test_the_optional_extras_stay_inside_the_licence_perimeter(name, extra):
-    """`anthropic` (vision) and `py2mcp` (mcp) are MIT; so is everything they add
-    that `an` did not already ship, or Apache/BSD."""
+    """`anthropic` (vision), `py2mcp` (mcp) and `mixing` (loudness) are MIT; so
+    is everything they add that `an` did not already ship, or Apache/BSD."""
     if not _installed(name):
         pytest.skip(f"{name} is not installed (the `{extra}` extra is optional)")
     declared = _declared_licence(name)

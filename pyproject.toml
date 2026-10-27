@@ -119,6 +119,8 @@ dev = [
     # The timing contract's schemas (an/data/timing/*.schema.json) are checked
     # against what the stage actually compiles (tests/test_timing_contract.py).
     "jsonschema",
+    # The voice-leveling tests run against the shared loudness component.
+    "mixing",
 ]
 docs = [
     "sphinx>=6.0",
@@ -157,6 +159,15 @@ cutout = [
 # for a take that comes with its SRT/VTT/TextGrid/word JSON, or one file per line.
 recorded = [
     "scribed",
+]
+# Voice loudness (an#315, an#563): `meta.voice_loudness` measures and limits
+# through the fleet's shared component, `mixing.loudness` (MIT, a sibling
+# package). Its base install is light (config2py, dol, xdol); `an` uses its
+# ffmpeg `ebur128` meter, so it takes the bare package, not `mixing[loudness]`,
+# whose scipy only the numpy meter needs. Without it, leveling raises
+# `LoudnessComponentMissing` naming this extra.
+loudness = [
+    "mixing",
 ]
 manim = [
     # Manim opaque-source shots (an#279): `an.adapters.manim_adapter` renders

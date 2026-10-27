@@ -577,6 +577,8 @@ def _voice_loudness(scene: SceneIR, mall: Mapping | None, *, report: bool) -> No
                 line.audio_ref, line.leveled = line.leveled.get("source"), None
     if not report or shutil.which("ffmpeg") is None:
         return
+    if not loudness.component_available():  # `an[loudness]` not installed
+        return
     if len(loudness.voiced_lines(scene, mall)) < 2:
         return
     message = loudness.voice_loudness_spread(loudness.loudness_report(scene, mall))
