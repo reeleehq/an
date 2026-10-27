@@ -125,7 +125,8 @@ def inside_folder(folder: str | Path, rel: str) -> Path | None:
 def asset_references(doc: Mapping) -> list[tuple[str, str]]:
     """``(label, path)`` for every file path an asset document names (an#552):
     an environment's image planes (``planes/<name>/art/src``), a rig's
-    attachments (``skins/<skin>/slots/<slot>/<attachment>/path``), a
+    attachments (``skins/<skin>/slots/<slot>/<attachment>/path``; labelled
+    ``part <skin>:<slot>/<attachment>`` outside the default skin), a
     character's ``source_svg`` and the files its ``colour_roles`` keys name.
 
     The one list of what an asset document references; the core's
@@ -160,7 +161,7 @@ def asset_references(doc: Mapping) -> list[tuple[str, str]]:
         if art.get("kind", "fill") == "image" and isinstance(src, str) and src:
             out.append((f"plane {plane.get('name', '?')}", src))
     skins = doc.get("skins")
-    for skin in skins.values() if isinstance(skins, Mapping) else ():
+    for skin_name, skin in skins.items() if isinstance(skins, Mapping) else ():
         slots = skin.get("slots") if isinstance(skin, Mapping) else None
         if not isinstance(slots, Mapping):
             continue
@@ -170,7 +171,9 @@ def asset_references(doc: Mapping) -> list[tuple[str, str]]:
             for att_name, att in attachments.items():
                 rel = att.get("path") if isinstance(att, Mapping) else None
                 if isinstance(rel, str) and rel:
-                    out.append((f"part {slot_name}/{att_name}", rel))
+                    # The default skin keeps the short label; another names its skin.
+                    skin_prefix = "" if skin_name == "default" else f"{skin_name}:"
+                    out.append((f"part {skin_prefix}{slot_name}/{att_name}", rel))
     source_svg = doc.get("source_svg")
     if isinstance(source_svg, str) and source_svg:
         out.append(("source_svg", source_svg))
