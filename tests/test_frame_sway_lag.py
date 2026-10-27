@@ -249,6 +249,32 @@ def test_animating_the_rotation_of_a_swaying_member_warns():
     assert [n.entity for n in notes if n.kind == "sway_rotation"] == ["right"]
 
 
+@pytest.mark.parametrize("how", ["held_by", "place"])
+def test_a_swaying_item_the_holds_solver_rotates_warns(how):
+    """an#590: the holds solver sets the rotation of an item it holds or
+    places, which the lean cannot add to: said as for an explicit rotation."""
+    from an.ir.holds import PlaceAction
+
+    scene = _braking(FrameSway())
+    shot = scene.timeline[0]
+    if how == "held_by":
+        right = next(e for e in shot.entities if e.id == "right") if shot.entities else None
+        if right is None:
+            from an.ir.schema import AssetRef
+
+            shot.entities.append(
+                AssetRef(kind="prop", id="right", store="props", ref="lamp",
+                         overrides={"held_by": "ground"})
+            )
+        else:
+            right.overrides = {**(right.overrides or {}), "held_by": "ground"}
+    else:
+        shot.actions.append(PlaceAction(item="right", onto="ground", by="left@hand_r", at=0.2))
+    notes = lower_world(scene, extents=EXTENTS).notes
+    said = [n for n in notes if n.kind == "sway_rotation"]
+    assert [n.entity for n in said] == ["right"] and "holds solver" in said[0].message
+
+
 def test_a_sway_dumps_only_what_differs_from_its_defaults_and_round_trips():
     assert FrameSway().model_dump() == {}
     assert FrameSway(gain=2.0, limit=30.0).model_dump() == {"gain": 2.0, "limit": 30.0}
