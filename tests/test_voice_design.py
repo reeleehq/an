@@ -278,6 +278,80 @@ def test_a_voice_this_manifest_did_not_save_is_never_retired():
     ) and "retired" not in entry
 
 
+def test_a_retired_voice_keeps_the_prefix_it_was_saved_under():
+    """an#618: a fork chooses in its source's manifest under its own prefix
+    (``name_prefix=``), leaving the entry's alone. The voice it replaces is
+    retired under the SOURCE's prefix (a fork never gains the right to free
+    it), the voice it saves is named and later retired under the fork's, and a
+    re-design ledgers each under its own."""
+    from an.audio.voice_design import choose_in_entry, merge_redesign
+
+    d = FakeDesigner(n=3)
+    entry = design_voice_options(
+        {"j": {"notes": NOTES}}, samples={}, designer=d, persist=False,
+        name_prefix="src",
+    )["j"]  # fmt: skip
+    choose_in_entry(entry, "A", by="noel", designer=d, ref="j")
+    choice = choose_in_entry(
+        entry, "B", by="ann", designer=d, ref="j", name_prefix="fork"
+    )
+    assert choice.retired == "voice-gen0" and entry["name_prefix"] == "src"
+    assert entry["retired"] == [
+        {"voice_id": "voice-gen0", "option": "A", "name_prefix": "src"}
+    ]
+    assert d.calls[-1] == ("save", "gen1", "fork j B")
+    assert entry["options"][1]["saved_under"] == "fork"
+    choose_in_entry(entry, "C", by="ann", designer=d, ref="j", name_prefix="fork")
+    assert entry["retired"][-1] == {
+        "voice_id": "voice-gen1", "option": "B", "name_prefix": "fork",
+    }  # fmt: skip
+    assert "saved_under" not in entry["options"][1], "cleared with its voice"
+    redesigned = merge_redesign(
+        entry, {"notes": NOTES, "options": [], "name_prefix": "src"}
+    )
+    assert redesigned["chosen"]["saved_under"] == "fork"
+    redesigned["options"] = [{"option": "A", "generated_voice_id": "x"}]
+    choose_in_entry(redesigned, "A", by="ann", designer=d, ref="j")
+    assert redesigned["retired"][-1] == {
+        "voice_id": "voice-gen2", "option": None, "name_prefix": "fork",
+    }  # fmt: skip
+
+
+def test_a_saved_under_survives_a_hand_cast_and_a_re_design(tmp_path):
+    """an#618: the prefix a fork's choice saved a voice under survives a hand
+    cast of that same carried voice, and is what a re-design ledgers the voice
+    under when a hand cast left it on its option."""
+    from an.audio.voice_design import (
+        cast_project_voice,
+        choose_in_entry,
+        merge_redesign,
+    )
+
+    d = FakeDesigner(n=2)
+    proj = _voice_project(tmp_path, {"notes": NOTES})
+    design_project_voices(proj, designer=d, persist=False)
+    entry = _manifest(proj)
+    choose_in_entry(entry, "A", by="ann", designer=d, ref="jerry", name_prefix="fork")
+    (proj / "artifacts" / "voice_options" / "jerry.json").write_text(
+        json.dumps(merge_redesign(entry, {"notes": NOTES, "options": []})),
+        encoding="utf-8",
+    )
+    cast_project_voice(proj, "jerry", "voice-gen0", by="ann")  # the carried voice
+    assert _manifest(proj)["chosen"]["saved_under"] == "fork"
+
+    entry = design_voice_options(
+        {"jerry": {"notes": NOTES}}, samples={}, designer=d, persist=False
+    )["jerry"]
+    choose_in_entry(entry, "A", by="ann", designer=d, ref="jerry", name_prefix="fork")
+    entry["chosen"] = {
+        "option": None,
+        "voice_id": "HAND",
+    }  # cast by hand; A keeps its voice
+    assert merge_redesign(entry, {"options": []})["retired"] == [
+        {"voice_id": "voice-gen0", "option": "A", "name_prefix": "fork"}
+    ]
+
+
 def test_a_damaged_retired_ledger_is_refused_before_anything_is_chosen():
     from an.audio.voice_design import VoiceDesignError, choose_in_entry
 
@@ -313,7 +387,7 @@ def test_designing_again_keeps_the_choice_and_retires_what_the_old_design_saved(
     m = _manifest(proj)
     assert m["chosen"] == {
         "option": None, "voice_id": "voice-gen1", "chosen_by": "noel",
-        "chosen_at": "t1", "retire_on_replace": True,
+        "chosen_at": "t1", "retire_on_replace": True, "saved_under": "p",
     }  # fmt: skip
     assert sorted(r["voice_id"] for r in m["retired"]) == ["voice-gen0", "voice-gen2"]
     from an.audio.voice_design import choose_in_entry

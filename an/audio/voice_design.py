@@ -160,6 +160,13 @@ CHOSEN_AT_KEY = "chosen_at"
 #: choice (the option was not persisted when designed), so a later choice of
 #: another option retires it (:func:`choose_in_entry`, an#549).
 SAVED_BY_CHOICE_KEY = "saved_by_choice"
+#: Beside :data:`SAVED_BY_CHOICE_KEY` on an option, and on a ``chosen``
+#: carried over a re-design: the name prefix its voice was saved under, which
+#: its ``retired`` row carries (an#618). A host that names a choice's voice
+#: with its own prefix (``choose_in_entry(name_prefix=)``) never relabels a
+#: voice saved under another; a record without it was saved under the entry's
+#: ``name_prefix``.
+SAVED_UNDER_KEY = "saved_under"
 #: A voice a render may speak although nobody chose it: a timing draft. Any
 #: truthy value; a string says why, and the render report repeats it.
 PROVISIONAL_KEY = "provisional"
@@ -778,12 +785,17 @@ def design_voice_options(
 
 
 def choose_voice_option(
-    entry: Mapping, option: str, *, ref: str = "", designer: Any = None
+    entry: Mapping,
+    option: str,
+    *,
+    ref: str = "",
+    designer: Any = None,
+    name_prefix: str | None = None,
 ) -> str:
     """The provider ``voice_id`` of ``option`` in one voice's manifest ``entry``.
 
     An option that was not persisted is saved as a voice now (its preview must
-    not have expired).
+    not have expired), named under ``name_prefix`` (default: the entry's).
     """
     found = next(
         (o for o in entry.get("options", ()) if o.get("option") == str(option).upper()),
@@ -801,7 +813,8 @@ def choose_voice_option(
             f"option {found['option']!r}{f' for {ref!r}' if ref else ''} has no voice id to choose"
         )
     designer = designer if designer is not None else default_designer()
-    name = f"{entry.get('name_prefix', 'an')} {ref} {found['option']}".strip()
+    prefix = name_prefix if name_prefix is not None else _prefix_of(entry)
+    name = f"{prefix} {ref} {found['option']}".strip()
     return _voice_id_of(
         designer.design_voice(
             entry["notes"], preview=found["generated_voice_id"], name=name
@@ -1442,6 +1455,8 @@ def design_project_voices(
 #: the earlier design's, so the next choice that displaces it retires it
 #: (:func:`choose_in_entry`), as it would an option's voice a choice saved.
 RETIRE_ON_REPLACE_KEY = "retire_on_replace"
+#: What a carried ``chosen`` keeps while it names the same voice.
+_CARRIED_KEYS = (RETIRE_ON_REPLACE_KEY, SAVED_UNDER_KEY)
 
 
 def merge_redesign(
@@ -1480,21 +1495,33 @@ def merge_redesign(
                 {
                     "voice_id": voice,
                     "option": o.get("option"),
-                    "name_prefix": previous.get("name_prefix"),
+                    "name_prefix": _saved_under(o, previous),
                 }
             )
             named.add(voice)
     if retired:
         entry["retired"] = retired
     if chosen and chosen.get("voice_id"):
-        designed = any(
-            o.get("option") == chosen.get("option") and o.get("kind") != "library"
-            for o in previous.get("options", ())
+        designed = next(
+            (
+                o
+                for o in previous.get("options", ())
+                if o.get("option") == chosen.get("option")
+                and o.get("kind") != "library"
+            ),
+            None,
         )
         entry["chosen"] = {
             **chosen,
             "option": None,
-            **({RETIRE_ON_REPLACE_KEY: True} if designed else {}),
+            **(
+                {
+                    RETIRE_ON_REPLACE_KEY: True,
+                    SAVED_UNDER_KEY: _saved_under(designed, previous),
+                }
+                if designed is not None
+                else {}
+            ),
         }
     return entry
 
@@ -1638,6 +1665,7 @@ def choose_in_entry(
     at: str | None = None,
     doc: Mapping | None = None,
     in_use: Collection[str] = (),
+    name_prefix: str | None = None,
 ) -> VoiceChoice:
     """Make ``option`` the choice of one voice's options manifest ``entry``
     (an#549): the one choose step an's ``an voices choose`` and a connector
@@ -1651,17 +1679,21 @@ def choose_in_entry(
     chosen reuses its voice (nothing is saved), and keeps its ``chosen_at``
     when the same chooser chooses it again and no ``at`` is given. Choosing
     another one names its voice (saved as a provider voice when it was not,
-    :func:`choose_voice_option`, and marked ``saved_by_choice`` on its option)
-    and retires the voice it replaces when a choice saved it: its option no
-    longer names it, and ``entry["retired"]`` records it (``{voice_id,
-    option, name_prefix}``), never deleted here (a copy of the manifest, or a
+    :func:`choose_voice_option`, named under ``name_prefix``, default the
+    entry's, and marked ``saved_by_choice`` and ``saved_under`` that prefix on
+    its option) and retires the voice it replaces when a choice saved it: its
+    option no longer names it, and ``entry["retired"]`` records it
+    (``{voice_id, option, name_prefix}``, the prefix it was saved under, an#618),
+    never deleted here (a copy of the manifest, or a
     voice file already written, may still name it: freeing the provider's
     slot is a separate, explicit act). A voice saved when the options were
     designed (``persist=True``), a library voice and one cast by hand stay
     named where they are; a choice carried over a re-design (``retire_on_replace``,
     an#604) is retired when replaced. A voice in ``in_use`` (one another voice
-    document speaks) is never retired: pass the project's other voices. ``by`` defaults to the login name (see
-    :func:`record_choice`).
+    document speaks) is never retired: pass the project's other voices. ``by``
+    defaults to the login name (see :func:`record_choice`). A host choosing for
+    a project of its own (a fork) passes its ``name_prefix`` rather than
+    re-stamping the entry's, which names the voices the entry already saved.
 
     >>> from types import SimpleNamespace
     >>> class Saver:   # a designer that saves a preview as voice "v<preview>"
@@ -1675,6 +1707,16 @@ def choose_in_entry(
     ('va', 'va', [None, 'vb'])
     >>> choose_in_entry(entry, "B", by="noel").document["chosen_at"]   # the same choice again
     't2'
+
+    A voice keeps the prefix it was saved under when a fork chooses with its own:
+
+    >>> src = {"notes": "n", "name_prefix": "src", "options": [
+    ...     {"option": "A", "generated_voice_id": "a"}, {"option": "B", "generated_voice_id": "b"}]}
+    >>> _ = choose_in_entry(src, "A", by="noel", designer=Saver())
+    >>> choose_in_entry(src, "B", by="ann", designer=Saver(), name_prefix="fork").retired
+    'va'
+    >>> src["retired"], src["options"][1]["saved_under"], src["name_prefix"]
+    ([{'voice_id': 'va', 'option': 'A', 'name_prefix': 'src'}], 'fork', 'src')
     """
     if not isinstance(entry.get("retired", []), list):
         raise VoiceDesignError(
@@ -1694,7 +1736,10 @@ def choose_in_entry(
             (o for o in entry.get("options", ()) if o.get("option") == label), None
         )
         saved = option_of is not None and not option_of.get("voice_id")
-        voice_id = choose_voice_option(entry, label, ref=ref, designer=designer)
+        prefix = name_prefix if name_prefix is not None else _prefix_of(entry)
+        voice_id = choose_voice_option(
+            entry, label, ref=ref, designer=designer, name_prefix=prefix
+        )
         displaced = (
             previous.get("voice_id") if previous.get("voice_id") != voice_id else None
         )
@@ -1703,6 +1748,7 @@ def choose_in_entry(
             option_of["voice_id"] = voice_id
             if saved:
                 option_of[SAVED_BY_CHOICE_KEY] = True
+                option_of[SAVED_UNDER_KEY] = prefix
     document = record_choice(doc, voice_id, by=chooser, at=at, provider=DESIGN_PROVIDER)
     entry["chosen"] = _chosen_record(label, document)
     return VoiceChoice(document, displaced, retired)
@@ -1729,8 +1775,8 @@ def _retire(
     """Retire the voice ``previous`` (the choice being replaced) named, when a
     choice saved it (its option is marked ``saved_by_choice``) and it is not
     ``keep``: its option no longer names it, and the ``retired`` ledger does,
-    with whose name it carries (a copy of the manifest inherits the row, not
-    the right to delete it). Returns the retired voice, or ``None``."""
+    with the prefix it was saved under (a copy of the manifest inherits the
+    row, not the right to delete it). Returns the retired voice, or ``None``."""
     old = previous.get("voice_id")
     if old in in_use:
         return None  # another voice document speaks it: not ours to free
@@ -1741,7 +1787,7 @@ def _retire(
                 {
                     "voice_id": old,
                     "option": None,
-                    "name_prefix": entry.get("name_prefix"),
+                    "name_prefix": _saved_under(previous, entry),
                 }
             )
         return old
@@ -1758,16 +1804,28 @@ def _retire(
     if not old or old == keep or previous.get("option") is None or saved is None:
         return None
     retired = entry.setdefault("retired", [])
-    saved["voice_id"] = None
-    saved.pop(SAVED_BY_CHOICE_KEY, None)
     retired.append(
         {
             "voice_id": old,
             "option": previous.get("option"),
-            "name_prefix": entry.get("name_prefix"),
+            "name_prefix": _saved_under(saved, entry),
         }
     )
+    saved["voice_id"] = None
+    saved.pop(SAVED_BY_CHOICE_KEY, None)
+    saved.pop(SAVED_UNDER_KEY, None)
     return old
+
+
+def _prefix_of(entry: Mapping) -> str:
+    """The prefix ``entry``'s voices are named under (``an`` when it names none)."""
+    return entry.get("name_prefix", "an")
+
+
+def _saved_under(record: Mapping, entry: Mapping) -> str | None:
+    """The prefix the voice ``record`` (an option, or a carried ``chosen``) was
+    saved under: its own :data:`SAVED_UNDER_KEY`, else ``entry``'s (an#618)."""
+    return record.get(SAVED_UNDER_KEY, _prefix_of(entry))
 
 
 def choose_project_voice(
@@ -1840,7 +1898,9 @@ def cast_project_voice(
             )
         entry["chosen"] = _chosen_record(None, doc)
         if previous.get(RETIRE_ON_REPLACE_KEY) and previous.get("voice_id") == chosen:
-            entry["chosen"][RETIRE_ON_REPLACE_KEY] = True
+            entry["chosen"].update(
+                {k: previous[k] for k in _CARRIED_KEYS if k in previous}
+            )
         options[ref] = entry
     return doc
 
