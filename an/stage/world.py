@@ -361,8 +361,15 @@ def lowered_or_same(
     world cannot be lowered: for the walks that must see what a framed shot
     draws (credits, publishability) but are not where a world error is
     reported (validate is)."""
+    from an.continuity import ContinuityError
+
     try:
         return lower_scene(scene, mall, fps=fps).scene
+    except ContinuityError:  # reported by validate; the world still lowers
+        try:
+            return lower_scene(scene, mall, fps=fps, continues=False).scene
+        except Exception:  # noqa: BLE001 — reported by validate, not here
+            return scene
     except Exception:  # noqa: BLE001 — reported by validate, not here
         return scene
 

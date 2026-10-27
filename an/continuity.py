@@ -178,7 +178,9 @@ def _carried(
 
     ``placed_by_world``: entities the world places in THIS shot under another
     viewpoint than the source's, whose screen placement is not carried (a cut
-    between two framings is a cut; the world places them)."""
+    between two framings is a cut; the world places them). A cut from a
+    hand-placed shot to a framed one carries the screen placement, as
+    ``cut_continuity`` reads such a cut: the author placed the source."""
     from an.stage.hold import (
         AIM_OVERRIDE,
         ON_OVERRIDE,
@@ -207,10 +209,14 @@ def _carried(
             if holder == _GROUND:
                 overrides[ON_OVERRIDE] = holder
                 skip.add("y")  # the floor sets its height; it keeps its x
-            elif _is_place_target(holder) or _is_surface_target(holder):
+            elif _is_place_target(holder) or (
+                _is_surface_target(holder) and _body(holder) in present
+            ):
                 overrides[ON_OVERRIDE] = holder
                 skip |= {"x", "y"}  # the place puts it there
-            elif holder.partition("@")[0].split("/")[0] in present:
+            elif _is_surface_target(holder):
+                pass  # its body is not in this shot: the item stays where it was
+            elif _body(holder) in present:
                 overrides[ON_OVERRIDE] = holder  # the same hand holds it
                 overrides.setdefault(
                     AIM_OVERRIDE, end.channels[(entity.id, "rotation")]
@@ -229,9 +235,9 @@ def _carried(
     )
 
 
-def _viewpoint_key(shot: Shot) -> Any:
-    vp = shot.viewpoint
-    return vp if vp is None or isinstance(vp, str) else vp.model_dump_json()
+def _body(holder: str) -> str:
+    """The entity a holder names (``napoleon@hand_r``, ``crate/lid@surface``)."""
+    return holder.partition("@")[0].split("/")[0]
 
 
 def continue_shots(
@@ -257,8 +263,11 @@ def continue_shots(
     """
     if not any(s.continue_from for s in scene.timeline):
         return scene
+    from an.ir.schema import resolve_step_hz
     from an.ir.sync import read_scene as _read
+    from an.ir.world import viewpoint_key
     from an.stage.compile import compile_shot as _compile
+    from an.stage.compile import style_pack_for
     from an.stage.world import lower_scene_world
 
     read_scene = read_scene or _read
@@ -268,6 +277,7 @@ def continue_shots(
     root = project_dir if project_dir is not None else _project_dir(mall)
     scenes: dict[FileKey, SceneIR] = {None: scene}
     done: dict[tuple[FileKey, int], Shot] = {}
+    compiled: dict[tuple[FileKey, int], Any] = {}  # each source compiled once
 
     def load(file: FileKey, *, asked_by: str) -> SceneIR:
         if file in scenes:
@@ -325,29 +335,36 @@ def continue_shots(
         shared = [
             e.id for e in shot.entities if e.id in {s.id for s in source.entities}
         ]
-        try:
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")  # the source's own compile reports them
-                doc = compile_shot(
-                    source,
-                    mall=mall,
-                    fps=rate,
-                    width=int(owner.meta.resolution.width),
-                    height=int(owner.meta.resolution.height),
-                    default_easing=owner.meta.default_easing,
-                )
-        except Exception as e:  # noqa: BLE001 — the source's own error, named here
-            raise ContinuityError(
-                f"shot {shot.id!r} continues {source.id!r} of {where(src_file)}, "
-                f"which does not compile ({e})",
-                shot=shot.id,
-            ) from e
+        if (src_file, j) not in compiled:
+            try:
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore")  # the source's compile reports them
+                    compiled[(src_file, j)] = compile_shot(
+                        source,
+                        mall=mall,
+                        fps=rate,
+                        width=int(owner.meta.resolution.width),
+                        height=int(owner.meta.resolution.height),
+                        default_easing=owner.meta.default_easing,
+                        # as the render compiles it, so the end is its last frame
+                        step_hz=resolve_step_hz(source, owner.meta.step_hz),
+                        style_pack=style_pack_for(
+                            owner.meta, (mall or {}).get("styles") or {}
+                        ),
+                    )
+            except Exception as e:  # noqa: BLE001 — the source's own error, named here
+                raise ContinuityError(
+                    f"shot {shot.id!r} continues {source.id!r} of {where(src_file)}, "
+                    f"which does not compile ({e})",
+                    shot=shot.id,
+                ) from e
+        doc = compiled[(src_file, j)]
         world = scenes[file].world
         members = {m.id for m in world.members} if world is not None else set()
         across = (
             shot.viewpoint is not None
             and source.viewpoint is not None
-            and _viewpoint_key(shot) != _viewpoint_key(source)
+            and viewpoint_key(shot) != viewpoint_key(source)
         )
         return _carried(
             shot,

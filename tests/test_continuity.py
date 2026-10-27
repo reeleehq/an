@@ -258,3 +258,47 @@ def test_a_cut_between_two_framings_leaves_placement_to_the_world(tmp_path):
         lowered = lower_scene(scene, mall, fps=FPS)
     carried = {(a.target, a.property) for a in lowered.scene.timeline[1].actions}
     assert ("lamp", "x") not in carried and ("lamp", "alpha") in carried
+
+
+def test_a_surface_whose_body_is_absent_leaves_the_item_where_it_was():
+    out = _carried(_shot_of("book"), {"book": _end("book", "crate@surface")}, fps=FPS)
+    assert out.entities[0].overrides is None
+    assert ("book", "x") in {(a.target, a.property) for a in out.actions}
+    held = _carried(
+        _shot_of("crate", "book"), {"book": _end("book", "crate@surface")}, fps=FPS
+    )
+    assert held.entities[1].overrides == {"held_by": "crate@surface"}
+
+
+def test_each_source_is_compiled_once(tmp_path):
+    from an.stage.compile import compile_shot
+
+    mall, calls = _mall(tmp_path), []
+
+    def counting(shot, **kw):
+        calls.append(shot.id)
+        return compile_shot(shot, **kw)
+
+    two = _studio(continue_from="bed").model_copy(update={"id": "again"})
+    continue_shots(
+        _scene(_bedtime(), _studio(continue_from="bed"), two),
+        mall,
+        fps=FPS,
+        compile_shot=counting,
+    )
+    assert calls == ["bed"]
+
+
+def test_the_render_validate_reads_a_sibling_file(tmp_path):
+    """`an render`'s post-synthesis checks see the project's scenes store, so
+    a sibling-file continue is not reported as unresolvable."""
+    from an.render import _post_synthesis
+
+    _mall(tmp_path)
+    project = load(tmp_path / "p")
+    (tmp_path / "p" / "scene.bedtime.md").write_text(
+        ir_to_markdown(_scene(_bedtime())), encoding="utf-8"
+    )
+    scene = _scene(_studio(continue_from="scene.bedtime.md#bed"))
+    found = _post_synthesis(project, scene, fps=FPS)
+    assert not [f for _, f in found if "continue" in f.description], found

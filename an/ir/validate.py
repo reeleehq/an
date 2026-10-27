@@ -36,7 +36,7 @@ from an.ir.compose import flatten
 from an.ir.migrate import DocumentMigrationError, migrate
 from an.ir.sync import SceneValidationError, scene_from_json_doc
 from an.ir.schema import CueAnchor, SceneIR
-from an.ir.world import WorldError, has_world
+from an.ir.world import WorldError, has_world, viewpoint_key
 from an.base import SUPPORTED_RENDERERS
 from an.genres.registry import (
     CORE_OWNER,
@@ -2606,7 +2606,7 @@ def _core_cut_continuity(ctx: ValidationContext) -> None:
         if (
             prev.viewpoint is not None
             and shot.viewpoint is not None
-            and _viewpoint_key(prev) != _viewpoint_key(shot)
+            and viewpoint_key(prev) != viewpoint_key(shot)
         ):
             continue  # a cut between two framings of one world is a cut, not a jump (ADR 0009)
         for entity_id in [e for e in after if e in before]:
@@ -2638,15 +2638,6 @@ def _all_placements(ctx: ValidationContext) -> list:
         "placements",
         lambda: [_placements(ctx, shot, i) for i, shot in enumerate(ctx.shots)],
     )
-
-
-def _viewpoint_key(shot: Any) -> Any:
-    """What identifies a shot's viewpoint for "the same framing": its name, or
-    its inline viewpoint's dump; ``None`` for a hand-placed shot."""
-    vp = getattr(shot, "viewpoint", None)
-    if vp is None or isinstance(vp, str):
-        return vp
-    return json.dumps(vp.model_dump(), sort_keys=True, default=str)
 
 
 #: Two entities closer than this on screen have no left/right order to flip.
