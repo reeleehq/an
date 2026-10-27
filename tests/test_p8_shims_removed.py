@@ -45,8 +45,13 @@ OLD_NAMES: tuple[tuple[str, str], ...] = (
 
 @pytest.mark.parametrize("name", OLD_MODULES)
 def test_an_old_module_path_is_not_found(name):
-    with pytest.raises(ModuleNotFoundError):
-        importlib.import_module(name)
+    try:
+        module = importlib.import_module(name)
+    except ModuleNotFoundError:
+        return
+    # A checkout that ran the old package keeps its untracked `__pycache__/`
+    # folder, which imports as an empty namespace package: nothing is served.
+    assert getattr(module, "__file__", None) is None, f"{name} still serves code"
 
 
 @pytest.mark.parametrize("module, name", OLD_NAMES)
@@ -64,3 +69,22 @@ def test_the_shim_module_keeps_only_the_within_core_aliases():
         "forward_module_attributes",
         "forwarded_names",
     }
+
+
+def test_a_genre_that_imports_a_removed_path_is_told_to_upgrade(tmp_path, monkeypatch):
+    """An old cutan with this an: the entry point does not import; say what to do."""
+    import sys
+    import textwrap
+    from importlib.metadata import EntryPoint
+
+    from an import genres
+
+    (tmp_path / "old_genre_pkg.py").write_text(
+        textwrap.dedent("import an.characters  # a path an no longer serves\nGENRE = None\n"),
+        encoding="utf-8",
+    )
+    monkeypatch.syspath_prepend(str(tmp_path))
+    sys.modules.pop("old_genre_pkg", None)
+    ep = EntryPoint("old", "old_genre_pkg:GENRE", genres.ENTRY_POINT_GROUP)
+    with pytest.raises(genres.GenreError, match="upgrade the genre package"):
+        genres._resolve(ep)

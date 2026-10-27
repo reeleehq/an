@@ -496,9 +496,15 @@ def _resolve(ep: EntryPoint) -> Genre:
     try:
         genre = ep.load()
     except Exception as e:  # noqa: BLE001 — re-raised, named
+        stale = (
+            " (it imports a path `an` no longer serves: upgrade the genre "
+            "package, for example `pip install -U cutan`)"
+            if isinstance(e, ModuleNotFoundError) and (e.name or "").startswith("an.")
+            else ""
+        )
         raise GenreError(
             f"the `{ENTRY_POINT_GROUP}` entry point {ep.name!r} = {ep.value!r} "
-            f"does not import: {type(e).__name__}: {e}"
+            f"does not import: {type(e).__name__}: {e}{stale}"
         ) from e
     if not isinstance(genre, Genre):
         raise GenreError(

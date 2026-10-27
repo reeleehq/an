@@ -219,7 +219,7 @@ def build_app(
         sub = typer.Typer(no_args_is_help=True, help=f"{group} subcommands")
         for func in group_funcs:
             # No group-prefix stripping: argh mounted the group and used the
-            # function names as they are, and `an/characters/cli.py` names them
+            # function names as they are, and `cutan/characters/cli.py` names them
             # bare (`new`, `mouths`, ...) accordingly. A strip here was
             # defensive code with no live case — it survived its own mutation
             # test, which is how it was found.

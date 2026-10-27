@@ -5,8 +5,8 @@ Phase 3 ships:
 - Protocols: ``TTSProvider``, ``LipSyncProvider`` (Phase 1).
 - Default offline provider: ``OfflineTTS`` (silent WAV). The lip-sync providers
   (``OfflineLipSync`` deterministic char-to-viseme, ``RhubarbLipSync``,
-  ``WhisperLipSync``) moved to ``cutan`` with the cut-out genre (an#225); the old
-  names still resolve from here, with a warning.
+  ``WhisperLipSync``) moved to ``cutan`` with the cut-out genre (an#225), and the
+  old names were removed from here (an#321): import them from ``cutan.audio``.
 - Real providers: ``ElevenLabsTTS`` (needs ``ELEVEN_API_KEY``); ``RecordedTTS``, a
   performer's imported takes (``an voices import``, :mod:`an.audio.recorded`).
 - Orchestration: ``produce_audio_for_dialogue`` /

@@ -63,7 +63,7 @@ For deeper subsystem design history, the research reports next to it cover the d
 Read `misc/docs/architecture_as_built.md` for the full map. The pieces that didn't exist in the original spec:
 
 - `an/iterate.py` — free-text → Claude (Opus 4.7) → IR patches (Phase 10)
-- `an/audio/whisper_lipsync.py` — faster-whisper word timestamps → visemes (Phase 9)
+- `cutan/audio/whisper_lipsync.py` — faster-whisper word timestamps → visemes (Phase 9; moved to the `cutan` genre package)
 - `an/audio/providers.py` — make_tts / make_lipsync factories (Phase 8)
 - `an/verify/media.py` — ssim, detect_silence, audio_volume, extract_frames, transcribe (Phase 8)
 - `an/verify/media_quality.py` — MediaQualityVerifier (Phase 9)
@@ -87,7 +87,7 @@ The IR is open (an#241, ADR 0001 decisions 2–4): never add an `isinstance`/`ki
 
 1. An action kind is an `an.genres.ActionKind(name, model, duration=…, flatten=…, children=…, read_md=…, write_md=…)`, its model a subclass of `an.ir.schema.ExtensionAction` with `kind: Literal["<name>"]`. An entity kind is an `EntityKind(name, space="<property space>", store=…)` (the space is P1's `an.timing.spaces.register_space`); a semantic check is a `SemanticCheck(name, run(ctx), stage="scene"|"shot"|"finish", order=…)`; `scene.md` dialogue sugar is a `DialogueSugar` on the `[…]` brackets.
 2. List them on ONE `an.genres.Genre` object and declare it under `[project.entry-points."an.genres"]`. `an.genres.load()` (called by `an.load` and the CLI, never at import) registers it; `register_genre(obj)` does so directly.
-3. The cut-out genre is the worked example: `an/genres/cutout.py`, with its declarations in `cutan/characters/registration.py` and `cutan/expression/registration.py`. Tests run with it registered (root `conftest.py`); test the core alone under `an.genres.without_genres()`.
+3. The cut-out genre is the worked example: `cutan/genre.py`, with its declarations in `cutan/characters/registration.py` and `cutan/expression/registration.py`. Tests run with it registered (root `conftest.py`); test the core alone under `an.genres.without_genres()`.
 4. An unregistered kind must stay an error that names its genre — at validate, flatten, compile and `scene.md` read/write — and must round-trip untouched (`tests/test_open_document_model.py`).
 
 The timing default is the DECLARED `stage.node` space (`an.timing.spaces.DFLT_TIMELINE_SPACE`); `space=VALUE_TYPED` is `runtime.js`'s rule. The compiler refuses a keyframe value that fails its field kind, which is what keeps the two equal.
