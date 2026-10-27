@@ -882,3 +882,46 @@ def test_gc_collects_the_transcripts_nothing_names(tmp_path):
     store = load(root).mall["transcripts"]
     assert store.get_blob(dropped.asset_id) is None
     assert store.get_blob(used.asset_id) is not None, "a take still names it"
+
+
+def test_gc_keeps_every_transcript_when_it_cannot_tell_what_is_named(tmp_path):
+    """A damaged catalog record might name any blob, a just-written blob may be
+    a transcript being recorded, and a remote store cannot say when one was
+    written: in each case the sweep keeps it (an#607 review)."""
+    import time
+
+    from an.build.gc import GcReport, _collect_transcripts, collect_garbage
+    from an.stores.transcripts import in_memory_transcripts_store, record_transcript
+
+    root = _project(tmp_path)
+    mall = load(root).mall
+    old = record_transcript(mall["transcripts"], "k", "carl: a draft\n")
+    record_transcript(mall["transcripts"], "k", "carl: the final draft\n")
+    # written just now: inside the protection horizon of a collection run now
+    assert not collect_garbage(root, force=True).deleted_derived
+    # a damaged record: nothing is collected, however late
+    (root / "artifacts" / "transcripts" / "catalog" / "bad.json").write_text(
+        "{", encoding="utf-8"
+    )
+    later = time.time() + 3600
+    assert not collect_garbage(root, now=later, force=True).deleted_derived
+    assert load(root).mall["transcripts"].get_blob(old.asset_id) is not None
+    # a remote (in-memory) store: write times unknown, so nothing goes
+    remote = in_memory_transcripts_store()
+    record_transcript(remote, "k", "carl: a\n")
+    record_transcript(remote, "k", "carl: b\n")
+    report = GcReport(dry_run=False)
+    _collect_transcripts({"transcripts": remote}, report, horizon=later)
+    assert not report.deleted_derived and len(list(remote.iter_blobs())) == 2
+
+
+def test_a_pinned_reference_reads_its_bytes_after_its_key_is_gone(tmp_path):
+    from an.stores.transcripts import linked_transcript, record_transcript
+
+    root = _project(tmp_path)
+    mall = load(root).mall
+    record_transcript(mall["transcripts"], "k", SRT)
+    ref = linked_transcript("artifact:transcripts/k", mall).ref
+    del mall["transcripts"]["k"]
+    again = linked_transcript(f"artifact:{ref}", mall)
+    assert HELLO in again.text and again.fmt == "srt"

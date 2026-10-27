@@ -558,28 +558,43 @@ def _remove_blob(store: Any, h: str, layout) -> None:
 
 
 def _collect_transcripts(mall: Any, report: GcReport, *, horizon: float) -> None:
-    """The transcript contents nothing names any more (an#607:
-    :func:`an.stores.transcripts.orphan_transcript_blobs`), deleted unless
-    written after ``horizon`` (a transcript recorded during this collection),
-    reported as the ``transcripts`` derived store."""
-    from an.stores.transcripts import TRANSCRIPTS_STORE, orphan_transcript_blobs
+    """The transcript contents nothing names any more (an#607): no catalog
+    record and no take (:func:`an.audio.recorded.recorded_transcript_pins`),
+    reported as the ``transcripts`` derived store. Kept: one written after
+    ``horizon`` or whose write time is unknown (a remote store: it may be a
+    transcript being recorded now), and everything when a record or a take
+    cannot be read (it might name any of them). Re-checked on disk at the last
+    moment, as the shot cache's blobs are."""
+    from an.audio.recorded import recorded_transcript_pins
+    from an.stores.transcripts import (
+        TRANSCRIPTS_STORE,
+        TranscriptCatalogUnreadable,
+        orphan_transcript_blobs,
+    )
 
     store = mall.get(TRANSCRIPTS_STORE)
     if store is None:
         return
+    try:
+        named = recorded_transcript_pins(mall.get("recordings") or {})
+        orphans = orphan_transcript_blobs(store, named=named)
+    except (TranscriptCatalogUnreadable, ValueError, OSError):
+        return  # unknown: keep everything this run
     layout, sizes = _fs_layout(store), _blobs(store)
-    for h in orphan_transcript_blobs(mall):
+    for h in orphans:
         size, written = sizes.get(h, (0, None))
-        if written is not None and written >= horizon:
+        if written is None or written >= horizon:
             continue
+        if not report.dry_run:
+            try:
+                if layout is not None and (layout[1] / h).stat().st_mtime >= horizon:
+                    continue  # written again since the listing
+                _remove_blob(store, h, layout)
+            except (OSError, KeyError):
+                report.failed.append(h)
+                continue
         report.deleted_derived.setdefault(TRANSCRIPTS_STORE, []).append(h)
         report.derived_freed += size
-        if report.dry_run:
-            continue
-        try:
-            _remove_blob(store, h, layout)
-        except OSError:
-            report.failed.append(h)
 
 
 def _protection_horizon(project_root: Path, now: float) -> float:
