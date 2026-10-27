@@ -4,6 +4,8 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-10-27
+- A travel past its `max_actions` stops fitting as soon as a running lower bound of its actions crosses the budget, instead of fitting every pass first (an#516, slice B).
+- A travelling stream's slots are sized from the larger of the depth range and the on-screen span under the shot's viewpoint, so a wide lens or a yawed side window lowers instead of being refused (an#516, slice C).
 - World follow-ups (an#516, slice A): slot entities carry `overrides.stream`; an authored slot-like id is refused; a missing world member ref is a validate error and the render warns lowering notes; cut checks skip entities hidden on a side; a shot with no measurable member says so.
 - `continue: <shot>` / `continue: <scene file>#<shot>` on a shot block: the shot opens at that shot's evaluated end state for every shared entity (transform, channels, alpha, swap keys, holder and aim), resolved before compile (an#542).
 - The voice-effect chain is built by `mixing.filtergraph.resample_pitch_filter` (mixing is now a core dependency); `CHAIN_VERSION` 3: an integer `asetrate` and an exact `atempo`, so effected lines re-process once from their cached raw takes (an#611).

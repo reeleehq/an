@@ -1,1 +1,0 @@
-- A travelling stream's slots are sized from the larger of the depth range and the on-screen span under the shot's viewpoint, so a wide lens or a yawed side window lowers instead of being refused (an#516, slice C).
