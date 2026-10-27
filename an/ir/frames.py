@@ -74,6 +74,10 @@ _STATIC_SAMPLES: int = 33
 #: Step of the second difference an acceleration is read with (s).
 _ACCEL_DT: float = 1e-2
 
+#: How far before a ``set`` the stencil of :meth:`FrameTree.acceleration` stops,
+#: so that no sample already carries the step (seconds).
+_JUMP_EPS_S: float = 1e-6
+
 
 class FrameError(ValueError):
     """A frame tree that cannot be built or evaluated (an unknown frame)."""
@@ -488,6 +492,10 @@ class FrameTree:
         and a window narrower than ``2·dt`` shrinks the step to half of it, so
         a motion that starts at the window's edge is not read as an impulse.
 
+        A ``set`` that steps the frame (:meth:`jump_times`) is a cut, not an
+        acceleration: a stencil that would span one slides to the side of it
+        that stays whole, and where neither side fits the answer is zero.
+
         >>> from an.ir.schema import Frame, FrameMoving
         >>> tree = FrameTree({"car": Frame(moving=FrameMoving(speed=20.0))})
         >>> [round(v, 3) + 0.0 for v in tree.acceleration("car", 1.0)]
@@ -506,11 +514,37 @@ class FrameTree:
             if h <= 0:
                 return _ZERO
             t = min(max(t, lo + h), hi - h)
+        jumps = self.jump_times(name)
+        for _ in range(len(jumps) + 1):  # one slide per jump, at most
+            jump = next((j for j in jumps if t - h < j <= t + h), None)
+            if jump is None:
+                break
+            t = jump + h if jump <= t else jump - h - _JUMP_EPS_S
+            if within is not None and not (within[0] <= t - h and t + h <= within[1]):
+                return _ZERO
+        else:
+            return _ZERO  # still spanning one after sliding past each
         a, b, c = (
             self.world_pose(name, t + k * h, film_start=film_start).at
             for k in (-1, 0, 1)
         )
         return tuple((ai - 2 * bi + ci) / (h * h) for ai, bi, ci in zip(a, b, c))  # type: ignore[return-value]
+
+    def jump_times(self, name: str) -> list[float]:
+        """The shot times at which a ``set`` steps a channel of ``name`` or of a
+        frame above it (an instant, not a motion), sorted.
+
+        >>> tree = FrameTree({"car": Frame()}, tracks={"car": {"at_z": Track([TrackEvent(1.0, 1.0, to=5.0)])}})
+        >>> tree.jump_times("car")
+        [1.0]
+        """
+        return sorted(
+            ev.start
+            for n in self.chain(name)
+            for track in self.tracks.get(n, {}).values()
+            for ev in track.events
+            if ev.end <= ev.start
+        )
 
     def sway_frame(self, name: str) -> str | None:
         """The frame whose ``sway`` governs what is in ``name``: the nearest one
