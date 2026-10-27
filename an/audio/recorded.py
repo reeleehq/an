@@ -74,6 +74,7 @@ from an.audio.transcripts import (
     from_transcript_object,
     normalize_text,
     parse_transcript,
+    parse_transcript_text,
     rebase_words,
     segment_lines,
 )
@@ -781,7 +782,7 @@ def _linked(transcript: Any, mall: Mapping[str, Any]) -> Any:
             return [one(part) for part in parts]
     if (
         transcript is None
-        or isinstance(transcript, (str, Path))
+        or isinstance(transcript, (str, Path, LinkedTranscript))
         or is_artifact_ref(transcript)
     ):
         return one(transcript)
@@ -794,7 +795,7 @@ def _parse_transcript_file(
     """:func:`parse_transcript`, with a refusal that names the file instead of a traceback."""
     if isinstance(item, LinkedTranscript):
         try:
-            return parse_transcript(item.text, fmt=item.fmt)
+            return parse_transcript_text(item.text, fmt=item.fmt)
         except ValueError as e:
             raise RecordedVoicesError(f"{item.ref}: {e}") from e
     try:

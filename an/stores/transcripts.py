@@ -104,7 +104,7 @@ def record_transcript(
     attributed_to: str = DFLT_ATTRIBUTED_TO,
     derived_from: Iterable[str] = (),
 ) -> Any:
-    """Keep ``text`` (a transcript, or a path to one; its format detected,
+    """Keep ``text`` (a transcript, or a ``Path`` to one; its format detected,
     a file's suffix first, unless ``fmt`` says) in ``store`` under ``key``;
     return its ``lacing.Artifact``. ``generated_by`` and ``attributed_to`` are
     its provenance (``processor:<name>``, who ran it), ``derived_from`` the
@@ -170,10 +170,7 @@ def linked_transcript(
         )
     store = mall[name]
     if _is_artifact(item):
-        key = next(
-            (k for k in store if getattr(store[k], "asset_id", None) == item.asset_id),
-            None,
-        )
+        key = next((k for k in store if _holds(store, k, item.asset_id)), None)
         if key is None:
             raise TranscriptLinkError(
                 f"no record in the {name!r} store holds transcript {item.asset_id}"
@@ -184,6 +181,10 @@ def linked_transcript(
         except KeyError:
             raise TranscriptLinkError(
                 f"{item!r}: no transcript {key!r} in the {name!r} store"
+            ) from None
+        except ValueError as e:  # a record that does not validate (pydantic)
+            raise TranscriptLinkError(
+                f"{item!r}: the record {key!r} in the {name!r} store is damaged: {e}"
             ) from None
     if not _is_artifact(artifact):
         raise TranscriptLinkError(
@@ -201,6 +202,15 @@ def linked_transcript(
     if data is None:
         raise TranscriptLinkError(f"{ref}: its content is missing")
     return LinkedTranscript(data.decode("utf-8-sig"), fmt, ref)
+
+
+def _holds(store: Any, key: str, asset_id: str) -> bool:
+    """Whether the record at ``key`` is the artifact ``asset_id`` (a damaged
+    record is not: it does not stop the search)."""
+    try:
+        return getattr(store[key], "asset_id", None) == asset_id
+    except (KeyError, ValueError):
+        return False
 
 
 def _is_artifact(item: Any) -> bool:

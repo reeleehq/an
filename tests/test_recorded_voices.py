@@ -803,3 +803,35 @@ def test_what_is_not_a_transcript_artifact_is_refused_by_name(tmp_path):
     key = next(iter(load(root).mall[RECORDINGS_STORE]))
     with pytest.raises(TranscriptLinkError, match="not transcript artifacts"):
         linked_transcript(f"artifact:recordings/{key}", mall)
+
+
+def test_a_linked_transcript_passed_in_and_a_damaged_record(tmp_path):
+    """A `LinkedTranscript` already read is taken as it is; a record that does
+    not validate is refused by name, not with a traceback; linked text that
+    happens to name a local file is still read as text."""
+    from an.stores.transcripts import linked_transcript, record_transcript
+
+    root = _project(tmp_path)
+    mall = load(root).mall
+    record_transcript(mall["transcripts"], "take1", SRT)
+    linked = linked_transcript("artifact:transcripts/take1", mall)
+    report = import_recordings(
+        root, _take(tmp_path), transcript=linked, license=LICENSE, write=False
+    )
+    assert len(report.takes) == 2
+    (root / "artifacts" / "transcripts" / "catalog" / "bad.json").write_text(
+        "{not json", encoding="utf-8"
+    )
+    with pytest.raises(RecordedVoicesError, match="'bad'.*damaged"):
+        import_recordings(
+            root,
+            _take(tmp_path),
+            transcript="artifact:transcripts/bad",
+            license=LICENSE,
+        )
+    from an.audio.transcripts import parse_transcript_text
+
+    (tmp_path / "note").write_text(
+        "1\n00:00:00,000 --> 00:00:01,000\nnot me\n", encoding="utf-8"
+    )
+    assert parse_transcript_text("note", fmt="plain")[0].text == "note"
