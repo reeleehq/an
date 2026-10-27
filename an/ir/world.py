@@ -38,6 +38,7 @@ move, and a close-up is the same world seen from nearer.
 
 from __future__ import annotations
 
+import bisect
 import math
 import random
 import re
@@ -2450,9 +2451,9 @@ class _PlaneAnchor:
 
     at: Point3
     rest: float
-    #: The plate's right edge direction in its frame (the camera's right as it
-    #: was anchored): its screen angle is the plate's rotation (an#599).
-    right: Point3 = (1.0, 0.0, 0.0)
+    #: The plate's down direction in its frame (the camera's down as it was
+    #: anchored): where the camera sees it point is the plate's rotation (an#599).
+    down: Point3 = (0.0, 1.0, 0.0)
 
 
 def _with_plane_depths(
@@ -2544,40 +2545,64 @@ def _with_plane_depths(
     return entity.model_copy(update={"overrides": overrides}), actions
 
 
-def _with_rotation(
-    passage: _Pass,
+def _plate_turn(
     ctx: _FrameCtx,
     frame: str,
     anchor: _PlaneAnchor,
     *,
     tol: float,
     sight: Mapping[str, Any],
-) -> _Pass:
-    """``passage`` with the plate's ``rotation`` (radians) when its frame turns
-    relative to the camera over it (an#599): the screen angle of its right edge,
-    so a roll is exact and a yaw turns it as far as a flat sprite can (the
-    foreshortening is not drawn). Unchanged when it never turns past ``tol``
-    (radians: the tolerance at the frame's half width)."""
-    near, focal = sight["near"], sight["focal"]
-    reach = max(anchor.rest, near)
-    tip_at = _add(anchor.at, _mul(anchor.right, reach))
+) -> Callable[[float], float] | None:
+    """``t -> the plate's rotation`` (radians) over the shot, when its frame rolls
+    relative to the camera past ``tol`` at some time of it, else ``None``
+    (an#599). The angle is where the camera sees the plate's ``down`` point:
+    exact for a roll, nothing for a yaw or a pitch (a billboard's verticals stay
+    vertical), unwrapped across ±π so a long roll keeps turning."""
     origin = ctx.view_fn(frame, lambda t: anchor.at)
-    tip = ctx.view_fn(frame, lambda t: tip_at)
+    below = ctx.view_fn(frame, lambda t: _add(anchor.at, anchor.down))
 
-    def screen(seen: Point3) -> tuple[float, float]:
-        rx, ry, depth = seen
-        depth = max(depth, near)
-        return focal * rx / depth, focal * ry / depth
+    def raw(t: float) -> float:
+        (ax, ay, _), (bx, by, _) = origin(t), below(t)
+        return math.atan2(-(bx - ax), by - ay)
 
-    def angle(t: float) -> float:
-        (ax, ay), (bx, by) = screen(origin(t)), screen(tip(t))
-        return math.atan2(by - ay, bx - ax)
+    times = _grid(0.0, ctx.duration, sight["min_step"])
+    unwrapped = [raw(times[0])]
+    for t in times[1:]:
+        unwrapped.append(_nearest_turn(raw(t), unwrapped[-1]))
+    if max(abs(a) for a in unwrapped) <= tol:
+        return None
 
-    times = _grid(passage.t_in, passage.t_out, sight["min_step"])
-    if max(abs(angle(t)) for t in times) <= tol:
+    def turn(t: float) -> float:
+        k = bisect.bisect_left(times, t)
+        near = unwrapped[min(k, len(times) - 1)]
+        return _nearest_turn(raw(t), near)
+
+    return turn
+
+
+def _nearest_turn(angle: float, near: float) -> float:
+    """``angle`` plus the whole turns that bring it nearest ``near``.
+
+    >>> round(_nearest_turn(-3.1, 3.1), 4)
+    3.1832
+    """
+    return angle + 2.0 * math.pi * round((near - angle) / (2.0 * math.pi))
+
+
+def _with_rotation(
+    passage: _Pass,
+    turn: Callable[[float], float] | None,
+    *,
+    tol: float,
+    min_step: float,
+) -> _Pass:
+    """``passage`` with the plate's ``rotation`` fitted from ``turn`` (every
+    passage of a plate that turns at all, so none holds a stale angle), or
+    unchanged when it never turns."""
+    if turn is None:
         return passage
     rotation = fit_channel(
-        angle, passage.t_in, passage.t_out, tolerance=tol, min_step=sight["min_step"]
+        turn, passage.t_in, passage.t_out, tolerance=tol, min_step=min_step
     )
     return _Pass(
         passage.t_in,
@@ -2640,17 +2665,17 @@ def _plane_keys(
         if at is None:
             _behind(note, entity, key[1], z, frame, then="it is hidden")
             return hide
-        anchor = anchors[key] = _PlaneAnchor(at, eye.view(at)[2], eye.right)
+        anchor = anchors[key] = _PlaneAnchor(at, eye.view(at)[2], eye.down)
     view = ctx.view_fn(frame, lambda t: anchor.at)
     focal = sight["focal"]
     span = max(sight["width"], sight["height"])
     # The scale is judged at the plate's visible extent: no more than the frame
     # (a canvas-sized fill would otherwise demand sub-pixel scale keys, an#599).
     ref_height = min(box[3] - box[1], sight["height"]) if box is not None else span
+    angle_tol = sight["tol"] / (span / 2)
+    turn = _plate_turn(ctx, frame, anchor, tol=angle_tol, sight=sight)
     passes = [
-        _with_rotation(
-            p, ctx, frame, anchor, tol=sight["tol"] / (span / 2), sight=sight
-        )
+        _with_rotation(p, turn, tol=angle_tol, min_step=sight["min_step"])
         for p, _ in _sight(
             view, box=box, m=anchor.rest / focal, ref_height=ref_height, **sight
         ).passes
@@ -2665,16 +2690,22 @@ def _plane_keys(
         for a in iter_actions(top)
         if getattr(a, "target", None) == target
     } & set().union(*map(_properties, keys))
-    if hand == {"alpha"}:
+    if hand and hand <= {"alpha", "rotation"}:
         note(
             "warning",
             "plane_depths",
             entity,
             f"plane {key[1]!r} is at a depth and the shot's own actions drive its "
-            "`alpha`: they win, so the plane is not hidden while the camera does not "
-            "see it.",
+            f"{sorted(hand)}: they win"
+            + (
+                ", so it is not hidden while the camera does not see it"
+                if "alpha" in hand
+                else ""
+            )
+            + (", so it does not turn with its frame" if "rotation" in hand else "")
+            + ".",
         )
-        return [k for k in keys if "alpha" not in _properties(k)]
+        return [k for k in keys if not (_properties(k) & hand)]
     if hand:
         note(
             "warning",
