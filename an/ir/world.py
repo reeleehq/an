@@ -3485,8 +3485,10 @@ def depth_order_problems(
     member not in ``depths`` (a stream slot, a non-member) is not checked,
     nor a pair where either has a ``stage.after`` (the author's statement of
     order), nor a pair ``attached`` links (``(member, host)``, either way
-    round): the attachment pass places them. Each pair is reported once, at
-    the first such time.
+    round): the attachment pass places them. A pair whose entities both carry
+    paint keys (:data:`an.base.PAINT_KEYS_OVERRIDE`) is painted, at each time,
+    in the order of their keys in force then (an#681), not in ``painted``'s.
+    Each pair is reported once, at the first such time.
 
     >>> from an.ir.schema import AssetRef
     >>> a, b = (AssetRef(kind="prop", id=i, store="props", ref=i) for i in "ab")
@@ -3532,8 +3534,17 @@ def depth_order_problems(
             return True
         return p[0] <= q[2] and q[0] <= p[2] and p[1] <= q[3] and q[1] <= p[3]
 
+    def key_at(keys: Sequence[Any], t: float) -> list[Any]:
+        """The paint key in force at ``t`` (keys sort farther first)."""
+        return [list(k) for s, k in keys if s <= t + _WINDOW_EPS][-1]
+
     members = [e for e in painted if e.id in depths]
     sampled = {e.id: series(e.id) for e in members}
+    paint_keys = {
+        e.id: (e.overrides or {})[PAINT_KEYS_OVERRIDE]
+        for e in members
+        if PAINT_KEYS_OVERRIDE in (e.overrides or {})
+    }
     moving = {e.id for e in members if not isinstance(depths[e.id], (int, float))}
     out: list[tuple[str, str]] = []
     for i, behind in enumerate(members):
@@ -3548,24 +3559,39 @@ def depth_order_problems(
             ) in linked:
                 continue
             df, bf, onf = sampled[front.id]
+            kb, kf = paint_keys.get(behind.id), paint_keys.get(front.id)
+
+            def swapped(k: int) -> bool:  # the keys paint `front` first at k
+                return (
+                    kb is not None
+                    and kf is not None
+                    and key_at(kf, times[k]) < key_at(kb, times[k])
+                )
+
+            def wrong(k: int) -> bool:
+                if swapped(k):
+                    return df[k] < db[k] - tolerance
+                return db[k] < df[k] - tolerance
+
             k = next(
                 (
                     k
                     for k in range(n)
-                    if onb[k]
-                    and onf[k]
-                    and db[k] < df[k] - tolerance
-                    and overlap(bb[k], bf[k])
+                    if onb[k] and onf[k] and wrong(k) and overlap(bb[k], bf[k])
                 ),
                 None,
             )
             if k is not None:
+                if swapped(k):
+                    behind_id, front_id, d_near, d_far = front.id, behind.id, df[k], db[k]
+                else:
+                    behind_id, front_id, d_near, d_far = behind.id, front.id, db[k], df[k]
                 out.append(
                     (
-                        behind.id,
-                        f"painted behind {front.id!r} but nearer the camera from "
+                        behind_id,
+                        f"painted behind {front_id!r} but nearer the camera from "
                         f"{times[k]:.2f} s, where they overlap on screen (depth "
-                        f"{db[k]:.3g} against {df[k]:.3g}): the world orders each "
+                        f"{d_near:.3g} against {d_far:.3g}): the world orders each "
                         "member by its depth where it first shows, so it stays on "
                         "the wrong side. Cut the shot where they pass, or say which "
                         "is in front with `stage.after`.",

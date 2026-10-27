@@ -2039,3 +2039,15 @@ def test_breakpoints_a_float_noise_apart_are_one():
     )
     times = sorted({t for ks in keys.values() for t, _ in ks})
     assert all(t1 - t0 > 1e-6 for t0, t1 in zip(times, times[1:])), times
+
+
+def test_a_pair_the_paint_keys_order_is_not_reported_out_of_order():
+    """an#681: ``left`` stands by the road and passes ``right`` (at rest in
+    the car) at 1.5 s, right behind it on screen. The paint keys swap them
+    there, so the ``draw_order`` check, which reads each instant's order from
+    those keys, has nothing to report about the pair."""
+    scene = _lane(_travel_scene(Shot(id="s1", duration=3.0, viewpoint="road")), 0.2)
+    left = scene.world.members[0]
+    scene.world.members[0] = left.model_copy(update={"frame": "world", "at": (0.5, 0.4, 8.0)})
+    notes = lower_world(scene, extents=EXTENTS).notes
+    assert [n.message for n in notes if n.kind == "draw_order"] == []
