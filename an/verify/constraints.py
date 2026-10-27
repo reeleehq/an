@@ -85,6 +85,7 @@ import math
 from dataclasses import dataclass
 from typing import Any, Callable, Iterator, Mapping
 
+from an.base import STREAM_OVERRIDE, UNSEEN_ALPHA
 from an.genres.registry import (
     CORE_OWNER,
     CheckStage,
@@ -777,8 +778,18 @@ def _is_solid(entity: Any) -> bool:
 
 
 def _is_ordered(a: Any, b: Any) -> bool:
-    """Either one is drawn after something (``stage.after``): an overlap is occlusion."""
-    return any(e.stage is not None and e.stage.after is not None for e in (a, b))
+    """Either one is drawn after something (``stage.after``), or is a stream's
+    slot, which the world draws in depth order (an#632): an overlap is
+    occlusion, a nearer pole in front of a farther one."""
+    return any(
+        (e.stage is not None and e.stage.after is not None) or _is_slot(e)
+        for e in (a, b)
+    )
+
+
+def _is_slot(entity: Any) -> bool:
+    """A slot entity a travel's lowering made (``overrides.stream``)."""
+    return STREAM_OVERRIDE in (entity.overrides or {})
 
 
 def _sample_times(duration: float) -> list[float]:
@@ -819,12 +830,20 @@ def solid_overlaps(
         for e in solids
     }
     timeline = timeline_from_scene(doc)
+    rest_alpha = {
+        path: node.transform.alpha
+        for path, node in walk_document(doc)
+        if path in {e.id for e in solids}
+    }
     first: dict[tuple[str, str], Overlap] = {}
     worst: dict[tuple[str, str], float] = {}
     for t in _sample_times(duration):
         pose = evaluate_timeline(timeline, t)
         boxes = {}
         for e in solids:
+            alpha = pose.get((e.id, "alpha"), rest_alpha.get(e.id, 1.0))
+            if isinstance(alpha, (int, float)) and alpha <= UNSEEN_ALPHA:
+                continue  # not seen now (a stream slot between passes): no overlap
             found = [
                 b for p in drawn[e.id] if (b := node_box(doc, p, pose=pose)) is not None
             ]
@@ -946,8 +965,13 @@ def check_draw_order(ctx: Any) -> None:
         ctx.shot, ctx.index = shot, i
         doc = compiled_shot(ctx)
         ctx.shot = ctx.index = None
-        # a world derives its members' order from depth (ADR 0009), so it may flip
-        ids = {e.id for e in shot.entities if e.kind not in NON_SOLID_KINDS} - world_ids
+        # a world derives its members' and its streams' order from depth (ADR
+        # 0009), so it may flip (an#632)
+        ids = {
+            e.id
+            for e in shot.entities
+            if e.kind not in NON_SOLID_KINDS and not _is_slot(e)
+        } - world_ids
         orders.append(painted_order(doc, ids) if doc is not None else [])
         afters.append({e.id: e.stage.after if e.stage else None for e in shot.entities})
     for f in order_flips(orders, afters):

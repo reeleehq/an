@@ -229,6 +229,11 @@ PLANE_FACTORS_OVERRIDE: str = "plane_factors"
 #: The core's marker on a slot entity a travel's lowering made (an#516): the
 #: id of the stream it draws (``an.ir.world``).
 STREAM_OVERRIDE: str = "stream"
+#: At or under this alpha an entity is not seen (a stream slot between its
+#: passes, a fade's end): it cannot jump or swap sides at a cut (an#516), nor
+#: overlap or be drawn through anything at an instant (an#632).
+UNSEEN_ALPHA: float = 1e-3
+
 #: Keys the CORE records in an entity's ``overrides``: what attaches it, the
 #: stream slot it is, what holds it and at what angle, the world's plane
 #: factors. Bookkeeping about the entity, not fields of its asset document, so

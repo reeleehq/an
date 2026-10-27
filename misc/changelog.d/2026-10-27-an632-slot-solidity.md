@@ -1,0 +1,1 @@
+- Validate: the solidity check skips an entity unseen at an instant (alpha ≤ `UNSEEN_ALPHA`), and treats a stream slot's overlap as occlusion; the draw-order check leaves slots to the world's depth order, as it does members: a road of poles is no longer 90 overlap and 56 order warnings (an#632).

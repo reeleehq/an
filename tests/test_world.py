@@ -1392,3 +1392,19 @@ def test_a_lane_range_is_measured_across_it_not_at_its_ends():
         }
     )
     lower_world(scene, extents=EXTENTS)  # no "two instances in one slot"
+
+
+def test_a_travel_is_not_reported_as_solids_through_each_other(tmp_path):
+    """an#632: three shots down a road of poles. Every slot pair either hides
+    one (alpha 0 between passes) or is a nearer pole drawn over a farther one;
+    neither the solidity nor the draw-order check reports them."""
+    project = _project(tmp_path)
+    scene = _travel_scene(
+        *[Shot(id=f"s{i}", duration=3.0, viewpoint="road") for i in range(3)]
+    )
+    said = [
+        f.description
+        for f in _validate(project, scene).findings
+        if "overlap from" in f.description or "painted over" in f.description
+    ]
+    assert said == []

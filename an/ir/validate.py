@@ -21,7 +21,7 @@ from typing import Any, Callable, Collection, Literal, Mapping
 
 from pydantic import ValidationError
 
-from an.base import AUTHORABLE_PROPERTIES, TRANSFORM_PROPERTIES
+from an.base import AUTHORABLE_PROPERTIES, TRANSFORM_PROPERTIES, UNSEEN_ALPHA
 from an.audio.effects import TRIM_SILENCE, VoiceEffectError, voice_effects
 from an.audio.voices import speaker_voice_ref
 from an.stores._common import art_exists_for
@@ -2602,11 +2602,6 @@ def _opened(shot: Any, entity_id: str, *, fps: float) -> set[str]:
         if float(when or 0.0) < first_frame:
             out.add(action.property)
     return out
-
-
-#: At or under this alpha an entity is not seen at a cut (a stream slot between
-#: its passes, a fade's end): it cannot jump or swap sides (an#516).
-UNSEEN_ALPHA: float = 1e-3
 
 
 def _seen(state: Mapping[str, float]) -> bool:
