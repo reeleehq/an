@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=cc3edc15"></script>
+    <script src="../../../_static/documentation_options.js?v=6846580c"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.282" />
+  <meta name="docsearch:version" content="0.1.283" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -796,6 +796,7 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.genres</span><span class="w"> </span><span class="kn">import</span> <span class="n">action_kind</span><span class="p">,</span> <span class="n">action_kind_names</span><span class="p">,</span> <span class="n">entity_kind</span><span class="p">,</span> <span class="n">entity_space_resolver</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.genres.registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">CompilePass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.frames</span><span class="w"> </span><span class="kn">import</span> <span class="n">lag_filter</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.compose</span><span class="w"> </span><span class="kn">import</span> <span class="n">FlatAction</span><span class="p">,</span> <span class="n">flatten</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">CameraKey</span><span class="p">,</span>
@@ -1805,6 +1806,11 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"nodes."</span>
         <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
     <span class="n">x0</span><span class="p">,</span> <span class="n">y0</span> <span class="o">=</span> <span class="n">positions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">follow</span><span class="o">.</span><span class="n">lag</span><span class="p">:</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">state</span><span class="o">.</span><span class="n">fps</span>
+        <span class="n">xs</span> <span class="o">=</span> <span class="n">lag_filter</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">positions</span><span class="p">],</span> <span class="n">lag</span><span class="o">=</span><span class="n">follow</span><span class="o">.</span><span class="n">lag</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">)</span>
+        <span class="n">ys</span> <span class="o">=</span> <span class="n">lag_filter</span><span class="p">([</span><span class="n">y</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">positions</span><span class="p">],</span> <span class="n">lag</span><span class="o">=</span><span class="n">follow</span><span class="o">.</span><span class="n">lag</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">)</span>
+        <span class="n">positions</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">))</span>
     <span class="k">return</span> <span class="p">[</span>
         <span class="n">CameraKey</span><span class="p">(</span>
             <span class="n">at</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="n">k</span> <span class="o">/</span> <span class="n">state</span><span class="o">.</span><span class="n">fps</span><span class="p">),</span>

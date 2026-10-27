@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=cc3edc15"></script>
+    <script src="../_static/documentation_options.js?v=6846580c"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.282" />
+  <meta name="docsearch:version" content="0.1.283" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -679,7 +679,10 @@ and the easing function, nothing else. It is an extraction candidate: previz
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.frames.look_basis" title="an.ir.frames.look_basis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">look_basis</span></code></a>(yaw, pitch, roll)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.frames.lag_filter" title="an.ir.frames.lag_filter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lag_filter</span></code></a>(values, *, lag, dt)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">values</span></code> seen through a first-order filter of time constant <code class="docutils literal notranslate"><span class="pre">lag</span></code> (s), sampled every <code class="docutils literal notranslate"><span class="pre">dt</span></code>: it starts on the first value and closes <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">-</span> <span class="pre">exp(-dt/lag)</span></code> of the gap each step (Cinemachine's damping: the time it takes to catch up).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.frames.look_basis" title="an.ir.frames.look_basis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">look_basis</span></code></a>(yaw, pitch, roll)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">(forward,</span> <span class="pre">right,</span> <span class="pre">down)</span></code> for a look of <code class="docutils literal notranslate"><span class="pre">yaw</span></code> (turn right), <code class="docutils literal notranslate"><span class="pre">pitch</span></code> (look down) and <code class="docutils literal notranslate"><span class="pre">roll</span></code> (the PICTURE turns clockwise: what was on the right moves to the bottom), in degrees.</p></td>
 </tr>
 </tbody>
@@ -765,6 +768,35 @@ start in the film, so a moving frame keeps its phase across a cut.</p>
 <dl class="field-list simple">
 </dl>
 <dl class="py method">
+<dt class="sig sig-object py" id="an.ir.frames.FrameTree.acceleration">
+<span class="sig-name descname"><span class="pre">acceleration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">film_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">within</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/frames.html#FrameTree.acceleration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.frames.FrameTree.acceleration" title="Link to this definition">#</a></dt>
+<dd><p>The world acceleration of <code class="docutils literal notranslate"><span class="pre">name</span></code>’s origin at shot time <code class="docutils literal notranslate"><span class="pre">t</span></code>
+(second difference of step <code class="docutils literal notranslate"><span class="pre">dt</span></code>, units/s²): zero for a frame at rest
+or at a constant speed.</p>
+<p><code class="docutils literal notranslate"><span class="pre">within=(lo,</span> <span class="pre">hi)</span></code> keeps the three samples inside that window (a
+shot): near an end the stencil slides inward (a one-sided difference),
+and a window narrower than <code class="docutils literal notranslate"><span class="pre">2·dt</span></code> shrinks the step to half of it, so
+a motion that starts at the window’s edge is not read as an impulse.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">Frame</span><span class="p">,</span> <span class="n">FrameMoving</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tree</span> <span class="o">=</span> <span class="n">FrameTree</span><span class="p">({</span><span class="s2">"car"</span><span class="p">:</span> <span class="n">Frame</span><span class="p">(</span><span class="n">moving</span><span class="o">=</span><span class="n">FrameMoving</span><span class="p">(</span><span class="n">speed</span><span class="o">=</span><span class="mf">20.0</span><span class="p">))})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.0</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">tree</span><span class="o">.</span><span class="n">acceleration</span><span class="p">(</span><span class="s2">"car"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)]</span>
+<span class="go">[0.0, 0.0, 0.0]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">track</span> <span class="o">=</span> <span class="n">Track</span><span class="p">([</span><span class="n">TrackEvent</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">from_</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">easing</span><span class="o">=</span><span class="s2">"ease_out"</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">braking</span> <span class="o">=</span> <span class="n">FrameTree</span><span class="p">({</span><span class="s2">"car"</span><span class="p">:</span> <span class="n">Frame</span><span class="p">()},</span> <span class="n">tracks</span><span class="o">=</span><span class="p">{</span><span class="s2">"car"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"at_z"</span><span class="p">:</span> <span class="n">track</span><span class="p">}})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.0</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">braking</span><span class="o">.</span><span class="n">acceleration</span><span class="p">(</span><span class="s2">"car"</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)]</span>   <span class="c1"># 20 m/s to 0 in a second</span>
+<span class="go">[0.0, 0.0, -20.0]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.0</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">braking</span><span class="o">.</span><span class="n">acceleration</span><span class="p">(</span><span class="s2">"car"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="mf">0.04</span><span class="p">,</span> <span class="n">within</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))]</span>
+<span class="go">[0.0, 0.0, -20.0]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="an.ir.frames.FrameTree.chain">
 <span class="sig-name descname"><span class="pre">chain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/frames.html#FrameTree.chain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.frames.FrameTree.chain" title="Link to this definition">#</a></dt>
 <dd><p>The frames from <code class="docutils literal notranslate"><span class="pre">name</span></code> up to (not including) the world, root first.</p>
@@ -840,6 +872,18 @@ in <code class="docutils literal notranslate"><span class="pre">name</span></cod
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.ir.frames.Pose" title="an.ir.frames.Pose"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pose</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="an.ir.frames.FrameTree.sway_frame">
+<span class="sig-name descname"><span class="pre">sway_frame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/frames.html#FrameTree.sway_frame"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.frames.FrameTree.sway_frame" title="Link to this definition">#</a></dt>
+<dd><p>The frame whose <code class="docutils literal notranslate"><span class="pre">sway</span></code> governs what is in <code class="docutils literal notranslate"><span class="pre">name</span></code>: the nearest one
+up the chain that declares it, else <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -986,6 +1030,29 @@ if unset) and holds its end.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.ir.frames.lag_filter">
+<span class="sig-prename descclassname"><span class="pre">an.ir.frames.</span></span><span class="sig-name descname"><span class="pre">lag_filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">lag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/frames.html#lag_filter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.frames.lag_filter" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">values</span></code> seen through a first-order filter of time constant <code class="docutils literal notranslate"><span class="pre">lag</span></code>
+(s), sampled every <code class="docutils literal notranslate"><span class="pre">dt</span></code>: it starts on the first value and closes
+<code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">-</span> <span class="pre">exp(-dt/lag)</span></code> of the gap each step (Cinemachine’s damping: the time
+it takes to catch up). <code class="docutils literal notranslate"><span class="pre">lag</span> <span class="pre">&lt;=</span> <span class="pre">0</span></code> returns them as they are.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">lag_filter</span><span class="p">([</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="mf">100.0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">30</span><span class="p">,</span> <span class="n">lag</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span>                  <span class="c1"># 0.5 s after the step: 1 - 1/e of it</span>
+<span class="go">63.2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lag_filter</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span> <span class="n">lag</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="w">  </span><span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">lag_filter: the sample step `dt` must be positive (got 0.0).</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.ir.frames.look_basis">
 <span class="sig-prename descclassname"><span class="pre">an.ir.frames.</span></span><span class="sig-name descname"><span class="pre">look_basis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">yaw</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pitch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roll</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/frames.html#look_basis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.frames.look_basis" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">(forward,</span> <span class="pre">right,</span> <span class="pre">down)</span></code> for a look of <code class="docutils literal notranslate"><span class="pre">yaw</span></code> (turn right), <code class="docutils literal notranslate"><span class="pre">pitch</span></code>
@@ -1057,12 +1124,14 @@ right moves to the bottom), in degrees.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.frames.FRAME_PROPERTIES"><code class="docutils literal notranslate"><span class="pre">FRAME_PROPERTIES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.frames.FrameError"><code class="docutils literal notranslate"><span class="pre">FrameError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.frames.FrameTree"><code class="docutils literal notranslate"><span class="pre">FrameTree</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.frames.FrameTree.acceleration"><code class="docutils literal notranslate"><span class="pre">FrameTree.acceleration()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.frames.FrameTree.chain"><code class="docutils literal notranslate"><span class="pre">FrameTree.chain()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.frames.FrameTree.constant_motion"><code class="docutils literal notranslate"><span class="pre">FrameTree.constant_motion()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.frames.FrameTree.is_static"><code class="docutils literal notranslate"><span class="pre">FrameTree.is_static()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.frames.FrameTree.is_still"><code class="docutils literal notranslate"><span class="pre">FrameTree.is_still()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.frames.FrameTree.local_pose"><code class="docutils literal notranslate"><span class="pre">FrameTree.local_pose()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.frames.FrameTree.relative_pose"><code class="docutils literal notranslate"><span class="pre">FrameTree.relative_pose()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.frames.FrameTree.sway_frame"><code class="docutils literal notranslate"><span class="pre">FrameTree.sway_frame()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.frames.FrameTree.world_pose"><code class="docutils literal notranslate"><span class="pre">FrameTree.world_pose()</span></code></a></li>
 </ul>
 </li>
@@ -1080,6 +1149,7 @@ right moves to the bottom), in degrees.</p>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.frames.TrackEvent"><code class="docutils literal notranslate"><span class="pre">TrackEvent</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.frames.lag_filter"><code class="docutils literal notranslate"><span class="pre">lag_filter()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.frames.look_basis"><code class="docutils literal notranslate"><span class="pre">look_basis()</span></code></a></li>
 </ul>
   </nav></div>

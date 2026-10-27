@@ -60,6 +60,8 @@ True
 | [`GRAVITY_DIRECTIONS`](#an.ir.schema.GRAVITY_DIRECTIONS)        | Where each named gravity direction pulls, on the stage's y-down axes.                                                                                                                                                                                                     |
 | [`NO_GRAVITY`](#an.ir.schema.NO_GRAVITY)                | The spellings of no gravity.                                                                                                                                                                                                                                              |
 | [`TRAVEL_PLATE_ROLES`](#an.ir.schema.TRAVEL_PLATE_ROLES)        | at infinity, or rigid with the vehicle the viewpoints are mounted on.                                                                                                                                                                                                     |
+| [`DFLT_WORLD_GRAVITY`](#an.ir.schema.DFLT_WORLD_GRAVITY)        | Gravity, world units per second² along +y (down; the world's units are metres): Earth's.                                                                                                                                                                                  |
+| [`DFLT_SWAY_LIMIT_DEG`](#an.ir.schema.DFLT_SWAY_LIMIT_DEG)       | The most a member of a swaying frame leans by default, degrees.                                                                                                                                                                                                           |
 | [`CORE_ACTION_KINDS`](#an.ir.schema.CORE_ACTION_KINDS)         | The `kind` of every action the core defines (the static union members).                                                                                                                                                                                                   |
 | [`EXTENSION_TAG`](#an.ir.schema.EXTENSION_TAG)             | The union tag of the open member.                                                                                                                                                                                                                                         |
 | [`Action`](#an.ir.schema.Action)                    | the core kinds plus [`ExtensionAction`](#an.ir.schema.ExtensionAction) for any other `kind` (a registered genre kind validates to its own model through it).                                                                                                |
@@ -79,46 +81,47 @@ True
 
 ### Classes
 
-| [`AssetRef`](#an.ir.schema.AssetRef)(\*, kind, id, store, ref[, ...])          | Reference to an entry in a project store.                                                                                                                           |
-|-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`Attachment`](#an.ir.schema.Attachment)(\*, to[, at, scale])                    | A member that goes where another member goes (ADR 0009 decision 1).                                                                                                 |
-| [`Camera`](#an.ir.schema.Camera)(\*[, shake, follow, move, keys])            | Camera state for a shot: a named move, or explicit keys.                                                                                                            |
-| [`CameraFollow`](#an.ir.schema.CameraFollow)(\*, target[, axes])                   | A camera that follows an entity (an#445): the frame keeps `target` where it stood at the shot's start.                                                              |
-| [`CameraKey`](#an.ir.schema.CameraKey)(\*[, at, x, y, zoom, rotation, easing])  | One camera pose at one time — the explicit door behind the named moves.                                                                                             |
-| [`CameraShake`](#an.ir.schema.CameraShake)(\*[, at, duration, amplitude, ...])    | A jolt of the frame inside a shot (an#429): seeded screen-space jitter.                                                                                             |
-| [`Captions`](#an.ir.schema.Captions)(\*[, burn, sidecar, max_chars, ...])      | Captions for the whole film, built from the dialogue's word timings.                                                                                                |
-| [`CueAnchor`](#an.ir.schema.CueAnchor)(\*, when, reaches[, offset, shot])       | A sound cue's time, taken from the picture (an#317): when a node reaches a frame row or column.                                                                     |
-| [`CueUntil`](#an.ir.schema.CueUntil)(\*, cue[, offset])                        | Where a sound cue ends: at another cue's start, plus `offset` (an#317).                                                                                             |
-| [`DelayAction`](#an.ir.schema.DelayAction)(\*[, name, kind])                      | Composition: an empty span that consumes time.                                                                                                                      |
-| [`Dialogue`](#an.ir.schema.Dialogue)(\*, speaker, text[, voice_ref, ...])      | One line of spoken dialogue.                                                                                                                                        |
-| [`ExtensionAction`](#an.ir.schema.ExtensionAction)(\*[, name])                        | An action of a kind the core does not define: the IR's one open member.                                                                                             |
-| [`Frame`](#an.ir.schema.Frame)(\*[, parent, at, look, coupling, ...])       | A frame of reference: a pose (position and orientation) over film time, relative to its `parent` (ADR 0009 amendment, an#501).                                      |
-| [`FrameMoving`](#an.ir.schema.FrameMoving)(\*[, direction])                       | A frame translating at a constant velocity: sugar for a frame whose `at` grows by `direction × speed` per second of FILM time.                                      |
-| [`JointSpec`](#an.ir.schema.JointSpec)(\*, type, a[, b, end, limits, ...])      | A declared relation between two bodies (ADR 0008 decision 3).                                                                                                       |
-| [`LoopAction`](#an.ir.schema.LoopAction)(\*[, name, kind, count])                | Composition: repeat `child` `count` times.                                                                                                                          |
-| [`Meta`](#an.ir.schema.Meta)(\*[, title, author, duration, fps, ...])      | Scene metadata.                                                                                                                                                     |
-| [`Narration`](#an.ir.schema.Narration)(\*, text[, voice_ref, start, ...])       | Off-screen narration.                                                                                                                                               |
-| [`ParallelAction`](#an.ir.schema.ParallelAction)(\*[, name, kind, children])         | Composition: run all children simultaneously starting at the same time.                                                                                             |
-| [`Resolution`](#an.ir.schema.Resolution)(\*[, width, height])                    | Pixel dimensions of the rendered output.                                                                                                                            |
-| [`SceneIR`](#an.ir.schema.SceneIR)(\*[, version, compatible_version, ...])    | Top-level Scene IR document.                                                                                                                                        |
-| [`SequenceAction`](#an.ir.schema.SequenceAction)(\*[, name, kind, children])         | Composition: run children one after the other.                                                                                                                      |
-| [`SetAction`](#an.ir.schema.SetAction)(\*[, name, kind, at])                    | Set a property to a value at a specific time.                                                                                                                       |
-| [`Shot`](#an.ir.schema.Shot)(\*, id[, renderer, duration, camera, ...])    | A single rendered unit.                                                                                                                                             |
-| [`SolveSettings`](#an.ir.schema.SolveSettings)(\*[, mode, gravity, damping, ...])   | How a shot's joints are solved: a per-shot override of the style pack's `gravity` and `damping`, and the solve's mode and effort (ADR 0008 decision 4).             |
-| [`SoundCue`](#an.ir.schema.SoundCue)(\*, sound[, at, until, cause, ...])       | One sound placed on the timeline: an SFX hit, an ambience, a music bed.                                                                                             |
-| [`StagePlacement`](#an.ir.schema.StagePlacement)(\*[, at, scale, after])             | Where an entity stands on the stage, and how big it is.                                                                                                             |
-| [`Stream`](#an.ir.schema.Stream)(\*, id, ref[, kind, store, height, ...])    | A row of one prop along a travel's direction (ADR 0009 decision 4).                                                                                                 |
-| [`Transition`](#an.ir.schema.Transition)(\*[, kind, duration, color, ...])       | How a shot is ENTERED — from the previous shot, or (for the first shot) from nothing.                                                                               |
-| [`Travel`](#an.ir.schema.Travel)(\*[, direction, speed, near, far, ...])     | The viewpoints moving through the world in film time (ADR 0009 decision 4).                                                                                         |
-| [`TweenAction`](#an.ir.schema.TweenAction)(\*[, name, kind, from_value, ...])     | Animate a property from a start value to an end value over a duration.                                                                                              |
-| [`Viewpoint`](#an.ir.schema.Viewpoint)(\*[, at, look, look_at, vanish, ...])    | A pinhole camera onto the world, or a composition that resolves to one (ADR 0009 decision 2).                                                                       |
-| [`VisemeKeyframe`](#an.ir.schema.VisemeKeyframe)(\*, time, viseme, \*\*extra_data)   | A single mouth-shape keyframe in a viseme track.                                                                                                                    |
-| [`VisemeTrack`](#an.ir.schema.VisemeTrack)(\*[, fps_hint, keyframes])             | Aligned viseme track produced by the lip-sync stage.                                                                                                                |
-| [`VoiceLoudness`](#an.ir.schema.VoiceLoudness)(\*[, target_lufs, peak_db])          | One loudness for every voice of the film (an#315).                                                                                                                  |
-| [`Weld`](#an.ir.schema.Weld)(\*, item, by[, start, until, offset])         | A held item: `item` stays at `offset` from `by` between `start` and `until` (catalogue A4).                                                                         |
-| [`WordTimingIR`](#an.ir.schema.WordTimingIR)(\*, text, start, end, \*\*extra_data) | One word of a line and when it was spoken, in seconds from the line's start (like [`VisemeKeyframe`](#an.ir.schema.VisemeKeyframe), never absolute). |
-| [`World`](#an.ir.schema.World)(\*[, members, viewpoints, travel, frames])   | A scene's world: members at positions, the named viewpoints that are its coverage, and its travel (ADR 0009).                                                       |
-| [`WorldMember`](#an.ir.schema.WorldMember)(\*, kind, id, store, ref[, ...])       | An entity of the scene's world: the same reference a shot's entity carries, at a world position with a size (ADR 0009 decision 1).                                  |
+| [`AssetRef`](#an.ir.schema.AssetRef)(\*, kind, id, store, ref[, ...])          | Reference to an entry in a project store.                                                                                                                                                                                                                                                |
+|-----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`Attachment`](#an.ir.schema.Attachment)(\*, to[, at, scale])                    | A member that goes where another member goes (ADR 0009 decision 1).                                                                                                                                                                                                                      |
+| [`Camera`](#an.ir.schema.Camera)(\*[, shake, follow, move, keys])            | Camera state for a shot: a named move, or explicit keys.                                                                                                                                                                                                                                 |
+| [`CameraFollow`](#an.ir.schema.CameraFollow)(\*, target[, axes, lag])              | A camera that follows an entity (an#445): the frame keeps `target` where it stood at the shot's start.                                                                                                                                                                                   |
+| [`CameraKey`](#an.ir.schema.CameraKey)(\*[, at, x, y, zoom, rotation, easing])  | One camera pose at one time — the explicit door behind the named moves.                                                                                                                                                                                                                  |
+| [`CameraShake`](#an.ir.schema.CameraShake)(\*[, at, duration, amplitude, ...])    | A jolt of the frame inside a shot (an#429): seeded screen-space jitter.                                                                                                                                                                                                                  |
+| [`Captions`](#an.ir.schema.Captions)(\*[, burn, sidecar, max_chars, ...])      | Captions for the whole film, built from the dialogue's word timings.                                                                                                                                                                                                                     |
+| [`CueAnchor`](#an.ir.schema.CueAnchor)(\*, when, reaches[, offset, shot])       | A sound cue's time, taken from the picture (an#317): when a node reaches a frame row or column.                                                                                                                                                                                          |
+| [`CueUntil`](#an.ir.schema.CueUntil)(\*, cue[, offset])                        | Where a sound cue ends: at another cue's start, plus `offset` (an#317).                                                                                                                                                                                                                  |
+| [`DelayAction`](#an.ir.schema.DelayAction)(\*[, name, kind])                      | Composition: an empty span that consumes time.                                                                                                                                                                                                                                           |
+| [`Dialogue`](#an.ir.schema.Dialogue)(\*, speaker, text[, voice_ref, ...])      | One line of spoken dialogue.                                                                                                                                                                                                                                                             |
+| [`ExtensionAction`](#an.ir.schema.ExtensionAction)(\*[, name])                        | An action of a kind the core does not define: the IR's one open member.                                                                                                                                                                                                                  |
+| [`Frame`](#an.ir.schema.Frame)(\*[, parent, at, look, coupling, ...])       | A frame of reference: a pose (position and orientation) over film time, relative to its `parent` (ADR 0009 amendment, an#501).                                                                                                                                                           |
+| [`FrameMoving`](#an.ir.schema.FrameMoving)(\*[, direction])                       | A frame translating at a constant velocity: sugar for a frame whose `at` grows by `direction × speed` per second of FILM time.                                                                                                                                                           |
+| [`FrameSway`](#an.ir.schema.FrameSway)(\*[, gain, settle, gravity, limit])      | Opt-in sway of an accelerating frame (an#504): what rides in it leans away from the acceleration by `gain × atan(a / gravity)` (the pseudo-force of a non-inertial frame; follow-through and drag, in animation terms), settling with the time constant `settle` seconds (`0`: at once). |
+| [`JointSpec`](#an.ir.schema.JointSpec)(\*, type, a[, b, end, limits, ...])      | A declared relation between two bodies (ADR 0008 decision 3).                                                                                                                                                                                                                            |
+| [`LoopAction`](#an.ir.schema.LoopAction)(\*[, name, kind, count])                | Composition: repeat `child` `count` times.                                                                                                                                                                                                                                               |
+| [`Meta`](#an.ir.schema.Meta)(\*[, title, author, duration, fps, ...])      | Scene metadata.                                                                                                                                                                                                                                                                          |
+| [`Narration`](#an.ir.schema.Narration)(\*, text[, voice_ref, start, ...])       | Off-screen narration.                                                                                                                                                                                                                                                                    |
+| [`ParallelAction`](#an.ir.schema.ParallelAction)(\*[, name, kind, children])         | Composition: run all children simultaneously starting at the same time.                                                                                                                                                                                                                  |
+| [`Resolution`](#an.ir.schema.Resolution)(\*[, width, height])                    | Pixel dimensions of the rendered output.                                                                                                                                                                                                                                                 |
+| [`SceneIR`](#an.ir.schema.SceneIR)(\*[, version, compatible_version, ...])    | Top-level Scene IR document.                                                                                                                                                                                                                                                             |
+| [`SequenceAction`](#an.ir.schema.SequenceAction)(\*[, name, kind, children])         | Composition: run children one after the other.                                                                                                                                                                                                                                           |
+| [`SetAction`](#an.ir.schema.SetAction)(\*[, name, kind, at])                    | Set a property to a value at a specific time.                                                                                                                                                                                                                                            |
+| [`Shot`](#an.ir.schema.Shot)(\*, id[, renderer, duration, camera, ...])    | A single rendered unit.                                                                                                                                                                                                                                                                  |
+| [`SolveSettings`](#an.ir.schema.SolveSettings)(\*[, mode, gravity, damping, ...])   | How a shot's joints are solved: a per-shot override of the style pack's `gravity` and `damping`, and the solve's mode and effort (ADR 0008 decision 4).                                                                                                                                  |
+| [`SoundCue`](#an.ir.schema.SoundCue)(\*, sound[, at, until, cause, ...])       | One sound placed on the timeline: an SFX hit, an ambience, a music bed.                                                                                                                                                                                                                  |
+| [`StagePlacement`](#an.ir.schema.StagePlacement)(\*[, at, scale, after])             | Where an entity stands on the stage, and how big it is.                                                                                                                                                                                                                                  |
+| [`Stream`](#an.ir.schema.Stream)(\*, id, ref[, kind, store, height, ...])    | A row of one prop along a travel's direction (ADR 0009 decision 4).                                                                                                                                                                                                                      |
+| [`Transition`](#an.ir.schema.Transition)(\*[, kind, duration, color, ...])       | How a shot is ENTERED — from the previous shot, or (for the first shot) from nothing.                                                                                                                                                                                                    |
+| [`Travel`](#an.ir.schema.Travel)(\*[, direction, speed, near, far, ...])     | The viewpoints moving through the world in film time (ADR 0009 decision 4).                                                                                                                                                                                                              |
+| [`TweenAction`](#an.ir.schema.TweenAction)(\*[, name, kind, from_value, ...])     | Animate a property from a start value to an end value over a duration.                                                                                                                                                                                                                   |
+| [`Viewpoint`](#an.ir.schema.Viewpoint)(\*[, at, look, look_at, vanish, ...])    | A pinhole camera onto the world, or a composition that resolves to one (ADR 0009 decision 2).                                                                                                                                                                                            |
+| [`VisemeKeyframe`](#an.ir.schema.VisemeKeyframe)(\*, time, viseme, \*\*extra_data)   | A single mouth-shape keyframe in a viseme track.                                                                                                                                                                                                                                         |
+| [`VisemeTrack`](#an.ir.schema.VisemeTrack)(\*[, fps_hint, keyframes])             | Aligned viseme track produced by the lip-sync stage.                                                                                                                                                                                                                                     |
+| [`VoiceLoudness`](#an.ir.schema.VoiceLoudness)(\*[, target_lufs, peak_db])          | One loudness for every voice of the film (an#315).                                                                                                                                                                                                                                       |
+| [`Weld`](#an.ir.schema.Weld)(\*, item, by[, start, until, offset])         | A held item: `item` stays at `offset` from `by` between `start` and `until` (catalogue A4).                                                                                                                                                                                              |
+| [`WordTimingIR`](#an.ir.schema.WordTimingIR)(\*, text, start, end, \*\*extra_data) | One word of a line and when it was spoken, in seconds from the line's start (like [`VisemeKeyframe`](#an.ir.schema.VisemeKeyframe), never absolute).                                                                                                                      |
+| [`World`](#an.ir.schema.World)(\*[, members, viewpoints, travel, frames])   | A scene's world: members at positions, the named viewpoints that are its coverage, and its travel (ADR 0009).                                                                                                                                                                            |
+| [`WorldMember`](#an.ir.schema.WorldMember)(\*, kind, id, store, ref[, ...])       | An entity of the scene's world: the same reference a shot's entity carries, at a world position with a size (ADR 0009 decision 1).                                                                                                                                                       |
 
 ### an.ir.schema.Action
 
@@ -270,7 +273,7 @@ A named preset — sugar for `keys`. The cutout renderer’s vocabulary is
 pinned to the same table by test, because a move that validates and then
 raises is the failure `_check_renderable` exists to prevent.
 
-### *class* an.ir.schema.CameraFollow(, target, axes='x', \*\*extra_data)
+### *class* an.ir.schema.CameraFollow(, target, axes='x', lag=0.0, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -286,6 +289,15 @@ where it stood at the shot’s start.
 which way the camera tracks it (`x`: a side-scrolling walk, `xy`: both).
 Resolved at compile time from the compiled motion (the target’s position at
 every frame), so planes parallax with it like any camera move.
+
+#### lag *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+it tracks the target through
+a first-order filter, so after `lag` seconds of a step it has covered
+63% of it (Cinemachine’s damping). `0`: the frame keeps the target put.
+
+* **Type:**
+  Time constant of the camera’s catch-up (s)
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 
@@ -514,6 +526,10 @@ jumps. Art direction, chosen to read as an impact rather than a tremor.
 * **Type:**
   A camera shake’s defaults (an#429)
 
+### an.ir.schema.DFLT_SWAY_LIMIT_DEG *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 75.0*
+
+The most a member of a swaying frame leans by default, degrees.
+
 ### an.ir.schema.DFLT_TRAVEL_MAX_ACTIONS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 20000*
 
 The most actions one shot’s travel may lower to before the lowering
@@ -534,6 +550,12 @@ passed the camera (and is hidden); beyond `far` it is effectively at infinity
 
 How far a stream instance’s screen position may stray from the fitted
 tweens between two of their keys, in pixels: the fitting’s tolerance.
+
+### an.ir.schema.DFLT_WORLD_GRAVITY *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 9.81*
+
+Gravity, world units per second² along +y (down; the world’s units are
+metres): Earth’s. A `motion: ballistic` reframe falls with it
+([`an.ir.reframe`](an.ir.html.md#an.ir.reframe), which re-exports it) and a `FrameSway` leans by it.
 
 ### an.ir.schema.DISTANCE_MODES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('equal', 'at_most', 'at_least')*
 
@@ -706,7 +728,7 @@ translates).
 The key an element’s frame is written under in a document (`frame` is the
 field; `in` is not a name Python lets a field have).
 
-### *class* an.ir.schema.Frame(\*, parent='world', at=(0.0, 0.0, 0.0), look=(0.0, 0.0, 0.0), coupling='rigid', moving=None, sockets=<factory>, \*\*extra_data)
+### *class* an.ir.schema.Frame(\*, parent='world', at=(0.0, 0.0, 0.0), look=(0.0, 0.0, 0.0), coupling='rigid', moving=None, sway=None, sockets=<factory>, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -740,6 +762,10 @@ palm, a shelf’s slot).
 * **Type:**
   Named points of this frame, `{name: point}` in its units
 
+#### sway *: [FrameSway](#an.ir.schema.FrameSway) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Lean of the members riding in it when it accelerates (off when unset).
+
 ### *class* an.ir.schema.FrameMoving(, direction=(0.0, 0.0, 1.0), speed, \*\*extra_data)
 
 Bases: `_IRModel`
@@ -751,6 +777,41 @@ A frame translating at a constant velocity: sugar for a frame whose
 >>> FrameMoving(direction=(0.0, 0.0, 1.0), speed=20.0).speed
 20.0
 ```
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### *class* an.ir.schema.FrameSway(, gain=1.0, settle=0.0, gravity=9.81, limit=75.0, \*\*extra_data)
+
+Bases: `_IRModel`
+
+Opt-in sway of an accelerating frame (an#504): what rides in it leans
+away from the acceleration by `gain × atan(a / gravity)` (the pseudo-force
+of a non-inertial frame; follow-through and drag, in animation terms),
+settling with the time constant `settle` seconds (`0`: at once).
+Fields at their default are left out of a dump.
+
+```pycon
+>>> FrameSway().gain
+1.0
+>>> FrameSway().model_dump(), FrameSway(gain=0.5, settle=0.2).model_dump()
+({}, {'gain': 0.5, 'settle': 0.2})
+```
+
+#### gravity *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+Gravity in the frame’s units per second² (the world is in metres; a
+frame drawn at another scale says its own): the lean is
+`atan(a / gravity)`.
+
+#### limit *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+a stop with no easing is an impulse,
+and an impulse would flip it over for a frame.
+
+* **Type:**
+  The most a member leans, degrees
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 

@@ -27,6 +27,8 @@ an.ir.schema
       GRAVITY_DIRECTIONS
       NO_GRAVITY
       TRAVEL_PLATE_ROLES
+      DFLT_WORLD_GRAVITY
+      DFLT_SWAY_LIMIT_DEG
       CORE_ACTION_KINDS
       EXTENSION_TAG
       Action
@@ -63,6 +65,7 @@ an.ir.schema
       ExtensionAction
       Frame
       FrameMoving
+      FrameSway
       JointSpec
       LoopAction
       Meta

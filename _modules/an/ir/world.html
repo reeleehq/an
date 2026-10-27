@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=cc3edc15"></script>
+    <script src="../../../_static/documentation_options.js?v=6846580c"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.282" />
+  <meta name="docsearch:version" content="0.1.283" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -784,6 +784,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">DFLT_TRAVEL_TOLERANCE_PX</span><span class="p">,</span>
     <span class="n">SHOT_SIZES</span><span class="p">,</span>
     <span class="n">AssetRef</span><span class="p">,</span>
+    <span class="n">FrameSway</span><span class="p">,</span>
     <span class="n">SceneIR</span><span class="p">,</span>
     <span class="n">Shot</span><span class="p">,</span>
     <span class="n">StagePlacement</span><span class="p">,</span>
@@ -2288,6 +2289,160 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
 
 
+<span class="c1">#: Rotation (radians) a sway channel's fit may stray from the lean (about</span>
+<span class="c1">#: 0.05 degrees); a lean below it all shot long is none.</span>
+<span class="n">SWAY_TOLERANCE_RAD</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0009</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_sway_lean</span><span class="p">(</span>
+    <span class="n">accel</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Point3</span><span class="p">],</span>
+    <span class="n">right</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Point3</span><span class="p">],</span>
+    <span class="n">times</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">sway</span><span class="p">:</span> <span class="n">FrameSway</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The lean (radians, the runtime's; clockwise is positive) of what rides</span>
+<span class="sd">    a frame accelerating by ``accel(t)``, at each of ``times``, unsettled:</span>
+<span class="sd">    ``-gain × atan(a / gravity)`` capped at ``limit`` degrees, ``a`` being the</span>
+<span class="sd">    acceleration along the camera's right axis ``right[i]`` (an#504). So a</span>
+<span class="sd">    frame braking toward the picture's left (acceleration right) tips what</span>
+<span class="sd">    rides in it to the left; constant speed is no lean.</span>
+
+<span class="sd">    &gt;&gt;&gt; from an.ir.schema import FrameSway</span>
+<span class="sd">    &gt;&gt;&gt; lean = _sway_lean(lambda t: (9.81, 0.0, 0.0), [(1.0, 0.0, 0.0)], [0.0], sway=FrameSway(gain=0.5))</span>
+<span class="sd">    &gt;&gt;&gt; round(lean[0], 4) == round(-0.5 * math.atan(1.0), 4)</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="n">limit</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">sway</span><span class="o">.</span><span class="n">limit</span><span class="p">))</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">right</span><span class="p">):</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">accel</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="n">r</span><span class="p">))</span>
+        <span class="n">lean</span> <span class="o">=</span> <span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="n">sway</span><span class="o">.</span><span class="n">gain</span><span class="p">)</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">atan2</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">sway</span><span class="o">.</span><span class="n">gravity</span><span class="p">))</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="o">-</span><span class="n">limit</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">limit</span><span class="p">,</span> <span class="n">lean</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_fit_lean</span><span class="p">(</span>
+    <span class="n">lean</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">tol</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">min_step</span><span class="p">:</span> <span class="nb">float</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A lean sampled at ``len(lean)`` even steps over ``[0, duration]``,</span>
+<span class="sd">    fitted by :func:`fit_channel`: ``(value at 0, [(ta, tb, va, vb, easing)])``</span>
+<span class="sd">    with the flat segments dropped, or ``None`` when it stays under ``tol``</span>
+<span class="sd">    all shot long."""</span>
+    <span class="k">if</span> <span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">lean</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">tol</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lean</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">g</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">t</span> <span class="o">/</span> <span class="n">duration</span> <span class="o">*</span> <span class="n">n</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">lean</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">lean</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">lean</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">i</span><span class="p">)</span>
+
+    <span class="n">segments</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">seg</span>
+        <span class="k">for</span> <span class="n">seg</span> <span class="ow">in</span> <span class="n">fit_channel</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="n">tol</span><span class="p">,</span> <span class="n">min_step</span><span class="o">=</span><span class="n">min_step</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">seg</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">seg</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="o">&gt;</span> <span class="n">_FLAT_CHANNEL_EPS</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">g</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span> <span class="n">segments</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_lean_actions</span><span class="p">(</span>
+    <span class="n">entity_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">fitted</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The ``rotation`` channel of ``entity_id`` from :func:`_fit_lean`."""</span>
+    <span class="n">v0</span><span class="p">,</span> <span class="n">segments</span> <span class="o">=</span> <span class="n">fitted</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">set_</span><span class="p">(</span><span class="n">entity_id</span><span class="p">,</span> <span class="s2">"rotation"</span><span class="p">,</span> <span class="n">v0</span><span class="p">,</span> <span class="n">at</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)]</span>
+    <span class="k">for</span> <span class="n">ta</span><span class="p">,</span> <span class="n">tb</span><span class="p">,</span> <span class="n">va</span><span class="p">,</span> <span class="n">vb</span><span class="p">,</span> <span class="n">easing</span> <span class="ow">in</span> <span class="n">segments</span><span class="p">:</span>
+        <span class="n">tw</span> <span class="o">=</span> <span class="n">tween</span><span class="p">(</span>
+            <span class="n">entity_id</span><span class="p">,</span> <span class="s2">"rotation"</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="n">vb</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">tb</span> <span class="o">-</span> <span class="n">ta</span><span class="p">,</span> <span class="n">from_</span><span class="o">=</span><span class="n">va</span><span class="p">,</span> <span class="n">easing</span><span class="o">=</span><span class="n">easing</span>
+        <span class="p">)</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sequence</span><span class="p">(</span><span class="n">delay</span><span class="p">(</span><span class="n">ta</span><span class="p">),</span> <span class="n">tw</span><span class="p">)</span> <span class="k">if</span> <span class="n">ta</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">tw</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_sway_members</span><span class="p">(</span>
+    <span class="n">mids</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">ctx</span><span class="p">:</span> <span class="n">_FrameCtx</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">legs</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]]],</span>
+    <span class="n">frame_of</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+    <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">min_step</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">SWAY_TOLERANCE_RAD</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``{member: its rotation actions}`` for the members of ``mids`` that lean</span>
+<span class="sd">    with an accelerating frame (an#504), the others left out.</span>
+
+<span class="sd">    A member's course is a list of legs ``(start, frame, flying)`` (one leg</span>
+<span class="sd">    from ``-inf`` in ``frame_of[mid]`` when it never reframes): on each leg it</span>
+<span class="sd">    leans with the acceleration of the frame it stands in (whose world</span>
+<span class="sd">    acceleration includes its parents'), by the ``sway`` of the nearest frame</span>
+<span class="sd">    up that frame's chain that declares one; in a frame with none, or in</span>
+<span class="sd">    flight, it does not lean. So a member that reframes into a swaying frame</span>
+<span class="sd">    starts leaning, and one that goes out and back resumes. The lean settles</span>
+<span class="sd">    by that sway's ``settle`` (a first-order lag starting on the lean the shot</span>
+<span class="sd">    opens with: the frame was already moving); out of a swaying frame it is</span>
+<span class="sd">    upright at once. The unsettled lean is computed once per frame and the</span>
+<span class="sd">    fit once per distinct course, so members riding together cost one."""</span>
+    <span class="n">duration</span><span class="p">,</span> <span class="n">tree</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">tree</span>
+    <span class="k">if</span> <span class="n">duration</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{}</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">duration</span> <span class="o">*</span> <span class="n">fps</span><span class="p">)))</span>
+    <span class="n">dt</span> <span class="o">=</span> <span class="n">duration</span> <span class="o">/</span> <span class="n">n</span>
+    <span class="n">times</span> <span class="o">=</span> <span class="p">[</span><span class="n">duration</span> <span class="o">*</span> <span class="n">i</span> <span class="o">/</span> <span class="n">n</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+    <span class="n">rights</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Point3</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">raw</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">fits</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">raw_of</span><span class="p">(</span><span class="n">frame</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">frame</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">raw</span><span class="p">:</span>
+            <span class="n">governing</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">sway_frame</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">governing</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">raw</span><span class="p">[</span><span class="n">frame</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">rights</span><span class="p">:</span>
+                    <span class="n">rights</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">eye_at</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="o">.</span><span class="n">right</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">times</span><span class="p">)</span>
+                <span class="n">raw</span><span class="p">[</span><span class="n">frame</span><span class="p">]</span> <span class="o">=</span> <span class="n">_sway_lean</span><span class="p">(</span>
+                    <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">tree</span><span class="o">.</span><span class="n">acceleration</span><span class="p">(</span>
+                        <span class="n">frame</span><span class="p">,</span>
+                        <span class="n">t</span><span class="p">,</span>
+                        <span class="n">film_start</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">film_start</span><span class="p">,</span>
+                        <span class="n">dt</span><span class="o">=</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">fps</span><span class="p">,</span>
+                        <span class="n">within</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">duration</span><span class="p">),</span>
+                    <span class="p">),</span>
+                    <span class="n">rights</span><span class="p">,</span>
+                    <span class="n">times</span><span class="p">,</span>
+                    <span class="n">sway</span><span class="o">=</span><span class="n">tree</span><span class="o">.</span><span class="n">frames</span><span class="p">[</span><span class="n">governing</span><span class="p">]</span><span class="o">.</span><span class="n">sway</span><span class="p">,</span>
+                <span class="p">)</span>
+        <span class="k">return</span> <span class="n">raw</span><span class="p">[</span><span class="n">frame</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">lean_of</span><span class="p">(</span><span class="n">course</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">],</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="n">target</span><span class="p">,</span> <span class="n">settle</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">),</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">times</span><span class="p">):</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="n">flying</span> <span class="o">=</span> <span class="p">[</span><span class="n">leg</span> <span class="k">for</span> <span class="n">leg</span> <span class="ow">in</span> <span class="n">course</span> <span class="k">if</span> <span class="n">leg</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">t</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">series</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">flying</span> <span class="k">else</span> <span class="n">raw_of</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">series</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">target</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">series</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">settle</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">frames</span><span class="p">[</span><span class="n">tree</span><span class="o">.</span><span class="n">sway_frame</span><span class="p">(</span><span class="n">frame</span><span class="p">)]</span><span class="o">.</span><span class="n">sway</span><span class="o">.</span><span class="n">settle</span><span class="p">)</span>
+        <span class="n">lean</span> <span class="o">=</span> <span class="p">[</span><span class="n">target</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="k">for</span> <span class="n">v</span><span class="p">,</span> <span class="n">lag</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">target</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">settle</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">dt</span> <span class="o">/</span> <span class="n">lag</span><span class="p">)</span> <span class="k">if</span> <span class="n">lag</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">1.0</span>
+            <span class="n">lean</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lean</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">k</span> <span class="o">*</span> <span class="p">(</span><span class="n">v</span> <span class="o">-</span> <span class="n">lean</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="n">_fit_lean</span><span class="p">(</span><span class="n">lean</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="n">tol</span><span class="p">,</span> <span class="n">min_step</span><span class="o">=</span><span class="n">min_step</span><span class="p">)</span>
+
+    <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">mid</span> <span class="ow">in</span> <span class="n">mids</span><span class="p">:</span>
+        <span class="n">course</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">legs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">mid</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[(</span><span class="o">-</span><span class="n">math</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">frame_of</span><span class="p">[</span><span class="n">mid</span><span class="p">],</span> <span class="kc">False</span><span class="p">)])</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">sway_frame</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">course</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">course</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fits</span><span class="p">:</span>
+            <span class="n">fits</span><span class="p">[</span><span class="n">course</span><span class="p">]</span> <span class="o">=</span> <span class="n">lean_of</span><span class="p">(</span><span class="n">course</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">fits</span><span class="p">[</span><span class="n">course</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">mid</span><span class="p">]</span> <span class="o">=</span> <span class="n">_lean_actions</span><span class="p">(</span><span class="n">mid</span><span class="p">,</span> <span class="n">fits</span><span class="p">[</span><span class="n">course</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_member_passes</span><span class="p">(</span>
     <span class="n">member</span><span class="p">:</span> <span class="n">WorldMember</span><span class="p">,</span>
     <span class="n">ctx</span><span class="p">:</span> <span class="n">_FrameCtx</span><span class="p">,</span>
@@ -2747,6 +2902,51 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="n">mid</span> <span class="ow">in</span> <span class="n">fixed</span> <span class="ow">and</span> <span class="n">mid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">already</span> <span class="ow">and</span> <span class="n">mid</span> <span class="ow">in</span> <span class="n">emitted</span><span class="p">:</span>
             <span class="n">actions</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
                 <span class="n">_pass_actions</span><span class="p">(</span><span class="n">mid</span><span class="p">,</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">passes</span><span class="p">[</span><span class="n">mid</span><span class="p">]],</span> <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">)</span>
+            <span class="p">)</span>
+    <span class="n">swayed</span> <span class="o">=</span> <span class="n">_sway_members</span><span class="p">(</span>
+        <span class="nb">sorted</span><span class="p">(</span>
+            <span class="n">mid</span>
+            <span class="k">for</span> <span class="n">mid</span> <span class="ow">in</span> <span class="n">emitted</span> <span class="o">&amp;</span> <span class="n">frame_of</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">members</span><span class="p">[</span><span class="n">mid</span><span class="p">]</span><span class="o">.</span><span class="n">kind</span> <span class="o">!=</span> <span class="s2">"environment"</span> <span class="ow">and</span> <span class="n">mid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">vp</span><span class="o">.</span><span class="n">hide</span>
+        <span class="p">),</span>
+        <span class="n">ctx</span><span class="p">,</span>
+        <span class="n">legs</span><span class="o">=</span><span class="p">{</span>
+            <span class="n">mid</span><span class="p">:</span> <span class="p">[(</span><span class="n">leg</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">leg</span><span class="o">.</span><span class="n">frame</span><span class="p">,</span> <span class="n">leg</span><span class="o">.</span><span class="n">flight</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">leg</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">legs</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">mid</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">courses</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">},</span>
+        <span class="n">frame_of</span><span class="o">=</span><span class="n">frame_of</span><span class="p">,</span>
+        <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span>
+        <span class="n">min_step</span><span class="o">=</span><span class="n">min_step</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">rotated</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="nb">getattr</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s2">"target"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">top</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">actions</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">iter_actions</span><span class="p">(</span><span class="n">top</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s2">"property"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"rotation"</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="n">mid</span><span class="p">,</span> <span class="n">lean</span> <span class="ow">in</span> <span class="n">swayed</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">actions</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">lean</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mid</span> <span class="ow">in</span> <span class="n">rotated</span><span class="p">:</span>
+            <span class="n">note</span><span class="p">(</span>
+                <span class="s2">"warning"</span><span class="p">,</span>
+                <span class="s2">"sway_rotation"</span><span class="p">,</span>
+                <span class="n">mid</span><span class="p">,</span>
+                <span class="s2">"its frame sways (it leans with the frame's acceleration) and the "</span>
+                <span class="s2">"shot also animates its `rotation`: the two fight. Drop one."</span><span class="p">,</span>
+            <span class="p">)</span>
+    <span class="k">for</span> <span class="n">member</span> <span class="ow">in</span> <span class="n">world</span><span class="o">.</span><span class="n">members</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">member</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">emitted</span>
+            <span class="ow">and</span> <span class="n">member</span><span class="o">.</span><span class="n">attached</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">member</span><span class="o">.</span><span class="n">attached</span><span class="o">.</span><span class="n">to</span> <span class="ow">in</span> <span class="n">swayed</span>
+        <span class="p">):</span>
+            <span class="n">note</span><span class="p">(</span>
+                <span class="s2">"info"</span><span class="p">,</span>
+                <span class="s2">"sway_attached"</span><span class="p">,</span>
+                <span class="n">member</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"attached to </span><span class="si">{</span><span class="n">member</span><span class="o">.</span><span class="n">attached</span><span class="o">.</span><span class="n">to</span><span class="si">!r}</span><span class="s2">, which leans with its frame's "</span>
+                <span class="s2">"acceleration: the attachment does not lean with it. Put the member "</span>
+                <span class="s2">"in the frame (`in:`) to sway it too."</span><span class="p">,</span>
             <span class="p">)</span>
     <span class="n">n_motion</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">split</span><span class="o">.</span><span class="n">actions</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">n_motion</span> <span class="o">&gt;</span> <span class="n">budget</span><span class="p">:</span>

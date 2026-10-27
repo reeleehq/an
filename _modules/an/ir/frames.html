@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=cc3edc15"></script>
+    <script src="../../../_static/documentation_options.js?v=6846580c"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.282" />
+  <meta name="docsearch:version" content="0.1.283" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -767,6 +767,7 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"Track"</span><span class="p">,</span>
     <span class="s2">"TrackEvent"</span><span class="p">,</span>
     <span class="s2">"Vec3"</span><span class="p">,</span>
+    <span class="s2">"lag_filter"</span><span class="p">,</span>
     <span class="s2">"look_basis"</span><span class="p">,</span>
 <span class="p">]</span>
 
@@ -784,6 +785,8 @@ window.runMermaid = runMermaid;</script>
 <span class="n">_SAME_POSE_EPS</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-9</span>
 <span class="c1">#: Sample points per shot when asking whether a pose changes within it.</span>
 <span class="n">_STATIC_SAMPLES</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">33</span>
+<span class="c1">#: Step of the second difference an acceleration is read with (s).</span>
+<span class="n">_ACCEL_DT</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-2</span>
 
 
 <div class="viewcode-block" id="FrameError">
@@ -963,6 +966,36 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="kc">None</span>
     <span class="n">forward</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">down</span> <span class="o">=</span> <span class="n">look_basis</span><span class="p">(</span><span class="n">yaw</span><span class="p">,</span> <span class="n">pitch</span><span class="p">,</span> <span class="n">roll</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">right</span><span class="p">,</span> <span class="n">down</span><span class="p">,</span> <span class="n">forward</span>
+
+
+<div class="viewcode-block" id="lag_filter">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.frames.html#an.ir.frames.lag_filter">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">lag_filter</span><span class="p">(</span><span class="n">values</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">lag</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``values`` seen through a first-order filter of time constant ``lag``</span>
+<span class="sd">    (s), sampled every ``dt``: it starts on the first value and closes</span>
+<span class="sd">    ``1 - exp(-dt/lag)`` of the gap each step (Cinemachine's damping: the time</span>
+<span class="sd">    it takes to catch up). ``lag &lt;= 0`` returns them as they are.</span>
+
+<span class="sd">    &gt;&gt;&gt; out = lag_filter([0.0] + [100.0] * 30, lag=0.5, dt=0.1)</span>
+<span class="sd">    &gt;&gt;&gt; round(out[5], 1)                  # 0.5 s after the step: 1 - 1/e of it</span>
+<span class="sd">    63.2</span>
+<span class="sd">    &gt;&gt;&gt; lag_filter([0.0, 1.0], lag=0.5, dt=0.0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">      ...</span>
+<span class="sd">    ValueError: lag_filter: the sample step `dt` must be positive (got 0.0).</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">dt</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"lag_filter: the sample step `dt` must be positive (got </span><span class="si">{</span><span class="n">dt</span><span class="si">!r}</span><span class="s2">)."</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">lag</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">values</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+    <span class="n">k</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">dt</span> <span class="o">/</span> <span class="n">lag</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
+    <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">k</span> <span class="o">*</span> <span class="p">(</span><span class="n">v</span> <span class="o">-</span> <span class="n">out</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
 
 
 <span class="c1"># --- a channel animated by ordinary actions ----------------------------------------</span>
@@ -1205,6 +1238,62 @@ window.runMermaid = runMermaid;</script>
             <span class="n">first</span><span class="o">.</span><span class="n">same_as</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">relative_pose</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">to</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">film_start</span><span class="o">=</span><span class="n">film_start</span><span class="p">))</span>
             <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">times</span><span class="p">)</span>
         <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="FrameTree.acceleration">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.frames.html#an.ir.frames.FrameTree.acceleration">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">acceleration</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">film_start</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">_ACCEL_DT</span><span class="p">,</span>
+        <span class="n">within</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Vec3</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The world acceleration of ``name``'s origin at shot time ``t``</span>
+<span class="sd">        (second difference of step ``dt``, units/s²): zero for a frame at rest</span>
+<span class="sd">        or at a constant speed.</span>
+
+<span class="sd">        ``within=(lo, hi)`` keeps the three samples inside that window (a</span>
+<span class="sd">        shot): near an end the stencil slides inward (a one-sided difference),</span>
+<span class="sd">        and a window narrower than ``2·dt`` shrinks the step to half of it, so</span>
+<span class="sd">        a motion that starts at the window's edge is not read as an impulse.</span>
+
+<span class="sd">        &gt;&gt;&gt; from an.ir.schema import Frame, FrameMoving</span>
+<span class="sd">        &gt;&gt;&gt; tree = FrameTree({"car": Frame(moving=FrameMoving(speed=20.0))})</span>
+<span class="sd">        &gt;&gt;&gt; [round(v, 3) + 0.0 for v in tree.acceleration("car", 1.0)]</span>
+<span class="sd">        [0.0, 0.0, 0.0]</span>
+<span class="sd">        &gt;&gt;&gt; track = Track([TrackEvent(0.0, 1.0, to=10.0, from_=0.0, easing="ease_out")])</span>
+<span class="sd">        &gt;&gt;&gt; braking = FrameTree({"car": Frame()}, tracks={"car": {"at_z": track}})</span>
+<span class="sd">        &gt;&gt;&gt; [round(v, 1) + 0.0 for v in braking.acceleration("car", 0.5)]   # 20 m/s to 0 in a second</span>
+<span class="sd">        [0.0, 0.0, -20.0]</span>
+<span class="sd">        &gt;&gt;&gt; [round(v, 1) + 0.0 for v in braking.acceleration("car", 0.0, dt=0.04, within=(0.0, 1.0))]</span>
+<span class="sd">        [0.0, 0.0, -20.0]</span>
+<span class="sd">        """</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">dt</span>
+        <span class="k">if</span> <span class="n">within</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="n">within</span>
+            <span class="n">h</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="p">(</span><span class="n">hi</span> <span class="o">-</span> <span class="n">lo</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">h</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">_ZERO</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">lo</span> <span class="o">+</span> <span class="n">h</span><span class="p">),</span> <span class="n">hi</span> <span class="o">-</span> <span class="n">h</span><span class="p">)</span>
+        <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">world_pose</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">t</span> <span class="o">+</span> <span class="n">k</span> <span class="o">*</span> <span class="n">h</span><span class="p">,</span> <span class="n">film_start</span><span class="o">=</span><span class="n">film_start</span><span class="p">)</span><span class="o">.</span><span class="n">at</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">((</span><span class="n">ai</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">bi</span> <span class="o">+</span> <span class="n">ci</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">h</span> <span class="o">*</span> <span class="n">h</span><span class="p">)</span> <span class="k">for</span> <span class="n">ai</span><span class="p">,</span> <span class="n">bi</span><span class="p">,</span> <span class="n">ci</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">))</span>  <span class="c1"># type: ignore[return-value]</span></div>
+
+
+<div class="viewcode-block" id="FrameTree.sway_frame">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.frames.html#an.ir.frames.FrameTree.sway_frame">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sway_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The frame whose ``sway`` governs what is in ``name``: the nearest one</span>
+<span class="sd">        up the chain that declares it, else ``None``."""</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="n">name</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">sway</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">n</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
 
 
 <div class="viewcode-block" id="FrameTree.constant_motion">

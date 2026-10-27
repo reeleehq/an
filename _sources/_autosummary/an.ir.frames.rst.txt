@@ -15,6 +15,7 @@ an.ir.frames
 
    .. autosummary::
    
+      lag_filter
       look_basis
    
    .. rubric:: Classes

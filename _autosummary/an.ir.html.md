@@ -331,7 +331,7 @@ The flat-form list is the canonical representation passed to renderers
 and verifiers. Composition nodes (sequence/parallel/delay/loop) do not
 appear in the flat form — they’re collapsed into time offsets.
 
-### *class* an.ir.Frame(\*, parent='world', at=(0.0, 0.0, 0.0), look=(0.0, 0.0, 0.0), coupling='rigid', moving=None, sockets=<factory>, \*\*extra_data)
+### *class* an.ir.Frame(\*, parent='world', at=(0.0, 0.0, 0.0), look=(0.0, 0.0, 0.0), coupling='rigid', moving=None, sway=None, sockets=<factory>, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -364,6 +364,10 @@ palm, a shelf’s slot).
 
 * **Type:**
   Named points of this frame, `{name: point}` in its units
+
+#### sway *: [FrameSway](an.ir.schema.html.md#an.ir.schema.FrameSway) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Lean of the members riding in it when it accelerates (off when unset).
 
 ### *class* an.ir.FrameMoving(, direction=(0.0, 0.0, 1.0), speed, \*\*extra_data)
 

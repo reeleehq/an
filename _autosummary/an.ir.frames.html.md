@@ -46,8 +46,9 @@ and the easing function, nothing else. It is an extraction candidate: previz
 
 ### Functions
 
-| [`look_basis`](#an.ir.frames.look_basis)(yaw, pitch, roll)   | `(forward, right, down)` for a look of `yaw` (turn right), `pitch` (look down) and `roll` (the PICTURE turns clockwise: what was on the right moves to the bottom), in degrees.   |
-|---------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`lag_filter`](#an.ir.frames.lag_filter)(values, \*, lag, dt)   | `values` seen through a first-order filter of time constant `lag` (s), sampled every `dt`: it starts on the first value and closes `1 - exp(-dt/lag)` of the gap each step (Cinemachine's damping: the time it takes to catch up).   |
+|------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`look_basis`](#an.ir.frames.look_basis)(yaw, pitch, roll)      | `(forward, right, down)` for a look of `yaw` (turn right), `pitch` (look down) and `roll` (the PICTURE turns clockwise: what was on the right moves to the bottom), in degrees.                                                      |
 
 ### Classes
 
@@ -109,6 +110,33 @@ Traceback (most recent call last):
 an.ir.frames.FrameError: frames form a cycle through 'a'
 ```
 
+#### acceleration(name, t, , film_start=0.0, dt=0.01, within=None)
+
+The world acceleration of `name`’s origin at shot time `t`
+(second difference of step `dt`, units/s²): zero for a frame at rest
+or at a constant speed.
+
+`within=(lo, hi)` keeps the three samples inside that window (a
+shot): near an end the stencil slides inward (a one-sided difference),
+and a window narrower than `2·dt` shrinks the step to half of it, so
+a motion that starts at the window’s edge is not read as an impulse.
+
+```pycon
+>>> from an.ir.schema import Frame, FrameMoving
+>>> tree = FrameTree({"car": Frame(moving=FrameMoving(speed=20.0))})
+>>> [round(v, 3) + 0.0 for v in tree.acceleration("car", 1.0)]
+[0.0, 0.0, 0.0]
+>>> track = Track([TrackEvent(0.0, 1.0, to=10.0, from_=0.0, easing="ease_out")])
+>>> braking = FrameTree({"car": Frame()}, tracks={"car": {"at_z": track}})
+>>> [round(v, 1) + 0.0 for v in braking.acceleration("car", 0.5)]   # 20 m/s to 0 in a second
+[0.0, 0.0, -20.0]
+>>> [round(v, 1) + 0.0 for v in braking.acceleration("car", 0.0, dt=0.04, within=(0.0, 1.0))]
+[0.0, 0.0, -20.0]
+```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
 #### chain(name)
 
 The frames from `name` up to (not including) the world, root first.
@@ -165,6 +193,14 @@ in `name` to the same point in `to`.
 
 * **Return type:**
   [`Pose`](#an.ir.frames.Pose)
+
+#### sway_frame(name)
+
+The frame whose `sway` governs what is in `name`: the nearest one
+up the chain that declares it, else `None`.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 #### world_pose(name, t, , film_start=0.0)
 
@@ -266,6 +302,26 @@ every event’s start and end.
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One `set` (`start == end`) or `tween` of a channel, in shot time.
+
+### an.ir.frames.lag_filter(values, , lag, dt)
+
+`values` seen through a first-order filter of time constant `lag`
+(s), sampled every `dt`: it starts on the first value and closes
+`1 - exp(-dt/lag)` of the gap each step (Cinemachine’s damping: the time
+it takes to catch up). `lag <= 0` returns them as they are.
+
+```pycon
+>>> out = lag_filter([0.0] + [100.0] * 30, lag=0.5, dt=0.1)
+>>> round(out[5], 1)                  # 0.5 s after the step: 1 - 1/e of it
+63.2
+>>> lag_filter([0.0, 1.0], lag=0.5, dt=0.0)
+Traceback (most recent call last):
+  ...
+ValueError: lag_filter: the sample step `dt` must be positive (got 0.0).
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.ir.frames.look_basis(yaw, pitch, roll)
 
