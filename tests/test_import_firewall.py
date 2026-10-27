@@ -66,27 +66,9 @@ STAGE: tuple[str, ...] = (
     "an.data.cutout_runtime",  # old path of the runtime, now an alias
 )
 
-#: A genre: the ``cutan`` distribution, and the in-repo cut-out genre until it
-#: moves there (an#225). The bench's corpus runner goes with it "until the core
-#: corpus exists" (module map).
-GENRE: tuple[str, ...] = (
-    "cutan",
-    # The old `an` paths of what moved: live aliases with a warning. A core module
-    # importing one is a core module importing the genre, so they stay classified.
-    "an.genres.cutout",
-    "an.adapters.cutout.coarticulate",
-    "an.adapters.cutout.gaze",
-    "an.genre",
-    "an.audio.offline_lipsync",
-    "an.audio.rhubarb_lipsync",
-    "an.audio.whisper_lipsync",
-    "an.audio.injectable_lipsync",
-    "an.verify.style",
-    "an.library.character",
-    "an.characters",
-    "an.expression",
-    "an.impacts",
-)
+#: A genre: the ``cutan`` distribution. The old ``an`` paths of what moved there
+#: are gone (an#321), so a core module cannot reach the genre through one.
+GENRE: tuple[str, ...] = ("cutan",)
 
 #: Engines and back-ends no core module may need in order to import.
 ENGINES: tuple[str, ...] = ("playwright", "manim", "manimkit")

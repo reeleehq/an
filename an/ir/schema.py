@@ -2433,18 +2433,3 @@ CORE_ENTITY_KINDS: tuple[EntityKind, ...] = (
 for _kind in CORE_ENTITY_KINDS:
     if entity_kind(_kind.name) is None:
         register_entity_kind(_kind, owner=CORE_OWNER)
-
-
-# The cut-out genre's action models moved to `cutan` (an#225): `PlayAction` and
-# `ExpressionAction` are DEFINED beside their action kinds there. These names keep
-# resolving (with a MovedModuleWarning) while the genre package is installed.
-from an._shims import moved_names as _moved_names  # noqa: E402
-
-__getattr__ = _moved_names(
-    __name__,
-    {
-        "PlayAction": "cutan.characters.registration:PlayAction",
-        "ExpressionAction": "cutan.expression.registration:ExpressionAction",
-        "DFLT_EXPRESSION_BLEND_S": "cutan.expression.registration:DFLT_EXPRESSION_BLEND_S",
-    },
-)

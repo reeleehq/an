@@ -46,12 +46,6 @@ from an.project import init, load, save, Project
 from an.check_requirements import check_requirements
 from an.stores import build_project_mall
 
-# `an.play` moved to `cutan` with the cut-out genre (an#225); the name still
-# resolves, with a warning, while that package is installed.
-from an._shims import moved_names as _moved_names
-
-__getattr__ = _moved_names(__name__, {"play": "cutan.characters.registration:play"})
-
 # Read from installed distribution metadata rather than written literally here:
 # CI bumps the version in pyproject.toml and pushes back, so a literal in this
 # file drifts silently — this one had been reading "0.1.0" while the package was

@@ -69,16 +69,3 @@ __all__ = [
     "known_tts_names",
     "known_lipsync_names",
 ]
-
-from an._shims import moved_names as _moved_names  # noqa: E402
-
-__getattr__ = _moved_names(
-    __name__,
-    {
-        "OfflineLipSync": "cutan.audio.offline_lipsync:OfflineLipSync",
-        "RhubarbLipSync": "cutan.audio.rhubarb_lipsync:RhubarbLipSync",
-        "WhisperLipSync": "cutan.audio.whisper_lipsync:WhisperLipSync",
-        "StaticWordTimings": "cutan.audio.injectable_lipsync:StaticWordTimings",
-        "WordTimingsLipSync": "cutan.audio.injectable_lipsync:WordTimingsLipSync",
-    },
-)

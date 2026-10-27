@@ -13,7 +13,7 @@ hash (default leg) and renders to its goldens (labelled lane); and the task
 imports no cut-out module the core had not already imported.
 
 **The stronger proof, since the move (an#225):** the same corpus, in an interpreter where
-every cut-out module (`cutan` and the old `cutan.characters`-style paths) is POISONED
+every cut-out module (`cutan`) is POISONED
 before ``import an``, loaded or not -- :func:`test_the_core_corpus_compiles_with_the_cut_out_modules_poisoned`
 and its render twin. The strict ``xfail`` they carried since #301 is gone: the stage
 compiler reaches the genre only through registered hooks, so nothing cut-out runs.

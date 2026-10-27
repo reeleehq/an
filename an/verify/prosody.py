@@ -3,7 +3,7 @@
 "Read it like a deadpan narrator" is only checkable if the delivery is a set of
 numbers. This module measures one spoken clip — a synthesized dialogue line, a
 narration take, a reference recording studied privately — and compares the
-measurement to ``[low, high]`` targets, the way :mod:`an.verify.style` does for
+measurement to ``[low, high]`` targets, the way :mod:`cutan.verify.style` does for
 a render's cadence. It knows nothing about characters, faces or genres: any
 narrated video (cut-out, data-viz, math-viz) has a voice to measure.
 

@@ -106,7 +106,7 @@ class GenreError(RegistryError):
 
 
 #: The level of the genre-facing API this ``an`` provides: every hook, registry
-#: field and moved path a genre package may rely on. Bumped by each change a
+#: field a genre package may rely on. Bumped by each change a
 #: genre needs (the P8 seam PRs and each move to ``cutan``, an#225), never
 #: decremented. A genre states the lowest level it needs with
 #: :func:`require_api_level`, which is how "the genre declares the lowest ``an``
@@ -139,7 +139,9 @@ class GenreError(RegistryError):
 #:     and ``asset_ref_problems`` (``(label, message)`` pairs) a genre's validator calls.
 #: 11 = a slot's rest world transform (an#579): ``an.stage.rig.rest_world_transforms`` and
 #:     ``RestTransform``, the builder's own rule, for a genre's placement maths.
-API_LEVEL: int = 11
+#: 12 = the P8 import shims are gone (an#321): no ``an`` path serves a module or name that
+#:     moved to ``cutan``, so a genre package imports its own code from ``cutan`` only.
+API_LEVEL: int = 12
 
 
 class GenreAPILevelError(GenreError, ImportError):

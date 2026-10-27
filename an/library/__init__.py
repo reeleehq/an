@@ -27,7 +27,7 @@ What lives where:
   ``MutableMapping`` s;
 - :mod:`an.library.federation` — :class:`Library` and the search path;
 - :mod:`an.library.affordances` — capabilities and per-kind analysers (the seed
-  of ADR 0002's registry); :mod:`an.library.character` — the character analyser;
+  of ADR 0002's registry); ``cutan.library`` — the character analyser;
 - :mod:`an.library.rights` — the most-restrictive roll-up over ``AssetSource``;
   :mod:`an.library.floor` — the strictest statement any library on the machine
   makes about a blob; :mod:`an.library.registry` — the machine's registry of

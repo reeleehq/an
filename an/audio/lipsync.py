@@ -41,7 +41,7 @@ class VisemeTrack:
     """Aligned viseme sequence produced by a LipSyncProvider.
 
     ``words`` carries the word timings the provider aligned from, when it had
-    any (whisper, :class:`~an.audio.injectable_lipsync.WordTimingsLipSync`);
+    any (whisper, :class:`~cutan.audio.injectable_lipsync.WordTimingsLipSync`);
     ``None`` for providers that never see words (offline, Rhubarb — whose JSON
     is mouth cues only). Retained since an#96 rather than discarded after the
     viseme conversion: captions (Wave 8) and any consumer that wants to know

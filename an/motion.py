@@ -73,7 +73,6 @@ from collections.abc import Callable, Mapping
 from functools import lru_cache
 from typing import Any
 
-from an._shims import moved_names
 from an.base import EasingSpec, PathStr, Seconds
 from an.ir.compose import FlatAction, delay, flatten, parallel, sequence, set_, tween
 from an.ir.schema import Action, SetAction, Shot, TweenAction
@@ -136,59 +135,12 @@ def _identity() -> dict[str, float]:
     return _identity_pose()
 
 
-#: The rig presets and their defaults moved to the cut-out genre (an#322): they
-#: name a rig's parts or swap its views. Live aliases, removed under the
-#: genre-move shim rule (no importer under the projects folder, and 14 days).
-_MOVED_TO_CUTAN: tuple[str, ...] = (
-    "nod",
-    "point",
-    "turn",
-    "face_toward",
-    "walk",
-    "waddle",
-    "speech_pulse",
-    "GAITS",
-    "WALK_LANDING_S",
-    "WALK_LEG_NAMES",
-    "WALK_ARM_NAMES",
-    "WALK_SWING_VIEWS",
-    "DFLT_NOD_PART",
-    "DFLT_NOD_ANGLE",
-    "DFLT_NOD_DURATION",
-    "DFLT_NOD_COUNT",
-    "DFLT_POINT_ANGLE",
-    "DFLT_POINT_RAISE",
-    "DFLT_POINT_HOLD",
-    "DFLT_WADDLE_STEPS",
-    "DFLT_WADDLE_STEP_DURATION",
-    "DFLT_WADDLE_ANGLE",
-    "DFLT_WADDLE_LIFT",
-    "DFLT_TURN_DURATION",
-    "DFLT_TURN_SET",
-    "DFLT_TURN_TO",
-    "DFLT_WALK_STEP_S",
-    "DFLT_WALK_STEPS",
-    "DFLT_WALK_STEP_LENGTH",
-    "DFLT_WALK_STRIDE",
-    "DFLT_WALK_LIFT",
-    "DFLT_WALK_BOB",
-    "DFLT_WALK_ARM_SWING",
-    "DFLT_WALK_ROCK",
-    "DFLT_WALK_HEM_TILT",
-    "DFLT_PULSE_PART",
-    "DFLT_PULSE_STRENGTH",
-    "DFLT_PULSE_ATTACK_S",
-    "DFLT_PULSE_RELEASE_S",
-)
-_moved = moved_names(__name__, {n: f"cutan.motion:{n}" for n in _MOVED_TO_CUTAN})
-
-
 def __getattr__(name: str):
     """``IDENTITY_POSE`` (``x = y = rotation = 0``, ``scale_x = scale_y = alpha = 1``), on
-    first use; a rig preset's old name, from ``cutan.motion`` (an#322)."""
+    first use. The rig presets (``nod``, ``walk``, ...) are ``cutan.motion`` (an#322)."""
     if name == "IDENTITY_POSE":
         return dict(_identity())
-    return _moved(name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 Rest = Mapping[str, float]

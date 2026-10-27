@@ -16,8 +16,6 @@ presets.
 
 from __future__ import annotations
 
-import warnings
-
 import pytest
 
 from an.ir.compose import delay, flatten, sequence, set_
@@ -75,14 +73,10 @@ def test_a_composition_tree_survives_scene_md_verbatim():
 
 
 @pytest.mark.genre("cutout_animation")
-def test_a_rig_preset_s_old_name_is_a_live_alias_of_the_genre_s():
+def test_a_rig_preset_lives_in_the_genre_only():
+    """The rig presets moved to `cutan.motion` (an#322); the old names are gone (an#321)."""
     import an.motion
     import cutan.motion
-    from an._shims import MovedModuleWarning
 
-    with warnings.catch_warnings(record=True) as seen:
-        warnings.simplefilter("always")
-        assert an.motion.walk is cutan.motion.walk
-        assert an.motion.WALK_LEG_NAMES is cutan.motion.WALK_LEG_NAMES
-    assert seen and all(w.category is MovedModuleWarning for w in seen)
+    assert not hasattr(an.motion, "walk") and hasattr(cutan.motion, "walk")
     assert "walk" not in PRESETS and "walk" in cutan.motion.PRESETS
