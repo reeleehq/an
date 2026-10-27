@@ -220,6 +220,13 @@ PLANE_PROPERTIES: frozenset[str] = frozenset(PLANE_REST_VALUES)
 #: draws no path refuses all of them.
 TRIM_PROPERTIES: frozenset[str] = frozenset({"trim_start", "trim_end", "dash_offset"})
 
+#: The key the world's lowering records the parallax factors derived from an
+#: environment member's ``depths`` under, in the entity's ``overrides``
+#: (``{plane name: factor}``, an#503): the compiler reads them where it reads a
+#: plane's own ``depth``, so a plane at a world depth compiles exactly as one
+#: with that factor written by hand.
+PLANE_FACTORS_OVERRIDE: str = "plane_factors"
+
 #: The draw-order property (an#537): where a node is PAINTED, as the path of the
 #: node it paints just after (``""``: where the stage tree puts it). A string,
 #: switched at its own key like a swap key, and written to its own group. The

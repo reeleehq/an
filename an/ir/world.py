@@ -44,6 +44,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Callable, Collection, Mapping, Sequence
 
+from an.base import PLANE_FACTORS_OVERRIDE
 from an.ir.compose import (
     delay,
     flatten,
@@ -2267,6 +2268,10 @@ def _lower_shot(
         for stream_id, problem in problems:
             note("warning", "stream", stream_id, problem)
     ordered.sort(key=lambda item: item[0])
+    envs = [
+        (_with_plane_factors(e, members.get(e.id), placed, vp, note), j)
+        for e, j in envs
+    ]
     if sightings:
         _depth_order_notes(
             [e for _, e, _ in ordered],
@@ -2289,6 +2294,78 @@ def _lower_shot(
         notes,
         origins,
     )
+
+
+def parallax_factor(z: float, z_ref: float) -> float:
+    """The parallax factor of a plane ``z`` deep when what the shot shows is
+    ``z_ref`` deep: a camera translating by ``d`` shifts the plane by ``f * d / z``
+    and the character plane by ``f * d / z_ref``, so relative to it the plane
+    moves by ``z_ref / z`` (a plane at the reference depth is 1, which emits
+    nothing; a far one tends to 0).
+
+    >>> parallax_factor(20.0, 2.0), parallax_factor(2.0, 2.0), parallax_factor(1.0, 2.0)
+    (0.1, 1.0, 2.0)
+    """
+    return z_ref / z
+
+
+def reference_depth(placed: Mapping[str, Placed], viewpoint: Viewpoint) -> float | None:
+    """The depth of the character plane in a shot: the viewpoint's subject(s),
+    when it names any that the shot shows, else everything the shot shows from
+    the world (an attached member rides its host and is not counted again).
+    ``None`` when nothing is shown. Depths are the camera's, as the shot opens.
+
+    >>> from an.ir.schema import Viewpoint
+    >>> shown = {"a": Placed("a", (0, 0), 1.0, 2.0, None, True, "world"),
+    ...          "b": Placed("b", (0, 0), 1.0, 6.0, None, True, "world")}
+    >>> reference_depth(shown, Viewpoint()), reference_depth(shown, Viewpoint(subject="b"))
+    (4.0, 6.0)
+    """
+    subjects = (
+        [viewpoint.subject]
+        if isinstance(viewpoint.subject, str)
+        else list(viewpoint.subject or [])
+    )
+
+    def depths(ids) -> list[float]:
+        return [
+            p.depth
+            for mid, p in placed.items()
+            if mid in ids and p.depth is not None and p.in_frame and p.via == "world"
+        ]
+
+    shown = depths(set(subjects)) or depths(set(placed))
+    return sum(shown) / len(shown) if shown else None
+
+
+def _with_plane_factors(
+    entity: AssetRef,
+    member: WorldMember | None,
+    placed: Mapping[str, Placed],
+    viewpoint: Viewpoint,
+    note: Callable[[str, str, str, str], None],
+) -> AssetRef:
+    """``entity`` (an environment) carrying the factors its member's ``depths``
+    derive (:data:`PLANE_FACTORS_OVERRIDE`); unchanged without ``depths``. A
+    plane's depth is its distance from the camera along the look direction, and
+    its factor ``z_ref / z`` is relative to :func:`reference_depth`, so it is the
+    shot's own: the same plane scrolls differently from a wider or a closer
+    viewpoint, as parallax does."""
+    if member is None or not member.depths:
+        return entity
+    z_ref = reference_depth(placed, viewpoint)
+    if z_ref is None:
+        note(
+            "warning",
+            "plane_depths",
+            entity.id,
+            "its planes have world depths but the shot shows no member to measure "
+            "them against: the planes keep their own parallax factors.",
+        )
+        return entity
+    factors = {name: parallax_factor(z, z_ref) for name, z in member.depths.items()}
+    overrides = {**(entity.overrides or {}), PLANE_FACTORS_OVERRIDE: factors}
+    return entity.model_copy(update={"overrides": overrides})
 
 
 def _depth_order_notes(

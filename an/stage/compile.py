@@ -120,6 +120,8 @@ from an.stage.environments import (
     ENVIRONMENT_DOCUMENT_KIND,
     EnvironmentDescriptor,
     Plane,
+    PlaneFactorError,
+    environment_from_document,
 )
 from an.stage.props import PROP_DOCUMENT_KIND, PropDescriptor
 from an.stage.paths import (
@@ -2131,9 +2133,10 @@ def _environment_descriptor(
         return None
     if not isinstance(raw, dict) or raw.get("kind") != ENVIRONMENT_DOCUMENT_KIND.name:
         return None
-    env = EnvironmentDescriptor.model_validate(
-        migrate(dict(raw), kind=ENVIRONMENT_DOCUMENT_KIND.name)
-    )
+    try:
+        env = environment_from_document(raw, entity)
+    except PlaneFactorError as e:  # the factors the world derived, refused
+        raise CutoutCompileError(str(e)) from None
     return env if env.planes else None
 
 
