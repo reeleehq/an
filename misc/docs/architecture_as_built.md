@@ -518,7 +518,7 @@ All four protocols are runtime-checkable; new implementations register via facto
 ```
 Project.load(dir)
 ├─ sync()                                        ← reconcile scene.md / ir/scene.json
-│    (load(sync=False) / read_scene(): the same choice in memory, nothing written; cache info/gc, credits, world show)
+│    (load(sync=False) / read_scene(): the same choice in memory, nothing written; cache info/gc, credits, world show; sync and read_scene share _scene_side, an#584)
 ├─ load SceneIR from mall["scenes"]["main"]
 │
 └─ render() in an/render.py
