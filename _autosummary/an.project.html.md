@@ -22,12 +22,12 @@ Layout (from spec §11):
 
 ### Functions
 
-| [`init`](#an.project.init)(project_dir, \*[, name, force])             | Create a fresh an project at `project_dir`.                                                                                                                                                                                                                                                                                                                                                           |
-|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`keep_out_of_git`](#an.project.keep_out_of_git)(pdir, lines)                     | Add `lines` to an OLDER project's `.gitignore` (an `an init` from before they existed left them out) — conservatively: never a line whose folder the file already says anything about (a project may have chosen to commit its reports, `!artifacts/render_reports/`), never through a symlink (a shared ignore file), and never creating a `.gitignore` in a project that is not in a git work tree. |
-| [`keep_reports_out_of_git`](#an.project.keep_reports_out_of_git)(pdir)                    | Add [`RENDER_REPORTS_GITIGNORE`](#an.project.RENDER_REPORTS_GITIGNORE) to an older project's `.gitignore` the first time a render writes a report (an#309), by [`keep_out_of_git()`](#an.project.keep_out_of_git)'s rules.                                                                                                                                                     |
-| [`load`](#an.project.load)(project_dir, \*[, check_kinds, scene_file]) | Load an existing project.                                                                                                                                                                                                                                                                                                                                                                             |
-| [`save`](#an.project.save)(project)                                    | Persist a Project's current scene back to disk (md + json).                                                                                                                                                                                                                                                                                                                                           |
+| [`init`](#an.project.init)(project_dir, \*[, name, force])      | Create a fresh an project at `project_dir`.                                                                                                                                                                                                                                                                                                                                                           |
+|--------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`keep_out_of_git`](#an.project.keep_out_of_git)(pdir, lines)              | Add `lines` to an OLDER project's `.gitignore` (an `an init` from before they existed left them out) — conservatively: never a line whose folder the file already says anything about (a project may have chosen to commit its reports, `!artifacts/render_reports/`), never through a symlink (a shared ignore file), and never creating a `.gitignore` in a project that is not in a git work tree. |
+| [`keep_reports_out_of_git`](#an.project.keep_reports_out_of_git)(pdir)             | Add [`RENDER_REPORTS_GITIGNORE`](#an.project.RENDER_REPORTS_GITIGNORE) to an older project's `.gitignore` the first time a render writes a report (an#309), by [`keep_out_of_git()`](#an.project.keep_out_of_git)'s rules.                                                                                                                                                     |
+| [`load`](#an.project.load)(project_dir, \*[, check_kinds, ...]) | Load an existing project.                                                                                                                                                                                                                                                                                                                                                                             |
+| [`save`](#an.project.save)(project)                             | Persist a Project's current scene back to disk (md + json).                                                                                                                                                                                                                                                                                                                                           |
 
 ### Classes
 
@@ -86,9 +86,17 @@ the first time a render writes a report (an#309), by [`keep_out_of_git()`](#an.p
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
-### an.project.load(project_dir, , check_kinds=True, scene_file='scene.md')
+### an.project.load(project_dir, , check_kinds=True, scene_file='scene.md', sync=True)
 
-Load an existing project. Reconciles scene.md / ir/scene.json first.
+Load an existing project. Reconciles scene.md / ir/scene.json first
+(unless `sync=False`).
+
+`sync=False` is the read-only load (an#573): the scene is read past a
+stale pair with `an.ir.sync.read_scene()` and nothing is written to the
+scene files; `project.mall["scenes"]` is then a read-only view of that
+scene. For commands that only look (`an cache info`, `an cache gc`, `credits`,
+`world show`). `an validate` keeps syncing: it reports the sync’s own
+warnings (a tie that disagrees) as findings, which this path does not emit.
 
 `scene_file` names another scene of the project (`scene.studio.md`, its
 JSON twin `ir/scene.studio.json`, an#539; resolved by

@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=304fc6b2"></script>
+    <script src="../../../_static/documentation_options.js?v=943742ab"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.286" />
+  <meta name="docsearch:version" content="0.1.287" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1317,7 +1317,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="n">sf</span><span class="o">.</span><span class="n">is_default</span><span class="p">:</span>
             <span class="k">continue</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">sf</span><span class="p">,</span> <span class="n">load</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="n">scene_file</span><span class="o">=</span><span class="n">sf</span><span class="p">)))</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">sf</span><span class="p">,</span> <span class="n">load</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="n">scene_file</span><span class="o">=</span><span class="n">sf</span><span class="p">,</span> <span class="n">sync</span><span class="o">=</span><span class="kc">False</span><span class="p">)))</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — refuse rather than guess</span>
             <span class="k">raise</span> <span class="n">CacheGcError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"cannot read the project's scene </span><span class="si">{</span><span class="n">sf</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: "</span>
@@ -1354,7 +1354,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.project</span><span class="w"> </span><span class="kn">import</span> <span class="n">load</span>
 
-    <span class="n">project</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
+    <span class="n">project</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="n">sync</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># a collection reads the scene (an#573)</span>
     <span class="n">store</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">SHOT_CACHE_STORE</span><span class="p">)</span>
     <span class="n">report</span> <span class="o">=</span> <span class="n">GcReport</span><span class="p">(</span><span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">store</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1776,7 +1776,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    (it says why it is unknown instead)."""</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.project</span><span class="w"> </span><span class="kn">import</span> <span class="n">load</span>
 
-    <span class="n">project</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
+    <span class="n">project</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="n">sync</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># a collection reads the scene (an#573)</span>
     <span class="n">store</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">SHOT_CACHE_STORE</span><span class="p">)</span>
     <span class="n">layout</span> <span class="o">=</span> <span class="n">_fs_layout</span><span class="p">(</span><span class="n">store</span><span class="p">)</span> <span class="k">if</span> <span class="n">store</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
     <span class="n">info</span> <span class="o">=</span> <span class="n">CacheInfo</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">layout</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">parent</span><span class="p">)</span> <span class="k">if</span> <span class="n">layout</span> <span class="k">else</span> <span class="n">SHOT_CACHE_STORE</span><span class="p">)</span>

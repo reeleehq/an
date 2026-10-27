@@ -30,7 +30,7 @@ True
 | [`markdown_to_ir`](#an.markdown_to_ir)(md_text)                            | Parse the structured Markdown form of a scene into a SceneIR.                  |
 | [`ir_to_markdown`](#an.ir_to_markdown)(scene)                              | Render a SceneIR back into the structured Markdown form.                       |
 | [`init`](#an.init)(project_dir, \*[, name, force])               | Create a fresh an project at `project_dir`.                                    |
-| [`load`](#an.load)(project_dir, \*[, check_kinds, scene_file])   | Load an existing project.                                                      |
+| [`load`](#an.load)(project_dir, \*[, check_kinds, ...])          | Load an existing project.                                                      |
 | [`save`](#an.save)(project)                                      | Persist a Project's current scene back to disk (md + json).                    |
 | [`build_project_mall`](#an.build_project_mall)(project_dir, \*[, ensure, ...]) | Build the standard project mall over `project_dir`.                            |
 | [`check_requirements`](#an.check_requirements)()                               | Return a per-tool status dict.                                                 |
@@ -619,9 +619,17 @@ did not change.
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.load(project_dir, , check_kinds=True, scene_file='scene.md')
+### an.load(project_dir, , check_kinds=True, scene_file='scene.md', sync=True)
 
-Load an existing project. Reconciles scene.md / ir/scene.json first.
+Load an existing project. Reconciles scene.md / ir/scene.json first
+(unless `sync=False`).
+
+`sync=False` is the read-only load (an#573): the scene is read past a
+stale pair with `an.ir.sync.read_scene()` and nothing is written to the
+scene files; `project.mall["scenes"]` is then a read-only view of that
+scene. For commands that only look (`an cache info`, `an cache gc`, `credits`,
+`world show`). `an validate` keeps syncing: it reports the sync’s own
+warnings (a tie that disagrees) as findings, which this path does not emit.
 
 `scene_file` names another scene of the project (`scene.studio.md`, its
 JSON twin `ir/scene.studio.json`, an#539; resolved by

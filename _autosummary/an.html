@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=304fc6b2"></script>
+    <script src="../_static/documentation_options.js?v=943742ab"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.286" />
+  <meta name="docsearch:version" content="0.1.287" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -683,7 +683,7 @@ for verification, and <code class="code docutils literal notranslate"><span clas
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.init" title="an.init"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init</span></code></a>(project_dir, *[, name, force])</p></td>
 <td><p>Create a fresh an project at <code class="docutils literal notranslate"><span class="pre">project_dir</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.load" title="an.load"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load</span></code></a>(project_dir, *[, check_kinds, scene_file])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.load" title="an.load"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load</span></code></a>(project_dir, *[, check_kinds, ...])</p></td>
 <td><p>Load an existing project.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.save" title="an.save"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save</span></code></a>(project)</p></td>
@@ -1434,8 +1434,15 @@ did not change.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.load">
-<span class="sig-prename descclassname"><span class="pre">an.</span></span><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_kinds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scene_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'scene.md'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/project.html#load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.load" title="Link to this definition">#</a></dt>
-<dd><p>Load an existing project. Reconciles scene.md / ir/scene.json first.</p>
+<span class="sig-prename descclassname"><span class="pre">an.</span></span><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_kinds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scene_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'scene.md'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sync</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/project.html#load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.load" title="Link to this definition">#</a></dt>
+<dd><p>Load an existing project. Reconciles scene.md / ir/scene.json first
+(unless <code class="docutils literal notranslate"><span class="pre">sync=False</span></code>).</p>
+<p><code class="docutils literal notranslate"><span class="pre">sync=False</span></code> is the read-only load (an#573): the scene is read past a
+stale pair with <code class="xref py py-func docutils literal notranslate"><span class="pre">an.ir.sync.read_scene()</span></code> and nothing is written to the
+scene files; <code class="docutils literal notranslate"><span class="pre">project.mall[&quot;scenes&quot;]</span></code> is then a read-only view of that
+scene. For commands that only look (<code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">cache</span> <span class="pre">info</span></code>, <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">cache</span> <span class="pre">gc</span></code>, <code class="docutils literal notranslate"><span class="pre">credits</span></code>,
+<code class="docutils literal notranslate"><span class="pre">world</span> <span class="pre">show</span></code>). <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code> keeps syncing: it reports the sync’s own
+warnings (a tie that disagrees) as findings, which this path does not emit.</p>
 <p><code class="docutils literal notranslate"><span class="pre">scene_file</span></code> names another scene of the project (<code class="docutils literal notranslate"><span class="pre">scene.studio.md</span></code>, its
 JSON twin <code class="docutils literal notranslate"><span class="pre">ir/scene.studio.json</span></code>, an#539; resolved by
 <code class="xref py py-func docutils literal notranslate"><span class="pre">an.ir.sync.resolve_scene_file()</span></code>, so a bad or missing one raises

@@ -1,34 +1,34 @@
 {
   "schema_version": 1,
-  "built_at": "2026-10-27T01:46:46Z",
+  "built_at": "2026-10-27T01:56:22Z",
   "package": {
     "name": "an",
-    "version": "0.1.286",
+    "version": "0.1.287",
     "display_name": "an",
     "source": "pyproject.toml"
   },
   "git": {
     "available": true,
-    "commit": "22047e5d3bd37b05e6b2a55524fb82ee1756467b",
-    "short_commit": "22047e5",
+    "commit": "2e8241dec1b518a7536c665698cb58ef29db3384",
+    "short_commit": "2e8241d",
     "branch": "main",
     "tags": [
-      "0.1.286"
+      "0.1.287"
     ],
     "dirty": false,
     "remote_url": "https://github.com/reeleehq/an",
-    "commit_url": "https://github.com/reeleehq/an/commit/22047e5d3bd37b05e6b2a55524fb82ee1756467b",
+    "commit_url": "https://github.com/reeleehq/an/commit/2e8241dec1b518a7536c665698cb58ef29db3384",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "reeleehq/an",
-    "sha": "8afa4b1f4cd968ee5bd87d964e59174da3f52767",
+    "sha": "0589c0e7162f447566854a5afa6fbb3830387d67",
     "sha_in_history": true,
     "ref": "refs/heads/main",
     "ref_name": "main",
-    "run_id": "40433708441",
-    "run_url": "https://github.com/reeleehq/an/actions/runs/40433708441",
+    "run_id": "40434798043",
+    "run_url": "https://github.com/reeleehq/an/actions/runs/40434798043",
     "server_url": "https://github.com"
   },
   "tools": {
@@ -62,11 +62,11 @@
   },
   "pypi": {
     "checked": true,
-    "latest": "0.1.286",
+    "latest": "0.1.287",
     "relation": "same",
     "error": null
   },
-  "reproduce": "git clone https://github.com/reeleehq/an && cd an\ngit checkout 22047e5d3bd37b05e6b2a55524fb82ee1756467b\npip install \"epythet==0.2.22\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/reeleehq/an && cd an\ngit checkout 2e8241dec1b518a7536c665698cb58ef29db3384\npip install \"epythet==0.2.22\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
     "aligned": true,
