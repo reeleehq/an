@@ -487,3 +487,58 @@ def test_bitwise_equal_across_two_processes():
 def test_refusals_are_typed_and_say_why(call, message):
     with pytest.raises(KinematicsError, match=message):
         call()
+
+
+def _out_and_back(k: int) -> dict:
+    """The handle goes 146 units out (beyond reach), waits three frames, and
+    comes back to 64 units along another bearing (an#568's search found it)."""
+    out, back, far, near, n_out, n_back = (
+        2.060339127936756, 2.324064969246928, 145.70112251312662, 64.26295476397914, 2, 4
+    )
+    if k < n_out:
+        r, a = 60.0 + (far - 60.0) * k / n_out, out
+    elif k < n_out + 3:
+        r, a = far, out
+    else:
+        u = min(1.0, (k - n_out - 3) / n_back)
+        r, a = far + (near - far) * u, out + (back - out) * u
+    return {**NAILED, "handle": {"x": 20.0 + r * math.cos(a), "y": -30.0 + r * math.sin(a)}}
+
+
+def test_the_frame_after_a_refusal_holds_every_joint_it_keeps():
+    """an#568: dynamic mode, the arm swings back to a reachable grip in one
+    frame; at one retry it was left ~1 px apart. No joint it keeps fails."""
+    bodies, joints = _arm()
+    r = solve_frames(bodies, joints, frames=14, dt=DT, targets_at=_out_and_back)
+    regrips = [k for k in range(1, 14) if r.dropped[k - 1] and not r.dropped[k]]
+    assert regrips and all(d == () for d in r.dropped[8:]), r.dropped  # held again
+    for k in range(14):
+        assert [j for j, _ in r.unsatisfied[k] if j not in r.dropped[k]] == [], k
+
+
+def test_a_retry_that_stalls_is_a_conflict_in_dynamic_mode():
+    """an#568: the handle comes back from out of reach to 21 units from the
+    shoulder, inside the arm's length but past its elbow's range (~26). The
+    first retry halves the failure, then it stalls at ~1.2 px for any number
+    of passes; it is given up as a conflict (the grip), every other joint
+    holding, instead of being left apart as "slow"."""
+    out, back, far, near, n_out, n_back, wait = (
+        -2.848966291475012, -0.8438582465511009, 159.53659553260178,
+        21.222574113529397, 3, 1, 0,
+    )  # fmt: skip
+
+    def handle(k):
+        if k < n_out:
+            r, a = 60.0 + (far - 60.0) * k / n_out, out
+        elif k < n_out + wait:
+            r, a = far, out
+        else:
+            u = min(1.0, (k - n_out - wait) / n_back)
+            r, a = far + (near - far) * u, out + (back - out) * u
+        return {**NAILED, "handle": {"x": 20.0 + r * math.cos(a), "y": -30.0 + r * math.sin(a)}}
+
+    bodies, joints = _arm()
+    r = solve_frames(bodies, joints, frames=10, dt=DT, targets_at=handle)
+    assert r.dropped[4] == (2,), r.dropped
+    for k in range(10):
+        assert [j for j, _ in r.unsatisfied[k] if j not in r.dropped[k]] == [], k

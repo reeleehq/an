@@ -25,8 +25,13 @@ correction of every pass. A frame that leaves a rigid joint failing is
 solved again with :data:`DFLT_CONFLICT_RETRY` times the iterations from a
 start nudged by :data:`DFLT_NUDGE` (a straight chain pushed along its length
 has no sideways correction to buckle with otherwise). If that at least
-halves the failure (:data:`DFLT_CONFLICT_PROGRESS`) it was slow convergence,
-and what is left is only reported. If not, it is a conflict, settled per
+halves the failure (:data:`DFLT_CONFLICT_PROGRESS`) it was slow convergence:
+the retry is repeated with ``retry`` times the passes while each round still
+cuts what is left by more than :data:`DFLT_STALL_PROGRESS`, up to
+:data:`DFLT_CONVERGE_CAP` times ``iterations`` (an#568). A round that stalls
+is a conflict after all (a grip inside the arm's length but past its elbow's
+range converges at first, then sits a pixel short), and what is left after the
+cap is only reported. If not, it is a conflict, settled per
 LOOP: the joints that share a cycle through the held bodies with a failing
 one are tried last-declared first, and the first whose loss lets every
 other joint hold is given up for the frame (a joint on no cycle, such as
@@ -125,7 +130,22 @@ DFLT_SEGMENT_MARGIN: float = 0.5
 #: Bumped whenever the solve can give a different answer for the same inputs
 #: (a changed projection, order, or default): part of every cache key built
 #: on this module.
-SOLVER_VERSION: str = "1"
+SOLVER_VERSION: str = "2"  # 2: a slow retry keeps going while it converges (an#568)
+#: The most passes a frame whose first retry made progress is given, as a
+#: multiple of ``iterations``: its retry is repeated with ``retry`` times the
+#: passes while each round still makes progress (an#568). On 300 random
+#: out-and-back reaches of a two-link arm in dynamic mode, 126 frames were left
+#: up to 6 px apart at the single retry (most of them a grip past the elbow's
+#: range, a conflict that halved once and then stalled); none at a cap of 64.
+#: A frame that converges at once pays nothing; a 50-link rope with its end out
+#: of reach pays ~90 rather than ~40 ms a frame, with 7 rather than 22 frames
+#: left failing.
+DFLT_CONVERGE_CAP: int = 64
+#: A later round STALLS when what is left is more than this fraction of the
+#: round before (it cut less than 10%): a conflict, given up. Laxer than
+#: :data:`DFLT_CONFLICT_PROGRESS`, which decides the first retry: requiring
+#: every round to halve gave up a reachable grip that was still converging.
+DFLT_STALL_PROGRESS: float = 0.9
 
 #: The pose channels, in the order :attr:`SolveResult.poses` holds them.
 POSE_CHANNELS: tuple[str, ...] = ("x", "y", "rotation", "scale")
@@ -985,6 +1005,7 @@ def solve(
     retry: int = DFLT_CONFLICT_RETRY,
     drop_conflicts: bool = True,
     seed: int = 0,
+    converge_cap: int = DFLT_CONVERGE_CAP,
 ) -> SolveResult:
     """One frame: the poses of all ``bodies`` that satisfy the joined
     ``joints`` with the ``targets`` held, forces and ``gravity`` acting.
@@ -999,9 +1020,11 @@ def solve(
     up in ``unsatisfied`` rather than stretching anything. Hinge and weld
     rests left ``None`` are the relative angles the bodies have on input.
     A frame that leaves a joint failing is solved again with ``retry`` times
-    the ``iterations`` (1: never); ``drop_conflicts``
-    then gives up the joints in conflict, last declared first (module
-    docstring); ``False`` keeps them all and reports what fails. ``seed`` is reserved for stochastic drivers and does nothing in this
+    the ``iterations`` (1: never), again while each round still cuts what is
+    left, up to ``converge_cap`` times the ``iterations``; ``drop_conflicts``
+    then gives up the joints in conflict (a first retry that did not halve the
+    failure, or a later one that stalled), last declared first (module docstring);
+    ``False`` keeps them all and reports what fails. ``seed`` is reserved for stochastic drivers and does nothing in this
     version: the solve has no randomness.
 
     A shoulder driven to a point, an upper arm pinned to it, a forearm
@@ -1105,9 +1128,19 @@ def solve(
     if result.failure and retry > 1:
         # Slow to converge, a singular start (a straight chain pushed along
         # its length), or a conflict? More passes from a nudged start first.
-        retried = attempt(iterations * retry, unreachable, nudge=True)
+        passes = iterations * retry
+        retried = attempt(passes, unreachable, nudge=True)
         slow = retried.failure <= DFLT_CONFLICT_PROGRESS * result.failure
         result = retried if retried.failure <= result.failure else result
+        # Slow: keep going while each round still makes progress, up to the cap.
+        # One that stalls short of holding is a conflict too (an#568: a grip
+        # within the arm's length but past its elbow's range halved once, then
+        # sat at 1.2 px for any number of passes).
+        while slow and result.failure and passes * retry <= iterations * converge_cap:
+            passes *= retry
+            more = attempt(passes, unreachable, nudge=True)
+            slow = more.failure <= DFLT_STALL_PROGRESS * result.failure
+            result = more if more.failure <= result.failure else result
         if drop_conflicts and result.failure and not slow:
             result = _give_up_conflicts(result, attempt, passes=iterations * retry)
     if not all(math.isfinite(v) for v in result.st.as_array().flat):
