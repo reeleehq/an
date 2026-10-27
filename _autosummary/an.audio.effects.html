@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=7e4042c0"></script>
+    <script src="../_static/documentation_options.js?v=49b8c8aa"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.311" />
+  <meta name="docsearch:version" content="0.1.312" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -659,15 +659,13 @@ lower threshold, and keeps them.</p></li>
 TTS provider, so it lives beside the voice the line already resolves through
 rather than in the IR.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">normalize_effects</span><span class="p">({</span><span class="s2">"pitch_semitones"</span><span class="p">:</span> <span class="mi">4</span><span class="p">})</span>
-<span class="go">{'pitch_semitones': 4.0, 'chain_version': 2}</span>
+<span class="go">{'pitch_semitones': 4.0, 'chain_version': 3, 'chain_sha': '331a8bdbbfb1423c'}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">normalize_effects</span><span class="p">({</span><span class="s2">"pitch_semitones"</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span> <span class="o">==</span> <span class="n">normalize_effects</span><span class="p">({</span><span class="s2">"tempo"</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span> <span class="o">==</span> <span class="n">normalize_effects</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="p">{}</span>
 <span class="go">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">normalize_effects</span><span class="p">({</span><span class="s2">"tempo"</span><span class="p">:</span> <span class="mf">1.1</span><span class="p">,</span> <span class="s2">"pitch_semitones"</span><span class="p">:</span> <span class="o">-</span><span class="mi">2</span><span class="p">})</span>
-<span class="go">{'pitch_semitones': -2.0, 'tempo': 1.1, 'chain_version': 2}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="n">_pitch_filter</span><span class="p">(</span><span class="mi">12</span><span class="p">),</span> <span class="mi">3</span><span class="p">)</span>
-<span class="go">0.5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">normalize_effects</span><span class="p">({</span><span class="s2">"tempo"</span><span class="p">:</span> <span class="mf">1.1</span><span class="p">,</span> <span class="s2">"pitch_semitones"</span><span class="p">:</span> <span class="o">-</span><span class="mi">2</span><span class="p">})[</span><span class="s2">"tempo"</span><span class="p">]</span>
+<span class="go">1.1</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">filter_chain</span><span class="p">({</span><span class="s2">"tempo"</span><span class="p">:</span> <span class="mf">1.25</span><span class="p">})</span>
-<span class="go">'aresample=44100,apad=pad_dur=0.25,atempo=1.250000000'</span>
+<span class="go">'aresample=44100,apad=pad_dur=0.25,atempo=1.2500000000'</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">normalize_effects</span><span class="p">({</span><span class="s2">"trim_silence"</span><span class="p">:</span> <span class="kc">True</span><span class="p">})[</span><span class="s2">"trim_silence"</span><span class="p">]</span>
 <span class="go">{'keep_lead_s': 0.1, 'keep_tail_s': 0.2, 'threshold_db': -20.0, 'version': 1}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">normalize_effects</span><span class="p">({</span><span class="s2">"trim_silence"</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span> <span class="o">==</span> <span class="p">{}</span>
@@ -690,12 +688,14 @@ visemes, word timings and captions all follow the audio the viewer hears.</p></l
 <code class="docutils literal notranslate"><span class="pre">an.audio.pipeline</span></code> adds it to the audio key only when it is non-empty, so a
 project that declares none keeps every key it ever had.</p></li>
 <li><p><strong>Stock ffmpeg only.</strong> The chain is <code class="docutils literal notranslate"><span class="pre">aresample</span> <span class="pre">→</span> <span class="pre">asetrate</span> <span class="pre">→</span> <span class="pre">aresample</span> <span class="pre">→</span>
-<span class="pre">atempo</span></code>: the sample rate is relabelled by the pitch ratio (pitch and speed both
-move) and <code class="docutils literal notranslate"><span class="pre">atempo</span></code> removes the speed change; a <code class="docutils literal notranslate"><span class="pre">tempo</span></code> multiplies into that
-same <code class="docutils literal notranslate"><span class="pre">atempo</span></code> factor (<code class="docutils literal notranslate"><span class="pre">aresample</span> <span class="pre">→</span> <span class="pre">atempo</span></code> alone when there is no pitch).
-A factor outside <code class="docutils literal notranslate"><span class="pre">atempo</span></code>’s clean <code class="docutils literal notranslate"><span class="pre">[0.5,</span> <span class="pre">2]</span></code> is split into stages, each
-inside it; the pitch-only chain is one stage, character for character what it
-was before <code class="docutils literal notranslate"><span class="pre">tempo</span></code> existed. <code class="docutils literal notranslate"><span class="pre">rubberband</span></code> is a better
+<span class="pre">atempo</span></code>: the sample rate is relabelled by the pitch ratio, rounded to the
+integer rate ffmpeg takes (pitch and speed both move), and <code class="docutils literal notranslate"><span class="pre">atempo</span></code> removes
+the speed change of that rate exactly; a <code class="docutils literal notranslate"><span class="pre">tempo</span></code> multiplies into that same
+<code class="docutils literal notranslate"><span class="pre">atempo</span></code> factor (<code class="docutils literal notranslate"><span class="pre">aresample</span> <span class="pre">→</span> <span class="pre">atempo</span></code> alone when there is no pitch). A
+factor outside <code class="docutils literal notranslate"><span class="pre">atempo</span></code>’s clean <code class="docutils literal notranslate"><span class="pre">[0.5,</span> <span class="pre">2]</span></code> is split into stages, each
+inside it. All but the leading <code class="docutils literal notranslate"><span class="pre">aresample</span></code> is built by the fleet’s one
+builder, <code class="xref py py-func docutils literal notranslate"><span class="pre">mixing.filtergraph.resample_pitch_filter()</span></code> (an#611), which
+<code class="docutils literal notranslate"><span class="pre">mixing.audio.shift_pitch</span></code> runs too. <code class="docutils literal notranslate"><span class="pre">rubberband</span></code> is a better
 shifter but is a build option, and its output would differ between machines —
 which a content-hash cache cannot tolerate. The output is bit-exact WAV (no
 encoder tag, no metadata), so two runs produce identical bytes.</p></li>
@@ -721,38 +721,38 @@ silence) is left whole.</p></li>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.audio.effects.TEMPO_LIMITS" title="an.audio.effects.TEMPO_LIMITS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TEMPO_LIMITS</span></code></a></p></td>
 <td><p>half to double speed.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.effects.ATEMPO_STAGE_LIMITS" title="an.audio.effects.ATEMPO_STAGE_LIMITS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ATEMPO_STAGE_LIMITS</span></code></a></p></td>
-<td><p>One <code class="docutils literal notranslate"><span class="pre">atempo</span></code> stage's clean range; a factor beyond it is chained in stages.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.effects.EFFECT_SAMPLE_RATE" title="an.audio.effects.EFFECT_SAMPLE_RATE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EFFECT_SAMPLE_RATE</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.effects.EFFECT_SAMPLE_RATE" title="an.audio.effects.EFFECT_SAMPLE_RATE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EFFECT_SAMPLE_RATE</span></code></a></p></td>
 <td><p>The sample rate the chain runs at (and the shifted WAV is written at).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.effects.TRIM_SILENCE" title="an.audio.effects.TRIM_SILENCE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TRIM_SILENCE</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.effects.TRIM_SILENCE" title="an.audio.effects.TRIM_SILENCE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TRIM_SILENCE</span></code></a></p></td>
 <td><p>The effect that cuts a line's leading and trailing silence (an#254).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.effects.DFLT_TRIM_THRESHOLD_DB" title="an.audio.effects.DFLT_TRIM_THRESHOLD_DB"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_TRIM_THRESHOLD_DB</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.effects.DFLT_TRIM_THRESHOLD_DB" title="an.audio.effects.DFLT_TRIM_THRESHOLD_DB"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_TRIM_THRESHOLD_DB</span></code></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">trim_silence</span></code>'s defaults.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.effects.DFLT_TRIM_KEEP_LEAD_S" title="an.audio.effects.DFLT_TRIM_KEEP_LEAD_S"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_TRIM_KEEP_LEAD_S</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.effects.DFLT_TRIM_KEEP_LEAD_S" title="an.audio.effects.DFLT_TRIM_KEEP_LEAD_S"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_TRIM_KEEP_LEAD_S</span></code></a></p></td>
 <td><p>more than the lip-sync anticipation lead (2/24 s), so the mouth can open before the sound.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.effects.DFLT_TRIM_KEEP_TAIL_S" title="an.audio.effects.DFLT_TRIM_KEEP_TAIL_S"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_TRIM_KEEP_TAIL_S</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.effects.DFLT_TRIM_KEEP_TAIL_S" title="an.audio.effects.DFLT_TRIM_KEEP_TAIL_S"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_TRIM_KEEP_TAIL_S</span></code></a></p></td>
 <td><p>a word's release and decay.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.effects.TRIM_THRESHOLD_LIMITS" title="an.audio.effects.TRIM_THRESHOLD_LIMITS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TRIM_THRESHOLD_LIMITS</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.effects.TRIM_THRESHOLD_LIMITS" title="an.audio.effects.TRIM_THRESHOLD_LIMITS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TRIM_THRESHOLD_LIMITS</span></code></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">threshold_db</span></code> bounds (relative to the line's loudest window).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.effects.TRIM_KEEP_LIMITS" title="an.audio.effects.TRIM_KEEP_LIMITS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TRIM_KEEP_LIMITS</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.effects.TRIM_KEEP_LIMITS" title="an.audio.effects.TRIM_KEEP_LIMITS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TRIM_KEEP_LIMITS</span></code></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">keep_lead_s</span></code> / <code class="docutils literal notranslate"><span class="pre">keep_tail_s</span></code> bounds, seconds.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.effects.TRIM_WINDOW_S" title="an.audio.effects.TRIM_WINDOW_S"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TRIM_WINDOW_S</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.effects.TRIM_WINDOW_S" title="an.audio.effects.TRIM_WINDOW_S"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TRIM_WINDOW_S</span></code></a></p></td>
 <td><p>a change to it (or to anything else that moves a trimmed line's bytes) is a <a class="reference internal" href="#an.audio.effects.TRIM_VERSION" title="an.audio.effects.TRIM_VERSION"><code class="xref py py-data docutils literal notranslate"><span class="pre">TRIM_VERSION</span></code></a> bump — a test pins the trim's output to the version (an#309).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.effects.TRIM_VERSION" title="an.audio.effects.TRIM_VERSION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TRIM_VERSION</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.effects.TRIM_VERSION" title="an.audio.effects.TRIM_VERSION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TRIM_VERSION</span></code></a></p></td>
 <td><p>Bumped whenever a trimmed line's bytes would change (algorithm, window, record tag, rounding); part of every trimmed line's key.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.effects.CHAIN_VERSION" title="an.audio.effects.CHAIN_VERSION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CHAIN_VERSION</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.effects.CHAIN_VERSION" title="an.audio.effects.CHAIN_VERSION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CHAIN_VERSION</span></code></a></p></td>
 <td><p>The version of the ffmpeg chain every effected line passes (pitch, tempo, and the decode of a non-WAV line before its trim): its filters, rate (<a class="reference internal" href="#an.audio.effects.EFFECT_SAMPLE_RATE" title="an.audio.effects.EFFECT_SAMPLE_RATE"><code class="xref py py-data docutils literal notranslate"><span class="pre">EFFECT_SAMPLE_RATE</span></code></a>), <code class="docutils literal notranslate"><span class="pre">atempo</span></code> stages and flags (an#309).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.effects.CHAIN_DIGEST_KEY" title="an.audio.effects.CHAIN_DIGEST_KEY"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CHAIN_DIGEST_KEY</span></code></a></p></td>
+<td><p>Since an#611 the pitch and tempo stages are built in another package (<code class="xref py py-mod docutils literal notranslate"><span class="pre">mixing.filtergraph</span></code>), so a pitch or tempo line's key also holds a digest of its chain string: a change made there re-processes the lines it changes (from their cached raw takes) without an's version knowing of it.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.audio.effects.TEMPO_PAD_S" title="an.audio.effects.TEMPO_PAD_S"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TEMPO_PAD_S</span></code></a></p></td>
 <td><p>Seconds of silence appended before the <code class="docutils literal notranslate"><span class="pre">atempo</span></code> stages, so their window never eats the line's tail (it dropped 20-40 ms of every short padded clip, an#350); the output is then cut to the exact length the tempo gives.</p></td>
@@ -769,31 +769,28 @@ silence) is left whole.</p></li>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.effects.apply_voice_effects" title="an.audio.effects.apply_voice_effects"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_voice_effects</span></code></a>(audio, effects)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">audio</span></code> (any container ffmpeg sniffs) with <code class="docutils literal notranslate"><span class="pre">effects</span></code> applied, as WAV bytes.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.effects.atempo_stages" title="an.audio.effects.atempo_stages"><code class="xref py py-obj docutils literal notranslate"><span class="pre">atempo_stages</span></code></a>(factor, *[, limits])</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">factor</span></code> as a product of <code class="docutils literal notranslate"><span class="pre">atempo</span></code> stages, each inside <code class="docutils literal notranslate"><span class="pre">limits</span></code>.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.effects.decode_chain" title="an.audio.effects.decode_chain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">decode_chain</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.effects.decode_chain" title="an.audio.effects.decode_chain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">decode_chain</span></code></a>()</p></td>
 <td><p>The chain that decodes a non-WAV line (MP3, from ElevenLabs) before its trim (part of <a class="reference internal" href="#an.audio.effects.CHAIN_VERSION" title="an.audio.effects.CHAIN_VERSION"><code class="xref py py-data docutils literal notranslate"><span class="pre">CHAIN_VERSION</span></code></a>).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.effects.ffmpeg_argv" title="an.audio.effects.ffmpeg_argv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ffmpeg_argv</span></code></a>(chain, out_path, *[, source_path])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.effects.ffmpeg_argv" title="an.audio.effects.ffmpeg_argv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ffmpeg_argv</span></code></a>(chain, out_path, *[, source_path])</p></td>
 <td><p>The argv that runs <code class="docutils literal notranslate"><span class="pre">chain</span></code> over audio on stdin into a bit-exact 16-bit PCM WAV at <code class="docutils literal notranslate"><span class="pre">out_path</span></code> (part of <a class="reference internal" href="#an.audio.effects.CHAIN_VERSION" title="an.audio.effects.CHAIN_VERSION"><code class="xref py py-data docutils literal notranslate"><span class="pre">CHAIN_VERSION</span></code></a>).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.effects.filter_chain" title="an.audio.effects.filter_chain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filter_chain</span></code></a>(effects)</p></td>
-<td><p>The ffmpeg <code class="docutils literal notranslate"><span class="pre">-af</span></code> chain for normalised <code class="docutils literal notranslate"><span class="pre">effects</span></code> (<code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code> for none).</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.effects.filter_chain" title="an.audio.effects.filter_chain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filter_chain</span></code></a>(effects)</p></td>
+<td><p>The ffmpeg <code class="docutils literal notranslate"><span class="pre">-af</span></code> chain for normalised <code class="docutils literal notranslate"><span class="pre">effects</span></code> (<code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code> for none): the input resampled to <a class="reference internal" href="#an.audio.effects.EFFECT_SAMPLE_RATE" title="an.audio.effects.EFFECT_SAMPLE_RATE"><code class="xref py py-data docutils literal notranslate"><span class="pre">EFFECT_SAMPLE_RATE</span></code></a>, then the shared pitch and tempo chain (<code class="xref py py-func docutils literal notranslate"><span class="pre">mixing.filtergraph.resample_pitch_filter()</span></code>).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.effects.normalize_effects" title="an.audio.effects.normalize_effects"><code class="xref py py-obj docutils literal notranslate"><span class="pre">normalize_effects</span></code></a>(raw)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.effects.normalize_effects" title="an.audio.effects.normalize_effects"><code class="xref py py-obj docutils literal notranslate"><span class="pre">normalize_effects</span></code></a>(raw)</p></td>
 <td><p>The canonical effects dict for a voice's <code class="docutils literal notranslate"><span class="pre">effects</span></code> value.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.effects.speech_end" title="an.audio.effects.speech_end"><code class="xref py py-obj docutils literal notranslate"><span class="pre">speech_end</span></code></a>(audio, *[, threshold_db, window_s])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.effects.speech_end" title="an.audio.effects.speech_end"><code class="xref py py-obj docutils literal notranslate"><span class="pre">speech_end</span></code></a>(audio, *[, threshold_db, window_s])</p></td>
 <td><p>Seconds into <code class="docutils literal notranslate"><span class="pre">audio</span></code> at which its audible speech ends (an#397); <code class="docutils literal notranslate"><span class="pre">None</span></code> when silent or unreadable.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.effects.trim_record" title="an.audio.effects.trim_record"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trim_record</span></code></a>(wav)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.effects.trim_record" title="an.audio.effects.trim_record"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trim_record</span></code></a>(wav)</p></td>
 <td><p>What <code class="docutils literal notranslate"><span class="pre">trim_silence</span></code> cut from <code class="docutils literal notranslate"><span class="pre">wav</span></code> (<code class="docutils literal notranslate"><span class="pre">lead_s</span></code>, <code class="docutils literal notranslate"><span class="pre">tail_s</span></code>, <code class="docutils literal notranslate"><span class="pre">source_s</span></code>), read from the comment it wrote; <code class="docutils literal notranslate"><span class="pre">None</span></code> for audio it did not write.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.effects.trim_silence" title="an.audio.effects.trim_silence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trim_silence</span></code></a>(wav, *[, threshold_db, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.effects.trim_silence" title="an.audio.effects.trim_silence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trim_silence</span></code></a>(wav, *[, threshold_db, ...])</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">wav</span></code> (16-bit PCM) cut to its speech, plus <code class="docutils literal notranslate"><span class="pre">keep_lead_s</span></code> before it and <code class="docutils literal notranslate"><span class="pre">keep_tail_s</span></code> after it, and the cut recorded in the WAV it returns.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.effects.voice_effects" title="an.audio.effects.voice_effects"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voice_effects</span></code></a>(mall, voice_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.effects.voice_effects" title="an.audio.effects.voice_effects"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voice_effects</span></code></a>(mall, voice_id)</p></td>
 <td><p>The normalised effects declared by <code class="docutils literal notranslate"><span class="pre">mall[&quot;voices&quot;][voice_id]</span></code>, or <code class="docutils literal notranslate"><span class="pre">{}</span></code>.</p></td>
 </tr>
 </tbody>
@@ -818,14 +815,17 @@ silence) is left whole.</p></li>
 </table>
 </div>
 <dl class="py data">
-<dt class="sig sig-object py" id="an.audio.effects.ATEMPO_STAGE_LIMITS">
-<span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">ATEMPO_STAGE_LIMITS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(0.5,</span> <span class="pre">2.0)</span></span><a class="headerlink" href="#an.audio.effects.ATEMPO_STAGE_LIMITS" title="Link to this definition">#</a></dt>
-<dd><p>One <code class="docutils literal notranslate"><span class="pre">atempo</span></code> stage’s clean range; a factor beyond it is chained in stages.</p>
+<dt class="sig sig-object py" id="an.audio.effects.CHAIN_DIGEST_KEY">
+<span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">CHAIN_DIGEST_KEY</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'chain_sha'</span></span><a class="headerlink" href="#an.audio.effects.CHAIN_DIGEST_KEY" title="Link to this definition">#</a></dt>
+<dd><p>Since an#611 the pitch and tempo stages are built in another package
+(<code class="xref py py-mod docutils literal notranslate"><span class="pre">mixing.filtergraph</span></code>), so a pitch or tempo line’s key also holds a
+digest of its chain string: a change made there re-processes the lines it
+changes (from their cached raw takes) without an’s version knowing of it.</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.audio.effects.CHAIN_VERSION">
-<span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">CHAIN_VERSION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#an.audio.effects.CHAIN_VERSION" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">CHAIN_VERSION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></span><a class="headerlink" href="#an.audio.effects.CHAIN_VERSION" title="Link to this definition">#</a></dt>
 <dd><p>The version of the ffmpeg chain every effected line passes (pitch, tempo,
 and the decode of a non-WAV line before its trim): its filters, rate
 (<a class="reference internal" href="#an.audio.effects.EFFECT_SAMPLE_RATE" title="an.audio.effects.EFFECT_SAMPLE_RATE"><code class="xref py py-data docutils literal notranslate"><span class="pre">EFFECT_SAMPLE_RATE</span></code></a>), <code class="docutils literal notranslate"><span class="pre">atempo</span></code> stages and flags (an#309). Keyed
@@ -834,7 +834,11 @@ any change to <a class="reference internal" href="#an.audio.effects.filter_chain
 — a test pins them to the version. Moving the key re-processes each line
 from its raw take, which is cached: nothing is billed.</p>
 <p>2 (an#350): silence padded before the <code class="docutils literal notranslate"><span class="pre">atempo</span></code> stages and the output cut
-to exactly <code class="docutils literal notranslate"><span class="pre">input</span> <span class="pre">/</span> <span class="pre">tempo</span></code> — <code class="docutils literal notranslate"><span class="pre">atempo</span></code> dropped the last 20-40 ms.</p>
+to exactly <code class="docutils literal notranslate"><span class="pre">input</span> <span class="pre">/</span> <span class="pre">tempo</span></code> — <code class="docutils literal notranslate"><span class="pre">atempo</span></code> dropped the last 20-40 ms.
+3 (an#611): built by <code class="xref py py-func docutils literal notranslate"><span class="pre">mixing.filtergraph.resample_pitch_filter()</span></code>. The
+<code class="docutils literal notranslate"><span class="pre">asetrate</span></code> rate is written as the integer ffmpeg rounded it to anyway, and
+<code class="docutils literal notranslate"><span class="pre">atempo</span></code> undoes that rounded rate’s speed change exactly (it undid the
+unrounded ratio’s), written to ten decimals.</p>
 </dd></dl>
 
 <dl class="py data">
@@ -1001,26 +1005,6 @@ ffmpeg (<a class="reference internal" href="#an.audio.effects.trim_silence" titl
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="an.audio.effects.atempo_stages">
-<span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">atempo_stages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">factor</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">limits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.5,</span> <span class="pre">2.0)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/effects.html#atempo_stages"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.effects.atempo_stages" title="Link to this definition">#</a></dt>
-<dd><p><code class="docutils literal notranslate"><span class="pre">factor</span></code> as a product of <code class="docutils literal notranslate"><span class="pre">atempo</span></code> stages, each inside <code class="docutils literal notranslate"><span class="pre">limits</span></code>.</p>
-<p>One stage when <code class="docutils literal notranslate"><span class="pre">factor</span></code> already fits (the pitch-only chain, always).</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">atempo_stages</span><span class="p">(</span><span class="mf">1.5</span><span class="p">)</span>
-<span class="go">[1.5]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">atempo_stages</span><span class="p">(</span><span class="mf">3.0</span><span class="p">)</span>
-<span class="go">[2.0, 1.5]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">atempo_stages</span><span class="p">(</span><span class="mf">0.3</span><span class="p">)</span>
-<span class="go">[0.5, 0.6]</span>
-</pre></div>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="an.audio.effects.decode_chain">
 <span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">decode_chain</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/effects.html#decode_chain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.effects.decode_chain" title="Link to this definition">#</a></dt>
 <dd><p>The chain that decodes a non-WAV line (MP3, from ElevenLabs) before its
@@ -1058,7 +1042,9 @@ container came in (an#350: a tempo chain’s output is cut to it)</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="an.audio.effects.filter_chain">
 <span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">filter_chain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">effects</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/effects.html#filter_chain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.effects.filter_chain" title="Link to this definition">#</a></dt>
-<dd><p>The ffmpeg <code class="docutils literal notranslate"><span class="pre">-af</span></code> chain for normalised <code class="docutils literal notranslate"><span class="pre">effects</span></code> (<code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code> for none).</p>
+<dd><p>The ffmpeg <code class="docutils literal notranslate"><span class="pre">-af</span></code> chain for normalised <code class="docutils literal notranslate"><span class="pre">effects</span></code> (<code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code> for none):
+the input resampled to <a class="reference internal" href="#an.audio.effects.EFFECT_SAMPLE_RATE" title="an.audio.effects.EFFECT_SAMPLE_RATE"><code class="xref py py-data docutils literal notranslate"><span class="pre">EFFECT_SAMPLE_RATE</span></code></a>, then the shared pitch
+and tempo chain (<code class="xref py py-func docutils literal notranslate"><span class="pre">mixing.filtergraph.resample_pitch_filter()</span></code>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
@@ -1214,7 +1200,7 @@ id) has no effects; so does a store that does not exist.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.effects.ATEMPO_STAGE_LIMITS"><code class="docutils literal notranslate"><span class="pre">ATEMPO_STAGE_LIMITS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.effects.CHAIN_DIGEST_KEY"><code class="docutils literal notranslate"><span class="pre">CHAIN_DIGEST_KEY</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.effects.CHAIN_VERSION"><code class="docutils literal notranslate"><span class="pre">CHAIN_VERSION</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.effects.DFLT_TRIM_KEEP_LEAD_S"><code class="docutils literal notranslate"><span class="pre">DFLT_TRIM_KEEP_LEAD_S</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.effects.DFLT_TRIM_KEEP_TAIL_S"><code class="docutils literal notranslate"><span class="pre">DFLT_TRIM_KEEP_TAIL_S</span></code></a></li>
@@ -1237,7 +1223,6 @@ id) has no effects; so does a store that does not exist.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.effects.TRIM_WINDOW_S"><code class="docutils literal notranslate"><span class="pre">TRIM_WINDOW_S</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.effects.VoiceEffectError"><code class="docutils literal notranslate"><span class="pre">VoiceEffectError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.effects.apply_voice_effects"><code class="docutils literal notranslate"><span class="pre">apply_voice_effects()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.effects.atempo_stages"><code class="docutils literal notranslate"><span class="pre">atempo_stages()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.effects.decode_chain"><code class="docutils literal notranslate"><span class="pre">decode_chain()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.effects.ffmpeg_argv"><code class="docutils literal notranslate"><span class="pre">ffmpeg_argv()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.effects.filter_chain"><code class="docutils literal notranslate"><span class="pre">filter_chain()</span></code></a></li>

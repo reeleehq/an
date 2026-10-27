@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=7e4042c0"></script>
+    <script src="../../../_static/documentation_options.js?v=49b8c8aa"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.311" />
+  <meta name="docsearch:version" content="0.1.312" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -737,15 +737,13 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">rather than in the IR.</span>
 
 <span class="sd">&gt;&gt;&gt; normalize_effects({"pitch_semitones": 4})</span>
-<span class="sd">{'pitch_semitones': 4.0, 'chain_version': 2}</span>
+<span class="sd">{'pitch_semitones': 4.0, 'chain_version': 3, 'chain_sha': '331a8bdbbfb1423c'}</span>
 <span class="sd">&gt;&gt;&gt; normalize_effects({"pitch_semitones": 0}) == normalize_effects({"tempo": 1}) == normalize_effects(None) == {}</span>
 <span class="sd">True</span>
-<span class="sd">&gt;&gt;&gt; normalize_effects({"tempo": 1.1, "pitch_semitones": -2})</span>
-<span class="sd">{'pitch_semitones': -2.0, 'tempo': 1.1, 'chain_version': 2}</span>
-<span class="sd">&gt;&gt;&gt; round(_pitch_filter(12), 3)</span>
-<span class="sd">0.5</span>
+<span class="sd">&gt;&gt;&gt; normalize_effects({"tempo": 1.1, "pitch_semitones": -2})["tempo"]</span>
+<span class="sd">1.1</span>
 <span class="sd">&gt;&gt;&gt; filter_chain({"tempo": 1.25})</span>
-<span class="sd">'aresample=44100,apad=pad_dur=0.25,atempo=1.250000000'</span>
+<span class="sd">'aresample=44100,apad=pad_dur=0.25,atempo=1.2500000000'</span>
 <span class="sd">&gt;&gt;&gt; normalize_effects({"trim_silence": True})["trim_silence"]</span>
 <span class="sd">{'keep_lead_s': 0.1, 'keep_tail_s': 0.2, 'threshold_db': -20.0, 'version': 1}</span>
 <span class="sd">&gt;&gt;&gt; normalize_effects({"trim_silence": False}) == {}</span>
@@ -767,12 +765,14 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">  ``an.audio.pipeline`` adds it to the audio key only when it is non-empty, so a</span>
 <span class="sd">  project that declares none keeps every key it ever had.</span>
 <span class="sd">- **Stock ffmpeg only.** The chain is ``aresample → asetrate → aresample →</span>
-<span class="sd">  atempo``: the sample rate is relabelled by the pitch ratio (pitch and speed both</span>
-<span class="sd">  move) and ``atempo`` removes the speed change; a ``tempo`` multiplies into that</span>
-<span class="sd">  same ``atempo`` factor (``aresample → atempo`` alone when there is no pitch).</span>
-<span class="sd">  A factor outside ``atempo``'s clean ``[0.5, 2]`` is split into stages, each</span>
-<span class="sd">  inside it; the pitch-only chain is one stage, character for character what it</span>
-<span class="sd">  was before ``tempo`` existed. ``rubberband`` is a better</span>
+<span class="sd">  atempo``: the sample rate is relabelled by the pitch ratio, rounded to the</span>
+<span class="sd">  integer rate ffmpeg takes (pitch and speed both move), and ``atempo`` removes</span>
+<span class="sd">  the speed change of that rate exactly; a ``tempo`` multiplies into that same</span>
+<span class="sd">  ``atempo`` factor (``aresample → atempo`` alone when there is no pitch). A</span>
+<span class="sd">  factor outside ``atempo``'s clean ``[0.5, 2]`` is split into stages, each</span>
+<span class="sd">  inside it. All but the leading ``aresample`` is built by the fleet's one</span>
+<span class="sd">  builder, :func:`mixing.filtergraph.resample_pitch_filter` (an#611), which</span>
+<span class="sd">  ``mixing.audio.shift_pitch`` runs too. ``rubberband`` is a better</span>
 <span class="sd">  shifter but is a build option, and its output would differ between machines —</span>
 <span class="sd">  which a content-hash cache cannot tolerate. The output is bit-exact WAV (no</span>
 <span class="sd">  encoder tag, no metadata), so two runs produce identical bytes.</span>
@@ -792,6 +792,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
@@ -808,8 +809,6 @@ window.runMermaid = runMermaid;</script>
 <span class="n">PITCH_SEMITONES_LIMIT</span> <span class="o">=</span> <span class="mf">12.0</span>  <span class="c1"># atempo's stock range is [0.5, 2]: one octave each way</span>
 <span class="c1">#: ``tempo`` bounds: half to double speed. Outside it speech stops being speech.</span>
 <span class="n">TEMPO_LIMITS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span>
-<span class="c1">#: One ``atempo`` stage's clean range; a factor beyond it is chained in stages.</span>
-<span class="n">ATEMPO_STAGE_LIMITS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span>
 <span class="c1">#: The sample rate the chain runs at (and the shifted WAV is written at).</span>
 <span class="n">EFFECT_SAMPLE_RATE</span> <span class="o">=</span> <span class="mi">44100</span>
 <span class="c1">#: The effect that cuts a line's leading and trailing silence (an#254).</span>
@@ -848,8 +847,18 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#:</span>
 <span class="c1">#: 2 (an#350): silence padded before the ``atempo`` stages and the output cut</span>
 <span class="c1">#: to exactly ``input / tempo`` — ``atempo`` dropped the last 20-40 ms.</span>
-<span class="n">CHAIN_VERSION</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="c1">#: 3 (an#611): built by :func:`mixing.filtergraph.resample_pitch_filter`. The</span>
+<span class="c1">#: ``asetrate`` rate is written as the integer ffmpeg rounded it to anyway, and</span>
+<span class="c1">#: ``atempo`` undoes that rounded rate's speed change exactly (it undid the</span>
+<span class="c1">#: unrounded ratio's), written to ten decimals.</span>
+<span class="n">CHAIN_VERSION</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>
 <span class="n">_FIRST_CHAIN_VERSION</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="c1">#: Since an#611 the pitch and tempo stages are built in another package</span>
+<span class="c1">#: (:mod:`mixing.filtergraph`), so a pitch or tempo line's key also holds a</span>
+<span class="c1">#: digest of its chain string: a change made there re-processes the lines it</span>
+<span class="c1">#: changes (from their cached raw takes) without an's version knowing of it.</span>
+<span class="n">CHAIN_DIGEST_KEY</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"chain_sha"</span>
+<span class="n">CHAIN_DIGEST_CHARS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span>
 <span class="c1">#: Seconds of silence appended before the ``atempo`` stages, so their window</span>
 <span class="c1">#: never eats the line's tail (it dropped 20-40 ms of every short padded clip,</span>
 <span class="c1">#: an#350); the output is then cut to the exact length the tempo gives.</span>
@@ -917,6 +926,10 @@ window.runMermaid = runMermaid;</script>
         <span class="n">out</span><span class="p">[</span><span class="n">TRIM_SILENCE</span><span class="p">]</span> <span class="o">=</span> <span class="n">trim</span>
     <span class="k">if</span> <span class="n">out</span> <span class="ow">and</span> <span class="n">CHAIN_VERSION</span> <span class="o">!=</span> <span class="n">_FIRST_CHAIN_VERSION</span><span class="p">:</span>
         <span class="n">out</span><span class="p">[</span><span class="s2">"chain_version"</span><span class="p">]</span> <span class="o">=</span> <span class="n">CHAIN_VERSION</span>
+    <span class="k">if</span> <span class="n">chain</span> <span class="o">:=</span> <span class="n">filter_chain</span><span class="p">(</span><span class="n">out</span><span class="p">):</span>
+        <span class="n">out</span><span class="p">[</span><span class="n">CHAIN_DIGEST_KEY</span><span class="p">]</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">chain</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()[</span>
+            <span class="p">:</span><span class="n">CHAIN_DIGEST_CHARS</span>
+        <span class="p">]</span>
     <span class="k">return</span> <span class="n">out</span></div>
 
 
@@ -982,61 +995,27 @@ window.runMermaid = runMermaid;</script>
 
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_pitch_filter</span><span class="p">(</span><span class="n">semitones</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""The ``atempo`` factor that cancels the speed change of a pitch shift."""</span>
-    <span class="k">return</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">**</span> <span class="p">(</span><span class="n">semitones</span> <span class="o">/</span> <span class="mf">12.0</span><span class="p">))</span>
-
-
-<div class="viewcode-block" id="atempo_stages">
-<a class="viewcode-back" href="../../../_autosummary/an.audio.effects.html#an.audio.effects.atempo_stages">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">atempo_stages</span><span class="p">(</span>
-    <span class="n">factor</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">limits</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">ATEMPO_STAGE_LIMITS</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""``factor`` as a product of ``atempo`` stages, each inside ``limits``.</span>
-
-<span class="sd">    One stage when ``factor`` already fits (the pitch-only chain, always).</span>
-
-<span class="sd">    &gt;&gt;&gt; atempo_stages(1.5)</span>
-<span class="sd">    [1.5]</span>
-<span class="sd">    &gt;&gt;&gt; atempo_stages(3.0)</span>
-<span class="sd">    [2.0, 1.5]</span>
-<span class="sd">    &gt;&gt;&gt; atempo_stages(0.3)</span>
-<span class="sd">    [0.5, 0.6]</span>
-<span class="sd">    """</span>
-    <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="n">limits</span>
-    <span class="n">stages</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">while</span> <span class="n">factor</span> <span class="o">&gt;</span> <span class="n">hi</span><span class="p">:</span>
-        <span class="n">stages</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hi</span><span class="p">)</span>
-        <span class="n">factor</span> <span class="o">/=</span> <span class="n">hi</span>
-    <span class="k">while</span> <span class="n">factor</span> <span class="o">&lt;</span> <span class="n">lo</span><span class="p">:</span>
-        <span class="n">stages</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lo</span><span class="p">)</span>
-        <span class="n">factor</span> <span class="o">/=</span> <span class="n">lo</span>
-    <span class="k">return</span> <span class="p">[</span><span class="o">*</span><span class="n">stages</span><span class="p">,</span> <span class="n">factor</span><span class="p">]</span></div>
-
-
-
 <div class="viewcode-block" id="filter_chain">
 <a class="viewcode-back" href="../../../_autosummary/an.audio.effects.html#an.audio.effects.filter_chain">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">filter_chain</span><span class="p">(</span><span class="n">effects</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""The ffmpeg ``-af`` chain for normalised ``effects`` (``""`` for none)."""</span>
+<span class="w">    </span><span class="sd">"""The ffmpeg ``-af`` chain for normalised ``effects`` (``""`` for none):</span>
+<span class="sd">    the input resampled to :data:`EFFECT_SAMPLE_RATE`, then the shared pitch</span>
+<span class="sd">    and tempo chain (:func:`mixing.filtergraph.resample_pitch_filter`)."""</span>
     <span class="n">semitones</span> <span class="o">=</span> <span class="n">effects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"pitch_semitones"</span><span class="p">)</span> <span class="ow">or</span> <span class="mf">0.0</span>
     <span class="n">tempo</span> <span class="o">=</span> <span class="n">effects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tempo"</span><span class="p">)</span> <span class="ow">or</span> <span class="mf">1.0</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">semitones</span> <span class="ow">and</span> <span class="n">tempo</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">""</span>
-    <span class="n">rate</span> <span class="o">=</span> <span class="n">EFFECT_SAMPLE_RATE</span>
-    <span class="k">if</span> <span class="n">semitones</span><span class="p">:</span>
-        <span class="n">ratio</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">**</span> <span class="p">(</span><span class="n">semitones</span> <span class="o">/</span> <span class="mf">12.0</span><span class="p">)</span>
-        <span class="n">head</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"aresample=</span><span class="si">{</span><span class="n">rate</span><span class="si">}</span><span class="s2">,asetrate=</span><span class="si">{</span><span class="n">rate</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">ratio</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">,aresample=</span><span class="si">{</span><span class="n">rate</span><span class="si">}</span><span class="s2">"</span>
-        <span class="n">factor</span> <span class="o">=</span> <span class="n">tempo</span> <span class="o">/</span> <span class="n">ratio</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">head</span><span class="p">,</span> <span class="n">factor</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"aresample=</span><span class="si">{</span><span class="n">rate</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">tempo</span>
-    <span class="k">return</span> <span class="s2">","</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-        <span class="p">[</span>
-            <span class="n">head</span><span class="p">,</span>
-            <span class="sa">f</span><span class="s2">"apad=pad_dur=</span><span class="si">{</span><span class="n">TEMPO_PAD_S</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-            <span class="o">*</span><span class="p">(</span><span class="sa">f</span><span class="s2">"atempo=</span><span class="si">{</span><span class="n">f</span><span class="si">:</span><span class="s2">.9f</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">atempo_stages</span><span class="p">(</span><span class="n">factor</span><span class="p">)),</span>
-        <span class="p">]</span>
-    <span class="p">)</span></div>
+        <span class="k">return</span> <span class="s2">""</span>  <span class="c1"># a trim alone needs no chain, and no mixing</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">mixing.filtergraph</span><span class="w"> </span><span class="kn">import</span> <span class="n">resample_pitch_filter</span>
+    <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">VoiceEffectError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"the voice-effect chain needs mixing.filtergraph (</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">): "</span>
+            <span class="s2">"`pip install -U mixing` (an#611)"</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+    <span class="n">shift</span> <span class="o">=</span> <span class="n">resample_pitch_filter</span><span class="p">(</span>
+        <span class="n">semitones</span><span class="p">,</span> <span class="n">EFFECT_SAMPLE_RATE</span><span class="p">,</span> <span class="n">tempo</span><span class="o">=</span><span class="n">tempo</span><span class="p">,</span> <span class="n">flush_s</span><span class="o">=</span><span class="n">TEMPO_PAD_S</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"aresample=</span><span class="si">{</span><span class="n">EFFECT_SAMPLE_RATE</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">shift</span><span class="si">}</span><span class="s2">"</span></div>
 
 
 
