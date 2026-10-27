@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-10-27
+- Loudness and voice effects say a `mixing` too old for them one way (`an.audio.shared_mixing.mixing_too_old`: upgrade it); the "mixing not installed" machinery is gone, the `loudness` extra is an empty alias, and the render's voice-spread report now raises on a too-old `mixing` instead of skipping silently (an#621).
 - `projective(k)` easing (Python, `runtime.js`, the timing contract 1.17.0) and a travel's closed-form passes lowered to one exact tween per channel with it: a minute of road is about a third of the actions (an#629).
 - Recorded voices: a TextGrid's `phones` tier rides with a take (cut, stored, and handed to the lip-sync provider on `AudioClip.phones`, fresh or read back) (an#491).
 - The solve keeps retrying a slowly converging frame while each round halves what is left (up to `DFLT_CONVERGE_CAP` × iterations), and a retry that stalls is a conflict: the frame after a refused grip no longer leaves joints apart in dynamic mode; `SOLVER_VERSION` 2 (an#568).
