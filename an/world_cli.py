@@ -172,6 +172,8 @@ def from_shot(
             else "(an environment)"
         )
         lines.append(f"  {m.kind:<12}{m.id:<24}{where}")
+    if seeded.flat:
+        lines.append(f"  one depth for all: {seeded.flat}")
     for eid, why in seeded.skipped.items():
         lines.append(f"  left out: {eid}: {why}; it stays placed by hand")
     if dry_run:

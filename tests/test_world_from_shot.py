@@ -216,3 +216,212 @@ def test_an_entity_jointed_to_another_is_measured_alone_and_becomes_a_member(tmp
     _, seeded = seed_world(scene, project.mall, "master")
     assert {m.id for m in seeded.members} == set(HAND) and not seeded.skipped
     assert all(not m.joints for m in seeded.members)
+
+
+def test_one_ref_at_two_scales_is_one_thing_at_two_depths(tmp_path):
+    """an#603: the far lamp (listed first, drawn behind) at half the near one's
+    scale is the same lamp twice as far: one height, two depths. The world
+    lowers back to the master, and a viewpoint moved sideways moves the near
+    lamp more (parallax)."""
+    from an.ir.schema import Viewpoint
+
+    project = _project(tmp_path)
+    master = project.scene.timeline[0].model_copy(
+        update={
+            "entities": [
+                _lamp("far", stage=StagePlacement(at=(70.0, 20.0), scale=0.3)),
+                _lamp("near", stage=StagePlacement(at=(-60.0, 80.0), scale=0.6)),
+            ]
+        }
+    )
+    scene = project.scene.model_copy(update={"timeline": [master]})
+    seeded_scene, seeded = seed_world(scene, project.mall, "master")
+    m = {x.id: x for x in seeded.members}
+    assert m["far"].height == pytest.approx(m["near"].height)
+    assert m["far"].at[2] == pytest.approx(2 * m["near"].at[2])
+    bare = seeded_scene.timeline[0].model_copy(
+        update={"entities": [_lamp("far"), _lamp("near")]}
+    )
+    lowered = lower_scene(
+        seeded_scene.model_copy(update={"timeline": [bare]}), project.mall
+    ).scene.timeline[0]
+    placed = {e.id: e.stage for e in lowered.entities}
+    assert placed["far"].at == pytest.approx(
+        (70.0, 20.0), abs=HAND_PLACEMENT_TOLERANCE_PX
+    )
+    assert placed["near"].scale == pytest.approx(0.6, abs=HAND_SCALE_TOLERANCE)
+    world = seeded_scene.world
+    world.viewpoints["aside"] = Viewpoint(at=(0.5, 0.0, 0.0))
+    aside = lower_scene(
+        seeded_scene.model_copy(
+            update={
+                "world": world,
+                "timeline": [bare.model_copy(update={"viewpoint": "aside"})],
+            }
+        ),
+        project.mall,
+    ).scene.timeline[0]
+    moved = {e.id: abs(e.stage.at[0] - placed[e.id].at[0]) for e in aside.entities}
+    assert moved["near"] > moved["far"] > 0
+
+
+def test_the_default_depth_makes_a_character_person_sized_not_the_tallest_thing():
+    from an.ir.world_from_shot import DFLT_SUBJECT_HEIGHT, seed_members
+
+    box = (-10.0, -100.0, 10.0, 0.0)
+    shot = Shot(
+        id="m",
+        duration=1.0,
+        entities=[
+            AssetRef(
+                kind="prop",
+                id="tower",
+                store="props",
+                ref="tower",
+                stage=StagePlacement(at=(0.0, 0.0), scale=3.0),
+            ),
+            AssetRef(
+                kind="character",
+                id="ada",
+                store="characters",
+                ref="ada",
+                stage=StagePlacement(at=(50.0, 0.0), scale=1.0),
+            ),
+        ],
+    )
+    seeded = seed_members(shot, extents={"tower": box, "ada": box}, focal=500.0)
+    ada = next(m for m in seeded.members if m.id == "ada")
+    assert ada.height == pytest.approx(DFLT_SUBJECT_HEIGHT)
+
+
+def test_a_backdrop_listed_first_still_lets_the_copies_parallax():
+    """[tree, far lamp, near lamp]: the tree, placed once, takes the depth the
+    order needs (at least the far lamp's), so the lamps keep their depths."""
+    from an.ir.world_from_shot import seed_members
+
+    box = (-10.0, -100.0, 10.0, 0.0)
+
+    def placed(eid, ref, scale, at=(0.0, 0.0)):
+        return AssetRef(
+            kind="prop",
+            id=eid,
+            store="props",
+            ref=ref,
+            stage=StagePlacement(at=at, scale=scale),
+        )
+
+    shot = Shot(
+        id="m",
+        duration=1.0,
+        entities=[
+            placed("tree", "tree", 1.0),
+            placed("far", "lamp", 0.3),
+            placed("near", "lamp", 0.6),
+        ],
+    )
+    seeded = seed_members(
+        shot, extents={"tree": box, "far": box, "near": box}, focal=500.0
+    )
+    z = {m.id: m.at[2] for m in seeded.members}
+    assert seeded.flat is None
+    assert z["far"] == pytest.approx(2 * z["near"]) and z["tree"] >= z["far"]
+
+
+def test_copies_listed_against_their_depths_fall_back_to_one_depth_and_say_so():
+    from an.ir.world_from_shot import seed_members
+
+    box = (-10.0, -100.0, 10.0, 0.0)
+    shot = Shot(
+        id="m",
+        duration=1.0,
+        entities=[
+            AssetRef(
+                kind="prop",
+                id="near",
+                store="props",
+                ref="lamp",
+                stage=StagePlacement(at=(0.0, 0.0), scale=0.6),
+            ),
+            AssetRef(
+                kind="prop",
+                id="far",
+                store="props",
+                ref="lamp",
+                stage=StagePlacement(at=(9.0, 0.0), scale=0.3),
+            ),
+        ],
+    )
+    seeded = seed_members(shot, extents={"near": box, "far": box}, focal=500.0)
+    assert seeded.flat and "'near'" in seeded.flat
+    assert len({m.at[2] for m in seeded.members}) == 1
+
+
+def test_one_ref_in_two_stores_or_with_other_art_is_two_things():
+    from an.ir.world_from_shot import seed_members
+
+    box, small = (-10.0, -100.0, 10.0, 0.0), (-10.0, -50.0, 10.0, 0.0)
+    shot = Shot(
+        id="m",
+        duration=1.0,
+        entities=[
+            AssetRef(
+                kind="prop",
+                id="a",
+                store="props",
+                ref="lamp",
+                stage=StagePlacement(at=(0.0, 0.0), scale=0.3),
+            ),
+            AssetRef(
+                kind="prop",
+                id="b",
+                store="sets",
+                ref="lamp",
+                stage=StagePlacement(at=(0.0, 0.0), scale=0.6),
+            ),
+            AssetRef(
+                kind="prop",
+                id="c",
+                store="props",
+                ref="lamp",
+                stage=StagePlacement(at=(0.0, 0.0), scale=0.6),
+            ),
+        ],
+    )
+    seeded = seed_members(shot, extents={"a": box, "b": box, "c": small}, focal=500.0)
+    assert len({m.at[2] for m in seeded.members}) == 1, "no two of them are one thing"
+
+
+def test_the_person_stays_person_sized_when_the_order_pushes_them_back():
+    """The hero, listed behind two copies of a lamp, is pushed as deep as the far
+    copy; the world is rescaled so the hero is still 1.7 tall (an#603 review)."""
+    from an.ir.world_from_shot import DFLT_SUBJECT_HEIGHT, seed_members
+
+    box = (-10.0, -100.0, 10.0, 0.0)
+
+    def placed(eid, ref, scale, kind="prop"):
+        return AssetRef(
+            kind=kind,
+            id=eid,
+            store="props",
+            ref=ref,
+            stage=StagePlacement(at=(0.0, 0.0), scale=scale),
+        )
+
+    shot = Shot(
+        id="m",
+        duration=1.0,
+        entities=[
+            placed("hero", "hero", 0.3, "character"),
+            placed("far", "lamp", 0.3),
+            placed("near", "lamp", 0.6),
+        ],
+    )
+    seeded = seed_members(
+        shot, extents={"hero": box, "far": box, "near": box}, focal=500.0
+    )
+    m = {x.id: x for x in seeded.members}
+    assert m["hero"].height == pytest.approx(DFLT_SUBJECT_HEIGHT)
+    assert (
+        m["far"].at[2] == pytest.approx(2 * m["near"].at[2])
+        and m["hero"].at[2] >= m["far"].at[2]
+    )
