@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=7c2de169"></script>
+    <script src="../_static/documentation_options.js?v=d8556570"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.288" />
+  <meta name="docsearch:version" content="0.1.289" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -777,6 +777,9 @@ or at a constant speed.</p>
 shot): near an end the stencil slides inward (a one-sided difference),
 and a window narrower than <code class="docutils literal notranslate"><span class="pre">2·dt</span></code> shrinks the step to half of it, so
 a motion that starts at the window’s edge is not read as an impulse.</p>
+<p>A step of the frame (<a class="reference internal" href="#an.ir.frames.FrameTree.jump_times" title="an.ir.frames.FrameTree.jump_times"><code class="xref py py-meth docutils literal notranslate"><span class="pre">jump_times()</span></code></a>) is a cut, not an acceleration: a
+stencil that would span one slides to the nearest centre that stays
+whole, and where none does the answer is zero.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">Frame</span><span class="p">,</span> <span class="n">FrameMoving</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tree</span> <span class="o">=</span> <span class="n">FrameTree</span><span class="p">({</span><span class="s2">"car"</span><span class="p">:</span> <span class="n">Frame</span><span class="p">(</span><span class="n">moving</span><span class="o">=</span><span class="n">FrameMoving</span><span class="p">(</span><span class="n">speed</span><span class="o">=</span><span class="mf">20.0</span><span class="p">))})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.0</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">tree</span><span class="o">.</span><span class="n">acceleration</span><span class="p">(</span><span class="s2">"car"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)]</span>
@@ -849,6 +852,24 @@ nothing moves them and no action animates them.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="an.ir.frames.FrameTree.jump_times">
+<span class="sig-name descname"><span class="pre">jump_times</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/frames.html#FrameTree.jump_times"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.frames.FrameTree.jump_times" title="Link to this definition">#</a></dt>
+<dd><p>The shot times at which a channel of <code class="docutils literal notranslate"><span class="pre">name</span></code> or of a frame above it
+steps (an instant, not a motion), sorted: a <code class="docutils literal notranslate"><span class="pre">set</span></code>, and a tween that
+starts from an explicit <code class="docutils literal notranslate"><span class="pre">from_</span></code> (it snaps there first).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tree</span> <span class="o">=</span> <span class="n">FrameTree</span><span class="p">({</span><span class="s2">"car"</span><span class="p">:</span> <span class="n">Frame</span><span class="p">()},</span> <span class="n">tracks</span><span class="o">=</span><span class="p">{</span><span class="s2">"car"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"at_z"</span><span class="p">:</span> <span class="n">Track</span><span class="p">([</span><span class="n">TrackEvent</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="mf">5.0</span><span class="p">)])}})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tree</span><span class="o">.</span><span class="n">jump_times</span><span class="p">(</span><span class="s2">"car"</span><span class="p">)</span>
+<span class="go">[1.0]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1129,6 +1150,7 @@ right moves to the bottom), in degrees.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.frames.FrameTree.constant_motion"><code class="docutils literal notranslate"><span class="pre">FrameTree.constant_motion()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.frames.FrameTree.is_static"><code class="docutils literal notranslate"><span class="pre">FrameTree.is_static()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.frames.FrameTree.is_still"><code class="docutils literal notranslate"><span class="pre">FrameTree.is_still()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.frames.FrameTree.jump_times"><code class="docutils literal notranslate"><span class="pre">FrameTree.jump_times()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.frames.FrameTree.local_pose"><code class="docutils literal notranslate"><span class="pre">FrameTree.local_pose()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.frames.FrameTree.relative_pose"><code class="docutils literal notranslate"><span class="pre">FrameTree.relative_pose()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.frames.FrameTree.sway_frame"><code class="docutils literal notranslate"><span class="pre">FrameTree.sway_frame()</span></code></a></li>

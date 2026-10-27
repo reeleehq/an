@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=7c2de169"></script>
+    <script src="../../../_static/documentation_options.js?v=d8556570"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.288" />
+  <meta name="docsearch:version" content="0.1.289" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -2350,7 +2350,9 @@ window.runMermaid = runMermaid;</script>
     <span class="n">entity_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">fitted</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]],</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""The ``rotation`` channel of ``entity_id`` from :func:`_fit_lean`."""</span>
+<span class="w">    </span><span class="sd">"""The ``rotation`` channel of ``entity_id`` from :func:`_fit_lean`. It SETS</span>
+<span class="sd">    the rotation: the core's entities rest at 0, so a genre rig with a rest</span>
+<span class="sd">    rotation on the entity root has to add its own (an#580)."""</span>
     <span class="n">v0</span><span class="p">,</span> <span class="n">segments</span> <span class="o">=</span> <span class="n">fitted</span>
     <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">set_</span><span class="p">(</span><span class="n">entity_id</span><span class="p">,</span> <span class="s2">"rotation"</span><span class="p">,</span> <span class="n">v0</span><span class="p">,</span> <span class="n">at</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)]</span>
     <span class="k">for</span> <span class="n">ta</span><span class="p">,</span> <span class="n">tb</span><span class="p">,</span> <span class="n">va</span><span class="p">,</span> <span class="n">vb</span><span class="p">,</span> <span class="n">easing</span> <span class="ow">in</span> <span class="n">segments</span><span class="p">:</span>
@@ -2382,8 +2384,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    flight, it does not lean. So a member that reframes into a swaying frame</span>
 <span class="sd">    starts leaning, and one that goes out and back resumes. The lean settles</span>
 <span class="sd">    by that sway's ``settle`` (a first-order lag starting on the lean the shot</span>
-<span class="sd">    opens with: the frame was already moving); out of a swaying frame it is</span>
-<span class="sd">    upright at once. The unsettled lean is computed once per frame and the</span>
+<span class="sd">    opens with: the frame was already moving); out of a swaying frame it</span>
+<span class="sd">    returns upright with the settle of the last one it was in. The unsettled lean is computed once per frame and the</span>
 <span class="sd">    fit once per distinct course, so members riding together cost one."""</span>
     <span class="n">duration</span><span class="p">,</span> <span class="n">tree</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">tree</span>
     <span class="k">if</span> <span class="n">duration</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
@@ -2419,12 +2421,14 @@ window.runMermaid = runMermaid;</script>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">lean_of</span><span class="p">(</span><span class="n">course</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">],</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="n">target</span><span class="p">,</span> <span class="n">settle</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">),</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)</span>
+        <span class="n">last_settle</span> <span class="o">=</span> <span class="mf">0.0</span>  <span class="c1"># leaving a swaying frame settles as the last one did</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">times</span><span class="p">):</span>
             <span class="n">_</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="n">flying</span> <span class="o">=</span> <span class="p">[</span><span class="n">leg</span> <span class="k">for</span> <span class="n">leg</span> <span class="ow">in</span> <span class="n">course</span> <span class="k">if</span> <span class="n">leg</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">t</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
             <span class="n">series</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">flying</span> <span class="k">else</span> <span class="n">raw_of</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">series</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">target</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">series</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-                <span class="n">settle</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">frames</span><span class="p">[</span><span class="n">tree</span><span class="o">.</span><span class="n">sway_frame</span><span class="p">(</span><span class="n">frame</span><span class="p">)]</span><span class="o">.</span><span class="n">sway</span><span class="o">.</span><span class="n">settle</span><span class="p">)</span>
+                <span class="n">last_settle</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">frames</span><span class="p">[</span><span class="n">tree</span><span class="o">.</span><span class="n">sway_frame</span><span class="p">(</span><span class="n">frame</span><span class="p">)]</span><span class="o">.</span><span class="n">sway</span><span class="o">.</span><span class="n">settle</span><span class="p">)</span>
+            <span class="n">settle</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">last_settle</span>
         <span class="n">lean</span> <span class="o">=</span> <span class="p">[</span><span class="n">target</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
         <span class="k">for</span> <span class="n">v</span><span class="p">,</span> <span class="n">lag</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">target</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">settle</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
             <span class="n">k</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">dt</span> <span class="o">/</span> <span class="n">lag</span><span class="p">)</span> <span class="k">if</span> <span class="n">lag</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">1.0</span>
@@ -2950,10 +2954,18 @@ window.runMermaid = runMermaid;</script>
             <span class="p">)</span>
     <span class="n">n_motion</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">split</span><span class="o">.</span><span class="n">actions</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">n_motion</span> <span class="o">&gt;</span> <span class="n">budget</span><span class="p">:</span>
+        <span class="n">n_sway</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lean</span><span class="p">)</span> <span class="k">for</span> <span class="n">lean</span> <span class="ow">in</span> <span class="n">swayed</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="n">sway_note</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">" (</span><span class="si">{</span><span class="n">n_sway</span><span class="si">}</span><span class="s2"> of them are sway leans, which `tolerance_px` does not "</span>
+            <span class="s2">"change: put `sway` on fewer frames)"</span>
+            <span class="k">if</span> <span class="n">n_sway</span>
+            <span class="k">else</span> <span class="s2">""</span>
+        <span class="p">)</span>
         <span class="k">raise</span> <span class="n">WorldError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: the members in motion lower to </span><span class="si">{</span><span class="n">n_motion</span><span class="si">}</span><span class="s2"> actions, "</span>
-            <span class="sa">f</span><span class="s2">"past the `max_actions` (</span><span class="si">{</span><span class="n">budget</span><span class="si">}</span><span class="s2">). Raise `tolerance_px` on the travel, "</span>
-            <span class="s2">"cut the shot, or keep fewer members moving relative to the camera."</span>
+            <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: the members in motion lower to </span><span class="si">{</span><span class="n">n_motion</span><span class="si">}</span><span class="s2"> actions"</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">sway_note</span><span class="si">}</span><span class="s2">, past the `max_actions` (</span><span class="si">{</span><span class="n">budget</span><span class="si">}</span><span class="s2">). Raise `tolerance_px` "</span>
+            <span class="s2">"on the travel, cut the shot, or keep fewer members moving relative "</span>
+            <span class="s2">"to the camera."</span>
         <span class="p">)</span>
     <span class="k">for</span> <span class="n">member</span> <span class="ow">in</span> <span class="n">world</span><span class="o">.</span><span class="n">members</span><span class="p">:</span>
         <span class="n">host</span> <span class="o">=</span> <span class="n">member</span><span class="o">.</span><span class="n">attached</span><span class="o">.</span><span class="n">to</span> <span class="k">if</span> <span class="n">member</span><span class="o">.</span><span class="n">attached</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>

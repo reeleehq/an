@@ -121,6 +121,10 @@ shot): near an end the stencil slides inward (a one-sided difference),
 and a window narrower than `2·dt` shrinks the step to half of it, so
 a motion that starts at the window’s edge is not read as an impulse.
 
+A step of the frame ([`jump_times()`](#an.ir.frames.FrameTree.jump_times)) is a cut, not an acceleration: a
+stencil that would span one slides to the nearest centre that stays
+whole, and where none does the answer is zero.
+
 ```pycon
 >>> from an.ir.schema import Frame, FrameMoving
 >>> tree = FrameTree({"car": Frame(moving=FrameMoving(speed=20.0))})
@@ -178,6 +182,21 @@ nothing moves them and no action animates them.
 
 * **Return type:**
   [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+#### jump_times(name)
+
+The shot times at which a channel of `name` or of a frame above it
+steps (an instant, not a motion), sorted: a `set`, and a tween that
+starts from an explicit `from_` (it snaps there first).
+
+```pycon
+>>> tree = FrameTree({"car": Frame()}, tracks={"car": {"at_z": Track([TrackEvent(1.0, 1.0, to=5.0)])}})
+>>> tree.jump_times("car")
+[1.0]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 #### local_pose(name, t, , film_start=0.0)
 
