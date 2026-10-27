@@ -976,12 +976,10 @@ def rig_structure(desc: Any, *, built: Collection[str] | None = None) -> RigStru
             desc if isinstance(desc, Mapping) else _dump_rig(desc)
         )
     )
-    k = SCENE_PX_PER_VIEW_BOX / float(view.view_box[3] or 1)
-    skin = view.skins.get("default") or next(iter(view.skins.values()), Skin())
-    parents = slot_parent_chain(view)
+    geo = _RigGeometry(view)  # the builder's own reading of the rig (an#579)
+    k, skin, parents = geo.k, geo.skin, geo.parents
     paths = slot_node_paths(view)
-    slot_of = {sl.name: sl for sl in view.slots}
-    bone_of = {b.name: b for b in view.bones}
+    slot_of, bone_of = geo.slot_of, geo.bone_of
     drawn = {
         sl.name: att
         for sl in view.slots
@@ -1009,12 +1007,10 @@ def rig_structure(desc: Any, *, built: Collection[str] | None = None) -> RigStru
             yield cursor
             cursor = bone_of[cursor].parent
 
-    positions = bone_positions(view)
-    origin = rig_origin(view)
+    positions, origin, bones_mode = geo.bones, geo.origin, geo.bones_mode
     primary = {
         b: sl for b, sl in primary_slot_per_bone(view).items() if sl in built_set
     }
-    bones_mode = nesting_of(view) == BONES_NESTING
 
     def offset_of(slot: str | None) -> tuple[float, float]:
         att = drawn.get(slot)
@@ -1558,8 +1554,23 @@ def _legacy_baked_face_slots(desc: Any, parents: Mapping[str, str | None]) -> se
     }
 
 
+def _migrate_for_rest_pose(
+    raw: Mapping[str, Any], document_kind: DocumentKind
+) -> tuple[dict[str, Any], bool]:
+    """``(the migrated document, whether it predates the rest pose)``: the
+    decision :func:`build_rig_subtree` and :func:`rest_world_transforms` share,
+    so an old document is posed by neither (an#339, an#407)."""
+    legacy_pose = legacy_rest_pose_unknown(
+        raw, document_kind, since=REST_POSE_SINCE.get(document_kind.name)
+    )
+    migrated = migrate(dict(raw), kind=document_kind.name)
+    # A migration that saw the document decided already (it writes
+    # `rest_rotation` when it must); the guard is for one it could not see.
+    return migrated, legacy_pose and "rest_rotation" not in migrated
+
+
 @dataclass(frozen=True)
-class RestTransform:
+class RestWorldTransform:
     """A slot's node at rest, in the entity's frame (scene px): the affine that
     takes a point of the slot's node to the entity's frame, ``(x, y) -> (a·x +
     c·y + tx, b·x + d·y + ty)`` (the scene graph's own order: scale, then
@@ -1577,17 +1588,17 @@ class RestTransform:
     def apply(self, x: float, y: float) -> tuple[float, float]:
         """The entity-frame point of the node-local point ``(x, y)``.
 
-        >>> RestTransform(tx=3.0, ty=4.0).apply(1.0, 1.0)
+        >>> RestWorldTransform(tx=3.0, ty=4.0).apply(1.0, 1.0)
         (4.0, 5.0)
         """
         return (self.a * x + self.c * y + self.tx, self.b * x + self.d * y + self.ty)
 
-    def then(self, x: float, y: float, rotation: float, scale_x: float, scale_y: float) -> "RestTransform":
+    def then(self, x: float, y: float, rotation: float, scale_x: float, scale_y: float) -> "RestWorldTransform":
         """This transform under a child node at ``(x, y)``, ``rotation`` (radians),
         scaled by ``scale_x``, ``scale_y``: the child's world transform."""
         cos, sin = math.cos(rotation), math.sin(rotation)
         la, lb, lc, ld = cos * scale_x, sin * scale_x, -sin * scale_y, cos * scale_y
-        return RestTransform(
+        return RestWorldTransform(
             a=self.a * la + self.c * lb,
             b=self.b * la + self.d * lb,
             c=self.a * lc + self.c * ld,
@@ -1638,12 +1649,9 @@ class _RigGeometry:
             if self.bones_mode:
                 # Relative to the parent BONE: the parent node sits at its bone
                 # plus its own attachment offset, which a chain must not inherit.
-                drawn_parent = drawn_attachment(
-                    self.desc, self.skin, self.slot_of[parent]
-                )
-                if drawn_parent is not None:
-                    bone_x -= drawn_parent[1].x
-                    bone_y -= drawn_parent[1].y
+                parent_ox, parent_oy = self._offset(parent)
+                bone_x -= parent_ox
+                bone_y -= parent_oy
         else:
             bone_x, bone_y = bone_x - self.origin[0], bone_y - self.origin[1]
         ox, oy = self._offset(name)
@@ -1662,15 +1670,20 @@ class _RigGeometry:
 
 
 def rest_world_transforms(
-    desc: Any, *, apply_rest_pose: bool | None = None
-) -> dict[str, RestTransform]:
+    desc: Any,
+    *,
+    apply_rest_pose: bool | None = None,
+    document_kind: DocumentKind | None = None,
+) -> dict[str, RestWorldTransform]:
     """The rest transform of every slot's node in the entity's frame: the
     builder's own rule (:func:`build_rig_subtree`, ``flat`` or ``bones``
     nesting, a bone's rest rotation and scale included, a part nested under
     another composing through it), for a rig that draws no art yet or whose art
     is missing too. ``apply_rest_pose`` defaults to the descriptor's
-    ``rest_rotation`` (the builder also turns it off for an old document it
-    cannot date: pass what the build decided).
+    ``rest_rotation``. The builder also turns the pose off for an old document
+    it cannot date: give the stored document as a mapping with its
+    ``document_kind`` (a prop's or a character's) and the helper migrates it and
+    decides exactly as the builder does; or pass ``apply_rest_pose`` itself.
 
     >>> rig = {"nesting": "bones", "view_box": [0, 0, 345, 345], "origin": [0, 0],
     ...        "bones": [{"name": "arm", "x": 10, "rotation_deg": 90}, {"name": "hand", "parent": "arm", "y": 20}],
@@ -1682,6 +1695,9 @@ def rest_world_transforms(
     >>> tuple(round(v, 6) for v in t["hand"].apply(0.0, 0.0))  # 20 below the arm, turned 90 degrees clockwise
     (-10.0, 0.0)
     """
+    legacy_pose = False
+    if document_kind is not None and isinstance(desc, Mapping):
+        desc, legacy_pose = _migrate_for_rest_pose(desc, document_kind)
     view = (
         desc
         if isinstance(desc, _RigView)
@@ -1690,17 +1706,17 @@ def rest_world_transforms(
         )
     )
     if apply_rest_pose is None:
-        apply_rest_pose = _field_of(view, "rest_rotation") is not False
+        apply_rest_pose = _field_of(view, "rest_rotation") is not False and not legacy_pose
     geometry = _RigGeometry(view, apply_rest_pose=apply_rest_pose)
-    out: dict[str, RestTransform] = {}
+    out: dict[str, RestWorldTransform] = {}
 
-    def of(name: str, seen: frozenset[str] = frozenset()) -> RestTransform:
+    def of(name: str, seen: frozenset[str] = frozenset()) -> RestWorldTransform:
         if name not in out:
             parent = geometry.parents.get(name)
             above = (
                 of(parent, seen | {name})
                 if parent is not None and parent not in seen
-                else RestTransform()
+                else RestWorldTransform()
             )
             x, y, rest = geometry.local(name)
             out[name] = above.then(
@@ -1792,13 +1808,7 @@ def build_rig_subtree(
     # face_overlay — and differs only in what it seeds when they are empty, so
     # the code below never asks which kind it has (an#108).
     raw = dict(desc_data)
-    legacy_pose = legacy_rest_pose_unknown(
-        raw, document_kind, since=REST_POSE_SINCE.get(document_kind.name)
-    )
-    migrated = migrate(dict(raw), kind=document_kind.name)  # raw stays as stored
-    # A migration that saw the document decided already (it writes
-    # `rest_rotation` when it must); the guard is for one it could not see.
-    legacy_pose = legacy_pose and "rest_rotation" not in migrated
+    migrated, legacy_pose = _migrate_for_rest_pose(raw, document_kind)  # raw stays as stored
     desc = descriptor_model.model_validate(migrated)
     if legacy_pose:
         warnings.warn(
@@ -1823,9 +1833,9 @@ def build_rig_subtree(
     # `rest_world_transforms` (an#579). `parents` is shared with a genre's part
     # paths (`cutan.characters.play`) so a `play` resolves against the nesting
     # the builder actually uses (an#7, an#340).
-    geometry = _RigGeometry(desc, apply_rest_pose=apply_rest_pose)
-    k, skin, parents = geometry.k, geometry.skin, geometry.parents
-    bones_mode, slot_of = geometry.bones_mode, geometry.slot_of
+    rig_geo = _RigGeometry(desc, apply_rest_pose=apply_rest_pose)
+    k, skin, parents = rig_geo.k, rig_geo.skin, rig_geo.parents
+    bones_mode, slot_of = rig_geo.bones_mode, rig_geo.slot_of
     if bones_mode:
         # A chain interleaved with an unrelated part is no longer refused
         # here (an#430): it is painted from a global list (`paint_order`),
@@ -1905,7 +1915,7 @@ def build_rig_subtree(
             continue
         attachment_name, attachment = resolved
 
-        x, y, rest = geometry.local(slot.name)
+        x, y, rest = rig_geo.local(slot.name)
 
         extent = _box_of(attachment)
         visual = VisualJSON(

@@ -388,3 +388,33 @@ def test_a_rig_without_rest_pose_is_not_posed_and_the_flag_turns_it_off():
     doc["bones"][0]["rotation_deg"] = 30.0
     assert any(t.posed for t in rest_world_transforms(doc).values())
     assert not any(t.posed for t in rest_world_transforms(doc, apply_rest_pose=False).values())
+
+
+def test_a_swap_channel_on_an_early_slot_does_not_break_the_later_slots(tmp_path):
+    """an#579 review: the builder's shared geometry must survive a slot that has an asset set."""
+    doc = _doc()
+    base = doc["skins"]["default"]["slots"]["base"]
+    base["alt"] = {**base["base"], "width": 40.0, "height": 40.0}
+    doc["asset_sets"] = {"look": {"a": "base", "b": "alt"}}
+    scene = compile_shot(_shot(), mall=_mall(tmp_path, doc))
+    assert {"lamp/base/upper/fore/shade"} <= paths(scene.scene)
+
+
+def test_an_old_document_is_not_posed_by_the_helper_either(tmp_path):
+    """an#579 review: the helper decides the rest pose as the builder does (an#339, an#407)."""
+    from an.stage.props import PROP_DOCUMENT_KIND
+
+    doc = _doc()
+    for i, bone in enumerate(doc["bones"]):
+        bone["rotation_deg"] = 15.0 * (i + 1)
+    doc["schema_version"] = "0.1.0"  # drawn before bones posed their parts
+    built = compile_shot(_shot(), mall=_mall(tmp_path, doc))
+    root = _world(built, "lamp")
+    stored = rest_world_transforms(doc, document_kind=PROP_DOCUMENT_KIND)
+    assert not any(t.posed for t in stored.values())
+    for slot, node_path in slot_node_paths(doc).items():
+        got = _world(built, f"lamp/{node_path}")
+        assert (got[0] - root[0], got[1] - root[1]) == pytest.approx(
+            stored[slot].apply(0.0, 0.0), abs=1e-6
+        ), slot
+    assert any(t.posed for t in rest_world_transforms(doc).values())  # unversioned reading: posed
