@@ -28,7 +28,6 @@ __all__ = [
     "CAMERA_MOVES",
     "DOLLY_IN",
     "DOLLY_OUT",
-    "DOLLY_MOVES",
     "PAN_FRACTION",
     "CameraError",
     "camera_keys",
@@ -118,10 +117,6 @@ CAMERA_MOVES: dict[str, Callable[[float], list[CameraKey]]] = {
     "dolly_in": lambda d: _dolly_keys(d, DOLLY_IN),
     "dolly_out": lambda d: _dolly_keys(d, DOLLY_OUT),
 }
-
-#: The moves that travel in depth: an engine lowers them through the
-#: ``multiplane`` view space, not ``framing2d`` (:mod:`an.semantic.views`).
-DOLLY_MOVES: frozenset[str] = frozenset({"dolly_in", "dolly_out"})
 
 #: Moves a pan/tilt scales by the canvas HEIGHT rather than the width. A frame
 #: is wider than it is tall, so one span for both axes makes a tilt travel
@@ -329,19 +324,22 @@ def dolly_frames(
     keys: list[CameraKey], *, duration: float, fps: float
 ) -> list[CameraKey]:
     """``keys`` as one linear key per frame when any of them dollies (an#478),
-    else ``keys`` unchanged.
+    else ``keys`` unchanged (and a single key, which is no move, as a single
+    ``zoom`` key is not).
 
     A dolly's growth is not linear in its travel, so a key list that eases
     ``dolly`` cannot be eased in ``zoom`` too: each frame's key is the camera
     evaluated there (every field by the keys' own easings), its ``zoom``
-    multiplied by the character plane's growth. Exact at every frame drawn, as
-    a follow is (an#445).
+    multiplied by the character plane's growth. Exact at every whole frame, as
+    a follow is (an#445); a sample between two frames (a motion-blur shutter)
+    sees the two frames' keys interpolated linearly, and a ``step`` easing
+    becomes a one-frame ramp.
 
     >>> frames = dolly_frames(CAMERA_MOVES["dolly_in"](1.0), duration=1.0, fps=4)
     >>> [(k.at, round(k.zoom, 3), round(k.dolly, 3)) for k in frames][::2]
     [(0.0, 1.0, 0.0), (0.5, 1.111, 0.1), (1.0, 1.25, 0.2)]
     """
-    if not any(k.dolly for k in keys):
+    if len(keys) < 2 or not any(k.dolly for k in keys):
         return keys
     from an.timing.channel import Channel, Keyframe, evaluate
 

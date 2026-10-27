@@ -30,7 +30,7 @@ from an.ir.camera import (
     CameraError,
     camera_keys,
     camera_shake_offsets,
-    dolly_growth,
+    dolly_frames,
 )
 from an.ir.compose import flatten
 from an.ir.migrate import DocumentMigrationError, migrate
@@ -1037,7 +1037,14 @@ def _check_flat_pan(shot, keys, path: str, report: "ValidationReport", stores) -
 
 
 def _check_framing(
-    shot, path: str, report: "ValidationReport", stores, *, width: int, height: int
+    shot,
+    path: str,
+    report: "ValidationReport",
+    stores,
+    *,
+    width: int,
+    height: int,
+    fps: float,
 ) -> None:
     """Warn when a camera pose shows past the edge of the stage (an#211).
 
@@ -1055,7 +1062,9 @@ def _check_framing(
     worst gap on each side is at a key. Two stated limits: an easing that
     OVERSHOOTS (a cubic Bézier outside [0, 1]) can pass a key, and a gap
     BETWEEN two plates crossed mid-move is seen only if a key frames it. A
-    rolling camera is checked at its keys, conservatively.
+    rolling camera is checked at its keys, conservatively. A DOLLY is not
+    affine in its travel, so a camera that dollies is checked at every frame
+    (:func:`an.ir.camera.dolly_frames`, an#478).
 
     Silent — not "covered" — when it cannot know: no environments store, an
     environment that is not a plane descriptor (a preset draws 4000-pixel
@@ -1103,6 +1112,9 @@ def _check_framing(
 
     if len(keys) < 2:
         keys = [CameraKey()]  # no move: the resting frame
+    # A dolly is not affine in its travel, so its frame is checked at every
+    # frame the render draws, as the compiler emits it (an#478).
+    keys = dolly_frames(keys, duration=max(0.001, float(shot.duration)), fps=fps)
     try:
         poses = [
             (
@@ -1116,9 +1128,7 @@ def _check_framing(
             )
             for key in keys
         ]
-    except (
-        CameraError
-    ) as e:  # a dolly through a plane: the compiler refuses it (an#478)
+    except CameraError as e:  # a dolly through a plane: the compiler refuses it
         report.add("error", f"{path}/camera", str(e))
         return
     for key, rects in poses:
@@ -1127,7 +1137,7 @@ def _check_framing(
         view = frame_rect(
             x=float(key.x),
             y=float(key.y),
-            zoom=float(key.zoom) * dolly_growth(1.0, key.dolly),
+            zoom=float(key.zoom),
             rotation=float(key.rotation),
             width=float(width),
             height=float(height),
@@ -1807,7 +1817,13 @@ def _core_renderable(ctx: ValidationContext) -> None:
 def _core_framing(ctx: ValidationContext) -> None:
     res = ctx.scene.meta.resolution
     _check_framing(
-        ctx.shot, ctx.path, ctx.report, ctx.stores, width=res.width, height=res.height
+        ctx.shot,
+        ctx.path,
+        ctx.report,
+        ctx.stores,
+        width=res.width,
+        height=res.height,
+        fps=ctx.scene.meta.fps,
     )
 
 

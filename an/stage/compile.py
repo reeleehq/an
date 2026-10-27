@@ -113,7 +113,7 @@ from an.stage.serialize import (
 from an.stage.raster import art_size, is_raster, short_digest, versioned_src
 from an.ir.camera import CAMERA_MOVES, PAN_FRACTION, CameraError  # noqa: F401  (re-exported)
 from an.ir.camera import camera_keys as _camera_keys
-from an.ir.camera import camera_shake_offsets, dolly_frames, plane_dolly_scale
+from an.ir.camera import camera_shake_offsets, dolly_frames
 from an.ir.migrate import DocumentKind, migrate
 from an.stage.environments import PLANE_FILL_SPAN as _PLANE_FILL_SPAN
 from an.stage.environments import (
@@ -122,6 +122,7 @@ from an.stage.environments import (
     Plane,
     PlaneFactorError,
     environment_from_document,
+    plane_transform,
 )
 from an.stage.props import PROP_DOCUMENT_KIND, PropDescriptor
 from an.stage.paths import (
@@ -2588,38 +2589,33 @@ def _plane_compensations(
 ) -> list[tuple[str, list[float]]]:
     """``(property, value per key)`` the stage drives on a node that carries
     ``plane``'s parallax, at ``rest`` when the camera is: only the channels
-    that move.
+    that move, from :func:`an.stage.environments.plane_transform` at each key.
 
-    Per axis of factor ``f``: ``x = s·x0 + cam·(1 − s·f)`` and ``scale_x = s``,
-    where ``s`` is the plane's pinhole growth over the root's
-    (:func:`an.ir.camera.plane_dolly_scale`, an#478). Without a dolly ``s`` is
-    exactly 1: ``x0 + (1 − f)·cam``, the translation-only parallax of an#110,
-    and no scale. A plane at ``f = 1`` rides the camera and emits nothing; one
-    the dolly would reach is refused.
+    Without a dolly that is ``x0 + (1 − f)·cam`` per axis and no scale, the
+    translation-only parallax of an#110; a plane at depth 1 rides the camera
+    and emits nothing. Under a dolly (an#478) the plane also scales by its
+    depth, uniformly; one the dolly would reach is refused.
 
     >>> keys = [CameraKey(at=0.0), CameraKey(at=1.0, x=100.0, dolly=0.2)]
     >>> [(p, [round(v, 3) for v in vs]) for p, vs in
     ...  _plane_compensations(Plane(name="fg", depth=1.4), keys, rest=(0, 0), where="s")]
     [('x', [0.0, -55.556]), ('scale_x', [1.0, 1.111]), ('scale_y', [1.0, 1.111])]
     """
-    out: list[tuple[str, list[float]]] = []
-    for factor, axis, x0 in zip(plane.factors(), ("x", "y"), rest):
-        if factor == 1.0:
-            continue  # rides the camera; emitting nothing is the point
-        try:
-            scales = [
-                plane_dolly_scale(factor, k.dolly, plane=plane.name) for k in keys
-            ]
-        except CameraError as e:
-            raise CutoutCompileError(f"{where}: {e}") from e
-        moves = [
-            s * float(x0) + float(getattr(k, axis)) * (1.0 - s * factor)
-            for k, s in zip(keys, scales)
+    try:
+        poses = [
+            plane_transform(plane, rest=rest, camera=(k.x, k.y), dolly=k.dolly)
+            for k in keys
         ]
-        if any(v != float(x0) for v in moves):
+    except CameraError as e:
+        raise CutoutCompileError(f"{where}: {e}") from e
+    out: list[tuple[str, list[float]]] = []
+    for i, axis in enumerate(("x", "y")):
+        moves = [pose[i] for pose in poses]
+        if any(v != float(rest[i]) for v in moves):
             out.append((axis, moves))
-        if any(s != 1.0 for s in scales):
-            out.append((f"scale_{axis}", scales))
+    scales = [pose[2] for pose in poses]
+    if any(s != 1.0 for s in scales):
+        out += [("scale_x", scales), ("scale_y", scales)]
     return out
 
 

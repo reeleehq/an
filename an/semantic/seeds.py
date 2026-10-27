@@ -264,10 +264,11 @@ def camera_move_space(name: str) -> "ViewSpace":
     >>> camera_move_space("dolly_in").entry.name, camera_move_space("push_in").entry.name
     ('multiplane', 'framing2d')
     """
-    from an.ir.camera import DOLLY_MOVES
+    from an.ir.camera import CAMERA_MOVES
     from an.semantic.views import FRAMING_2D, MULTIPLANE
 
-    return MULTIPLANE if name in DOLLY_MOVES else FRAMING_2D
+    dollies = any(k.dolly for k in CAMERA_MOVES[name](1.0))
+    return MULTIPLANE if dollies else FRAMING_2D
 
 
 def camera_move_path(name: str) -> list[dict[str, Any]]:

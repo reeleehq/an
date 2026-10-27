@@ -445,6 +445,41 @@ def plane_art_size(root: Any, ref: str, plane: Plane) -> tuple[float, float] | N
         return None
 
 
+def plane_transform(
+    plane: Plane,
+    *,
+    rest: tuple[float, float],
+    camera: tuple[float, float] = (0.0, 0.0),
+    dolly: float = 0.0,
+) -> tuple[float, float, float]:
+    """``(x, y, scale)`` of a node that carries ``plane``'s parallax, at
+    ``rest`` when the camera is, with the camera at ``camera`` having travelled
+    ``dolly`` (an#478): the one formula the compiler emits and validate checks.
+
+    The scale is the plane's pinhole growth over the root's, from its
+    ``depth`` alone (:func:`an.ir.camera.plane_dolly_scale`; ``parallax`` is a
+    TRANSLATION override and never stretches it), and per axis of factor ``f``
+    ``x = s·x0 + cam·(1 − s·f)``. Without a dolly ``s`` is exactly 1: the
+    translation-only parallax of an#110.
+
+    >>> plane_transform(Plane(name="p", depth=0.5), rest=(10.0, 0.0), camera=(100.0, 0.0))
+    (60.0, 0.0, 1.0)
+    >>> x, y, s = plane_transform(Plane(name="p", depth=0.4, parallax=(0.4, 1.0)),
+    ...                           rest=(0.0, 0.0), camera=(0.0, 50.0), dolly=0.2)
+    >>> round(s, 4), round(y, 3)
+    (0.8696, 6.522)
+    """
+    from an.ir.camera import plane_dolly_scale
+
+    s = plane_dolly_scale(plane.depth, dolly, plane=plane.name)
+    fx, fy = plane.factors()
+    return (
+        s * float(rest[0]) + float(camera[0]) * (1.0 - s * fx),
+        s * float(rest[1]) + float(camera[1]) * (1.0 - s * fy),
+        s,
+    )
+
+
 def plane_rect(
     plane: Plane,
     art_size: tuple[float, float] | None,
@@ -483,14 +518,8 @@ def plane_rect(
                 return None
             k = min(w / art_size[0], h / art_size[1])
             w, h = art_size[0] * k, art_size[1] * k
-    from an.ir.camera import plane_dolly_scale
-
-    fx, fy = plane.factors()
-    sx = plane_dolly_scale(fx, dolly, plane=plane.name)
-    sy = plane_dolly_scale(fy, dolly, plane=plane.name)
-    x = sx * plane.offset[0] + (1.0 - sx * fx) * camera[0]
-    y = sy * plane.offset[1] + (1.0 - sy * fy) * camera[1]
-    w, h = w * sx, h * sy
+    x, y, s = plane_transform(plane, rest=plane.offset, camera=camera, dolly=dolly)
+    w, h = w * s, h * s
     # A `fill` is emitted as a centred rect — the compiler does not pass the
     # anchor to it. An image honours the anchor, and so does a gradient with a
     # declared size; one without covers the canvas, centred, like a fill.

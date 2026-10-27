@@ -173,3 +173,75 @@ def test_the_dolly_moves_need_an_engine_that_lowers_depth():
     assert [str(r) for r in lookup("camera_move", "push_in").requires] == [
         "space.framing2d"
     ]
+
+
+def test_the_dolly_is_eased():
+    """`dolly_in` eases in and out: half its travel at half the shot."""
+    from an.ir.camera import CAMERA_MOVES, dolly_frames
+
+    frames = dolly_frames(CAMERA_MOVES["dolly_in"](2.0), duration=2.0, fps=FPS)
+    by_time = {round(k.at, 6): k for k in frames}
+    assert by_time[1.0].dolly == pytest.approx(DOLLY_IN / 2)
+    assert by_time[0.5].dolly < DOLLY_IN / 4  # slow out of rest
+    assert by_time[1.0].zoom == pytest.approx(dolly_growth(1.0, DOLLY_IN / 2))
+
+
+def test_a_per_axis_parallax_is_not_stretched(tmp_path):
+    """`parallax` overrides translation only: the plane grows by its depth,
+    the same on both axes."""
+    from an.environments import EnvironmentDescriptor, Plane, PlaneArt
+    from an.stores import build_project_mall
+
+    mall = build_project_mall(tmp_path, ensure=True)
+    mall["environments"]["depths"] = EnvironmentDescriptor(
+        name="depths",
+        planes=[
+            Plane(
+                name="strip",
+                art=PlaneArt(kind="fill", color="#336699"),
+                depth=0.4,
+                parallax=(0.4, 1.0),
+                size=(40.0, 40.0),
+            )
+        ],
+    ).model_dump(mode="json")
+    doc = compile_shot(
+        _shot(Camera(move="dolly_in")), mall=mall, fps=FPS, width=W, height=H
+    )
+    channels = {
+        ch.property: ch.keyframes[-1].value
+        for aid, a in doc.animations.items()
+        if aid.startswith("__parallax__")
+        for ch in a.channels
+    }
+    assert (
+        channels["scale_x"]
+        == channels["scale_y"]
+        == pytest.approx(dolly_growth(0.4, DOLLY_IN) / dolly_growth(1.0, DOLLY_IN))
+    )
+
+
+def test_a_single_dolly_key_is_no_move(tmp_path):
+    """One key is a pose, not a move, for a dolly as for a zoom: it compiles
+    to nothing."""
+    doc = _compile(tmp_path, Camera(keys=[CameraKey(at=0.0, dolly=0.2)]))
+    assert not [
+        a for a in doc.animations if a.startswith(("__camera__", "__parallax__"))
+    ]
+
+
+def test_validate_sees_a_dolly_out_uncover_the_plate(tmp_path):
+    """A frame-sized backdrop covers a still camera; dollying out shows its edge."""
+    mall = _mall(tmp_path, depths={"backdrop": 0.25})
+    meta = mall["environments"]["depths"]
+    meta["planes"][0].update(size=[float(W), float(H)], offset=[0.0, 0.0])
+    mall["environments"]["depths"] = meta
+
+    def warnings(camera):
+        scene = SceneIR(meta=Meta(), timeline=[_shot(camera)])
+        scene.meta.resolution.width, scene.meta.resolution.height = W, H
+        report = validate_semantic(scene, available_environments=mall["environments"])
+        return [f for f in report.findings if "uncovered" in f.description]
+
+    assert warnings(Camera(move="hold")) == []
+    assert warnings(Camera(move="dolly_out"))
