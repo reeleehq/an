@@ -1,1 +1,0 @@
-- **The world's `draw_order` note reads the paint keys** (an#681): `depth_order_problems` orders a pair whose entities both carry paint keys by the keys in force at each instant, so a crossing the keys paint right is no longer reported; `sharp_edges.md` notes that scanned crossings are only as exact as the scan grid.

@@ -4,6 +4,8 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-10-27
+- **World crossings are keyed without a travel** (an#679): the lowering computes the depth-ordered paint keys (`_crossing_paint_keys`) in any world, not only one with a travel, so a member walking behind a standing one is painted behind it while it is behind.
+- **The world's `draw_order` note reads the paint keys** (an#681): `depth_order_problems` orders a pair whose entities both carry paint keys by the keys in force at each instant, so a crossing the keys paint right is no longer reported; `sharp_edges.md` notes that scanned crossings are only as exact as the scan grid.
 - An item let go or put down by a holder the world leans with its frame lands as it hangs in the hand, not on its side: the world marks what it leans (`overrides.sway`) and the hold layer takes the holder's lean out before rounding to a quarter turn (an#659).
 - World paint order: streams at different rates (a stream at rest in the viewpoint's frame included), scanned passes and members in motion are keyed at their depths between the times any two swap, so every visible pair is painted far to near (an#658).
 - `an music add-library` is now a thin surface over foley's `foley.sources.music_library` (registry, mirrors, resilient fetch, licence gate, credit parser); `an.music_library` shrinks to the bridge `asset_source` (a foley row as an `AssetSource`: `CC-BY-4.0` -> `cc-by-4.0`, `page_url` -> `source_page_url`, `rights_verified` carried) and `foley` becomes a core dependency, loaded on first use (an#656).
