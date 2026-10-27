@@ -910,3 +910,109 @@ def test_a_bone_named_surface_is_refused_as_a_reserved_name(tmp_path, monkeypatc
     actions = _TAKE + "- {kind: place, item: stick, onto: crate@surface, start: 1.4}"
     with pytest.raises(HoldError, match="reserved point name"):
         _compile(_surface_project(tmp_path, actions))
+
+
+# -- the review of #564's follow-ups (an#565) --------------------------------------------
+
+#: Half the width of the stick's ink (its bar is 20 of its 60 canvas units), in its node's frame.
+INK_HALF_WIDTH = 10.0 * K
+
+
+def test_put_below_the_hand_the_items_ink_does_not_hang_over_an_end(tmp_path):
+    """The hand starts left of the crate, so "below the hand" is the crate's
+    left end; the stick is moved in until its ink is all on the surface."""
+    actions = _TAKE + "- {kind: place, item: stick, onto: crate@surface, start: 1.4}"
+    doc = _compile(_surface_project(tmp_path, actions))
+    g = _gesture(doc, "place")
+    assert _hand(doc, 1.4)[0] < _crate_top(doc, 1.4)[0][0], (
+        "the hand starts past the end"
+    )
+    t = g["contact"] + 0.3
+    (lx, _ly), (rx, _ry) = _crate_top(doc, t)
+    left = _stage(doc, "stick", t, point=(-INK_HALF_WIDTH, INK_BOTTOM[1]))
+    right = _stage(doc, "stick", t, point=(INK_HALF_WIDTH, INK_BOTTOM[1]))
+    assert lx - 1e-3 <= left[0] and right[0] <= rx + 1e-3
+    assert left[0] == pytest.approx(lx, abs=1e-3), "moved in no further than needed"
+
+
+def test_a_moving_surface_is_read_as_it_is_at_contact(tmp_path):
+    """The crate slides right while the hand reaches: the stick goes below
+    where the hand started, on the crate as it is when the stick touches it
+    (not at the fraction the hand was over when it started)."""
+    entities = _SURFACE_ENTITIES.replace(
+        "stage: {at: [20, 200]}", "stage: {at: [-65, 200]}"
+    )
+    actions = (
+        _TAKE
+        + "- {kind: tween, target: crate, property: x, from: -65, to: -45, duration: 0.2, start: 1.4}\n"
+        + "- {kind: place, item: stick, onto: crate@surface, start: 1.4}"
+    )
+    doc = _compile(_surface_project(tmp_path, actions, entities))
+    g = _gesture(doc, "place")
+    hand0 = _hand(doc, 1.4)
+    (lx, _), (rx, _) = _crate_top(doc, g["contact"])
+    assert lx + INK_HALF_WIDTH < hand0[0] < rx - INK_HALF_WIDTH
+    x, _y = _stage(doc, "stick", g["contact"] + 0.3, point=INK_BOTTOM)
+    assert x == pytest.approx(hand0[0], abs=1e-3)
+
+
+def test_an_item_sunk_into_every_support_names_each_of_them(tmp_path):
+    """The crate stands lower than the figure's floor and the stick is sunk
+    below both: the warning names the least sunk, and the other it measured
+    (it may not be the one the item was meant to rest on)."""
+    entities = """- {kind: prop, id: fig, store: props, ref: figure, stage: {at: [-100, 200]}}
+- {kind: prop, id: crate, store: props, ref: crate, stage: {at: [20, 300]}}
+- {kind: prop, id: stick, store: props, ref: stick, stage: {at: [20, 280], scale: 0.5, after: fig}}
+"""
+    actions = _TAKE.replace("start: 0.3", "start: 0.3, reach: 0.6") + (
+        "- {kind: place, item: stick, onto: crate@surface, start: 1.4}"
+    )
+    found = [
+        m
+        for s, m in _lint(_surface_project(tmp_path, actions, entities))
+        if "'stick' is" in m
+    ]
+    assert found and all(
+        "px into 'crate@surface' (also" in m and "px into the ground)" in m
+        for m in found
+    ), found
+
+
+def test_an_item_staged_on_a_surface_past_its_end_is_moved_onto_it(tmp_path):
+    entities = _SURFACE_ENTITIES.replace(
+        "stage: {at: [-160, 150], scale: 0.5, after: fig}, overrides: {held_by: ground}",
+        "stage: {at: [70, 150], scale: 0.5, after: fig}, overrides: {held_by: crate@surface}",
+    )
+    doc = _compile(_surface_project(tmp_path, _TAKE, entities))
+    (_lx, _), (rx, _) = _crate_top(doc, 0.0)
+    right = _stage(doc, "stick", 0.0, point=(INK_HALF_WIDTH, INK_BOTTOM[1]))
+    assert right[0] == pytest.approx(rx, abs=1e-3)
+
+
+def test_with_no_ground_given_the_floor_is_where_the_feet_are_not_the_reaching_arm(
+    tmp_path,
+):
+    """No `solve.ground`: the floor is the bottom of the carrier's root parts,
+    read from the solve without the gestures, so the reach that bends the
+    figure does not drop it. The stick laid flat on it lies on y 200, where
+    the figure stands."""
+    entities = """- {kind: prop, id: fig, store: props, ref: figure, stage: {at: [-100, 200]}}
+- {kind: prop, id: stick, store: props, ref: stick, stage: {at: [-160, 150], scale: 0.5, after: fig}, overrides: {held_by: ground}}
+"""
+    actions = _TAKE + (
+        "- {kind: place, item: stick, onto: ground@-40, rotation: 1.5708, start: 1.4}"
+    )
+    doc = _compile(
+        make_project(
+            tmp_path / "p", scene(actions, entities=entities, shot="duration: 4.0")
+        )
+    )
+    g = _gesture(doc, "place")
+    assert g["gap"] <= GRASP_TOLERANCE_PX
+    t = g["contact"] + 0.5
+    lowest = max(
+        _stage(doc, "stick", t, point=(x * K, y * K))[1]
+        for x in (-10.0, 10.0)
+        for y in (-100.0, 100.0)
+    )
+    assert lowest == pytest.approx(GROUND, abs=1e-3)

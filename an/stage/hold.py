@@ -72,7 +72,7 @@ import itertools
 import math
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
-from functools import lru_cache
+from functools import lru_cache, partial
 from typing import Any
 
 from an.ir.holds import GESTURE_KINDS, GROUND, HOLD_ACTION_KINDS, SURFACE
@@ -716,6 +716,9 @@ class _Ctx:
     warnings: list[dict[str, Any]]
     #: ``held_rotation``: the stage angle an item held from the start is aimed at
     aims: dict[str, float] = field(default_factory=dict)
+    #: The solve without the holds' gestures: where a carrier's feet are, which
+    #: the derived floor is read from (a reach bends the carrier; an#565).
+    floor_run: Run | None = None
 
 
 def _frame_at(times: Sequence[float], t: float) -> int:
@@ -869,15 +872,16 @@ def _surface_holder(
     shot: Any,
     mall: Mapping[str, Any],
     puppet: Puppet,
-    ref: str,
     *,
     vocab: Any,
+    ref: str,
     where: str,
     problems: list,
 ) -> Holder | None:
     """``<body>@surface[@f]`` (an#536): the body's supporting segment in its
     own coordinates, from its :data:`SURFACE_BONES` when its rig declares
-    them, else the top edge of the part's ink."""
+    them, else the top edge of the part's ink. :func:`_schedule` binds the
+    shot's part once (``functools.partial``)."""
     from an.stage.solve import _rig_of
 
     head = _holder_ref(ref)
@@ -963,6 +967,7 @@ def _schedule(
 ) -> _Ctx:
     nodes = puppet.nodes
     problems: list[tuple[str, str]] = []
+    surface_holder = partial(_surface_holder, doc, shot, mall, puppet, vocab=vocab)
     entities = {e.id for e in shot.entities}
     items: dict[str, ItemInfo] = {}
     for item, where in decl.items.items():
@@ -981,9 +986,7 @@ def _schedule(
         if _is_place_target(on):
             h = _place_holder(on, where=where, problems=problems)
         elif _is_surface_target(on):
-            h = _surface_holder(
-                doc, shot, mall, puppet, on, vocab=vocab, where=where, problems=problems
-            )
+            h = surface_holder(ref=on, where=where, problems=problems)
         else:
             h = _holder(puppet, on, "socket")
         if h is not None:
@@ -1156,16 +1159,7 @@ def _schedule(
                     )
                 )
                 continue
-            target = _surface_holder(
-                doc,
-                shot,
-                mall,
-                puppet,
-                target_ref,
-                vocab=vocab,
-                where=v.where,
-                problems=problems,
-            )
+            target = surface_holder(ref=target_ref, where=v.where, problems=problems)
         else:
             target = _holder(puppet, target_ref, "hand" if meet < 1.0 else "socket")
         if target is None:
@@ -1307,7 +1301,12 @@ def _point_world(
 
 def _ground_at(ctx: _Ctx, run: Run, k: int, entity: str | None) -> float | None:
     """The floor line: the shot's ``ground``, else the bottom of ``entity``'s
-    root parts (the floor it stands on) at frame ``k``."""
+    root parts (the floor it stands on) at frame ``k``, as the solve without
+    the gestures has them (``ctx.floor_run``, else ``run``): a reach bends
+    the carrier, and the floor does not drop with its arm. A gesture reads it,
+    as it reads a surface, as it is at contact (``g.kc``, an#565): "below the
+    hand" is where the hand starts (``g.k0``), on the support where it is when
+    the item touches it."""
     if ctx.ground is not None:
         return ctx.ground
     if entity is None:
@@ -1321,8 +1320,9 @@ def _ground_at(ctx: _Ctx, run: Run, k: int, entity: str | None) -> float | None:
     if not roots:
         return None
     lowest = None
+    floor = ctx.floor_run if ctx.floor_run is not None else run
     for p in roots:
-        m = _body_world(puppet, run, k, p)
+        m = _body_world(puppet, floor, k, p)
         y = _lowest(m, ink_points(ctx.doc, puppet.nodes[p], ctx.mall))
         lowest = y if lowest is None else max(lowest, y)
     return lowest
@@ -1457,15 +1457,20 @@ def _on_surface(
     """The item lying on ``holder``'s surface at frame ``k``: its linear part
     (``level(tilt)``: how it lies relative to the surface, turned by the
     surface's tilt) and its pose, at the surface's fraction ``along``, else
-    at the foot of stage point ``below`` on the surface at frame ``below_k``."""
+    at the foot of stage point ``below`` on the surface at frame ``below_k``,
+    moved in so its ink does not hang over an end (an#565)."""
     line, a, b = _surface_at(ctx, run, k, holder)
-    along = holder.along
-    if along is None:
-        _line, a0, b0 = _surface_at(ctx, run, below_k, holder)
-        along = _fraction_on(below, a0, b0)
     tilt = _tilt(line)
     lin = _turned(level(tilt), tilt)
-    return lin, _on_line(ctx, lin, item, _lerp(a, b, along), line, about=about)
+    if holder.along is not None:
+        return lin, _on_line(
+            ctx, lin, item, _lerp(a, b, holder.along), line, about=about
+        )
+    _line, a0, b0 = _surface_at(ctx, run, below_k, holder)
+    along = _fraction_on(below, a0, b0)
+    m = _on_line(ctx, lin, item, _lerp(a, b, along), line, about=about)
+    dx, dy = _inset([_apply(m, c) for c in ctx.items[item].corners], a=a, b=b)
+    return lin, _compose(_translate(dx, dy), m)
 
 
 def _on_ground(
@@ -1504,6 +1509,41 @@ def _fraction_on(
     if length2 <= _EPS:
         return 0.5
     return max(0.0, min(1.0, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / length2))
+
+
+def _inset(
+    ink: Sequence[tuple[float, float]],
+    *,
+    a: tuple[float, float],
+    b: tuple[float, float],
+) -> tuple[float, float]:
+    """How far ``ink`` (points on the stage) must move to lie within segment
+    ``a``-``b``: a stage offset along it, zero when it does already; centred
+    on the segment when it is longer.
+
+    >>> _inset([(8.0, 0.0), (12.0, 0.0)], a=(0.0, 0.0), b=(10.0, 0.0))  # half over the end
+    (-2.0, 0.0)
+    >>> _inset([(4.0, 0.0), (6.0, 0.0)], a=(0.0, 0.0), b=(10.0, 0.0))   # inside already
+    (0.0, 0.0)
+    >>> _inset([(-6.0, 0.0), (6.0, 0.0)], a=(0.0, 0.0), b=(10.0, 0.0))  # longer: centred
+    (5.0, 0.0)
+    """
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    length = math.hypot(dx, dy)
+    if length <= _EPS:
+        return 0.0, 0.0
+    ux, uy = dx / length, dy / length
+    spans = [(p[0] - a[0]) * ux + (p[1] - a[1]) * uy for p in ink]
+    lo, hi = min(spans), max(spans)
+    if hi - lo >= length:
+        shift = (length - lo - hi) / 2.0
+    elif lo < 0.0:
+        shift = -lo
+    elif hi > length:
+        shift = length - hi
+    else:
+        shift = 0.0
+    return shift * ux + 0.0, shift * uy + 0.0
 
 
 def _tilt(line: Line) -> float:
@@ -1551,12 +1591,12 @@ def _place_target(
                 ctx, item, _turned(carried, -tilt), g.rotation, rests
             ),
             below=_point_world(ctx.puppet, run, g.k0, g.hand),
-            below_k=g.k0,
+            below_k=g.kc,
             about=g.point if g.point is not None else ctx.items[item].centre,
         )
         return lin, whole, None
     lin = _rest_lin(ctx, item, carried, g.rotation, rests)
-    ground = _ground_at(ctx, run, g.k0, g.hand.entity)
+    ground = _ground_at(ctx, run, g.kc, g.hand.entity)
     if ground is None:
         return lin, None, None
     info = ctx.items[item]
@@ -1826,7 +1866,7 @@ def _transition(
                 local=_compose(_invert(_body_world(puppet, run, k, body)), m),
             ), m
         # the ground
-        ground = _ground_at(ctx, run, g.k0, g.hand.entity)
+        ground = _ground_at(ctx, run, g.kc, g.hand.entity)
         if ground is None:
             return _State("rest", m=current), current
         if ideal and whole is not None:
@@ -2369,6 +2409,7 @@ def solve_holds(
         )
     ctx.gravity = _gravity(shot, state.style_pack)
     ctx.ground = shot.solve.ground if shot.solve is not None else None
+    ctx.floor_run = base
     run = base
     if ctx.gestures:
         for _pass in range(HOLD_PLAN_PASSES):
@@ -2419,7 +2460,7 @@ def _measure(ctx: _Ctx, run: Run, walk: Walk) -> None:
                     continue
             if g.target.kind == "ground":
                 before = walk.before.get(g.index)
-                ground = _ground_at(ctx, run, g.k0, g.hand.entity)
+                ground = _ground_at(ctx, run, g.kc, g.hand.entity)
                 if before is not None and ground is not None:
                     off = abs(ground - _lowest(before, info.corners))
                     g.gap = max(off, math.hypot(hand[0] - there[0], hand[1] - there[1]))
@@ -2520,14 +2561,17 @@ def _item_hosts(ctx: _Ctx) -> dict[str, list[tuple[float, str]]]:
 
 def _nearest_support(
     ctx: _Ctx, run: Run, g: Gesture, before: Affine
-) -> tuple[float, str, float | None] | None:
+) -> tuple[float, str, float | None, list[tuple[str, float]]] | None:
     """What a staged item taken by ``g`` rests on: ``(how far above it, its
     name, the floor's y or None)``, among the ground and every surface the
-    shot's holds name (an#536) that is under the item. One it touches wins;
-    else the nearest below it; else (sunk into all) the least sunk."""
+    shot's holds name (an#536) that is under the item, and the others it is
+    sunk into ``[(name, how far above it)]``. One it touches wins; else the
+    nearest below it; else (sunk into all) the least sunk, with the others
+    named, since that one may be a support it was never meant to rest on
+    (an#565)."""
     corners = ctx.items[g.item].corners
     measured: list[tuple[float, str, float | None]] = []
-    ground = _ground_at(ctx, run, g.k0, g.hand.entity)
+    ground = _ground_at(ctx, run, g.kc, g.hand.entity)
     if ground is not None:
         measured.append((_above(before, corners, _ground_line(ground)), GROUND, ground))
     surfaces = {
@@ -2543,11 +2587,12 @@ def _nearest_support(
     if not measured:
         return None
     if any(abs(m[0]) <= SUPPORT_TOLERANCE_PX for m in measured):
-        return min(measured, key=lambda m: abs(m[0]))
+        return (*min(measured, key=lambda m: abs(m[0])), [])
     below = [m for m in measured if m[0] > 0]
-    return (
-        min(below, key=lambda m: m[0]) if below else max(measured, key=lambda m: m[0])
-    )
+    if below:
+        return (*min(below, key=lambda m: m[0]), [])
+    least = max(measured, key=lambda m: m[0])
+    return (*least, [(m[1], m[0]) for m in measured if m is not least])
 
 
 def _report(ctx: _Ctx, run: Run, walk: Walk) -> dict[str, Any]:
@@ -2610,7 +2655,7 @@ def _report(ctx: _Ctx, run: Run, walk: Walk) -> dict[str, Any]:
         support = _nearest_support(ctx, run, g, before)
         if support is None:
             continue
-        above, onto, ground = support
+        above, onto, ground, also = support
         if (
             SUPPORT_TOLERANCE_PX < above <= FLOAT_BAND_PX
             or above < -SUPPORT_TOLERANCE_PX
@@ -2623,6 +2668,11 @@ def _report(ctx: _Ctx, run: Run, walk: Walk) -> dict[str, Any]:
                     "at": r2(g.contact),
                     "ground": r2(ground) if ground is not None else None,
                     "onto": onto,
+                    **(
+                        {"also": [{"onto": o, "above": r2(a)} for o, a in also]}
+                        if also
+                        else {}
+                    ),
                 }
             )
     return {

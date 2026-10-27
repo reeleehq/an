@@ -154,6 +154,16 @@ def check_floating_item(ctx: Any) -> None:
             if f["above"] > 0
             else f"{-f['above']:.0f} px into {what}"
         )
+        if f.get("also"):  # sunk into every support it was measured against (an#565)
+            how += (
+                " (also "
+                + ", ".join(
+                    f"{-o['above']:.0f} px into "
+                    + ("the ground" if o["onto"] == "ground" else repr(o["onto"]))
+                    for o in f["also"]
+                )
+                + ")"
+            )
         ctx.report.add(
             "warning",
             f"{ctx.path}/{f['where']}",
