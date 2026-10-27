@@ -20,7 +20,9 @@ from an.ir.sync import (
 
 
 def test_a_line_names_its_voice():
-    line = _parse_dialogue_line("narrator (voice carl_recorded): Once upon a time.", where="")
+    line = _parse_dialogue_line(
+        "narrator (voice carl_recorded): Once upon a time.", where=""
+    )
     assert (line.speaker, line.voice_ref, line.text) == (
         "narrator",
         "carl_recorded",
@@ -65,7 +67,6 @@ def test_an_edit_of_scene_md_keeps_the_voice(tmp_path):
     [
         ("a (voice x) (voice y): hi", "two voices"),
         ("a (voice): hi", "not a timing or a voice"),
-        ("a (voice has space): hi", "not a timing or a voice"),
     ],
 )
 def test_a_malformed_voice_is_refused_with_the_grammar(text, message):
@@ -89,6 +90,24 @@ def test_a_voice_bound_through_the_store_is_written_into_scene_md(tmp_path):
     project = load(root)
     project.scene.timeline[0].dialogue[0].voice_ref = "carl_recorded"
     build_project_mall(root)["scenes"]["main"] = project.scene
-    assert "narrator (voice carl_recorded): Once upon a time." in md.read_text(encoding="utf-8")
+    assert "narrator (voice carl_recorded): Once upon a time." in md.read_text(
+        encoding="utf-8"
+    )
     again = load(root)  # a reload re-reads the pair: still bound
     assert again.scene.timeline[0].dialogue[0].voice_ref == "carl_recorded"
+
+
+@pytest.mark.parametrize(
+    "ref", ["Bad News", "carl:1", "x+y", "-x_recorded", "émile", "carl.take1"]
+)
+def test_every_voice_ref_the_store_allows_survives_the_round_trip(ref):
+    """an#492 review: a ref written but not readable back would break the first hand edit."""
+    line = Dialogue(speaker="narrator", text="Once.", voice_ref=ref)
+    assert _parse_dialogue_line(_format_dialogue_line(line), where="").voice_ref == ref
+
+
+@pytest.mark.parametrize("ref", ["a (b)", "a)b", "line\nbreak", " padded", "padded "])
+def test_a_ref_scene_md_cannot_spell_is_refused_at_write_not_written(ref):
+    line = Dialogue(speaker="narrator", text="Once.", voice_ref=ref)
+    with pytest.raises(SceneMarkdownError, match="cannot spell"):
+        _format_dialogue_line(line)

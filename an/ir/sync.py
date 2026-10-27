@@ -384,7 +384,9 @@ _DIALOGUE_TIMING_RE = re.compile(
 #: ``(voice carl_recorded)``: the line's own entry in the ``voices`` store
 #: (an#492), for a speaker no character entity binds to a voice (a narrator, an
 #: off-screen voice); written only when set, so no existing scene changes.
-_DIALOGUE_VOICE_RE = re.compile(r"^\s*voice\s+(?P<ref>\w[\w.-]*)\s*$", re.IGNORECASE)
+_DIALOGUE_VOICE_RE = re.compile(
+    r"^\s*voice\s+(?P<ref>[^\s()][^()]*?)\s*$", re.IGNORECASE
+)
 _DIALOGUE_GRAMMAR = (
     "`speaker [emotion] {direction} (pause 1.5) (voice carl): text` — the emotion "
     "in square brackets, the delivery direction in braces (comma-separated cues "
@@ -490,7 +492,20 @@ def _format_dialogue_line(line: Dialogue) -> str:
         if value is not None:
             head += f" ({key} {_format_seconds(value)})"
     if line.voice_ref:
-        head += f" (voice {line.voice_ref})"
+        ref = line.voice_ref
+        if (
+            not _DIALOGUE_VOICE_RE.match(f"voice {ref}")
+            or "\n" in ref
+            or ref != ref.strip()
+        ):
+            # Writing it would make scene.md unreadable (the first hand edit
+            # would then fail to load): refuse here, where nothing is written.
+            raise SceneMarkdownError(
+                f"dialogue line {line.text!r} has voice_ref={ref!r}, which "
+                "`(voice <key>)` cannot spell (no parentheses, no line breaks, "
+                "no leading or trailing space)"
+            )
+        head += f" (voice {ref})"
     return f"{head}: {line.text}"
 
 
