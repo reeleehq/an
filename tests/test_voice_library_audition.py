@@ -637,8 +637,10 @@ def test_a_reel_made_for_a_voice_designed_away_meanwhile_is_not_kept(tmp_path):
             return super().synthesize(text, voice_id, **kw)
 
     with pytest.warns(VoiceDesignWarning, match="designed again"):
-        audition_project_voices(root, ["jerry"], tts=Interleaved(seconds=0.25),
-                                options=["A"], announce=None)
+        entries = audition_project_voices(root, ["jerry"], tts=Interleaved(seconds=0.25),
+                                          options=["A"], announce=None)
+    (mine,) = [o for o in entries["jerry"]["options"] if o["option"] == "A"]
+    assert "audition" not in mine and "scene.md" not in mine.get("auditions", {})
     assert made_by_b and reel.read_bytes() == made_by_b[0]
     billed = len(b.requests)
     audition_project_voices(root, ["jerry"], tts=b, options=["A"], announce=None)

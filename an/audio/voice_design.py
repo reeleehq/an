@@ -1661,6 +1661,9 @@ def audition_project_voices(
     content key is not made again (``redo`` makes them all again). Returns
     the manifests of ``refs``. ``scene_file`` takes the lines from another
     scene of the project (``scene.studio.md``, an#554).
+    A reel whose option was designed again (another voice) while it was made
+    is neither kept nor recorded, and the call warns (``VoiceDesignWarning``,
+    an#649).
     """
     from an.audio.providers import make_tts
     from an.ir.sync import resolve_scene_file
@@ -1727,12 +1730,17 @@ def audition_project_voices(
                 _reel_identity(o) == _reel_identity(job.option)
                 for o in stored.get("options", ())
             ):
+                # Nothing of it is reported either: the entries returned (what
+                # `an voices audition` prints) keep no record of a reel not kept.
+                for key in AUDITION_RECORD_KEYS:
+                    job.option.pop(key, None)
+                (job.option.get(AUDITIONS_KEY) or {}).pop(sf.name, None)
                 warnings.warn(
                     f"{job.ref} {job.option.get('option')}: the option was designed "
                     "again during the audition (another voice now), so its reel "
                     "was not kept; audition it again",
                     VoiceDesignWarning,
-                    stacklevel=2,
+                    stacklevel=4,  # the caller of audition_project_voices
                 )
                 return
             reels[job.reel] = wav

@@ -285,7 +285,9 @@ def remember_statements(
                     continue
             folder.mkdir(parents=True, exist_ok=True)
             doc = {**dict(statement), "asset": asset_key, "root": root_s}
-            atomic_write(target, json.dumps(doc, sort_keys=True).encode("utf-8"))
+            atomic_write(
+                target, json.dumps(doc, sort_keys=True).encode("utf-8"), fsync=True
+            )
         except (OSError, ValueError) as e:
             raise RegistryError(
                 f"cannot remember what {asset_key} says about {digest[:12]}… in "
@@ -365,7 +367,9 @@ def record_generated(digests: Iterable[str], *, generator: str) -> None:
                 "generator": generator,
                 "recorded": datetime.now(timezone.utc).isoformat(timespec="seconds"),
             }
-            atomic_write(target, json.dumps(doc, sort_keys=True).encode("utf-8"))
+            atomic_write(
+                target, json.dumps(doc, sort_keys=True).encode("utf-8"), fsync=True
+            )
         except OSError as e:
             raise RegistryError(
                 f"cannot record that {generator} drew {digest[:12]}… in {folder} ({e})"
