@@ -361,3 +361,64 @@ def test_a_voice_a_voice_document_names_is_never_retired_by_a_re_design(tmp_path
     )
     design_project_voices(proj, designer=again, refs=["jerry"])
     assert [r["voice_id"] for r in _manifest(proj)["retired"]] == ["voice-gen1"]
+
+
+def _redesigned(tmp_path):
+    """Design jerry, choose B, design again (every option saved both times)."""
+    proj = _voice_project(tmp_path, {"notes": NOTES})
+    (proj / "assets" / "voices" / "tom.json").write_text(
+        json.dumps({"provider": "elevenlabs"}), encoding="utf-8"
+    )
+    design_project_voices(proj, designer=FakeDesigner(n=3), refs=["jerry"])
+    choose_project_voice(proj, "jerry", "B", designer=None, by="noel", at="t1")
+    again = FakeDesigner(n=3)
+    again.design_voice = lambda description, *, preview, name: SimpleNamespace(
+        segment=f"new-{getattr(preview, 'generated_voice_id', preview)}"
+    )
+    return proj, again
+
+
+def test_a_carried_choice_another_character_speaks_is_not_retired(tmp_path):
+    from an.audio.voice_design import cast_project_voice
+
+    proj, again = _redesigned(tmp_path)
+    cast_project_voice(proj, "tom", "voice-gen1", by="noel")  # tom speaks jerry's old B
+    design_project_voices(proj, designer=again, refs=["jerry"])
+    choose_project_voice(proj, "jerry", "A", designer=again, by="noel")
+    assert "voice-gen1" not in [r["voice_id"] for r in _manifest(proj)["retired"]]
+
+
+def test_casting_by_hand_over_a_carried_choice_retires_it(tmp_path):
+    from an.audio.voice_design import cast_project_voice
+
+    proj, again = _redesigned(tmp_path)
+    design_project_voices(proj, designer=again, refs=["jerry"])
+    cast_project_voice(proj, "jerry", "HAND", by="noel")
+    m = _manifest(proj)
+    assert "voice-gen1" in [r["voice_id"] for r in m["retired"]]
+    assert m["chosen"]["voice_id"] == "HAND" and "retire_on_replace" not in m["chosen"]
+
+
+@pytest.mark.parametrize(
+    "damage",
+    [
+        {"options": ["x"]},
+        {"options": [], "retired": ["x"]},
+        {"options": [{"voice_id": [1]}]},
+        {"options": [], "chosen": "B"},
+    ],
+)
+def test_a_manifest_damaged_inside_is_refused_before_anything_is_billed(
+    tmp_path, damage
+):
+    from an.audio.voice_design import VoiceDesignError
+
+    proj = _voice_project(tmp_path, {"notes": NOTES})
+    (proj / "artifacts" / "voice_options").mkdir(parents=True, exist_ok=True)
+    (proj / "artifacts" / "voice_options" / "jerry.json").write_text(
+        json.dumps(damage), encoding="utf-8"
+    )
+    d = FakeDesigner(n=2)
+    with pytest.raises(VoiceDesignError, match="damaged"):
+        design_project_voices(proj, designer=d)
+    assert d.calls == []

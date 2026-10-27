@@ -682,7 +682,9 @@ def design_voice_options(
         that is not a mapping): each designed again keeps its record
         (:func:`merge_redesign`), and a damaged one is refused BEFORE anything is
         billed or saved (an#604)
-    in_use: voice ids a voice document names, which a re-design never retires
+    in_use: voice ids a voice document names, which a re-design never retires;
+        a caller passing ``previous`` should pass them (the default, none, would
+        ledger a voice another character speaks)
 
     A voice with ``notes`` gets designed options ``A``, ``B``, ...; a voice with
     a query gets library options ``L1``, ``L2``, ...; one with both gets both in
@@ -1423,7 +1425,7 @@ def design_project_voices(
         library_limit=library_limit,
         design=design,
         previous=_previous_entries(options),
-        in_use={d.get("voice_id") for d in voices.values() if isinstance(d, Mapping)},
+        in_use=_voices_in_use(voices),
     )
     for ref, entry in manifest.items():
         for o in entry["options"]:
@@ -1505,13 +1507,29 @@ def _check_previous_entry(entry: Any, *, ref: str) -> None:
             "nothing was designed (repair or remove artifacts/voice_options/"
             f"{ref}.json, after noting the voices it names)"
         )
-    if not isinstance(entry.get("retired", []), list) or not isinstance(
-        entry.get("options", []), list
+    rows = [*_rows(entry, "options"), *_rows(entry, "retired")]
+    chosen = entry.get("chosen")
+    if any(not _voice_row(r) for r in rows) or not (
+        chosen is None or _voice_row(chosen)
     ):
         raise VoiceDesignError(
-            f"the options manifest of {ref!r} is damaged (its `options` or `retired` "
-            "is not a list); nothing was designed"
+            f"the options manifest of {ref!r} is damaged (its `options`, `retired` "
+            "or `chosen` is not what a design writes); nothing was designed"
         )
+
+
+def _rows(entry: Mapping, key: str) -> list:
+    value = entry.get(key, [])
+    if not isinstance(value, list):
+        return [None]  # a bad row: refused by the caller
+    return value
+
+
+def _voice_row(row: Any) -> bool:
+    """A manifest row: a mapping whose ``voice_id`` is a string or unset."""
+    return isinstance(row, Mapping) and (
+        row.get("voice_id") is None or isinstance(row.get("voice_id"), str)
+    )
 
 
 def audition_project_voices(
@@ -1619,6 +1637,7 @@ def choose_in_entry(
     ref: str = "",
     at: str | None = None,
     doc: Mapping | None = None,
+    in_use: Collection[str] = (),
 ) -> VoiceChoice:
     """Make ``option`` the choice of one voice's options manifest ``entry``
     (an#549): the one choose step an's ``an voices choose`` and a connector
@@ -1639,7 +1658,9 @@ def choose_in_entry(
     voice file already written, may still name it: freeing the provider's
     slot is a separate, explicit act). A voice saved when the options were
     designed (``persist=True``), a library voice and one cast by hand stay
-    named where they are. ``by`` defaults to the login name (see
+    named where they are; a choice carried over a re-design (``retire_on_replace``,
+    an#604) is retired when replaced. A voice in ``in_use`` (one another voice
+    document speaks) is never retired: pass the project's other voices. ``by`` defaults to the login name (see
     :func:`record_choice`).
 
     >>> from types import SimpleNamespace
@@ -1677,7 +1698,7 @@ def choose_in_entry(
         displaced = (
             previous.get("voice_id") if previous.get("voice_id") != voice_id else None
         )
-        retired = _retire(entry, previous, keep=voice_id)
+        retired = _retire(entry, previous, keep=voice_id, in_use=in_use)
         if option_of is not None:
             option_of["voice_id"] = voice_id
             if saved:
@@ -1698,13 +1719,21 @@ def _chosen_record(option: str | None, document: Mapping) -> dict:
     }
 
 
-def _retire(entry: MutableMapping, previous: Mapping, *, keep: str) -> str | None:
+def _retire(
+    entry: MutableMapping,
+    previous: Mapping,
+    *,
+    keep: str,
+    in_use: Collection[str] = (),
+) -> str | None:
     """Retire the voice ``previous`` (the choice being replaced) named, when a
     choice saved it (its option is marked ``saved_by_choice``) and it is not
     ``keep``: its option no longer names it, and the ``retired`` ledger does,
     with whose name it carries (a copy of the manifest inherits the row, not
     the right to delete it). Returns the retired voice, or ``None``."""
     old = previous.get("voice_id")
+    if old in in_use:
+        return None  # another voice document speaks it: not ours to free
     if previous.get(RETIRE_ON_REPLACE_KEY) and old and old != keep:
         retired = entry.setdefault("retired", [])
         if not any(r.get("voice_id") == old for r in retired):
@@ -1766,6 +1795,7 @@ def choose_project_voice(
         ref=ref,
         at=at,
         doc=voices[ref] if ref in voices else {},
+        in_use=_voices_in_use(voices, but=ref),
     ).document
     voices[ref] = doc
     options[ref] = entry
@@ -1799,9 +1829,26 @@ def cast_project_voice(
     doc = record_choice(doc, chosen, by=by, at=at, provider=provider)
     voices[ref] = doc
     if ref in options:
-        entry = dict(options[ref])
-        # cast by hand: what it replaces is not retired (the designed voice
-        # stays named on its option), and it is never retired itself
+        entry = copy.deepcopy(dict(options[ref]))
+        previous = entry.get("chosen") or {}
+        # Cast by hand: a designed voice it replaces stays named on its option,
+        # and the cast voice is never retired itself; only a voice carried
+        # over a re-design (an#604), which no option names, is retired here.
+        if previous.get(RETIRE_ON_REPLACE_KEY):
+            _retire(
+                entry, previous, keep=chosen, in_use=_voices_in_use(voices, but=ref)
+            )
         entry["chosen"] = _chosen_record(None, doc)
+        if previous.get(RETIRE_ON_REPLACE_KEY) and previous.get("voice_id") == chosen:
+            entry["chosen"][RETIRE_ON_REPLACE_KEY] = True
         options[ref] = entry
     return doc
+
+
+def _voices_in_use(voices: Mapping, *, but: str | None = None) -> set[str]:
+    """The voice ids the project's voice documents name (``but`` one of them)."""
+    return {
+        d.get("voice_id")
+        for key, d in voices.items()
+        if key != but and isinstance(d, Mapping) and d.get("voice_id")
+    }
