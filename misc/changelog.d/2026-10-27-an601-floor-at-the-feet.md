@@ -1,0 +1,1 @@
+- Holds: with no `solve.ground`, a carrier placed by its rig's `origin` (a figure's feet) puts things on that point's line, read from the gesture-free solve, so an arm hanging below the feet is no longer the floor (an#601).

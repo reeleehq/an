@@ -45,7 +45,7 @@ A `swap` is a `grasp` (by `by`, of `take`) and a `place` (of `give`, by whicheve
 
 ## The ground and what holds an item at the start
 
-- `solve: {ground: 502}` in the ` ```yaml shot ` block is the floor line (stage y, down positive). Unset, a hand puts things on the floor its own body stands on (the bottom of its rig's root parts).
+- `solve: {ground: 502}` in the ` ```yaml shot ` block is the floor line (stage y, down positive). Unset, a hand puts things on the floor its own body stands on: the line of the point its rig is placed by (`origin`, a figure's feet; an arm hanging lower is not the floor, an#601), else the bottom of its rig's root parts.
 - `overrides: {held_by: ground}` on an item entity: it lies on the floor when the shot opens, its lowest PAINTED pixel on the line (a raster's transparent margin does not float). Its x and rotation are what you staged.
 - `overrides: {held_by: nap/arm_r/weapon}`: it starts in that socket (its grip there, aligned with it); `held_by: stu@hand_r`: in that hand. Not `on:` — YAML reads `on` as `true`.
 - `overrides: {held_by: nap/arm_r/weapon, held_rotation: -0.98}`: it starts in that socket **aimed** at that stage angle (what a place's `rotation` would have left it at), then turns with the socket: a shot that continues another opens on the musket still pointed at Hannibal. Only beside a socket or a hand; an item on the ground lies at its staged rotation (`an validate` refuses `held_rotation` there).

@@ -1016,3 +1016,43 @@ def test_with_no_ground_given_the_floor_is_where_the_feet_are_not_the_reaching_a
         for y in (-100.0, 100.0)
     )
     assert lowest == pytest.approx(GROUND, abs=1e-3)
+
+
+def test_the_floor_is_where_the_figure_stands_not_its_lowest_part(tmp_path):
+    """an#601: no `solve.ground`, and the figure's left arm hangs below its
+    feet. The figure is placed by its declared `origin` (its feet), so the
+    floor is that line, and the stick laid flat lands on y 200, not on the
+    hanging hand."""
+    import json as _json
+
+    from tests._hold_fixture import _svg
+
+    entities = """- {kind: prop, id: fig, store: props, ref: figure, stage: {at: [-100, 200]}}
+- {kind: prop, id: stick, store: props, ref: stick, stage: {at: [-160, 150], scale: 0.5, after: fig}, overrides: {held_by: ground}}
+"""
+    actions = _TAKE + (
+        "- {kind: place, item: stick, onto: ground@-40, rotation: 1.5708, start: 1.4}"
+    )
+    root = tmp_path / "p"
+    make_project(root, scene(actions, entities=entities, shot="duration: 4.0"))
+    figure = root / "assets" / "props" / "figure"
+    doc = _json.loads((figure / "prop.json").read_text(encoding="utf-8"))
+    doc["skins"]["default"]["slots"]["arm_l"]["arm"]["path"] = "parts/long_arm.svg"
+    (figure / "prop.json").write_text(_json.dumps(doc), encoding="utf-8")
+    # hung 140 units above the feet, 300 long: its hand 160 units below them
+    (figure / "parts" / "long_arm.svg").write_text(
+        _svg(16, 300, "#2f6f9f"), encoding="utf-8"
+    )
+    from an.project import load
+
+    doc = _compile(load(root))
+    hand_l = _stage(doc, "fig/arm_l", 0.0, point=(0.0, 300.0 * K * (1.0 - 0.04)))
+    assert hand_l[1] > GROUND + 10, "the left hand hangs below the feet"
+    g = _gesture(doc, "place")
+    t = g["contact"] + 0.5
+    lowest = max(
+        _stage(doc, "stick", t, point=(x * K, y * K))[1]
+        for x in (-10.0, 10.0)
+        for y in (-100.0, 100.0)
+    )
+    assert lowest == pytest.approx(GROUND, abs=1e-3)
