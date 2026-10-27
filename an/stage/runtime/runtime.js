@@ -244,6 +244,8 @@
         const held = new PaintProxy([], item => item._anPaintAfter === host);
         held.name = host + '#held';
         held.zIndex = anchor.zIndex;
+        // A host whose place a `z_index` key moves takes this proxy with it (an#648).
+        anchor._anHeldProxy = held;
         parent.addChildAt(held, parent.getChildIndex(anchor) + 1);
         return held;
     }
@@ -1464,6 +1466,9 @@
         }
         if (prop === 'z_index') {
             node.zIndex = value;  // PixiJS marks the parent to re-sort
+            // What paints just after it keeps doing so (an#648): same key, and
+            // inserted after it, so the stable sort keeps it right behind.
+            if (node._anHeldProxy) node._anHeldProxy.zIndex = value;
             return;
         }
         switch (prop) {
@@ -2196,7 +2201,13 @@
         // At rest a node paints at its own place in the tree (an#537).
         if (prop === 'paint_after') return () => applyPaintAfter(node, '');
         // At rest a node keeps the place its document gave it (an#634).
-        if (prop === 'z_index') { const v = node.zIndex; return () => { node.zIndex = v; }; }
+        if (prop === 'z_index') {
+            const v = node.zIndex;
+            return () => {
+                node.zIndex = v;
+                if (node._anHeldProxy) node._anHeldProxy.zIndex = v;
+            };
+        }
         switch (prop) {
             case 'x': { const v = node.x; return () => { node.x = v; }; }
             case 'y': { const v = node.y; return () => { node.y = v; }; }

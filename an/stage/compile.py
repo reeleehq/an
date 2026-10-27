@@ -1243,19 +1243,15 @@ def paint_orders(
     >>> paint_orders({"near": [(0.0, 2)], "slot": [(0.0, 3), (1.5, 1)]})
     [(0.0, ['near', 'slot']), (1.5, ['slot', 'near'])]
     """
-    times = sorted({float(t) for ks in keys.values() for t, _ in ks})
+    changes: dict[float, list[tuple[str, Any]]] = {}
+    for n, ks in keys.items():
+        for t, k in ks:
+            changes.setdefault(float(t), []).append((n, _sort_key(k)))
+    now: dict[str, Any] = {}
     out = []
-    for t in times:
-        now = {n: [k for at, k in ks if float(at) <= t][-1] for n, ks in keys.items()}
-        out.append(
-            (
-                t,
-                sorted(
-                    now,
-                    key=lambda n: tuple(now[n]) if isinstance(now[n], list) else now[n],
-                ),
-            )
-        )
+    for t in sorted(changes):  # each key read once: linear in the keys (an#648)
+        now.update(changes[t])
+        out.append((t, sorted(now, key=now.__getitem__)))
     return out
 
 
@@ -1313,6 +1309,32 @@ def z_index_keys(
     return out
 
 
+def _beside_their_hosts(
+    names: Sequence[str], keys: Mapping[str, Sequence[tuple[float, Any]]]
+) -> dict[str, Sequence[tuple[float, Any]]]:
+    """The keys of the children ``names`` of one container, without those of
+    an entity riding a host (its keys are the host's plus a two-item suffix,
+    an#648) that is not among them: built apart (the host in a plane's
+    wrapper), it would ride a key no sibling has, so it keeps its place.
+
+    >>> keys = {"pole": [(0, [1, 5])], "lamp": [(0, [1, 5, 1, 0])], "far": [(0, [1, 9, 1, 0])],
+    ...         "hat": [(0, [1, 9, 1, 0, 1, 0])]}
+    >>> sorted(_beside_their_hosts(["pole", "lamp", "far", "hat"], keys))
+    ['lamp', 'pole']
+    """
+    mine = {n: keys[n] for n in names if n in keys}
+    while True:  # a rider of a dropped rider has no host here either
+        opening = {_sort_key(ks[0][1]) for ks in mine.values()}
+        kept = {
+            n: ks
+            for n, ks in mine.items()
+            if len(ks[0][1]) <= 3 or _sort_key(ks[0][1])[:-2] in opening
+        }
+        if len(kept) == len(mine):
+            return kept
+        mine = kept
+
+
 def _paint_keys_pass(state: CompileState) -> None:
     """A world's changing paint order (an#634): in each container of entities
     (:func:`an.stage.tree.entity_containers`) whose keyed children
@@ -1330,7 +1352,7 @@ def _paint_keys_pass(state: CompileState) -> None:
     for container in stage_tree.entity_containers(state.scene_root):
         kids = container.children or []
         names = [k.name for k in kids]
-        moves = z_index_keys(names, {n: keys[n] for n in names if n in keys})
+        moves = z_index_keys(names, _beside_their_hosts(names, keys))
         if not moves:
             continue
         for i, kid in enumerate(kids):

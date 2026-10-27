@@ -377,3 +377,51 @@ def test_a_z_index_key_moves_a_node_among_its_sorted_siblings():
     assert out["opening"] == ["sky", "far", "near"]
     assert out["reused"] == ["sky", "near", "far"]
     assert out["parents"] == [True, True]
+
+
+@requires_node
+def test_an_item_held_by_a_moving_host_paints_just_after_it():
+    """an#648: an item painted just after a top-level host keeps doing so when
+    a ``z_index`` key moves the host among its siblings (the held proxy takes
+    the host's key), and back where it was at rest."""
+    src = RUNTIME_JS.read_text(encoding="utf-8")
+    lifted = "\n".join(
+        _lift(src, start, start)
+        for start in (
+            "function childPrefix(",
+            "function applyPaintOrder(",
+            "function buildSceneTree(",
+            "function buildSceneRoot(",
+            "function applyTransform(",
+            "function applyProperty(",
+            "function captureRest(",
+        )
+    )
+    script = (
+        lifted
+        + """
+    const root = new PIXI.Container();
+    new PIXI.Container().addChild(root);
+    const kid = (name, z) => ({name, transform: {}, z_index: z, children: []});
+    buildSceneRoot({children: [kid('far', 0), kid('near', 1), kid('cup', 2)]}, root);
+    for (const name of ['far', 'near', 'cup']) {
+        const leaf = new Leaf(); leaf.name = name; nodeIndex[name].addChild(leaf);
+        nodeIndex[name]._anDraws = [leaf];
+    }
+    makeHeldPaints({animations: {h: {channels: [{target: 'cup', property: 'paint_after',
+        keyframes: [{time: 0, value: 'far'}]}]}}});
+    applyPaintAfter(nodeIndex['cup'], 'far');
+    const frame = () => { log.length = 0; root.updateTransform(); root.render({}); return log.slice(); };
+    const out = {held: frame()};
+    const rest = captureRest(nodeIndex['far'], 'z_index');
+    applyProperty(nodeIndex['far'], 'z_index', 1.5);  // the host moves in front of 'near'
+    out.moved = frame();
+    rest();
+    out.rest = frame();
+    console.log(JSON.stringify(out));
+    """
+    )
+    out = _run(script)
+    assert out["held"] == ["far", "cup", "near"]
+    assert out["moved"] == ["near", "far", "cup"]
+    assert out["rest"] == ["far", "cup", "near"]
