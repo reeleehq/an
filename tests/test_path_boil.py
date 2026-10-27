@@ -233,7 +233,9 @@ def test_a_boil_out_of_step_with_the_poses_is_warned():
         entities=[AssetRef(kind="prop", id="route", store="props", ref="route")],
     )
     mall = {"props": {"route": {**ROUTE, "boil_hz": 12}}}
-    with pytest.warns(UserWarning, match="read as a stutter"):
+    from an.stage.compile import CutoutCompileWarning
+
+    with pytest.warns(CutoutCompileWarning, match="read as a stutter"):
         compile_shot(shot, mall, fps=24, width=320, height=240, step_hz=8)
     import warnings
 
