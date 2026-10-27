@@ -54,6 +54,7 @@ from pydantic import (
     model_validator,
 )
 
+from an.base import asset_overrides
 from an.ir.assets import AssetSource
 from an.ir.migrate import DocumentKind, migrate, omit_unset, register_kind
 
@@ -494,7 +495,7 @@ def resolve_path(
     unknown PathDescriptor field(s): 'colour' (did you mean 'color', 'curve', 'source'?)
     """
     stored = migrate(dict(document), kind=PATH_DOCUMENT_KIND.name)
-    merged = {**stored, **dict(overrides or {})}
+    merged = {**stored, **asset_overrides(overrides)}
     return PathDescriptor.model_validate(merged)
 
 

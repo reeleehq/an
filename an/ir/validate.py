@@ -2074,59 +2074,74 @@ def _core_field_kinds(ctx: ValidationContext) -> None:
 
 def _core_entity_refs(ctx: ValidationContext) -> None:
     """Entity references resolve?"""
-    shot, path, report, mall_stores = ctx.shot, ctx.path, ctx.report, ctx.stores
     text_ids = _text_ids(ctx)
-    for j, entity in enumerate(shot.entities):
-        if entity.kind not in rig_stores() or entity.id in text_ids:
+    for j, entity in enumerate(ctx.shot.entities):
+        if entity.id in text_ids:
             continue
-        store_name, want_kind = rig_stores()[entity.kind]
-        store = mall_stores.get(store_name)
-        if store is None:
-            continue  # store not supplied → this check did not run
-        doc = _rig_document(entity, mall_stores)
-        if doc is not None:
-            _check_rig_document(
-                doc,
-                entity,
-                f"{path}/entities/{j}",
-                report,
-                raw=store[entity.ref],
-                renderer=shot.renderer,
-            )
-            continue
-        registered = entity_kind(entity.kind)
-        if registered is not None and registered.placeholder_on_missing:
-            continue  # its genre reports a missing ref with its own check
-        # A stroked path (an#160) is a prop whose document is a
-        # `PathDescriptor`; it is checked by the same resolver the
-        # compiler builds it with, overrides merged, so the verdicts agree.
-        path_problem = _path_document_problem(entity, store)
-        if path_problem is not False:
-            if path_problem:
-                report.add("error", f"{path}/entities/{j}", path_problem)
-            continue
-        # A prop has NO placeholder rig — the placeholder IS a humanoid, so
-        # falling back would draw a person where the prop should be — which
-        # makes an unresolvable prop a hard raise at compile. The pre-flight
-        # for a hard raise is an ERROR, and before an#108's review this arm
-        # did not exist at all: the harsher outcome had the weaker
-        # prediction, and `an validate` said "passed" about a scene that
-        # cannot render.
-        if entity.ref in store:
-            why = (
-                f"is in the {store_name!r} store but is not a "
-                f"{want_kind} (rendering this shot raises)"
-            )
-        else:
-            why = (
-                f"is not in the {store_name!r} store, and a {entity.kind} "
-                "has no placeholder rig (rendering this shot raises)"
-            )
-        report.add(
-            "error",
-            f"{path}/entities/{j}",
-            f"{entity.kind} ref {entity.ref!r} {why}",
+        _check_entity_ref(
+            entity,
+            f"{ctx.path}/entities/{j}",
+            ctx.report,
+            ctx.stores,
+            renderer=ctx.shot.renderer,
         )
+
+
+def _check_entity_ref(
+    entity: Any,
+    ir_path: str,
+    report: "ValidationReport",
+    mall_stores: Mapping[str, Any],
+    *,
+    renderer: str,
+) -> bool:
+    """Whether ``entity``'s reference resolves to what the compiler can build,
+    reported at ``ir_path`` when it does not (an error, or the rig document's
+    own findings): the one rule for a listed entity and a world member (an#516).
+    ``True`` when nothing was found wrong, or the store was not supplied."""
+    if entity.kind not in rig_stores():
+        return True
+    first = len(report.findings)
+    store_name, want_kind = rig_stores()[entity.kind]
+    store = mall_stores.get(store_name)
+    if store is None:
+        return True  # store not supplied → this check did not run
+    doc = _rig_document(entity, mall_stores)
+    if doc is not None:
+        _check_rig_document(
+            doc, entity, ir_path, report, raw=store[entity.ref], renderer=renderer
+        )
+        return not any(f.severity == "error" for f in report.findings[first:])
+    registered = entity_kind(entity.kind)
+    if registered is not None and registered.placeholder_on_missing:
+        return True  # its genre reports a missing ref with its own check
+    # A stroked path (an#160) is a prop whose document is a
+    # `PathDescriptor`; it is checked by the same resolver the
+    # compiler builds it with, overrides merged, so the verdicts agree.
+    path_problem = _path_document_problem(entity, store)
+    if path_problem is not False:
+        if path_problem:
+            report.add("error", ir_path, path_problem)
+        return not path_problem
+    # A prop has NO placeholder rig — the placeholder IS a humanoid, so
+    # falling back would draw a person where the prop should be — which
+    # makes an unresolvable prop a hard raise at compile. The pre-flight
+    # for a hard raise is an ERROR, and before an#108's review this arm
+    # did not exist at all: the harsher outcome had the weaker
+    # prediction, and `an validate` said "passed" about a scene that
+    # cannot render.
+    if entity.ref in store:
+        why = (
+            f"is in the {store_name!r} store but is not a "
+            f"{want_kind} (rendering this shot raises)"
+        )
+    else:
+        why = (
+            f"is not in the {store_name!r} store, and a {entity.kind} "
+            "has no placeholder rig (rendering this shot raises)"
+        )
+    report.add("error", ir_path, f"{entity.kind} ref {entity.ref!r} {why}")
+    return False
 
 
 def _check_rig_document(
@@ -2550,13 +2565,16 @@ def _placements(
             continue
         states = []
         for pose in poses:
-            t = transform_of(node, _pose_for(pose, path), frame_height=res.height)
+            mine = _pose_for(pose, path)
+            t = transform_of(node, mine, frame_height=res.height)
+            alpha = (mine or {}).get((path.rsplit("/", 1)[-1], "alpha"))
             states.append(
                 {
                     "x": t.x,
                     "y": t.y,
                     "scale_x": abs(t.scale_x),
                     "scale_y": abs(t.scale_y),
+                    "alpha": float(node.transform.alpha if alpha is None else alpha),
                 }
             )
         out[entity.id] = (states[0], states[1])
@@ -2586,6 +2604,16 @@ def _opened(shot: Any, entity_id: str, *, fps: float) -> set[str]:
     return out
 
 
+#: At or under this alpha an entity is not seen at a cut (a stream slot between
+#: its passes, a fade's end): it cannot jump or swap sides (an#516).
+UNSEEN_ALPHA: float = 1e-3
+
+
+def _seen(state: Mapping[str, float]) -> bool:
+    """Whether a :func:`_placements` state is visible."""
+    return state["alpha"] > UNSEEN_ALPHA
+
+
 def _core_cut_continuity(ctx: ValidationContext) -> None:
     """An entity in two consecutive stage shots that JUMPS across the cut —
     ends one at x=-120, starts the next at x=-100 — without the next shot
@@ -2611,6 +2639,8 @@ def _core_cut_continuity(ctx: ValidationContext) -> None:
             continue  # a cut between two framings of one world is a cut, not a jump (ADR 0009)
         for entity_id in [e for e in after if e in before]:
             ended, starts = before[entity_id][1], after[entity_id][0]
+            if not (_seen(ended) and _seen(starts)):
+                continue  # unseen on one side (a stream slot between passes): no jump
             opened = _opened(shot, entity_id, fps=fps)
             jumps = [
                 f"{prop} {ended[prop]:g} → {starts[prop]:g}"
@@ -2670,7 +2700,11 @@ def _core_screen_direction(ctx: ValidationContext) -> None:
         drawn = (authored | members) - {
             e.id for s in (prev, shot) for e in s.entities if e.kind == "environment"
         }
-        common = sorted(e for e in after if e in before and e in drawn)
+        common = sorted(
+            e
+            for e in after
+            if e in before and e in drawn and _seen(before[e][1]) and _seen(after[e][0])
+        )
         for a_i, a in enumerate(common):
             for b in common[a_i + 1 :]:
                 dx_before = before[a][1]["x"] - before[b][1]["x"]
@@ -2691,6 +2725,11 @@ def _core_screen_direction(ctx: ValidationContext) -> None:
                     )
 
 
+#: ``ctx.memo`` key: world members whose ref does not resolve, reported once
+#: by the ``world`` check (an#516), so the lowering's note on each is not.
+_UNRESOLVED_MEMBERS: str = "unresolved_members"
+
+
 def _core_world(ctx: ValidationContext) -> None:
     """The scene's world names what exists (ADR 0009): registered member
     kinds, and viewpoints whose `subject`/`hide` are members of the world. A size that
@@ -2703,13 +2742,28 @@ def _core_world(ctx: ValidationContext) -> None:
 
     ids = {m.id for m in world.members}
     for j, member in enumerate(world.members):
-        if entity_kind(member.kind) is None:
+        registered = entity_kind(member.kind)
+        if registered is None:
             ctx.report.add(
                 "error",
                 f"world/members/{j}",
                 f"member {member.id!r} has kind {member.kind!r}, which no loaded genre "
                 "registers (the core has environment, prop and voice; a genre adds its own).",
             )
+            continue
+        if member.kind == "environment":
+            continue  # a preset name is not a store entry; the plates' checks run
+        from an.ir.world import entity_of
+
+        if not _check_entity_ref(
+            entity_of(member),
+            f"world/members/{j}",
+            ctx.report,
+            ctx.stores,
+            renderer=ctx.scene.meta.default_renderer,
+        ):
+            # Said once here; the lowering's per-shot note on it is not repeated.
+            ctx.memo.setdefault(_UNRESOLVED_MEMBERS, set()).add(member.id)
     for name, vp in world.viewpoints.items():
         subjects = (
             [vp.subject] if isinstance(vp.subject, str) else list(vp.subject or [])
@@ -2815,8 +2869,10 @@ def _core_viewpoint(ctx: ValidationContext) -> None:
     shot = ctx.shot
     if getattr(shot, "viewpoint", None) is None or ctx.lowered is None:
         return
+    unresolved = ctx.memo.get(_UNRESOLVED_MEMBERS, set())
     for n in ctx.lowered.notes_for(ctx.index):
-        ctx.report.add(n.severity, f"{ctx.path}/entities", f"{n.entity!r}: {n.message}")
+        if n.entity not in unresolved:
+            ctx.report.add(n.severity, n.ir_path, n.description)
     world = ctx.scene.world
     env_store = ctx.stores.get("environments")
     if world is None or env_store is None:

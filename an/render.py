@@ -1128,8 +1128,17 @@ def _prepare_shots(
     # anything compiles (the cue anchors, the keys, the shots). Never written
     # back: the project keeps what the author wrote.
     from an.stage.world import lower_scene
+    from an.verify._base import Finding
 
-    scene = lower_scene(scene, project.mall, fps=effective_fps).scene
+    lowered = lower_scene(scene, project.mall, fps=effective_fps)
+    scene = lowered.scene
+    # What the lowering could not do (a member it cannot draw, a refused
+    # stream) is said, not dropped (an#516): the same notes validate reports.
+    said: set[tuple[str, str]] = set()
+    for n in lowered.notes:  # one warning per member and cause, not per shot
+        if (n.entity, n.message) not in said:
+            said.add((n.entity, n.message))
+            warn_findings([Finding(n.severity, n.ir_path, n.description)])
 
     # Cues timed by the picture (an#317), on the settled copy: before the film
     # timeline, captions, the mix and every key read a cue's `at`.
