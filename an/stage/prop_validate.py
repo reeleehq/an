@@ -48,9 +48,13 @@ BLOCKING: str = "error"
 ADVISORY: str = "warning"
 
 
-def _missing_file_problems(file: Path) -> list[str]:
-    """The ``file_problems`` hook of :func:`asset_ref_problems`: an art file the folder lacks."""
-    return [] if file.is_file() else ["is not in the folder"]
+def _art_file_problems(file: Path) -> list[str]:
+    """The ``file_problems`` hook of :func:`asset_ref_problems`: an art file the
+    folder lacks, else what ``an validate`` says of an SVG that is not
+    self-contained (one rule, both commands)."""
+    from an.ir.validate import _svg_self_containment_problems
+
+    return _svg_self_containment_problems(file) if file.is_file() else ["is not in the folder"]
 
 
 def validate_prop(
@@ -59,8 +63,8 @@ def validate_prop(
     """Check a prop folder (``prop.json`` + ``parts/``) against the rig contract, offline.
 
     Blocking: no or an unreadable descriptor, a structural rig problem (an
-    unknown bone, a bone cycle), an attachment whose art is not in the folder,
-    a prop that draws nothing. Advisory: a chain the stage cannot draw in its
+    unknown bone, a bone cycle), an attachment of any skin whose art is not in the
+    folder (or is an SVG that is not self-contained), a prop that draws nothing. Advisory: a chain the stage cannot draw in its
     declared order (the compiler refuses it), the origin, the rest pose, an
     unpopulated ``AssetSource``.
     """
@@ -109,12 +113,13 @@ def validate_prop(
         report.add(ADVISORY, f"{PROP_META_NAME}#rig", f"{who}: {problem}")
 
     skin = desc.skins.get("default") or next(iter(desc.skins.values()), None)
-    # The one asset-reference rule (an#483, an#552), over every skin's art; a
-    # file the rule lets through must also be in the folder.
-    for label, message in asset_ref_problems(
-        document, directory, file_problems=_missing_file_problems
+    # The one asset-reference rule (an#483, an#552), over EVERY skin's art (not
+    # only the default one: a skin is a swap the scene may ask for); only the
+    # skins, since nothing else in prop.json names a file the prop reads.
+    for _label, message in asset_ref_problems(
+        {"skins": document.get("skins")}, directory, file_problems=_art_file_problems
     ):
-        report.add(BLOCKING, label, f"{who}: {message}")
+        report.add(BLOCKING, f"{PROP_META_NAME}#skins", f"{who}: {message}")
     drawn_any = False
     for slot in desc.slots:
         if skin is not None and drawn_attachment(desc, skin, slot) is not None:
@@ -176,7 +181,8 @@ def render_prop_contract() -> str:
         "## Blocking",
         "",
         "- a bone naming an unknown parent, a bone cycle, a slot on an unknown bone;",
-        "- an attachment whose art is not in the folder; a prop that draws nothing.",
+        "- an attachment, in any skin, whose art is not in the folder or is an SVG that is not",
+        "  self-contained; a prop that draws nothing.",
         "",
         "## Advisory",
         "",
