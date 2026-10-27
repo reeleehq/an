@@ -921,17 +921,17 @@
             trim_end: spec.trim_end != null ? spec.trim_end : 1,
             dash_offset: spec.dash_offset != null ? spec.dash_offset : 0,
         };
-        if (Array.isArray(spec.variants) && spec.variants.length) {
+        if (Array.isArray(spec.drawings) && spec.drawings.length) {
             // A boil (an#443): the compiler drew the line several ways; the
             // `boil` swap set picks one ("0" is `points`), and every trim,
             // dash, taper and head is drawn on it exactly as on `points`.
-            const drawings = [spec.points].concat(spec.variants);
+            const all = [spec.points].concat(spec.drawings);
             g._anDrawSets = {
                 boil: {
-                    keys: drawings.map((_, k) => String(k)),
+                    keys: all.map((_, k) => String(k)),
                     rest: '0',
                     apply(child, key) {
-                        const next = drawings[Number(key)];
+                        const next = all[Number(key)];
                         if (child._anPath.points === next) return;
                         child._anPath.points = next;
                         drawPath(child);

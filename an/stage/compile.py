@@ -1086,6 +1086,11 @@ def camera_follow_keys(state: CompileState) -> list[CameraKey]:
 BOIL_SET: str = "boil"
 
 
+#: A step this close to the shot's end is not a step of the shot (``0.25 s ×
+#: 12 Hz`` is 3 steps, not 4, whatever the float product rounds to).
+_BOIL_STEP_EPS: float = 1e-9
+
+
 def boil_keys(hz: float, drawings: int, duration: float) -> list[tuple[float, str]]:
     """``(time, drawing)`` of a boil: drawing ``k mod drawings`` from ``k / hz``,
     every step of the shot (an#443). The steps are on the shot's own clock, so
@@ -1094,19 +1099,50 @@ def boil_keys(hz: float, drawings: int, duration: float) -> list[tuple[float, st
     >>> boil_keys(12.0, 3, 0.3)
     [(0.0, '0'), (0.08333333333333333, '1'), (0.16666666666666666, '2'), (0.25, '0')]
     """
-    steps = max(1, math.ceil(duration * hz - 1e-9))
+    steps = max(1, math.ceil(duration * hz - _BOIL_STEP_EPS))
     return [(k / hz, str(k % drawings)) for k in range(steps)]
+
+
+def _boiling_paths(state: CompileState) -> dict[str, float]:
+    """``{entity id: boil_hz}`` of the shot's boiling paths, read from their
+    descriptors as the builder read them (:func:`resolve_path`)."""
+    props = state.mall.get("props") or {}
+    out: dict[str, float] = {}
+    for entity in state.shot.entities:
+        doc = props.get(entity.ref) if entity.kind == "prop" else None
+        if not isinstance(doc, Mapping) or doc.get("kind") != PATH_DOCUMENT_KIND.name:
+            continue
+        desc = resolve_path(doc, entity.overrides)
+        if desc.boils:
+            out[entity.id] = float(desc.boil_hz)
+    return out
 
 
 def _boil_pass(state: CompileState) -> None:
     """A boiling path's drawing, stepped (an#443): one ``boil`` channel per
-    path node that carries variants, stepping through them at its rate."""
+    path node that carries drawings, stepping through them at its rate, which
+    is at most the frame rate (a faster boil would draw steps no frame shows,
+    and a typo'd rate would write a key per step)."""
     duration = max(0.001, float(state.shot.duration))
+    rates = _boiling_paths(state)
     for path, node in stage_tree.walk_children(state.scene_root):
         v = node.visual
-        if v is None or v.path is None or not v.path.variants or not v.path.boil_hz:
+        hz = rates.get(node.name)
+        if hz is None or v is None or v.path is None or not v.path.drawings:
             continue
-        hz = v.path.boil_hz
+        if hz > state.fps:
+            raise CutoutCompileError(
+                f"shot {state.shot.id!r}: path {node.name!r} boils at {hz:g} Hz, faster "
+                f"than the shot's {state.fps} fps: a step no frame shows. Use at most "
+                f"`boil_hz: {state.fps}` (on ones); `{state.fps / 2:g}` is on twos."
+            )
+        if hz * duration < 1.0:
+            warnings.warn(
+                f"shot {state.shot.id!r}: path {node.name!r} boils at {hz:g} Hz, once "
+                f"every {1 / hz:g} s, and the shot is {duration:g} s long: it never "
+                "steps to its next drawing.",
+                stacklevel=2,
+            )
         anim_id = f"__boil__{state.shot.id}_{path.replace('/', '_')}"
         if anim_id in state.animations:
             raise CutoutCompileError(f"boil clip id {anim_id!r} is already taken")
@@ -1119,7 +1155,7 @@ def _boil_pass(state: CompileState) -> None:
                     property=BOIL_SET,
                     keyframes=[
                         KeyframeJSON(time=t, value=key, easing="step")
-                        for t, key in boil_keys(hz, len(v.path.variants) + 1, duration)
+                        for t, key in boil_keys(hz, len(v.path.drawings) + 1, duration)
                     ],
                 )
             ],
@@ -2724,12 +2760,12 @@ def _build_path_subtree(
         )
     )
     points, _ = drawn_polyline(desc, entity.id)
-    variants = (
+    drawings = (
         [
             drawn_polyline(desc, entity.id, variant=k)[0]
-            for k in range(1, desc.boil_variants)
+            for k in range(1, desc.boil_drawings)
         ]
-        if desc.boil_hz
+        if desc.boils
         else None
     )
     colour = _path_colour(desc, entity, style_pack, reached)
@@ -2757,8 +2793,7 @@ def _build_path_subtree(
                 fill=desc.fill,
                 fill_alpha=desc.fill_alpha,
                 width_profile=desc.width_profile,
-                variants=variants,
-                boil_hz=desc.boil_hz or None,
+                drawings=drawings,
             ),
         ),
     )

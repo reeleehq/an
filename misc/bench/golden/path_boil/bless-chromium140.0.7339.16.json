@@ -1,5 +1,5 @@
 {
-  "blessed_at": "2026-10-27T05:51:34Z",
+  "blessed_at": "2026-10-27T06:03:55Z",
   "chromium_build": "140.0.7339.16",
   "criterion": "sha256 of the DECODED RGB array, never the file bytes: Chromium 1187 -> 1223 changes every PNG file and zero pixels.",
   "fps": 24,
@@ -28,16 +28,16 @@
   "git": {
     "branch": "path-boil",
     "dirty": true,
-    "sha": "d01305d230612b0a22e0d924d70ef5a69d6cedbe"
+    "sha": "a9aaa5bed7c4feafce615b8bb90df81283b13850"
   },
-  "reason": "an#443: the boiling-path fixture, first bless",
+  "reason": "an#443 review: PathJSON.variants renamed drawings, boil_hz no longer on the wire (contract move; pixels unchanged)",
   "removed": [],
   "resolution": [
     320,
     240
   ],
   "scene": "path_boil",
-  "scene_contract_sha256": "4ccf0fe61d645f366f90f13c6764d332ef16f9f78c203fcbd1915c79cfd0f9c7",
+  "scene_contract_sha256": "cbfccfad82dbbfb31da077fd029e7225208affce5a348d73e2bc71cada14dc67",
   "shot_ids": [
     "boil"
   ],

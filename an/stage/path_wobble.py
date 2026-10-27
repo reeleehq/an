@@ -53,9 +53,11 @@ __all__ = [
 #: curve, not a zig-zag, at any amplitude a stroke should take.
 WOBBLE_SAMPLES_PER_WAVELENGTH: int = 8
 
-#: The most points a wobbled path may carry. Every point is redrawn each
-#: frame a trim or dash moves; past this the wavelength is too short for the
-#: path's length (a hair-fine wobble over a long route).
+#: The most points a wobbled path may put on the wire, every drawing of a boil
+#: counted (an#443): each is redrawn every frame a trim, dash or boil step
+#: moves it, and each is in the compiled document. Past this the wavelength
+#: is too short for the path's length (a hair-fine wobble over a long route),
+#: or the boil has too many drawings.
 MAX_WOBBLE_POINTS: int = 20_000
 
 _HASH_SPAN: float = float(2**64)

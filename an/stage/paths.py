@@ -108,9 +108,9 @@ DFLT_WOBBLE_WAVELENGTH_FACTOR: float = 10.0
 #: How many re-wobbled drawings a boiling line cycles through (an#443), by
 #: default: three, so no two neighbouring steps repeat and a short cycle does
 #: not read as a back-and-forth flicker.
-DFLT_BOIL_VARIANTS: int = 3
+DFLT_BOIL_DRAWINGS: int = 3
 #: The most drawings a boil may cycle: each is the whole polyline on the wire.
-MAX_BOIL_VARIANTS: int = 12
+MAX_BOIL_DRAWINGS: int = 12
 
 #: Straight segments each cubic Bézier is flattened into, uniformly in its
 #: parameter. The wire carries only the flattened polyline, so this is the one
@@ -212,12 +212,12 @@ class PathDescriptor(BaseModel):
     #: and this number.
     wobble_seed: int = 0
     #: A boil (an#443): the wobble is drawn again this many times a second
-    #: (``12`` at 24 fps is "on twos"), cycling ``boil_variants`` drawings, so
+    #: (``12`` at 24 fps is "on twos"), cycling ``boil_drawings`` drawings, so
     #: the line lives. ``0`` = a wobble drawn once. Needs a ``wobble``.
     boil_hz: float = Field(default=0.0, ge=0, allow_inf_nan=False)
     #: How many different drawings the boil cycles through, the first being
     #: the static wobble's.
-    boil_variants: int = Field(default=DFLT_BOIL_VARIANTS, ge=2, le=MAX_BOIL_VARIANTS)
+    boil_drawings: int = Field(default=DFLT_BOIL_DRAWINGS, ge=2, le=MAX_BOIL_DRAWINGS)
     source: AssetSource | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
 
@@ -378,15 +378,22 @@ class PathDescriptor(BaseModel):
                 "wobble_wavelength/wobble_seed are set but `wobble` is 0, so the "
                 "line is ruled and they would draw nothing; set `wobble` or drop them"
             )
-        if not self.boil_hz and "boil_variants" in given:
+        # An explicit 0 (set, even at its default) switches a boil, or the wobble
+        # under it, off, e.g. as one shot's override; only a knob nobody can be
+        # reaching for is refused.
+        if (
+            not self.boil_hz
+            and "boil_drawings" in given
+            and "boil_hz" not in self.model_fields_set
+        ):
             raise ValueError(
-                "boil_variants is set but `boil_hz` is 0, so the line is drawn once "
+                "boil_drawings is set but `boil_hz` is not, so the line is drawn once "
                 "and the other drawings would never show; set `boil_hz` or drop it"
             )
-        if self.boil_hz and not self.wobble:
+        if self.boil_hz and not self.wobble and "wobble" not in self.model_fields_set:
             raise ValueError(
-                "boil_hz is set but `wobble` is 0: a boil re-draws the wobble, and "
-                "a ruled line drawn again is the same line; set `wobble`"
+                "boil_hz is set but there is no `wobble`: a boil re-draws the wobble, "
+                "and a ruled line drawn again is the same line; set `wobble`"
             )
         if self.wobble:
             from an.stage.path_wobble import MAX_WOBBLE_POINTS, wobble_point_count
@@ -394,7 +401,7 @@ class PathDescriptor(BaseModel):
             # The control polygon is at least as long as the curve it draws;
             # a boil puts every one of its drawings on the wire.
             reach = sum(math.dist(a, b) for a, b in zip(self.points, self.points[1:]))
-            drawings = self.boil_variants if self.boil_hz else 1
+            drawings = self.boil_drawings if self.boils else 1
             count = wobble_point_count(reach, self.wobble_wavelength_px) * drawings
             if count > MAX_WOBBLE_POINTS:
                 raise ValueError(
@@ -403,7 +410,7 @@ class PathDescriptor(BaseModel):
                     + (f", drawn {drawings} ways," if drawings > 1 else "")
                     + f" is more than {MAX_WOBBLE_POINTS} points on the wire: "
                     "lengthen `wobble_wavelength`"
-                    + (" or use fewer `boil_variants`" if drawings > 1 else "")
+                    + (" or use fewer `boil_drawings`" if drawings > 1 else "")
                 )
         if all(p == self.points[0] for p in self.points):
             raise ValueError(
@@ -418,6 +425,11 @@ class PathDescriptor(BaseModel):
         if self.gap is not None:
             return float(self.gap)
         return float(self.dash) if self.dash is not None else 0.0
+
+    @property
+    def boils(self) -> bool:
+        """Whether the line boils: a boil rate over a wobble (an#443)."""
+        return bool(self.boil_hz and self.wobble)
 
     @property
     def wobble_wavelength_px(self) -> float:
@@ -545,6 +557,8 @@ def draw_on_through(
     compiler draws (:func:`drawn_polyline`, wobble included, so the tip is ON
     the point), each eased by ``easing``, preceded by a ``set`` of
     ``trim_end`` to 0 at 0. ``arrivals`` are absolute shot times, increasing.
+    A boiling path's fractions are its first drawing's: on its other drawings
+    the tip lands within a pixel or so of the point (an#443).
 
     Returns a list of top-level actions for ``shot.actions.extend(...)``, as
     :func:`an.stage.text.reveal_units` does.
