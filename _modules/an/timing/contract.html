@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=f9abf5d6"></script>
+    <script src="../../../_static/documentation_options.js?v=5dd371cf"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.318" />
+  <meta name="docsearch:version" content="0.1.319" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -957,6 +957,9 @@ window.runMermaid = runMermaid;</script>
     <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>  <span class="c1"># the legacy solver's slope guard and clamps</span>
     <span class="p">[</span><span class="mf">0.42</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
     <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.58</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+    <span class="s2">"projective(0.25)"</span><span class="p">,</span>  <span class="c1"># an#629: a stream instance coming closer</span>
+    <span class="s2">"projective(3)"</span><span class="p">,</span>  <span class="c1"># ... and moving away</span>
+    <span class="s2">"projective(1e-300)"</span><span class="p">,</span>  <span class="c1"># exact at both ends at any k &gt; 0</span>
 <span class="p">)</span>
 
 <span class="c1">#: How a CSS-named document's names map onto this registry where the name means</span>
@@ -976,7 +979,11 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"curves, so a CSS document's 'ease' must be read through "</span>
             <span class="s2">"'css_import_aliases'; Manim's rate functions keep Manim's names. A bare 4-number "</span>
             <span class="s2">"list is a cubic Bezier solved by 'an-bezier-newton-8'; the string "</span>
-            <span class="s2">"'cubic-bezier(...)' is solved by 'css-bezier-newton-bisection'."</span>
+            <span class="s2">"'cubic-bezier(...)' is solved by 'css-bezier-newton-bisection'. "</span>
+            <span class="s2">"'projective(k)' is solved by 'projective-closed-form', "</span>
+            <span class="s2">"u / (u + (1 - u) / k), k &gt; 0 the depth ratio of a segment's end to its "</span>
+            <span class="s2">"start (a pinhole projection of linear motion, exact); the value-typed "</span>
+            <span class="s2">"rule takes it too."</span>
         <span class="p">),</span>
         <span class="s2">"families"</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">EASING_FAMILIES</span><span class="p">),</span>
         <span class="s2">"solvers"</span><span class="p">:</span> <span class="n">solvers</span><span class="p">(</span><span class="n">owner</span><span class="o">=</span><span class="n">CORE_OWNER</span><span class="p">),</span>
@@ -998,6 +1005,8 @@ window.runMermaid = runMermaid;</script>
                     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
                     <span class="k">else</span> <span class="s2">"css-steps"</span>
                     <span class="k">if</span> <span class="n">spec</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"steps"</span><span class="p">)</span>
+                    <span class="k">else</span> <span class="s2">"projective-closed-form"</span>
+                    <span class="k">if</span> <span class="n">spec</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"projective"</span><span class="p">)</span>
                     <span class="k">else</span> <span class="s2">"css-bezier-newton-bisection"</span>
                 <span class="p">),</span>
                 <span class="s2">"samples"</span><span class="p">:</span> <span class="n">_easing_samples</span><span class="p">(</span><span class="n">spec</span><span class="p">),</span>

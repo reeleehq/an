@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=f9abf5d6"></script>
+    <script src="../../../_static/documentation_options.js?v=5dd371cf"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.318" />
+  <meta name="docsearch:version" content="0.1.319" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -717,8 +717,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">The curves, their solvers and the full registry live in the timing kernel</span>
 <span class="sd">(:mod:`an.timing.easing`). This module keeps the path every stage caller already</span>
 <span class="sd">imports, and it states what the STAGE implements: ``runtime.js`` evaluates the</span>
-<span class="sd">legacy names in :data:`an.base.EASING_PRESETS` and a cubic-Bézier control</span>
-<span class="sd">4-tuple, nothing else, so :func:`apply_easing` here refuses any other name. That</span>
+<span class="sd">legacy names in :data:`an.base.EASING_PRESETS`, a cubic-Bézier control</span>
+<span class="sd">4-tuple and ``projective(k)`` (an#629), nothing else, so :func:`apply_easing`</span>
+<span class="sd">here refuses any other name. That</span>
 <span class="sd">refusal is what ``an validate`` and the compiler use to say "the evaluators know</span>
 <span class="sd">this easing" — a curve the kernel knows but the stage runtime does not would</span>
 <span class="sd">otherwise surface as a throw in the browser.</span>
@@ -760,6 +761,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    - ``None`` → linear (passthrough)</span>
 <span class="sd">    - a string preset name (must be a key of ``EASING_FUNCS``)</span>
 <span class="sd">    - a 4-element sequence of cubic-Bézier control points (the legacy solver)</span>
+<span class="sd">    - ``projective(k)``: a projection of linear motion (an#629)</span>
 
 <span class="sd">    Raises ``ValueError`` for unknown preset names or malformed sequences.</span>
 
@@ -770,7 +772,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    &gt;&gt;&gt; apply_easing("step", 1.0)</span>
 <span class="sd">    1.0</span>
 <span class="sd">    """</span>
-    <span class="k">return</span> <span class="n">_kernel</span><span class="o">.</span><span class="n">apply_easing</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="n">EASING_FUNCS</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_kernel</span><span class="o">.</span><span class="n">apply_easing</span><span class="p">(</span>
+        <span class="n">spec</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="n">EASING_FUNCS</span><span class="p">,</span> <span class="n">calls</span><span class="o">=</span><span class="n">_kernel</span><span class="o">.</span><span class="n">VALUE_TYPED_CALLS</span>
+    <span class="p">)</span></div>
 
 </pre></div>
 

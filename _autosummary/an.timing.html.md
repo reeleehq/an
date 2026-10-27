@@ -39,7 +39,7 @@ round(duration * fps))` ([`an.frame_clock`](an.frame_clock.html.md#module-an.fra
 | [`merge_poses`](#an.timing.merge_poses)(\*poses)                               | Merge multiple poses with **override semantics** (later wins per key).                                                                                                                |
 | [`wrap_time`](#an.timing.wrap_time)(t, duration, loop_mode)                  | The public name of the loop rule (the contract's; `_wrap_time` is kept for the callers and tests that already import it).                                                             |
 | [`evaluate_clip`](#an.timing.evaluate_clip)(clip, t, \*[, kind_of])              | Evaluate `clip` at time `t`, returning a `Pose`.                                                                                                                                      |
-| [`apply_easing`](#an.timing.apply_easing)(spec, t, \*[, names])                 | Apply an easing spec to a normalised parameter `t` in `[0, 1]`.                                                                                                                       |
+| [`apply_easing`](#an.timing.apply_easing)(spec, t, \*[, names, calls])          | Apply an easing spec to a normalised parameter `t` in `[0, 1]`.                                                                                                                       |
 | [`easing_entries`](#an.timing.easing_entries)(\*[, owner])                        | Every registered entry in registration order; only `owner`'s when given.                                                                                                              |
 | [`easing_entry`](#an.timing.easing_entry)(name)                                 | The registered entry called `name`.                                                                                                                                                   |
 | [`register_easing`](#an.timing.register_easing)(entry, \*[, replace, owner])       | Add `entry` to the registry (a genre's own curves register here).                                                                                                                     |
@@ -451,14 +451,15 @@ The value between keys `a` and `b` at eased progress `u`.
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
-### an.timing.apply_easing(spec, t, , names=None)
+### an.timing.apply_easing(spec, t, , names=None, calls=())
 
 Apply an easing spec to a normalised parameter `t` in `[0, 1]`.
 
 `names` restricts the string specs accepted to that collection — what an
 engine that implements only part of the registry passes (the stage runtime
-implements the legacy names; see `an.stage.easing`). Sequences
-always take the legacy Bézier solver.
+implements the legacy names; see `an.stage.easing`), plus the
+parametrised specs whose function is in `calls` (`projective`,
+`VALUE_TYPED_CALLS`). Sequences always take the legacy Bézier solver.
 
 ```pycon
 >>> apply_easing(None, 0.25)

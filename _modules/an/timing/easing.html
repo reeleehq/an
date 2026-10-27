@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=f9abf5d6"></script>
+    <script src="../../../_static/documentation_options.js?v=5dd371cf"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.318" />
+  <meta name="docsearch:version" content="0.1.319" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -794,6 +794,10 @@ window.runMermaid = runMermaid;</script>
         <span class="s2">"bisection steps on [0, 1] to the same 1e-12"</span>
     <span class="p">),</span>
     <span class="s2">"css-steps"</span><span class="p">:</span> <span class="s2">"the CSS Easing Level 1 step algorithm"</span><span class="p">,</span>
+    <span class="s2">"projective-closed-form"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s2">"projective(k): u / (u + (1 - u) / k), k &gt; 0 the depth ratio of a "</span>
+        <span class="s2">"segment's end to its start (a pinhole projection of linear motion; an#629)"</span>
+    <span class="p">),</span>
 <span class="p">}</span>
 <span class="n">_SOLVER_OWNERS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">SOLVERS</span><span class="p">,</span> <span class="n">CORE_OWNER</span><span class="p">)</span>
 
@@ -1097,6 +1101,33 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"end"</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="n">DFLT_STEP_POSITION</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"jump-end"</span>
+
+
+<div class="viewcode-block" id="projective">
+<a class="viewcode-back" href="../../../_autosummary/an.timing.easing.html#an.timing.projective">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">projective</span><span class="p">(</span><span class="n">k</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Curve</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The easing of a quantity a pinhole camera shows of a point moving at</span>
+<span class="sd">    constant velocity in depth (an#629): ``u -&gt; u / (u + (1 − u) / k)``, i.e.</span>
+<span class="sd">    ``k·u / (1 + (k − 1)·u)``, with ``k`` the depth at the segment's end over</span>
+<span class="sd">    its depth at its start. A projection ``f·X / z`` with ``X`` and ``z``</span>
+<span class="sd">    linear in time is this curve between its two ends, exactly, whatever</span>
+<span class="sd">    ``f``, ``X`` and the speed; so one tween per channel draws a passing</span>
+<span class="sd">    instance with no fitting. ``k = 1`` is linear; ``k &lt; 1`` (coming closer)</span>
+<span class="sd">    is slow then fast. Written as it is, it is exact at both ends and never</span>
+<span class="sd">    divides by zero for any ``k &gt; 0``.</span>
+
+<span class="sd">    &gt;&gt;&gt; p = projective(0.25)</span>
+<span class="sd">    &gt;&gt;&gt; p(0.0), p(1.0), round(p(0.5), 6), projective(1e-300)(1.0)</span>
+<span class="sd">    (0.0, 1.0, 0.2, 1.0)</span>
+<span class="sd">    &gt;&gt;&gt; projective(-1.0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">     ...</span>
+<span class="sd">    an.timing.easing.UnknownEasingError: projective(k) takes a depth ratio k &gt; 0, got -1.0</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">k</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">math</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">k</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="n">UnknownEasingError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"projective(k) takes a depth ratio k &gt; 0, got </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="k">lambda</span> <span class="n">u</span><span class="p">:</span> <span class="n">u</span> <span class="o">/</span> <span class="p">(</span><span class="n">u</span> <span class="o">+</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">u</span><span class="p">)</span> <span class="o">/</span> <span class="n">k</span><span class="p">)</span> <span class="k">if</span> <span class="n">u</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">0.0</span></div>
+
 
 
 <div class="viewcode-block" id="css_steps">
@@ -1436,6 +1467,21 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: ``EASINGS`` table (the stage engine draws these and no others), so the Python</span>
 <span class="c1">#: spec of that rule refuses what the browser would refuse.</span>
 <span class="n">VALUE_TYPED_EASINGS</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span><span class="n">EASING_PRESETS</span><span class="p">)</span>
+<span class="c1">#: The parametrised calls the value-typed rule accepts beside those names:</span>
+<span class="c1">#: ``runtime.js``'s ``applyEasing`` evaluates ``projective(k)`` too (an#629),</span>
+<span class="c1">#: what a travelling stream's slots are drawn with.</span>
+<span class="n">VALUE_TYPED_CALLS</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"projective"</span><span class="p">})</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_call_name</span><span class="p">(</span><span class="n">spec</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The function a parametrised spec calls (``projective(0.5)`` -&gt;</span>
+<span class="sd">    ``projective``), ``None`` for a name.</span>
+
+<span class="sd">    &gt;&gt;&gt; _call_name("projective(0.5)"), _call_name("ease_in")</span>
+<span class="sd">    ('projective', None)</span>
+<span class="sd">    """</span>
+    <span class="n">match</span> <span class="o">=</span> <span class="n">_CALL</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">match</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
 
 
 <span class="c1"># -----------------------------------------------------------------------------</span>
@@ -1486,8 +1532,16 @@ window.runMermaid = runMermaid;</script>
         <span class="n">count</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
         <span class="n">position</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="k">else</span> <span class="n">DFLT_STEP_POSITION</span>
         <span class="k">return</span> <span class="n">css_steps</span><span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="n">position</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">"projective"</span><span class="p">:</span>
+        <span class="n">nums</span> <span class="o">=</span> <span class="n">_parse_numbers</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">spec</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">nums</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">UnknownEasingError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"easing </span><span class="si">{</span><span class="n">spec</span><span class="si">!r}</span><span class="s2">: projective takes 1 number, got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">nums</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">projective</span><span class="p">(</span><span class="n">nums</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
     <span class="k">raise</span> <span class="n">UnknownEasingError</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s2">"unknown easing function </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> in </span><span class="si">{</span><span class="n">spec</span><span class="si">!r}</span><span class="s2">; known: cubic-bezier(), steps()"</span>
+        <span class="sa">f</span><span class="s2">"unknown easing function </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> in </span><span class="si">{</span><span class="n">spec</span><span class="si">!r}</span><span class="s2">; known: cubic-bezier(), "</span>
+        <span class="s2">"steps(), projective()"</span>
     <span class="p">)</span>
 
 
@@ -1505,7 +1559,7 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
         <span class="k">raise</span> <span class="n">UnknownEasingError</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"unknown easing preset </span><span class="si">{</span><span class="n">spec</span><span class="si">!r}{</span><span class="n">hint</span><span class="si">}</span><span class="s2">; known: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">_REGISTRY</span><span class="p">)</span><span class="si">}</span><span class="s2">, "</span>
-            <span class="s2">"cubic-bezier(x1, y1, x2, y2), steps(n[, position])"</span>
+            <span class="s2">"cubic-bezier(x1, y1, x2, y2), steps(n[, position]), projective(k)"</span>
         <span class="p">)</span>
     <span class="k">return</span> <span class="n">parsed</span>
 
@@ -1544,13 +1598,15 @@ window.runMermaid = runMermaid;</script>
     <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">names</span><span class="p">:</span> <span class="n">Collection</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">calls</span><span class="p">:</span> <span class="n">Collection</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(),</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Apply an easing spec to a normalised parameter ``t`` in ``[0, 1]``.</span>
 
 <span class="sd">    ``names`` restricts the string specs accepted to that collection — what an</span>
 <span class="sd">    engine that implements only part of the registry passes (the stage runtime</span>
-<span class="sd">    implements the legacy names; see ``an.stage.easing``). Sequences</span>
-<span class="sd">    always take the legacy Bézier solver.</span>
+<span class="sd">    implements the legacy names; see ``an.stage.easing``), plus the</span>
+<span class="sd">    parametrised specs whose function is in ``calls`` (``projective``,</span>
+<span class="sd">    :data:`VALUE_TYPED_CALLS`). Sequences always take the legacy Bézier solver.</span>
 
 <span class="sd">    &gt;&gt;&gt; apply_easing(None, 0.25)</span>
 <span class="sd">    0.25</span>
@@ -1561,7 +1617,12 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">     ...</span>
 <span class="sd">    an.timing.easing.UnknownEasingError: unknown easing preset 'smooth'; known: ['linear']</span>
 <span class="sd">    """</span>
-    <span class="k">if</span> <span class="n">names</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">spec</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">names</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+        <span class="ow">and</span> <span class="n">spec</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">names</span>
+        <span class="ow">and</span> <span class="n">_call_name</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">calls</span>
+    <span class="p">):</span>
         <span class="k">raise</span> <span class="n">UnknownEasingError</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"unknown easing preset </span><span class="si">{</span><span class="n">spec</span><span class="si">!r}</span><span class="s2">; known: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">names</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>

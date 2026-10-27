@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=f9abf5d6"></script>
+    <script src="../_static/documentation_options.js?v=5dd371cf"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.318" />
+  <meta name="docsearch:version" content="0.1.319" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -682,7 +682,7 @@ its parity tests hold it there.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.timing.evaluate_clip" title="an.timing.evaluate_clip"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate_clip</span></code></a>(clip, t, *[, kind_of])</p></td>
 <td><p>Evaluate <code class="docutils literal notranslate"><span class="pre">clip</span></code> at time <code class="docutils literal notranslate"><span class="pre">t</span></code>, returning a <code class="code docutils literal notranslate"><span class="pre">Pose</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.timing.apply_easing" title="an.timing.apply_easing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_easing</span></code></a>(spec, t, *[, names])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.timing.apply_easing" title="an.timing.apply_easing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_easing</span></code></a>(spec, t, *[, names, calls])</p></td>
 <td><p>Apply an easing spec to a normalised parameter <code class="docutils literal notranslate"><span class="pre">t</span></code> in <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">1]</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.timing.easing_entries" title="an.timing.easing_entries"><code class="xref py py-obj docutils literal notranslate"><span class="pre">easing_entries</span></code></a>(*[, owner])</p></td>
@@ -1330,12 +1330,13 @@ runtime can use it to scope rendering); evaluation does not filter by it.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.timing.apply_easing">
-<span class="sig-prename descclassname"><span class="pre">an.timing.</span></span><span class="sig-name descname"><span class="pre">apply_easing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/easing.html#apply_easing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.timing.apply_easing" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.timing.</span></span><span class="sig-name descname"><span class="pre">apply_easing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/easing.html#apply_easing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.timing.apply_easing" title="Link to this definition">#</a></dt>
 <dd><p>Apply an easing spec to a normalised parameter <code class="docutils literal notranslate"><span class="pre">t</span></code> in <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">1]</span></code>.</p>
 <p><code class="docutils literal notranslate"><span class="pre">names</span></code> restricts the string specs accepted to that collection — what an
 engine that implements only part of the registry passes (the stage runtime
-implements the legacy names; see <code class="docutils literal notranslate"><span class="pre">an.stage.easing</span></code>). Sequences
-always take the legacy Bézier solver.</p>
+implements the legacy names; see <code class="docutils literal notranslate"><span class="pre">an.stage.easing</span></code>), plus the
+parametrised specs whose function is in <code class="docutils literal notranslate"><span class="pre">calls</span></code> (<code class="docutils literal notranslate"><span class="pre">projective</span></code>,
+<code class="xref py py-data docutils literal notranslate"><span class="pre">VALUE_TYPED_CALLS</span></code>). Sequences always take the legacy Bézier solver.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">apply_easing</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">)</span>
 <span class="go">0.25</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">apply_easing</span><span class="p">(</span><span class="s2">"step"</span><span class="p">,</span> <span class="mf">0.99</span><span class="p">),</span> <span class="n">apply_easing</span><span class="p">(</span><span class="s2">"step"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>

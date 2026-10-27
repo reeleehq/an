@@ -76,7 +76,7 @@ How a CSS-named document’s names map onto this registry where the name means
 something else here. `ease` is `an`’s quadratic (ADR 0001 decision 10,
 amended 2026-10-01); a CSS document’s `ease` is this spec.
 
-### an.timing.contract.PARAMETRIC_EXAMPLES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Any](https://docs.python.org/3/library/typing.html#typing.Any), ...]* *= ('cubic-bezier(0.25, 0.1, 0.25, 1)', 'cubic-bezier(0.5, -0.8, 0.5, 1.8)', 'cubic-bezier(0.3, 1.8, 0.7, -0.8)', 'steps(4)', 'steps(4, jump-start)', 'steps(3, jump-none)', 'steps(2, jump-both)', 'steps(2, start)', 'cubic-bezier(1, 0, 0, 1)', [0.42, 0.0, 0.58, 1.0], [0.5, 2.0, 0.5, 2.0], [0.3, 3.0, 0.7, 0.0], [1.0, 0.0, 0.0, 1.0], [0.42, 0.0, 1.0, 1.0], [0.0, 0.0, 0.58, 1.0])*
+### an.timing.contract.PARAMETRIC_EXAMPLES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Any](https://docs.python.org/3/library/typing.html#typing.Any), ...]* *= ('cubic-bezier(0.25, 0.1, 0.25, 1)', 'cubic-bezier(0.5, -0.8, 0.5, 1.8)', 'cubic-bezier(0.3, 1.8, 0.7, -0.8)', 'steps(4)', 'steps(4, jump-start)', 'steps(3, jump-none)', 'steps(2, jump-both)', 'steps(2, start)', 'cubic-bezier(1, 0, 0, 1)', [0.42, 0.0, 0.58, 1.0], [0.5, 2.0, 0.5, 2.0], [0.3, 3.0, 0.7, 0.0], [1.0, 0.0, 0.0, 1.0], [0.42, 0.0, 1.0, 1.0], [0.0, 0.0, 0.58, 1.0], 'projective(0.25)', 'projective(3)', 'projective(1e-300)')*
 
 Parametrised specs the easing file samples, beside the named entries.
 

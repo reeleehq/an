@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=f9abf5d6"></script>
+    <script src="../../../_static/documentation_options.js?v=5dd371cf"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.318" />
+  <meta name="docsearch:version" content="0.1.319" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1791,16 +1791,33 @@ window.runMermaid = runMermaid;</script>
     <span class="n">min_step</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">width</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">height</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">depth</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">float</span><span class="p">],</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_Pass</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""The channels of one entity's passage: its on-screen window within</span>
 <span class="sd">    ``[t_in, t_out]`` and the Bézier fits of ``g`` on it; ``None`` when it is</span>
-<span class="sd">    never on screen."""</span>
+<span class="sd">    never on screen.</span>
+
+<span class="sd">    ``depth`` (the instance's depth at shot time ``t``) is given for a pass</span>
+<span class="sd">    seen in closed form (the camera translating at a constant velocity, its</span>
+<span class="sd">    orientation fixed): every channel of ``g`` is then a projection of linear</span>
+<span class="sd">    motion, which ``projective(k)`` draws exactly between the window's two</span>
+<span class="sd">    ends (an#629), so each channel is ONE tween, with no fitting."""</span>
     <span class="n">window</span> <span class="o">=</span> <span class="n">_on_screen_window</span><span class="p">(</span>
         <span class="n">g</span><span class="p">,</span> <span class="n">t_in</span><span class="p">,</span> <span class="n">t_out</span><span class="p">,</span> <span class="n">box</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="n">min_step</span>
     <span class="p">)</span>
     <span class="k">if</span> <span class="n">window</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
     <span class="n">t_in</span><span class="p">,</span> <span class="n">t_out</span> <span class="o">=</span> <span class="n">window</span>
+    <span class="k">if</span> <span class="n">depth</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ratio</span> <span class="o">=</span> <span class="n">depth</span><span class="p">(</span><span class="n">t_out</span><span class="p">)</span> <span class="o">/</span> <span class="n">depth</span><span class="p">(</span><span class="n">t_in</span><span class="p">)</span>
+        <span class="n">ease</span> <span class="o">=</span> <span class="s2">"linear"</span> <span class="k">if</span> <span class="n">ratio</span> <span class="o">==</span> <span class="mf">1.0</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"projective(</span><span class="si">{</span><span class="n">ratio</span><span class="si">:</span><span class="s2">.17g</span><span class="si">}</span><span class="s2">)"</span>
+        <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">g</span><span class="p">(</span><span class="n">t_in</span><span class="p">),</span> <span class="n">g</span><span class="p">(</span><span class="n">t_out</span><span class="p">)</span>
+        <span class="n">exact</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">prop</span><span class="p">:</span> <span class="p">[(</span><span class="n">t_in</span><span class="p">,</span> <span class="n">t_out</span><span class="p">,</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">ease</span><span class="p">)]</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">prop</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">((</span><span class="s2">"x"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">,</span> <span class="s2">"scale_x"</span><span class="p">))</span>
+        <span class="p">}</span>
+        <span class="n">exact</span><span class="p">[</span><span class="s2">"scale_y"</span><span class="p">]</span> <span class="o">=</span> <span class="n">exact</span><span class="p">[</span><span class="s2">"scale_x"</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">_Pass</span><span class="p">(</span><span class="n">t_in</span><span class="p">,</span> <span class="n">t_out</span><span class="p">,</span> <span class="n">exact</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
     <span class="n">channels</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">"x"</span><span class="p">:</span> <span class="n">fit_channel</span><span class="p">(</span>
             <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">g</span><span class="p">(</span><span class="n">t</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">t_in</span><span class="p">,</span> <span class="n">t_out</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="n">tol</span><span class="p">,</span> <span class="n">min_step</span><span class="o">=</span><span class="n">min_step</span>
@@ -2014,6 +2031,8 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">min_step</span><span class="o">=</span><span class="n">min_step</span><span class="p">,</span>
                 <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
                 <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span>
+                <span class="c1"># closed form: the exact one-tween pass (an#629)</span>
+                <span class="n">depth</span><span class="o">=</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="n">view</span><span class="p">:</span> <span class="n">view</span><span class="p">(</span><span class="n">t</span><span class="p">)[</span><span class="mi">2</span><span class="p">])</span> <span class="k">if</span> <span class="n">closed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="k">if</span> <span class="n">fitted</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">continue</span>  <span class="c1"># never on screen during this shot</span>

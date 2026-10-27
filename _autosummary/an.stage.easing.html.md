@@ -5,8 +5,9 @@ The stage engine’s easing vocabulary — a view of [`an.timing.easing`](an.tim
 The curves, their solvers and the full registry live in the timing kernel
 ([`an.timing.easing`](an.timing.easing.html.md#module-an.timing.easing)). This module keeps the path every stage caller already
 imports, and it states what the STAGE implements: `runtime.js` evaluates the
-legacy names in [`an.base.EASING_PRESETS`](an.base.html.md#an.base.EASING_PRESETS) and a cubic-Bézier control
-4-tuple, nothing else, so [`apply_easing()`](#an.stage.easing.apply_easing) here refuses any other name. That
+legacy names in [`an.base.EASING_PRESETS`](an.base.html.md#an.base.EASING_PRESETS), a cubic-Bézier control
+4-tuple and `projective(k)` (an#629), nothing else, so [`apply_easing()`](#an.stage.easing.apply_easing)
+here refuses any other name. That
 refusal is what `an validate` and the compiler use to say “the evaluators know
 this easing” — a curve the kernel knows but the stage runtime does not would
 otherwise surface as a throw in the browser.
@@ -47,6 +48,7 @@ Apply an easing the STAGE implements to `t` in `[0, 1]`.
 - `None` → linear (passthrough)
 - a string preset name (must be a key of `EASING_FUNCS`)
 - a 4-element sequence of cubic-Bézier control points (the legacy solver)
+- `projective(k)`: a projection of linear motion (an#629)
 
 Raises `ValueError` for unknown preset names or malformed sequences.
 

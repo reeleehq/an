@@ -46,32 +46,34 @@ is a cubic Bézier solved by the **legacy** solver, so no existing scene moves.
 
 ### Module Attributes
 
-| [`Curve`](#an.timing.easing.Curve)                      | normalised time `u` -> progress.                                                                                                                            |
-|-----------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`CORE_OWNER`](#an.timing.easing.CORE_OWNER)                 | Who registered a core entry.                                                                                                                                |
-| [`EASING_FAMILIES`](#an.timing.easing.EASING_FAMILIES)            | a genre adds its own (a Penner family, say) with [`register_family()`](#an.timing.easing.register_family).                                        |
-| [`SOLVERS`](#an.timing.easing.SOLVERS)                    | The core solvers, by name.                                                                                                                                  |
-| [`LEGACY_BEZIER_NEWTON_STEPS`](#an.timing.easing.LEGACY_BEZIER_NEWTON_STEPS) | Newton steps of the legacy Bézier solver, and its degenerate-slope guard.                                                                                   |
-| [`CSS_BEZIERS`](#an.timing.easing.CSS_BEZIERS)                | The CSS named curves, as cubic-bezier control points (CSS Easing Level 1).                                                                                  |
-| [`CSS_NEWTON_STEPS`](#an.timing.easing.CSS_NEWTON_STEPS)           | The CSS solver's constants (see `SOLVERS["css-bezier-newton-bisection"]`).                                                                                  |
-| [`STEP_POSITIONS`](#an.timing.easing.STEP_POSITIONS)             | The positions `steps()` accepts; `start`/`end` are the CSS aliases of `jump-start`/`jump-end`.                                                              |
-| [`MANIM_INFLECTION`](#an.timing.easing.MANIM_INFLECTION)           | Manim's default sigmoid steepness for `smooth` and its relatives.                                                                                           |
-| [`VALUE_TYPED_EASINGS`](#an.timing.easing.VALUE_TYPED_EASINGS)        | exactly `runtime.js`'s `EASINGS` table (the stage engine draws these and no others), so the Python spec of that rule refuses what the browser would refuse. |
+| [`Curve`](#an.timing.easing.Curve)                      | normalised time `u` -> progress.                                                                                                                                                              |
+|-----------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`CORE_OWNER`](#an.timing.easing.CORE_OWNER)                 | Who registered a core entry.                                                                                                                                                                  |
+| [`EASING_FAMILIES`](#an.timing.easing.EASING_FAMILIES)            | a genre adds its own (a Penner family, say) with [`register_family()`](#an.timing.easing.register_family).                                                                          |
+| [`SOLVERS`](#an.timing.easing.SOLVERS)                    | The core solvers, by name.                                                                                                                                                                    |
+| [`LEGACY_BEZIER_NEWTON_STEPS`](#an.timing.easing.LEGACY_BEZIER_NEWTON_STEPS) | Newton steps of the legacy Bézier solver, and its degenerate-slope guard.                                                                                                                     |
+| [`CSS_BEZIERS`](#an.timing.easing.CSS_BEZIERS)                | The CSS named curves, as cubic-bezier control points (CSS Easing Level 1).                                                                                                                    |
+| [`CSS_NEWTON_STEPS`](#an.timing.easing.CSS_NEWTON_STEPS)           | The CSS solver's constants (see `SOLVERS["css-bezier-newton-bisection"]`).                                                                                                                    |
+| [`STEP_POSITIONS`](#an.timing.easing.STEP_POSITIONS)             | The positions `steps()` accepts; `start`/`end` are the CSS aliases of `jump-start`/`jump-end`.                                                                                                |
+| [`MANIM_INFLECTION`](#an.timing.easing.MANIM_INFLECTION)           | Manim's default sigmoid steepness for `smooth` and its relatives.                                                                                                                             |
+| [`VALUE_TYPED_EASINGS`](#an.timing.easing.VALUE_TYPED_EASINGS)        | exactly `runtime.js`'s `EASINGS` table (the stage engine draws these and no others), so the Python spec of that rule refuses what the browser would refuse.                                   |
+| [`VALUE_TYPED_CALLS`](#an.timing.easing.VALUE_TYPED_CALLS)          | The parametrised calls the value-typed rule accepts beside those names: `runtime.js`'s `applyEasing` evaluates `projective(k)` too (an#629), what a travelling stream's slots are drawn with. |
 
 ### Functions
 
-| [`apply_easing`](#an.timing.easing.apply_easing)(spec, t, \*[, names])              | Apply an easing spec to a normalised parameter `t` in `[0, 1]`.              |
-|--------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
-| [`css_cubic_bezier`](#an.timing.easing.css_cubic_bezier)(x1, y1, x2, y2)                | The CSS `cubic-bezier(x1, y1, x2, y2)` curve, solved to well below 1e-9.     |
-| [`css_steps`](#an.timing.easing.css_steps)(n[, position])                        | CSS `steps(n, position)`, following the CSS Easing Level 1 algorithm.        |
-| [`easing_entries`](#an.timing.easing.easing_entries)(\*[, owner])                     | Every registered entry in registration order; only `owner`'s when given.     |
-| [`easing_entry`](#an.timing.easing.easing_entry)(name)                              | The registered entry called `name`.                                          |
-| [`legacy_cubic_bezier`](#an.timing.easing.legacy_cubic_bezier)(cx1, cy1, cx2, cy2, t)      | an's cubic-Bézier easing at `t` — the `an-bezier-newton-8` solver.           |
-| [`register_easing`](#an.timing.easing.register_easing)(entry, \*[, replace, owner])    | Add `entry` to the registry (a genre's own curves register here).            |
-| [`register_family`](#an.timing.easing.register_family)(name, \*[, owner])              | Open a new easing family (refused if it exists).                             |
-| [`register_solver`](#an.timing.easing.register_solver)(name, description, \*[, owner]) | Name a new solver, with the description another language implements it from. |
-| [`resolve_easing`](#an.timing.easing.resolve_easing)(spec)                            | The curve an easing spec names.                                              |
-| [`solvers`](#an.timing.easing.solvers)(\*[, owner])                            | The registered solvers; only `owner`'s when given.                           |
+| [`apply_easing`](#an.timing.easing.apply_easing)(spec, t, \*[, names, calls])       | Apply an easing spec to a normalised parameter `t` in `[0, 1]`.                                                                                                                                                                            |
+|--------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`css_cubic_bezier`](#an.timing.easing.css_cubic_bezier)(x1, y1, x2, y2)                | The CSS `cubic-bezier(x1, y1, x2, y2)` curve, solved to well below 1e-9.                                                                                                                                                                   |
+| [`css_steps`](#an.timing.easing.css_steps)(n[, position])                        | CSS `steps(n, position)`, following the CSS Easing Level 1 algorithm.                                                                                                                                                                      |
+| [`easing_entries`](#an.timing.easing.easing_entries)(\*[, owner])                     | Every registered entry in registration order; only `owner`'s when given.                                                                                                                                                                   |
+| [`easing_entry`](#an.timing.easing.easing_entry)(name)                              | The registered entry called `name`.                                                                                                                                                                                                        |
+| [`legacy_cubic_bezier`](#an.timing.easing.legacy_cubic_bezier)(cx1, cy1, cx2, cy2, t)      | an's cubic-Bézier easing at `t` — the `an-bezier-newton-8` solver.                                                                                                                                                                         |
+| [`projective`](#an.timing.easing.projective)(k)                                   | The easing of a quantity a pinhole camera shows of a point moving at constant velocity in depth (an#629): `u -> u / (u + (1 − u) / k)`, i.e. `k·u / (1 + (k − 1)·u)`, with `k` the depth at the segment's end over its depth at its start. |
+| [`register_easing`](#an.timing.easing.register_easing)(entry, \*[, replace, owner])    | Add `entry` to the registry (a genre's own curves register here).                                                                                                                                                                          |
+| [`register_family`](#an.timing.easing.register_family)(name, \*[, owner])              | Open a new easing family (refused if it exists).                                                                                                                                                                                           |
+| [`register_solver`](#an.timing.easing.register_solver)(name, description, \*[, owner]) | Name a new solver, with the description another language implements it from.                                                                                                                                                               |
+| [`resolve_easing`](#an.timing.easing.resolve_easing)(spec)                            | The curve an easing spec names.                                                                                                                                                                                                            |
+| [`solvers`](#an.timing.easing.solvers)(\*[, owner])                            | The registered solvers; only `owner`'s when given.                                                                                                                                                                                         |
 
 ### Classes
 
@@ -138,7 +140,7 @@ Newton steps of the legacy Bézier solver, and its degenerate-slope guard.
 
 Manim’s default sigmoid steepness for `smooth` and its relatives.
 
-### an.timing.easing.SOLVERS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'an-bezier-newton-8': "an's cubic Bézier: x(s) = t solved by exactly 8 Newton steps from s = t, each clamped to [0, 1], stopping only on a derivative below 1e-12; no bisection. Bit-identical to runtime.js cubicBezier", 'closed-form': 'evaluated directly from its formula', 'css-bezier-newton-bisection': 'the CSS cubic Bézier: up to 8 Newton steps from s = t (stop when |x(s) - t| < 1e-12, give up on a slope below 1e-6), then up to 60 bisection steps on [0, 1] to the same 1e-12', 'css-steps': 'the CSS Easing Level 1 step algorithm'}*
+### an.timing.easing.SOLVERS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'an-bezier-newton-8': "an's cubic Bézier: x(s) = t solved by exactly 8 Newton steps from s = t, each clamped to [0, 1], stopping only on a derivative below 1e-12; no bisection. Bit-identical to runtime.js cubicBezier", 'closed-form': 'evaluated directly from its formula', 'css-bezier-newton-bisection': 'the CSS cubic Bézier: up to 8 Newton steps from s = t (stop when |x(s) - t| < 1e-12, give up on a slope below 1e-6), then up to 60 bisection steps on [0, 1] to the same 1e-12', 'css-steps': 'the CSS Easing Level 1 step algorithm', 'projective-closed-form': "projective(k): u / (u + (1 - u) / k), k > 0 the depth ratio of a segment's end to its start (a pinhole projection of linear motion; an#629)"}*
 
 The core solvers, by name. An entry names the one that computes it, so a
 curve’s numbers are reproducible in another language from its entry alone.
@@ -155,6 +157,12 @@ Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueEr
 
 An easing spec names no registered curve and parses as no parametrised one.
 
+### an.timing.easing.VALUE_TYPED_CALLS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'projective'})*
+
+The parametrised calls the value-typed rule accepts beside those names:
+`runtime.js`’s `applyEasing` evaluates `projective(k)` too (an#629),
+what a travelling stream’s slots are drawn with.
+
 ### an.timing.easing.VALUE_TYPED_EASINGS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'ease', 'ease_in', 'ease_in_out', 'ease_out', 'linear', 'step'})*
 
 exactly `runtime.js`’s
@@ -164,14 +172,15 @@ spec of that rule refuses what the browser would refuse.
 * **Type:**
   The easings the value-typed rule accepts
 
-### an.timing.easing.apply_easing(spec, t, , names=None)
+### an.timing.easing.apply_easing(spec, t, , names=None, calls=())
 
 Apply an easing spec to a normalised parameter `t` in `[0, 1]`.
 
 `names` restricts the string specs accepted to that collection — what an
 engine that implements only part of the registry passes (the stage runtime
-implements the legacy names; see `an.stage.easing`). Sequences
-always take the legacy Bézier solver.
+implements the legacy names; see `an.stage.easing`), plus the
+parametrised specs whose function is in `calls` (`projective`,
+[`VALUE_TYPED_CALLS`](#an.timing.easing.VALUE_TYPED_CALLS)). Sequences always take the legacy Bézier solver.
 
 ```pycon
 >>> apply_easing(None, 0.25)
@@ -276,6 +285,31 @@ the pixel goldens are re-blessed under the stricter one.
 
 * **Return type:**
   [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+### an.timing.easing.projective(k)
+
+The easing of a quantity a pinhole camera shows of a point moving at
+constant velocity in depth (an#629): `u -> u / (u + (1 − u) / k)`, i.e.
+`k·u / (1 + (k − 1)·u)`, with `k` the depth at the segment’s end over
+its depth at its start. A projection `f·X / z` with `X` and `z`
+linear in time is this curve between its two ends, exactly, whatever
+`f`, `X` and the speed; so one tween per channel draws a passing
+instance with no fitting. `k = 1` is linear; `k < 1` (coming closer)
+is slow then fast. Written as it is, it is exact at both ends and never
+divides by zero for any `k > 0`.
+
+```pycon
+>>> p = projective(0.25)
+>>> p(0.0), p(1.0), round(p(0.5), 6), projective(1e-300)(1.0)
+(0.0, 1.0, 0.2, 1.0)
+>>> projective(-1.0)
+Traceback (most recent call last):
+ ...
+an.timing.easing.UnknownEasingError: projective(k) takes a depth ratio k > 0, got -1.0
+```
+
+* **Return type:**
+  [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`float`](https://docs.python.org/3/builtins/functions.html#float)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.timing.easing.register_easing(entry, , replace=False, owner=None)
 

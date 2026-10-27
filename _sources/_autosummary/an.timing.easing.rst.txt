@@ -18,6 +18,7 @@ an.timing.easing
       STEP_POSITIONS
       MANIM_INFLECTION
       VALUE_TYPED_EASINGS
+      VALUE_TYPED_CALLS
    
    .. rubric:: Functions
 
@@ -29,6 +30,7 @@ an.timing.easing
       easing_entries
       easing_entry
       legacy_cubic_bezier
+      projective
       register_easing
       register_family
       register_solver
