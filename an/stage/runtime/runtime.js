@@ -253,6 +253,60 @@
                 }
             }
         }
+        guardHeldAncestors(Object.values(hosts));
+    }
+
+    // A held item's proxy sits inside its holder, so PixiJS skips it with the
+    // holder whenever an ancestor of the host is hidden or at alpha 0 (an#562),
+    // although the item is its own entity and its own `worldVisible` and
+    // `worldAlpha` say it shows. Each ancestor of a proxy therefore renders the
+    // proxies inside it when PixiJS would skip the ancestor: painted there, at
+    // the skipped ancestor's place in the order, they land where they would
+    // have, since nothing else inside it paints. Only the outermost skipped
+    // ancestor ever runs (it does not reach its children), so nothing paints
+    // twice, and an ancestor nobody skips renders as it always did. A scene
+    // with no `paint_after` channel makes no wrapper at all.
+    function guardHeldAncestors(proxies) {
+        const mine = new Set(proxies);
+        const tops = new Set();
+        for (const p of proxies) {
+            let top = p;
+            while (top.parent) top = top.parent;
+            tops.add(top);
+        }
+        const wrap = a => {
+            if (a._anHeldWithin) return;
+            const original = a.render;
+            a.render = function (renderer) {
+                // A held item is non-renderable in place: its own proxy paints it.
+                if (!this.renderable && this._anPaintAfter) return;
+                if (!this.visible || this.worldAlpha <= 0 || !this.renderable) {
+                    for (const q of this._anHeldWithin) q.render(renderer);
+                    return;
+                }
+                original.call(this, renderer);
+            };
+            a._anHeldWithin = [];
+        };
+        // One depth-first pass in the tree's paint order (children sorted by
+        // zIndex where their container sorts): each proxy joins the list of
+        // every ancestor above it, so a skipped ancestor paints them in order.
+        const path = [];
+        const walk = node => {
+            if (mine.has(node)) {
+                for (const a of path) {
+                    wrap(a);
+                    a._anHeldWithin.push(node);
+                }
+            }
+            const kids = node.sortableChildren
+                ? node.children.slice().sort((x, y) => x.zIndex - y.zIndex)
+                : node.children;
+            path.push(node);
+            for (const c of kids) walk(c);
+            path.pop();
+        };
+        for (const t of tops) walk(t);
     }
 
     function applyPaintAfter(node, value) {
