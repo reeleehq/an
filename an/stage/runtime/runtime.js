@@ -253,6 +253,53 @@
                 }
             }
         }
+        guardHeldAncestors(Object.values(hosts));
+    }
+
+    // A held item's proxy sits inside its holder, so PixiJS skips it with the
+    // holder whenever an ancestor of the host is hidden or at alpha 0 (an#562),
+    // although the item is its own entity and its own `worldVisible` and
+    // `worldAlpha` say it shows. Each ancestor of a proxy therefore renders the
+    // proxies inside it when PixiJS would skip the ancestor: painted there, at
+    // the skipped ancestor's place in the order, they land where they would
+    // have, since nothing else inside it paints. Only the outermost skipped
+    // ancestor ever runs (it does not reach its children), so nothing paints
+    // twice, and an ancestor nobody skips renders as it always did. A scene
+    // with no `paint_after` channel makes no wrapper at all.
+    function guardHeldAncestors(proxies) {
+        const roots = new Set();
+        for (const p of proxies) {
+            let top = p;
+            for (let a = p.parent; a; a = a.parent) {
+                top = a;
+                if (!a._anHeldWithin) {
+                    a._anHeldWithin = [];
+                    const original = a.render;
+                    a.render = function (renderer) {
+                        if (!this.visible || this.worldAlpha <= 0 || !this.renderable) {
+                            for (const q of this._anHeldWithin) q.render(renderer);
+                            return;
+                        }
+                        original.call(this, renderer);
+                    };
+                }
+                a._anHeldWithin.push(p);
+            }
+            roots.add(top);
+        }
+        // The proxies inside one ancestor render in the tree's paint order.
+        const rank = new Map();
+        const mine = new Set(proxies);
+        const walk = node => {
+            if (mine.has(node)) rank.set(node, rank.size);
+            for (const c of node.children) walk(c);
+        };
+        for (const r of roots) walk(r);
+        for (const p of proxies) {
+            for (let a = p.parent; a; a = a.parent) {
+                a._anHeldWithin.sort((x, y) => rank.get(x) - rank.get(y));
+            }
+        }
     }
 
     function applyPaintAfter(node, value) {

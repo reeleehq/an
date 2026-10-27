@@ -34,8 +34,10 @@ def _lift(src: str, start: str, end: str) -> str:
     return src[i : src.index("\n    }", j) + len("\n    }")]
 
 
-def _paint_order(case: str) -> list[str]:
-    """The leaves PixiJS renders, in order, for one of the scripted cases."""
+def _paint_order(case: str, hide: str = "none") -> list[str]:
+    """The leaves PixiJS renders, in order, for one of the scripted cases.
+    ``hide`` hides the figure (the holder) before each frame: ``alpha0`` or
+    ``invisible``; ``root_alpha0`` hides their common ancestor (an#562)."""
     if not BUNDLE.is_file():
         pytest.skip(f"vendored pixi not present at {BUNDLE}")
     src = RUNTIME_JS.read_text(encoding="utf-8")
@@ -79,6 +81,10 @@ def _paint_order(case: str) -> list[str]:
     node('stand', root);
     const stick = node('stick', root);
     const host = {json.dumps(case)};
+    const hide = {json.dumps(hide)};
+    if (hide === 'alpha0') fig.alpha = 0;
+    if (hide === 'invisible') fig.visible = false;
+    if (hide === 'root_alpha0') root.alpha = 0;
     if (host === 'sorted') {{
         // The figure's container sorts its parts (an#403): the torso first.
         nodeIndex['fig/arm_far'].zIndex = 2;
@@ -168,11 +174,14 @@ def test_the_runtime_lists_the_same_order_properties():
 
 
 @pytest.mark.browser
-def test_in_pixels_a_held_item_draws_over_the_arm_that_holds_it(tmp_path):
+@pytest.mark.parametrize("holder_alpha", [None, 0.0])
+def test_in_pixels_a_held_item_draws_over_the_arm_that_holds_it(tmp_path, holder_alpha):
     """The stick is staged BEFORE the figure (under every part of it). Taken in
     the right hand, its grip is drawn over the hand that holds it: the pixel at
     the grip is the stick's brown, not the arm's blue (which it was before
-    an#537, the item's entity order standing for the whole shot)."""
+    an#537, the item's entity order standing for the whole shot). With the
+    figure faded to alpha 0 the stick still draws (an#562): brown, and not the
+    background."""
     import warnings
 
     from PIL import Image
@@ -196,7 +205,13 @@ def test_in_pixels_a_held_item_draws_over_the_arm_that_holds_it(tmp_path):
     project = make_project(
         tmp_path / "p",
         scene(
-            "- {kind: grasp, by: fig/arm_r, item: stick, start: 0.5}", entities=entities
+            "- {kind: grasp, by: fig/arm_r, item: stick, start: 0.5}"
+            + (
+                ""
+                if holder_alpha is None
+                else f"\n- {{kind: set, target: fig, property: alpha, value: {holder_alpha}, at: 0.0}}"
+            ),
+            entities=entities,
         ),
     )
     shot = project.scene.timeline[0]
@@ -221,3 +236,32 @@ def test_in_pixels_a_held_item_draws_over_the_arm_that_holds_it(tmp_path):
         r, g, b = im.convert("RGB").getpixel((round(x), round(y)))
     brown, blue = (120, 80, 40), (0x2F, 0x6F, 0x9F)
     assert math.dist((r, g, b), brown) < math.dist((r, g, b), blue), (r, g, b)
+    if holder_alpha == 0.0:  # nothing of the figure shows, so the stick is not the arm's colour by luck
+        assert math.dist((r, g, b), brown) < 60, (r, g, b)
+
+
+@requires_node
+@pytest.mark.parametrize("case", ["plain", "sorted", "global"])
+@pytest.mark.parametrize("hide", ["alpha0", "invisible"])
+def test_a_held_item_still_shows_when_its_holder_is_hidden(case, hide):
+    """an#562: the holder faded to alpha 0 (or hidden) takes its parts with it, and
+    the item, its own entity, still paints: from the holder's skipped place."""
+    out = _paint_order(case, hide)
+    assert out["fig/arm_far"] == ["stick", "stand"][:1] + ["stand"]
+    assert out[""] == ["stand", "stick"]  # at its own place, as ever
+    assert out["stand"] == ["stand", "stick"]
+
+
+@requires_node
+def test_a_hidden_ancestor_shared_with_the_item_still_hides_it():
+    """The item follows ITS tree: hide what holds them both and neither paints."""
+    out = _paint_order("plain", "root_alpha0")
+    assert out["fig/arm_far"] == [] and out[""] == []
+
+
+@requires_node
+@pytest.mark.parametrize("case", ["plain", "sorted", "global"])
+def test_nothing_hidden_nothing_changes(case):
+    """The guard is invisible until an ancestor is skipped: the same order as before."""
+    out = _paint_order(case)
+    assert out["fig/arm_far"].count("stick") == 1
