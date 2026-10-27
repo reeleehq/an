@@ -1,0 +1,1 @@
+- `solve_frames` leads back a grip lost out of reach that one frame cannot take (a long rope hanging far from its end): a pull toward a point walking to the grip at `regrip_speed`, taken within a unit, never a link given up in its place; `SolveResult.out_of_reach`; `SOLVER_VERSION` 5 (an#645).
