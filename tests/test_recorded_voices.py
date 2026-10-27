@@ -925,3 +925,103 @@ def test_a_pinned_reference_reads_its_bytes_after_its_key_is_gone(tmp_path):
     del mall["transcripts"]["k"]
     again = linked_transcript(f"artifact:{ref}", mall)
     assert HELLO in again.text and again.fmt == "srt"
+
+
+def _textgrid(
+    tiers: dict[str, list[tuple[float, float, str]]], xmax: float = 4.0
+) -> str:
+    """A long-form Praat TextGrid with the given interval tiers."""
+    out = [
+        'File type = "ooTextFile"', 'Object class = "TextGrid"', "xmin = 0",
+        f"xmax = {xmax}", "tiers? <exists>", f"size = {len(tiers)}", "item []:",
+    ]  # fmt: skip
+    for i, (name, intervals) in enumerate(tiers.items(), start=1):
+        out += [
+            f"    item [{i}]:", '        class = "IntervalTier"', f'        name = "{name}"',
+            "        xmin = 0", f"        xmax = {xmax}", f"        intervals: size = {len(intervals)}",
+        ]  # fmt: skip
+        for j, (a, b, text) in enumerate(intervals, start=1):
+            out += [
+                f"        intervals [{j}]:", f"            xmin = {a}",
+                f"            xmax = {b}", f'            text = "{text}"',
+            ]  # fmt: skip
+    return "\n".join(out) + "\n"
+
+
+ALIGNED = _textgrid(
+    {
+        "utterances": [
+            (0.0, 0.5, ""),
+            (0.5, 1.5, f"carl: {HELLO}"),
+            (1.5, 2.5, ""),
+            (2.5, 3.3, f"carl: {FINE}"),
+        ],
+        "words": [
+            (0.5, 0.8, "Hello"),
+            (0.8, 1.1, "there"),
+            (1.1, 1.5, "Ned"),
+            (2.5, 2.9, "Fine"),
+            (2.9, 3.3, "thanks"),
+        ],
+        "phones": [
+            (0.0, 0.5, "sil"),
+            (0.5, 0.6, "HH"),
+            (0.6, 0.7, "AH0"),
+            (0.7, 0.8, "L"),
+            (0.8, 1.1, "DH"),
+            (1.1, 1.5, "N"),
+            (2.5, 2.9, "F"),
+            (2.9, 3.3, "TH"),
+        ],
+    }
+)
+
+
+def test_a_textgrid_phones_tier_is_read_beside_the_words():
+    """an#491: an aligner's phones, per segment, silence dropped."""
+    from an.audio.transcripts import parse_textgrid
+
+    hello, fine = parse_textgrid(ALIGNED)
+    assert hello.phones == (
+        ("HH", 0.5, 0.6), ("AH0", 0.6, 0.7), ("L", 0.7, 0.8), ("DH", 0.8, 1.1), ("N", 1.1, 1.5),
+    )  # fmt: skip
+    assert fine.phones == (("F", 2.5, 2.9), ("TH", 2.9, 3.3))
+    words_only = _textgrid({"words": [(0.5, 0.8, "Hello")]})
+    assert parse_textgrid(words_only)[0].phones is None
+
+
+class _Listening(NullLipSync):
+    """Records the phones of every clip it is asked to align."""
+
+    def __init__(self):
+        self.heard = []
+
+    def align(self, audio, transcript):
+        self.heard.append(audio.phones)
+        return super().align(audio, transcript)
+
+
+def test_a_takes_phones_reach_the_lip_sync_fresh_and_read_back(tmp_path):
+    """an#491: imported with a TextGrid's phones, a take keeps them (cut to
+    the take, stored with it) and the lip-sync provider is handed them, from a
+    fresh take and from audio read back from the store."""
+    root = _project(tmp_path)
+    grid = tmp_path / "take.TextGrid"
+    grid.write_text(ALIGNED, encoding="utf-8")
+    import_recordings(root, _take(tmp_path), transcript=grid, license=LICENSE)
+    (hello,) = [r for r in _records(root).values() if r["text"] == HELLO]
+    assert hello["phones"][0][0] == "HH" and hello["phones"][0][1] == pytest.approx(
+        0.05
+    )
+    for _ in range(2):  # fresh, then read back from the audio store
+        proj = load(root)
+        for key in list(proj.mall["visemes"]):
+            del proj.mall["visemes"][key]
+        lipsync = _Listening()
+        produce_audio_for_scene(proj.scene, proj.mall, lipsync=lipsync, announce=None)
+        first = next(p for p in lipsync.heard if p and p[0][0] == "HH")
+        assert first[-1] == (
+            "N",
+            pytest.approx(0.65),
+            pytest.approx(1.05),
+        )  # cut at 0.45

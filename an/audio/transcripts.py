@@ -112,6 +112,9 @@ class TranscriptSegment:
     end: float | None = None
     speaker: str | None = None
     words: tuple[WordTiming, ...] | None = None
+    #: The segment's phone timings, ``(phone, start, end)`` as an aligner
+    #: writes them (a TextGrid's ``phones`` tier, an#491), else ``None``.
+    phones: tuple[WordTiming, ...] | None = None
 
     @property
     def timed(self) -> bool:
@@ -169,7 +172,7 @@ def parse_transcript(
     itself — into segments. ``fmt`` (one of :data:`FORMATS`) overrides detection.
 
     >>> parse_transcript("carl: Hello.\\nned: Hi.")[1]
-    TranscriptSegment(text='Hi.', start=None, end=None, speaker='ned', words=None)
+    TranscriptSegment(text='Hi.', start=None, end=None, speaker='ned', words=None, phones=None)
     """
     suffix = ""
     text: str
@@ -275,7 +278,7 @@ def parse_srt(text: str) -> list[TranscriptSegment]:
     """SubRip cues → timed segments; a ``speaker:`` prefix names the speaker.
 
     >>> parse_srt("1\\n00:00:00,500 --> 00:00:01,000\\nHi\\nthere\\n")
-    [TranscriptSegment(text='Hi there', start=0.5, end=1.0, speaker=None, words=None)]
+    [TranscriptSegment(text='Hi there', start=0.5, end=1.0, speaker=None, words=None, phones=None)]
     """
     out = []
     for block in _cue_blocks(text):
@@ -289,7 +292,7 @@ def parse_vtt(text: str) -> list[TranscriptSegment]:
     """WebVTT cues → timed segments; ``<v Name>`` or a ``speaker:`` prefix names the speaker.
 
     >>> parse_vtt("WEBVTT\\n\\n00:01.000 --> 00:02.000\\n<v Carl>Hello</v>\\n")
-    [TranscriptSegment(text='Hello', start=1.0, end=2.0, speaker='Carl', words=None)]
+    [TranscriptSegment(text='Hello', start=1.0, end=2.0, speaker='Carl', words=None, phones=None)]
     """
     out = []
     for block in _cue_blocks(text):
@@ -427,6 +430,11 @@ _TG_LINE_TIERS: tuple[str, ...] = (
 )
 #: Tier names whose intervals are the WORDS, by preference.
 _TG_WORD_TIERS: tuple[str, ...] = ("words", "word", "ortho", "orthography")
+#: The names a forced aligner gives its phone tier (Montreal Forced Aligner:
+#: ``phones``; others ``phonemes``), read beside the words (an#491).
+_TG_PHONE_TIERS: tuple[str, ...] = ("phones", "phone", "phonemes", "phoneme")
+#: Interval labels that are silence, not speech: dropped from words and phones.
+_TG_SILENCE: frozenset[str] = frozenset({"sil", "sp", "spn", "<unk>", "<eps>"})
 
 
 def _textgrid_tiers(text: str) -> dict[str, list[tuple[float, float, str]]]:
@@ -472,7 +480,7 @@ def parse_textgrid(text: str) -> list[TranscriptSegment]:
     ...       '        intervals [2]:\\n            xmin = 0.5\\n            xmax = 0.9\\n            text = "hello"\\n'
     ...       '        intervals [3]:\\n            xmin = 0.9\\n            xmax = 1.3\\n            text = "there"\\n')
     >>> parse_textgrid(tg)
-    [TranscriptSegment(text='hello there', start=0.5, end=1.3, speaker=None, words=(('hello', 0.5, 0.9), ('there', 0.9, 1.3)))]
+    [TranscriptSegment(text='hello there', start=0.5, end=1.3, speaker=None, words=(('hello', 0.5, 0.9), ('there', 0.9, 1.3)), phones=None)]
     """
     tiers = _textgrid_tiers(text)
     if not tiers:
@@ -481,11 +489,18 @@ def parse_textgrid(text: str) -> list[TranscriptSegment]:
     word_tier = next(
         (lowered[n] for n in _TG_WORD_TIERS if n in lowered), next(iter(tiers))
     )
-    words = [
-        (t, a, b)
-        for a, b, t in tiers[word_tier]
-        if t and t not in ("sil", "sp", "<unk>")
-    ]
+    words = [(t, a, b) for a, b, t in tiers[word_tier] if t and t not in _TG_SILENCE]
+    phone_tier = next((lowered[n] for n in _TG_PHONE_TIERS if n in lowered), None)
+    phones = (
+        [(t, a, b) for a, b, t in tiers[phone_tier] if t and t not in _TG_SILENCE]
+        if phone_tier is not None and phone_tier != word_tier
+        else []
+    )
+
+    def within(timings: list, a: float, b: float) -> tuple | None:
+        inside = tuple(x for x in timings if x[1] >= a - 1e-6 and x[2] <= b + 1e-6)
+        return inside or None
+
     line_tier = next((lowered[n] for n in _TG_LINE_TIERS if n in lowered), None)
     if line_tier is None:
         if not words:
@@ -496,17 +511,22 @@ def parse_textgrid(text: str) -> list[TranscriptSegment]:
                 start=words[0][1],
                 end=words[-1][2],
                 words=tuple(words),
+                phones=tuple(phones) or None,
             )
         ]
     out = []
     for a, b, t in tiers[line_tier]:
         if not t:
             continue
-        inside = tuple(w for w in words if w[1] >= a - 1e-6 and w[2] <= b + 1e-6)
         speaker, body = _speaker_and_text(t)
         out.append(
             TranscriptSegment(
-                text=body, start=a, end=b, speaker=speaker, words=inside or None
+                text=body,
+                start=a,
+                end=b,
+                speaker=speaker,
+                words=within(words, a, b),
+                phones=within(phones, a, b),
             )
         )
     return out
@@ -716,7 +736,8 @@ def cut_spans(
 def rebase_words(
     words: Iterable[WordTiming] | None, start: float
 ) -> tuple[WordTiming, ...] | None:
-    """``words`` re-timed from ``start`` (a cut's start): the clip-relative words a line keeps.
+    """``words`` (or phones: any ``(label, start, end)`` timings) re-timed from
+    ``start`` (a cut's start): the clip-relative timings a line keeps.
 
     >>> rebase_words([("hi", 1.0, 1.4)], 0.95)
     (('hi', 0.05, 0.45),)
