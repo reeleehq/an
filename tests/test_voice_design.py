@@ -317,6 +317,41 @@ def test_a_retired_voice_keeps_the_prefix_it_was_saved_under():
     }  # fmt: skip
 
 
+def test_a_saved_under_survives_a_hand_cast_and_a_re_design(tmp_path):
+    """an#618: the prefix a fork's choice saved a voice under survives a hand
+    cast of that same carried voice, and is what a re-design ledgers the voice
+    under when a hand cast left it on its option."""
+    from an.audio.voice_design import (
+        cast_project_voice,
+        choose_in_entry,
+        merge_redesign,
+    )
+
+    d = FakeDesigner(n=2)
+    proj = _voice_project(tmp_path, {"notes": NOTES})
+    design_project_voices(proj, designer=d, persist=False)
+    entry = _manifest(proj)
+    choose_in_entry(entry, "A", by="ann", designer=d, ref="jerry", name_prefix="fork")
+    (proj / "artifacts" / "voice_options" / "jerry.json").write_text(
+        json.dumps(merge_redesign(entry, {"notes": NOTES, "options": []})),
+        encoding="utf-8",
+    )
+    cast_project_voice(proj, "jerry", "voice-gen0", by="ann")  # the carried voice
+    assert _manifest(proj)["chosen"]["saved_under"] == "fork"
+
+    entry = design_voice_options(
+        {"jerry": {"notes": NOTES}}, samples={}, designer=d, persist=False
+    )["jerry"]
+    choose_in_entry(entry, "A", by="ann", designer=d, ref="jerry", name_prefix="fork")
+    entry["chosen"] = {
+        "option": None,
+        "voice_id": "HAND",
+    }  # cast by hand; A keeps its voice
+    assert merge_redesign(entry, {"options": []})["retired"] == [
+        {"voice_id": "voice-gen0", "option": "A", "name_prefix": "fork"}
+    ]
+
+
 def test_a_damaged_retired_ledger_is_refused_before_anything_is_chosen():
     from an.audio.voice_design import VoiceDesignError, choose_in_entry
 

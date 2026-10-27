@@ -160,11 +160,12 @@ CHOSEN_AT_KEY = "chosen_at"
 #: choice (the option was not persisted when designed), so a later choice of
 #: another option retires it (:func:`choose_in_entry`, an#549).
 SAVED_BY_CHOICE_KEY = "saved_by_choice"
-#: Beside :data:`SAVED_BY_CHOICE_KEY`: the name prefix the choice saved the
-#: voice under, which its ``retired`` row carries (an#618). A host that names
-#: a choice's voice with its own prefix (``choose_in_entry(name_prefix=)``)
-#: never relabels a voice saved under another; an option without it was saved
-#: under the entry's ``name_prefix``.
+#: Beside :data:`SAVED_BY_CHOICE_KEY` on an option, and on a ``chosen``
+#: carried over a re-design: the name prefix its voice was saved under, which
+#: its ``retired`` row carries (an#618). A host that names a choice's voice
+#: with its own prefix (``choose_in_entry(name_prefix=)``) never relabels a
+#: voice saved under another; a record without it was saved under the entry's
+#: ``name_prefix``.
 SAVED_UNDER_KEY = "saved_under"
 #: A voice a render may speak although nobody chose it: a timing draft. Any
 #: truthy value; a string says why, and the render report repeats it.
@@ -1454,6 +1455,8 @@ def design_project_voices(
 #: the earlier design's, so the next choice that displaces it retires it
 #: (:func:`choose_in_entry`), as it would an option's voice a choice saved.
 RETIRE_ON_REPLACE_KEY = "retire_on_replace"
+#: What a carried ``chosen`` keeps while it names the same voice.
+_CARRIED_KEYS = (RETIRE_ON_REPLACE_KEY, SAVED_UNDER_KEY)
 
 
 def merge_redesign(
@@ -1822,7 +1825,7 @@ def _prefix_of(entry: Mapping) -> str:
 def _saved_under(record: Mapping, entry: Mapping) -> str | None:
     """The prefix the voice ``record`` (an option, or a carried ``chosen``) was
     saved under: its own :data:`SAVED_UNDER_KEY`, else ``entry``'s (an#618)."""
-    return record.get(SAVED_UNDER_KEY, entry.get("name_prefix"))
+    return record.get(SAVED_UNDER_KEY, _prefix_of(entry))
 
 
 def choose_project_voice(
@@ -1895,7 +1898,9 @@ def cast_project_voice(
             )
         entry["chosen"] = _chosen_record(None, doc)
         if previous.get(RETIRE_ON_REPLACE_KEY) and previous.get("voice_id") == chosen:
-            entry["chosen"][RETIRE_ON_REPLACE_KEY] = True
+            entry["chosen"].update(
+                {k: previous[k] for k in _CARRIED_KEYS if k in previous}
+            )
         options[ref] = entry
     return doc
 
