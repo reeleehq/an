@@ -505,3 +505,28 @@ def test_a_depth_on_a_plane_the_travel_lists_far_is_an_error(tmp_path):
         if e.kind == "environment"
     ]
     assert PLANE_FACTORS_OVERRIDE not in (env.overrides or {})
+
+
+# --- an#599: a plate turns with a frame that rolls ---------------------------------------
+
+
+def test_a_plate_rotates_as_the_camera_rolls_and_a_pan_adds_no_rotation():
+    """The vehicle carrying the camera rolls 20 degrees over the shot: the plate
+    in the world turns by the roll on screen (the other way), exactly at the
+    shot's end. Without a roll, no rotation key."""
+    import math
+
+    from an.ir.compose import tween
+
+    still = lower_world(_moving_scene(), extents=EXTENTS).scene.timeline[0]
+    assert not [a for _, a in _hill_keys(still) if a.property == "rotation"]
+    scene = _moving_scene(
+        actions=[tween("vehicle", "roll", to=20.0, duration=1.0, from_=0.0)]
+    )
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    turns = [(t, a) for t, a in _hill_keys(shot) if a.property == "rotation"]
+    assert turns, "the plate is keyed with a rotation"
+    last = turns[-1][1]
+    final = getattr(last, "to_value", None)
+    final = last.value if final is None else final
+    assert abs(abs(final) - math.radians(20.0)) <= 0.01

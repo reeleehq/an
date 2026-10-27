@@ -1749,6 +1749,7 @@ def _sight(
     width: float,
     height: float,
     times: Sequence[float],
+    ref_height: float | None = None,
 ) -> _Sighting:
     """Something in motion relative to the camera, ``view`` being ``t -> (right,
     down, depth)`` of its point: one passage per stretch of the shot it is in
@@ -1778,7 +1779,11 @@ def _sight(
             t0,
             t1,
             box=box,
-            ref_height=(box[3] - box[1]) if box is not None else 1.0,
+            ref_height=(
+                ref_height
+                if ref_height is not None
+                else ((box[3] - box[1]) if box is not None else 1.0)
+            ),
             tol=tol,
             min_step=min_step,
             width=width,
@@ -2445,6 +2450,9 @@ class _PlaneAnchor:
 
     at: Point3
     rest: float
+    #: The plate's right edge direction in its frame (the camera's right as it
+    #: was anchored): its screen angle is the plate's rotation (an#599).
+    right: Point3 = (1.0, 0.0, 0.0)
 
 
 def _with_plane_depths(
@@ -2536,6 +2544,49 @@ def _with_plane_depths(
     return entity.model_copy(update={"overrides": overrides}), actions
 
 
+def _with_rotation(
+    passage: _Pass,
+    ctx: _FrameCtx,
+    frame: str,
+    anchor: _PlaneAnchor,
+    *,
+    tol: float,
+    sight: Mapping[str, Any],
+) -> _Pass:
+    """``passage`` with the plate's ``rotation`` (radians) when its frame turns
+    relative to the camera over it (an#599): the screen angle of its right edge,
+    so a roll is exact and a yaw turns it as far as a flat sprite can (the
+    foreshortening is not drawn). Unchanged when it never turns past ``tol``
+    (radians: the tolerance at the frame's half width)."""
+    near, focal = sight["near"], sight["focal"]
+    reach = max(anchor.rest, near)
+    tip_at = _add(anchor.at, _mul(anchor.right, reach))
+    origin = ctx.view_fn(frame, lambda t: anchor.at)
+    tip = ctx.view_fn(frame, lambda t: tip_at)
+
+    def screen(seen: Point3) -> tuple[float, float]:
+        rx, ry, depth = seen
+        depth = max(depth, near)
+        return focal * rx / depth, focal * ry / depth
+
+    def angle(t: float) -> float:
+        (ax, ay), (bx, by) = screen(origin(t)), screen(tip(t))
+        return math.atan2(by - ay, bx - ax)
+
+    times = _grid(passage.t_in, passage.t_out, sight["min_step"])
+    if max(abs(angle(t)) for t in times) <= tol:
+        return passage
+    rotation = fit_channel(
+        angle, passage.t_in, passage.t_out, tolerance=tol, min_step=sight["min_step"]
+    )
+    return _Pass(
+        passage.t_in,
+        passage.t_out,
+        {**passage.channels, "rotation": rotation},
+        passage.first,
+    )
+
+
 def _behind(
     note: Callable,
     entity: str,
@@ -2589,11 +2640,20 @@ def _plane_keys(
         if at is None:
             _behind(note, entity, key[1], z, frame, then="it is hidden")
             return hide
-        anchor = anchors[key] = _PlaneAnchor(at, eye.view(at)[2])
+        anchor = anchors[key] = _PlaneAnchor(at, eye.view(at)[2], eye.right)
     view = ctx.view_fn(frame, lambda t: anchor.at)
     focal = sight["focal"]
+    span = max(sight["width"], sight["height"])
+    # The scale is judged at the plate's visible extent: no more than the frame
+    # (a canvas-sized fill would otherwise demand sub-pixel scale keys, an#599).
+    ref_height = min(box[3] - box[1], sight["height"]) if box is not None else span
     passes = [
-        p for p, _ in _sight(view, box=box, m=anchor.rest / focal, **sight).passes
+        _with_rotation(
+            p, ctx, frame, anchor, tol=sight["tol"] / (span / 2), sight=sight
+        )
+        for p, _ in _sight(
+            view, box=box, m=anchor.rest / focal, ref_height=ref_height, **sight
+        ).passes
     ]
     keys = _pass_actions(target, passes, duration=ctx.duration) if passes else hide
     there = [a.model_dump(mode="json") for a in existing]

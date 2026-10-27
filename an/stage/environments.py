@@ -424,6 +424,31 @@ def environment_from_document(raw: Any, entity: Any = None) -> EnvironmentDescri
     return env
 
 
+def plane_art_size(root: Any, ref: str, plane: Plane) -> tuple[float, float] | None:
+    """The measured extent of an image plane's art under the environments
+    store's ``root`` (its folder ``ref``), or ``None``: not an image, no root,
+    unreadable art, or a ``src`` outside the asset's folder, which is never
+    read (an#483).
+
+    >>> plane_art_size(None, "e", Plane(name="sky")) is None
+    True
+    """
+    if plane.art.kind != "image" or not plane.art.src or root is None:
+        return None
+    from pathlib import Path
+
+    from an.stage.raster import art_size
+    from an.stores._common import inside_folder
+
+    path = inside_folder(Path(root) / str(ref), plane.art.src)
+    if path is None:
+        return None
+    try:
+        return art_size(path)
+    except (OSError, ValueError):
+        return None
+
+
 def plane_rect(
     plane: Plane,
     art_size: tuple[float, float] | None,

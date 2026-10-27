@@ -1145,22 +1145,11 @@ def _check_framing(
 
 
 def _plane_art_size(root, ref, plane) -> tuple[float, float] | None:
-    """The measured extent of an image plane's art, or ``None`` (also for a
-    ``src`` outside the asset's folder, which is never read: an#483)."""
-    if plane.art.kind != "image" or not plane.art.src or root is None:
-        return None
-    from pathlib import Path
+    """:func:`an.stage.environments.plane_art_size` (one measurement for the
+    framing check and the world's plates, an#599)."""
+    from an.stage.environments import plane_art_size
 
-    from an.stage.raster import art_size
-    from an.stores._common import inside_folder
-
-    path = inside_folder(Path(root) / str(ref), plane.art.src)
-    if path is None:
-        return None
-    try:
-        return art_size(path)
-    except (OSError, ValueError):
-        return None
+    return plane_art_size(root, ref, plane)
 
 
 def _fmt_rect(r) -> str:

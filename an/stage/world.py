@@ -163,12 +163,20 @@ def plane_geometry(
     >>> plane_geometry(world, {"environments": {"e": doc}})
     {'set': {'hill': ((0.0, 80.0), (-160.0, -40.0, 160.0, 40.0))}}
     """
-    from an.stage.environments import environment_from_document, plane_rect
+    from an.stage.environments import (
+        environment_from_document,
+        plane_art_size,
+        plane_rect,
+    )
 
-    def geometry(plane) -> tuple[tuple[float, float], Box | None]:
+    store = (mall or {}).get("environments") or {}
+    root = getattr(store, "_root", None)
+
+    def geometry(plane, ref: str) -> tuple[tuple[float, float], Box | None]:
         ox, oy = (float(v) for v in plane.offset)
         rect = plane_rect(
-            plane.model_copy(update={"parallax": None, "depth": 1.0}), None
+            plane.model_copy(update={"parallax": None, "depth": 1.0}),
+            plane_art_size(root, ref, plane),  # an image's own extent (an#599)
         )
         box = (
             None
@@ -178,7 +186,6 @@ def plane_geometry(
         return (ox, oy), box
 
     out: dict[str, dict[str, tuple[tuple[float, float], Box | None]]] = {}
-    store = (mall or {}).get("environments") or {}
     for member in world.members if world is not None else ():
         if not member.depths:
             continue
@@ -186,7 +193,7 @@ def plane_geometry(
             env = environment_from_document(store[member.ref])
         except Exception:  # noqa: BLE001 — a missing or malformed environment is another check's
             continue
-        out[member.id] = {p.name: geometry(p) for p in env.planes}
+        out[member.id] = {p.name: geometry(p, member.ref) for p in env.planes}
     return out
 
 
