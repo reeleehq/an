@@ -1439,6 +1439,13 @@ def _along(path: Sequence[tuple[float, float]], f: float) -> tuple[float, float]
     return path[-1]
 
 
+#: How much more the stage's bodies weigh than the kinematics' own (a body's
+#: mass is its area: a stage forearm is thousands of px², a test rope's link 20
+#: units²), so the lead that walks a lost grip back pulls as firmly here: at the
+#: kinematics' strength a stage arm hovered short of its pin (an#668).
+REGRIP_MASS_SCALE: float = 100.0
+
+
 def run_solve(
     doc: Any,
     puppet: Puppet,
@@ -1454,7 +1461,12 @@ def run_solve(
     from dataclasses import replace
 
     from an.kinematics import Body, Point, Weld, WORLD, inputs_digest, solve
-    from an.kinematics.solver import DFLT_REGRIP_SPEED, Regrip, solve_regripping
+    from an.kinematics.solver import (
+        DFLT_REGRIP_SPEED,
+        DFLT_REGRIP_STRENGTH,
+        Regrip,
+        solve_regripping,
+    )
     from an.stage.timeline import (
         _pose_for,
         evaluate_timeline,
@@ -1667,6 +1679,7 @@ def run_solve(
                 cur, js, forces=more, **options
             ),
             step=DFLT_REGRIP_SPEED * dt if dt is not None else 0.0,
+            strength=DFLT_REGRIP_STRENGTH * REGRIP_MASS_SCALE,
         )
         frames_inputs.append([joints, targets])
         current = list(r.bodies)

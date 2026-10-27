@@ -124,9 +124,11 @@ DFLT_REGRIP_SPEED: float = 600.0
 #: A led grip is taken (its pin enforced again) once its gap is this small
 #: (scene units): the rejoin the stage's own check calls a snap is over 2.
 DFLT_REGRIP_SNAP: float = 1.0
-#: The strength of that lead (a :class:`Force` pull toward the walking point):
-#: a compliant pull, which closes no loop a conflict could settle by giving up
-#: a link.
+#: The strength of that lead (a :class:`Force` pull toward the walking point,
+#: which closes no loop a conflict could settle by giving up a link), for
+#: bodies of the kinematics' own scale (a link of 10 by 2 units); a caller whose
+#: bodies weigh more scales it (the stage: :data:`an.stage.solve.REGRIP_MASS_SCALE`).
+#: Too stiff, it drags a chain past a range it cannot keep (an#568's elbow).
 DFLT_REGRIP_STRENGTH: float = 1e6
 #: The most trial solves :func:`solve` spends looking for the joint to give
 #: up in a conflict (each is a full solve of the frame).
@@ -1738,10 +1740,12 @@ def solve_regripping(
     if trying and (refused or tore):
         # The grip refused, or taking it gives a link up: led instead, a step
         # at a time from out of reach, straight at it from within a snap, and
-        # tried again next frame.
+        # tried again next frame. (Re-solved only when something is led now.)
+        n = len(leads)
         leads.update(lead(trying - within, {}, step=step)[0])
         leads.update(lead(trying & within, {}, step=0.0, snap=-1.0)[0])
-        r = frame(leads)
+        if len(leads) > n:
+            r = frame(leads)
     torn = (
         set(r.dropped)
         - state.regained
@@ -1752,8 +1756,10 @@ def solve_regripping(
     if torn and state.regained:
         # A link is given up while a grip the lead took back holds: the grip
         # goes first, as it would in any conflict (an#641), and is led back.
+        n = len(leads)
         leads.update(lead(state.regained, {}, step=0.0, snap=-1.0)[0])
-        r = frame(leads)
+        if len(leads) > n:
+            r = frame(leads)
     # A grip taken back and given up again in a conflict (a long rope swinging
     # under its own weight) is led back like one lost out of reach.
     relost = state.regained & set(r.dropped)
@@ -1763,6 +1769,7 @@ def solve_regripping(
     state.walking = {}
     if leads:  # led, not held: given up, at the gap the grip still has
         state.walking = {j: _gap(r.bodies, joints[j]) for j in leads}
+
         r = replace(
             r,
             dropped=tuple(sorted({*r.dropped, *leads})),
