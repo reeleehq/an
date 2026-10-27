@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=a3cfc8c1"></script>
+    <script src="../_static/documentation_options.js?v=07b74cd8"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.284" />
+  <meta name="docsearch:version" content="0.1.285" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -655,6 +655,18 @@ sites work against filesystem, SQLite, S3, etc.</p>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.asset_ref_problem" title="an.stores.asset_ref_problem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asset_ref_problem</span></code></a>(rel)</p></td>
+<td><p>Why <code class="docutils literal notranslate"><span class="pre">rel</span></code>, a path an asset document names, is NOT a clean relative path inside the asset's folder, or <code class="docutils literal notranslate"><span class="pre">None</span></code> when it is one (an#483).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stores.asset_ref_problems" title="an.stores.asset_ref_problems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asset_ref_problems</span></code></a>(doc[, folder, file_problems])</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(label,</span> <span class="pre">message)</span></code> for every reference in <code class="docutils literal notranslate"><span class="pre">doc</span></code> (<a class="reference internal" href="#an.stores.asset_references" title="an.stores.asset_references"><code class="xref py py-func docutils literal notranslate"><span class="pre">asset_references()</span></code></a>) that breaks the asset-reference rule (an#483, an#552); <code class="docutils literal notranslate"><span class="pre">[]</span></code> when none does.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.asset_references" title="an.stores.asset_references"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asset_references</span></code></a>(doc)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(label,</span> <span class="pre">path)</span></code> for every file path an asset document names (an#552): an environment's image planes (<code class="docutils literal notranslate"><span class="pre">planes/&lt;name&gt;/art/src</span></code>), a rig's attachments (<code class="docutils literal notranslate"><span class="pre">skins/&lt;skin&gt;/slots/&lt;slot&gt;/&lt;attachment&gt;/path</span></code>; labelled <code class="docutils literal notranslate"><span class="pre">part</span> <span class="pre">&lt;skin&gt;:&lt;slot&gt;/&lt;attachment&gt;</span></code> outside the default skin), a character's <code class="docutils literal notranslate"><span class="pre">source_svg</span></code> and the files its <code class="docutils literal notranslate"><span class="pre">colour_roles</span></code> keys name.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stores.inside_folder" title="an.stores.inside_folder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">inside_folder</span></code></a>(folder, rel)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">folder</span> <span class="pre">/</span> <span class="pre">rel</span></code> when <code class="docutils literal notranslate"><span class="pre">rel</span></code> is a relative path that stays inside <code class="docutils literal notranslate"><span class="pre">folder</span></code> once symlinks are resolved, else <code class="docutils literal notranslate"><span class="pre">None</span></code> (an#483).</p></td>
+</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.build_project_mall" title="an.stores.build_project_mall"><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_project_mall</span></code></a>(project_dir, *[, ensure, ...])</p></td>
 <td><p>Build the standard project mall over <code class="docutils literal notranslate"><span class="pre">project_dir</span></code>.</p></td>
 </tr>
@@ -1043,6 +1055,108 @@ take was kept, its sha256, every take’s score and the scorer (an#265).</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.stores.asset_ref_problem">
+<span class="sig-prename descclassname"><span class="pre">an.stores.</span></span><span class="sig-name descname"><span class="pre">asset_ref_problem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rel</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores/_common.html#asset_ref_problem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.asset_ref_problem" title="Link to this definition">#</a></dt>
+<dd><p>Why <code class="docutils literal notranslate"><span class="pre">rel</span></code>, a path an asset document names, is NOT a clean relative
+path inside the asset’s folder, or <code class="docutils literal notranslate"><span class="pre">None</span></code> when it is one (an#483).</p>
+<p>An asset reference resolves inside its own folder, never anywhere else:
+an absolute path, a <code class="docutils literal notranslate"><span class="pre">..</span></code> that leaves the folder or a URL is refused by
+name, before any read — a project may be someone else’s input (a
+production pack checked on a server), and a reference that reaches outside
+it is a file-existence and XML-parse oracle on the host. The spelling is
+held to the library’s rule too (no <code class="docutils literal notranslate"><span class="pre">.</span></code> or empty segment, no backslash),
+so a reference that validates here publishes there unchanged.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">asset_ref_problem</span><span class="p">(</span><span class="s2">"parts/head.svg"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">asset_ref_problem</span><span class="p">(</span><span class="s2">"/etc/hostname"</span><span class="p">)</span>
+<span class="go">'is an absolute path'</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">asset_ref_problem</span><span class="p">(</span><span class="s2">"../../other/plate.png"</span><span class="p">)</span>
+<span class="go">'leaves the asset folder (`..`)'</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">asset_ref_problem</span><span class="p">(</span><span class="s2">"file:///etc/hostname"</span><span class="p">),</span> <span class="n">asset_ref_problem</span><span class="p">(</span><span class="s2">"C:/art/x.svg"</span><span class="p">)</span>
+<span class="go">('is a URL or a drive path (`:`)', 'is a URL or a drive path (`:`)')</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">asset_ref_problem</span><span class="p">(</span><span class="s2">"./parts/head.svg"</span><span class="p">),</span> <span class="n">asset_ref_problem</span><span class="p">(</span><span class="s2">"parts</span><span class="se">\\</span><span class="s2">head.svg"</span><span class="p">),</span> <span class="n">asset_ref_problem</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span>
+<span class="go">('has an empty or `.` segment', 'uses a backslash (write the path with `/`)', 'is empty')</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stores.asset_ref_problems">
+<span class="sig-prename descclassname"><span class="pre">an.stores.</span></span><span class="sig-name descname"><span class="pre">asset_ref_problems</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">doc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_problems</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores/_common.html#asset_ref_problems"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.asset_ref_problems" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">(label,</span> <span class="pre">message)</span></code> for every reference in <code class="docutils literal notranslate"><span class="pre">doc</span></code>
+(<a class="reference internal" href="#an.stores.asset_references" title="an.stores.asset_references"><code class="xref py py-func docutils literal notranslate"><span class="pre">asset_references()</span></code></a>) that breaks the asset-reference rule (an#483,
+an#552); <code class="docutils literal notranslate"><span class="pre">[]</span></code> when none does. The one rule the core and a genre share.</p>
+<p>A reference is judged by NAME first (<a class="reference internal" href="#an.stores.asset_ref_problem" title="an.stores.asset_ref_problem"><code class="xref py py-func docutils literal notranslate"><span class="pre">asset_ref_problem()</span></code></a>), and is
+never read when its name is bad; with a <code class="docutils literal notranslate"><span class="pre">folder</span></code>, also by where it
+resolves (<a class="reference internal" href="#an.stores.inside_folder" title="an.stores.inside_folder"><code class="xref py py-func docutils literal notranslate"><span class="pre">inside_folder()</span></code></a>: a link out of the folder is the same
+error). <code class="docutils literal notranslate"><span class="pre">file_problems</span></code>, when given, is asked about each file that
+passed (the core passes its SVG self-containment check): it is called
+for every path that passed the name (and folder) check, whether or not
+the file exists, so it must tolerate an absent file. Each message it
+returns is appended to <code class="docutils literal notranslate"><span class="pre">&quot;&lt;label&gt;</span> <span class="pre">names</span> <span class="pre">&lt;path&gt;,</span> <span class="pre">which&quot;</span></code>, so it must
+begin with a verb (<code class="docutils literal notranslate"><span class="pre">&quot;is</span> <span class="pre">SVG</span> <span class="pre">that</span> <span class="pre">...&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;is</span> <span class="pre">not</span> <span class="pre">in</span> <span class="pre">the</span> <span class="pre">folder&quot;</span></code>).
+<code class="docutils literal notranslate"><span class="pre">message</span></code> is a whole sentence, label included, so a caller can report
+it as is.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">asset_ref_problems</span><span class="p">({</span><span class="s2">"source_svg"</span><span class="p">:</span> <span class="s2">"../x.svg"</span><span class="p">,</span> <span class="s2">"planes"</span><span class="p">:</span> <span class="p">[</span>
+<span class="gp">... </span>    <span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"sky"</span><span class="p">,</span> <span class="s2">"art"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"kind"</span><span class="p">:</span> <span class="s2">"image"</span><span class="p">,</span> <span class="s2">"src"</span><span class="p">:</span> <span class="s2">"sky.png"</span><span class="p">}}]})</span>
+<span class="go">[('source_svg', "source_svg names '../x.svg', which leaves the asset folder (`..`):</span>
+<span class="go">  an asset reference must be a relative path inside the asset's own folder</span>
+<span class="go">  (nothing outside it is read)")]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">asset_ref_problems</span><span class="p">({</span><span class="s2">"source_svg"</span><span class="p">:</span> <span class="s2">"source.svg"</span><span class="p">},</span> <span class="s2">"."</span><span class="p">)</span>
+<span class="go">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">asset_ref_problems</span><span class="p">({</span><span class="s2">"source_svg"</span><span class="p">:</span> <span class="s2">"ok.svg"</span><span class="p">},</span> <span class="s2">"."</span><span class="p">,</span>
+<span class="gp">... </span>                   <span class="n">file_problems</span><span class="o">=</span><span class="k">lambda</span> <span class="n">f</span><span class="p">:</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"is SVG that holds a &lt;script&gt;"</span><span class="p">])</span>
+<span class="go">[('source_svg', "source_svg names 'ok.svg', which is SVG that holds a &lt;script&gt;")]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stores.asset_references">
+<span class="sig-prename descclassname"><span class="pre">an.stores.</span></span><span class="sig-name descname"><span class="pre">asset_references</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">doc</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores/_common.html#asset_references"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.asset_references" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">(label,</span> <span class="pre">path)</span></code> for every file path an asset document names (an#552):
+an environment’s image planes (<code class="docutils literal notranslate"><span class="pre">planes/&lt;name&gt;/art/src</span></code>), a rig’s
+attachments (<code class="docutils literal notranslate"><span class="pre">skins/&lt;skin&gt;/slots/&lt;slot&gt;/&lt;attachment&gt;/path</span></code>; labelled
+<code class="docutils literal notranslate"><span class="pre">part</span> <span class="pre">&lt;skin&gt;:&lt;slot&gt;/&lt;attachment&gt;</span></code> outside the default skin), a
+character’s <code class="docutils literal notranslate"><span class="pre">source_svg</span></code> and the files its <code class="docutils literal notranslate"><span class="pre">colour_roles</span></code> keys name.</p>
+<p>The one list of what an asset document references; the core’s
+<code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code> and a genre’s own validator both walk it, so they cannot
+disagree about which fields hold a path.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">asset_references</span><span class="p">({</span><span class="s2">"planes"</span><span class="p">:</span> <span class="p">[{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"sky"</span><span class="p">,</span> <span class="s2">"art"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"kind"</span><span class="p">:</span> <span class="s2">"image"</span><span class="p">,</span> <span class="s2">"src"</span><span class="p">:</span> <span class="s2">"sky.png"</span><span class="p">}},</span>
+<span class="gp">... </span>                             <span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"fill"</span><span class="p">,</span> <span class="s2">"art"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"kind"</span><span class="p">:</span> <span class="s2">"fill"</span><span class="p">}}]})</span>
+<span class="go">[('plane sky', 'sky.png')]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">asset_references</span><span class="p">({</span><span class="s2">"skins"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"default"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"slots"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"body"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"body"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"path"</span><span class="p">:</span> <span class="s2">"parts/body.svg"</span><span class="p">}}}}},</span>
+<span class="gp">... </span>                  <span class="s2">"source_svg"</span><span class="p">:</span> <span class="s2">"source.svg"</span><span class="p">,</span> <span class="s2">"colour_roles"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"parts/body.svg"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"#fff"</span><span class="p">:</span> <span class="s2">"skin"</span><span class="p">}}})</span>
+<span class="go">[('part body/body', 'parts/body.svg'), ('source_svg', 'source.svg'), ('colour_roles parts/body.svg', 'parts/body.svg')]</span>
+</pre></div>
+</div>
+<p>A malformed document names nothing where it is malformed (its schema
+check reports it), rather than raising:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">asset_references</span><span class="p">({</span><span class="s2">"planes"</span><span class="p">:</span> <span class="p">[{</span><span class="s2">"art"</span><span class="p">:</span> <span class="s2">"sky.png"</span><span class="p">}],</span> <span class="s2">"skins"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"default"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"slots"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"body"</span><span class="p">]}},</span>
+<span class="gp">... </span>                  <span class="s2">"source_svg"</span><span class="p">:</span> <span class="mi">3</span><span class="p">})</span>
+<span class="go">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">asset_references</span><span class="p">({</span><span class="s2">"planes"</span><span class="p">:</span> <span class="s2">"sky.png"</span><span class="p">,</span> <span class="s2">"skins"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"default"</span><span class="p">]})</span>
+<span class="go">[]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.stores.build_project_mall">
 <span class="sig-prename descclassname"><span class="pre">an.stores.</span></span><span class="sig-name descname"><span class="pre">build_project_mall</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scene_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'scene.md'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">overrides</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores.html#build_project_mall"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.build_project_mall" title="Link to this definition">#</a></dt>
 <dd><p>Build the standard project mall over <code class="docutils literal notranslate"><span class="pre">project_dir</span></code>.</p>
@@ -1053,6 +1167,28 @@ in-memory <code class="code docutils literal notranslate"><span class="pre">dict
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.MutableMapping" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MutableMapping</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stores.inside_folder">
+<span class="sig-prename descclassname"><span class="pre">an.stores.</span></span><span class="sig-name descname"><span class="pre">inside_folder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rel</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores/_common.html#inside_folder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.inside_folder" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">folder</span> <span class="pre">/</span> <span class="pre">rel</span></code> when <code class="docutils literal notranslate"><span class="pre">rel</span></code> is a relative path that stays inside
+<code class="docutils literal notranslate"><span class="pre">folder</span></code> once symlinks are resolved, else <code class="docutils literal notranslate"><span class="pre">None</span></code> (an#483). The path is
+returned as joined, not resolved, so a caller’s own stat and digest see
+the same spelling they always did.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span><span class="o">,</span><span class="w"> </span><span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">d</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">inside_folder</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="s2">"parts/head.svg"</span><span class="p">)</span> <span class="o">==</span> <span class="n">Path</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="o">/</span> <span class="s2">"parts/head.svg"</span>
+<span class="gp">... </span>    <span class="n">inside_folder</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="s2">"../head.svg"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span> <span class="n">inside_folder</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="s2">"/etc/hostname"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="go">True</span>
+<span class="go">(True, True)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1185,7 +1321,11 @@ in-memory <code class="code docutils literal notranslate"><span class="pre">dict
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.TakesArtifactStore"><code class="docutils literal notranslate"><span class="pre">TakesArtifactStore</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.VisemeArtifactStore"><code class="docutils literal notranslate"><span class="pre">VisemeArtifactStore</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.VoicesStore"><code class="docutils literal notranslate"><span class="pre">VoicesStore</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.asset_ref_problem"><code class="docutils literal notranslate"><span class="pre">asset_ref_problem()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.asset_ref_problems"><code class="docutils literal notranslate"><span class="pre">asset_ref_problems()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.asset_references"><code class="docutils literal notranslate"><span class="pre">asset_references()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.build_project_mall"><code class="docutils literal notranslate"><span class="pre">build_project_mall()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.inside_folder"><code class="docutils literal notranslate"><span class="pre">inside_folder()</span></code></a></li>
 </ul>
   </nav></div>
 

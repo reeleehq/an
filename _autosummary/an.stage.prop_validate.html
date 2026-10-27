@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=a3cfc8c1"></script>
+    <script src="../_static/documentation_options.js?v=07b74cd8"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.284" />
+  <meta name="docsearch:version" content="0.1.285" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -707,8 +707,8 @@ likely slip, not a malformed rig.</p>
 <span class="sig-prename descclassname"><span class="pre">an.stage.prop_validate.</span></span><span class="sig-name descname"><span class="pre">validate_prop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prop_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/prop_validate.html#validate_prop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.prop_validate.validate_prop" title="Link to this definition">#</a></dt>
 <dd><p>Check a prop folder (<code class="docutils literal notranslate"><span class="pre">prop.json</span></code> + <code class="docutils literal notranslate"><span class="pre">parts/</span></code>) against the rig contract, offline.</p>
 <p>Blocking: no or an unreadable descriptor, a structural rig problem (an
-unknown bone, a bone cycle), an attachment whose art is not in the folder,
-a prop that draws nothing. Advisory: a chain the stage cannot draw in its
+unknown bone, a bone cycle), an attachment of any skin whose art is not in the
+folder (or is an SVG that is not self-contained), a prop that draws nothing. Advisory: a chain the stage cannot draw in its
 declared order (the compiler refuses it), the origin, the rest pose, an
 unpopulated <code class="docutils literal notranslate"><span class="pre">AssetSource</span></code>.</p>
 <dl class="field-list simple">

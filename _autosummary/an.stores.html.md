@@ -28,8 +28,12 @@ True
 
 ### Functions
 
-| [`build_project_mall`](#an.stores.build_project_mall)(project_dir, \*[, ensure, ...])   | Build the standard project mall over `project_dir`.   |
-|-------------------------------------------------------------------------------------------------------|-------------------------------------------------------|
+| [`asset_ref_problem`](#an.stores.asset_ref_problem)(rel)                             | Why `rel`, a path an asset document names, is NOT a clean relative path inside the asset's folder, or `None` when it is one (an#483).                                                                                                                                                                                                           |
+|-----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`asset_ref_problems`](#an.stores.asset_ref_problems)(doc[, folder, file_problems])   | `(label, message)` for every reference in `doc` ([`asset_references()`](#an.stores.asset_references)) that breaks the asset-reference rule (an#483, an#552); `[]` when none does.                                                                                                                                               |
+| [`asset_references`](#an.stores.asset_references)(doc)                              | `(label, path)` for every file path an asset document names (an#552): an environment's image planes (`planes/<name>/art/src`), a rig's attachments (`skins/<skin>/slots/<slot>/<attachment>/path`; labelled `part <skin>:<slot>/<attachment>` outside the default skin), a character's `source_svg` and the files its `colour_roles` keys name. |
+| [`inside_folder`](#an.stores.inside_folder)(folder, rel)                         | `folder / rel` when `rel` is a relative path that stays inside `folder` once symlinks are resolved, else `None` (an#483).                                                                                                                                                                                                                       |
+| [`build_project_mall`](#an.stores.build_project_mall)(project_dir, \*[, ensure, ...]) | Build the standard project mall over `project_dir`.                                                                                                                                                                                                                                                                                             |
 
 ### Classes
 
@@ -302,6 +306,104 @@ JSON-only voice descriptors.
 True
 ```
 
+### an.stores.asset_ref_problem(rel)
+
+Why `rel`, a path an asset document names, is NOT a clean relative
+path inside the asset’s folder, or `None` when it is one (an#483).
+
+An asset reference resolves inside its own folder, never anywhere else:
+an absolute path, a `..` that leaves the folder or a URL is refused by
+name, before any read — a project may be someone else’s input (a
+production pack checked on a server), and a reference that reaches outside
+it is a file-existence and XML-parse oracle on the host. The spelling is
+held to the library’s rule too (no `.` or empty segment, no backslash),
+so a reference that validates here publishes there unchanged.
+
+```pycon
+>>> asset_ref_problem("parts/head.svg") is None
+True
+>>> asset_ref_problem("/etc/hostname")
+'is an absolute path'
+>>> asset_ref_problem("../../other/plate.png")
+'leaves the asset folder (`..`)'
+>>> asset_ref_problem("file:///etc/hostname"), asset_ref_problem("C:/art/x.svg")
+('is a URL or a drive path (`:`)', 'is a URL or a drive path (`:`)')
+>>> asset_ref_problem("./parts/head.svg"), asset_ref_problem("parts\\head.svg"), asset_ref_problem("")
+('has an empty or `.` segment', 'uses a backslash (write the path with `/`)', 'is empty')
+```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.stores.asset_ref_problems(doc, folder=None, , file_problems=None)
+
+`(label, message)` for every reference in `doc`
+([`asset_references()`](#an.stores.asset_references)) that breaks the asset-reference rule (an#483,
+an#552); `[]` when none does. The one rule the core and a genre share.
+
+A reference is judged by NAME first ([`asset_ref_problem()`](#an.stores.asset_ref_problem)), and is
+never read when its name is bad; with a `folder`, also by where it
+resolves ([`inside_folder()`](#an.stores.inside_folder): a link out of the folder is the same
+error). `file_problems`, when given, is asked about each file that
+passed (the core passes its SVG self-containment check): it is called
+for every path that passed the name (and folder) check, whether or not
+the file exists, so it must tolerate an absent file. Each message it
+returns is appended to `"<label> names <path>, which"`, so it must
+begin with a verb (`"is SVG that ..."`, `"is not in the folder"`).
+`message` is a whole sentence, label included, so a caller can report
+it as is.
+
+```pycon
+>>> asset_ref_problems({"source_svg": "../x.svg", "planes": [
+...     {"name": "sky", "art": {"kind": "image", "src": "sky.png"}}]})
+[('source_svg', "source_svg names '../x.svg', which leaves the asset folder (`..`):
+  an asset reference must be a relative path inside the asset's own folder
+  (nothing outside it is read)")]
+>>> asset_ref_problems({"source_svg": "source.svg"}, ".")
+[]
+>>> asset_ref_problems({"source_svg": "ok.svg"}, ".",
+...                    file_problems=lambda f: [f"is SVG that holds a <script>"])
+[('source_svg', "source_svg names 'ok.svg', which is SVG that holds a <script>")]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
+### an.stores.asset_references(doc)
+
+`(label, path)` for every file path an asset document names (an#552):
+an environment’s image planes (`planes/<name>/art/src`), a rig’s
+attachments (`skins/<skin>/slots/<slot>/<attachment>/path`; labelled
+`part <skin>:<slot>/<attachment>` outside the default skin), a
+character’s `source_svg` and the files its `colour_roles` keys name.
+
+The one list of what an asset document references; the core’s
+`an validate` and a genre’s own validator both walk it, so they cannot
+disagree about which fields hold a path.
+
+```pycon
+>>> asset_references({"planes": [{"name": "sky", "art": {"kind": "image", "src": "sky.png"}},
+...                              {"name": "fill", "art": {"kind": "fill"}}]})
+[('plane sky', 'sky.png')]
+>>> asset_references({"skins": {"default": {"slots": {"body": {"body": {"path": "parts/body.svg"}}}}},
+...                   "source_svg": "source.svg", "colour_roles": {"parts/body.svg": {"#fff": "skin"}}})
+[('part body/body', 'parts/body.svg'), ('source_svg', 'source.svg'), ('colour_roles parts/body.svg', 'parts/body.svg')]
+```
+
+A malformed document names nothing where it is malformed (its schema
+check reports it), rather than raising:
+
+```pycon
+>>> asset_references({"planes": [{"art": "sky.png"}], "skins": {"default": {"slots": ["body"]}},
+...                   "source_svg": 3})
+[]
+>>> asset_references({"planes": "sky.png", "skins": ["default"]})
+[]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
 ### an.stores.build_project_mall(project_dir, , ensure=False, scene_file='scene.md', \*\*overrides)
 
 Build the standard project mall over `project_dir`.
@@ -313,6 +415,25 @@ in-memory `dict` for tests).
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`MutableMapping`](https://docs.python.org/3/library/typing.html#typing.MutableMapping)]
+
+### an.stores.inside_folder(folder, rel)
+
+`folder / rel` when `rel` is a relative path that stays inside
+`folder` once symlinks are resolved, else `None` (an#483). The path is
+returned as joined, not resolved, so a caller’s own stat and digest see
+the same spelling they always did.
+
+```pycon
+>>> import tempfile, os
+>>> with tempfile.TemporaryDirectory() as d:
+...     inside_folder(d, "parts/head.svg") == Path(d) / "parts/head.svg"
+...     inside_folder(d, "../head.svg") is None, inside_folder(d, "/etc/hostname") is None
+True
+(True, True)
+```
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### Modules
 

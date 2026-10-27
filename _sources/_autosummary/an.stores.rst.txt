@@ -8,6 +8,10 @@ an.stores
 
    .. autosummary::
    
+      asset_ref_problem
+      asset_ref_problems
+      asset_references
+      inside_folder
       build_project_mall
    
    .. rubric:: Classes

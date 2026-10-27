@@ -60,8 +60,8 @@ True
 Check a prop folder (`prop.json` + `parts/`) against the rig contract, offline.
 
 Blocking: no or an unreadable descriptor, a structural rig problem (an
-unknown bone, a bone cycle), an attachment whose art is not in the folder,
-a prop that draws nothing. Advisory: a chain the stage cannot draw in its
+unknown bone, a bone cycle), an attachment of any skin whose art is not in the
+folder (or is an SVG that is not self-contained), a prop that draws nothing. Advisory: a chain the stage cannot draw in its
 declared order (the compiler refuses it), the origin, the rest pose, an
 unpopulated `AssetSource`.
 
