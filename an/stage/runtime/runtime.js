@@ -846,7 +846,7 @@
     function drawPath(g) {
         const st = g._anPath;
         const spec = st.spec;
-        const points = st.points;
+        const points = st.points || spec.points;
         const geo = pathGeometry(
             points, st.trim_start, st.trim_end,
             spec.head_length || 0, spec.head_width || 0,

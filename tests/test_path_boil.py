@@ -13,6 +13,8 @@ import json
 
 import pytest
 
+from tests._node import node_json, requires_node
+
 from an.ir.schema import AssetRef, Shot
 from an.stage.compile import BOIL_SET, boil_keys, compile_shot
 from an.stage.paths import PathDescriptor, drawn_polyline
@@ -93,3 +95,46 @@ def test_a_boil_compiles_to_the_same_bytes_every_time():
 def test_a_boil_that_would_draw_nothing_or_too_much_is_refused(fields, refusal):
     with pytest.raises(ValueError, match=refusal):
         PathDescriptor.model_validate({**ROUTE, **fields})
+
+
+@requires_node
+def test_the_runtime_swaps_the_drawing_and_refuses_a_key_it_does_not_have():
+    """`makePath` registers `boil` as a draw set: key `k` redraws drawing `k`
+    through the same `drawPath` (trim and all), `"0"` is `points`, its rest;
+    an unknown key throws naming the keys it has."""
+    from tests.test_path import (
+        RUNTIME_JS,
+        _FAKE_GRAPHICS,
+        _apply_property_source,
+        _extract_js_block,
+    )
+
+    compiled = _compiled({**ROUTE, "boil_hz": 12, "boil_variants": 3})
+    spec = _path(compiled)
+    src = RUNTIME_JS.read_text(encoding="utf-8")
+    script = "\n".join(
+        [
+            _FAKE_GRAPHICS,
+            _apply_property_source(),
+            _extract_js_block(src, "function makePath"),
+            _extract_js_block(src, "function unknownSwapKey"),
+            _extract_js_block(src, "function applySwap"),
+            "const PIXI = {Graphics: FakeGraphics};",
+            f"const g = makePath({{path: {json.dumps(spec)}}});",
+            # the stroke's first lineTo is the drawing's second point: the
+            # ends stay put, the points between them are what a boil moves
+            "const firstMove = () => g.calls.find(c => c[0] === 'lineTo').slice(1);",
+            "const out = {rest: g._anDrawSets.boil.rest, keys: g._anDrawSets.boil.keys};",
+            "out.drawn = [firstMove()];",
+            "for (const k of ['1', '2', '0']) { g.calls = []; applySwap(g, {name: 'route'}, 'boil', k);"
+            " out.drawn.push(firstMove()); }",
+            "try { applySwap(g, {name: 'route'}, 'boil', '7'); } catch (e) { out.error = e.message; }",
+            "console.log(JSON.stringify(out));",
+        ]
+    )
+    out = node_json(script)
+    assert out["rest"] == "0" and out["keys"] == ["0", "1", "2"]
+    drawings = [spec["points"], *spec["variants"]]
+    seconds = [list(d[1]) for d in (drawings[0], drawings[1], drawings[2], drawings[0])]
+    assert out["drawn"] == seconds and seconds[0] != seconds[1] != seconds[2]
+    assert 'unknown key "7"' in out["error"] and '["0","1","2"]' in out["error"]
