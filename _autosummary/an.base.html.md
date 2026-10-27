@@ -24,6 +24,7 @@ fraction of a second so the CLI is snappy.
 | [`TRIM_PROPERTIES`](#an.base.TRIM_PROPERTIES)                    | The path-only properties inside `TRANSFORM_PROPERTIES` (an#160; the name predates `dash_offset`, an#161): trim and the dash phase.                                                                                                                                                                                               |
 | [`PLANE_FACTORS_OVERRIDE`](#an.base.PLANE_FACTORS_OVERRIDE)             | The key the world's lowering records the parallax factors derived from an environment member's `depths` under, in the entity's `overrides` (`{plane name: factor}`, an#503): the compiler reads them where it reads a plane's own `depth`, so a plane at a world depth compiles exactly as one with that factor written by hand. |
 | [`STREAM_OVERRIDE`](#an.base.STREAM_OVERRIDE)                    | the id of the stream it draws (`an.ir.world`).                                                                                                                                                                                                                                                                                   |
+| [`UNSEEN_ALPHA`](#an.base.UNSEEN_ALPHA)                       | At or under this alpha an entity is not seen (a stream slot between its passes, a fade's end): it cannot jump or swap sides at a cut (an#516), nor overlap or be drawn through anything at an instant (an#632).                                                                                                                  |
 | [`CORE_OVERRIDE_KEYS`](#an.base.CORE_OVERRIDE_KEYS)                 | what attaches it, the stream slot it is, what holds it and at what angle, the world's plane factors.                                                                                                                                                                                                                             |
 | [`PAINT_AFTER_PROPERTY`](#an.base.PAINT_AFTER_PROPERTY)               | where a node is PAINTED, as the path of the node it paints just after (`""`: where the stage tree puts it).                                                                                                                                                                                                                      |
 | [`ORDER_PROPERTIES`](#an.base.ORDER_PROPERTIES)                   | The non-numeric properties the runtime applies itself (outside `TRANSFORM_PROPERTIES`, which it animates numerically): a node's place in the paint order.                                                                                                                                                                        |
@@ -337,6 +338,12 @@ what every document written before transitions existed means.
 The path-only properties inside `TRANSFORM_PROPERTIES` (an#160; the
 name predates `dash_offset`, an#161): trim and the dash phase. A node that
 draws no path refuses all of them.
+
+### an.base.UNSEEN_ALPHA *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.001*
+
+At or under this alpha an entity is not seen (a stream slot between its
+passes, a fade’s end): it cannot jump or swap sides at a cut (an#516), nor
+overlap or be drawn through anything at an instant (an#632).
 
 ### an.base.WIPE_DIRECTIONS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('left', 'right', 'up', 'down')*
 

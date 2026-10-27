@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=82315867"></script>
+    <script src="../_static/documentation_options.js?v=b5c9d20d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.315" />
+  <meta name="docsearch:version" content="0.1.316" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -665,16 +665,13 @@ zero-duration shots, voice refs missing from a voices store.</p></li>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.validate.CUT_CONTINUITY_TOLERANCE" title="an.ir.validate.CUT_CONTINUITY_TOLERANCE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CUT_CONTINUITY_TOLERANCE</span></code></a></p></td>
 <td><p>a pixel, or a hundredth of the scale.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.validate.UNSEEN_ALPHA" title="an.ir.validate.UNSEEN_ALPHA"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UNSEEN_ALPHA</span></code></a></p></td>
-<td><p>At or under this alpha an entity is not seen at a cut (a stream slot between its passes, a fade's end): it cannot jump or swap sides (an#516).</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.validate.SCREEN_DIRECTION_TOLERANCE_PX" title="an.ir.validate.SCREEN_DIRECTION_TOLERANCE_PX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SCREEN_DIRECTION_TOLERANCE_PX</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.validate.SCREEN_DIRECTION_TOLERANCE_PX" title="an.ir.validate.SCREEN_DIRECTION_TOLERANCE_PX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SCREEN_DIRECTION_TOLERANCE_PX</span></code></a></p></td>
 <td><p>Two entities closer than this on screen have no left/right order to flip.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S" title="an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DIALOGUE_OVERRUN_TOLERANCE_S</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S" title="an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DIALOGUE_OVERRUN_TOLERANCE_S</span></code></a></p></td>
 <td><p>a frame at 60 fps.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.validate.POST_SYNTHESIS_CHECKS" title="an.ir.validate.POST_SYNTHESIS_CHECKS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">POST_SYNTHESIS_CHECKS</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.validate.POST_SYNTHESIS_CHECKS" title="an.ir.validate.POST_SYNTHESIS_CHECKS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">POST_SYNTHESIS_CHECKS</span></code></a></p></td>
 <td><p>The registered checks whose answer depends on what synthesis produced — a line's real length, hence where it starts and ends — and that <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span></code> therefore runs again AFTER the audio pipeline, on the timing it will mux (<a class="reference internal" href="#an.ir.validate.post_synthesis_findings" title="an.ir.validate.post_synthesis_findings"><code class="xref py py-func docutils literal notranslate"><span class="pre">post_synthesis_findings()</span></code></a> runs exactly these, by name, through the registry).</p></td>
 </tr>
 </tbody>
@@ -824,13 +821,6 @@ later migration will touch. So it is caught here, at ERROR, by name.</p>
 <dt class="sig sig-object py" id="an.ir.validate.SCREEN_DIRECTION_TOLERANCE_PX">
 <span class="sig-prename descclassname"><span class="pre">an.ir.validate.</span></span><span class="sig-name descname"><span class="pre">SCREEN_DIRECTION_TOLERANCE_PX</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></span><a class="headerlink" href="#an.ir.validate.SCREEN_DIRECTION_TOLERANCE_PX" title="Link to this definition">#</a></dt>
 <dd><p>Two entities closer than this on screen have no left/right order to flip.</p>
-</dd></dl>
-
-<dl class="py data">
-<dt class="sig sig-object py" id="an.ir.validate.UNSEEN_ALPHA">
-<span class="sig-prename descclassname"><span class="pre">an.ir.validate.</span></span><span class="sig-name descname"><span class="pre">UNSEEN_ALPHA</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.001</span></span><a class="headerlink" href="#an.ir.validate.UNSEEN_ALPHA" title="Link to this definition">#</a></dt>
-<dd><p>At or under this alpha an entity is not seen at a cut (a stream slot between
-its passes, a fade’s end): it cannot jump or swap sides (an#516).</p>
 </dd></dl>
 
 <dl class="py exception">
@@ -1173,7 +1163,6 @@ which decides how long a dissolve’s overlap is.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.RETIRED_CAMERA_KEYS"><code class="docutils literal notranslate"><span class="pre">RETIRED_CAMERA_KEYS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.RETIRED_KEYS"><code class="docutils literal notranslate"><span class="pre">RETIRED_KEYS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.SCREEN_DIRECTION_TOLERANCE_PX"><code class="docutils literal notranslate"><span class="pre">SCREEN_DIRECTION_TOLERANCE_PX</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.UNSEEN_ALPHA"><code class="docutils literal notranslate"><span class="pre">UNSEEN_ALPHA</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.UnregisteredInSceneError"><code class="docutils literal notranslate"><span class="pre">UnregisteredInSceneError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.ValidationContext"><code class="docutils literal notranslate"><span class="pre">ValidationContext</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.ValidationContext.cached"><code class="docutils literal notranslate"><span class="pre">ValidationContext.cached()</span></code></a></li>
