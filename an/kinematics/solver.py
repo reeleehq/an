@@ -132,8 +132,9 @@ DFLT_SEGMENT_MARGIN: float = 0.5
 #: Bumped whenever the solve can give a different answer for the same inputs
 #: (a changed projection, order, or default): part of every cache key built
 #: on this module.
-SOLVER_VERSION: str = "3"  # 2: a slow retry keeps going while it converges (an#568)
-# 3: a conflict gives up the first candidate that halves the failure (an#641)
+#: 2: a slow retry keeps going while it converges (an#568); 3: a conflict gives up
+#: the first candidate that halves the failure (an#641).
+SOLVER_VERSION: str = "3"
 #: The most passes a frame whose first retry made progress is given, as a
 #: multiple of ``iterations``: its retry is repeated with ``retry`` times the
 #: passes while each round still makes progress (an#568). On 300 random
