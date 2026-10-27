@@ -1,0 +1,1 @@
+- `an.audio.voice_design.choose_in_entry` is the one choose step for a voice options manifest entry (an#549): `an voices choose` and a connector share it; choosing another option retires the replaced voice into the entry's `retired` ledger (never deleted), choosing it back reuses it, and the same choice again keeps its first `chosen_at`.

@@ -103,3 +103,30 @@ def test_elevenlabs_designer_calls_the_sdk_shape():
     assert calls[0] == ("design", {"voice_description": NOTES, "model_id": "eleven_ttv_v3", "auto_generate_text": True, "request_options": {"timeout_in_seconds": 120}})
     assert d.design_voice(NOTES, preview=p, name="n").segment == "v1"
     assert calls[1][1]["generated_voice_id"] == "g"
+
+
+def test_choosing_again_retires_the_replaced_voice_and_switching_back_reuses_it(tmp_path):
+    """an#549: the choose step a connector shares (`choose_in_entry`). Choosing
+    another option retires the voice it replaces (named in `retired`, never
+    deleted), choosing it back takes that voice out of the ledger instead of
+    saving a new one, and the same choice again keeps its first `chosen_at`."""
+    from an.project import init
+
+    proj = tmp_path / "p"
+    init(str(proj))
+    (proj / "assets" / "voices").mkdir(parents=True, exist_ok=True)
+    (proj / "assets" / "voices" / "jerry.json").write_text(json.dumps({"notes": NOTES}), encoding="utf-8")
+    d = FakeDesigner(n=2)
+    design_project_voices(proj, designer=d, persist=False)
+    manifest = lambda: json.loads((proj / "artifacts" / "voice_options" / "jerry.json").read_text(encoding="utf-8"))  # noqa: E731
+    choose_project_voice(proj, "jerry", "A", designer=d, by="noel", at="t1")
+    choose_project_voice(proj, "jerry", "B", designer=d, by="noel", at="t2")
+    m = manifest()
+    assert m["retired"] == [{"voice_id": "voice-gen0", "option": "A", "name_prefix": "p"}]
+    assert [o["voice_id"] for o in m["options"]] == [None, "voice-gen1"]
+    saves = [c for c in d.calls if c[0] == "save"]
+    doc = choose_project_voice(proj, "jerry", "A", designer=d, by="noel", at="t3")
+    assert doc["voice_id"] == "voice-gen0" and [c for c in d.calls if c[0] == "save"] == saves
+    assert [r["voice_id"] for r in manifest()["retired"]] == ["voice-gen1"]
+    again = choose_project_voice(proj, "jerry", "A", designer=d, by="noel", at="t4")
+    assert again["chosen_at"] == "t3"

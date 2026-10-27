@@ -70,7 +70,7 @@ When the writer describes a voice in words instead of naming one, put the words 
  "notes": "A man in his early fifties from rural County Limerick, warm, unhurried, a soft Munster lilt."}
 ```
 
-Then `an voices design <dir>` (billed: ElevenLabs Voice Design) writes options with samples to `artifacts/voice_samples/<ref>_<A|B|C>.mp3` and the manifest to `artifacts/voice_options/<ref>.json`; play them to the writer; `an voices choose <dir> <ref> B --by "<the writer's name>"` makes the pick the document's `voice_id` and records `chosen_by` / `chosen_at`.
+Then `an voices design <dir>` (billed: ElevenLabs Voice Design) writes options with samples to `artifacts/voice_samples/<ref>_<A|B|C>.mp3` and the manifest to `artifacts/voice_options/<ref>.json`; play them to the writer; `an voices choose <dir> <ref> B --by "<the writer's name>"` makes the pick the document's `voice_id` and records `chosen_by` / `chosen_at`. Choosing another option later retires the voice it replaces into the manifest's `retired` list (the provider voice is kept, not deleted); choosing it back reuses it. A connector choosing on a writer's behalf calls the same step, `an.audio.voice_design.choose_in_entry` (an#549).
 
 **When the accent is the character, design from notes is not enough** (an#485: every design of "rural Limerick Irish" came out English). Two more routes, in the same manifest:
 
