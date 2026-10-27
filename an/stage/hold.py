@@ -1663,7 +1663,10 @@ def _place_target(
                 _turned(carried, -tilt),
                 g.rotation,
                 rests,
-                lean=_holder_lean(ctx, g.hand.entity, g.kc),
+                # the surface's own tilt is out already (_on_surface): a
+                # surface leaning with the holder takes its lean with it
+                lean=_holder_lean(ctx, g.hand.entity, g.kc)
+                - _holder_lean(ctx, ctx.puppet.bodies[target.body].entity, g.kc),
             ),
             below=_point_world(ctx.puppet, run, g.k0, g.hand),
             below_k=g.kc,

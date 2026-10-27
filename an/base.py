@@ -238,7 +238,7 @@ PAINT_KEYS_OVERRIDE: str = "paint_keys"
 #: The core's mark on an entity the world leans with its frame's acceleration
 #: (an#504): its ``rotation`` channel is that lean, which the hold layer takes
 #: out of the angle an item it carries comes to rest at (an#659).
-SWAY_OVERRIDE: str = "sway"
+SWAY_OVERRIDE: str = "leans"
 #: At or under this alpha an entity is not seen (a stream slot between its
 #: passes, a fade's end): it cannot jump or swap sides at a cut (an#516), nor
 #: overlap or be drawn through anything at an instant (an#632).

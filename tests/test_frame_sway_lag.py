@@ -436,15 +436,15 @@ def test_an_item_grasped_later_leans_with_the_car_until_then(tmp_path):
     assert pose.get(("stick", "rotation"), 0.0) == pytest.approx(lean, abs=1e-3)
 
 
-@pytest.mark.parametrize("release_at", [0.5])
-def test_an_item_let_go_in_a_braking_car_lands_upright_not_on_its_side(tmp_path, release_at):
-    """an#659: the figure leans ~64 degrees with the braking car and carries
-    the stick at that angle; let go, the stick used to land at the nearest
-    quarter turn of it (on its side). The floor does not lean: the holder's
-    lean is taken out first, so it lands as it hangs in the hand, upright."""
+def _braking_hold(tmp_path, mode: str):
+    """The figure and the stick (tests/_hold_fixture.py) in a braking car: the
+    figure grasps the stick at once and lets it go at 0.5 s (``release``),
+    or puts it on a crate in the car at 0.4 s (``surface``), or does so while
+    the author tilts the figure to lie at 90 degrees (``authored``). The
+    stick's and the crate's rotation at 1.9 s, after the car has stopped."""
     import warnings
 
-    from an.ir import grasp, release
+    from an.ir import grasp, place, release
     from an.ir.compose import delay, sequence
     from an.ir.schema import Meta, Resolution, SceneIR, SolveSettings, World, WorldMember
     from an.stage.compile import compile_shot
@@ -454,32 +454,57 @@ def test_an_item_let_go_in_a_braking_car_lands_upright_not_on_its_side(tmp_path,
 
     project = make_project(tmp_path / "p", hold_scene(""))
     in_car = dict(store="props", frame="car", kind="prop")
+    members = [
+        WorldMember(id="fig", ref="figure", at=(0.0, 0.4, 2.0), height=0.8, **in_car),
+        WorldMember(id="stick", ref="stick", at=(0.15, 0.4, 2.0), height=0.3, **in_car),
+    ]
+    actions = [
+        tween("car", "at_z", to=10.0, duration=1.0, from_=0.0, easing="ease_out"),
+        grasp("fig/arm_r", "stick", reach=0.2, retract=0.1),
+    ]
+    if mode == "surface":
+        members.append(
+            WorldMember(id="crate", ref="crate", at=(0.4, 0.4, 2.0), height=0.3, **in_car)
+        )
+        actions.append(sequence(delay(0.4), place("stick", "crate@surface", reach=0.2)))
+    else:
+        actions.append(sequence(delay(0.5), release("stick")))
+    if mode == "authored":
+        actions.append(
+            sequence(delay(0.2), tween("fig", "rotation", to=math.pi / 2, duration=0.1, from_=0.0))
+        )
     world = World(
-        members=[
-            WorldMember(id="fig", ref="figure", at=(0.0, 0.4, 2.0), height=0.8, **in_car),
-            WorldMember(id="stick", ref="stick", at=(0.15, 0.4, 2.0), height=0.3, **in_car),
-        ],
+        members=members,
         frames={"car": Frame(sway=FrameSway())},
         viewpoints={"side": Viewpoint(at=(-8.0, -1.0, 5.0), look=(90.0, 0.0, 0.0), focal=300.0)},
     )
-    shot = Shot(
-        id="s", duration=2.0, viewpoint="side", solve=SolveSettings(ground=300),
-        actions=[
-            tween("car", "at_z", to=10.0, duration=1.0, from_=0.0, easing="ease_out"),
-            grasp("fig/arm_r", "stick", reach=0.2, retract=0.1),
-            sequence(delay(release_at), release("stick")),
-        ],
-    )
+    shot = Shot(id="s", duration=2.0, viewpoint="side", solve=SolveSettings(ground=300),
+                actions=actions)
     sc = SceneIR(meta=Meta(fps=24, resolution=Resolution(width=320, height=240)),
                  world=world, timeline=[shot])
     box = (-5.0, -20.0, 5.0, 0.0)
-    low = lower_world(sc, extents={k: box for k in ("fig", "stick")}).scene.timeline[0]
+    low = lower_world(sc, extents={m.id: box for m in members}).scene.timeline[0]
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         doc = compile_shot(low, project.mall, fps=24, width=320, height=240)
-    timeline = timeline_from_scene(doc)
-    assert abs(evaluate_timeline(timeline, release_at).get(("fig", "rotation"), 0.0)) > 0.5
-    landed = evaluate_timeline(timeline, 1.9).get(("stick", "rotation"), 0.0)
+    pose = evaluate_timeline(timeline_from_scene(doc), 1.9)
+    return pose.get(("stick", "rotation"), 0.0), pose.get(("crate", "rotation"), 0.0)
+
+
+@pytest.mark.parametrize(
+    "mode, quarters",
+    [("release", 0), ("surface", 0), ("authored", 1)],
+)
+def test_an_item_let_go_in_a_braking_car_lands_as_it_hangs(tmp_path, mode, quarters):
+    """an#659: the figure leans ~64 degrees with the braking car and carries
+    the stick at that angle; let go, the stick landed at the nearest quarter
+    turn of it (on its side). The floor does not lean: the holder's lean is
+    taken out first, so it lands upright (``release``); put on a crate that
+    leans with it, it lies level on it (``surface``: the crate's lean is taken
+    out too); and a figure the author tilts to lie down, which the world does
+    not mark as leaning, still lets it land sideways (``authored``)."""
+    stick, crate = _braking_hold(tmp_path, mode)
     quarter = math.pi / 2
-    assert abs(landed - round(landed / quarter) * quarter) < 1e-6  # at rest on a quarter
-    assert abs(round(landed / quarter)) % 2 == 0, landed  # upright, not on its side
+    turns = round((stick - crate) / quarter)
+    assert abs(stick - crate - turns * quarter) < 1e-6, stick  # at rest on a quarter
+    assert abs(turns) % 2 == quarters, (mode, stick, crate)

@@ -2972,8 +2972,11 @@ def _lower_shot(
         for key, e, j in ordered
     ]
     ordered.sort(key=lambda item: item[0])
+    # Its rotation channel is the lean only where the shot animates no rotation
+    # of its own (sway_rotation warns where it does).
+    leaning = swayed.keys() - rotated
     ordered = [  # what the world leans, said for the hold layer (an#659)
-        (key, _marked(e, SWAY_OVERRIDE, True) if e.id in swayed else e, j)
+        (key, _marked(e, SWAY_OVERRIDE, True) if e.id in leaning else e, j)
         for key, e, j in ordered
     ]
     ordered = _with_paint_keys(
