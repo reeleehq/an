@@ -102,7 +102,14 @@ def entity_containers(root: Any) -> Iterator[Any]:
     synthetic ``root`` and every wrapper under it that indexes its children in
     the parent's prefix (``scope=""``: the ``<env>__after_<k>`` that carries a
     plane's parallax for the entities placed after it), so each child's path
-    is its own name."""
+    is its own name.
+
+    >>> from an.stage.serialize import NodeJSON
+    >>> root = NodeJSON(name="root", children=[NodeJSON(name="set", children=[NodeJSON(name="sky")]),
+    ...     NodeJSON(name="set__after_1", scope="", children=[NodeJSON(name="pole_0")])])
+    >>> [c.name for c in entity_containers(root)]
+    ['root', 'set__after_1']
+    """
     yield root
     for child in _children(root):
         if _get(child, "scope") == "":

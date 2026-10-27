@@ -1259,54 +1259,53 @@ def paint_orders(
     return out
 
 
-def _keyed_runs(names: Sequence[str], keyed: Collection[str]) -> list[list[int]]:
-    """The maximal runs of consecutive places in ``names`` whose names are
-    ``keyed``: a world entity is reordered only among its keyed neighbours,
-    never across a plane, a band or an entity the author placed (an#634).
+def _keyed_runs(names: Sequence[str], opening: Mapping[str, Any]) -> list[list[int]]:
+    """The runs of consecutive places in ``names`` whose names have a key in
+    ``opening`` (their keys as the shot opens), each ending where the built
+    order and the opening keys disagree: a world entity is reordered only
+    among keyed neighbours built in its own order, never across a plane, a
+    band, an entity the author placed after a plane among them, or one the
+    world does not key (an#634).
 
-    >>> _keyed_runs(["sky", "a", "b", "rail", "c"], {"a", "b", "c"})
-    [[1, 2], [4]]
+    >>> _keyed_runs(["sky", "a", "b", "rail", "c", "d"], {"a": 0, "b": 1, "c": 5, "d": 2})
+    [[1, 2], [4], [5]]
     """
     runs: list[list[int]] = []
     for i, name in enumerate(names):
-        if name not in keyed:
+        if name not in opening:
             continue
-        if runs and runs[-1][-1] == i - 1:
+        prev = runs[-1][-1] if runs else None
+        if prev == i - 1 and _sort_key(opening[names[prev]]) <= _sort_key(
+            opening[name]
+        ):
             runs[-1].append(i)
         else:
             runs.append([i])
     return runs
 
 
+def _sort_key(key: Any) -> Any:
+    """A paint key as it sorts (a JSON list read back is a tuple)."""
+    return tuple(key) if isinstance(key, list) else key
+
+
 def z_index_keys(
-    names: Sequence[str],
-    keys: Mapping[str, Sequence[tuple[float, Any]]],
-    *,
-    shot_id: str = "",
+    names: Sequence[str], keys: Mapping[str, Sequence[tuple[float, Any]]]
 ) -> dict[str, list[tuple[float, int]]]:
     """Each keyed child's ``z_index`` from each time it changes (an#634), in
     one container whose children are ``names``: within each run of keyed
     children (:func:`_keyed_runs`), at every time a key changes, they take the
     run's places in key order (:func:`paint_orders`); every other child keeps
-    its own place. As the shot opens the order is the built one, or the world
-    and the compiler disagree and that is an error. Only a child whose place
-    changes gets keys.
+    its own place. Only a child whose place changes gets keys.
 
     >>> z_index_keys(["sky", "a", "b"], {"a": [(0, 0), (2, 3)], "b": [(0, 1)]})
     {'a': [(0.0, 1), (2.0, 2)], 'b': [(0.0, 2), (2.0, 1)]}
     """
     out: dict[str, list[tuple[float, int]]] = {}
-    for places in _keyed_runs(names, keys.keys()):
+    for places in _keyed_runs(names, {n: ks[0][1] for n, ks in keys.items()}):
         run = [names[i] for i in places]
-        orders = paint_orders({n: keys[n] for n in run})
-        if orders[0][1] != run:
-            raise CutoutCompileError(
-                f"shot {shot_id!r}: the world paints {orders[0][1]} as the shot opens "
-                f"but the scene was built as {run}; a paint order changed between "
-                "the world's lowering and the compiler (an#634)"
-            )
         moves: dict[str, list[tuple[float, int]]] = {n: [] for n in run}
-        for t, order in orders:
+        for t, order in paint_orders({n: keys[n] for n in run}):
             for place, name in zip(places, order):
                 if not moves[name] or moves[name][-1][1] != place:
                     moves[name].append((t, place))
@@ -1331,9 +1330,7 @@ def _paint_keys_pass(state: CompileState) -> None:
     for container in stage_tree.entity_containers(state.scene_root):
         kids = container.children or []
         names = [k.name for k in kids]
-        moves = z_index_keys(
-            names, {n: keys[n] for n in names if n in keys}, shot_id=state.shot.id
-        )
+        moves = z_index_keys(names, {n: keys[n] for n in names if n in keys})
         if not moves:
             continue
         for i, kid in enumerate(kids):

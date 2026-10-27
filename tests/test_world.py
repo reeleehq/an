@@ -1510,14 +1510,30 @@ def test_a_minute_of_road_costs_a_third_of_what_fitting_did():
     assert 0 < len(shot.actions) <= 2000
 
 
-def _compiled_road(tmp_path, *, member_after: str | None = None):
+def _compiled_road(
+    tmp_path,
+    *,
+    member_after: str | None = None,
+    right_after: str | None = None,
+    stream_after: str | None = "set/hill",
+    hill_depth: float = 1.0,
+):
     """The road at lane 0.2 under an environment with a foreground band
-    (``set/rail`` over everything), its poles after ``set/hill``; ``left``
-    placed after ``member_after`` when given. The compiled document."""
+    (``set/rail`` over everything), its poles after ``stream_after``;
+    ``left`` / ``right`` placed after ``member_after`` / ``right_after`` when
+    given; the hill at ``hill_depth`` (not 1: the entities after it ride a
+    wrapper). The compiled document."""
     from an.stage.compile import compile_shot
 
     root = Path(shutil.copytree(LAMP, tmp_path / "p"))
-    shutil.copytree(PLANES / "assets/environments/stage", root / "assets/environments/stage")
+    env_dir = root / "assets/environments/stage"
+    shutil.copytree(PLANES / "assets/environments/stage", env_dir)
+    for f in env_dir.glob("*.json"):
+        doc = json.loads(f.read_text(encoding="utf-8"))
+        for plane in doc.get("planes", ()):
+            if plane["name"] == "hill":
+                plane["depth"] = hill_depth
+        f.write_text(json.dumps(doc), encoding="utf-8")
     project = load(root)
     env = AssetRef(kind="environment", id="set", store="environments", ref="stage")
     scene = _lane(
@@ -1526,13 +1542,15 @@ def _compiled_road(tmp_path, *, member_after: str | None = None):
     (stream,) = scene.world.travel.streams
     scene.world.travel = scene.world.travel.model_copy(
         update={
-            "streams": [stream.model_copy(update={"after": "set/hill"})],
+            "streams": [stream.model_copy(update={"after": stream_after})],
             "plates": {"far": ["set/sky"], "vehicle": ["set/hill", "set/rail"]},
         }
     )
     left, right = scene.world.members
-    if member_after:
-        scene.world.members = [left.model_copy(update={"after": member_after}), right]
+    scene.world.members = [
+        left.model_copy(update={"after": member_after}) if member_after else left,
+        right.model_copy(update={"after": right_after}) if right_after else right,
+    ]
     shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -1572,3 +1590,39 @@ def test_a_reordered_slot_never_crosses_what_the_author_placed(tmp_path, member_
         if member_after == "pole_0":
             assert order.index("left") == order.index("pole_0") + 1
     assert moved
+
+
+@pytest.mark.parametrize("stream_after", [None, "set/hill"])
+def test_a_member_placed_after_a_plane_beside_the_slots_compiles(tmp_path, stream_after):
+    """an#634 re-review: ``right`` placed after the hill lands beside the slots
+    out of depth order; the run ends there, so the scene compiles (as on main)
+    and the slots still move among themselves."""
+    doc = _compiled_road(tmp_path, right_after="set/hill", stream_after=stream_after)
+    built = [n.name for n in doc.scene.children]
+    assert _painted(doc, 0.0) == built
+    assert any(_painted(doc, t) != built for t in (0.5, 1.6, 2.3, 2.9))
+
+
+def test_slots_riding_a_plane_wrapper_are_ordered_inside_it(tmp_path):
+    """an#634 re-review: a stream after a plane whose depth is not 1 rides the
+    plane's ``<env>__after_<k>`` wrapper; its slots are reordered there, and
+    only a child that moves carries ``z_index`` keys."""
+    from an.base import Z_INDEX_PROPERTY
+
+    doc = _compiled_road(tmp_path, hill_depth=0.8)
+    (wrapper,) = [n for n in doc.scene.children if n.scope == "" and n.children]
+    poles = [n.name for n in wrapper.children if n.name.startswith("pole_")]
+    assert len(poles) > 2
+    keyed = {
+        ch.target
+        for clip in doc.animations.values()
+        for ch in clip.channels
+        if ch.property == Z_INDEX_PROPERTY
+    }
+    assert keyed and keyed <= set(poles)
+    assert all(
+        len({k.value for k in ch.keyframes}) > 1
+        for clip in doc.animations.values()
+        for ch in clip.channels
+        if ch.property == Z_INDEX_PROPERTY
+    )
