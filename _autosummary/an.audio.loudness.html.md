@@ -37,10 +37,17 @@ Without a target, [`loudness_report()`](#an.audio.loudness.loudness_report) meas
 [`voice_loudness_spread()`](#an.audio.loudness.voice_loudness_spread) says when they differ by more than
 [`SPREAD_WARNING_DB`](#an.audio.loudness.SPREAD_WARNING_DB) — the render warns, naming each voice’s level.
 
-```pycon
->>> float(limit_peaks(__import__("numpy").array([[0.0], [2.0], [0.0]]), ceiling=1.0).max())
-1.0
-```
+The measuring and the limiter are the fleet’s shared loudness component,
+`mixing.loudness` (an#563; `pip install 'an[loudness]'`):
+`mixing.loudness.level_group()` measures a voice’s lines back to back (looped
+to [`MIN_MEASURE_S`](#an.audio.loudness.MIN_MEASURE_S), channels kept when they agree) and caps the gain, with
+ffmpeg’s `ebur128` injected as its meter ([`METER`](#an.audio.loudness.METER)) so `an` takes no
+scipy; `mixing.loudness.limit_peaks()` is the limiter, moved there unchanged
+(so [`LEVEL_VERSION`](#an.audio.loudness.LEVEL_VERSION) did not move, and a test pins the leveled bytes).
+What stays here is `an`’s own: the voices, the offsets, the hysteresis, the
+makeup pass and the content keys. Without `mixing` installed, leveling raises
+[`LoudnessComponentMissing`](#an.audio.loudness.LoudnessComponentMissing) naming the extra, and the render’s spread
+warning is skipped (as it is without ffmpeg).
 
 ### Module Attributes
 
@@ -54,15 +61,19 @@ Without a target, [`loudness_report()`](#an.audio.loudness.loudness_report) meas
 | [`OFFSET_LIMITS_DB`](#an.audio.loudness.OFFSET_LIMITS_DB)  | `loudness_offset_db` bounds on a voice document.                                                                                                                                                                                    |
 | [`MIN_MEASURE_S`](#an.audio.loudness.MIN_MEASURE_S)     | EBU R128 gates in 400 ms blocks, and a voice of only short lines would read as silence.                                                                                                                                             |
 | [`MISS_WARNING_DB`](#an.audio.loudness.MISS_WARNING_DB)   | A leveled voice that ends further than this from its target (the limiter held its peaks, or the gain was capped) is warned about.                                                                                                   |
+| [`METER`](#an.audio.loudness.METER)             | The loudness meter injected into `mixing.loudness` (one of its `METERS`): ffmpeg's `ebur128`, so `an` needs no scipy for its numpy meter.                                                                                           |
+| [`INSTALL_HINT`](#an.audio.loudness.INSTALL_HINT)      | What installs the shared loudness component.                                                                                                                                                                                        |
 
 ### Functions
 
-| [`integrated_loudness`](#an.audio.loudness.integrated_loudness)(pcm)                    | EBU R128 integrated loudness (LUFS) of `pcm`, by ffmpeg's `ebur128` (`-inf` for silence).                                                                                                                                                                                                                                   |
+| [`component_available`](#an.audio.loudness.component_available)()                       | Whether `mixing.loudness` can be imported (what measuring needs).                                                                                                                                                                                                                                                           |
 |----------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`group_loudness`](#an.audio.loudness.group_loudness)(pcms)                        | The integrated loudness of a voice's lines, measured back to back.                                                                                                                                                                                                                                                          |
+| [`integrated_loudness`](#an.audio.loudness.integrated_loudness)(pcm)                    | EBU R128 integrated loudness (LUFS) of `pcm`, by [`METER`](#an.audio.loudness.METER) through `mixing.loudness.integrated_lufs()` (`-inf` for silence).                                                                                                                                                   |
 | [`level_voices`](#an.audio.loudness.level_voices)(scene, mall, spec)             | Level every voice of `scene` to `spec` ([`VoiceLoudness`](an.ir.schema.html.md#an.ir.schema.VoiceLoudness)): each line is stamped with its leveled audio (made once per source bytes, gain and ceiling, in the `audio` store) and `Dialogue.leveled`.                                                |
 | [`leveled_audio`](#an.audio.loudness.leveled_audio)(audio, \*, gain_db, peak_db)  | `audio` at `gain_db`, its peaks held at `peak_db` dBFS, as a 16-bit PCM WAV of exactly the length of the decoded source (an MP3 source is stored decoded, as the mux would decode it).                                                                                                                                      |
 | [`leveled_key`](#an.audio.loudness.leveled_key)(source, \*, gain_db, peak_db)   | The content key of a leveled line: the sha256 of its source audio's BYTES (not the request that made them: a take re-synthesised under the same request is other audio, an#315 review), the gain, the ceiling, the rate a non-WAV source is decoded at, and [`LEVEL_VERSION`](#an.audio.loudness.LEVEL_VERSION). |
-| [`limit_peaks`](#an.audio.loudness.limit_peaks)(samples, \*, ceiling[, window]) | `samples` with no sample above `ceiling` (absolute, full scale 1.0).                                                                                                                                                                                                                                                        |
+| [`limit_peaks`](#an.audio.loudness.limit_peaks)(samples, \*, ceiling[, window]) | `samples` with no sample above `ceiling` (absolute, full scale 1.0): `mixing.loudness.limit_peaks()` (sample peak), the lookahead limiter that moved there unchanged from here (an#563).                                                                                                                                    |
 | [`loudness_report`](#an.audio.loudness.loudness_report)(scene, mall)                | Every voice's integrated loudness over its lines, as heard now (a leveled line's leveled audio).                                                                                                                                                                                                                            |
 | [`voice_loudness_spread`](#an.audio.loudness.voice_loudness_spread)(levels)               | What to say when the audible voices differ by more than [`SPREAD_WARNING_DB`](#an.audio.loudness.SPREAD_WARNING_DB); `None` otherwise.                                                                                                                                                                               |
 | [`voiced_lines`](#an.audio.loudness.voiced_lines)(scene, mall)                   | `{voice id: [line, ...]}` for every line with audio in the store.                                                                                                                                                                                                                                                           |
@@ -75,9 +86,10 @@ Without a target, [`loudness_report()`](#an.audio.loudness.loudness_report) meas
 
 ### Exceptions
 
-| [`VoiceLoudnessError`](#an.audio.loudness.VoiceLoudnessError)   | The voices cannot be measured or leveled (no ffmpeg, an unreadable line).                                             |
-|-----------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------|
-| [`VoiceLoudnessWarning`](#an.audio.loudness.VoiceLoudnessWarning) | The film's voices differ in loudness by more than [`SPREAD_WARNING_DB`](#an.audio.loudness.SPREAD_WARNING_DB). |
+| [`LoudnessComponentMissing`](#an.audio.loudness.LoudnessComponentMissing)   | The shared loudness component (`mixing.loudness`) is not installed.                                                   |
+|-----------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------|
+| [`VoiceLoudnessError`](#an.audio.loudness.VoiceLoudnessError)         | The voices cannot be measured or leveled (no ffmpeg, an unreadable line).                                             |
+| [`VoiceLoudnessWarning`](#an.audio.loudness.VoiceLoudnessWarning)       | The film's voices differ in loudness by more than [`SPREAD_WARNING_DB`](#an.audio.loudness.SPREAD_WARNING_DB). |
 
 ### an.audio.loudness.GAIN_STEP_DB *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
 
@@ -85,6 +97,10 @@ A voice’s gain is rounded to this, so a new line that moves its voice’s
 loudness by less than half of it re-renders nothing else (half a dB is
 below what a listener hears between two lines; the measurement itself is
 to 0.1 LU).
+
+### an.audio.loudness.INSTALL_HINT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= "pip install 'an[loudness]'"*
+
+What installs the shared loudness component.
 
 ### an.audio.loudness.LEVEL_VERSION *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 1*
 
@@ -102,10 +118,21 @@ an#315 review).
 * **Type:**
   The limiter’s lookahead and release, seconds
 
+### *exception* an.audio.loudness.LoudnessComponentMissing
+
+Bases: [`VoiceLoudnessError`](#an.audio.loudness.VoiceLoudnessError), [`ImportError`](https://docs.python.org/3/builtins/exceptions.html#ImportError)
+
+The shared loudness component (`mixing.loudness`) is not installed.
+
 ### an.audio.loudness.MAX_GAIN_DB *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 24.0*
 
 The largest gain leveling gives a voice; beyond it the voice is mostly
 noise (room tone measured at -62 LUFS asked for +46 dB). Capped, and warned.
+
+### an.audio.loudness.METER *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'ffmpeg_ebur128'*
+
+The loudness meter injected into `mixing.loudness` (one of its
+`METERS`): ffmpeg’s `ebur128`, so `an` needs no scipy for its numpy meter.
 
 ### an.audio.loudness.MIN_MEASURE_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 1.0*
 
@@ -153,10 +180,24 @@ Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWa
 
 The film’s voices differ in loudness by more than [`SPREAD_WARNING_DB`](#an.audio.loudness.SPREAD_WARNING_DB).
 
+### an.audio.loudness.component_available()
+
+Whether `mixing.loudness` can be imported (what measuring needs).
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+### an.audio.loudness.group_loudness(pcms)
+
+The integrated loudness of a voice’s lines, measured back to back.
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
 ### an.audio.loudness.integrated_loudness(pcm)
 
-EBU R128 integrated loudness (LUFS) of `pcm`, by ffmpeg’s `ebur128`
-(`-inf` for silence).
+EBU R128 integrated loudness (LUFS) of `pcm`, by [`METER`](#an.audio.loudness.METER) through
+`mixing.loudness.integrated_lufs()` (`-inf` for silence).
 
 * **Return type:**
   [`float`](https://docs.python.org/3/builtins/functions.html#float)
@@ -198,13 +239,9 @@ True
 
 ### an.audio.loudness.limit_peaks(samples, , ceiling, window=1)
 
-`samples` with no sample above `ceiling` (absolute, full scale 1.0).
-
-The gain each sample needs (`ceiling / |x|`, at most 1) is spread over
-`window` samples on both sides — a sliding minimum over `2 * window + 1`,
-then a moving average over `window` — so it eases into and out of a peak.
-Every sample’s gain is at most what that sample needs, so the ceiling holds
-exactly; nothing moves in time.
+`samples` with no sample above `ceiling` (absolute, full scale 1.0):
+`mixing.loudness.limit_peaks()` (sample peak), the lookahead limiter
+that moved there unchanged from here (an#563).
 
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)

@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=943742ab"></script>
+    <script src="../_static/documentation_options.js?v=7c2de169"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.287" />
+  <meta name="docsearch:version" content="0.1.288" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -666,10 +666,17 @@ shots.
 Without a target, <a class="reference internal" href="#an.audio.loudness.loudness_report" title="an.audio.loudness.loudness_report"><code class="xref py py-func docutils literal notranslate"><span class="pre">loudness_report()</span></code></a> measures the voices and
 <a class="reference internal" href="#an.audio.loudness.voice_loudness_spread" title="an.audio.loudness.voice_loudness_spread"><code class="xref py py-func docutils literal notranslate"><span class="pre">voice_loudness_spread()</span></code></a> says when they differ by more than
 <a class="reference internal" href="#an.audio.loudness.SPREAD_WARNING_DB" title="an.audio.loudness.SPREAD_WARNING_DB"><code class="xref py py-data docutils literal notranslate"><span class="pre">SPREAD_WARNING_DB</span></code></a> — the render warns, naming each voice’s level.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">float</span><span class="p">(</span><span class="n">limit_peaks</span><span class="p">(</span><span class="nb">__import__</span><span class="p">(</span><span class="s2">"numpy"</span><span class="p">)</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">0.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">2.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]]),</span> <span class="n">ceiling</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
-<span class="go">1.0</span>
-</pre></div>
-</div>
+<p>The measuring and the limiter are the fleet’s shared loudness component,
+<code class="xref py py-mod docutils literal notranslate"><span class="pre">mixing.loudness</span></code> (an#563; <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">'an[loudness]'</span></code>):
+<code class="xref py py-func docutils literal notranslate"><span class="pre">mixing.loudness.level_group()</span></code> measures a voice’s lines back to back (looped
+to <a class="reference internal" href="#an.audio.loudness.MIN_MEASURE_S" title="an.audio.loudness.MIN_MEASURE_S"><code class="xref py py-data docutils literal notranslate"><span class="pre">MIN_MEASURE_S</span></code></a>, channels kept when they agree) and caps the gain, with
+ffmpeg’s <code class="docutils literal notranslate"><span class="pre">ebur128</span></code> injected as its meter (<a class="reference internal" href="#an.audio.loudness.METER" title="an.audio.loudness.METER"><code class="xref py py-data docutils literal notranslate"><span class="pre">METER</span></code></a>) so <code class="docutils literal notranslate"><span class="pre">an</span></code> takes no
+scipy; <code class="xref py py-func docutils literal notranslate"><span class="pre">mixing.loudness.limit_peaks()</span></code> is the limiter, moved there unchanged
+(so <a class="reference internal" href="#an.audio.loudness.LEVEL_VERSION" title="an.audio.loudness.LEVEL_VERSION"><code class="xref py py-data docutils literal notranslate"><span class="pre">LEVEL_VERSION</span></code></a> did not move, and a test pins the leveled bytes).
+What stays here is <code class="docutils literal notranslate"><span class="pre">an</span></code>’s own: the voices, the offsets, the hysteresis, the
+makeup pass and the content keys. Without <code class="docutils literal notranslate"><span class="pre">mixing</span></code> installed, leveling raises
+<a class="reference internal" href="#an.audio.loudness.LoudnessComponentMissing" title="an.audio.loudness.LoudnessComponentMissing"><code class="xref py py-class docutils literal notranslate"><span class="pre">LoudnessComponentMissing</span></code></a> naming the extra, and the render’s spread
+warning is skipped (as it is without ffmpeg).</p>
 <p class="rubric">Module Attributes</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
@@ -700,14 +707,26 @@ Without a target, <a class="reference internal" href="#an.audio.loudness.loudnes
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.loudness.MISS_WARNING_DB" title="an.audio.loudness.MISS_WARNING_DB"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MISS_WARNING_DB</span></code></a></p></td>
 <td><p>A leveled voice that ends further than this from its target (the limiter held its peaks, or the gain was capped) is warned about.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.loudness.METER" title="an.audio.loudness.METER"><code class="xref py py-obj docutils literal notranslate"><span class="pre">METER</span></code></a></p></td>
+<td><p>The loudness meter injected into <code class="xref py py-mod docutils literal notranslate"><span class="pre">mixing.loudness</span></code> (one of its <code class="docutils literal notranslate"><span class="pre">METERS</span></code>): ffmpeg's <code class="docutils literal notranslate"><span class="pre">ebur128</span></code>, so <code class="docutils literal notranslate"><span class="pre">an</span></code> needs no scipy for its numpy meter.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.loudness.INSTALL_HINT" title="an.audio.loudness.INSTALL_HINT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">INSTALL_HINT</span></code></a></p></td>
+<td><p>What installs the shared loudness component.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.loudness.component_available" title="an.audio.loudness.component_available"><code class="xref py py-obj docutils literal notranslate"><span class="pre">component_available</span></code></a>()</p></td>
+<td><p>Whether <code class="xref py py-mod docutils literal notranslate"><span class="pre">mixing.loudness</span></code> can be imported (what measuring needs).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.loudness.group_loudness" title="an.audio.loudness.group_loudness"><code class="xref py py-obj docutils literal notranslate"><span class="pre">group_loudness</span></code></a>(pcms)</p></td>
+<td><p>The integrated loudness of a voice's lines, measured back to back.</p></td>
+</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.loudness.integrated_loudness" title="an.audio.loudness.integrated_loudness"><code class="xref py py-obj docutils literal notranslate"><span class="pre">integrated_loudness</span></code></a>(pcm)</p></td>
-<td><p>EBU R128 integrated loudness (LUFS) of <code class="docutils literal notranslate"><span class="pre">pcm</span></code>, by ffmpeg's <code class="docutils literal notranslate"><span class="pre">ebur128</span></code> (<code class="docutils literal notranslate"><span class="pre">-inf</span></code> for silence).</p></td>
+<td><p>EBU R128 integrated loudness (LUFS) of <code class="docutils literal notranslate"><span class="pre">pcm</span></code>, by <a class="reference internal" href="#an.audio.loudness.METER" title="an.audio.loudness.METER"><code class="xref py py-data docutils literal notranslate"><span class="pre">METER</span></code></a> through <code class="xref py py-func docutils literal notranslate"><span class="pre">mixing.loudness.integrated_lufs()</span></code> (<code class="docutils literal notranslate"><span class="pre">-inf</span></code> for silence).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.audio.loudness.level_voices" title="an.audio.loudness.level_voices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">level_voices</span></code></a>(scene, mall, spec)</p></td>
 <td><p>Level every voice of <code class="docutils literal notranslate"><span class="pre">scene</span></code> to <code class="docutils literal notranslate"><span class="pre">spec</span></code> (<a class="reference internal" href="an.ir.schema.html#an.ir.schema.VoiceLoudness" title="an.ir.schema.VoiceLoudness"><code class="xref py py-class docutils literal notranslate"><span class="pre">VoiceLoudness</span></code></a>): each line is stamped with its leveled audio (made once per source bytes, gain and ceiling, in the <code class="docutils literal notranslate"><span class="pre">audio</span></code> store) and <code class="docutils literal notranslate"><span class="pre">Dialogue.leveled</span></code>.</p></td>
@@ -719,7 +738,7 @@ Without a target, <a class="reference internal" href="#an.audio.loudness.loudnes
 <td><p>The content key of a leveled line: the sha256 of its source audio's BYTES (not the request that made them: a take re-synthesised under the same request is other audio, an#315 review), the gain, the ceiling, the rate a non-WAV source is decoded at, and <a class="reference internal" href="#an.audio.loudness.LEVEL_VERSION" title="an.audio.loudness.LEVEL_VERSION"><code class="xref py py-data docutils literal notranslate"><span class="pre">LEVEL_VERSION</span></code></a>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.loudness.limit_peaks" title="an.audio.loudness.limit_peaks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">limit_peaks</span></code></a>(samples, *, ceiling[, window])</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">samples</span></code> with no sample above <code class="docutils literal notranslate"><span class="pre">ceiling</span></code> (absolute, full scale 1.0).</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">samples</span></code> with no sample above <code class="docutils literal notranslate"><span class="pre">ceiling</span></code> (absolute, full scale 1.0): <code class="xref py py-func docutils literal notranslate"><span class="pre">mixing.loudness.limit_peaks()</span></code> (sample peak), the lookahead limiter that moved there unchanged from here (an#563).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.audio.loudness.loudness_report" title="an.audio.loudness.loudness_report"><code class="xref py py-obj docutils literal notranslate"><span class="pre">loudness_report</span></code></a>(scene, mall)</p></td>
 <td><p>Every voice's integrated loudness over its lines, as heard now (a leveled line's leveled audio).</p></td>
@@ -748,10 +767,13 @@ Without a target, <a class="reference internal" href="#an.audio.loudness.loudnes
 <p class="rubric">Exceptions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.loudness.VoiceLoudnessError" title="an.audio.loudness.VoiceLoudnessError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VoiceLoudnessError</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.loudness.LoudnessComponentMissing" title="an.audio.loudness.LoudnessComponentMissing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LoudnessComponentMissing</span></code></a></p></td>
+<td><p>The shared loudness component (<code class="xref py py-mod docutils literal notranslate"><span class="pre">mixing.loudness</span></code>) is not installed.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.loudness.VoiceLoudnessError" title="an.audio.loudness.VoiceLoudnessError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VoiceLoudnessError</span></code></a></p></td>
 <td><p>The voices cannot be measured or leveled (no ffmpeg, an unreadable line).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.loudness.VoiceLoudnessWarning" title="an.audio.loudness.VoiceLoudnessWarning"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VoiceLoudnessWarning</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.loudness.VoiceLoudnessWarning" title="an.audio.loudness.VoiceLoudnessWarning"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VoiceLoudnessWarning</span></code></a></p></td>
 <td><p>The film's voices differ in loudness by more than <a class="reference internal" href="#an.audio.loudness.SPREAD_WARNING_DB" title="an.audio.loudness.SPREAD_WARNING_DB"><code class="xref py py-data docutils literal notranslate"><span class="pre">SPREAD_WARNING_DB</span></code></a>.</p></td>
 </tr>
 </tbody>
@@ -764,6 +786,12 @@ Without a target, <a class="reference internal" href="#an.audio.loudness.loudnes
 loudness by less than half of it re-renders nothing else (half a dB is
 below what a listener hears between two lines; the measurement itself is
 to 0.1 LU).</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.audio.loudness.INSTALL_HINT">
+<span class="sig-prename descclassname"><span class="pre">an.audio.loudness.</span></span><span class="sig-name descname"><span class="pre">INSTALL_HINT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;pip</span> <span class="pre">install</span> <span class="pre">'an[loudness]'&quot;</span></span><a class="headerlink" href="#an.audio.loudness.INSTALL_HINT" title="Link to this definition">#</a></dt>
+<dd><p>What installs the shared loudness component.</p>
 </dd></dl>
 
 <dl class="py data">
@@ -788,11 +816,25 @@ an#315 review).</p>
 </dl>
 </dd></dl>
 
+<dl class="py exception">
+<dt class="sig sig-object py" id="an.audio.loudness.LoudnessComponentMissing">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.loudness.</span></span><span class="sig-name descname"><span class="pre">LoudnessComponentMissing</span></span><a class="reference internal" href="../_modules/an/audio/loudness.html#LoudnessComponentMissing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.loudness.LoudnessComponentMissing" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#an.audio.loudness.VoiceLoudnessError" title="an.audio.loudness.VoiceLoudnessError"><code class="xref py py-class docutils literal notranslate"><span class="pre">VoiceLoudnessError</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ImportError" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImportError</span></code></a></p>
+<p>The shared loudness component (<code class="xref py py-mod docutils literal notranslate"><span class="pre">mixing.loudness</span></code>) is not installed.</p>
+</dd></dl>
+
 <dl class="py data">
 <dt class="sig sig-object py" id="an.audio.loudness.MAX_GAIN_DB">
 <span class="sig-prename descclassname"><span class="pre">an.audio.loudness.</span></span><span class="sig-name descname"><span class="pre">MAX_GAIN_DB</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">24.0</span></span><a class="headerlink" href="#an.audio.loudness.MAX_GAIN_DB" title="Link to this definition">#</a></dt>
 <dd><p>The largest gain leveling gives a voice; beyond it the voice is mostly
 noise (room tone measured at -62 LUFS asked for +46 dB). Capped, and warned.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.audio.loudness.METER">
+<span class="sig-prename descclassname"><span class="pre">an.audio.loudness.</span></span><span class="sig-name descname"><span class="pre">METER</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'ffmpeg_ebur128'</span></span><a class="headerlink" href="#an.audio.loudness.METER" title="Link to this definition">#</a></dt>
+<dd><p>The loudness meter injected into <code class="xref py py-mod docutils literal notranslate"><span class="pre">mixing.loudness</span></code> (one of its
+<code class="docutils literal notranslate"><span class="pre">METERS</span></code>): ffmpeg’s <code class="docutils literal notranslate"><span class="pre">ebur128</span></code>, so <code class="docutils literal notranslate"><span class="pre">an</span></code> needs no scipy for its numpy meter.</p>
 </dd></dl>
 
 <dl class="py data">
@@ -861,10 +903,32 @@ held its peaks, or the gain was capped) is warned about.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.audio.loudness.component_available">
+<span class="sig-prename descclassname"><span class="pre">an.audio.loudness.</span></span><span class="sig-name descname"><span class="pre">component_available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/loudness.html#component_available"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.loudness.component_available" title="Link to this definition">#</a></dt>
+<dd><p>Whether <code class="xref py py-mod docutils literal notranslate"><span class="pre">mixing.loudness</span></code> can be imported (what measuring needs).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.loudness.group_loudness">
+<span class="sig-prename descclassname"><span class="pre">an.audio.loudness.</span></span><span class="sig-name descname"><span class="pre">group_loudness</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pcms</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/loudness.html#group_loudness"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.loudness.group_loudness" title="Link to this definition">#</a></dt>
+<dd><p>The integrated loudness of a voice’s lines, measured back to back.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.audio.loudness.integrated_loudness">
 <span class="sig-prename descclassname"><span class="pre">an.audio.loudness.</span></span><span class="sig-name descname"><span class="pre">integrated_loudness</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pcm</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/loudness.html#integrated_loudness"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.loudness.integrated_loudness" title="Link to this definition">#</a></dt>
-<dd><p>EBU R128 integrated loudness (LUFS) of <code class="docutils literal notranslate"><span class="pre">pcm</span></code>, by ffmpeg’s <code class="docutils literal notranslate"><span class="pre">ebur128</span></code>
-(<code class="docutils literal notranslate"><span class="pre">-inf</span></code> for silence).</p>
+<dd><p>EBU R128 integrated loudness (LUFS) of <code class="docutils literal notranslate"><span class="pre">pcm</span></code>, by <a class="reference internal" href="#an.audio.loudness.METER" title="an.audio.loudness.METER"><code class="xref py py-data docutils literal notranslate"><span class="pre">METER</span></code></a> through
+<code class="xref py py-func docutils literal notranslate"><span class="pre">mixing.loudness.integrated_lufs()</span></code> (<code class="docutils literal notranslate"><span class="pre">-inf</span></code> for silence).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
@@ -921,12 +985,9 @@ rate a non-WAV source is decoded at, and <a class="reference internal" href="#an
 <dl class="py function">
 <dt class="sig sig-object py" id="an.audio.loudness.limit_peaks">
 <span class="sig-prename descclassname"><span class="pre">an.audio.loudness.</span></span><span class="sig-name descname"><span class="pre">limit_peaks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">ceiling</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/loudness.html#limit_peaks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.loudness.limit_peaks" title="Link to this definition">#</a></dt>
-<dd><p><code class="docutils literal notranslate"><span class="pre">samples</span></code> with no sample above <code class="docutils literal notranslate"><span class="pre">ceiling</span></code> (absolute, full scale 1.0).</p>
-<p>The gain each sample needs (<code class="docutils literal notranslate"><span class="pre">ceiling</span> <span class="pre">/</span> <span class="pre">|x|</span></code>, at most 1) is spread over
-<code class="docutils literal notranslate"><span class="pre">window</span></code> samples on both sides — a sliding minimum over <code class="docutils literal notranslate"><span class="pre">2</span> <span class="pre">*</span> <span class="pre">window</span> <span class="pre">+</span> <span class="pre">1</span></code>,
-then a moving average over <code class="docutils literal notranslate"><span class="pre">window</span></code> — so it eases into and out of a peak.
-Every sample’s gain is at most what that sample needs, so the ceiling holds
-exactly; nothing moves in time.</p>
+<dd><p><code class="docutils literal notranslate"><span class="pre">samples</span></code> with no sample above <code class="docutils literal notranslate"><span class="pre">ceiling</span></code> (absolute, full scale 1.0):
+<code class="xref py py-func docutils literal notranslate"><span class="pre">mixing.loudness.limit_peaks()</span></code> (sample peak), the lookahead limiter
+that moved there unchanged from here (an#563).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
@@ -1030,9 +1091,12 @@ leveled line’s leveled audio).</p>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.loudness.GAIN_STEP_DB"><code class="docutils literal notranslate"><span class="pre">GAIN_STEP_DB</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.loudness.INSTALL_HINT"><code class="docutils literal notranslate"><span class="pre">INSTALL_HINT</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.loudness.LEVEL_VERSION"><code class="docutils literal notranslate"><span class="pre">LEVEL_VERSION</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.loudness.LIMITER_WINDOW_S"><code class="docutils literal notranslate"><span class="pre">LIMITER_WINDOW_S</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.loudness.LoudnessComponentMissing"><code class="docutils literal notranslate"><span class="pre">LoudnessComponentMissing</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.loudness.MAX_GAIN_DB"><code class="docutils literal notranslate"><span class="pre">MAX_GAIN_DB</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.loudness.METER"><code class="docutils literal notranslate"><span class="pre">METER</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.loudness.MIN_MEASURE_S"><code class="docutils literal notranslate"><span class="pre">MIN_MEASURE_S</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.loudness.MISS_WARNING_DB"><code class="docutils literal notranslate"><span class="pre">MISS_WARNING_DB</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.loudness.OFFSET_LIMITS_DB"><code class="docutils literal notranslate"><span class="pre">OFFSET_LIMITS_DB</span></code></a></li>
@@ -1041,6 +1105,8 @@ leveled line’s leveled audio).</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.loudness.VoiceLevel"><code class="docutils literal notranslate"><span class="pre">VoiceLevel</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.loudness.VoiceLoudnessError"><code class="docutils literal notranslate"><span class="pre">VoiceLoudnessError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.loudness.VoiceLoudnessWarning"><code class="docutils literal notranslate"><span class="pre">VoiceLoudnessWarning</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.loudness.component_available"><code class="docutils literal notranslate"><span class="pre">component_available()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.loudness.group_loudness"><code class="docutils literal notranslate"><span class="pre">group_loudness()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.loudness.integrated_loudness"><code class="docutils literal notranslate"><span class="pre">integrated_loudness()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.loudness.level_voices"><code class="docutils literal notranslate"><span class="pre">level_voices()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.loudness.leveled_audio"><code class="docutils literal notranslate"><span class="pre">leveled_audio()</span></code></a></li>

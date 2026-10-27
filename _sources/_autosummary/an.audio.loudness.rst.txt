@@ -17,11 +17,15 @@ an.audio.loudness
       OFFSET_LIMITS_DB
       MIN_MEASURE_S
       MISS_WARNING_DB
+      METER
+      INSTALL_HINT
    
    .. rubric:: Functions
 
    .. autosummary::
    
+      component_available
+      group_loudness
       integrated_loudness
       level_voices
       leveled_audio
@@ -42,6 +46,7 @@ an.audio.loudness
 
    .. autosummary::
    
+      LoudnessComponentMissing
       VoiceLoudnessError
       VoiceLoudnessWarning
    

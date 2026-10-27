@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=943742ab"></script>
+    <script src="../../../_static/documentation_options.js?v=7c2de169"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.287" />
+  <meta name="docsearch:version" content="0.1.288" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -749,8 +749,17 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">:func:`voice_loudness_spread` says when they differ by more than</span>
 <span class="sd">:data:`SPREAD_WARNING_DB` — the render warns, naming each voice's level.</span>
 
-<span class="sd">&gt;&gt;&gt; float(limit_peaks(__import__("numpy").array([[0.0], [2.0], [0.0]]), ceiling=1.0).max())</span>
-<span class="sd">1.0</span>
+<span class="sd">The measuring and the limiter are the fleet's shared loudness component,</span>
+<span class="sd">:mod:`mixing.loudness` (an#563; ``pip install 'an[loudness]'``):</span>
+<span class="sd">:func:`mixing.loudness.level_group` measures a voice's lines back to back (looped</span>
+<span class="sd">to :data:`MIN_MEASURE_S`, channels kept when they agree) and caps the gain, with</span>
+<span class="sd">ffmpeg's ``ebur128`` injected as its meter (:data:`METER`) so ``an`` takes no</span>
+<span class="sd">scipy; :func:`mixing.loudness.limit_peaks` is the limiter, moved there unchanged</span>
+<span class="sd">(so :data:`LEVEL_VERSION` did not move, and a test pins the leveled bytes).</span>
+<span class="sd">What stays here is ``an``'s own: the voices, the offsets, the hysteresis, the</span>
+<span class="sd">makeup pass and the content keys. Without ``mixing`` installed, leveling raises</span>
+<span class="sd">:class:`LoudnessComponentMissing` naming the extra, and the render's spread</span>
+<span class="sd">warning is skipped (as it is without ffmpeg).</span>
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
@@ -758,14 +767,10 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">wave</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">MutableMapping</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <span class="c1">#: Bumped whenever a leveled line's bytes would change for the same inputs</span>
@@ -797,15 +802,26 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: A leveled voice that ends further than this from its target (the limiter</span>
 <span class="c1">#: held its peaks, or the gain was capped) is warned about.</span>
 <span class="n">MISS_WARNING_DB</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="c1">#: The loudness meter injected into :mod:`mixing.loudness` (one of its</span>
+<span class="c1">#: ``METERS``): ffmpeg's ``ebur128``, so ``an`` needs no scipy for its numpy meter.</span>
+<span class="n">METER</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"ffmpeg_ebur128"</span>
+<span class="c1">#: What installs the shared loudness component.</span>
+<span class="n">INSTALL_HINT</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"pip install 'an[loudness]'"</span>
 <span class="c1">#: 16-bit full scale.</span>
 <span class="n">_INT16_FULL_SCALE</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">32768.0</span>
-<span class="n">_INTEGRATED</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"I:\s*(-?\d+(?:\.\d+)?|-inf)\s*LUFS"</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="VoiceLoudnessError">
 <a class="viewcode-back" href="../../../_autosummary/an.audio.loudness.html#an.audio.loudness.VoiceLoudnessError">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">VoiceLoudnessError</span><span class="p">(</span><span class="ne">RuntimeError</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""The voices cannot be measured or leveled (no ffmpeg, an unreadable line)."""</span></div>
+
+
+
+<div class="viewcode-block" id="LoudnessComponentMissing">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.loudness.html#an.audio.loudness.LoudnessComponentMissing">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LoudnessComponentMissing</span><span class="p">(</span><span class="n">VoiceLoudnessError</span><span class="p">,</span> <span class="ne">ImportError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The shared loudness component (:mod:`mixing.loudness`) is not installed."""</span></div>
 
 
 
@@ -833,6 +849,40 @@ window.runMermaid = runMermaid;</script>
             <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">doing</span><span class="si">}</span><span class="s2"> needs the ffmpeg binary on PATH (macOS: `brew install ffmpeg`; "</span>
             <span class="s2">"Debian/Ubuntu: `apt install ffmpeg`)"</span>
         <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_install_hint</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""How to get the component: the extra, or (when ``mixing`` is there but</span>
+<span class="sd">    predates ``mixing.loudness``, 0.0.64) an upgrade, which the extra would not do."""</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">importlib.util</span>
+
+    <span class="k">if</span> <span class="n">importlib</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">find_spec</span><span class="p">(</span><span class="s2">"mixing"</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">"upgrade mixing (`pip install -U mixing`; mixing.loudness is in 0.0.64 and later)"</span>
+    <span class="k">return</span> <span class="n">INSTALL_HINT</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_component</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">""":mod:`mixing.loudness`, or :class:`LoudnessComponentMissing` naming the extra."""</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">mixing</span><span class="w"> </span><span class="kn">import</span> <span class="n">loudness</span>
+    <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">LoudnessComponentMissing</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"leveling voices needs the shared loudness component "</span>
+            <span class="sa">f</span><span class="s2">"(mixing.loudness): </span><span class="si">{</span><span class="n">_install_hint</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+    <span class="k">return</span> <span class="n">loudness</span>
+
+
+<div class="viewcode-block" id="component_available">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.loudness.html#an.audio.loudness.component_available">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">component_available</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether :mod:`mixing.loudness` can be imported (what measuring needs)."""</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">_component</span><span class="p">()</span>
+    <span class="k">except</span> <span class="n">LoudnessComponentMissing</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="kc">True</span></div>
+
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_decode</span><span class="p">(</span><span class="n">audio</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_Pcm</span><span class="p">:</span>
@@ -867,21 +917,20 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">buf</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_joined</span><span class="p">(</span><span class="n">pcms</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">_Pcm</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">_Pcm</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Lines back to back at the first line's rate (a voice's lines share a</span>
-<span class="sd">    provider, so a rate; another is resampled), keeping their channels when</span>
-<span class="sd">    they all have the same count (EBU R128 weights channels; a downmix of</span>
-<span class="sd">    uncorrelated stereo reads ~3 dB low), else downmixed to mono."""</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_at_one_rate</span><span class="p">(</span><span class="n">pcms</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">_Pcm</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``(segments, rate)``: the lines at the first line's rate (a voice's lines</span>
+<span class="sd">    share a provider, so a rate; another is resampled), each keeping its</span>
+<span class="sd">    channels — :func:`mixing.loudness.level_group` joins them back to back,</span>
+<span class="sd">    keeping channels when they all agree (EBU R128 weights channels) and</span>
+<span class="sd">    looping a short voice to :data:`MIN_MEASURE_S`."""</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">pcms</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">_Pcm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span> <span class="mi">48000</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[],</span> <span class="mi">48000</span>
     <span class="n">rate</span> <span class="o">=</span> <span class="n">pcms</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">rate</span>
-    <span class="n">channels</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pcms</span><span class="p">}</span>
-    <span class="n">keep</span> <span class="o">=</span> <span class="n">channels</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">channels</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="kc">None</span>
-    <span class="n">parts</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">segments</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pcms</span><span class="p">:</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">samples</span> <span class="k">if</span> <span class="n">keep</span> <span class="k">else</span> <span class="n">p</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">samples</span>
         <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">rate</span> <span class="o">!=</span> <span class="n">rate</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
             <span class="n">positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">p</span><span class="o">.</span><span class="n">rate</span> <span class="o">/</span> <span class="n">rate</span><span class="p">)</span>
             <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span>
@@ -891,12 +940,36 @@ window.runMermaid = runMermaid;</script>
                 <span class="p">],</span>
                 <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
             <span class="p">)</span>
-        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-    <span class="n">joined</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span>
-    <span class="n">need</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">MIN_MEASURE_S</span> <span class="o">*</span> <span class="n">rate</span><span class="p">)</span>
-    <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">joined</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">need</span><span class="p">:</span>  <span class="c1"># too short to gate: looped to a measurable length</span>
-        <span class="n">joined</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">joined</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="o">-</span><span class="n">need</span> <span class="o">//</span> <span class="nb">len</span><span class="p">(</span><span class="n">joined</span><span class="p">)),</span> <span class="mi">1</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">_Pcm</span><span class="p">(</span><span class="n">joined</span><span class="p">,</span> <span class="n">rate</span><span class="p">)</span>
+        <span class="n">segments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">segments</span><span class="p">,</span> <span class="n">rate</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_meter</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">fs</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The meter :func:`mixing.loudness.level_group` is given: this module's</span>
+<span class="sd">    :func:`integrated_loudness` (looked up at call time, so it can be counted)."""</span>
+    <span class="k">return</span> <span class="n">integrated_loudness</span><span class="p">(</span><span class="n">_Pcm</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">fs</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_level_group</span><span class="p">(</span><span class="n">pcms</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">_Pcm</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">target_lufs</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">max_gain_db</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">""":func:`mixing.loudness.level_group` over a voice's decoded lines:</span>
+<span class="sd">    ``(gain_db, measured_lufs)``, measured by :data:`METER`."""</span>
+    <span class="n">segments</span><span class="p">,</span> <span class="n">rate</span> <span class="o">=</span> <span class="n">_at_one_rate</span><span class="p">(</span><span class="n">pcms</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_component</span><span class="p">()</span><span class="o">.</span><span class="n">level_group</span><span class="p">(</span>
+        <span class="n">segments</span><span class="p">,</span>
+        <span class="n">rate</span><span class="p">,</span>
+        <span class="n">target_lufs</span><span class="o">=</span><span class="n">target_lufs</span><span class="p">,</span>
+        <span class="n">meter</span><span class="o">=</span><span class="n">_meter</span><span class="p">,</span>
+        <span class="n">max_gain_db</span><span class="o">=</span><span class="n">max_gain_db</span><span class="p">,</span>
+        <span class="n">min_measure_s</span><span class="o">=</span><span class="n">MIN_MEASURE_S</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="group_loudness">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.loudness.html#an.audio.loudness.group_loudness">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">group_loudness</span><span class="p">(</span><span class="n">pcms</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">_Pcm</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The integrated loudness of a voice's lines, measured back to back."""</span>
+    <span class="k">return</span> <span class="n">_level_group</span><span class="p">(</span><span class="n">pcms</span><span class="p">,</span> <span class="n">target_lufs</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">max_gain_db</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">"inf"</span><span class="p">))[</span><span class="mi">1</span><span class="p">]</span></div>
+
 
 
 <span class="c1"># -----------------------------------------------------------------------------</span>
@@ -907,25 +980,16 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="integrated_loudness">
 <a class="viewcode-back" href="../../../_autosummary/an.audio.loudness.html#an.audio.loudness.integrated_loudness">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">integrated_loudness</span><span class="p">(</span><span class="n">pcm</span><span class="p">:</span> <span class="n">_Pcm</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""EBU R128 integrated loudness (LUFS) of ``pcm``, by ffmpeg's ``ebur128``</span>
-<span class="sd">    (``-inf`` for silence)."""</span>
-    <span class="n">_require_ffmpeg</span><span class="p">(</span><span class="s2">"measuring a voice's loudness"</span><span class="p">)</span>
-    <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tmp</span><span class="p">:</span>
-        <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span> <span class="o">/</span> <span class="s2">"voice.wav"</span>
-        <span class="n">path</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">_encode</span><span class="p">(</span><span class="n">pcm</span><span class="p">))</span>
-        <span class="n">proc</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
-            <span class="p">[</span><span class="s2">"ffmpeg"</span><span class="p">,</span> <span class="s2">"-hide_banner"</span><span class="p">,</span> <span class="s2">"-nostats"</span><span class="p">,</span> <span class="s2">"-nostdin"</span><span class="p">,</span> <span class="s2">"-i"</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">),</span>
-             <span class="s2">"-af"</span><span class="p">,</span> <span class="s2">"ebur128=framelog=quiet"</span><span class="p">,</span> <span class="s2">"-f"</span><span class="p">,</span> <span class="s2">"null"</span><span class="p">,</span> <span class="s2">"-"</span><span class="p">],</span>
-            <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="p">)</span>  <span class="c1"># fmt: skip</span>
-    <span class="n">found</span> <span class="o">=</span> <span class="n">_INTEGRATED</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">proc</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">proc</span><span class="o">.</span><span class="n">returncode</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">found</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""EBU R128 integrated loudness (LUFS) of ``pcm``, by :data:`METER` through</span>
+<span class="sd">    :func:`mixing.loudness.integrated_lufs` (``-inf`` for silence)."""</span>
+    <span class="n">component</span> <span class="o">=</span> <span class="n">_component</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">component</span><span class="o">.</span><span class="n">integrated_lufs</span><span class="p">(</span><span class="n">pcm</span><span class="o">.</span><span class="n">samples</span><span class="p">,</span> <span class="n">pcm</span><span class="o">.</span><span class="n">rate</span><span class="p">,</span> <span class="n">meter</span><span class="o">=</span><span class="n">METER</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">RuntimeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># no ffmpeg, or ffmpeg failed</span>
         <span class="k">raise</span> <span class="n">VoiceLoudnessError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"ffmpeg could not measure loudness (rc=</span><span class="si">{</span><span class="n">proc</span><span class="o">.</span><span class="n">returncode</span><span class="si">}</span><span class="s2">): "</span>
-            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">proc</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">strip</span><span class="p">()[</span><span class="o">-</span><span class="mi">400</span><span class="p">:]</span><span class="si">}</span><span class="s2">"</span>
-        <span class="p">)</span>
-    <span class="n">value</span> <span class="o">=</span> <span class="n">found</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="s2">"-inf"</span><span class="p">)</span> <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="s2">"-inf"</span> <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+            <span class="sa">f</span><span class="s2">"measuring a voice's loudness: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2"> (macOS: `brew install ffmpeg`; "</span>
+            <span class="s2">"Debian/Ubuntu: `apt install ffmpeg`)"</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
 
 
 
@@ -934,45 +998,13 @@ window.runMermaid = runMermaid;</script>
 <span class="c1"># -----------------------------------------------------------------------------</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_sliding_min</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""The minimum of every ``k``-long window of ``x`` (``len(x) - k + 1`` of</span>
-<span class="sd">    them), in O(n) (van Herk / Gil-Werman: prefix and suffix minima per block)."""</span>
-    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-
-    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-    <span class="n">pad</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">n</span><span class="p">)</span> <span class="o">%</span> <span class="n">k</span>
-    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">pad</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
-    <span class="n">prefix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="o">.</span><span class="n">accumulate</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
-    <span class="n">suffix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="o">.</span><span class="n">accumulate</span><span class="p">(</span><span class="n">y</span><span class="p">[:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
-    <span class="n">i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">suffix</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">prefix</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
-
-
 <div class="viewcode-block" id="limit_peaks">
 <a class="viewcode-back" href="../../../_autosummary/an.audio.loudness.html#an.audio.loudness.limit_peaks">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">limit_peaks</span><span class="p">(</span><span class="n">samples</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ceiling</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">window</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""``samples`` with no sample above ``ceiling`` (absolute, full scale 1.0).</span>
-
-<span class="sd">    The gain each sample needs (``ceiling / |x|``, at most 1) is spread over</span>
-<span class="sd">    ``window`` samples on both sides — a sliding minimum over ``2 * window + 1``,</span>
-<span class="sd">    then a moving average over ``window`` — so it eases into and out of a peak.</span>
-<span class="sd">    Every sample's gain is at most what that sample needs, so the ceiling holds</span>
-<span class="sd">    exactly; nothing moves in time.</span>
-<span class="sd">    """</span>
-    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">samples</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">samples</span>
-    <span class="n">peak</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">need</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">ceiling</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">peak</span><span class="p">,</span> <span class="mf">1e-12</span><span class="p">))</span>
-    <span class="k">if</span> <span class="n">need</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="mf">1.0</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">samples</span>
-    <span class="n">w</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">window</span><span class="p">))</span>
-    <span class="n">lows</span> <span class="o">=</span> <span class="n">_sliding_min</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">need</span><span class="p">,</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">w</span><span class="p">),</span> <span class="n">constant_values</span><span class="o">=</span><span class="mf">1.0</span><span class="p">),</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">w</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="n">padded</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">lows</span><span class="p">,</span> <span class="p">(</span><span class="n">w</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">w</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">w</span> <span class="o">//</span> <span class="mi">2</span><span class="p">),</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"edge"</span><span class="p">)</span>
-    <span class="n">gain</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">padded</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="o">/</span> <span class="n">w</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"valid"</span><span class="p">)</span>
-    <span class="n">gain</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">gain</span><span class="p">,</span> <span class="n">need</span><span class="p">)</span>  <span class="c1"># float rounding never lets a peak through</span>
-    <span class="k">return</span> <span class="n">samples</span> <span class="o">*</span> <span class="n">gain</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span></div>
+<span class="w">    </span><span class="sd">"""``samples`` with no sample above ``ceiling`` (absolute, full scale 1.0):</span>
+<span class="sd">    :func:`mixing.loudness.limit_peaks` (sample peak), the lookahead limiter</span>
+<span class="sd">    that moved there unchanged from here (an#563)."""</span>
+    <span class="k">return</span> <span class="n">_component</span><span class="p">()</span><span class="o">.</span><span class="n">limit_peaks</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">ceiling</span><span class="o">=</span><span class="n">ceiling</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="n">window</span><span class="p">)</span></div>
 
 
 
@@ -1053,8 +1085,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">store</span> <span class="o">=</span> <span class="n">mall</span><span class="p">[</span><span class="s2">"audio"</span><span class="p">]</span>
     <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">voice</span><span class="p">,</span> <span class="n">lines</span> <span class="ow">in</span> <span class="n">voiced_lines</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">mall</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">pcm</span> <span class="o">=</span> <span class="n">_joined</span><span class="p">([</span><span class="n">_decode</span><span class="p">(</span><span class="n">store</span><span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">audio_ref</span><span class="p">])</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">])</span>
-        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">VoiceLevel</span><span class="p">(</span><span class="n">voice</span><span class="p">,</span> <span class="n">integrated_loudness</span><span class="p">(</span><span class="n">pcm</span><span class="p">),</span> <span class="n">lines</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)))</span>
+        <span class="n">pcms</span> <span class="o">=</span> <span class="p">[</span><span class="n">_decode</span><span class="p">(</span><span class="n">store</span><span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">audio_ref</span><span class="p">])</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">]</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">VoiceLevel</span><span class="p">(</span><span class="n">voice</span><span class="p">,</span> <span class="n">group_loudness</span><span class="p">(</span><span class="n">pcms</span><span class="p">),</span> <span class="n">lines</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)))</span>
     <span class="k">return</span> <span class="n">out</span></div>
 
 
@@ -1149,22 +1181,32 @@ window.runMermaid = runMermaid;</script>
         <span class="p">):</span>
             <span class="n">levels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">VoiceLevel</span><span class="p">(</span><span class="n">voice</span><span class="p">,</span> <span class="n">target</span> <span class="o">-</span> <span class="n">previous</span><span class="p">,</span> <span class="n">previous</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)))</span>
             <span class="k">continue</span>  <span class="c1"># nothing changed since this voice was leveled: nothing to measure</span>
-        <span class="n">lufs</span> <span class="o">=</span> <span class="n">integrated_loudness</span><span class="p">(</span><span class="n">_joined</span><span class="p">([</span><span class="n">_decode</span><span class="p">(</span><span class="n">src</span><span class="p">)</span> <span class="k">for</span> <span class="n">src</span> <span class="ow">in</span> <span class="n">sources</span><span class="p">]))</span>
+        <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">(</span><span class="n">record</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">capped</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">"always"</span><span class="p">)</span>
+            <span class="n">gain</span><span class="p">,</span> <span class="n">lufs</span> <span class="o">=</span> <span class="n">_level_group</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">_decode</span><span class="p">(</span><span class="n">src</span><span class="p">)</span> <span class="k">for</span> <span class="n">src</span> <span class="ow">in</span> <span class="n">sources</span><span class="p">],</span>
+                <span class="n">target_lufs</span><span class="o">=</span><span class="n">target</span><span class="p">,</span>
+                <span class="n">max_gain_db</span><span class="o">=</span><span class="n">MAX_GAIN_DB</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="n">level</span> <span class="o">=</span> <span class="n">VoiceLevel</span><span class="p">(</span><span class="n">voice</span><span class="p">,</span> <span class="n">lufs</span><span class="p">,</span> <span class="n">lines</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">))</span>
         <span class="n">levels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">caught</span> <span class="ow">in</span> <span class="n">capped</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">caught</span><span class="o">.</span><span class="n">category</span> <span class="ow">is</span> <span class="ne">UserWarning</span>
+            <span class="p">):</span>  <span class="c1"># the component capped the gain: said per voice</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"voice </span><span class="si">{</span><span class="n">voice</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">caught</span><span class="o">.</span><span class="n">message</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                    <span class="n">VoiceLoudnessWarning</span><span class="p">,</span>
+                    <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># anything else is not ours to relabel: pass it on as it was</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn_explicit</span><span class="p">(</span>
+                    <span class="n">caught</span><span class="o">.</span><span class="n">message</span><span class="p">,</span> <span class="n">caught</span><span class="o">.</span><span class="n">category</span><span class="p">,</span> <span class="n">caught</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span> <span class="n">caught</span><span class="o">.</span><span class="n">lineno</span>
+                <span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">lufs</span> <span class="o">&gt;</span> <span class="n">SILENCE_LUFS</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
                 <span class="n">line</span><span class="o">.</span><span class="n">audio_ref</span><span class="p">,</span> <span class="n">line</span><span class="o">.</span><span class="n">leveled</span> <span class="o">=</span> <span class="n">_source</span><span class="p">(</span><span class="n">line</span><span class="p">),</span> <span class="kc">None</span>
             <span class="k">continue</span>  <span class="c1"># silence (the offline provider): nothing to level</span>
-        <span class="n">gain</span> <span class="o">=</span> <span class="n">target</span> <span class="o">-</span> <span class="n">lufs</span>
-        <span class="k">if</span> <span class="n">gain</span> <span class="o">&gt;</span> <span class="n">MAX_GAIN_DB</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"voice </span><span class="si">{</span><span class="n">voice</span><span class="si">!r}</span><span class="s2"> measures </span><span class="si">{</span><span class="n">lufs</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> LUFS: reaching </span><span class="si">{</span><span class="n">target</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> would "</span>
-                <span class="sa">f</span><span class="s2">"take </span><span class="si">{</span><span class="n">gain</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> dB, mostly noise; capped at +</span><span class="si">{</span><span class="n">MAX_GAIN_DB</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> dB"</span><span class="p">,</span>
-                <span class="n">VoiceLoudnessWarning</span><span class="p">,</span>
-                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-            <span class="p">)</span>
-            <span class="n">gain</span> <span class="o">=</span> <span class="n">MAX_GAIN_DB</span>
         <span class="k">if</span> <span class="n">previous</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">gain</span> <span class="o">-</span> <span class="n">previous</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">GAIN_STEP_DB</span><span class="p">:</span>
             <span class="n">gain</span> <span class="o">=</span> <span class="n">previous</span>  <span class="c1"># hysteresis: a move under a step re-levels nothing</span>
 
@@ -1181,7 +1223,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">made</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">store</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
                 <span class="n">line</span><span class="o">.</span><span class="n">leveled</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"source"</span><span class="p">:</span> <span class="n">_source</span><span class="p">(</span><span class="n">line</span><span class="p">),</span> <span class="s2">"gain_db"</span><span class="p">:</span> <span class="n">level</span><span class="o">.</span><span class="n">gain_db</span><span class="p">}</span>
                 <span class="n">line</span><span class="o">.</span><span class="n">audio_ref</span> <span class="o">=</span> <span class="n">key</span>
-            <span class="k">return</span> <span class="n">integrated_loudness</span><span class="p">(</span><span class="n">_joined</span><span class="p">([</span><span class="n">_decode</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">made</span><span class="p">]))</span>
+            <span class="k">return</span> <span class="n">group_loudness</span><span class="p">([</span><span class="n">_decode</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">made</span><span class="p">])</span>
 
         <span class="n">reached</span> <span class="o">=</span> <span class="n">apply</span><span class="p">(</span><span class="n">gain</span><span class="p">)</span>
         <span class="n">short</span> <span class="o">=</span> <span class="n">target</span> <span class="o">-</span> <span class="n">reached</span>

@@ -1,4 +1,4 @@
-> built 2026-10-27 01:56 UTC from 2e8241d (main) · an 0.1.287. Details: build_info.json
+> built 2026-10-27 02:21 UTC from 65431fc (main) · an 0.1.288. Details: build_info.json
 
 # index.html.md
 
@@ -3505,10 +3505,17 @@ Without a target, [`loudness_report()`](_autosummary/an.audio.loudness.html.md#a
 [`voice_loudness_spread()`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.voice_loudness_spread) says when they differ by more than
 [`SPREAD_WARNING_DB`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.SPREAD_WARNING_DB) — the render warns, naming each voice’s level.
 
-```pycon
->>> float(limit_peaks(__import__("numpy").array([[0.0], [2.0], [0.0]]), ceiling=1.0).max())
-1.0
-```
+The measuring and the limiter are the fleet’s shared loudness component,
+`mixing.loudness` (an#563; `pip install 'an[loudness]'`):
+`mixing.loudness.level_group()` measures a voice’s lines back to back (looped
+to [`MIN_MEASURE_S`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.MIN_MEASURE_S), channels kept when they agree) and caps the gain, with
+ffmpeg’s `ebur128` injected as its meter ([`METER`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.METER)) so `an` takes no
+scipy; `mixing.loudness.limit_peaks()` is the limiter, moved there unchanged
+(so [`LEVEL_VERSION`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.LEVEL_VERSION) did not move, and a test pins the leveled bytes).
+What stays here is `an`’s own: the voices, the offsets, the hysteresis, the
+makeup pass and the content keys. Without `mixing` installed, leveling raises
+[`LoudnessComponentMissing`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.LoudnessComponentMissing) naming the extra, and the render’s spread
+warning is skipped (as it is without ffmpeg).
 
 ### Module Attributes
 
@@ -3522,15 +3529,19 @@ Without a target, [`loudness_report()`](_autosummary/an.audio.loudness.html.md#a
 | [`OFFSET_LIMITS_DB`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.OFFSET_LIMITS_DB)  | `loudness_offset_db` bounds on a voice document.                                                                                                                                                                                    |
 | [`MIN_MEASURE_S`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.MIN_MEASURE_S)     | EBU R128 gates in 400 ms blocks, and a voice of only short lines would read as silence.                                                                                                                                             |
 | [`MISS_WARNING_DB`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.MISS_WARNING_DB)   | A leveled voice that ends further than this from its target (the limiter held its peaks, or the gain was capped) is warned about.                                                                                                   |
+| [`METER`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.METER)             | The loudness meter injected into `mixing.loudness` (one of its `METERS`): ffmpeg's `ebur128`, so `an` needs no scipy for its numpy meter.                                                                                           |
+| [`INSTALL_HINT`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.INSTALL_HINT)      | What installs the shared loudness component.                                                                                                                                                                                        |
 
 ### Functions
 
-| [`integrated_loudness`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.integrated_loudness)(pcm)                    | EBU R128 integrated loudness (LUFS) of `pcm`, by ffmpeg's `ebur128` (`-inf` for silence).                                                                                                                                                                                                                                   |
+| [`component_available`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.component_available)()                       | Whether `mixing.loudness` can be imported (what measuring needs).                                                                                                                                                                                                                                                           |
 |----------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`group_loudness`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.group_loudness)(pcms)                        | The integrated loudness of a voice's lines, measured back to back.                                                                                                                                                                                                                                                          |
+| [`integrated_loudness`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.integrated_loudness)(pcm)                    | EBU R128 integrated loudness (LUFS) of `pcm`, by [`METER`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.METER) through `mixing.loudness.integrated_lufs()` (`-inf` for silence).                                                                                                                                                   |
 | [`level_voices`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.level_voices)(scene, mall, spec)             | Level every voice of `scene` to `spec` ([`VoiceLoudness`](_autosummary/an.ir.schema.html.md#an.ir.schema.VoiceLoudness)): each line is stamped with its leveled audio (made once per source bytes, gain and ceiling, in the `audio` store) and `Dialogue.leveled`.                                                |
 | [`leveled_audio`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.leveled_audio)(audio, \*, gain_db, peak_db)  | `audio` at `gain_db`, its peaks held at `peak_db` dBFS, as a 16-bit PCM WAV of exactly the length of the decoded source (an MP3 source is stored decoded, as the mux would decode it).                                                                                                                                      |
 | [`leveled_key`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.leveled_key)(source, \*, gain_db, peak_db)   | The content key of a leveled line: the sha256 of its source audio's BYTES (not the request that made them: a take re-synthesised under the same request is other audio, an#315 review), the gain, the ceiling, the rate a non-WAV source is decoded at, and [`LEVEL_VERSION`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.LEVEL_VERSION). |
-| [`limit_peaks`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.limit_peaks)(samples, \*, ceiling[, window]) | `samples` with no sample above `ceiling` (absolute, full scale 1.0).                                                                                                                                                                                                                                                        |
+| [`limit_peaks`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.limit_peaks)(samples, \*, ceiling[, window]) | `samples` with no sample above `ceiling` (absolute, full scale 1.0): `mixing.loudness.limit_peaks()` (sample peak), the lookahead limiter that moved there unchanged from here (an#563).                                                                                                                                    |
 | [`loudness_report`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.loudness_report)(scene, mall)                | Every voice's integrated loudness over its lines, as heard now (a leveled line's leveled audio).                                                                                                                                                                                                                            |
 | [`voice_loudness_spread`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.voice_loudness_spread)(levels)               | What to say when the audible voices differ by more than [`SPREAD_WARNING_DB`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.SPREAD_WARNING_DB); `None` otherwise.                                                                                                                                                                               |
 | [`voiced_lines`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.voiced_lines)(scene, mall)                   | `{voice id: [line, ...]}` for every line with audio in the store.                                                                                                                                                                                                                                                           |
@@ -3543,9 +3554,10 @@ Without a target, [`loudness_report()`](_autosummary/an.audio.loudness.html.md#a
 
 ### Exceptions
 
-| [`VoiceLoudnessError`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.VoiceLoudnessError)   | The voices cannot be measured or leveled (no ffmpeg, an unreadable line).                                             |
-|-----------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------|
-| [`VoiceLoudnessWarning`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.VoiceLoudnessWarning) | The film's voices differ in loudness by more than [`SPREAD_WARNING_DB`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.SPREAD_WARNING_DB). |
+| [`LoudnessComponentMissing`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.LoudnessComponentMissing)   | The shared loudness component (`mixing.loudness`) is not installed.                                                   |
+|-----------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------|
+| [`VoiceLoudnessError`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.VoiceLoudnessError)         | The voices cannot be measured or leveled (no ffmpeg, an unreadable line).                                             |
+| [`VoiceLoudnessWarning`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.VoiceLoudnessWarning)       | The film's voices differ in loudness by more than [`SPREAD_WARNING_DB`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.SPREAD_WARNING_DB). |
 
 ### an.audio.loudness.GAIN_STEP_DB *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
 
@@ -3553,6 +3565,10 @@ A voice’s gain is rounded to this, so a new line that moves its voice’s
 loudness by less than half of it re-renders nothing else (half a dB is
 below what a listener hears between two lines; the measurement itself is
 to 0.1 LU).
+
+### an.audio.loudness.INSTALL_HINT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= "pip install 'an[loudness]'"*
+
+What installs the shared loudness component.
 
 ### an.audio.loudness.LEVEL_VERSION *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 1*
 
@@ -3570,10 +3586,21 @@ an#315 review).
 * **Type:**
   The limiter’s lookahead and release, seconds
 
+### *exception* an.audio.loudness.LoudnessComponentMissing
+
+Bases: [`VoiceLoudnessError`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.VoiceLoudnessError), [`ImportError`](https://docs.python.org/3/builtins/exceptions.html#ImportError)
+
+The shared loudness component (`mixing.loudness`) is not installed.
+
 ### an.audio.loudness.MAX_GAIN_DB *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 24.0*
 
 The largest gain leveling gives a voice; beyond it the voice is mostly
 noise (room tone measured at -62 LUFS asked for +46 dB). Capped, and warned.
+
+### an.audio.loudness.METER *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'ffmpeg_ebur128'*
+
+The loudness meter injected into `mixing.loudness` (one of its
+`METERS`): ffmpeg’s `ebur128`, so `an` needs no scipy for its numpy meter.
 
 ### an.audio.loudness.MIN_MEASURE_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 1.0*
 
@@ -3621,10 +3648,24 @@ Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWa
 
 The film’s voices differ in loudness by more than [`SPREAD_WARNING_DB`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.SPREAD_WARNING_DB).
 
+### an.audio.loudness.component_available()
+
+Whether `mixing.loudness` can be imported (what measuring needs).
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+### an.audio.loudness.group_loudness(pcms)
+
+The integrated loudness of a voice’s lines, measured back to back.
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
 ### an.audio.loudness.integrated_loudness(pcm)
 
-EBU R128 integrated loudness (LUFS) of `pcm`, by ffmpeg’s `ebur128`
-(`-inf` for silence).
+EBU R128 integrated loudness (LUFS) of `pcm`, by [`METER`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.METER) through
+`mixing.loudness.integrated_lufs()` (`-inf` for silence).
 
 * **Return type:**
   [`float`](https://docs.python.org/3/builtins/functions.html#float)
@@ -3666,13 +3707,9 @@ True
 
 ### an.audio.loudness.limit_peaks(samples, , ceiling, window=1)
 
-`samples` with no sample above `ceiling` (absolute, full scale 1.0).
-
-The gain each sample needs (`ceiling / |x|`, at most 1) is spread over
-`window` samples on both sides — a sliding minimum over `2 * window + 1`,
-then a moving average over `window` — so it eases into and out of a peak.
-Every sample’s gain is at most what that sample needs, so the ceiling holds
-exactly; nothing moves in time.
+`samples` with no sample above `ceiling` (absolute, full scale 1.0):
+`mixing.loudness.limit_peaks()` (sample peak), the lookahead limiter
+that moved there unchanged from here (an#563).
 
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
@@ -32472,7 +32509,7 @@ One sentence per camera move, in production terms.
 
 Version of each named camera move (ADR 0003). Bump one when its keys change.
 
-### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions, closing_transition}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.camera.follow', kind='field', version='1', name='shot.camera.follow', title='', description='a camera that follows an entity', usage="camera.follow (optional): {target: <entity id or node path>, axes: x|y|xy, lag: <seconds, optional: the camera trails the target with this time constant>} — the camera tracks the target, keeping it where it stood at the shot's start (a walk across a long set); planes parallax with it. Instead of a move or keys (hold is fine); a shake layers on top.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera.shake', kind='field', version='1', name='shot.camera.shake', title='', description='a jolt of the frame inside the shot', usage='camera.shake (optional): jolts of the frame layered on the move or keys — [{at: s, duration: 0.4, amplitude: 0.015, frequency: 24, decay: true, seed: 0}], amplitude a fraction of the frame height; for an impact, a slam, an explosion. The frame is at rest before \`at\` and after the end; shakes may not overlap or run past the shot.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. On a text block, 'text' swaps a replacement set's string ('texts', unit 'block'; the value is a key) and 'value' is a counter block's number ('counter'; set or tween a number, lowered at compile to the strings the frames show). Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, '#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / plane_fade_start / plane_fade_end tilt the node's plane away from the camera (radians, frame heights, plane px), and then pivot_y slides its content along the plane. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve" | "wipe", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. \\'wipe\\' overlaps the same way, but a hard edge sweeps across the frame in direction (\\'left\\', \\'right\\', \\'up\\' or \\'down\\': the way the edge travels). A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.closing_transition', kind='field', version='1', name='meta.closing_transition', title='', description='how the film ends', usage="meta.closing_transition (optional): how the film ENDS — {kind: 'fade', duration: seconds, color: '#rrggbb'}: the last shot's last duration fades to color (its final frame IS the color) and the sound fades with it; the film's length is unchanged. Omitted (or 'cut') = it ends on its last frame. A dissolve is refused.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
+### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions, closing_transition}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.camera.follow', kind='field', version='1', name='shot.camera.follow', title='', description='a camera that follows an entity', usage="camera.follow (optional): {target: <entity id or node path>, axes: x|y|xy, lag: <seconds, optional: the camera trails the target with this time constant>} — the camera tracks the target, keeping it where it stood at the shot's start (a walk across a long set); planes parallax with it. Instead of a move or keys (hold is fine); a shake layers on top.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera.shake', kind='field', version='1', name='shot.camera.shake', title='', description='a jolt of the frame inside the shot', usage='camera.shake (optional): jolts of the frame layered on the move or keys — [{at: s, duration: 0.4, amplitude: 0.015, frequency: 24, decay: true, seed: 0}], amplitude a fraction of the frame height; for an impact, a slam, an explosion. The frame is at rest before \`at\` and after the end; shakes may not overlap or run past the shot.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. On a text block, 'text' swaps a replacement set's string ('texts', unit 'block'; the value is a key) and 'value' is a counter block's number ('counter'; set or tween a number, lowered at compile to the strings the frames show). Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, '#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / plane_fade_start / plane_fade_end tilt the node's plane away from the camera (radians, frame heights, plane px), and then pivot_y slides its content along the plane. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve" | "wipe", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. \\'wipe\\' overlaps the same way, but a hard edge sweeps across the frame in direction (\\'left\\', \\'right\\', \\'up\\' or \\'down\\': the way the edge travels). A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.closing_transition', kind='field', version='1', name='meta.closing_transition', title='', description='how the film ends', usage="meta.closing_transition (optional): how the film ENDS — {kind: 'fade', duration: seconds, color: '#rrggbb'}: the last shot's last duration fades to color (its final frame IS the color) and the sound fades with it; the film's length is unchanged. Omitted (or 'cut') = it ends on its last frame. A dissolve is refused.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
 
 the core).
 
@@ -45920,18 +45957,20 @@ scene: the scene file to read, inside the project (default scene.md; for example
 
 # About this build
 
-This documentation was built on **2026-10-27 01:56 UTC** from commit <a href="https://github.com/reeleehq/an/commit/2e8241dec1b518a7536c665698cb58ef29db3384"><code>2e8241d</code></a> on branch <code>main</code>, for **an 0.1.287** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-27 02:21 UTC** from commit <a href="https://github.com/reeleehq/an/commit/65431fc87b601095195f143f58ec107332888fd9"><code>65431fc</code></a> on branch <code>main</code>, for **an 0.1.288** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.1.288) is ahead of the latest release on PyPI (0.1.287): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                    |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/an/commit/2e8241dec1b518a7536c665698cb58ef29db3384"><code>2e8241dec1b518a7536c665698cb58ef29db3384</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/an/commit/65431fc87b601095195f143f58ec107332888fd9"><code>65431fc87b601095195f143f58ec107332888fd9</code></a> |
 | Branch              | <code>main</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.287</code>                                                                                                                               |
+| Tags at this commit | <code>0.1.288</code>                                                                                                                               |
 | Working tree        | clean                                                                                                                                              |
 | Remote              | <code>https://github.com/reeleehq/an</code>                                                                                                        |
 
@@ -45940,9 +45979,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/an</code>                                                                   |
-| Run          | <a href="https://github.com/reeleehq/an/actions/runs/40434798043">40434798043</a>          |
+| Run          | <a href="https://github.com/reeleehq/an/actions/runs/40437164649">40437164649</a>          |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>0589c0e7162f447566854a5afa6fbb3830387d67</code> (in the history of the built commit) |
+| Event commit | <code>d9131f32e945a65a9c8b0d8bf3f309c0daeef1fd</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -45967,13 +46006,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.287/">0.1.287</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.287/">0.1.287</a>, older than the documented version (0.1.288).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/an && cd an
-git checkout 2e8241dec1b518a7536c665698cb58ef29db3384
+git checkout 65431fc87b601095195f143f58ec107332888fd9
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
