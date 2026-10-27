@@ -237,7 +237,7 @@ def audition(
 ) -> str:
     """An audition reel per option: the character's own lines from the scene, spoken in
     that option's voice with the film's TTS provider, the voice document's model, settings
-    and effects (its cues as audio tags), 0.6 s apart, to artifacts/voice_auditions/
+    and effects (its cues as audio tags), 0.6 s apart, to artifacts/voice_auditions/ (a scene other than scene.md: its own subfolder)
     (billed: one request per line per option; the whole bill is printed first, and a reel
     already made for the same lines, voice and settings is not made again). Play them to
     the writer, then `an voices choose`.
@@ -249,7 +249,13 @@ def audition(
     redo: make every reel again even when nothing changed (billed again)
     scene: the scene file whose lines the reels speak (default scene.md; for example scene.studio.md)
     """
-    from an.audio.voice_design import DESIGN_PROVIDER, audition_project_voices
+    from an.audio.voice_design import (
+        AUDITION_PATH_KEY,
+        DESIGN_PROVIDER,
+        _scene_record,
+        audition_project_voices,
+    )
+    from an.ir.sync import resolve_scene_file
 
     refs = [r.strip() for r in voices.split(",") if r.strip()] or None
     labels = [o.strip() for o in options.split(",") if o.strip()] or None
@@ -261,11 +267,12 @@ def audition(
         redo=redo,
         scene_file=scene,
     )
+    sf = resolve_scene_file(project, scene)
     return "\n".join(
-        f"{ref} {o['option']}: {o['audition_path']}"
+        f"{ref} {o['option']}: {record[AUDITION_PATH_KEY]}"
         for ref, entry in manifests.items()
         for o in entry["options"]
-        if o.get("audition_path")
+        if (record := _scene_record(o, sf)) and record.get(AUDITION_PATH_KEY)
     )
 
 
