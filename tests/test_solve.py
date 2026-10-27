@@ -640,3 +640,25 @@ def test_a_shot_that_does_not_compile_says_its_cause_at_most_twice(tmp_path):
     assert 1 <= sum("does not read" in m for m in said) <= 2
     assert sum("did NOT run" in m for m in said) == 1
     assert not [m for m in said if "were NOT checked" in m]
+
+
+def test_the_stages_dynamic_solve_leads_lost_grips_back_like_solve_frames(tmp_path, monkeypatch):
+    """an#668: the stage solves frame by frame, so it runs each frame through
+    the same lead step as `solve_frames` (an#645), with a step of
+    `regrip_speed * dt` in dynamic mode and none in pose mode."""
+    from an.kinematics import solver
+
+    steps = []
+    real = solver.solve_regripping
+
+    def spy(state, bodies, joints, targets, **kw):
+        steps.append(kw["step"])
+        return real(state, bodies, joints, targets, **kw)
+
+    monkeypatch.setattr(solver, "solve_regripping", spy)
+    project = _project(tmp_path)
+    for mode, expected in (("dynamic", solver.DFLT_REGRIP_SPEED / 24), ("pose", 0.0)):
+        steps.clear()
+        shot = _shot(project, duration=0.5, solve={"gravity": "down", "mode": mode})
+        _compile(project, shot)
+        assert steps and all(s == pytest.approx(expected) for s in steps), (mode, steps[:3])
