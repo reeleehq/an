@@ -1,1 +1,0 @@
-- Designing a voice again keeps its options manifest's `chosen` (its option cleared, marked to be retired when a new choice replaces it) and moves every other voice the old design saved, and that no voice document names, into `retired`; a damaged manifest is refused before anything is billed; `design_voice_options(previous=, in_use=)` gives a connector the same merge (an#604).
