@@ -292,3 +292,100 @@ def test_the_default_depth_makes_a_character_person_sized_not_the_tallest_thing(
     seeded = seed_members(shot, extents={"tower": box, "ada": box}, focal=500.0)
     ada = next(m for m in seeded.members if m.id == "ada")
     assert ada.height == pytest.approx(DFLT_SUBJECT_HEIGHT)
+
+
+def test_a_backdrop_listed_first_still_lets_the_copies_parallax():
+    """[tree, far lamp, near lamp]: the tree, placed once, takes the depth the
+    order needs (at least the far lamp's), so the lamps keep their depths."""
+    from an.ir.world_from_shot import seed_members
+
+    box = (-10.0, -100.0, 10.0, 0.0)
+
+    def placed(eid, ref, scale, at=(0.0, 0.0)):
+        return AssetRef(
+            kind="prop",
+            id=eid,
+            store="props",
+            ref=ref,
+            stage=StagePlacement(at=at, scale=scale),
+        )
+
+    shot = Shot(
+        id="m",
+        duration=1.0,
+        entities=[
+            placed("tree", "tree", 1.0),
+            placed("far", "lamp", 0.3),
+            placed("near", "lamp", 0.6),
+        ],
+    )
+    seeded = seed_members(
+        shot, extents={"tree": box, "far": box, "near": box}, focal=500.0
+    )
+    z = {m.id: m.at[2] for m in seeded.members}
+    assert seeded.flat is None
+    assert z["far"] == pytest.approx(2 * z["near"]) and z["tree"] >= z["far"]
+
+
+def test_copies_listed_against_their_depths_fall_back_to_one_depth_and_say_so():
+    from an.ir.world_from_shot import seed_members
+
+    box = (-10.0, -100.0, 10.0, 0.0)
+    shot = Shot(
+        id="m",
+        duration=1.0,
+        entities=[
+            AssetRef(
+                kind="prop",
+                id="near",
+                store="props",
+                ref="lamp",
+                stage=StagePlacement(at=(0.0, 0.0), scale=0.6),
+            ),
+            AssetRef(
+                kind="prop",
+                id="far",
+                store="props",
+                ref="lamp",
+                stage=StagePlacement(at=(9.0, 0.0), scale=0.3),
+            ),
+        ],
+    )
+    seeded = seed_members(shot, extents={"near": box, "far": box}, focal=500.0)
+    assert seeded.flat and "'near'" in seeded.flat
+    assert len({m.at[2] for m in seeded.members}) == 1
+
+
+def test_one_ref_in_two_stores_or_with_other_art_is_two_things():
+    from an.ir.world_from_shot import seed_members
+
+    box, small = (-10.0, -100.0, 10.0, 0.0), (-10.0, -50.0, 10.0, 0.0)
+    shot = Shot(
+        id="m",
+        duration=1.0,
+        entities=[
+            AssetRef(
+                kind="prop",
+                id="a",
+                store="props",
+                ref="lamp",
+                stage=StagePlacement(at=(0.0, 0.0), scale=0.3),
+            ),
+            AssetRef(
+                kind="prop",
+                id="b",
+                store="sets",
+                ref="lamp",
+                stage=StagePlacement(at=(0.0, 0.0), scale=0.6),
+            ),
+            AssetRef(
+                kind="prop",
+                id="c",
+                store="props",
+                ref="lamp",
+                stage=StagePlacement(at=(0.0, 0.0), scale=0.6),
+            ),
+        ],
+    )
+    seeded = seed_members(shot, extents={"a": box, "b": box, "c": small}, focal=500.0)
+    assert len({m.at[2] for m in seeded.members}) == 1, "no two of them are one thing"
