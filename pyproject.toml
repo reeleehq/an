@@ -66,6 +66,12 @@ dependencies = [
     # and `intervaltree` (Apache-2.0) with `sortedcontainers` (Apache-2.0),
     # ~0.05 s of import on top of `an`'s own.
     "lacing",
+    # The voice-effect chain (an#611): `an.audio.effects.filter_chain` builds
+    # its pitch and tempo stages with `mixing.filtergraph`, the fleet's one
+    # spelling of the stock-ffmpeg pitch shift (a sibling package, MIT). Its
+    # base install is light (config2py, dol, xdol) and `filtergraph` is pure;
+    # it is imported when a chain is built, never by `import an`.
+    "mixing",
 ]
 
 [project.scripts]
@@ -119,8 +125,6 @@ dev = [
     # The timing contract's schemas (an/data/timing/*.schema.json) are checked
     # against what the stage actually compiles (tests/test_timing_contract.py).
     "jsonschema",
-    # The voice-leveling tests run against the shared loudness component.
-    "mixing",
 ]
 docs = [
     "sphinx>=6.0",
@@ -164,8 +168,8 @@ recorded = [
 # through the fleet's shared component, `mixing.loudness` (MIT, a sibling
 # package). Its base install is light (config2py, dol, xdol); `an` uses its
 # ffmpeg `ebur128` meter, so it takes the bare package, not `mixing[loudness]`,
-# whose scipy only the numpy meter needs. Without it, leveling raises
-# `LoudnessComponentMissing` naming this extra.
+# whose scipy only the numpy meter needs. A core dependency since an#611; the
+# extra stays so `an[loudness]` keeps resolving.
 loudness = [
     "mixing",
 ]

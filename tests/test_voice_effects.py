@@ -161,8 +161,8 @@ def test_the_chain_is_stock_ffmpeg_and_duration_neutral():
     chain = filter_chain({"pitch_semitones": 4.0})
     assert "rubberband" not in chain
     assert chain.split(",")[1].startswith("asetrate=") and "atempo=" in chain
-    ratio = 2 ** (4 / 12)
-    assert float(chain.rsplit("atempo=", 1)[1]) == pytest.approx(1 / ratio, rel=1e-8)
+    rate = round(44100 * 2 ** (4 / 12))  # ffmpeg runs asetrate at an integer rate
+    assert float(chain.rsplit("atempo=", 1)[1]) == pytest.approx(44100 / rate, rel=1e-9)
     assert filter_chain({}) == ""
 
 
