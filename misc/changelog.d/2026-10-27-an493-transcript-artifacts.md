@@ -1,1 +1,0 @@
-- A recorded voice's transcript can be a linked artifact in the project store (an#493): the mall's new `transcripts` store (a `lacing.ArtifactStore`) keeps one (`record_transcript`), `an voices import --transcript artifact:transcripts/<key>` (or a `lacing.Artifact`) reads it, and each take's provenance names it.
