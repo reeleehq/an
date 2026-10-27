@@ -1631,26 +1631,33 @@ def test_slots_riding_a_plane_wrapper_are_ordered_inside_it(tmp_path):
     )
 
 
-def test_a_pole_passing_a_member_at_rest_is_painted_over_it_once_nearer(tmp_path):
+def test_a_pole_passing_a_member_at_rest_is_painted_over_it_once_nearer(tmp_path, monkeypatch):
     """an#648: the lamps ride the car at depth 2; each pole comes from far
     away and passes them. While a pole is farther it is painted under them,
     and from the instant it is nearer, over them (keyed again at the crossing,
-    not by its depth as the shot opens)."""
-    from an.base import PAINT_KEYS_OVERRIDE
+    not by its depth as the shot opens). Depths are the closed-form passes'
+    own, read where the lowering keys them."""
+    from an.ir import world as world_mod
     from an.stage.compile import compile_shot
     from an.stage.timeline import entity_alpha, timeline_from_scene
     from an.timing.timeline import evaluate_timeline
 
+    seen = {}
+    real = world_mod._slot_paint_keys
+
+    def spy(slots, rest_depths, **kw):
+        seen.update({e.id: list(passes) for e, passes in slots}, rest=list(rest_depths))
+        return real(slots, rest_depths, **kw)
+
+    monkeypatch.setattr(world_mod, "_slot_paint_keys", spy)
     project = _project(tmp_path)
     scene = _lane(_travel_scene(Shot(id="s1", duration=3.0, viewpoint="road")), 0.2)
     shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
-    keys = {e.id: e.overrides[PAINT_KEYS_OVERRIDE] for e in shot.entities}
-    (rest,) = {-k[1] for t, k in keys["left"]}
-    speed = scene.world.travel.speed
+    (rest,) = set(seen["rest"])
 
     def depth(pole: str, t: float) -> float:
-        at, key = [(a, k) for a, k in keys[pole] if a <= t][-1]
-        return -key[1] - speed * (t - at)
+        _, depth0, rate = [p for p in seen[pole] if p[0] <= t][-1]
+        return depth0 + rate * t
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -1694,3 +1701,54 @@ def test_only_entities_the_draw_order_check_leaves_to_the_world_are_reordered(tm
         if ch.property == Z_INDEX_PROPERTY
     }
     assert keyed and keyed <= world
+
+
+def test_a_chain_of_riders_follows_its_first_host(tmp_path):
+    """an#648 review: `right` after `left` after `pole_0`: both ride pole_0,
+    in that order, while it moves among the slots."""
+    doc = _compiled_road(tmp_path, member_after="pole_0", right_after="left")
+    places = set()
+    for t in (0.0, 0.5, 1.6, 2.3, 2.9):
+        order = _painted(doc, t)
+        assert order.index("left") == order.index("pole_0") + 1, t
+        assert order.index("right") == order.index("left") + 1, t
+        places.add(order.index("pole_0"))
+    assert len(places) > 1
+
+
+def test_a_rider_whose_host_is_in_a_plane_wrapper_keeps_its_place(tmp_path):
+    """an#648 review: the poles ride the hill's wrapper (depth 0.8); `left`,
+    placed after a pole but built at the root, has no sibling to ride, so it
+    keeps its built place rather than a key no root sibling has."""
+    from an.base import Z_INDEX_PROPERTY
+
+    doc = _compiled_road(tmp_path, member_after="pole_1", hill_depth=0.8)
+    keyed = {
+        ch.target
+        for clip in doc.animations.values()
+        for ch in clip.channels
+        if ch.property == Z_INDEX_PROPERTY
+    }
+    assert keyed and "left" not in keyed
+
+
+def test_a_member_moving_relative_to_the_camera_is_not_taken_for_one_at_rest(monkeypatch):
+    """an#648 review: a lamp standing by the road (in the world, not the car)
+    approaches with the poles; crossing its opening depth means nothing, so
+    the slots are not keyed again there."""
+    from an.ir import world as world_mod
+
+    seen = {}
+    real = world_mod._slot_paint_keys
+
+    def spy(slots, rest_depths, **kw):
+        seen["rest"] = list(rest_depths)
+        return real(slots, rest_depths, **kw)
+
+    monkeypatch.setattr(world_mod, "_slot_paint_keys", spy)
+    scene = _lane(_travel_scene(Shot(id="s1", duration=3.0, viewpoint="road")), 0.2)
+    left = scene.world.members[0]
+    scene.world.members[0] = left.model_copy(update={"frame": "world", "at": (0.5, 0.0, 8.0)})
+    lower_world(scene, extents=EXTENTS)
+    assert seen["rest"] and 8.0 not in [round(d, 6) for d in seen["rest"]]
+    assert all(abs(d - 2.0) < 1e-6 for d in seen["rest"])  # the lamp still in the car

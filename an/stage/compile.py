@@ -1309,6 +1309,27 @@ def z_index_keys(
     return out
 
 
+def _beside_their_hosts(
+    names: Sequence[str], keys: Mapping[str, Sequence[tuple[float, Any]]]
+) -> dict[str, Sequence[tuple[float, Any]]]:
+    """The keys of the children ``names`` of one container, without those of
+    an entity riding a host (its keys are the host's plus a two-item suffix,
+    an#648) that is not among them: built apart (the host in a plane's
+    wrapper), it would ride a key no sibling has, so it keeps its place.
+
+    >>> keys = {"pole": [(0, [1, 5])], "lamp": [(0, [1, 5, 1, 0])], "far": [(0, [1, 9, 1, 0])]}
+    >>> sorted(_beside_their_hosts(["pole", "lamp", "far"], keys))
+    ['lamp', 'pole']
+    """
+    mine = {n: keys[n] for n in names if n in keys}
+    opening = {_sort_key(ks[0][1]) for ks in mine.values()}
+    return {
+        n: ks
+        for n, ks in mine.items()
+        if len(ks[0][1]) <= 3 or _sort_key(ks[0][1])[:-2] in opening
+    }
+
+
 def _paint_keys_pass(state: CompileState) -> None:
     """A world's changing paint order (an#634): in each container of entities
     (:func:`an.stage.tree.entity_containers`) whose keyed children
@@ -1326,7 +1347,7 @@ def _paint_keys_pass(state: CompileState) -> None:
     for container in stage_tree.entity_containers(state.scene_root):
         kids = container.children or []
         names = [k.name for k in kids]
-        moves = z_index_keys(names, {n: keys[n] for n in names if n in keys})
+        moves = z_index_keys(names, _beside_their_hosts(names, keys))
         if not moves:
             continue
         for i, kid in enumerate(kids):
