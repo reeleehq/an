@@ -566,30 +566,31 @@ def _collect_transcripts(mall: Any, report: GcReport, *, horizon: float) -> None
     cannot be read (it might name any of them). Re-checked on disk at the last
     moment, as the shot cache's blobs are."""
     from an.audio.recorded import recorded_transcript_pins
-    from an.stores.transcripts import (
-        TRANSCRIPTS_STORE,
-        TranscriptCatalogUnreadable,
-        orphan_transcript_blobs,
-    )
+    from an.stores.transcripts import TRANSCRIPTS_STORE, orphan_transcript_blobs
 
     store = mall.get(TRANSCRIPTS_STORE)
     if store is None:
         return
+    layout = _fs_layout(store)
+    if layout is None:
+        return  # a remote store cannot say when a blob was written: keep them all
     try:
         named = recorded_transcript_pins(mall.get("recordings") or {})
         orphans = orphan_transcript_blobs(store, named=named)
-    except (TranscriptCatalogUnreadable, ValueError, OSError):
-        return  # unknown: keep everything this run
-    layout, sizes = _fs_layout(store), _blobs(store)
+        sizes = _blobs(store)
+    except Exception:  # noqa: BLE001 — unknown: keep everything this run, after the
+        return  # shot cache was collected, so a listing error never loses its report
     for h in orphans:
         size, written = sizes.get(h, (0, None))
         if written is None or written >= horizon:
             continue
         if not report.dry_run:
             try:
-                if layout is not None and (layout[1] / h).stat().st_mtime >= horizon:
+                if (layout[1] / h).stat().st_mtime >= horizon:
                     continue  # written again since the listing
                 _remove_blob(store, h, layout)
+            except FileNotFoundError:
+                continue  # someone else removed it: neither deleted here nor failed
             except (OSError, KeyError):
                 report.failed.append(h)
                 continue

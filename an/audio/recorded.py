@@ -1268,8 +1268,11 @@ def recorded_transcript_pins(recordings: Mapping) -> set[str]:
         record = recordings[key]
         if not isinstance(record, Mapping):
             raise ValueError(f"recording {key!r} is not a record")
-        extra = (record.get("source") or {}).get("extra") or {}
-        pin = pin_of(extra.get("transcript_artifact"))
+        source = record.get("source") or {}
+        extra = source.get("extra") if isinstance(source, Mapping) else None
+        if not isinstance(extra or {}, Mapping):
+            raise ValueError(f"recording {key!r} has a malformed source")
+        pin = pin_of((extra or {}).get("transcript_artifact"))
         if pin:
             pins.add(pin)
     return pins

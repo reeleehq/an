@@ -260,6 +260,8 @@ def _pinned(store: Any, ref: str, pin: str) -> LinkedTranscript:
     format is then read as that one)."""
     from an.audio.transcripts import detect_format
 
+    if not callable(getattr(store, "get_blob", None)):
+        raise TranscriptLinkError(f"{ref}: that store keeps no transcript artifacts")
     data = store.get_blob(pin)
     if data is None:
         raise TranscriptLinkError(
