@@ -7,7 +7,6 @@ and -23 LUFS: 19 dB) with tones of those levels, spoken in short syllables.
 
 from __future__ import annotations
 
-import importlib.util
 import io
 import math
 import warnings
@@ -28,21 +27,6 @@ from an.audio.pipeline import produce_audio_for_scene
 from an.audio.tts import AudioClip
 from an.ir.schema import Dialogue, Meta, SceneIR, Shot, VoiceLoudness
 from tests.test_shot_cache import fake_render  # noqa: F401 — the fixture, by name
-
-def _has_mixing_loudness() -> bool:
-    try:
-        return importlib.util.find_spec("mixing.loudness") is not None
-    except ImportError:  # no `mixing` at all
-        return False
-
-
-# The measuring and the limiter are mixing.loudness's (an#563, the `loudness`
-# extra): without it there is nothing here to test (tests/test_loudness_component.py
-# covers its absence). A mark, not `importorskip`: the tests are skipped, never
-# dropped from collection (tests/test_browser_gate.py).
-pytestmark = pytest.mark.skipif(
-    not _has_mixing_loudness(), reason="the `loudness` extra (mixing) is not installed"
-)
 
 RATE = 22050
 #: The issue's measured levels, per voice (LUFS, as synthesized).

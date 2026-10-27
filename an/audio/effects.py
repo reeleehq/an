@@ -91,7 +91,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from an.audio.shared_mixing import mixing_module
+from an.audio.shared_mixing import mixing_too_old
 
 #: Effects a voice document may declare, with the range each accepts.
 PITCH_SEMITONES_LIMIT = 12.0  # atempo's stock range is [0.5, 2]: one octave each way
@@ -282,10 +282,9 @@ def filter_chain(effects: Mapping[str, Any]) -> str:
     tempo = effects.get("tempo") or 1.0
     if not semitones and tempo == 1.0:
         return ""  # a trim alone needs no chain, and no mixing
-    filtergraph = mixing_module(
-        "filtergraph", needed_for="the voice-effect chain", error=VoiceEffectError
-    )
-    shift = filtergraph.resample_pitch_filter(
+    with mixing_too_old(needed_for="the voice-effect chain", error=VoiceEffectError):
+        from mixing.filtergraph import resample_pitch_filter
+    shift = resample_pitch_filter(
         semitones, EFFECT_SAMPLE_RATE, tempo=tempo, flush_s=TEMPO_PAD_S
     )
     return f"aresample={EFFECT_SAMPLE_RATE},{shift}"

@@ -45,7 +45,7 @@ scipy; :func:`mixing.loudness.limit_peaks` is the limiter, moved there unchanged
 What stays here is ``an``'s own: the voices, the offsets, the hysteresis, the
 makeup pass and the content keys. A ``mixing`` too old to have
 ``mixing.loudness`` raises :class:`VoiceLoudnessError` telling the user to
-upgrade it (:func:`an.audio.shared_mixing.mixing_module`, an#621).
+upgrade it (:func:`an.audio.shared_mixing.mixing_too_old`, an#621).
 """
 
 from __future__ import annotations
@@ -59,7 +59,7 @@ from collections.abc import Mapping, MutableMapping
 from dataclasses import dataclass
 from typing import Any
 
-from an.audio.shared_mixing import mixing_module
+from an.audio.shared_mixing import mixing_too_old
 
 #: Bumped whenever a leveled line's bytes would change for the same inputs
 #: (the limiter, its window, the encoding); part of every leveled line's key.
@@ -93,7 +93,6 @@ MISS_WARNING_DB: float = 1.0
 #: The loudness meter injected into :mod:`mixing.loudness` (one of its
 #: ``METERS``): ffmpeg's ``ebur128``, so ``an`` needs no scipy for its numpy meter.
 METER: str = "ffmpeg_ebur128"
-#: What installs the shared loudness component.
 #: 16-bit full scale.
 _INT16_FULL_SCALE: float = 32768.0
 
@@ -128,9 +127,9 @@ def _require_ffmpeg(doing: str) -> None:
 def _component() -> Any:
     """:mod:`mixing.loudness`, or :class:`VoiceLoudnessError` when the installed
     ``mixing`` predates it."""
-    return mixing_module(
-        "loudness", needed_for="leveling voices", error=VoiceLoudnessError
-    )
+    with mixing_too_old(needed_for="leveling voices", error=VoiceLoudnessError):
+        from mixing import loudness
+    return loudness
 
 
 def _decode(audio: bytes) -> _Pcm:

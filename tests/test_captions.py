@@ -590,7 +590,9 @@ def test_the_subrip_mirror_matches_mixing_field_for_field_and_byte_for_byte():
 
 #: The modules that may import ``mixing``, and what they may import: the
 #: shared loudness component (an#578) and the pure filter builder the voice
-#: effects use (an#611). Both lazily, and neither loads a media stack.
+#: effects use (an#611). Both lazily, and neither loads a media stack. They
+#: import it inside ``an.audio.shared_mixing.mixing_too_old``, which only
+#: words the failure: the import stays written out here, for this scan (an#621).
 MIXING_IMPORT_ALLOWED = {
     "audio/loudness.py": {"mixing.loudness", "mixing"},
     "audio/effects.py": {
