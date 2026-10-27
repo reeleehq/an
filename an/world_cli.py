@@ -36,7 +36,7 @@ def show(
     from an.project import load
     from an.stage.world import lower_scene, world_report
 
-    project = load(project_dir, scene_file=scene)
+    project = load(project_dir, scene_file=scene, sync=False)
     if frames:
         return _show_frames(project, shot=shot, json=json)
     try:

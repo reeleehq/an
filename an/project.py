@@ -18,6 +18,7 @@ import json
 from collections.abc import MutableMapping
 from dataclasses import dataclass
 from pathlib import Path
+from types import MappingProxyType
 from typing import Mapping
 
 from an.base import DEFAULT_FPS, DEFAULT_RESOLUTION
@@ -26,6 +27,7 @@ from an.ir.sync import (
     DEFAULT_SCENE_FILE,
     SceneFile,
     ir_to_markdown,
+    read_scene,
     resolve_scene_file,
     sync as sync_files,
 )
@@ -221,8 +223,14 @@ def load(
     *,
     check_kinds: bool = True,
     scene_file: str | Path | SceneFile = DEFAULT_SCENE_FILE,
+    sync: bool = True,
 ) -> Project:
     """Load an existing project. Reconciles scene.md / ir/scene.json first.
+
+    ``sync=False`` is the read-only load (an#573): the scene is read past a
+    stale pair with :func:`an.ir.sync.read_scene` and nothing is written to the
+    scene files; ``project.mall["scenes"]`` is then a read-only view of that
+    scene. For commands that only look (``an cache info``, ``gc --dry-run``).
 
     ``scene_file`` names another scene of the project (``scene.studio.md``, its
     JSON twin ``ir/scene.studio.json``, an#539; resolved by
@@ -250,10 +258,15 @@ def load(
 
     # Sync md ↔ json so the loaded scene reflects the latest Markdown.
     scene_file = resolve_scene_file(pdir, scene_file)
-    sync_files(pdir, scene_file)
-
-    mall = build_project_mall(pdir, ensure=True, scene_file=scene_file)
-    scene = mall["scenes"]["main"]
+    if sync:
+        sync_files(pdir, scene_file)
+        mall = build_project_mall(pdir, ensure=True, scene_file=scene_file)
+        scene = mall["scenes"]["main"]
+    else:
+        scene = read_scene(pdir, scene_file)
+        mall = build_project_mall(
+            pdir, scene_file=scene_file, scenes=MappingProxyType({"main": scene})
+        )
     if check_kinds:
         from an.ir.validate import require_registered_kinds
 

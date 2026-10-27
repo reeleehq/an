@@ -404,3 +404,57 @@ def test_a_scene_file_whose_stem_is_not_a_safe_output_name_is_refused(tmp_path, 
     """an#574 review: the default output comes from the file name, not only --output-name."""
     with pytest.raises(SceneFileError, match="rename the file"):
         resolve_scene_file(_two_scene_project(tmp_path), name, must_exist=False)
+
+
+def _snapshot(root: Path) -> dict[str, tuple[bytes, int]]:
+    return {
+        str(p.relative_to(root)): (p.read_bytes(), p.stat().st_mtime_ns)
+        for p in sorted(root.rglob("*"))
+        if p.is_file()
+    }
+
+
+def _stale_json_project(tmp_path) -> Path:
+    """scene.studio.md edited AFTER its JSON twin was written: a sync would rewrite the JSON."""
+    root = _two_scene_project(tmp_path)
+    load(root)
+    load(root, scene_file="scene.studio.md")
+    md = root / "scene.studio.md"
+    md.write_text(_STUDIO.replace("duration: 1\nfps", "duration: 2\nfps"), encoding="utf-8")
+    later = time.time() + 10
+    os.utime(md, (later, later))
+    return root
+
+
+def test_read_only_commands_leave_every_scene_file_untouched(tmp_path):
+    """an#573: `an cache info`, `gc --dry-run`, credits and `world show` rewrote other scenes' ir/*.json."""
+    from an.build.gc import cache_info, collect_garbage
+    from an.credits import credits_for_project
+    from an.world_cli import show
+
+    root = _stale_json_project(tmp_path)
+    before = _snapshot(root)
+    cache_info(root)
+    collect_garbage(root, dry_run=True, force=True)
+    credits_for_project(root, scene_file="scene.studio.md")
+    show(str(root), scene="scene.studio.md")
+    assert _snapshot(root) == before
+
+
+def test_read_scene_is_what_a_sync_then_a_read_gives(tmp_path):
+    from an.ir.sync import read_scene
+
+    root = _stale_json_project(tmp_path)
+    in_memory = read_scene(root, "scene.studio.md")
+    assert in_memory.meta.duration == 2  # the newer Markdown, not the stale JSON
+    synced = load(root, scene_file="scene.studio.md").scene
+    assert in_memory.model_dump() == synced.model_dump()
+    with pytest.raises(SceneFileError):
+        read_scene(root, "scene.nope.md")
+
+
+def test_a_sync_free_load_has_a_read_only_scene_view(tmp_path):
+    root = _stale_json_project(tmp_path)
+    project = load(root, scene_file="scene.studio.md", sync=False)
+    with pytest.raises(TypeError):
+        project.mall["scenes"]["main"] = project.scene
