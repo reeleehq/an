@@ -1395,16 +1395,16 @@ def test_a_lane_range_is_measured_across_it_not_at_its_ends():
 
 
 def test_a_travel_is_not_reported_as_solids_through_each_other(tmp_path):
-    """an#632: three shots down a road of poles. Every slot pair either hides
-    one (alpha 0 between passes) or is a nearer pole drawn over a farther one;
-    neither the solidity nor the draw-order check reports them."""
+    """an#632: three shots down a road of poles. A slot hidden between passes
+    overlaps nothing, a nearer pole over a farther one is occlusion, and the
+    draw-order check leaves slots to the world. What is left is the paint
+    inversion of a reused slot (an#634), said as such."""
     project = _project(tmp_path)
     scene = _travel_scene(
         *[Shot(id=f"s{i}", duration=3.0, viewpoint="road") for i in range(3)]
     )
-    said = [
-        f.description
-        for f in _validate(project, scene).findings
-        if "overlap from" in f.description or "painted over" in f.description
-    ]
-    assert said == []
+    found = _validate(project, scene).findings
+    assert not [f for f in found if "drawn through each other" in f.description]
+    assert not [f for f in found if "the order flips" in f.description]
+    inversions = [f for f in found if "though it is the farther" in f.description]
+    assert inversions and all("an#634" in f.description for f in inversions)

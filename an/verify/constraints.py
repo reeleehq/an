@@ -732,12 +732,15 @@ SOLIDITY_SAMPLE_S: float = 0.25
 
 @dataclass(frozen=True)
 class Overlap:
-    """Two solids ``a`` and ``b`` whose boxes cover ``fraction`` of the smaller one at ``at``."""
+    """Two solids ``a`` and ``b`` whose boxes cover ``fraction`` of the smaller
+    one at ``at``. ``inverted``: two slots of one stream whose paint order is
+    the wrong way round, the farther ``a`` painted over the nearer ``b``."""
 
     a: str
     b: str
     at: float
     fraction: float
+    inverted: bool = False
 
 
 def _union_box(
@@ -749,6 +752,10 @@ def _union_box(
         max(b[2] for b in boxes),
         max(b[3] for b in boxes),
     )
+
+
+def _area(box: tuple[float, ...]) -> float:
+    return (box[2] - box[0]) * (box[3] - box[1])
 
 
 def _covered_fraction(a: tuple[float, ...], b: tuple[float, ...]) -> float:
@@ -765,7 +772,7 @@ def _covered_fraction(a: tuple[float, ...], b: tuple[float, ...]) -> float:
     h = min(a[3], b[3]) - max(a[1], b[1])
     if w <= 0 or h <= 0:
         return 0.0
-    smaller = min((a[2] - a[0]) * (a[3] - a[1]), (b[2] - b[0]) * (b[3] - b[1]))
+    smaller = min(_area(a), _area(b))
     return w * h / smaller if smaller > 0 else 0.0
 
 
@@ -778,13 +785,8 @@ def _is_solid(entity: Any) -> bool:
 
 
 def _is_ordered(a: Any, b: Any) -> bool:
-    """Either one is drawn after something (``stage.after``), or is a stream's
-    slot, which the world draws in depth order (an#632): an overlap is
-    occlusion, a nearer pole in front of a farther one."""
-    return any(
-        (e.stage is not None and e.stage.after is not None) or _is_slot(e)
-        for e in (a, b)
-    )
+    """Either one is drawn after something (``stage.after``): an overlap is occlusion."""
+    return any(e.stage is not None and e.stage.after is not None for e in (a, b))
 
 
 def _is_slot(entity: Any) -> bool:
@@ -806,15 +808,24 @@ def solid_overlaps(
     *,
     duration: float,
     tolerance: float = SOLIDITY_TOLERANCE,
+    depth_sorted: frozenset[str] = frozenset(),
 ) -> list[Overlap]:
     """Per unordered pair of solids among ``entities`` (AssetRefs), the first
     sampled instant their boxes overlap by more than ``tolerance``, with the
-    worst overlap seen up to the end of the shot as ``fraction``.
+    worst overlap seen up to the end of the shot as ``fraction``. An entity
+    unseen at an instant (alpha ≤ :data:`an.base.UNSEEN_ALPHA`) overlaps
+    nothing then.
+
+    ``depth_sorted``: entities the world paints by depth (its members and its
+    streams' slots, an#632). Two of them overlapping is occlusion, unless they
+    are two slots of one stream (one art, so the larger is the nearer) and the
+    one painted later is the farther at that instant: a slot reused for a
+    farther instance keeps its paint order, an ``inverted`` overlap.
 
     An entity's box is the union of its visuals' boxes (:func:`an.stage.timeline.node_box`,
     through the pose and the camera at that instant).
     """
-    from an.stage.timeline import node_box, timeline_from_scene
+    from an.stage.timeline import entity_alpha, node_box, timeline_from_scene
     from an.stage.tree import walk_document
     from an.timing.timeline import evaluate_timeline
 
@@ -829,21 +840,19 @@ def solid_overlaps(
         ]
         for e in solids
     }
+    rank = {eid: i for i, eid in enumerate(painted_order(doc, {e.id for e in solids}))}
     timeline = timeline_from_scene(doc)
-    rest_alpha = {
-        path: node.transform.alpha
-        for path, node in walk_document(doc)
-        if path in {e.id for e in solids}
-    }
     first: dict[tuple[str, str], Overlap] = {}
     worst: dict[tuple[str, str], float] = {}
     for t in _sample_times(duration):
         pose = evaluate_timeline(timeline, t)
         boxes = {}
         for e in solids:
-            alpha = pose.get((e.id, "alpha"), rest_alpha.get(e.id, 1.0))
-            if isinstance(alpha, (int, float)) and alpha <= UNSEEN_ALPHA:
-                continue  # not seen now (a stream slot between passes): no overlap
+            try:
+                if entity_alpha(doc, pose, e.id) <= UNSEEN_ALPHA:
+                    continue  # not seen now (a slot between passes, a fade): no overlap
+            except KeyError:
+                continue
             found = [
                 b for p in drawn[e.id] if (b := node_box(doc, p, pose=pose)) is not None
             ]
@@ -853,12 +862,25 @@ def solid_overlaps(
             for b in solids[i + 1 :]:
                 if a.id not in boxes or b.id not in boxes or _is_ordered(a, b):
                     continue
+                inverted = False
+                if a.id in depth_sorted and b.id in depth_sorted:
+                    one_art = _is_slot(a) and _is_slot(b) and a.ref == b.ref
+                    if not one_art:
+                        continue  # the world painted them by depth
+                    front, back = (
+                        (a, b) if rank.get(a.id, 0) > rank.get(b.id, 0) else (b, a)
+                    )
+                    if _area(boxes[front.id]) >= _area(boxes[back.id]):
+                        continue  # the nearer one in front: occlusion
+                    a, b, inverted = front, back, True
                 frac = _covered_fraction(boxes[a.id], boxes[b.id])
                 key = (a.id, b.id)
                 if frac > tolerance:
                     worst[key] = max(worst.get(key, 0.0), frac)
-                    first.setdefault(key, Overlap(a.id, b.id, t, frac))
-    return [Overlap(o.a, o.b, o.at, worst[(o.a, o.b)]) for o in first.values()]
+                    first.setdefault(key, Overlap(a.id, b.id, t, frac, inverted))
+    return [
+        Overlap(o.a, o.b, o.at, worst[(o.a, o.b)], o.inverted) for o in first.values()
+    ]
 
 
 def check_solidity(ctx: Any) -> None:
@@ -877,7 +899,24 @@ def check_solidity(ctx: Any) -> None:
             return False
 
     entities = [e for e in ctx.shot.entities if not is_drawing(e)]
-    for o in solid_overlaps(doc, entities, duration=float(ctx.shot.duration)):
+    world = ctx.scene.world
+    depth_sorted = frozenset(
+        {e.id for e in entities if _is_slot(e)}
+        | ({m.id for m in world.members} if world is not None else set())
+    )
+    for o in solid_overlaps(
+        doc, entities, duration=float(ctx.shot.duration), depth_sorted=depth_sorted
+    ):
+        if o.inverted:
+            ctx.report.add(
+                "warning",
+                f"{ctx.path}/entities",
+                f"{o.a!r} is painted over {o.b!r} from {o.at:.2f} s though it is the "
+                f"farther of the two, covering up to {o.fraction:.0%} of the smaller: "
+                "a stream's slot reused for a farther instance keeps the paint order "
+                "it had as the shot opened (an#634).",
+            )
+            continue
         ctx.report.add(
             "warning",
             f"{ctx.path}/entities",

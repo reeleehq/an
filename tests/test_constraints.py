@@ -171,12 +171,19 @@ def test_the_core_corpus_reports_no_continuity_finding(name, tmp_path):
 
 
 def _two_lamps(
-    tmp_path: Path, *, second: dict | None = None, at=(0.0, 90.0), actions=None
+    tmp_path: Path,
+    *,
+    second: dict | None = None,
+    at=(0.0, 90.0),
+    actions=None,
+    first_overrides: dict | None = None,
 ):
     root = Path(shutil.copytree(LAMP, tmp_path / "p"))
     project = load(root)
     first = project.scene.timeline[0]
     lamp = first.entities[0].model_dump()
+    if first_overrides is not None:
+        lamp["overrides"] = first_overrides
     twin = {
         **lamp,
         "id": "twin",
@@ -229,10 +236,44 @@ def test_an_entity_unseen_at_an_instant_overlaps_nothing_then(tmp_path):
     assert _msgs(_two_lamps(tmp_path, actions=hidden)) == []
 
 
-def test_a_stream_slot_overlap_is_occlusion(tmp_path):
-    """an#632: a travel's slots are drawn in depth order by the world, so a
-    nearer one over a farther one is occlusion, not two solids."""
-    assert _msgs(_two_lamps(tmp_path, second={"overrides": {"stream": "pole"}})) == []
+def test_an_entity_fading_in_overlaps_once_it_is_seen(tmp_path):
+    """The skip is per instant: hidden until 0.25 s, then seen and overlapping."""
+    fade = [
+        {"kind": "set", "target": "twin", "property": "alpha", "value": 0.0, "at": 0.0},
+        {
+            "kind": "set",
+            "target": "twin",
+            "property": "alpha",
+            "value": 1.0,
+            "at": 0.25,
+        },
+    ]
+    (msg,) = _msgs(_two_lamps(tmp_path, actions=fade))
+    assert "from 0.25 s" in msg
+
+
+SLOT = {"stream": "pole"}
+
+
+def test_two_slots_of_one_stream_are_occlusion_when_the_nearer_is_in_front(tmp_path):
+    """an#632: the twin, painted later and larger (nearer), covers the lamp."""
+    near = {"overrides": SLOT, "stage": {"at": [0.0, 90.0], "scale": 0.8}}
+    assert _msgs(_two_lamps(tmp_path, second=near, first_overrides=SLOT)) == []
+
+
+def test_a_farther_slot_painted_over_a_nearer_one_is_an_inversion(tmp_path):
+    """an#632/an#634: painted later but smaller (farther): reported as such."""
+    far = {"overrides": SLOT, "stage": {"at": [0.0, 90.0], "scale": 0.3}}
+    (msg,) = _msgs(_two_lamps(tmp_path, second=far, first_overrides=SLOT))
+    assert (
+        "'twin' is painted over 'lamp'" in msg and "farther" in msg and "an#634" in msg
+    )
+
+
+def test_a_slot_and_an_authored_solid_still_overlap(tmp_path):
+    """The world paints a non-member on top whatever its depth: not occlusion."""
+    authored = {"overrides": None}
+    assert _msgs(_two_lamps(tmp_path, first_overrides=SLOT, second=authored))
 
 
 # -- draw order (an#510) ----------------------------------------------------

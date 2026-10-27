@@ -388,6 +388,23 @@ def node_box(
     return (min(xs), min(ys), max(xs), max(ys))
 
 
+def entity_alpha(scene: CutoutSceneJSON, pose: Pose | None, entity_id: str) -> float:
+    """The alpha an entity's own node shows under ``pose``: the channel's value
+    when one writes it, else what the document declares. The one reader of it
+    for the checks that ask whether an entity is seen (an#632). ``KeyError``
+    for an id the scene does not draw.
+
+    >>> from an.stage.serialize import CutoutSceneJSON, NodeJSON, TimelineJSON
+    >>> scene = CutoutSceneJSON(scene=NodeJSON(name="root", children=[NodeJSON(name="lamp")]),
+    ...                         timeline=TimelineJSON(duration=1.0))
+    >>> entity_alpha(scene, None, "lamp"), entity_alpha(scene, {("lamp", "alpha"): 0.0}, "lamp")
+    (1.0, 0.0)
+    """
+    node, path = _node_chain(scene.scene, entity_id)[-1]
+    value = (pose or {}).get((path, "alpha"))
+    return float(value if isinstance(value, (int, float)) else node.transform.alpha)
+
+
 def _key_geometry(visual: Any, path: str, pose: Pose | None) -> dict[str, float] | None:
     """The box of the swap key in force on ``path``, if it is drawn differently (an#211)."""
     if not (visual.asset_geometry and visual.asset_sets and pose):

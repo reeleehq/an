@@ -2544,6 +2544,7 @@ def _placements(
         from an.stage.timeline import (
             _node_chain,
             _pose_for,
+            entity_alpha,
             evaluate_timeline,
             timeline_from_scene,
             transform_of,
@@ -2565,16 +2566,14 @@ def _placements(
             continue
         states = []
         for pose in poses:
-            mine = _pose_for(pose, path)
-            t = transform_of(node, mine, frame_height=res.height)
-            alpha = (mine or {}).get((path.rsplit("/", 1)[-1], "alpha"))
+            t = transform_of(node, _pose_for(pose, path), frame_height=res.height)
             states.append(
                 {
                     "x": t.x,
                     "y": t.y,
                     "scale_x": abs(t.scale_x),
                     "scale_y": abs(t.scale_y),
-                    "alpha": float(node.transform.alpha if alpha is None else alpha),
+                    "alpha": entity_alpha(doc, pose, entity.id),
                 }
             )
         out[entity.id] = (states[0], states[1])
