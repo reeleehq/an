@@ -221,15 +221,30 @@ def test_choosing_again_retires_the_replaced_designed_voice(tmp_path):
     )
 
 
-def test_with_every_option_persisted_only_the_replaced_voice_is_retired(tmp_path):
+def test_with_every_option_persisted_no_voice_is_retired_and_going_back_saves_nothing(
+    tmp_path,
+):
+    """`an voices design` saves every option (persist=True): those voices stay
+    named on their options, so going back to the first pick needs no preview
+    (it may have expired) and saves nothing."""
     proj = _voice_project(tmp_path, {"notes": NOTES})
     d = FakeDesigner(n=3)
-    design_project_voices(proj, designer=d)  # persist=True: every option is a voice
+    design_project_voices(proj, designer=d)
     choose_project_voice(proj, "jerry", "A", designer=d, by="noel")
     choose_project_voice(proj, "jerry", "B", designer=d, by="noel")
     m = _manifest(proj)
-    assert [o["voice_id"] for o in m["options"]] == [None, "voice-gen1", "voice-gen2"]
-    assert [r["voice_id"] for r in m["retired"]] == ["voice-gen0"]
+    assert [o["voice_id"] for o in m["options"]] == [
+        "voice-gen0",
+        "voice-gen1",
+        "voice-gen2",
+    ]
+    assert "retired" not in m
+    saves = len([c for c in d.calls if c[0] == "save"])
+    assert (
+        choose_project_voice(proj, "jerry", "A", designer=d, by="noel")["voice_id"]
+        == "voice-gen0"
+    )
+    assert len([c for c in d.calls if c[0] == "save"]) == saves
 
 
 def test_a_voice_this_manifest_did_not_save_is_never_retired():
@@ -245,7 +260,10 @@ def test_a_voice_this_manifest_did_not_save_is_never_retired():
     }
     choose_in_entry(entry, "L1", by="noel")
     choice = choose_in_entry(entry, "A", by="noel")
-    assert choice.replaced is None and "retired" not in entry
+    assert (choice.previous, choice.retired) == (
+        "pub1",
+        None,
+    ) and "retired" not in entry
     assert entry["options"][1]["voice_id"] == "pub1"
     entry["chosen"] = {
         "option": None,
@@ -253,10 +271,11 @@ def test_a_voice_this_manifest_did_not_save_is_never_retired():
         "chosen_by": "noel",
         "chosen_at": "t",
     }
-    assert (
-        choose_in_entry(entry, "A", by="noel").replaced is None
-        and "retired" not in entry
-    )
+    choice = choose_in_entry(entry, "A", by="noel")
+    assert (choice.previous, choice.retired) == (
+        "my-clone",
+        None,
+    ) and "retired" not in entry
 
 
 def test_a_damaged_retired_ledger_is_refused_before_anything_is_chosen():
