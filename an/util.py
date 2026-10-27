@@ -12,6 +12,22 @@ from fractions import Fraction
 from pathlib import Path
 from typing import Any, Iterable
 
+#: Names Windows refuses as a file whatever the extension (``con``, ``nul.mp4``),
+#: compared case-insensitively; ``0`` and the superscript digits are reserved too.
+WINDOWS_RESERVED_NAMES: frozenset[str] = frozenset(
+    {"con", "prn", "aux", "nul"}
+    | {f"{dev}{n}" for dev in ("com", "lpt") for n in "0123456789\u00b9\u00b2\u00b3"}
+)
+
+
+def is_windows_reserved(name: str) -> bool:
+    """Whether Windows reserves ``name`` (its part before the first dot) for a device.
+
+    >>> is_windows_reserved("NUL.mp4"), is_windows_reserved("console")
+    (True, False)
+    """
+    return name.split(".", 1)[0].lower() in WINDOWS_RESERVED_NAMES
+
 
 def _read_text(path: str | Path, *, encoding: str = "utf-8") -> str:
     """Read a text file. Trivial wrapper for consistency."""

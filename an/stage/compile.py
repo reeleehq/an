@@ -82,6 +82,7 @@ from an.stage.rig import (  # noqa: F401  (re-exported)
 )
 from an.genres import action_kind, action_kind_names, entity_kind, entity_space_resolver
 from an.genres.registry import CompilePass
+from an.ir.frames import lag_filter
 from an.ir.compose import FlatAction, flatten
 from an.ir.schema import (
     CameraKey,
@@ -1062,6 +1063,11 @@ def camera_follow_keys(state: CompileState) -> list[CameraKey]:
             "nodes."
         ) from e
     x0, y0 = positions[0]
+    if follow.lag:
+        dt = 1.0 / state.fps
+        xs = lag_filter([x for x, _ in positions], lag=follow.lag, dt=dt)
+        ys = lag_filter([y for _, y in positions], lag=follow.lag, dt=dt)
+        positions = list(zip(xs, ys))
     return [
         CameraKey(
             at=min(duration, k / state.fps),

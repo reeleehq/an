@@ -47,17 +47,13 @@ from pydantic import Field, model_validator
 
 from an.base import Seconds
 from an.genres.registry import CORE_OWNER, ActionKind, action_kind, register_action_kind
-from an.ir.schema import ExtensionAction, Point3
+from an.ir.schema import DFLT_WORLD_GRAVITY, ExtensionAction, Point3
 
 __all__ = [
     "ReframeAction",
     "reframe",
     "DFLT_WORLD_GRAVITY",
 ]
-
-#: Gravity of a ``motion: ballistic`` member, world units per second² along
-#: +y (down; the world's units are metres): Earth's.
-DFLT_WORLD_GRAVITY: float = 9.81
 
 
 class ReframeAction(ExtensionAction):

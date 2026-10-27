@@ -52,6 +52,7 @@ from typing import Any, NamedTuple
 from dol.content import ContentRef, content_hash
 
 from an.ir.assets import PRIVATE_STUDY, PUBLIC_DOMAIN, AssetSource, license_class
+from an.util import is_windows_reserved
 from an.credits import (
     factory_recorded,
     is_factory_stamp,
@@ -417,14 +418,6 @@ def _source_model(raw: Mapping[str, Any] | None) -> AssetSource | None:
     return AssetSource.model_validate(dict(raw)) if raw else None
 
 
-#: Names Windows refuses as a file (any extension), compared case-insensitively.
-_WINDOWS_RESERVED: frozenset[str] = frozenset(
-    {"con", "prn", "aux", "nul"}
-    | {f"com{i}" for i in range(1, 10)}
-    | {f"lpt{i}" for i in range(1, 10)}
-)
-
-
 def check_relpath(path: str) -> str:
     """``path`` if it is a clean relative POSIX path inside an asset, else ``LibraryError``.
 
@@ -447,9 +440,7 @@ def check_relpath(path: str) -> str:
         or path.startswith("/")
         or any(ord(c) < 32 or c == "\x7f" for c in path)
         or any(
-            p in ("", ".", "..")
-            or p.endswith((".", " "))
-            or p.split(".", 1)[0].lower() in _WINDOWS_RESERVED
+            p in ("", ".", "..") or p.endswith((".", " ")) or is_windows_reserved(p)
             for p in parts
         )
     ):

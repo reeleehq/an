@@ -41,6 +41,7 @@ from pydantic import BaseModel, Field
 
 from an.ir.schema import SceneIR
 from an.ir.validate import ValidationReport, validate_schema, validate_semantic
+from an.ir.sync import DEFAULT_SCENE_FILE, SceneFile
 from an.project import Project, load
 
 
@@ -200,6 +201,7 @@ def iterate(
     apply: bool = True,
     model: str = _DEFAULT_MODEL,
     max_tokens: int = _DEFAULT_MAX_TOKENS,
+    scene_file: str | Path | SceneFile = DEFAULT_SCENE_FILE,
 ) -> IterateResult:
     """Apply a free-text instruction to the scene at ``project_dir``.
 
@@ -215,6 +217,9 @@ def iterate(
     exactly the shots whose content changed, found by digest (the shot cache,
     ADR 0004) — ``IterateResult.affected_shots`` is the model's account of
     which those are, for the reader, not the mechanism.
+
+    ``scene_file`` edits another scene of the project (``scene.studio.md``,
+    an#554): it is read from, and persisted to, that file's pair.
     """
     if not os.environ.get("ANTHROPIC_API_KEY"):
         raise IterateError(
@@ -229,7 +234,7 @@ def iterate(
             "iterate() requires the anthropic SDK. pip install anthropic"
         ) from e
 
-    project: Project = load(project_dir)
+    project: Project = load(project_dir, scene_file=scene_file)
     response = _call_claude(
         project.scene, instruction, model=model, max_tokens=max_tokens
     )

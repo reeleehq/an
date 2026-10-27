@@ -91,6 +91,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from an.ir.sync import DEFAULT_SCENE_FILE
+
 __all__ = [
     "ElevenLabsVoiceDesigner",
     "ElevenLabsVoiceLibrary",
@@ -181,6 +183,20 @@ AUDITION_SAMPLE_RATE = (
 AUDITION_KEY = "audition"
 AUDITION_LINES_KEY = "audition_lines"
 AUDITION_CONTENT_KEY = "audition_key"
+#: Where the manifest keeps each scene's own record of an option's reel (an#571):
+#: ``{scene file name: {audition, audition_lines, audition_key, audition_path}}``.
+#: The reel of one scene lives in its own folder
+#: (:meth:`an.ir.sync.SceneFile.per_scene_dir`), so two scenes' reels coexist and
+#: each scene's skip test reads its own record; the fields at the top of the
+#: option stay the latest reel made.
+AUDITIONS_KEY = "auditions"
+AUDITION_PATH_KEY = "audition_path"
+AUDITION_RECORD_KEYS = (
+    AUDITION_KEY,
+    AUDITION_LINES_KEY,
+    AUDITION_CONTENT_KEY,
+    AUDITION_PATH_KEY,
+)
 #: ``announce`` default: a line on stderr (the pipeline's own), so a billed
 #: call is never silent unless the caller passes ``None``.
 _STDERR = object()
@@ -882,12 +898,15 @@ def plan_auditions(
     gap_s: float = AUDITION_GAP_S,
     tts_name: str = "",
     redo: bool = False,
+    recorded: Callable[[dict], Mapping[str, Any] | None] | None = None,
 ) -> list[AuditionJob]:
     """The reels to make for one voice's manifest ``entry``, every one checked
     BEFORE anything is billed: the named ``options`` exist (default: every
     option with a voice id) and are saved voices, there are ``lines`` to speak,
     and an option whose recorded reel was made under this very key is skipped
-    unless ``redo``. Raises :class:`VoiceDesignError` for any problem.
+    unless ``redo``. ``recorded(option)`` says which record to judge that by
+    (default: the option's own fields; the project forms pass the scene's own
+    record, an#571). Raises :class:`VoiceDesignError` for any problem.
     """
     lines = [(text, dict(opts)) for text, opts in lines]
     if not lines:
@@ -921,10 +940,11 @@ def plan_auditions(
         key = audition_key(
             option["voice_id"], lines, effects=effects, gap_s=gap_s, tts_name=tts_name
         )
+        on_record = (recorded(option) if recorded is not None else option) or {}
         if (
             not redo
-            and option.get(AUDITION_KEY)
-            and option.get(AUDITION_CONTENT_KEY) == key
+            and on_record.get(AUDITION_KEY)
+            and on_record.get(AUDITION_CONTENT_KEY) == key
         ):
             continue  # the reel on record IS this reel: never billed twice
         jobs.append(AuditionJob(ref, option, lines, dict(effects or {}), key))
@@ -1239,21 +1259,51 @@ def _project_stores(project_dir: str | Path):
     )
 
 
-def _project_reels(project_dir: str | Path):
+def _project_reels(project_dir: str | Path, scene_file: Any = DEFAULT_SCENE_FILE):
+    """The reels store of ``scene_file``: ``artifacts/voice_auditions`` for the
+    default scene, its own subfolder for another (an#571)."""
+    from an.ir.sync import resolve_scene_file
     from an.stores.artifacts import _BlobStore
 
     class _WavStore(_BlobStore):
         EXT = "wav"
 
-    return _WavStore(Path(project_dir) / AUDITIONS_DIR)
+    sf = resolve_scene_file(project_dir, scene_file)
+    return _WavStore(Path(project_dir) / sf.per_scene_dir(AUDITIONS_DIR))
 
 
-def _project_lines(project_dir: str | Path) -> Callable[[str], list[str]]:
-    """``ref -> the dialogue lines spoken in that voice`` in the project's scene."""
+def _scene_record(option: Mapping, sf: Any, reels: Any = None) -> dict | None:
+    """``sf``'s own record of ``option``'s reel (an#571), or ``None``. The default
+    scene falls back to the top-level fields written before records were per
+    scene, but only while they are still its own: once another scene has made a
+    reel they describe that one, unless they point into the default folder. A
+    record whose reel is no longer in ``reels`` (when given) counts as none."""
+    record = (option.get(AUDITIONS_KEY) or {}).get(sf.name)
+    if record is None and sf.is_default:
+        legacy = {k: option[k] for k in AUDITION_RECORD_KEYS if k in option}
+        default_folder = AUDITIONS_DIR.as_posix() + "/"
+        path = str(legacy.get(AUDITION_PATH_KEY, ""))
+        if (AUDITIONS_KEY not in option) or (
+            path.startswith(default_folder)
+            and "/" not in path[len(default_folder) :]
+        ):
+            record = legacy
+    if record and reels is not None:
+        reel = record.get(AUDITION_KEY)
+        if not reel or not reels.path_of(reel).is_file():
+            return None
+    return record or None
+
+
+def _project_lines(
+    project_dir: str | Path, scene_file: Any = DEFAULT_SCENE_FILE
+) -> Callable[[str], list[str]]:
+    """``ref -> the dialogue lines spoken in that voice`` in the project's scene
+    (``scene_file``: another scene of the project, an#554)."""
     from an.audio.voices import line_voice_id
     from an.project import load
 
-    proj = load(str(project_dir))
+    proj = load(str(project_dir), scene_file=scene_file)
     by_voice: dict[str, list[str]] = {}
     for shot in proj.scene.timeline:
         for line in getattr(shot, "dialogue", None) or ():
@@ -1264,7 +1314,7 @@ def _project_lines(project_dir: str | Path) -> Callable[[str], list[str]]:
 
 
 def _project_audition_inputs(
-    project_dir: str | Path, tts: Any
+    project_dir: str | Path, tts: Any, *, scene_file: Any = DEFAULT_SCENE_FILE
 ) -> Callable[[str], tuple[list[tuple[str, dict[str, Any]]], dict[str, Any]]]:
     """``ref -> (lines, effects)`` for the lines spoken in that voice: each line
     as ``(text, synthesize options)`` — what the film's audio pipeline would
@@ -1276,7 +1326,7 @@ def _project_audition_inputs(
     from an.audio.voices import line_voice_id
     from an.project import load
 
-    proj = load(str(project_dir))
+    proj = load(str(project_dir), scene_file=scene_file)
     by_voice: dict[str, list[Any]] = {}
     for shot in proj.scene.timeline:
         for line in getattr(shot, "dialogue", None) or ():
@@ -1304,17 +1354,23 @@ def design_project_voices(
     library_query: Mapping | str | None = None,
     library_limit: int = DFLT_LIBRARY_LIMIT,
     design: bool = True,
+    scene_file: Any = DEFAULT_SCENE_FILE,
 ) -> dict[str, dict]:
     """Design options for the project's voices (and search the library for the
     ones with a query); write manifests and samples; return the manifest.
 
-    A voice document without ``sample_text`` speaks its own lines from the scene.
+    A voice document without ``sample_text`` speaks its own lines from the scene
+    (``scene_file``: another scene of the project, an#554).
     ``library_query`` (``accent=irish,gender=male``) applies to every voice
     without a ``library`` of its own; ``design=False`` searches the library only.
     """
+    from an.ir.sync import resolve_scene_file
+
+    # A scene file named and not there is a refusal, not "no lines" (an#554).
+    scene_file = resolve_scene_file(project_dir, scene_file)
     voices, options, samples = _project_stores(project_dir)
     try:
-        lines_of = _project_lines(project_dir)
+        lines_of = _project_lines(project_dir, scene_file)
     except Exception:  # noqa: BLE001 - no readable scene: the provider writes the sample text
         lines_of = None
     manifest = design_voice_options(
@@ -1351,24 +1407,32 @@ def audition_project_voices(
     gap_s: float = AUDITION_GAP_S,
     announce: Any = _STDERR,
     redo: bool = False,
+    scene_file: Any = DEFAULT_SCENE_FILE,
 ) -> dict[str, dict]:
     """An audition reel per option of each voice in ``refs`` (default: every
     voice with a manifest): the voice's own lines from the scene, spoken with
     the film's TTS provider (``tts``, default ElevenLabs — the provider the
     film renders with, so the reel sounds like the film), the voice document's
-    model, settings and effects, to ``artifacts/voice_auditions/<ref>_<option>.wav``;
-    the manifest records each reel (``audition_path``) as soon as it is made.
+    model, settings and effects, to ``artifacts/voice_auditions/<ref>_<option>.wav``
+    (``.../scenes/<stem>/`` for a scene other than ``scene.md``, so two scenes'
+    reels coexist, an#571); the manifest records each reel (``audition_path``,
+    and per scene under ``auditions``) as soon as it is made.
     Every voice's reels are planned and checked before the first request, the
     whole bill is announced once, and a reel already on record under the same
     content key is not made again (``redo`` makes them all again). Returns
-    the manifests of ``refs``.
+    the manifests of ``refs``. ``scene_file`` takes the lines from another
+    scene of the project (``scene.studio.md``, an#554).
     """
     from an.audio.providers import make_tts
+    from an.ir.sync import resolve_scene_file
 
+    sf = resolve_scene_file(project_dir, scene_file)
     tts = tts if tts is not None else make_tts(DESIGN_PROVIDER)
     _, manifests, _ = _project_stores(project_dir)
-    reels = _project_reels(project_dir)
-    inputs = _project_audition_inputs(project_dir, tts)
+    reels = _project_reels(project_dir, sf)
+    reels_dir = sf.per_scene_dir(AUDITIONS_DIR)
+    default_scene = resolve_scene_file(project_dir, DEFAULT_SCENE_FILE, must_exist=False)
+    inputs = _project_audition_inputs(project_dir, tts, scene_file=sf)
     wanted = list(refs) if refs is not None else sorted(manifests)
     if not wanted:
         raise VoiceDesignError("no voice options yet: run `an voices design` first")
@@ -1382,6 +1446,9 @@ def audition_project_voices(
         entry = dict(manifests[ref])
         entry["options"] = [dict(o) for o in entry.get("options", ())]
         entries[ref] = entry
+        for o in entry["options"]:  # a pre-per-scene reel is the default scene's: keep it so
+            if (legacy := _scene_record(o, default_scene)) and AUDITIONS_KEY not in o:
+                o[AUDITIONS_KEY] = {default_scene.name: legacy}
         lines, effects = inputs(ref)
         jobs += plan_auditions(
             entry,
@@ -1392,12 +1459,15 @@ def audition_project_voices(
             gap_s=gap_s,
             tts_name=str(getattr(tts, "name", "")),
             redo=redo,
+            recorded=lambda option: _scene_record(option, sf, reels),
         )
 
     def record(job: AuditionJob) -> None:
-        job.option["audition_path"] = str(
-            (AUDITIONS_DIR / f"{job.reel}.wav").as_posix()
-        )
+        # run_auditions has put the reel's fields on the option (the latest made);
+        # add where it is, and keep this scene's own record beside it.
+        job.option[AUDITION_PATH_KEY] = (reels_dir / f"{job.reel}.wav").as_posix()
+        made = {k: job.option[k] for k in AUDITION_RECORD_KEYS if k in job.option}
+        job.option.setdefault(AUDITIONS_KEY, {})[sf.name] = made
         manifests[job.ref] = entries[
             job.ref
         ]  # written per reel: a later failure loses nothing paid

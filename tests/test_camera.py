@@ -709,3 +709,31 @@ def test_a_follow_round_trips_through_scene_md_and_shakes_on_top(tmp_path):
     assert back.timeline[0].camera.follow == CameraFollow(target="dot", axes="xy")
     doc = compile_shot(shot, mall=_dot_mall(tmp_path), fps=12, width=640, height=360)
     assert {"pivot_x", "pivot_y", "x", "y"} <= set(_channels(doc))
+
+
+def _follow_pivot(tmp_path, **follow):
+    doc = compile_shot(
+        _follow_shot(follow={"target": "dot", **follow}),
+        mall=_dot_mall(tmp_path), fps=12, width=640, height=360, strict_assets=True,
+    )
+    return _channels(doc)["pivot_x"], _screen_track(doc, "dot", 12, 24)
+
+
+def test_a_follow_with_lag_zero_is_the_follow_it_was_and_a_lag_trails_the_target(tmp_path):
+    """an#504: `lag: 0` emits the same keys; `lag` is a first-order catch-up."""
+    plain, _ = _follow_pivot(tmp_path)
+    zero, _ = _follow_pivot(tmp_path, lag=0.0)
+    assert zero == plain
+    lagged, track = _follow_pivot(tmp_path, lag=0.5)
+    assert lagged[0] == plain[0] and lagged != plain
+    # the target is no longer held still on screen: it runs ahead of the camera
+    assert max(abs(p[0] - track[0][0]) for p in track) > 1.0
+    # and the camera closes the gap each frame by 1 - exp(-1/12/0.5) of it
+    import math
+
+    k = 1 - math.exp(-(1 / 12) / 0.5)
+    ideal = [p[1] for p in plain]
+    prev = lagged[0][1]
+    for want, got in zip(ideal[1:], [e[1] for e in lagged[1:]]):
+        prev = prev + k * (want - prev)
+        assert got == pytest.approx(prev, abs=1e-6)

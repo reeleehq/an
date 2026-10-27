@@ -42,6 +42,7 @@ from __future__ import annotations
 import json
 import os
 import re
+from fnmatch import fnmatchcase
 from dataclasses import dataclass
 import warnings
 from pathlib import Path
@@ -70,7 +71,7 @@ from an.genres.registry import (
     register_action_kind,
 )
 from an.ir.schema import AssetRef, Dialogue, Meta, SceneIR, Shot, World
-from an.util import _read_text, _write_json, _write_text
+from an.util import is_windows_reserved, _read_text, _write_json, _write_text
 
 
 #: Two files whose mtimes are closer than this are "the same age" to `sync`,
@@ -206,29 +207,36 @@ def markdown_to_ir(md_text: str) -> SceneIR:
                 shot_kwargs[key] = shot_yaml[key]
         shots.append(Shot(**shot_kwargs))
 
-    scene = SceneIR(meta=meta, timeline=shots, world=world)
-    if meta.duration == 0.0:
-        scene.meta.duration = _laid_out_duration(scene)
-    return scene
+    # An unwritten `duration:` stays 0.0, "unset" (an#557): never filled with a
+    # derived length, which the writer would then put in the file as if authored.
+    # Whatever needs the film's length asks `an.assemble.film_duration`.
+    return SceneIR(meta=meta, timeline=shots, world=world)
 
 
-def _laid_out_duration(scene: SceneIR) -> float:
-    """The duration of a scene whose author wrote none: what the shots lay out
-    (their durations minus each dissolve or wipe overlap, an#481), so the
-    `meta.duration` check has nothing to disagree with. The plain sum when the
-    overlaps cannot be laid out (`an validate` says why).
+def unset_unwritten_duration(scene: SceneIR, md_text: str) -> SceneIR:
+    r"""``scene`` (read from the JSON) with ``meta.duration`` back to ``0.0``,
+    "unset", when ``md_text`` (its ``scene.md``) writes no ``duration`` (an#557).
 
-    >>> from an.ir.schema import Shot, Transition
-    >>> two = SceneIR(meta=Meta(fps=24), timeline=[Shot(id="a", duration=2.0),
-    ...     Shot(id="b", duration=2.0, transition=Transition(kind="dissolve", duration=0.6))])
-    >>> round(_laid_out_duration(two), 4)
-    3.4167
+    Before an#557 reading the markdown filled an unwritten duration with a
+    derived length (the shots' layout, or their plain sum) and stored it in the
+    JSON. A JSON value the markdown does not carry can only be that: a value set
+    through the store writes the line. Left as it is, the next store write
+    would merge it into the author's file as if authored. Modified in place;
+    returned for chaining.
+
+    >>> from an.ir.schema import Shot
+    >>> s = SceneIR(meta=Meta(duration=4.0), timeline=[Shot(id="a", duration=4.0)])
+    >>> unset_unwritten_duration(s, "# T\n\n```yaml meta\nfps: 24\n```\n").meta.duration
+    0.0
+    >>> s.meta.duration = 4.0
+    >>> unset_unwritten_duration(s, "```yaml meta\nduration: 4\n```\n").meta.duration
+    4.0
     """
-    from an.assemble import film_duration, transition_problems
-
-    if transition_problems(scene.timeline, scene.meta.fps):
-        return sum(s.duration for s in scene.timeline)
-    return film_duration(scene)
+    if scene.meta.duration:
+        meta_block = _extract_yaml_block(_split_by_shots(md_text)["__global__"], "meta")
+        if not (meta_block or {}).get("duration"):
+            scene.meta.duration = 0.0
+    return scene
 
 
 def _extract_title(md_text: str) -> str:
@@ -807,10 +815,16 @@ def _md_shot_heading(shot: Shot) -> str:
 
 def _md_meta_body(scene: SceneIR) -> str:
     """The ```yaml meta`` block's body, as the writer spells it."""
-    meta_dict = {
+    meta_dict: dict[str, Any] = {
         "title": scene.meta.title,
         "author": scene.meta.author,
-        "duration": scene.meta.duration,
+    }
+    # `duration` only when authored (an#557): 0.0 is "unset", and the film's
+    # length is what its shots lay out (`an.assemble.film_duration`). Where the
+    # writer always put it, so a set value is written byte for byte as before.
+    if scene.meta.duration:
+        meta_dict["duration"] = scene.meta.duration
+    meta_dict |= {
         "fps": scene.meta.fps,
         "resolution": {
             "width": scene.meta.resolution.width,
@@ -1286,6 +1300,37 @@ DEFAULT_SCENE_FILE: str = "scene.md"
 #: default scene file renders to. Reserved for it: another scene may not take it.
 DEFAULT_OUTPUT_NAME: str = "main"
 
+#: The subfolder under which a scene other than the default keeps its own copy
+#: of a per-scene work folder (probes, the live preview), so two scenes that
+#: share shot ids never overwrite each other's files (an#554). The default
+#: scene keeps the folder itself, as it always did.
+PER_SCENE_SUBDIR: str = "scenes"
+
+#: What an output name may be: a file stem that cannot climb out of, or alias,
+#: the folder it names (``..``, ``.``, ``a/b``; an#554 review). It starts with a
+#: letter, digit or ``_`` (a leading ``-`` reads as a command-line flag) and does
+#: not end with ``.`` (Windows drops the dot, so ``a.`` and ``a`` collide).
+_OUTPUT_NAME_RE = re.compile(r"\w[\w.-]*(?<!\.)")
+
+#: Files that may be a scene before they have been read (no ``ir/<stem>.json``
+#: yet): a render of one would write its output name, so that name is taken.
+#: Only these claim a name unread; any other ``.md`` claims its own once a
+#: command has read it.
+SCENE_FILE_GLOB: str = "scene*.md"
+
+
+def _output_stem_problem(stem: str) -> str | None:
+    """Why ``stem`` cannot be an output name on every platform, or ``None``:
+    a Windows device name, a trailing dot (Windows drops it, so ``a.`` is ``a``)
+    or a leading dash (read as a command-line flag)."""
+    if is_windows_reserved(stem):
+        return "is a reserved device name on Windows"
+    if stem.endswith("."):
+        return "ends with '.', which Windows drops"
+    if stem.startswith("-"):
+        return "starts with '-', which reads as a command-line flag"
+    return None
+
 
 class SceneFileError(ValueError):
     """A scene file a command was given cannot be used: a bad name, a file
@@ -1308,10 +1353,31 @@ class SceneFile:
     def is_default(self) -> bool:
         return self.name == DEFAULT_SCENE_FILE
 
+    @property
+    def project_dir(self) -> Path:
+        """The project this scene belongs to (the folder holding its ``.md``)."""
+        return self.md_path.parent
+
+    def per_scene_dir(self, base: str | Path) -> Path:
+        """This scene's copy of the per-scene work folder ``base``: ``base``
+        itself for the default scene, ``base/scenes/<stem>`` for another, so
+        two scenes sharing shot ids never write the same file (an#554).
+
+        >>> resolve_scene_file("/p", must_exist=False).per_scene_dir("/p/x").as_posix()
+        '/p/x'
+        >>> sf = resolve_scene_file("/p", "scene.studio.md", must_exist=False)
+        >>> sf.per_scene_dir("/p/x").as_posix()
+        '/p/x/scenes/scene.studio'
+        """
+        base = Path(base)
+        return base if self.is_default else base / PER_SCENE_SUBDIR / self.md_path.stem
+
     def output_for(self, output_name: str | None = None) -> str:
         """The output name a render of this scene writes: ``output_name`` when
-        given, else :attr:`output_name`. A scene other than the default one
-        may not write the default scene's output.
+        given, else :attr:`output_name`. No scene may write another scene's
+        default output: not the default scene's ``main``, and not that of another
+        scene of the project (:func:`project_scene_files`: ``scene.b.md``'s
+        ``scene.b``, an#554). A name must be a plain stem (no ``..``).
 
         >>> sf = resolve_scene_file("/p", "scene.studio.md", must_exist=False)
         >>> sf.output_for(), sf.output_for("final")
@@ -1320,12 +1386,24 @@ class SceneFile:
         Traceback (most recent call last):
         ...
         an.ir.sync.SceneFileError: output name 'main' is the default scene's (scene.md) output; a render of scene.studio.md would overwrite it: pick another --output-name
+        >>> sf.output_for("..")  # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        an.ir.sync.SceneFileError: output name '..' must be a file stem ...
         """
         if not output_name:
             return self.output_name
-        if "/" in output_name or "\\" in output_name:
+        if not _OUTPUT_NAME_RE.fullmatch(output_name):
+            # Not a path, and not `.`/`..`/`.hidden`: a name like those resolves
+            # to another output's folder (`render_work/outputs/..` is main's).
             raise SceneFileError(
-                f"output name {output_name!r} must be a file stem, not a path"
+                f"output name {output_name!r} must be a file stem (letters, digits, "
+                "'_', '-' and '.'; not starting with '.' or '-', not ending with "
+                "'.'), not a path"
+            )
+        if problem := _output_stem_problem(output_name):
+            raise SceneFileError(
+                f"output name {output_name!r} {problem}: pick another --output-name"
             )
         if not self.is_default and output_name.lower() == DEFAULT_OUTPUT_NAME:
             raise SceneFileError(
@@ -1333,6 +1411,15 @@ class SceneFile:
                 f"({DEFAULT_SCENE_FILE}) output; a render of {self.name} would "
                 "overwrite it: pick another --output-name"
             )
+        for other in project_scene_files(self.project_dir, unsynced=True):
+            if other.name != self.name and (
+                other.output_name.lower() == output_name.lower()
+            ):
+                raise SceneFileError(
+                    f"output name {output_name!r} is the output of the project's "
+                    f"other scene file {other.name}; a render of {self.name} would "
+                    "overwrite it: pick another --output-name"
+                )
         return output_name
 
 
@@ -1402,6 +1489,13 @@ def resolve_scene_file(
     """
     pdir = Path(project_dir).expanduser()
     if isinstance(scene_file, SceneFile):
+        # Already resolved (a callee handed the caller's SceneFile, an#554):
+        # kept as is when it belongs to this project, re-resolved otherwise.
+        if scene_file.project_dir.resolve() == pdir.resolve():
+            if must_exist and not scene_file.is_default:
+                if not scene_file.md_path.exists():
+                    raise SceneFileError(f"no scene file {scene_file.name!r} in {pdir}")
+            return scene_file
         scene_file = scene_file.name
     name = _scene_file_name(pdir, scene_file)
     stem = Path(name).stem
@@ -1412,6 +1506,11 @@ def resolve_scene_file(
             f"the default scene's ({DEFAULT_SCENE_FILE}) output: rename the file "
             f"(for example scene.{stem}.md)"
         )
+    if not is_default and (problem := _output_stem_problem(stem)):
+        raise SceneFileError(
+            f"scene file {name!r} would render to output/{stem}.mp4, a name that "
+            f"{problem}: rename the file"
+        )
     md_path = pdir / name
     if must_exist and not is_default and not md_path.exists():
         raise SceneFileError(f"no scene file {name!r} in {pdir}")
@@ -1421,6 +1520,46 @@ def resolve_scene_file(
         json_path=pdir / "ir" / f"{stem}.json",
         output_name=DEFAULT_OUTPUT_NAME if is_default else stem,
     )
+
+
+def project_scene_files(
+    project_dir: str | Path, *, unsynced: bool = False
+) -> list[SceneFile]:
+    """Every scene of the project at ``project_dir`` (an#554): the default
+    ``scene.md`` first, when it or its JSON twin is there, then each other
+    ``.md`` file directly in the project whose JSON twin ``ir/<stem>.json``
+    exists (a scene a command has read: notes and READMEs have none), by name.
+    What a project-wide command (``an cache gc``) must account for.
+
+    ``unsynced=True`` also lists the ``scene*.md`` files not read yet (no JSON
+    twin): a render of one would claim its output name, so the output-name
+    refusal counts them (an#574).
+
+    >>> import tempfile
+    >>> with tempfile.TemporaryDirectory() as d:
+    ...     p = Path(d)
+    ...     (p / "ir").mkdir()
+    ...     for name in ("scene.md", "scene.b.md", "README.md", "ir/scene.json", "ir/scene.b.json"):
+    ...         _ = (p / name).write_text("")
+    ...     _ = (p / "scene.c.md").write_text("")
+    ...     [sf.name for sf in project_scene_files(p)]
+    ...     [sf.name for sf in project_scene_files(p, unsynced=True)]
+    ['scene.md', 'scene.b.md']
+    ['scene.md', 'scene.b.md', 'scene.c.md']
+    """
+    pdir = Path(project_dir).expanduser()
+    default = resolve_scene_file(pdir, must_exist=False)
+    out = [default] if default.md_path.exists() or default.json_path.exists() else []
+    for p in sorted(pdir.glob("*.md")) if pdir.is_dir() else ():
+        if p.name == DEFAULT_SCENE_FILE or not p.is_file():
+            continue
+        try:
+            sf = resolve_scene_file(pdir, p.name)
+        except SceneFileError:
+            continue  # `Scene.md`, `main.md`, `.hidden.md`: not a scene a command reads
+        if sf.json_path.exists() or (unsynced and fnmatchcase(p.name, SCENE_FILE_GLOB)):
+            out.append(sf)
+    return out
 
 
 def sync(
@@ -1461,8 +1600,10 @@ def sync(
         skew = json_mtime - md_mtime
         if skew > SYNC_MTIME_TOLERANCE_S:
             data = json.loads(_read_text(json_path))
-            scene = scene_from_json_doc(data, source=json_path)
             existing = _read_text(md_path)
+            scene = unset_unwritten_duration(
+                scene_from_json_doc(data, source=json_path), existing
+            )
             markdown = merge_markdown(existing, scene)  # an#275: keep the author's text
             if markdown != existing:
                 _write_text(md_path, markdown)
@@ -1498,8 +1639,9 @@ class SyncTieWarning(UserWarning):
 def _settle_a_tie(md_path: Path, json_path: Path, md_mtime: float, result) -> None:
     md_text = _read_text(md_path)
     try:
-        json_scene = scene_from_json_doc(
-            json.loads(_read_text(json_path)), source=json_path
+        json_scene = unset_unwritten_duration(
+            scene_from_json_doc(json.loads(_read_text(json_path)), source=json_path),
+            md_text,
         )
         if _md_canonical(md_text) == _md_canonical(ir_to_markdown(json_scene)):
             return

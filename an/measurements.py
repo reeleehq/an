@@ -200,15 +200,19 @@ def settle_durations(
     out = scene.model_copy(update={"timeline": timeline})
     from an.assemble import film_duration
 
-    # What "the author left it unset" can look like: the layout at the render's
-    # rate, at the scene's own (what reading the scene fills in, an#481), or the
-    # plain sum.
+    # An unset `meta.duration` (0.0) stays unset (an#557): the film's length is
+    # read off the settled shots. A set one that agreed with the shots before
+    # they settled follows them: it said what the shots laid out, and a scene
+    # stored before an#557 carries the length its reader derived (the layout at
+    # the scene's rate, an#481, or the plain sum before it) as if authored.
     before = (
         film_duration(scene, fps=fps),
         film_duration(scene),
         sum(s.duration for s in scene.timeline),
     )
-    if any(abs(meta.duration - b) <= META_DURATION_TOLERANCE_S for b in before):
+    if meta.duration > 0 and any(
+        abs(meta.duration - b) <= META_DURATION_TOLERANCE_S for b in before
+    ):
         out.meta = meta.model_copy(update={"duration": film_duration(out, fps=fps)})
     return out, findings
 

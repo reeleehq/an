@@ -2,7 +2,8 @@
 
 Runs the same semantic checks as ``an.ir.validate.validate_semantic`` plus a
 few that need a render context (do dialogue lines fit in their shot's
-duration? is the scene's total duration consistent with the timeline?).
+duration?). Whether ``meta.duration`` matches the timeline is
+``validate_semantic``'s check, not repeated here.
 
 Deliberately runs on the IR alone (RenderResult=None is fine), so the
 orchestrator can call it BEFORE rendering and skip a costly render if the
@@ -23,20 +24,8 @@ class LayoutLintVerifier:
     def verify(self, ir: SceneIR, render=None) -> VerificationReport:
         report = VerificationReport()
 
-        # Total duration consistency
-        # The delivered length: the shots' sum minus any dissolve overlaps
-        # (an#163); exactly the sum for a scene without one.
-        from an.assemble import film_duration
-
-        timeline_total = film_duration(ir)
-        if ir.meta.duration > 0 and abs(ir.meta.duration - timeline_total) > 0.01:
-            report.add(
-                "warning",
-                "meta/duration",
-                f"meta.duration ({ir.meta.duration}) doesn't match sum of "
-                f"shot durations ({timeline_total})",
-                suggested_fix=f"set meta.duration = {timeline_total}",
-            )
+        # `meta.duration` is checked once, by `an validate`'s
+        # `_core_meta_duration` (an#557), not again here with another tolerance.
 
         # Each shot's structural checks.
         seen_ids: set[str] = set()

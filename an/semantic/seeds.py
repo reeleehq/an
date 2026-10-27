@@ -367,7 +367,7 @@ def _core_fields() -> tuple[Entry, ...]:
         ),
         _field(
             "shot.camera.follow",
-            "camera.follow (optional): {target: <entity id or node path>, axes: x|y|xy} "
+            "camera.follow (optional): {target: <entity id or node path>, axes: x|y|xy, lag: <seconds, optional: the camera trails the target with this time constant>} "
             "— the camera tracks the target, keeping it where it stood at the shot's "
             "start (a walk across a long set); planes parallax with it. Instead of a "
             "move or keys (hold is fine); a shake layers on top.",

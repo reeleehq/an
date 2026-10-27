@@ -53,6 +53,7 @@ __all__ = [
     "Track",
     "TrackEvent",
     "Vec3",
+    "lag_filter",
     "look_basis",
 ]
 
@@ -70,6 +71,8 @@ _ZERO: Vec3 = (0.0, 0.0, 0.0)
 _SAME_POSE_EPS: float = 1e-9
 #: Sample points per shot when asking whether a pose changes within it.
 _STATIC_SAMPLES: int = 33
+#: Step of the second difference an acceleration is read with (s).
+_ACCEL_DT: float = 1e-2
 
 
 class FrameError(ValueError):
@@ -222,6 +225,33 @@ def _axes(yaw: float, pitch: float, roll: float) -> Axes | None:
         return None
     forward, right, down = look_basis(yaw, pitch, roll)
     return right, down, forward
+
+
+def lag_filter(values: Sequence[float], *, lag: float, dt: float) -> list[float]:
+    """``values`` seen through a first-order filter of time constant ``lag``
+    (s), sampled every ``dt``: it starts on the first value and closes
+    ``1 - exp(-dt/lag)`` of the gap each step (Cinemachine's damping: the time
+    it takes to catch up). ``lag <= 0`` returns them as they are.
+
+    >>> out = lag_filter([0.0] + [100.0] * 30, lag=0.5, dt=0.1)
+    >>> round(out[5], 1)                  # 0.5 s after the step: 1 - 1/e of it
+    63.2
+    >>> lag_filter([0.0, 1.0], lag=0.5, dt=0.0)
+    Traceback (most recent call last):
+      ...
+    ValueError: lag_filter: the sample step `dt` must be positive (got 0.0).
+    """
+    if not dt > 0:
+        raise ValueError(
+            f"lag_filter: the sample step `dt` must be positive (got {dt!r})."
+        )
+    if lag <= 0 or not values:
+        return list(values)
+    k = 1.0 - math.exp(-dt / lag)
+    out = [float(values[0])]
+    for v in values[1:]:
+        out.append(out[-1] + k * (v - out[-1]))
+    return out
 
 
 # --- a channel animated by ordinary actions ----------------------------------------
@@ -439,6 +469,56 @@ class FrameTree:
             first.same_as(self.relative_pose(name, to, t, film_start=film_start))
             for t in sorted(times)
         )
+
+    def acceleration(
+        self,
+        name: str,
+        t: float,
+        *,
+        film_start: float = 0.0,
+        dt: float = _ACCEL_DT,
+        within: tuple[float, float] | None = None,
+    ) -> Vec3:
+        """The world acceleration of ``name``'s origin at shot time ``t``
+        (second difference of step ``dt``, units/s²): zero for a frame at rest
+        or at a constant speed.
+
+        ``within=(lo, hi)`` keeps the three samples inside that window (a
+        shot): near an end the stencil slides inward (a one-sided difference),
+        and a window narrower than ``2·dt`` shrinks the step to half of it, so
+        a motion that starts at the window's edge is not read as an impulse.
+
+        >>> from an.ir.schema import Frame, FrameMoving
+        >>> tree = FrameTree({"car": Frame(moving=FrameMoving(speed=20.0))})
+        >>> [round(v, 3) + 0.0 for v in tree.acceleration("car", 1.0)]
+        [0.0, 0.0, 0.0]
+        >>> track = Track([TrackEvent(0.0, 1.0, to=10.0, from_=0.0, easing="ease_out")])
+        >>> braking = FrameTree({"car": Frame()}, tracks={"car": {"at_z": track}})
+        >>> [round(v, 1) + 0.0 for v in braking.acceleration("car", 0.5)]   # 20 m/s to 0 in a second
+        [0.0, 0.0, -20.0]
+        >>> [round(v, 1) + 0.0 for v in braking.acceleration("car", 0.0, dt=0.04, within=(0.0, 1.0))]
+        [0.0, 0.0, -20.0]
+        """
+        h = dt
+        if within is not None:
+            lo, hi = within
+            h = min(h, max(0.0, (hi - lo) / 2.0))
+            if h <= 0:
+                return _ZERO
+            t = min(max(t, lo + h), hi - h)
+        a, b, c = (
+            self.world_pose(name, t + k * h, film_start=film_start).at
+            for k in (-1, 0, 1)
+        )
+        return tuple((ai - 2 * bi + ci) / (h * h) for ai, bi, ci in zip(a, b, c))  # type: ignore[return-value]
+
+    def sway_frame(self, name: str) -> str | None:
+        """The frame whose ``sway`` governs what is in ``name``: the nearest one
+        up the chain that declares it, else ``None``."""
+        for n in reversed(self.chain(name)):
+            if self.frames[n].sway is not None:
+                return n
+        return None
 
     def constant_motion(self, name: str) -> tuple[Vec3, float] | None:
         """``(unit direction, speed)`` when ``name`` is a frame of the world
