@@ -1074,19 +1074,25 @@ def _handed(at, scale=1.0):
 
 
 def _perspective(scene):
-    return [n for n in lower_world(scene, extents=EXTENTS).notes if n.kind == "perspective"]
+    return [
+        n for n in lower_world(scene, extents=EXTENTS).notes if n.kind == "perspective"
+    ]
 
 
 def test_a_world_placement_is_in_perspective():
     scene = _two_lamps_scene(
-        timeline=[Shot(id="two", viewpoint="two", entities=[_handed((75.0, 60.0), 6.0)])]
+        timeline=[
+            Shot(id="two", viewpoint="two", entities=[_handed((75.0, 60.0), 6.0)])
+        ]
     )
     assert _perspective(scene) == []
 
 
 def test_walking_a_member_nearer_by_hand_without_resizing_it_is_a_warning():
     scene = _two_lamps_scene(
-        timeline=[Shot(id="two", viewpoint="two", entities=[_handed((75.0, 120.0), 6.0)])]
+        timeline=[
+            Shot(id="two", viewpoint="two", entities=[_handed((75.0, 120.0), 6.0)])
+        ]
     )
     (note,) = _perspective(scene)
     assert note.severity == "warning" and note.entity == "right"
@@ -1095,6 +1101,122 @@ def test_walking_a_member_nearer_by_hand_without_resizing_it_is_a_warning():
 
 def test_a_hand_scale_that_follows_the_row_is_clean():
     scene = _two_lamps_scene(
-        timeline=[Shot(id="two", viewpoint="two", entities=[_handed((75.0, 120.0), 12.0)])]
+        timeline=[
+            Shot(id="two", viewpoint="two", entities=[_handed((75.0, 120.0), 12.0)])
+        ]
     )
     assert _perspective(scene) == []
+
+
+# --- an#516: the review's second pass, slice A ---------------------------------
+
+
+def test_a_lowered_shot_is_known_by_its_marker_not_by_its_names():
+    """Slot entities carry `overrides.stream`; a lowered scene lowered again is
+    recognised by it (with an info note), and an AUTHORED entity merely named
+    like a slot is refused instead of silently un-lowering the shot."""
+    from an.ir.world import STREAM_OVERRIDE
+
+    scene = _travel_scene(Shot(id="s1", duration=2.0, viewpoint="road"))
+    once = lower_world(scene, extents=EXTENTS)
+    slots = [e for e in once.scene.timeline[0].entities if e.id.startswith("pole_")]
+    assert slots and all(e.overrides[STREAM_OVERRIDE] == "pole" for e in slots)
+    twice = lower_world(once.scene, extents=EXTENTS)
+    assert any(n.kind == "lowered" and n.severity == "info" for n in twice.notes)
+    impostor = AssetRef(kind="prop", id="pole_0", store="props", ref="lamp")
+    named = _travel_scene(
+        Shot(id="s1", duration=2.0, viewpoint="road", entities=[impostor])
+    )
+    with pytest.raises(WorldError, match="named like a stream's slots"):
+        lower_world(named, extents=EXTENTS)
+
+
+def test_cut_continuity_and_screen_direction_skip_an_entity_unseen_on_a_side(tmp_path):
+    """A hidden entity (alpha 0) at a cut does not jump: S11."""
+    from an.ir.schema import SetAction
+
+    project = _project(tmp_path)
+    by_hand = AssetRef(
+        kind="prop", id="right", store="props", ref="lamp",
+        stage=StagePlacement(at=(40.0, 0.0), scale=9.0),
+    )  # fmt: skip
+
+    def jumps(*end_actions):
+        scene = _two_lamps_scene(
+            timeline=[
+                Shot(
+                    id="two", duration=0.5, viewpoint="two", actions=list(end_actions)
+                ),
+                Shot(id="again", duration=0.5, viewpoint="two", entities=[by_hand]),
+            ]
+        )
+        return [
+            f
+            for f in _validate(project, scene).findings
+            if "jumps across the cut" in f.description and "'right'" in f.description
+        ]
+
+    assert jumps(), "seen on both sides: the jump is reported"
+    hidden = SetAction(target="right", property="alpha", value=0.0, at=0.0)
+    assert jumps(hidden) == []
+
+
+def test_a_world_member_whose_ref_is_missing_is_an_error(tmp_path):
+    """S12: the lowering cannot draw it, so validate says so as an error, as it
+    does for a listed entity."""
+    project = _project(tmp_path)
+    scene = _two_lamps_scene(timeline=[Shot(id="two", duration=0.5, viewpoint="two")])
+    scene.world.members.append(
+        WorldMember(
+            kind="prop",
+            id="ghost",
+            store="props",
+            ref="nope",
+            at=(0.0, 0.0, 2.0),
+            height=0.5,
+        )
+    )
+    errors = [
+        f for f in _validate(project, scene).findings
+        if f.severity == "error" and "'nope'" in f.description
+    ]  # fmt: skip
+    assert errors and errors[0].ir_path == "world/members/2"
+
+
+def test_a_shot_whose_members_cannot_be_measured_says_so():
+    """Without the stores no member has an extent: one info line for the shot."""
+    scene = _two_lamps_scene(timeline=[Shot(id="two", duration=0.5, viewpoint="two")])
+    notes = lower_world(scene, extents={}).notes
+    assert any(n.kind == "unplaced" and n.severity == "info" for n in notes)
+    assert not any(
+        n.kind == "unplaced" and n.severity == "info"
+        for n in lower_world(scene, extents=EXTENTS).notes
+    )
+
+
+def test_the_render_says_what_the_lowering_could_not_draw(tmp_path):
+    """S12: a member the lowering cannot place is a warning at render, not a
+    silent drop (`_prepare_shots` routes the lowering's notes)."""
+    import dataclasses
+
+    from an.measurements import ShotFindingWarning
+    from an.render import _prepare_shots
+
+    project = _project(tmp_path)
+    scene = _two_lamps_scene(timeline=[Shot(id="two", duration=0.5, viewpoint="two")])
+    scene.world.members.append(
+        WorldMember(
+            kind="prop",
+            id="ghost",
+            store="props",
+            ref="nope",
+            at=(0.0, 0.0, 2.0),
+            height=0.5,
+        )
+    )
+    with pytest.warns(ShotFindingWarning, match="'ghost'"):
+        _prepare_shots(
+            dataclasses.replace(project, scene=scene), tmp_path / "work", fps=None,
+            resolution=None, strict_assets=False, supersample=1, pix_fmt=None,
+            capture=None, step_hz=None,
+        )  # fmt: skip

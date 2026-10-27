@@ -381,7 +381,9 @@
        "id": "pole_0",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "stream": "pole"
+       },
        "stage": {
         "at": [
          12.0,
@@ -395,7 +397,9 @@
        "id": "pole_10",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "stream": "pole"
+       },
        "stage": {
         "at": [
          12.0,
@@ -409,7 +413,9 @@
        "id": "pole_9",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "stream": "pole"
+       },
        "stage": {
         "at": [
          13.333333333333334,
@@ -423,7 +429,9 @@
        "id": "pole_8",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "stream": "pole"
+       },
        "stage": {
         "at": [
          15.0,
@@ -437,7 +445,9 @@
        "id": "pole_7",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "stream": "pole"
+       },
        "stage": {
         "at": [
          17.142857142857142,
@@ -451,7 +461,9 @@
        "id": "pole_6",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "stream": "pole"
+       },
        "stage": {
         "at": [
          20.0,
@@ -465,7 +477,9 @@
        "id": "pole_5",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "stream": "pole"
+       },
        "stage": {
         "at": [
          24.0,
@@ -479,7 +493,9 @@
        "id": "pole_4",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "stream": "pole"
+       },
        "stage": {
         "at": [
          30.0,
@@ -493,7 +509,9 @@
        "id": "pole_3",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "stream": "pole"
+       },
        "stage": {
         "at": [
          40.0,
@@ -507,7 +525,9 @@
        "id": "pole_2",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "stream": "pole"
+       },
        "stage": {
         "at": [
          60.0,
@@ -521,7 +541,9 @@
        "id": "pole_1",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "stream": "pole"
+       },
        "stage": {
         "at": [
          120.0,
@@ -2676,7 +2698,9 @@
        "id": "pole_3",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "stream": "pole"
+       },
        "stage": {
         "at": [
          12.0,
@@ -2690,7 +2714,9 @@
        "id": "pole_2",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "stream": "pole"
+       },
        "stage": {
         "at": [
          12.0,
@@ -2704,7 +2730,9 @@
        "id": "pole_1",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "stream": "pole"
+       },
        "stage": {
         "at": [
          12.857142857142858,
@@ -2718,7 +2746,9 @@
        "id": "pole_0",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "stream": "pole"
+       },
        "stage": {
         "at": [
          14.4,
@@ -2732,7 +2762,9 @@
        "id": "pole_10",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "stream": "pole"
+       },
        "stage": {
         "at": [
          16.363636363636363,
@@ -2746,7 +2778,9 @@
        "id": "pole_9",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "stream": "pole"
+       },
        "stage": {
         "at": [
          18.94736842105263,
@@ -2760,7 +2794,9 @@
        "id": "pole_8",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "stream": "pole"
+       },
        "stage": {
         "at": [
          22.5,
@@ -2774,7 +2810,9 @@
        "id": "pole_7",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "stream": "pole"
+       },
        "stage": {
         "at": [
          27.692307692307693,
@@ -2788,7 +2826,9 @@
        "id": "pole_6",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "stream": "pole"
+       },
        "stage": {
         "at": [
          36.0,
@@ -2802,7 +2842,9 @@
        "id": "pole_5",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "stream": "pole"
+       },
        "stage": {
         "at": [
          51.42857142857143,
@@ -2816,7 +2858,9 @@
        "id": "pole_4",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "stream": "pole"
+       },
        "stage": {
         "at": [
          90.0,
@@ -5242,7 +5286,9 @@
        "id": "pole_2",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "stream": "pole"
+       },
        "stage": {
         "at": [
          -291.6666666666668,
@@ -5256,7 +5302,9 @@
        "id": "pole_3",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "stream": "pole"
+       },
        "stage": {
         "at": [
          -291.6666666666668,
@@ -5270,7 +5318,9 @@
        "id": "pole_1",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "stream": "pole"
+       },
        "stage": {
         "at": [
          -291.6666666666667,
@@ -5284,7 +5334,9 @@
        "id": "pole_0",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "stream": "pole"
+       },
        "stage": {
         "at": [
          1.83697019872103e-14,
@@ -5606,7 +5658,9 @@
        "id": "pole_5",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "stream": "pole"
+       },
        "stage": {
         "at": [
          -291.66666666666697,
@@ -5620,7 +5674,9 @@
        "id": "pole_4",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "stream": "pole"
+       },
        "stage": {
         "at": [
          -291.6666666666665,
@@ -5634,7 +5690,9 @@
        "id": "pole_3",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "stream": "pole"
+       },
        "stage": {
         "at": [
          -249.99999999999997,

@@ -2550,13 +2550,16 @@ def _placements(
             continue
         states = []
         for pose in poses:
-            t = transform_of(node, _pose_for(pose, path), frame_height=res.height)
+            mine = _pose_for(pose, path)
+            t = transform_of(node, mine, frame_height=res.height)
+            alpha = (mine or {}).get((path.rsplit("/", 1)[-1], "alpha"))
             states.append(
                 {
                     "x": t.x,
                     "y": t.y,
                     "scale_x": abs(t.scale_x),
                     "scale_y": abs(t.scale_y),
+                    "alpha": float(node.transform.alpha if alpha is None else alpha),
                 }
             )
         out[entity.id] = (states[0], states[1])
@@ -2611,6 +2614,8 @@ def _core_cut_continuity(ctx: ValidationContext) -> None:
             continue  # a cut between two framings of one world is a cut, not a jump (ADR 0009)
         for entity_id in [e for e in after if e in before]:
             ended, starts = before[entity_id][1], after[entity_id][0]
+            if not (ended["alpha"] and starts["alpha"]):
+                continue  # unseen on one side (a stream slot between passes): no jump
             opened = _opened(shot, entity_id, fps=fps)
             jumps = [
                 f"{prop} {ended[prop]:g} → {starts[prop]:g}"
@@ -2670,7 +2675,14 @@ def _core_screen_direction(ctx: ValidationContext) -> None:
         drawn = (authored | members) - {
             e.id for s in (prev, shot) for e in s.entities if e.kind == "environment"
         }
-        common = sorted(e for e in after if e in before and e in drawn)
+        common = sorted(
+            e
+            for e in after
+            if e in before
+            and e in drawn
+            and before[e][1]["alpha"]
+            and after[e][0]["alpha"]
+        )
         for a_i, a in enumerate(common):
             for b in common[a_i + 1 :]:
                 dx_before = before[a][1]["x"] - before[b][1]["x"]
@@ -2703,13 +2715,18 @@ def _core_world(ctx: ValidationContext) -> None:
 
     ids = {m.id for m in world.members}
     for j, member in enumerate(world.members):
-        if entity_kind(member.kind) is None:
+        registered = entity_kind(member.kind)
+        if registered is None:
             ctx.report.add(
                 "error",
                 f"world/members/{j}",
                 f"member {member.id!r} has kind {member.kind!r}, which no loaded genre "
                 "registers (the core has environment, prop and voice; a genre adds its own).",
             )
+            continue
+        missing = _missing_member_ref(member, ctx.stores, registered)
+        if missing:
+            ctx.report.add("error", f"world/members/{j}", missing)
     for name, vp in world.viewpoints.items():
         subjects = (
             [vp.subject] if isinstance(vp.subject, str) else list(vp.subject or [])
@@ -2728,6 +2745,26 @@ def _core_world(ctx: ValidationContext) -> None:
                     f"world/viewpoints/{name}",
                     f"viewpoint {name!r} hides {hid!r}, which is not a member.",
                 )
+
+
+def _missing_member_ref(member: Any, stores: Mapping, registered: Any) -> str | None:
+    """Why a world member cannot be drawn, when its ``ref`` is not in a supplied
+    store of its kind (an#516): the same error a listed entity's missing ref is,
+    since the lowering would place nothing. ``None`` when it resolves, its
+    store is not supplied, its kind draws a placeholder, or it is an
+    environment (a preset name is not a store entry)."""
+    if member.kind == "environment" or member.kind not in rig_stores():
+        return None
+    if registered.placeholder_on_missing or member.ref is None:
+        return None
+    store_name = rig_stores()[member.kind][0]
+    store = stores.get(store_name)
+    if store is None or member.ref in store:
+        return None
+    return (
+        f"member {member.id!r} has ref {member.ref!r}, which is not in the "
+        f"{store_name!r} store: the world cannot draw it (rendering drops it)."
+    )
 
 
 def _report_plane_depths(ctx: ValidationContext, world: Any, env_store: Any) -> None:

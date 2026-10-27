@@ -138,6 +138,10 @@ _FLAT_CHANNEL_EPS: float = 1e-6
 #: The key the lowering records a member's attachment under in the entity's
 #: ``overrides``, for a pass that places it from its host (ADR 0009).
 ATTACHED_OVERRIDE: str = "attached"
+#: The core's record on a slot entity the lowering made (an#516): the id of
+#: the stream it draws. What marks a shot as lowered; an authored entity that
+#: is only NAMED like a slot carries none.
+STREAM_OVERRIDE: str = "stream"
 
 
 class WorldError(ValueError):
@@ -1177,6 +1181,7 @@ def _travel_entities(
                         id=entity_id,
                         store=stream.store,
                         ref=stream.ref,
+                        overrides={STREAM_OVERRIDE: stream.id},
                         stage=StagePlacement(
                             at=(first.first[0], first.first[1]),
                             scale=first.first[2],
@@ -1910,13 +1915,20 @@ def _lower_shot(
     for hid in vp.hide:
         _member(world, hid, where=f"shot {shot.id!r} viewpoint `hide`")
     listed = {e.id: j for j, e in enumerate(shot.entities)}
-    if world.travel is not None and any(
-        _is_slot_id(eid, world.travel) for eid in listed
-    ):
-        # The shot already holds a stream's slot entities: it IS a lowered shot
+    if any(STREAM_OVERRIDE in (e.overrides or {}) for e in shot.entities):
+        # The shot holds slot entities the lowering made: it IS a lowered shot
         # (a validate of what the render draws), and a second pass would only
         # re-sort what the first laid out. Nothing to add.
+        note("info", "lowered", "slots", "already lowered: its stream slots are kept")
         return shot, notes, list(range(len(shot.entities)))
+    if world.travel is not None:
+        named = sorted(eid for eid in listed if _is_slot_id(eid, world.travel))
+        if named:
+            raise WorldError(
+                f"shot {shot.id!r} lists {named}, named like a stream's slots "
+                "(`<stream id>_<n>`), which the travelling view makes and names; "
+                "rename them (an#516)."
+            )
 
     # Frames: the tree with this shot's actions on frame channels, and where
     # each member and the camera stand in it.
@@ -2053,7 +2065,10 @@ def _lower_shot(
     }
 
     # A hand `at` keeps the world's scale unless the author set one: a `scale`
-    # of exactly 1.0 is the field's default, and the default means "the world's".
+    # of exactly 1.0 is the field's default, and the default means "the world's"
+    # (decided in an#516, not `model_fields_set`: scene.md omits a default, so a
+    # set 1.0 would not survive a round trip). Native size by hand on a world
+    # member is a `set` of `scale_x`/`scale_y` 1 at 0, which wins over placement.
     hand: dict[str, tuple[tuple[float, float], float]] = {}
     for e in shot.entities:
         if e.id in members and e.stage is not None and e.stage.at is not None:
@@ -2354,6 +2369,15 @@ def _lower_shot(
         )
     entities = [e for e, _ in envs] + [e for _, e, _ in ordered]
     origins = [j for _, j in envs] + [j for _, _, j in ordered]
+    cast = [mid for mid, m in positioned.items() if m.kind != "environment"]
+    if cast and all(extents.get(mid) is None for mid in cast):
+        note(
+            "info",
+            "unplaced",
+            "members",
+            "no member of the world could be measured, so the shot draws none of "
+            "them (each is noted); supply the stores their art is in (an#516)",
+        )
     return (
         shot.model_copy(update={"entities": entities, "actions": actions}),
         notes,
