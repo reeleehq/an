@@ -157,7 +157,7 @@ def _draws_system_text(path: Path) -> bool:
 #: The calls that make an old module's names LIVE aliases of another module's
 #: (:mod:`an._shims`). Their target is a STRING, invisible to an import walk.
 FORWARDING_CALLS: frozenset[str] = frozenset(
-    {"forward_module_attributes", "alias_module", "moved_to_package"}
+    {"forward_module_attributes", "alias_module"}
 )
 
 
@@ -251,7 +251,7 @@ def genre_code_modules() -> dict[str, Path]:
 
     out: dict[str, Path] = {}
     for top in sorted({m.split(".", 1)[0] for m in hook_modules()} - {"an"}):
-        spec = _quiet_find_spec(top)
+        spec = importlib.util.find_spec(top)
         for location in (spec.submodule_search_locations or ()) if spec else ():
             base = Path(location)
             for path in sorted(base.rglob("*.py")):
@@ -265,52 +265,18 @@ def genre_code_modules() -> dict[str, Path]:
     return out
 
 
-def _moved_shim_file(old: str) -> Path | None:
-    """The source file of a moved module's old name, when it has one under ``an/``."""
-    import an
-
-    if not old.startswith("an."):
-        return None
-    rel = Path(an.__file__).parent.joinpath(*old.split(".")[1:])
-    for candidate in (rel / "__init__.py", rel.with_suffix(".py")):
-        if candidate.is_file():
-            return candidate
-    return None
-
-
-def _quiet_find_spec(name: str):
-    """``find_spec`` that a moved-module warning can neither break nor be raised by.
-
-    The walk resolves every DECLARED old name to its new home before it gets
-    here, so no old path is imported on purpose; this guard is for a parent
-    package that happens to be a shim. Under this repository's
-    ``error::MovedModuleWarning`` filter that warning would otherwise be an
-    exception inside the key computation (review of an#298, S2).
-    """
-    from an._shims import MovedModuleWarning
-
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", MovedModuleWarning)
-        return importlib.util.find_spec(name)
-
-
 def render_path_modules(
     root: str | Iterable[str] | None = None,
     *,
     excluded: Mapping[str, str] = RENDER_PATH_EXCLUDED,
-    moves: Mapping[str, str] | None = None,
 ) -> dict[str, Path]:
     """``{module: source path}`` for every module the render path reaches.
 
     ``root`` is one module name or several; ``None`` is :func:`render_path_roots`.
 
-    The walk enters ``an`` and every package a module MOVED to
-    (``moves``: ``{old: new}``, default :func:`an._shims.declared_moves`, read
-    from source). A name under a moved prefix is keyed under its NEW name --
-    the code that runs -- never imported through the old path, and the old
-    path's shim file is keyed too (an edit to it changes what the name serves).
-    So a module that leaves for ``cutan`` (P8, an#225) stays in the key, under
-    any warnings filter (review of an#298, S2; an#294).
+    The walk enters ``an`` and every package a loaded genre registered a hook
+    from (:func:`genre_code_modules`, an#294); a cut-out module is keyed under
+    its ``cutan`` name, the code that runs (the old ``an`` paths are gone, an#321).
 
     >>> mods = render_path_modules()
     >>> "an.stage.canvas_capture" in mods and "an.stage.compile" not in mods
@@ -324,16 +290,9 @@ def render_path_modules(
         roots = [root]
     else:
         roots = list(root)
-    if moves is None:
-        from an._shims import declared_moves
-
-        moves = declared_moves()
-    from an._shims import resolve_moved
-
     genre_code = genre_code_modules() if root is None else {}
 
-    tops = {"an"} | {target.split(".", 1)[0] for target in moves.values()}
-    tops |= {name.split(".", 1)[0] for name in genre_code}
+    tops = {"an"} | {name.split(".", 1)[0] for name in genre_code}
     found: dict[str, Path] = {}
     roots.extend(genre_code)
     aliases = _alias_index()
@@ -341,23 +300,14 @@ def render_path_modules(
     todo = roots
     while todo:
         name = todo.pop()
-        new_name = resolve_moved(name, moves)
-        if new_name != name:
-            old_prefix = max(
-                (o for o in moves if name == o or name.startswith(o + ".")), key=len
-            )
-            shim = _moved_shim_file(old_prefix)
-            if shim is not None and old_prefix not in found:
-                found[old_prefix] = shim
-            name = new_name
         # A root is entered whatever its package (a caller asked for it); what
-        # it reaches is entered only inside `an` and the packages moves target.
+        # it reaches is entered only inside `an` and the genres' packages.
         if name not in asked and name.split(".", 1)[0] not in tops:
             continue
         if name in found or name in excluded or name == "an":
             continue
         try:
-            spec = _quiet_find_spec(name)
+            spec = importlib.util.find_spec(name)
         except (ImportError, ValueError):  # `from m import NAME`: NAME is no module
             continue
         if spec is None or not spec.origin or not spec.origin.endswith(".py"):

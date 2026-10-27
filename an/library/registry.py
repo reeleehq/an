@@ -351,7 +351,7 @@ def record_generated(digests: Iterable[str], *, generator: str) -> None:
     """Record that ``generator`` (the character factory) drew the bytes ``digests`` on this machine.
 
     Called by the generator itself on bytes it drew in that same call
-    (``an.characters.factory.new_character`` on the folder it created empty) —
+    (``cutan.characters.factory.new_character`` on the folder it created empty) —
     never by a stamping function or a descriptor, so neither stamping carved
     bytes nor editing a descriptor can add to it (review-269 B2). The asset library reads it to VERIFY a generator's stamp
     (:func:`generated_by`): a stamp a person wrote by hand, or one copied onto

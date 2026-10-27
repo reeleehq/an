@@ -415,7 +415,7 @@ _DFLT_PROPERTY_REST_VALUE: float | None = None
 
 # The emotion → brow-tilt table that lived here is retired (an#98): `[emotion]`
 # is sugar for an `expression` leaf, resolved by the face solver
-# (`_add_face_clips`) from `an.expression.presets`.
+# (`_add_face_clips`) from `cutan.expression.presets`.
 
 
 def _runtime_node_paths(node: NodeJSON, prefix: str = "") -> set[str]:
@@ -545,7 +545,7 @@ class _SwapVocabulary:
     #: attachment names: descriptor animation tracks name attachments).
     declared_maps: dict[str, dict[str, dict[str, str]]] = field(default_factory=dict)
     #: entity id → its MIGRATED descriptor (an#7: `play` resolves against
-    #: it through `an.characters.play`, the same code `an validate` runs).
+    #: it through `cutan.characters.play`, the same code `an validate` runs).
     descriptors: dict[str, Any] = field(default_factory=dict)
     #: entity id → `rel_path -> art on disk`, or None when the store cannot
     #: say (then every declared attachment is assumed present — the part
@@ -1161,7 +1161,7 @@ def _checks_pass(state: CompileState) -> None:
 #: registering :class:`an.genres.CompilePass` objects for the ``"stage"``
 #: compiler; the in-repo cut-out genre registers ``swap_pose`` (300),
 #: ``view_spans`` (310), ``visemes`` (400) and ``face`` (500), and the ``rig``
-#: entity builder (:data:`an.genres.cutout.CUTOUT_COMPILE_PASSES`). Held HERE, not in the genre tables, so
+#: entity builder (:data:`cutan.genre.CUTOUT_COMPILE_PASSES`). Held HERE, not in the genre tables, so
 #: no ``without_genres()`` can take the stage's own passes away.
 STAGE_COMPILE_PASSES: tuple[CompilePass, ...] = (
     CompilePass(

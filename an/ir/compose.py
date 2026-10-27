@@ -463,17 +463,3 @@ def _register_core_kinds() -> None:
 
 
 _register_core_kinds()
-
-
-# `play`, `expression` and `default_play_extent` moved to `cutan` with the cut-out
-# genre's action kinds (an#225); the old names resolve there, with a warning.
-from an._shims import moved_names as _moved_names  # noqa: E402
-
-__getattr__ = _moved_names(
-    __name__,
-    {
-        "play": "cutan.characters.registration:play",
-        "default_play_extent": "cutan.characters.registration:default_play_extent",
-        "expression": "cutan.expression.registration:expression",
-    },
-)

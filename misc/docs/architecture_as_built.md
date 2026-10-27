@@ -95,7 +95,7 @@ What exists, and where, moved here from `CLAUDE.md` (an#156) so there is one map
 
 ## 0a. Core and genre (since the `cutan` move, an#225)
 
-`an` is the **core** of structured animation: the scene IR and its timing kernel, the open registries (action kinds, entity kinds, checks, compile passes, runtime scripts, services; `an/genres/`), the stage (compiler, runtime, renderer, rig model: `an/stage/`), audio, storage, the asset library, verification, the shot cache and the bench *runner*. It knows no genre by name. The cut-out genre is the separate distribution **`cutan`** (`pip install "an[cutout]"`; repository github.com/thorwhalen/cutan): rigged characters, faces and expressions, lip-sync visemes, swap conventions (views, eyelids, visemes), impacts and the style lint. Wherever a row or path below names `an/characters`, `an/expression`, `an/impacts`, the lip-sync providers, the style lint or the cut-out compile passes, that code now lives at the same path under `cutan/` (character CLI: `cutan.characters.cli`; passes: `cutan.compile.passes`; corpus, examples, demos and the cut-out skills: the `cutan` repository). The old `an.*` paths are live aliases that warn (`an._shims.moved_to_package`).
+`an` is the **core** of structured animation: the scene IR and its timing kernel, the open registries (action kinds, entity kinds, checks, compile passes, runtime scripts, services; `an/genres/`), the stage (compiler, runtime, renderer, rig model: `an/stage/`), audio, storage, the asset library, verification, the shot cache and the bench *runner*. It knows no genre by name. The cut-out genre is the separate distribution **`cutan`** (`pip install "an[cutout]"`; repository github.com/thorwhalen/cutan): rigged characters, faces and expressions, lip-sync visemes, swap conventions (views, eyelids, visemes), impacts and the style lint. Wherever a row or path below names `an/characters`, `an/expression`, `an/impacts`, the lip-sync providers, the style lint or the cut-out compile passes, that code now lives at the same path under `cutan/` (character CLI: `cutan.characters.cli`; passes: `cutan.compile.passes`; corpus, examples, demos and the cut-out skills: the `cutan` repository). The old `an.*` paths are gone (an#321): import from `cutan`.
 
 How the core reaches a genre without importing it (`an.genres.API_LEVEL`, the level each seam arrived at listed in `an/genres/__init__.py` (2 for the move itself, 10 today); `tests/test_import_firewall.py` holds it with an empty allow-list, and `tests/test_core_corpus.py` renders the core corpus with every cut-out module poisoned):
 
@@ -346,14 +346,10 @@ an/
 │   │                        mux_shot (silent mux + the shot's audio)
 │   ├── gif.py               the ONE palette recipe (was misc/demos/build_demos.py)
 │   └── sinks.py             FrameSink; mp4 / gif / png sequence; register_sink
-├── _shims.py                forward_module_attributes: an old path whose moved
-│                            module globals stay LIVE (read AND rebind the new home);
-│                            moved_to_package: an old path of a module that LEFT the
-│                            distribution (P8, an#225) is the new module object itself,
-│                            warns MovedModuleWarning at the importer's line, raises
-│                            GenreNotInstalledError / GenrePackageTooOldError (install /
-│                            upgrade hint); declared_moves reads moves from SOURCE (the
-│                            shot-cache walk keys a moved name under its new name)
+├── _shims.py                forward_module_attributes / alias_module: an old path of a
+│                            module that moved WITHIN an (an#247) stays LIVE (read AND
+│                            rebind the new home). What left for cutan (P8) has no old
+│                            path (an#321)
 ├── stage/                   THE 2D STAGE ENGINE (an#247) — shipped with an, OUTSIDE the
 │   │                        core firewall; `an[stage]` extra (Playwright). Nothing in
 │   │                        the core imports it: the renderer registry names it by

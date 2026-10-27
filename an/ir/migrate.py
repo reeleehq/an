@@ -8,7 +8,7 @@ Why the kind is part of the key
 -------------------------------
 This repo versions **two** document kinds independently — the scene IR
 (``version``, :data:`an.base.SCHEMA_VERSION`) and the character descriptor
-(``schema_version``, ``an.characters.schema.CHARACTER_SCHEMA_VERSION``) — and
+(``schema_version``, ``cutan.characters.schema.CHARACTER_SCHEMA_VERSION``) — and
 both currently sit at ``"0.1.0"``.
 
 Keying on ``(from, to)`` alone conflated them. A character migration registered
@@ -22,7 +22,7 @@ Registering a kind
 ------------------
 :mod:`an.ir.migrate` owns the mechanism; each package registers its own kind, so
 that this module never has to import the packages it serves. (It cannot:
-``an.characters.schema`` imports from ``an.ir.assets``, so an import the other
+``cutan.characters.schema`` imports from ``an.ir.assets``, so an import the other
 way would close a cycle.)
 
 >>> from an.ir.migrate import DocumentKind, register_kind

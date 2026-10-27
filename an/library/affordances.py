@@ -7,7 +7,7 @@ library's facets and ``find(…, near=True)`` and the compiler's method choice
 are one derivation and one matcher, never two.
 
 The character analyser is the cut-out genre's: it registers through
-:data:`an.genres.cutout.CUTOUT` (its ``capabilities`` and ``analysers``
+:data:`cutan.genre.CUTOUT` (its ``capabilities`` and ``analysers``
 fields) when the genres load, which the library's entry points do
 (:func:`an.library.api.publish`, :func:`an.library.api.find`).
 

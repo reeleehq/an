@@ -5,7 +5,7 @@ on a perfect grid. A real camera does neither: its shutter stays open for part
 of the frame period (so a moving object smears), and its capture instants
 wander around the nominal grid (so the timestamp a frame carries is not quite
 when it was taken). Anything that wants to *measure* motion from video — the
-sub-frame impact estimators :mod:`an.impacts` exists to score — needs both, and
+sub-frame impact estimators :mod:`cutan.impacts` exists to score — needs both, and
 needs to know exactly what was done.
 
 :class:`FrameClock` is that model as data. :meth:`FrameClock.frames` returns one

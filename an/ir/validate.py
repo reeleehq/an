@@ -1654,7 +1654,7 @@ def _core_action_kinds(ctx: ValidationContext) -> None:
             where = f"timeline/{i}/actions/{k}"
             for action in iter_actions(top):
                 # EVERY node, whatever its type: a typed genre action built in
-                # Python (`an.play(...)`) while its genre is not loaded is as
+                # Python (`cutan`'s `play(...)`) while its genre is not loaded is as
                 # unregistered as a bare `ExtensionAction` (review-244 S3).
                 if action_kind(str(getattr(action, "kind", ""))) is None:
                     ctx.memo[_KIND_PROBLEM_REPORTED] = True
@@ -2410,7 +2410,7 @@ def _core_library_checkouts(ctx: ValidationContext) -> None:
 
 # -----------------------------------------------------------------------------
 # The cut-out genre's checks, as context functions. The genre object
-# (`an.genres.cutout.CUTOUT`) registers them; the core never runs them on its
+# (`cutan.genre.CUTOUT`) registers them; the core never runs them on its
 # own. They live here until the genre package exists (P8 moves them).
 # -----------------------------------------------------------------------------
 

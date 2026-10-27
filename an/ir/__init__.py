@@ -135,15 +135,3 @@ __all__ = [
 # The character descriptor's kind (and its migrations) is registered by `cutan`
 # when its genre is loaded (an#225): `migrate()` on an unregistered kind names the
 # genre package that provides it.
-#
-# `play` and `expression` moved to `cutan` with the cut-out genre's action kinds;
-# the old names still resolve, with a warning.
-from an._shims import moved_names as _moved_names  # noqa: E402
-
-__getattr__ = _moved_names(
-    __name__,
-    {
-        "play": "cutan.characters.registration:play",
-        "expression": "cutan.expression.registration:expression",
-    },
-)

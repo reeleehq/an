@@ -556,8 +556,8 @@ def _extract_actions_block(text: str) -> list:
         than being silently dropped as it was before an#108.
 
     and, with the cut-out genre loaded, ``play`` (an#7, an#166) and
-    ``expression`` (an#98) — see :mod:`an.characters.registration` and
-    :mod:`an.expression.registration`.
+    ``expression`` (an#98) — see :mod:`cutan.characters.registration` and
+    :mod:`cutan.expression.registration`.
 
     A leaf action with a ``start`` key (any kind registered with
     ``md_start=True``) is wrapped in ``sequence(delay(start), action)`` so
