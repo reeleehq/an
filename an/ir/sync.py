@@ -1654,11 +1654,9 @@ def _scene_side(md_path: Path, json_path: Path) -> _Side:
     md_mtime, json_mtime = md_path.stat().st_mtime, json_path.stat().st_mtime
     skew = json_mtime - md_mtime
     if skew > SYNC_MTIME_TOLERANCE_S:
-        data = json.loads(_read_text(json_path))  # the JSON first: its error wins
+        scene = _json_scene(json_path, None)  # the JSON first: its error wins
         md_text = _read_text(md_path)
-        scene = unset_unwritten_duration(
-            scene_from_json_doc(data, source=json_path), md_text
-        )
+        scene = unset_unwritten_duration(scene, md_text)
         return _Side("json_newer", scene, md_text, md_mtime, json_mtime)
     md_text = _read_text(md_path)
     if skew < -SYNC_MTIME_TOLERANCE_S:
