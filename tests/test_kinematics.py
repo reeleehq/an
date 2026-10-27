@@ -586,3 +586,17 @@ def test_a_rope_gives_up_its_end_never_a_link():
     assert {j for d in r.dropped for j in d} == {n}, r.dropped
     worst = max(g for u in r.unsatisfied for j, g in u if j != n)
     assert worst < 1.0, worst
+
+
+def test_a_slack_rope_bends_in_pose_mode_and_keeps_its_end():
+    """an#646: a 50-link rope laid straight, its end held at 70% of its
+    length. The two-link seed holds the 49-link tail rigid and straight, too
+    long to fold, so the end was given up on every frame (130 px). Seeded on
+    an arc it holds, every joint, every frame."""
+    bodies, joints = _rope(50, 10.0)
+    r = solve_frames(
+        bodies, joints, frames=5, dt=None,
+        targets_at=lambda k: {"end": {"x": 350.0, "y": 0.0}},
+    )
+    assert r.dropped == ((),) * 5
+    assert r.unsatisfied == ((),) * 5

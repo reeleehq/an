@@ -73,7 +73,7 @@ from typing import Any
 import numpy as np
 
 from an.kinematics.bodies import WORLD, Body, Point, inertia, local_offset, mass
-from an.kinematics.chains import two_bone
+from an.kinematics.chains import arc_chain, two_bone
 from an.kinematics.joints import (
     Contact,
     Distance,
@@ -133,8 +133,9 @@ DFLT_SEGMENT_MARGIN: float = 0.5
 #: (a changed projection, order, or default): part of every cache key built
 #: on this module.
 #: 2: a slow retry keeps going while it converges (an#568); 3: a conflict gives up
-#: the first candidate that halves the failure (an#641).
-SOLVER_VERSION: str = "3"
+#: the first candidate that halves the failure (an#641); 4: a slack chain of more
+#: than two links held at both ends is seeded on an arc (an#646).
+SOLVER_VERSION: str = "4"
 #: The most passes a frame whose first retry made progress is given, as a
 #: multiple of ``iterations``: its retry is repeated with ``retry`` times the
 #: passes while each round still makes progress (an#568). On 300 random
@@ -941,6 +942,15 @@ def _seed_chains(st: _State, rows: list[_Row], tolerance: float) -> None:
                 break
         if best is not None:
             pose(*two_bone((rx, ry), (gx, gy), (l1, l2), bend=best[1]))
+        elif len(links) > 2 and _arc_seed(
+            st,
+            links,
+            (rx, ry),
+            (gx, gy),
+            bend=current,
+            violation=lambda: violation(joint_ids),
+        ):
+            pass  # a slack chain nearer than its length: laid on an arc (an#646)
         elif (gx, gy) != (rx, ry):
             # Out of reach: point the chain at the target (straight when
             # it is too far, folded when too near); the projection then
@@ -954,6 +964,46 @@ def _seed_chains(st: _State, rows: list[_Row], tolerance: float) -> None:
         else:  # on the root: no direction to take, so nothing is guessed
             for i, (x, y, th) in zip(bodies, saved):
                 st.x[i], st.y[i], st.th[i] = x, y, th
+
+
+def _arc_seed(
+    st: _State,
+    links: list,
+    root: tuple[float, float],
+    target: tuple[float, float],
+    *,
+    bend: int,
+    violation: Callable[[], float],
+) -> bool:
+    """Lay a chain of more than two links held at both ends nearer than its
+    length on a circular arc (:func:`an.kinematics.chains.arc_chain`): the
+    rigid tail the two-link form uses is too long to fold, and a straight
+    chain pushed along its length has no sideways correction to buckle with
+    (an#646). Each link goes from its entry point to its exit point along
+    the arc. Of the two sides, the one ``bend`` names unless only the other
+    keeps the hinge ranges. Returns whether it laid the chain (else the
+    chain is left as it was)."""
+    lengths = [math.hypot(ex - nx, ey - ny) for _i, (nx, ny), (ex, ey), _j in links]
+
+    def lay(angles: list[float]) -> None:
+        x, y = root
+        for (i, entry, exit_, _j), theta, length in zip(links, angles, lengths):
+            _pose_link(st, i, *entry, *exit_, x, y, theta)
+            x, y = x + length * math.cos(theta), y + length * math.sin(theta)
+
+    best: tuple[float, list[float]] | None = None
+    for side in (bend, -bend):
+        angles = arc_chain(root, target, lengths, bend=side)
+        if angles is None:
+            return False
+        lay(angles)
+        v = violation()
+        if v == 0.0:
+            return True
+        if best is None or v < best[0]:
+            best = (v, angles)
+    lay(best[1])
+    return True
 
 
 def _pose_link_at(

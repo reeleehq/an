@@ -18,6 +18,7 @@ True
 from __future__ import annotations
 
 import math
+from collections.abc import Sequence
 
 #: Below this distance a target coincides with the root and the chain's
 #: direction is undefined: reported as unreachable rather than guessed.
@@ -70,3 +71,61 @@ def two_bone(
     theta1 = math.atan2(dy, dx) + bend * a
     theta2 = theta1 - bend * (math.pi - b)
     return theta1, theta2
+
+
+#: Bisection steps for :func:`arc_chain`'s radius: far past float precision.
+_ARC_STEPS: int = 80
+
+
+def arc_chain(
+    root: tuple[float, float],
+    target: tuple[float, float],
+    lengths: Sequence[float],
+    *,
+    bend: int = 1,
+) -> list[float] | None:
+    """Absolute angles of links of ``lengths``, end to end from ``root``, laid
+    on one circular arc whose ends are ``root`` and ``target``: the slack pose
+    of a chain held at both ends nearer than its length (an#646), which no
+    two-link form gives a long chain. ``None`` when the chain cannot sag
+    (``target`` at or past its length, or on the root) or no arc fits.
+
+    ``bend`` is the side, as for :func:`two_bone`: ``+1`` sags
+    counter-clockwise of the root-to-target line.
+
+    >>> angles = arc_chain((0.0, 0.0), (35.0, 0.0), [1.0] * 50)
+    >>> tip = (sum(math.cos(a) for a in angles), sum(math.sin(a) for a in angles))
+    >>> tuple(round(c, 9) for c in tip)
+    (35.0, 0.0)
+    >>> arc_chain((0.0, 0.0), (60.0, 0.0), [1.0] * 50) is None
+    True
+    """
+    d = math.hypot(target[0] - root[0], target[1] - root[1])
+    total = float(sum(lengths))
+    if d < _COINCIDENT or d >= total or not lengths:
+        return None
+
+    def turned(radius: float) -> float:  # the arc's central angle
+        return sum(2.0 * math.asin(min(1.0, l / (2.0 * radius))) for l in lengths)
+
+    def chord(radius: float) -> float:
+        phi = turned(radius)
+        return 2.0 * radius * math.sin(phi / 2.0) if phi <= 2.0 * math.pi else -1.0
+
+    lo, hi = max(lengths) / 2.0, total  # chord(lo) <= d < chord(hi)
+    while chord(hi) <= d:
+        hi *= 2.0
+    if chord(lo) > d:
+        return None
+    for _ in range(_ARC_STEPS):
+        mid = (lo + hi) / 2.0
+        lo, hi = (mid, hi) if chord(mid) <= d else (lo, mid)
+    radius = hi
+    deltas = [2.0 * math.asin(min(1.0, l / (2.0 * radius))) for l in lengths]
+    phi = sum(deltas)
+    start = math.atan2(target[1] - root[1], target[0] - root[0])
+    out, swept = [], 0.0
+    for delta in deltas:
+        out.append(start + bend * (phi / 2.0 - swept - delta / 2.0))
+        swept += delta
+    return out
