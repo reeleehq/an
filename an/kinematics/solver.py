@@ -125,7 +125,14 @@ DFLT_SEGMENT_MARGIN: float = 0.5
 #: Bumped whenever the solve can give a different answer for the same inputs
 #: (a changed projection, order, or default): part of every cache key built
 #: on this module.
-SOLVER_VERSION: str = "1"
+SOLVER_VERSION: str = "2"  # 2: the frame after a refusal is settled (an#568)
+#: How many times the passes a frame after a refusal gets (a joint given up on
+#: the frame before, held again now: the arm swings from pointing at an
+#: unreachable target to the reachable one in one frame). Measured on a
+#: two-link reach in dynamic mode over 300 random out-and-back paths: 21
+#: such frames left a joint 0.3-1.1 px apart at 8 passes, 2 at 32, none at
+#: 128 (an#568). Only those frames pay for it.
+DFLT_REGRIP_SETTLE: int = 16
 
 #: The pose channels, in the order :attr:`SolveResult.poses` holds them.
 POSE_CHANNELS: tuple[str, ...] = ("x", "y", "rotation", "scale")
@@ -1500,7 +1507,7 @@ def solve_frames(
             forces=forces,
             gravity=gravity,
             dt=dt,
-            **options,
+            **settled(options, refused_before=bool(drops and drops[-1])),
         )
         snaps += [(k, j, gap) for j, gap in reengaged if j not in r.dropped]
         enforced_before = [
@@ -1523,6 +1530,22 @@ def solve_frames(
         final=current,
         dropped=tuple(drops),
     )
+
+
+def settled(options: Mapping[str, Any], *, refused_before: bool) -> dict[str, Any]:
+    """``options`` for one frame of a run: with :data:`DFLT_REGRIP_SETTLE`
+    times the passes when the frame before gave a joint up (an#568), so the
+    frame that holds it again converges instead of being left apart.
+
+    >>> settled({"iterations": 8}, refused_before=True)["iterations"]
+    128
+    >>> settled({}, refused_before=False)
+    {}
+    """
+    if not refused_before:
+        return dict(options)
+    passes = options.get("iterations", DFLT_ITERATIONS)
+    return {**options, "iterations": passes * DFLT_REGRIP_SETTLE}
 
 
 def _with_rest(frame_joint: Joint, base_joint: Joint) -> Joint:
