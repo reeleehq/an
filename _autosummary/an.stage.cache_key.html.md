@@ -56,22 +56,22 @@ font set ([`system_fonts_digest()`](#an.stage.cache_key.system_fonts_digest)).
 
 ### Functions
 
-| [`compiled_document`](#an.stage.cache_key.compiled_document)(shot, ctx)                 | The document the stage engine (`StageEngine.open`) will compile for `shot` under `ctx`.                                                                                                                |
-|-----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`cutout_environment`](#an.stage.cache_key.cutout_environment)()                         | The cut-out render's machine: the bench's own probes, minus what is not identity.                                                                                                                      |
-| [`cutout_shot_inputs`](#an.stage.cache_key.cutout_shot_inputs)(shot, ctx)                | The cut-out renderer's [`ShotKeyer`](an.build.keys.html.md#an.build.keys.ShotKeyer).                                                                                             |
-| [`easing_versions`](#an.stage.cache_key.easing_versions)(doc)                         | `{name: version}` for every registered easing the compiled document names.                                                                                                                             |
-| [`ffmpeg_build`](#an.stage.cache_key.ffmpeg_build)()                               | The whole `ffmpeg -version` (every library's version and the configure line), not its first line: the banner is unchanged by `brew upgrade x264`, which swaps the dynamically linked encoder under it. |
-| [`genre_code_modules`](#an.stage.cache_key.genre_code_modules)()                         | `{module: source path}` for every module of every package a loaded genre runs code from.                                                                                                               |
-| [`muxed_audio`](#an.stage.cache_key.muxed_audio)(shot, ctx)                       | What `_mux_shot` lays under the picture, as data: one entry per muxed line.                                                                                                                            |
-| [`render_code_digest`](#an.stage.cache_key.render_code_digest)()                         | sha256 over the source of every module on the render path (by module name).                                                                                                                            |
-| [`render_code_modules`](#an.stage.cache_key.render_code_modules)()                        | `{module name: sha256 of its source}` for every module on the render path.                                                                                                                             |
-| [`render_knobs`](#an.stage.cache_key.render_knobs)(shot, ctx)                      | Every `RenderContext` knob, resolved the way the frame stage resolves it.                                                                                                                              |
-| [`render_path_modules`](#an.stage.cache_key.render_path_modules)([root, excluded, moves]) | `{module: source path}` for every module the render path reaches.                                                                                                                                      |
-| [`render_path_roots`](#an.stage.cache_key.render_path_roots)([renderer_type])           | The modules a renderer's render path starts from, read off the renderer itself.                                                                                                                        |
-| [`system_fonts_digest`](#an.stage.cache_key.system_fonts_digest)()                        | A digest of the fonts this machine can draw SVG `<text>` with; once per process.                                                                                                                       |
-| [`texture_digests`](#an.stage.cache_key.texture_digests)(scene_json, mall)            | `{alias: sha256 of the bytes staged for it}` for every texture the document declares.                                                                                                                  |
-| [`x264_build`](#an.stage.cache_key.x264_build)()                                 | The x264 build that ACTUALLY encodes: one 16x16 frame, its SEI read back.                                                                                                                              |
+| [`compiled_document`](#an.stage.cache_key.compiled_document)(shot, ctx)          | The document the stage engine (`StageEngine.open`) will compile for `shot` under `ctx`.                                                                                                                |
+|----------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`cutout_environment`](#an.stage.cache_key.cutout_environment)()                  | The cut-out render's machine: the bench's own probes, minus what is not identity.                                                                                                                      |
+| [`cutout_shot_inputs`](#an.stage.cache_key.cutout_shot_inputs)(shot, ctx)         | The cut-out renderer's [`ShotKeyer`](an.build.keys.html.md#an.build.keys.ShotKeyer).                                                                                             |
+| [`easing_versions`](#an.stage.cache_key.easing_versions)(doc)                  | `{name: version}` for every registered easing the compiled document names.                                                                                                                             |
+| [`ffmpeg_build`](#an.stage.cache_key.ffmpeg_build)()                        | The whole `ffmpeg -version` (every library's version and the configure line), not its first line: the banner is unchanged by `brew upgrade x264`, which swaps the dynamically linked encoder under it. |
+| [`genre_code_modules`](#an.stage.cache_key.genre_code_modules)()                  | `{module: source path}` for every module of every package a loaded genre runs code from.                                                                                                               |
+| [`muxed_audio`](#an.stage.cache_key.muxed_audio)(shot, ctx)                | What `_mux_shot` lays under the picture, as data: one entry per muxed line.                                                                                                                            |
+| [`render_code_digest`](#an.stage.cache_key.render_code_digest)()                  | sha256 over the source of every module on the render path (by module name).                                                                                                                            |
+| [`render_code_modules`](#an.stage.cache_key.render_code_modules)()                 | `{module name: sha256 of its source}` for every module on the render path.                                                                                                                             |
+| [`render_knobs`](#an.stage.cache_key.render_knobs)(shot, ctx)               | Every `RenderContext` knob, resolved the way the frame stage resolves it.                                                                                                                              |
+| [`render_path_modules`](#an.stage.cache_key.render_path_modules)([root, excluded]) | `{module: source path}` for every module the render path reaches.                                                                                                                                      |
+| [`render_path_roots`](#an.stage.cache_key.render_path_roots)([renderer_type])    | The modules a renderer's render path starts from, read off the renderer itself.                                                                                                                        |
+| [`system_fonts_digest`](#an.stage.cache_key.system_fonts_digest)()                 | A digest of the fonts this machine can draw SVG `<text>` with; once per process.                                                                                                                       |
+| [`texture_digests`](#an.stage.cache_key.texture_digests)(scene_json, mall)     | `{alias: sha256 of the bytes staged for it}` for every texture the document declares.                                                                                                                  |
+| [`x264_build`](#an.stage.cache_key.x264_build)()                          | The x264 build that ACTUALLY encodes: one 16x16 frame, its SEI read back.                                                                                                                              |
 
 ### an.stage.cache_key.EASING_KEYS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'easing'})*
 
@@ -81,7 +81,7 @@ Keys in the compiled document whose string value names an easing.
 
 Font folders listed when `fc-list` is absent.
 
-### an.stage.cache_key.FORWARDING_CALLS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'alias_module', 'forward_module_attributes', 'moved_to_package'})*
+### an.stage.cache_key.FORWARDING_CALLS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'alias_module', 'forward_module_attributes'})*
 
 The calls that make an old module’s names LIVE aliases of another module’s
 (`an._shims`). Their target is a STRING, invisible to an import walk.
@@ -226,19 +226,15 @@ the render’s own error before anything launches.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
-### an.stage.cache_key.render_path_modules(root=None, , excluded={'an.adapters._base': 'the RenderContext/RenderResult types; their values are \`knobs\`', 'an.ir.schema': 'the IR model; what it means for a render reaches \`compiled\`/\`knobs\`', 'an.stage.compile': 'its output is the \`compiled\` part', 'an.stage.serialize': 'its output is the \`compiled\` part', 'an.stage.text_layout': 'compile-side; only INLINE_SRC_PREFIX is read at render'}, moves=None)
+### an.stage.cache_key.render_path_modules(root=None, , excluded={'an.adapters._base': 'the RenderContext/RenderResult types; their values are \`knobs\`', 'an.ir.schema': 'the IR model; what it means for a render reaches \`compiled\`/\`knobs\`', 'an.stage.compile': 'its output is the \`compiled\` part', 'an.stage.serialize': 'its output is the \`compiled\` part', 'an.stage.text_layout': 'compile-side; only INLINE_SRC_PREFIX is read at render'})
 
 `{module: source path}` for every module the render path reaches.
 
 `root` is one module name or several; `None` is [`render_path_roots()`](#an.stage.cache_key.render_path_roots).
 
-The walk enters `an` and every package a module MOVED to
-(`moves`: `{old: new}`, default `an._shims.declared_moves()`, read
-from source). A name under a moved prefix is keyed under its NEW name –
-the code that runs – never imported through the old path, and the old
-path’s shim file is keyed too (an edit to it changes what the name serves).
-So a module that leaves for `cutan` (P8, an#225) stays in the key, under
-any warnings filter (review of an#298, S2; an#294).
+The walk enters `an` and every package a loaded genre registered a hook
+from ([`genre_code_modules()`](#an.stage.cache_key.genre_code_modules), an#294); a cut-out module is keyed under
+its `cutan` name, the code that runs (the old `an` paths are gone, an#321).
 
 ```pycon
 >>> mods = render_path_modules()

@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=9f09863b"></script>
+    <script src="../_static/documentation_options.js?v=a8f10c51"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.291" />
+  <meta name="docsearch:version" content="0.1.292" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -637,11 +637,11 @@
 <code class="docutils literal notranslate"><span class="pre">an.stage.render</span></code> (the stage engine, driven by the core frame stage) -&gt;
 <code class="docutils literal notranslate"><span class="pre">runtime.js</span></code>. Every module that moved keeps a LIVE alias here
 (<code class="docutils literal notranslate"><span class="pre">an.adapters.cutout.render</span></code> is <code class="docutils literal notranslate"><span class="pre">an.stage.render</span></code> for reading and for
-rebinding, <code class="xref py py-func docutils literal notranslate"><span class="pre">an._shims.alias_module()</span></code>). <code class="docutils literal notranslate"><span class="pre">coarticulate</span></code> and <code class="docutils literal notranslate"><span class="pre">gaze</span></code> moved to <code class="docutils literal notranslate"><span class="pre">cutan</span></code> (an#225; live aliases with a
-warning). What stays here is the
+rebinding, <code class="xref py py-func docutils literal notranslate"><span class="pre">an._shims.alias_module()</span></code>). <code class="docutils literal notranslate"><span class="pre">coarticulate</span></code> and <code class="docutils literal notranslate"><span class="pre">gaze</span></code> are
+<code class="docutils literal notranslate"><span class="pre">cutan.compile</span></code> (an#225). What stays here is the
 timing re-exports (<code class="docutils literal notranslate"><span class="pre">channel</span></code>, <code class="docutils literal notranslate"><span class="pre">clip</span></code>, <code class="docutils literal notranslate"><span class="pre">timeline</span></code>).</p>
 <p>The names this package used to export are resolved LAZILY, on first access:
-importing <code class="docutils literal notranslate"><span class="pre">an.adapters.cutout.coarticulate</span></code> from the stage’s compiler must not
+importing a submodule of this package from the stage’s compiler must not
 load the stage back through this <code class="docutils literal notranslate"><span class="pre">__init__</span></code>.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout</span><span class="w"> </span><span class="kn">import</span> <span class="n">CutoutRenderer</span><span class="p">,</span> <span class="n">compile_shot</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">CutoutRenderer</span><span class="p">()</span><span class="o">.</span><span class="n">name</span>

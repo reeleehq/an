@@ -45,19 +45,15 @@ an.audio
    cli
    effects
    elevenlabs_tts
-   injectable_lipsync
    lipsync
    loudness
    mac_say_tts
-   offline_lipsync
    offline_tts
    pipeline
    providers
    recorded
-   rhubarb_lipsync
    takes
    transcripts
    tts
    voice_design
    voices
-   whisper_lipsync

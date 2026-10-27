@@ -11,7 +11,7 @@ word was reserved for.
 
 **A pack recolours SVG art only where the art says what its colours are.**
 The character factory records, per part, which literal it drew as which role
-(`CharacterDescriptor.colour_roles`, see `an.characters.colour_roles`),
+(`CharacterDescriptor.colour_roles`, see `cutan.characters.colour_roles`),
 and the compiler rewrites exactly those literals into a new, content-addressed
 inline texture — palette swapping. Untagged art (hand-drawn, DiceBear) is left
 alone and the compiler warns once, naming it: a pack would otherwise have to

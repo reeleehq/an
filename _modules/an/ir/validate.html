@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=9f09863b"></script>
+    <script src="../../../_static/documentation_options.js?v=a8f10c51"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.291" />
+  <meta name="docsearch:version" content="0.1.292" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -2392,7 +2392,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">where</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"timeline/</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">/actions/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span>
             <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="n">iter_actions</span><span class="p">(</span><span class="n">top</span><span class="p">):</span>
                 <span class="c1"># EVERY node, whatever its type: a typed genre action built in</span>
-                <span class="c1"># Python (`an.play(...)`) while its genre is not loaded is as</span>
+                <span class="c1"># Python (`cutan`'s `play(...)`) while its genre is not loaded is as</span>
                 <span class="c1"># unregistered as a bare `ExtensionAction` (review-244 S3).</span>
                 <span class="k">if</span> <span class="n">action_kind</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="s2">"kind"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)))</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">ctx</span><span class="o">.</span><span class="n">memo</span><span class="p">[</span><span class="n">_KIND_PROBLEM_REPORTED</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
@@ -3157,7 +3157,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="c1"># -----------------------------------------------------------------------------</span>
 <span class="c1"># The cut-out genre's checks, as context functions. The genre object</span>
-<span class="c1"># (`an.genres.cutout.CUTOUT`) registers them; the core never runs them on its</span>
+<span class="c1"># (`cutan.genre.CUTOUT`) registers them; the core never runs them on its</span>
 <span class="c1"># own. They live here until the genre package exists (P8 moves them).</span>
 <span class="c1"># -----------------------------------------------------------------------------</span>
 

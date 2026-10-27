@@ -559,7 +559,7 @@ is `_raise_or_warn_on_asset_fallbacks()`.
 what size it rasterises at. Existence decides whether a texture is declared
 at all. The sprite’s box is the attachment’s declared `width`/`height`
 when it has them — **a declared size wins**, with the art’s aspect kept
-(`an.characters.schema.attachment_box()`, an#220) — else the art’s own
+(`cutan.characters.schema.attachment_box()`, an#220) — else the art’s own
 extent (a raster’s pixel count); failing both, the runtime’s `contain`
 fit draws the art at its natural shape — never stretched to a fabricated box.
 

@@ -44,11 +44,9 @@ an.adapters.cutout
    canvas_capture
    channel
    clip
-   coarticulate
    compile
    easing
    fidelity
-   gaze
    path
    render
    runtime_files

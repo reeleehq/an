@@ -56,7 +56,7 @@ genre defined in the same process).
 | [`ENTRY_POINT_GROUP`](#an.genres.ENTRY_POINT_GROUP)          | The entry-point group a genre package declares its [`Genre`](#an.genres.Genre) under.                        |
 |-----------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
 | [`PROJECT_DIR_SERVICE_PREFIX`](#an.genres.PROJECT_DIR_SERVICE_PREFIX) | Prefix of the service a library package registers to place its NEW projects (`projects.dir.<library>`, API level 7; reeleehq/cutan#91). |
-| [`API_LEVEL`](#an.genres.API_LEVEL)                  | every hook, registry field and moved path a genre package may rely on.                                                                  |
+| [`API_LEVEL`](#an.genres.API_LEVEL)                  | every hook, registry field a genre package may rely on.                                                                                 |
 | [`IN_DISTRIBUTION_GENRES`](#an.genres.IN_DISTRIBUTION_GENRES)     | Genres the `an` distribution itself ships, as entry-point values.                                                                       |
 
 ### Functions
@@ -106,10 +106,10 @@ genre defined in the same process).
 | [`RegistryError`](#an.genres.RegistryError)                                | A registration is malformed or collides with one already made.         |
 | [`UnregisteredKindError`](#an.genres.UnregisteredKindError)(what, name, \*[, ...]) | A document names a kind no loaded genre registered.                    |
 
-### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 11*
+### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 12*
 
 every hook, registry
-field and moved path a genre package may rely on. Bumped by each change a
+field a genre package may rely on. Bumped by each change a
 genre needs (the P8 seam PRs and each move to `cutan`, an#225), never
 decremented. A genre states the lowest level it needs with
 [`require_api_level()`](#an.genres.require_api_level), which is how “the genre declares the lowest `an`
@@ -152,6 +152,9 @@ Levels (one line each; `tests/test_genre_gate.py` holds the list complete):
 
 11 = a slot’s rest world transform (an#579): `an.stage.rig.rest_world_transforms` and
 : `RestTransform`, the builder’s own rule, for a genre’s placement maths.
+
+12 = the P8 import shims are gone (an#321): no `an` path serves a module or name that
+: moved to `cutan`, so a genre package imports its own code from `cutan` only.
 
 * **Type:**
   The level of the genre-facing API this `an` provides

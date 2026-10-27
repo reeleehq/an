@@ -69,5 +69,4 @@ an.genres
    :toctree:
    :recursive:
 
-   cutout
    registry

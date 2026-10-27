@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../_static/documentation_options.js?v=9f09863b"></script>
+    <script src="../../_static/documentation_options.js?v=a8f10c51"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.291" />
+  <meta name="docsearch:version" content="0.1.292" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -787,7 +787,6 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">lru_cache</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">an._shims</span><span class="w"> </span><span class="kn">import</span> <span class="n">moved_names</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasingSpec</span><span class="p">,</span> <span class="n">PathStr</span><span class="p">,</span> <span class="n">Seconds</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.compose</span><span class="w"> </span><span class="kn">import</span> <span class="n">FlatAction</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span> <span class="n">flatten</span><span class="p">,</span> <span class="n">parallel</span><span class="p">,</span> <span class="n">sequence</span><span class="p">,</span> <span class="n">set_</span><span class="p">,</span> <span class="n">tween</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">Action</span><span class="p">,</span> <span class="n">SetAction</span><span class="p">,</span> <span class="n">Shot</span><span class="p">,</span> <span class="n">TweenAction</span>
@@ -850,59 +849,12 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">_identity_pose</span><span class="p">()</span>
 
 
-<span class="c1">#: The rig presets and their defaults moved to the cut-out genre (an#322): they</span>
-<span class="c1">#: name a rig's parts or swap its views. Live aliases, removed under the</span>
-<span class="c1">#: genre-move shim rule (no importer under the projects folder, and 14 days).</span>
-<span class="n">_MOVED_TO_CUTAN</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="s2">"nod"</span><span class="p">,</span>
-    <span class="s2">"point"</span><span class="p">,</span>
-    <span class="s2">"turn"</span><span class="p">,</span>
-    <span class="s2">"face_toward"</span><span class="p">,</span>
-    <span class="s2">"walk"</span><span class="p">,</span>
-    <span class="s2">"waddle"</span><span class="p">,</span>
-    <span class="s2">"speech_pulse"</span><span class="p">,</span>
-    <span class="s2">"GAITS"</span><span class="p">,</span>
-    <span class="s2">"WALK_LANDING_S"</span><span class="p">,</span>
-    <span class="s2">"WALK_LEG_NAMES"</span><span class="p">,</span>
-    <span class="s2">"WALK_ARM_NAMES"</span><span class="p">,</span>
-    <span class="s2">"WALK_SWING_VIEWS"</span><span class="p">,</span>
-    <span class="s2">"DFLT_NOD_PART"</span><span class="p">,</span>
-    <span class="s2">"DFLT_NOD_ANGLE"</span><span class="p">,</span>
-    <span class="s2">"DFLT_NOD_DURATION"</span><span class="p">,</span>
-    <span class="s2">"DFLT_NOD_COUNT"</span><span class="p">,</span>
-    <span class="s2">"DFLT_POINT_ANGLE"</span><span class="p">,</span>
-    <span class="s2">"DFLT_POINT_RAISE"</span><span class="p">,</span>
-    <span class="s2">"DFLT_POINT_HOLD"</span><span class="p">,</span>
-    <span class="s2">"DFLT_WADDLE_STEPS"</span><span class="p">,</span>
-    <span class="s2">"DFLT_WADDLE_STEP_DURATION"</span><span class="p">,</span>
-    <span class="s2">"DFLT_WADDLE_ANGLE"</span><span class="p">,</span>
-    <span class="s2">"DFLT_WADDLE_LIFT"</span><span class="p">,</span>
-    <span class="s2">"DFLT_TURN_DURATION"</span><span class="p">,</span>
-    <span class="s2">"DFLT_TURN_SET"</span><span class="p">,</span>
-    <span class="s2">"DFLT_TURN_TO"</span><span class="p">,</span>
-    <span class="s2">"DFLT_WALK_STEP_S"</span><span class="p">,</span>
-    <span class="s2">"DFLT_WALK_STEPS"</span><span class="p">,</span>
-    <span class="s2">"DFLT_WALK_STEP_LENGTH"</span><span class="p">,</span>
-    <span class="s2">"DFLT_WALK_STRIDE"</span><span class="p">,</span>
-    <span class="s2">"DFLT_WALK_LIFT"</span><span class="p">,</span>
-    <span class="s2">"DFLT_WALK_BOB"</span><span class="p">,</span>
-    <span class="s2">"DFLT_WALK_ARM_SWING"</span><span class="p">,</span>
-    <span class="s2">"DFLT_WALK_ROCK"</span><span class="p">,</span>
-    <span class="s2">"DFLT_WALK_HEM_TILT"</span><span class="p">,</span>
-    <span class="s2">"DFLT_PULSE_PART"</span><span class="p">,</span>
-    <span class="s2">"DFLT_PULSE_STRENGTH"</span><span class="p">,</span>
-    <span class="s2">"DFLT_PULSE_ATTACK_S"</span><span class="p">,</span>
-    <span class="s2">"DFLT_PULSE_RELEASE_S"</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">_moved</span> <span class="o">=</span> <span class="n">moved_names</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="p">{</span><span class="n">n</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"cutan.motion:</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">_MOVED_TO_CUTAN</span><span class="p">})</span>
-
-
 <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""``IDENTITY_POSE`` (``x = y = rotation = 0``, ``scale_x = scale_y = alpha = 1``), on</span>
-<span class="sd">    first use; a rig preset's old name, from ``cutan.motion`` (an#322)."""</span>
+<span class="sd">    first use. The rig presets (``nod``, ``walk``, ...) are ``cutan.motion`` (an#322)."""</span>
     <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">"IDENTITY_POSE"</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">_identity</span><span class="p">())</span>
-    <span class="k">return</span> <span class="n">_moved</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"module </span><span class="si">{</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s2"> has no attribute </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
 
 
 <span class="n">Rest</span> <span class="o">=</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>

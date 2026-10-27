@@ -283,7 +283,7 @@ The STAGE’s own compile passes, in order. A genre adds passes between them by
 registering [`an.genres.CompilePass`](an.genres.html.md#an.genres.CompilePass) objects for the `"stage"`
 compiler; the in-repo cut-out genre registers `swap_pose` (300),
 `view_spans` (310), `visemes` (400) and `face` (500), and the `rig`
-entity builder (`an.genres.cutout.CUTOUT_COMPILE_PASSES`). Held HERE, not in the genre tables, so
+entity builder (`cutan.genre.CUTOUT_COMPILE_PASSES`). Held HERE, not in the genre tables, so
 no `without_genres()` can take the stage’s own passes away.
 
 ### an.stage.compile.STAGE_NODE_SPACE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'stage.node'*

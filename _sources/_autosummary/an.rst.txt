@@ -56,7 +56,6 @@
    build
    capabilities
    captions
-   characters
    cli_status
    conftest
    credits
@@ -64,12 +63,9 @@
    determinism
    engines
    environments
-   expression
    formats
    frame_clock
-   genre
    genres
-   impacts
    ir
    iterate
    kinematics

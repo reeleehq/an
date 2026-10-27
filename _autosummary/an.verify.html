@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=9f09863b"></script>
+    <script src="../_static/documentation_options.js?v=a8f10c51"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.291" />
+  <meta name="docsearch:version" content="0.1.292" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -634,10 +634,7 @@
 is: <a class="reference internal" href="an.verify.constraints.html#module-an.verify.constraints" title="an.verify.constraints"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.verify.constraints</span></code></a>, the constraint lints <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code> runs
 (an#497), is imported by <code class="docutils literal notranslate"><span class="pre">an.ir</span></code> on every <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">an</span></code>, and the media verifier
 behind this package pulls in numpy, which the validate path has no use for.
-<code class="docutils literal notranslate"><span class="pre">StyleLintVerifier</span></code> moved to <code class="docutils literal notranslate"><span class="pre">cutan</span></code> with the cut-out style lint (an#225);
-<code class="docutils literal notranslate"><span class="pre">an.verify.style</span></code> is also a script (<code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">an.verify.style</span></code>), and a
-package that imports the module it is about to run as <code class="docutils literal notranslate"><span class="pre">__main__</span></code> makes
-<code class="docutils literal notranslate"><span class="pre">runpy</span></code> warn that it is already in <code class="docutils literal notranslate"><span class="pre">sys.modules</span></code>.</p>
+The cut-out style lint is <code class="docutils literal notranslate"><span class="pre">cutan.verify.style</span></code> (an#225).</p>
 <p class="rubric">Classes</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>

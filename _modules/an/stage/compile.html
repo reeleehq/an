@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=9f09863b"></script>
+    <script src="../../../_static/documentation_options.js?v=a8f10c51"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.291" />
+  <meta name="docsearch:version" content="0.1.292" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1141,7 +1141,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="c1"># The emotion → brow-tilt table that lived here is retired (an#98): `[emotion]`</span>
 <span class="c1"># is sugar for an `expression` leaf, resolved by the face solver</span>
-<span class="c1"># (`_add_face_clips`) from `an.expression.presets`.</span>
+<span class="c1"># (`_add_face_clips`) from `cutan.expression.presets`.</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_runtime_node_paths</span><span class="p">(</span><span class="n">node</span><span class="p">:</span> <span class="n">NodeJSON</span><span class="p">,</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
@@ -1277,7 +1277,7 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: attachment names: descriptor animation tracks name attachments).</span>
     <span class="n">declared_maps</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
     <span class="c1">#: entity id → its MIGRATED descriptor (an#7: `play` resolves against</span>
-    <span class="c1">#: it through `an.characters.play`, the same code `an validate` runs).</span>
+    <span class="c1">#: it through `cutan.characters.play`, the same code `an validate` runs).</span>
     <span class="n">descriptors</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
     <span class="c1">#: entity id → `rel_path -&gt; art on disk`, or None when the store cannot</span>
     <span class="c1">#: say (then every declared attachment is assumed present — the part</span>
@@ -1905,7 +1905,7 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: registering :class:`an.genres.CompilePass` objects for the ``"stage"``</span>
 <span class="c1">#: compiler; the in-repo cut-out genre registers ``swap_pose`` (300),</span>
 <span class="c1">#: ``view_spans`` (310), ``visemes`` (400) and ``face`` (500), and the ``rig``</span>
-<span class="c1">#: entity builder (:data:`an.genres.cutout.CUTOUT_COMPILE_PASSES`). Held HERE, not in the genre tables, so</span>
+<span class="c1">#: entity builder (:data:`cutan.genre.CUTOUT_COMPILE_PASSES`). Held HERE, not in the genre tables, so</span>
 <span class="c1">#: no ``without_genres()`` can take the stage's own passes away.</span>
 <span class="n">STAGE_COMPILE_PASSES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">CompilePass</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">CompilePass</span><span class="p">(</span>

@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=9f09863b"></script>
+    <script src="../../../_static/documentation_options.js?v=a8f10c51"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.291" />
+  <meta name="docsearch:version" content="0.1.292" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -722,7 +722,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">-------------------------------</span>
 <span class="sd">This repo versions **two** document kinds independently — the scene IR</span>
 <span class="sd">(``version``, :data:`an.base.SCHEMA_VERSION`) and the character descriptor</span>
-<span class="sd">(``schema_version``, ``an.characters.schema.CHARACTER_SCHEMA_VERSION``) — and</span>
+<span class="sd">(``schema_version``, ``cutan.characters.schema.CHARACTER_SCHEMA_VERSION``) — and</span>
 <span class="sd">both currently sit at ``"0.1.0"``.</span>
 
 <span class="sd">Keying on ``(from, to)`` alone conflated them. A character migration registered</span>
@@ -736,7 +736,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">------------------</span>
 <span class="sd">:mod:`an.ir.migrate` owns the mechanism; each package registers its own kind, so</span>
 <span class="sd">that this module never has to import the packages it serves. (It cannot:</span>
-<span class="sd">``an.characters.schema`` imports from ``an.ir.assets``, so an import the other</span>
+<span class="sd">``cutan.characters.schema`` imports from ``an.ir.assets``, so an import the other</span>
 <span class="sd">way would close a cycle.)</span>
 
 <span class="sd">&gt;&gt;&gt; from an.ir.migrate import DocumentKind, register_kind</span>

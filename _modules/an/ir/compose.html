@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=9f09863b"></script>
+    <script src="../../../_static/documentation_options.js?v=a8f10c51"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.291" />
+  <meta name="docsearch:version" content="0.1.292" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1225,20 +1225,6 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="n">_register_core_kinds</span><span class="p">()</span>
-
-
-<span class="c1"># `play`, `expression` and `default_play_extent` moved to `cutan` with the cut-out</span>
-<span class="c1"># genre's action kinds (an#225); the old names resolve there, with a warning.</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an._shims</span><span class="w"> </span><span class="kn">import</span> <span class="n">moved_names</span> <span class="k">as</span> <span class="n">_moved_names</span>  <span class="c1"># noqa: E402</span>
-
-<span class="fm">__getattr__</span> <span class="o">=</span> <span class="n">_moved_names</span><span class="p">(</span>
-    <span class="vm">__name__</span><span class="p">,</span>
-    <span class="p">{</span>
-        <span class="s2">"play"</span><span class="p">:</span> <span class="s2">"cutan.characters.registration:play"</span><span class="p">,</span>
-        <span class="s2">"default_play_extent"</span><span class="p">:</span> <span class="s2">"cutan.characters.registration:default_play_extent"</span><span class="p">,</span>
-        <span class="s2">"expression"</span><span class="p">:</span> <span class="s2">"cutan.expression.registration:expression"</span><span class="p">,</span>
-    <span class="p">},</span>
-<span class="p">)</span>
 </pre></div>
 
                 </article>

@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=9f09863b"></script>
+    <script src="../_static/documentation_options.js?v=a8f10c51"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.291" />
+  <meta name="docsearch:version" content="0.1.292" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -635,7 +635,7 @@ on a perfect grid. A real camera does neither: its shutter stays open for part
 of the frame period (so a moving object smears), and its capture instants
 wander around the nominal grid (so the timestamp a frame carries is not quite
 when it was taken). Anything that wants to <em>measure</em> motion from video — the
-sub-frame impact estimators <code class="xref py py-mod docutils literal notranslate"><span class="pre">an.impacts</span></code> exists to score — needs both, and
+sub-frame impact estimators <code class="xref py py-mod docutils literal notranslate"><span class="pre">cutan.impacts</span></code> exists to score — needs both, and
 needs to know exactly what was done.</p>
 <p><a class="reference internal" href="#an.frame_clock.FrameClock" title="an.frame_clock.FrameClock"><code class="xref py py-class docutils literal notranslate"><span class="pre">FrameClock</span></code></a> is that model as data. <a class="reference internal" href="#an.frame_clock.FrameClock.frames" title="an.frame_clock.FrameClock.frames"><code class="xref py py-meth docutils literal notranslate"><span class="pre">FrameClock.frames()</span></code></a> returns one
 <a class="reference internal" href="#an.frame_clock.CapturedFrame" title="an.frame_clock.CapturedFrame"><code class="xref py py-class docutils literal notranslate"><span class="pre">CapturedFrame</span></code></a> per output frame, carrying the exposure interval and the

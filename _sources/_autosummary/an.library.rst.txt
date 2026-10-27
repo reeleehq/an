@@ -80,7 +80,6 @@ an.library
 
    affordances
    api
-   character
    cli
    federation
    floor
