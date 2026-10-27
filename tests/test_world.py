@@ -1043,9 +1043,12 @@ def test_a_world_block_inside_a_shot_is_refused():
         markdown_to_ir(moved)
 
 
-def test_a_wide_lens_side_window_is_refused_rather_than_teleporting():
-    """Review B3: the slot count comes from the depth range; a wide lens on a side
-    window shows more of the row than that, and the lowering says so."""
+def test_a_wide_lens_side_window_gets_the_slots_its_view_needs():
+    """Review B3 (an#516): a wide lens on a side window shows more of the row
+    than the depth range; the slots are sized from the on-screen span, so it
+    lowers (the lowering still asserts no slot holds two passes at once)."""
+    from an.ir.world import stream_slots
+
     scene = _travel_scene(Shot(id="s1", duration=6.0, viewpoint="road"), yaw=90.0)
     scene.world.viewpoints["road"] = Viewpoint(
         at=(0.0, -1.0, 0.0), look=(90.0, 0.0, 0.0), fov=120.0
@@ -1058,8 +1061,10 @@ def test_a_wide_lens_side_window_is_refused_rather_than_teleporting():
             ],
         }
     )
-    with pytest.raises(WorldError, match="on screen at once"):
-        lower_world(scene, extents=EXTENTS)
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    slots = {e.id for e in shot.entities if e.id.startswith("pole_")}
+    depth_count = stream_slots(scene.world.travel.streams[0], scene.world.travel)
+    assert len(slots) > depth_count, (len(slots), depth_count)
 
 
 # --- ground-plane perspective on hand placements (catalogue A6) ----------------
@@ -1339,3 +1344,51 @@ def test_screen_direction_skips_an_entity_unseen_on_a_side(tmp_path):
 
     assert swaps(), "seen on both sides: the swap is reported"
     assert swaps(SetAction(target="left", property="alpha", value=0.0, at=0.0)) == []
+
+
+def test_a_travel_past_its_budget_stops_fitting_early(monkeypatch):
+    """S9: the budget is counted as passes are fitted, so a refused road stops
+    fitting once it is past, instead of fitting every pass first."""
+    import an.ir.world as world_mod
+
+    calls = []
+    real = world_mod._fit_pass
+
+    def counting(*a, **k):
+        calls.append(1)
+        return real(*a, **k)
+
+    monkeypatch.setattr(world_mod, "_fit_pass", counting)
+    scene = _travel_scene(Shot(id="s1", duration=6.0, viewpoint="road"))
+    lower_world(scene, extents=EXTENTS)
+    every = len(calls)
+    calls.clear()
+    scene.world.travel = scene.world.travel.model_copy(update={"max_actions": 20})
+    with pytest.raises(WorldError, match="at least .* actions, already past"):
+        lower_world(scene, extents=EXTENTS)
+    assert 0 < len(calls) < every / 2, (len(calls), every)
+
+
+def test_a_lane_range_is_measured_across_it_not_at_its_ends():
+    """B3 review: a field of trees over lanes 2..60 under a wide side window.
+    Neither end sees much (60 is past `far`), the lanes between see most."""
+    scene = _travel_scene(Shot(id="s1", duration=6.0, viewpoint="road"), yaw=90.0)
+    scene.world.viewpoints["road"] = Viewpoint(
+        at=(0.0, -1.0, 0.0), look=(90.0, 0.0, 0.0), fov=120.0
+    )
+    scene.world.travel = scene.world.travel.model_copy(
+        update={
+            "far": 30.0,
+            "streams": [
+                Stream(
+                    id="pole",
+                    ref="lamp",
+                    height=6.0,
+                    every=3.0,
+                    lane=(2.0, 60.0),
+                    y=0.0,
+                )
+            ],
+        }
+    )
+    lower_world(scene, extents=EXTENTS)  # no "two instances in one slot"

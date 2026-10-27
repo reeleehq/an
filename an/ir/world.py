@@ -727,19 +727,18 @@ def stream_instances(
         if not (s_min <= s <= s_max):
             continue
         lane = _jitter(stream.seed, k, "lane", lane_lo, lane_hi)
-        p = _add(
-            _add(_mul(direction, s), _mul(right_h, lane)), (0.0, float(stream.y), 0.0)
-        )
-        out.append((k, p))
+        out.append((k, _stream_point(direction, right_h, s, lane, float(stream.y))))
     return out
 
 
 def stream_slots(stream: Stream, travel: Travel) -> int:
-    """How many entities a stream needs: one per instance that can be between
-    ``near`` and ``far`` at once, plus one. Instance ``k`` is drawn by slot
-    ``k mod slots``, so an entity is reused for the next instance once this
-    one has passed the camera — and the SAME world instance lands in the same
-    slot in every shot, which is what keeps a cut continuous.
+    """How many entities a stream needs by its depth range: one per instance
+    that can be between ``near`` and ``far`` at once, plus one. Instance ``k``
+    is drawn by slot ``k mod slots``, so an entity is reused for the next
+    instance once this one has passed the camera. A shot takes the larger of
+    this and what its viewpoint shows (:func:`_span_slots`, an#516), so the
+    count, and the slot an instance takes, can differ between two shots;
+    nothing relies on it, since each shot compiles alone.
 
     >>> stream_slots(Stream(id="pole", ref="pole", height=6.0, every=12.0), Travel(speed=10.0, near=0.5, far=60.0))
     6
@@ -753,6 +752,106 @@ def stream_slots(stream: Stream, travel: Travel) -> int:
         )
         + 1
     )
+
+
+#: Samples along the travel per minimum spacing of a stream, and lanes across
+#: a stream whose ``lane`` is a range, when measuring how much of it one
+#: viewpoint shows (:func:`_span_slots`).
+_SPAN_STEPS_PER_SPACING: int = 8
+_SPAN_LANES: int = 17
+#: How many times the scan's reach doubles when the view still sees its ends.
+_SPAN_WIDENINGS: int = 4
+
+
+def _stream_point(
+    direction: Point3, right_h: Point3, s: float, lane: float, y: float
+) -> Point3:
+    """A stream's point ``s`` along the travel, ``lane`` to its right, at height ``y``."""
+    return _add(_add(_mul(direction, s), _mul(right_h, lane)), (0.0, y, 0.0))
+
+
+def _span_slots(
+    stream: Stream,
+    travel: Travel,
+    ctx: "_FrameCtx",
+    frame: str,
+    *,
+    box: Box | None,
+    m: float,
+    width: float,
+    height: float,
+) -> int:
+    """How many slots a stream needs under THIS viewpoint (an#516, B3): the
+    stretch of the travel over which one instance is on screen (between
+    ``near`` and ``far`` and in the frame), over every lane the stream uses,
+    as the camera stands when the shot opens, over the stream's minimum
+    spacing, plus one. A wide lens or a yawed side window shows more of a row
+    than the depth range does; :func:`stream_slots` is the depth range's
+    count, and a stream takes the larger, so a view the depth range already
+    covers keeps its slots (and every lowering that worked lowers the same).
+
+    At one instant the view of a point is affine in where it stands along the
+    travel, so each lane costs two views and the scan is arithmetic."""
+    direction = _unit(tuple(map(float, travel.direction)))  # type: ignore[arg-type]
+    right_h = _unit((direction[2], 0.0, -direction[0]))
+    pitch, spread = _pitch(stream)
+    spacing = max(pitch - 2 * spread, 1e-9)
+    step = spacing / _SPAN_STEPS_PER_SPACING
+    focal, y = ctx.projection.focal, float(stream.y)
+    lo, hi = _range(stream.lane)
+    lanes = (
+        [lo]
+        if hi == lo
+        else [lo + (hi - lo) * i / (_SPAN_LANES - 1) for i in range(_SPAN_LANES)]
+    )
+    eye = ctx.eye_at(0.0)
+    s_cam = _dot(ctx.pose(frame, 0.0).unapply(eye.at), direction)
+    # In view, a point is at most `far` deep inside the frame's diagonal; the
+    # lane and height add their offsets; widened while the view sees the ends.
+    reach = (
+        float(travel.far) * math.hypot(1.0, math.hypot(width, height) / (2.0 * focal))
+        + max(abs(lo), abs(hi))
+        + abs(y)
+    )
+    lines = []
+    for lane in lanes:
+
+        def at(d: float, lane: float = lane) -> tuple[float, float, float]:
+            p = _stream_point(direction, right_h, s_cam + d, lane, y)
+            return ctx.view_fn(frame, lambda t, p=p: p)(0.0)
+
+        v0, v1 = at(0.0), at(1.0)
+        lines.append((v0, tuple(b - a for a, b in zip(v0, v1))))
+
+    def seen_within(reach: float) -> list[float]:
+        n = int(math.ceil(reach / step))
+        seen = []
+        for a, b in lines:
+            for i in range(-n, n + 1):
+                d = step * i
+                rx, ry, depth = (a[k] + b[k] * d for k in range(3))
+                if not (travel.near <= depth <= travel.far):
+                    continue
+                sx, sy, scale = (
+                    focal * rx / depth,
+                    focal * ry / depth,
+                    m * focal / depth,
+                )
+                box_on = _screen_box((sx, sy), scale, box)
+                if _in_frame((sx, sy), box_on, width=width, height=height):
+                    seen.append(d)
+        return seen
+
+    seen = seen_within(reach)
+    for _ in range(_SPAN_WIDENINGS):
+        if not seen or max(abs(min(seen)), abs(max(seen))) < reach - step:
+            break
+        reach *= 2.0
+        seen = seen_within(reach)
+    if not seen:
+        return 1
+    span = max(seen) - min(seen) + 2 * step  # a step each side of the samples
+    return int(math.ceil(span / spacing)) + 1
 
 
 def fit_channel(
@@ -1034,8 +1133,8 @@ def _travel_entities(
     shot opens)`` and their actions, plus the problems found (unsized
     streams) as ``(stream id, message)``. Entities are SLOTS (`stream_slots`),
     each drawing the instances that pass through it one after another, so
-    the entity count is bounded by the depth range and never by the shot's
-    length; ``skip`` names slot entities the shot already has (a lowered
+    the entity count is bounded by what the view shows and never by the
+    shot's length; ``skip`` names slot entities the shot already has (a lowered
     scene lowered again adds nothing).
 
     A stream stands in its own frame (the world by default) and the camera in
@@ -1054,6 +1153,8 @@ def _travel_entities(
     actions: list[Any] = []
     problems: list[tuple[str, str]] = []
     skipped = set(skip)
+    budget = int(travel.max_actions)
+    spent = 0  # a lower bound of the actions fitted so far (an#516, S9)
     for stream in travel.streams:
         box = extents.get(stream.id)
         m = _unit_scale(stream, box, where=f"stream {stream.id!r}")
@@ -1091,7 +1192,12 @@ def _travel_entities(
                 s_cam.append(_dot(cam, direction))
             s_lo, s_hi = min(s_cam) - reach, max(s_cam) + reach
         ref_height = (box[3] - box[1]) if box is not None else 1.0
-        slots = stream_slots(stream, travel)
+        slots = max(
+            stream_slots(stream, travel),
+            _span_slots(
+                stream, travel, ctx, frame, box=box, m=m, width=width, height=height
+            ),
+        )
         passes: dict[int, list[tuple[int, _Pass, float]]] = {}
         for k, p in stream_instances(stream, travel, s_min=s_lo, s_max=s_hi):
             view = ctx.view_fn(frame, lambda t, p=p: p)
@@ -1150,6 +1256,13 @@ def _travel_entities(
             if fitted is None:
                 continue  # never on screen during this shot
             passes.setdefault(k % slots, []).append((k, fitted, depth0))
+            spent += _pass_cost(fitted, duration=duration)
+            if spent > budget:  # stop fitting: the rest can only add
+                raise WorldError(
+                    _over_budget(
+                        f"at least {spent} actions, already", travel, duration=duration
+                    )
+                )
         for slot in sorted(passes):
             entity_id = f"{stream.id}_{slot}"
             if entity_id in skipped:
@@ -1157,17 +1270,16 @@ def _travel_entities(
             ordered = sorted(passes[slot], key=lambda item: item[1].t_in)
             for (_, prev, _), (_, nxt, _) in zip(ordered, ordered[1:]):
                 if nxt.t_in < prev.t_out:
-                    # Two instances on screen at once in one slot: the slot count
-                    # comes from the depth window, and a wide lens or a yawed
-                    # view shows more of the row than that (review B3). Loud,
-                    # not a teleport; the slot count from the on-screen span is
-                    # the fix, filed.
+                    # Two instances on screen at once in one slot: the slots are
+                    # sized from what the view shows as the shot opens (an#516),
+                    # and a camera that turns during the shot can show more.
+                    # Loud, not a teleport.
                     raise WorldError(
                         f"stream {stream.id!r}: two instances are on screen at once "
                         f"in one slot ({entity_id}, {prev.t_out:.2f}s and {nxt.t_in:.2f}s) "
-                        "under this viewpoint; the travelling view's slots are sized by "
-                        "the depth range, which a wide lens or a yawed view exceeds. "
-                        "Narrow `fov`, bring `far` in, or space the stream out (`every`)."
+                        "under this viewpoint; the slots are sized by what the view shows "
+                        "as the shot opens, and a camera that turns during it can show "
+                        "more. Narrow `fov`, bring `far` in, or space the stream out (`every`)."
                     )
             first = ordered[0][1]
             entities.append(
@@ -1190,16 +1302,33 @@ def _travel_entities(
             actions.extend(
                 _pass_actions(entity_id, [p for _, p, _ in ordered], duration=duration)
             )
-    budget = int(travel.max_actions)
     if len(actions) > budget:
         raise WorldError(
-            f"this shot's travel lowers to {len(actions)} actions for "
-            f"{len(entities)} stream entities, past the travel's `max_actions` "
-            f"({budget}). Space the streams further apart (`every`), bring `far` "
-            f"in ({travel.far:g}), raise `tolerance_px` ({travel.tolerance_px:g}), "
-            f"cut the shot ({duration:g} s), or raise `max_actions` knowingly."
+            _over_budget(
+                f"{len(actions)} actions for {len(entities)} stream entities, which is",
+                travel,
+                duration=duration,
+            )
         )
     return entities, actions, problems
+
+
+def _pass_cost(p: _Pass, *, duration: float) -> int:
+    """The actions one pass adds to its slot, not counting the hide before a
+    slot's first pass (one per slot): a lower bound, so a running total of
+    them refuses only what the full count would."""
+    return len(_pass_actions("_", [p], duration=duration)) - (1 if p.t_in > 0 else 0)
+
+
+def _over_budget(spent: str, travel: Travel, *, duration: float) -> str:
+    """The refusal of a travel past its ``max_actions``, with its levers."""
+    return (
+        f"this shot's travel lowers to {spent} past the travel's `max_actions` "
+        f"({int(travel.max_actions)}). Space the streams further apart (`every`), "
+        f"bring `far` in ({travel.far:g}), raise `tolerance_px` "
+        f"({travel.tolerance_px:g}), cut the shot ({duration:g} s), or raise "
+        "`max_actions` knowingly."
+    )
 
 
 # --- frames: actions on frame channels, members in motion ------------------------
