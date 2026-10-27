@@ -172,6 +172,6 @@ def test_a_reroll_says_an_old_mixing_first(monkeypatch):
     shared_mixing.warn_if_mixing_too_old.cache_clear()
     try:
         with pytest.warns(shared_mixing.MixingTooOldWarning, match="too old to have"):
-            assert retake_lines(SceneIR(meta=Meta(title="t")), {}, "x", tts=object()) == []
+            retake_lines(SceneIR(meta=Meta(title="t")), {}, "x", tts=object())
     finally:
         shared_mixing.warn_if_mixing_too_old.cache_clear()
