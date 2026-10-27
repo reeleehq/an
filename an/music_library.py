@@ -40,12 +40,14 @@ from __future__ import annotations
 
 import csv
 import hashlib
+import io
 import json
 import shutil
 import subprocess
+import tempfile
 import time
 import urllib.request
-from collections.abc import Callable, Iterable, Mapping, Sequence
+from collections.abc import Callable, Iterable, Mapping, MutableMapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -64,9 +66,10 @@ __all__ = [
     "ffprobe_verify",
     "polite_fetch",
     "register_music_library",
+    "files_store",
     "titles_by_library",
+    "tracks_table",
     "wayback",
-    "write_tracks_table",
 ]
 
 #: Seconds between two downloads from one library: a library is someone's
@@ -214,29 +217,33 @@ def polite_fetch(url: str, *, timeout: float = DFLT_TIMEOUT_S) -> bytes:
         return response.read()
 
 
-def ffprobe_verify(path: str | Path) -> float:
-    """The duration of the audio at ``path``, in seconds; :class:`MusicLibraryError`
+def ffprobe_verify(data: bytes) -> float:
+    """The duration of the audio ``data``, in seconds; :class:`MusicLibraryError`
     when it is empty, has no audio stream, or no duration (an error page saved
-    as ``.mp3`` is all three)."""
+    as ``.mp3`` is all three). Probed from a temporary file: from a pipe,
+    ffprobe reports no duration."""
     exe = shutil.which("ffprobe")
     if exe is None:
         raise MusicLibraryError(
             "verifying a track needs ffprobe (it comes with ffmpeg: "
             "https://ffmpeg.org/download.html)"
         )
-    if Path(path).stat().st_size == 0:
-        raise MusicLibraryError(f"{Path(path).name} is empty")
-    probe = subprocess.run(
-        [exe, "-v", "error", "-show_entries", "stream=codec_type:format=duration",
-         "-of", "json", str(path)],
-        capture_output=True, text=True, check=False,
-    )  # fmt: skip
+    if not data:
+        raise MusicLibraryError("the file is empty")
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "track"
+        path.write_bytes(data)
+        probe = subprocess.run(
+            [exe, "-v", "error", "-show_entries", "stream=codec_type:format=duration",
+             "-of", "json", str(path)],
+            capture_output=True, text=True, check=False,
+        )  # fmt: skip
     info = json.loads(probe.stdout or "{}")
     if not any(s.get("codec_type") == "audio" for s in info.get("streams", ())):
-        raise MusicLibraryError(f"{Path(path).name} has no audio stream")
+        raise MusicLibraryError("the file has no audio stream")
     duration = float(info.get("format", {}).get("duration") or 0.0)
     if duration <= 0:
-        raise MusicLibraryError(f"{Path(path).name} has no duration")
+        raise MusicLibraryError("the file has no duration")
     return duration
 
 
@@ -277,14 +284,16 @@ def acquire(
     library: str | MusicLibrary,
     titles: Iterable[str] | Mapping[str, Mapping[str, Any]],
     *,
-    out: str | Path,
+    out: str | Path | MutableMapping[str, bytes],
     fetch: Callable[[str], bytes] = polite_fetch,
     mirrors: Sequence[Callable[[str], str]] = DFLT_MIRRORS,
-    verify: Callable[[Path], float] = ffprobe_verify,
+    verify: Callable[[bytes], float] = ffprobe_verify,
     pause: float = DFLT_PAUSE_S,
     sleep: Callable[[float], None] = time.sleep,
 ) -> list[AcquiredTrack]:
     """Download ``titles`` of ``library`` into ``out``, verified, one row each.
+
+    ``out`` is a folder, or any ``{file name: bytes}`` store (:func:`files_store`).
 
     ``titles`` is a list, or ``{title: metadata}`` whose metadata (``credited_by``:
     the videos that credit it; a catalogue's ``feel``, ``genre``, ...) is kept
@@ -305,8 +314,7 @@ def acquire(
                 f"{title!r}: its metadata sets {clash}, which the library states "
                 f"({lib.name}); drop them from the titles file"
             )
-    out = Path(out)
-    out.mkdir(parents=True, exist_ok=True)
+    store = files_store(out)
     rows: list[AcquiredTrack] = []
     fetched_before = False
     for title, extra in meta.items():
@@ -324,11 +332,11 @@ def acquire(
             rows.append(AcquiredTrack(title, lib.name, WISHLIST, source))
             continue
         url = lib.track_url(title)
-        path = out / lib.file_name(title)
+        name = lib.file_name(title)
         source = source.model_copy(update={"url": url, "source_page_url": url})
-        if path.exists():
+        if name in store:
             try:
-                rows.append(_row(lib, title, KEPT, source, path, verify(path)))
+                rows.append(_row(lib, title, KEPT, source, name, store[name], verify))
                 continue
             except MusicLibraryError:
                 pass  # a broken file from an earlier run: fetch it again
@@ -338,13 +346,13 @@ def acquire(
                 sleep(pause)
             fetched_before = True
             try:
-                path.write_bytes(fetch(mirror(url)))
-                duration = verify(path)
+                data = fetch(mirror(url))
+                row = _row(lib, title, ACQUIRED, source, name, data, verify)
             except Exception as e:  # noqa: BLE001 — every failure is the row's reason
                 errors.append(f"{mirror.__name__}: {e}")
-                path.unlink(missing_ok=True)
                 continue
-            rows.append(_row(lib, title, ACQUIRED, source, path, duration))
+            store[name] = data
+            rows.append(row)
             break
         else:
             rows.append(
@@ -364,36 +372,50 @@ def _library(library: str | MusicLibrary) -> MusicLibrary:
     return MUSIC_LIBRARIES[library]
 
 
+def files_store(
+    out: str | Path | MutableMapping[str, bytes],
+) -> MutableMapping[str, bytes]:
+    """``out`` as a ``{file name: bytes}`` store: a folder (made if missing)
+    becomes a ``dol.Files`` over it; a mapping is used as it is."""
+    if isinstance(out, MutableMapping):
+        return out
+    from dol import Files
+
+    Path(out).mkdir(parents=True, exist_ok=True)
+    return Files(str(out))
+
+
 def _row(
     lib: MusicLibrary,
     title: str,
     status: str,
     source: AssetSource,
-    path: Path,
-    duration: float,
+    name: str,
+    data: bytes,
+    verify: Callable[[bytes], float],
 ) -> AcquiredTrack:
-    sha = hashlib.sha256(path.read_bytes()).hexdigest()
+    """The row of a verified file (``verify`` raises for one that is not)."""
+    duration = verify(data)
     return AcquiredTrack(
         title,
         lib.name,
         status,
-        source.model_copy(update={"sha256": sha}),
-        file=path.name,
+        source.model_copy(update={"sha256": hashlib.sha256(data).hexdigest()}),
+        file=name,
         duration_s=duration,
     )
 
 
-def write_tracks_table(rows: Iterable[AcquiredTrack], path: str | Path) -> Path:
-    """The tracks table as CSV at ``path``: :data:`TRACK_COLUMNS`, then any
-    extra the rows carry, in name order."""
+def tracks_table(rows: Iterable[AcquiredTrack]) -> str:
+    """The tracks table as CSV text: :data:`TRACK_COLUMNS`, then any extra the
+    rows carry, in name order."""
     dicts = [r.row() for r in rows]
     extras = sorted({k for d in dicts for k in d} - set(TRACK_COLUMNS))
-    path = Path(path)
-    with path.open("w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=[*TRACK_COLUMNS, *extras])
-        writer.writeheader()
-        writer.writerows(dicts)
-    return path
+    buffer = io.StringIO()
+    writer = csv.DictWriter(buffer, fieldnames=[*TRACK_COLUMNS, *extras])
+    writer.writeheader()
+    writer.writerows(dicts)
+    return buffer.getvalue()
 
 
 def attribution_text(rows: Iterable[AcquiredTrack]) -> str:

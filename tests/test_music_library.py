@@ -4,6 +4,7 @@ network step behind its seam."""
 from __future__ import annotations
 
 import csv
+import io
 import json
 import shutil
 import subprocess
@@ -22,7 +23,7 @@ from an.music_library import (
     direct,
     ffprobe_verify,
     wayback,
-    write_tracks_table,
+    tracks_table,
 )
 
 
@@ -39,9 +40,9 @@ class Fetcher:
         return self.pages[url]
 
 
-def _ok(path):
+def _ok(data):
     """A verifier that accepts any non-empty file as 1.5 s of audio."""
-    if not path.read_bytes():
+    if not data:
         raise MusicLibraryError("empty")
     return 1.5
 
@@ -115,6 +116,14 @@ def test_a_rerun_keeps_what_is_there_and_fetches_nothing(tmp_path):
     assert row.status == KEPT and fetch.calls == [] and row.source.sha256
 
 
+def test_any_store_takes_the_files():
+    store = {}
+    acquire(
+        "incompetech", ["A"], out=store, fetch=Fetcher({_url("A"): b"aa"}), verify=_ok
+    )
+    assert store == {"A.mp3": b"aa"}
+
+
 def test_a_paid_library_is_a_wishlist_and_downloads_nothing(tmp_path):
     fetch = Fetcher({})
     rows = acquire(
@@ -130,8 +139,7 @@ def test_metadata_rides_the_row_into_the_tracks_table(tmp_path):
     fetch = Fetcher({_url("A"): b"aa"})
     titles = {"A": {"credited_by": ["vid1", "vid2"], "feel": "Bright"}}
     rows = acquire("incompetech", titles, out=tmp_path, fetch=fetch, verify=_ok)
-    table = write_tracks_table(rows, tmp_path / "tracks.csv")
-    (row,) = csv.DictReader(table.open(encoding="utf-8"))
+    (row,) = csv.DictReader(io.StringIO(tracks_table(rows)))
     assert row["credited_by"] == "vid1; vid2" and row["feel"] == "Bright"
     assert row["license"] == "cc-by-4.0" and row["duration_s"] == "1.5"
     with pytest.raises(MusicLibraryError, match="license"):
@@ -162,20 +170,16 @@ def _mp3(tmp_path):
 def test_ffprobe_verify_reads_audio_and_refuses_an_error_page(tmp_path):
     if shutil.which("ffprobe") is None:
         pytest.skip("ffprobe not on PATH")
-    good = tmp_path / "good.mp3"
-    good.write_bytes(_mp3(tmp_path))
-    assert ffprobe_verify(good) == pytest.approx(1.0, abs=0.1)
-    page = tmp_path / "page.mp3"
-    page.write_bytes(b"<html>403 Forbidden</html>")
-    with pytest.raises(MusicLibraryError):
-        ffprobe_verify(page)
+    assert ffprobe_verify(_mp3(tmp_path)) == pytest.approx(1.0, abs=0.1)
+    for bad in (b"<html>403 Forbidden</html>", b""):
+        with pytest.raises(MusicLibraryError):
+            ffprobe_verify(bad)
 
 
 @pytest.mark.ffmpeg
 def test_the_command_writes_files_table_and_attribution(tmp_path, monkeypatch):
     if shutil.which("ffprobe") is None:
         pytest.skip("ffprobe not on PATH")
-    import io
     import urllib.request
 
     from an.music_cli import add_library
@@ -192,4 +196,3 @@ def test_the_command_writes_files_table_and_attribution(tmp_path, monkeypatch):
     assert (out / "Sneaky Snitch.mp3").exists()
     assert "Sneaky Snitch" in (out / "tracks.csv").read_text(encoding="utf-8")
     assert "Creative Commons" in (out / "ATTRIBUTION.md").read_text(encoding="utf-8")
-

@@ -39,8 +39,9 @@ def add_library(
     from an.music_library import (
         acquire,
         attribution_text,
+        files_store,
         titles_by_library,
-        write_tracks_table,
+        tracks_table,
     )
 
     source = Path(titles_from)
@@ -51,9 +52,10 @@ def add_library(
         titles = titles_by_library(text).get(library, [])
     if not titles:
         raise SystemExit(f"an music add-library: no {library} titles in {titles_from}")
-    rows = acquire(library, titles, out=out, pause=pause)
-    write_tracks_table(rows, Path(out) / TRACKS_TABLE)
-    (Path(out) / ATTRIBUTION_FILE).write_text(attribution_text(rows), encoding="utf-8")
+    store = files_store(out)
+    rows = acquire(library, titles, out=store, pause=pause)
+    store[TRACKS_TABLE] = tracks_table(rows).encode("utf-8")
+    store[ATTRIBUTION_FILE] = attribution_text(rows).encode("utf-8")
     counts = Counter(r.status for r in rows)
     failed = [f"  {r.title}: {r.error}" for r in rows if r.error]
     return "\n".join(
