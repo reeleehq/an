@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=13a76651"></script>
+    <script src="../../../_static/documentation_options.js?v=b7dfe248"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.330" />
+  <meta name="docsearch:version" content="0.1.331" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -731,6 +731,8 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterator</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">dol</span><span class="w"> </span><span class="kn">import</span> <span class="n">atomic_write</span>
+
 
 <span class="k">class</span><span class="w"> </span><span class="nc">_BlobStore</span><span class="p">(</span><span class="n">MutableMapping</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Generic file-as-bytes store with a fixed extension.</span>
@@ -758,7 +760,11 @@ window.runMermaid = runMermaid;</script>
     <span class="k">def</span><span class="w"> </span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_path</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
         <span class="n">p</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">p</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="c1"># Whole or not at all (an#649, an#665): a reader, or a crash, never meets</span>
+        <span class="c1"># half a file under a name a record says is current. On Windows the</span>
+        <span class="c1"># replace is refused while another handle holds the file: a writer</span>
+        <span class="c1"># reads what it stores, and closes it, first.</span>
+        <span class="n">atomic_write</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_path</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>

@@ -284,7 +284,7 @@ body, or the world), within its ends.
 True
 ```
 
-### *class* an.kinematics.SolveResult(bodies, poses, residuals, unsatisfied, limit_violations, dropped=())
+### *class* an.kinematics.SolveResult(bodies, poses, residuals, unsatisfied, limit_violations, dropped=(), out_of_reach=())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -309,6 +309,11 @@ Every joined joint holds and every range is kept.
 >>> solve([Body("b")], []).ok
 True
 ```
+
+#### out_of_reach *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[int](https://docs.python.org/3/builtins/functions.html#int), ...]* *= ()*
+
+The joints in `dropped` given up before any pass because the geometry
+rules them out (a grip beyond the chain’s reach), not in a conflict.
 
 #### pose(name)
 
@@ -522,7 +527,7 @@ Out of reach, the grip is reported, and the arm stays on its shoulder:
 * **Return type:**
   [`SolveResult`](an.kinematics.solver.html.md#an.kinematics.solver.SolveResult)
 
-### an.kinematics.solve_frames(bodies, joints, , frames, dt, targets_at=None, joints_at=None, forces=(), gravity=None, \*\*options)
+### an.kinematics.solve_frames(bodies, joints, , frames, dt, targets_at=None, joints_at=None, forces=(), gravity=None, regrip_speed=600.0, regrip_strength=1000000.0, \*\*options)
 
 `frames` solves in a row, each starting from the last: the caller’s
 time dimension. `targets_at(k)` (or `targets_at[k]`) gives frame

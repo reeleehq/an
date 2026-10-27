@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../_static/documentation_options.js?v=13a76651"></script>
+    <script src="../../_static/documentation_options.js?v=b7dfe248"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.330" />
+  <meta name="docsearch:version" content="0.1.331" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1369,9 +1369,10 @@ window.runMermaid = runMermaid;</script>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">_ffmpeg_concat</span><span class="p">([</span><span class="n">r</span><span class="o">.</span><span class="n">mp4_path</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">shot_results</span><span class="p">],</span> <span class="n">output_path</span><span class="p">)</span>
 
-    <span class="c1"># Also write to the output store for parity with other artifacts.</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-        <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">[</span><span class="s2">"output"</span><span class="p">][</span><span class="n">output_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="c1"># Also write to the output store for parity with other artifacts. Read and</span>
+    <span class="c1"># closed first: the store's file can be this very file, and Windows will not</span>
+    <span class="c1"># replace a file a handle still holds (an#665).</span>
+    <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">[</span><span class="s2">"output"</span><span class="p">][</span><span class="n">output_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span>
 
     <span class="n">_write_caption_sidecar</span><span class="p">(</span>
         <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">output_name</span><span class="p">,</span> <span class="n">scene</span><span class="p">,</span> <span class="n">captions</span><span class="p">,</span> <span class="n">pages</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">effective_fps</span>
@@ -2231,8 +2232,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    person to look at; nothing reads it back (pillar 11). The cache is</span>
 <span class="sd">    ``mall["shot_cache"]``, keyed by content.</span>
 <span class="sd">    """</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">mp4_path</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-        <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">[</span><span class="s2">"shots"</span><span class="p">][</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="c1"># Read and closed before the store writes (an#665).</span>
+    <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">[</span><span class="s2">"shots"</span><span class="p">][</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">mp4_path</span><span class="p">)</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_parallel</span><span class="p">(</span><span class="n">parallel</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">n_shots</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>

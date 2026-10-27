@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=13a76651"></script>
+    <script src="../../../_static/documentation_options.js?v=b7dfe248"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.330" />
+  <meta name="docsearch:version" content="0.1.331" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -781,7 +781,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Collection</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">replace</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
@@ -830,6 +830,18 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: tolerance): a conflict is what more passes do not fix. Giving a joint up</span>
 <span class="c1">#: settles a conflict when it leaves at most this fraction of the failure.</span>
 <span class="n">DFLT_CONFLICT_PROGRESS</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="c1">#: How fast (scene units per second of film) the free end of a chain is led</span>
+<span class="c1">#: back to a grip it lost out of reach and that is back within reach, when one</span>
+<span class="c1">#: frame cannot close the gap (an#645): a 50-link rope 600 units from its end</span>
+<span class="c1">#: takes it back in about a second.</span>
+<span class="n">DFLT_REGRIP_SPEED</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">600.0</span>
+<span class="c1">#: A led grip is taken (its pin enforced again) once its gap is this small</span>
+<span class="c1">#: (scene units): the rejoin the stage's own check calls a snap is over 2.</span>
+<span class="n">DFLT_REGRIP_SNAP</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="c1">#: The strength of that lead (a :class:`Force` pull toward the walking point):</span>
+<span class="c1">#: a compliant pull, which closes no loop a conflict could settle by giving up</span>
+<span class="c1">#: a link.</span>
+<span class="n">DFLT_REGRIP_STRENGTH</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e6</span>
 <span class="c1">#: The most trial solves :func:`solve` spends looking for the joint to give</span>
 <span class="c1">#: up in a conflict (each is a full solve of the frame).</span>
 <span class="n">DFLT_MAX_DROP_TRIALS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">12</span>
@@ -849,8 +861,9 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: on this module.</span>
 <span class="c1">#: 2: a slow retry keeps going while it converges (an#568); 3: a conflict gives up</span>
 <span class="c1">#: the first candidate that halves the failure (an#641); 4: a slack chain of more</span>
-<span class="c1">#: than two links held at both ends is seeded on an arc (an#646).</span>
-<span class="n">SOLVER_VERSION</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"4"</span>
+<span class="c1">#: than two links held at both ends is seeded on an arc (an#646); 5: a grip lost</span>
+<span class="c1">#: out of reach is led back over several frames (an#645).</span>
+<span class="n">SOLVER_VERSION</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"5"</span>
 <span class="c1">#: The most passes a frame whose first retry made progress is given, as a</span>
 <span class="c1">#: multiple of ``iterations``: its retry is repeated with ``retry`` times the</span>
 <span class="c1">#: passes while each round still makes progress (an#568). On 300 random</span>
@@ -920,6 +933,9 @@ window.runMermaid = runMermaid;</script>
     <span class="n">unsatisfied</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span>
     <span class="n">limit_violations</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span>
     <span class="n">dropped</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="c1">#: The joints in ``dropped`` given up before any pass because the geometry</span>
+    <span class="c1">#: rules them out (a grip beyond the chain's reach), not in a conflict.</span>
+    <span class="n">out_of_reach</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">ok</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
@@ -1948,6 +1964,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">unsatisfied</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">unsatisfied</span><span class="p">,</span>
         <span class="n">limit_violations</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">limits</span><span class="p">,</span>
         <span class="n">dropped</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">dropped</span><span class="p">,</span>
+        <span class="n">out_of_reach</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">unreachable</span><span class="p">),</span>
     <span class="p">)</span></div>
 
 
@@ -2279,6 +2296,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">joints_at</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">],</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Joint</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">forces</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Force</span><span class="p">]</span> <span class="o">=</span> <span class="p">(),</span>
     <span class="n">gravity</span><span class="p">:</span> <span class="n">Gravity</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">regrip_speed</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">DFLT_REGRIP_SPEED</span><span class="p">,</span>
+    <span class="n">regrip_strength</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_REGRIP_STRENGTH</span><span class="p">,</span>
     <span class="o">**</span><span class="n">options</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FramesResult</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""``frames`` solves in a row, each starting from the last: the caller's</span>
@@ -2311,6 +2330,11 @@ window.runMermaid = runMermaid;</script>
     <span class="n">base</span> <span class="o">=</span> <span class="n">resolve_rests</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="n">joints</span><span class="p">)</span>
     <span class="n">enforced_before</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span><span class="o">.</span><span class="n">joined</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">base</span><span class="p">]</span>
     <span class="n">poses</span><span class="p">,</span> <span class="n">unsat</span><span class="p">,</span> <span class="n">lims</span><span class="p">,</span> <span class="n">snaps</span><span class="p">,</span> <span class="n">drops</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
+    <span class="n">tolerance</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tolerance"</span><span class="p">,</span> <span class="n">DFLT_TOLERANCE</span><span class="p">)</span>
+    <span class="n">step</span> <span class="o">=</span> <span class="p">(</span><span class="n">regrip_speed</span> <span class="ow">or</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">dt</span> <span class="k">if</span> <span class="n">dt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mf">0.0</span>
+    <span class="n">lost</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>  <span class="c1"># grips the geometry ruled out on the frame before</span>
+    <span class="n">walking</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># grips being led back: the gap last frame</span>
+    <span class="n">regained</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>  <span class="c1"># grips the lead took back, held since</span>
     <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">frames</span><span class="p">):</span>
         <span class="n">frame_joints</span> <span class="o">=</span> <span class="n">base</span>
         <span class="k">if</span> <span class="n">joints_at</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -2331,15 +2355,87 @@ window.runMermaid = runMermaid;</script>
             <span class="n">targets</span> <span class="o">=</span> <span class="n">targets_at</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">targets</span> <span class="o">=</span> <span class="n">targets_at</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
-        <span class="n">r</span> <span class="o">=</span> <span class="n">solve</span><span class="p">(</span>
-            <span class="n">current</span><span class="p">,</span>
-            <span class="n">frame_joints</span><span class="p">,</span>
-            <span class="n">targets</span><span class="o">=</span><span class="n">targets</span><span class="p">,</span>
-            <span class="n">forces</span><span class="o">=</span><span class="n">forces</span><span class="p">,</span>
-            <span class="n">gravity</span><span class="o">=</span><span class="n">gravity</span><span class="p">,</span>
-            <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">,</span>
-            <span class="o">**</span><span class="n">options</span><span class="p">,</span>
+
+        <span class="c1"># A grip lost out of reach and back within it, farther than one frame</span>
+        <span class="c1"># can close (a long chain hanging far from it), is led back: unjoined</span>
+        <span class="c1"># for the frame, its free point pulled (a Force, which closes no loop)</span>
+        <span class="c1"># toward a point that walks toward the grip at `regrip_speed`; within</span>
+        <span class="c1"># a step the grip itself is tried, and if taking it would tear the</span>
+        <span class="c1"># chain the frame is pulled straight at it instead (an#645). Only in</span>
+        <span class="c1"># dynamic mode: a pose has no time to walk in.</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">lead</span><span class="p">(</span><span class="n">grips</span><span class="p">:</span> <span class="n">Collection</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">walked</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="o">**</span><span class="n">kw</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">_regrip_leads</span><span class="p">(</span>
+                <span class="n">current</span><span class="p">,</span> <span class="n">frame_joints</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">grips</span><span class="p">,</span> <span class="n">walked</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="n">tolerance</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Led grips walk on (within a snap they are tried themselves); a grip</span>
+        <span class="c1"># back within reach is tried itself first, as a short chain or an arm</span>
+        <span class="c1"># swings back at once.</span>
+        <span class="n">leads</span><span class="p">,</span> <span class="n">within</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">lead</span><span class="p">(</span><span class="n">walking</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">walking</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="n">step</span><span class="p">)</span> <span class="k">if</span> <span class="n">step</span> <span class="o">&gt;</span> <span class="mf">0.0</span> <span class="k">else</span> <span class="p">({},</span> <span class="nb">set</span><span class="p">())</span>
         <span class="p">)</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">frame</span><span class="p">(</span><span class="n">led</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="nb">float</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">SolveResult</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">solve</span><span class="p">(</span>
+                <span class="n">current</span><span class="p">,</span>
+                <span class="p">[</span>
+                    <span class="n">replace</span><span class="p">(</span><span class="n">fj</span><span class="p">,</span> <span class="n">joined</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">led</span> <span class="k">else</span> <span class="n">fj</span>
+                    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">fj</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">frame_joints</span><span class="p">)</span>
+                <span class="p">],</span>
+                <span class="n">targets</span><span class="o">=</span><span class="n">targets</span><span class="p">,</span>
+                <span class="n">forces</span><span class="o">=</span><span class="p">(</span>
+                    <span class="o">*</span><span class="n">forces</span><span class="p">,</span>
+                    <span class="o">*</span><span class="p">(</span>
+                        <span class="n">Force</span><span class="p">(</span><span class="n">free</span><span class="p">,</span> <span class="n">toward</span><span class="o">=</span><span class="n">toward</span><span class="p">,</span> <span class="n">strength</span><span class="o">=</span><span class="n">regrip_strength</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">free</span><span class="p">,</span> <span class="n">toward</span><span class="p">,</span> <span class="n">_gap</span> <span class="ow">in</span> <span class="n">led</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+                    <span class="p">),</span>
+                <span class="p">),</span>
+                <span class="n">gravity</span><span class="o">=</span><span class="n">gravity</span><span class="p">,</span>
+                <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">options</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="n">r</span> <span class="o">=</span> <span class="n">frame</span><span class="p">(</span><span class="n">leads</span><span class="p">)</span>
+        <span class="n">before</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">drops</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="k">if</span> <span class="n">drops</span> <span class="k">else</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">trying</span> <span class="o">=</span> <span class="p">(</span><span class="n">within</span> <span class="o">|</span> <span class="n">lost</span><span class="p">)</span> <span class="o">-</span> <span class="n">leads</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">step</span> <span class="o">&gt;</span> <span class="mf">0.0</span> <span class="k">else</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">refused</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">dropped</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">trying</span>
+        <span class="n">tore</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">dropped</span><span class="p">)</span> <span class="o">-</span> <span class="n">trying</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">out_of_reach</span><span class="p">)</span> <span class="o">-</span> <span class="n">before</span> <span class="o">-</span> <span class="n">leads</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">trying</span> <span class="ow">and</span> <span class="p">(</span><span class="n">refused</span> <span class="ow">or</span> <span class="n">tore</span><span class="p">):</span>
+            <span class="c1"># The grip refused, or taking it gives a link up: led instead, a</span>
+            <span class="c1"># step at a time from out of reach, straight at it from within a</span>
+            <span class="c1"># snap, and tried again next frame.</span>
+            <span class="n">leads</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">lead</span><span class="p">(</span><span class="n">trying</span> <span class="o">-</span> <span class="n">within</span><span class="p">,</span> <span class="p">{},</span> <span class="n">step</span><span class="o">=</span><span class="n">step</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">leads</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">lead</span><span class="p">(</span><span class="n">trying</span> <span class="o">&amp;</span> <span class="n">within</span><span class="p">,</span> <span class="p">{},</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">snap</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">frame</span><span class="p">(</span><span class="n">leads</span><span class="p">)</span>
+        <span class="n">torn</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">dropped</span><span class="p">)</span> <span class="o">-</span> <span class="n">regained</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">out_of_reach</span><span class="p">)</span> <span class="o">-</span> <span class="n">before</span> <span class="o">-</span> <span class="n">leads</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">torn</span> <span class="ow">and</span> <span class="n">regained</span><span class="p">:</span>
+            <span class="c1"># A link is given up while a grip the lead took back holds: the</span>
+            <span class="c1"># grip goes first, as it would in any conflict (an#641), and is led</span>
+            <span class="c1"># back again.</span>
+            <span class="n">leads</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">lead</span><span class="p">(</span><span class="n">regained</span><span class="p">,</span> <span class="p">{},</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">snap</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">frame</span><span class="p">(</span><span class="n">leads</span><span class="p">)</span>
+        <span class="c1"># A grip taken back and given up again in a conflict (a long rope</span>
+        <span class="c1"># swinging under its own weight) is led back like one lost out of reach.</span>
+        <span class="n">relost</span> <span class="o">=</span> <span class="n">regained</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">dropped</span><span class="p">)</span>
+        <span class="n">regained</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">regained</span> <span class="o">|</span> <span class="p">(</span><span class="n">within</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">dropped</span><span class="p">)))</span> <span class="o">-</span> <span class="n">leads</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">dropped</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">walking</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">leads</span><span class="p">:</span>  <span class="c1"># led, not held: given up, at the gap the grip still has</span>
+            <span class="n">walking</span> <span class="o">=</span> <span class="p">{</span><span class="n">j</span><span class="p">:</span> <span class="n">_gap</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">bodies</span><span class="p">,</span> <span class="n">frame_joints</span><span class="p">[</span><span class="n">j</span><span class="p">])</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">leads</span><span class="p">}</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">replace</span><span class="p">(</span>
+                <span class="n">r</span><span class="p">,</span>
+                <span class="n">dropped</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">({</span><span class="o">*</span><span class="n">r</span><span class="o">.</span><span class="n">dropped</span><span class="p">,</span> <span class="o">*</span><span class="n">leads</span><span class="p">})),</span>
+                <span class="n">unsatisfied</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span>
+                    <span class="nb">sorted</span><span class="p">(</span>
+                        <span class="p">{</span>
+                            <span class="o">**</span><span class="nb">dict</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">unsatisfied</span><span class="p">),</span>
+                            <span class="o">**</span><span class="p">{</span><span class="n">j</span><span class="p">:</span> <span class="n">g</span> <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">walking</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">g</span> <span class="o">&gt;</span> <span class="n">tolerance</span><span class="p">},</span>
+                        <span class="p">}</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                    <span class="p">)</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
+        <span class="n">lost</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">out_of_reach</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">relost</span> <span class="o">-</span> <span class="n">leads</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="n">snaps</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">k</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">gap</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">gap</span> <span class="ow">in</span> <span class="n">reengaged</span> <span class="k">if</span> <span class="n">j</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">dropped</span><span class="p">]</span>
         <span class="n">enforced_before</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">joint</span><span class="o">.</span><span class="n">joined</span> <span class="ow">and</span> <span class="n">j</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">dropped</span> <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">joint</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">frame_joints</span><span class="p">)</span>
@@ -2368,6 +2464,57 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">frame_joint</span><span class="p">,</span> <span class="p">(</span><span class="n">Hinge</span><span class="p">,</span> <span class="n">Weld</span><span class="p">))</span> <span class="ow">and</span> <span class="n">frame_joint</span><span class="o">.</span><span class="n">rest</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">replace</span><span class="p">(</span><span class="n">frame_joint</span><span class="p">,</span> <span class="n">rest</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">base_joint</span><span class="p">,</span> <span class="s2">"rest"</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">frame_joint</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_regrip_leads</span><span class="p">(</span>
+    <span class="n">bodies</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Body</span><span class="p">],</span>
+    <span class="n">joints</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Joint</span><span class="p">],</span>
+    <span class="n">targets</span><span class="p">:</span> <span class="n">Targets</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">grips</span><span class="p">:</span> <span class="n">Collection</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+    <span class="n">walked</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">step</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">tolerance</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">snap</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_REGRIP_SNAP</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""The grips (pins with one held side) in ``grips`` that are within reach,</span>
+<span class="sd">    as ``({joint: (free point, where to pull it, gap)}, {joint})``: the first</span>
+<span class="sd">    those farther than ``step``, pulled toward a point ``step`` along the gap</span>
+<span class="sd">    (``step`` 0: toward the held point itself), the second those within a</span>
+<span class="sd">    step, to be tried themselves. A grip whose gap grew since it was last led</span>
+<span class="sd">    (``walked``) is in neither: it is no longer led (an#645). The last step</span>
+<span class="sd">    pulls straight at the held point, so the grip is taken within</span>
+<span class="sd">    :data:`DFLT_REGRIP_SNAP` rather than across a step."""</span>
+    <span class="n">st</span> <span class="o">=</span> <span class="n">_State</span><span class="p">(</span><span class="n">bodies</span><span class="p">)</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">drive</span><span class="p">(</span><span class="n">targets</span><span class="p">)</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">restore_held</span><span class="p">()</span>
+    <span class="n">far</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">_out_of_reach</span><span class="p">(</span><span class="n">st</span><span class="p">,</span> <span class="n">_rows</span><span class="p">(</span><span class="n">st</span><span class="p">,</span> <span class="n">joints</span><span class="p">,</span> <span class="p">()),</span> <span class="n">tolerance</span><span class="p">))</span>
+    <span class="n">leads</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">within</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">grips</span><span class="p">):</span>
+        <span class="n">joint</span> <span class="o">=</span> <span class="n">joints</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">joint</span><span class="p">,</span> <span class="n">Pin</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">joint</span><span class="o">.</span><span class="n">joined</span> <span class="ow">or</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">far</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">sides</span> <span class="o">=</span> <span class="p">[(</span><span class="n">point</span><span class="p">,</span> <span class="o">*</span><span class="n">st</span><span class="o">.</span><span class="n">offset</span><span class="p">(</span><span class="n">point</span><span class="p">))</span> <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="p">(</span><span class="n">joint</span><span class="o">.</span><span class="n">a</span><span class="p">,</span> <span class="n">joint</span><span class="o">.</span><span class="n">b</span><span class="p">)]</span>
+        <span class="n">held</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">bodies</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">fixed</span> <span class="ow">or</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">st</span><span class="o">.</span><span class="n">held</span> <span class="k">for</span> <span class="n">_p</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">_x</span><span class="p">,</span> <span class="n">_y</span> <span class="ow">in</span> <span class="n">sides</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="n">held</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">held</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">continue</span>
+        <span class="p">(</span><span class="n">free</span><span class="p">,</span> <span class="n">fi</span><span class="p">,</span> <span class="n">fx</span><span class="p">,</span> <span class="n">fy</span><span class="p">),</span> <span class="p">(</span><span class="n">fixed</span><span class="p">,</span> <span class="n">hi</span><span class="p">,</span> <span class="n">hx</span><span class="p">,</span> <span class="n">hy</span><span class="p">)</span> <span class="o">=</span> <span class="n">sides</span> <span class="k">if</span> <span class="n">held</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">else</span> <span class="n">sides</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">ax</span><span class="p">,</span> <span class="n">ay</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">world</span><span class="p">(</span><span class="n">fi</span><span class="p">,</span> <span class="n">fx</span><span class="p">,</span> <span class="n">fy</span><span class="p">)</span>
+        <span class="n">bx</span><span class="p">,</span> <span class="n">by</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">world</span><span class="p">(</span><span class="n">hi</span><span class="p">,</span> <span class="n">hx</span><span class="p">,</span> <span class="n">hy</span><span class="p">)</span>
+        <span class="n">gap</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">bx</span> <span class="o">-</span> <span class="n">ax</span><span class="p">,</span> <span class="n">by</span> <span class="o">-</span> <span class="n">ay</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">gap</span> <span class="o">&gt;</span> <span class="n">walked</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">inf</span><span class="p">):</span>
+            <span class="k">continue</span>  <span class="c1"># not closing: no longer led</span>
+        <span class="k">if</span> <span class="n">gap</span> <span class="o">&lt;=</span> <span class="n">snap</span><span class="p">:</span>
+            <span class="n">within</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">step</span> <span class="o">&lt;=</span> <span class="mf">0.0</span> <span class="ow">or</span> <span class="n">gap</span> <span class="o">&lt;=</span> <span class="n">step</span><span class="p">:</span>
+            <span class="n">leads</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">free</span><span class="p">,</span> <span class="n">fixed</span><span class="p">,</span> <span class="n">gap</span><span class="p">)</span>  <span class="c1"># the last step: straight at the grip</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="n">step</span> <span class="o">/</span> <span class="n">gap</span>
+            <span class="n">leads</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">free</span><span class="p">,</span> <span class="p">(</span><span class="n">ax</span> <span class="o">+</span> <span class="n">f</span> <span class="o">*</span> <span class="p">(</span><span class="n">bx</span> <span class="o">-</span> <span class="n">ax</span><span class="p">),</span> <span class="n">ay</span> <span class="o">+</span> <span class="n">f</span> <span class="o">*</span> <span class="p">(</span><span class="n">by</span> <span class="o">-</span> <span class="n">ay</span><span class="p">)),</span> <span class="n">gap</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">leads</span><span class="p">,</span> <span class="n">within</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_gap</span><span class="p">(</span><span class="n">bodies</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Body</span><span class="p">],</span> <span class="n">joint</span><span class="p">:</span> <span class="n">Joint</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
