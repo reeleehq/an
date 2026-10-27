@@ -30,7 +30,7 @@ import numpy as np
 import pytest
 
 import an.audio.pipeline as pipeline
-from an.audio.effects import VoiceEffectError, atempo_stages, filter_chain, normalize_effects
+from an.audio.effects import VoiceEffectError, filter_chain, normalize_effects
 from an.audio.elevenlabs_tts import ElevenLabsTTS
 from an.audio.lipsync import Viseme, VisemeTrack
 from an.audio.offline_tts import OfflineTTS
@@ -612,17 +612,20 @@ def test_tempo_is_validated_and_omitted_at_one():
             normalize_effects({"tempo": bad})
 
 
-def test_the_pitch_only_chain_is_unchanged_and_tempo_multiplies_into_it():
-    ratio = 2 ** (4 / 12)
+def test_the_chain_is_the_shared_builder_and_tempo_multiplies_into_it():
+    """an#611: after its leading resample, the chain is mixing's builder; the
+    tempo stages undo the speed change of the integer rate ffmpeg runs."""
+    from mixing.filtergraph import resample_pitch_filter
+
+    rate = round(44100 * 2 ** (4 / 12))
     assert filter_chain({"pitch_semitones": 4.0}) == (
-        f"aresample=44100,asetrate={44100 * ratio:.6f},aresample=44100,"
-        f"apad=pad_dur=0.25,atempo={1 / ratio:.9f}"
-    )
+        f"aresample=44100,asetrate={rate},aresample=44100,"
+        f"apad=pad_dur=0.25,atempo={44100 / rate:.10f}"
+    ) == "aresample=44100," + resample_pitch_filter(4.0, 44100, flush_s=0.25)
     both = filter_chain({"pitch_semitones": 4.0, "tempo": 1.5})
-    assert both.endswith(f"atempo={1.5 / ratio:.9f}")
+    assert both.endswith(f"atempo={1.5 * 44100 / rate:.10f}")
     assert filter_chain({"pitch_semitones": 12.0, "tempo": 0.5}).count("atempo=") == 2
-    assert filter_chain({"tempo": 1.25}) == "aresample=44100,apad=pad_dur=0.25,atempo=1.250000000"
-    assert all(0.5 <= f <= 2.0 for f in atempo_stages(0.25)) and math.prod(atempo_stages(0.25)) == pytest.approx(0.25)
+    assert filter_chain({"tempo": 1.25}) == "aresample=44100,apad=pad_dur=0.25,atempo=1.2500000000"
 
 
 def test_tempo_retimes_the_line_without_ffmpeg(monkeypatch):
@@ -948,3 +951,16 @@ def test_an_existing_pick_keeps_its_take_and_its_cache_key(monkeypatch):
     _run(_scene(text=edited), mall, tts, take_scorer=make_take_scorer)
     fresh = [json.loads(v) for k, v in mall["takes"].items() if k not in records]
     assert [r["chosen"] for r in fresh] == [0]
+
+
+def test_an_old_mixing_is_named_and_a_trim_alone_does_not_need_it(monkeypatch):
+    """an#611: the pitch and tempo stages come from `mixing.filtergraph`; a
+    mixing without it is a VoiceEffectError naming the upgrade, while a voice
+    that only trims never reaches for it."""
+    import sys
+
+    monkeypatch.setitem(sys.modules, "mixing.filtergraph", None)  # import raises
+    with pytest.raises(VoiceEffectError, match="pip install -U mixing"):
+        normalize_effects({"pitch_semitones": 4})
+    assert filter_chain({}) == ""
+    assert normalize_effects({"trim_silence": True})["trim_silence"]["version"] == 1

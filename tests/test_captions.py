@@ -588,17 +588,27 @@ def test_the_subrip_mirror_matches_mixing_field_for_field_and_byte_for_byte():
         assert srt.seconds_to_srt_time(t) == seconds_to_srt_time(t), t
 
 
-#: The one module that may import ``mixing``, and what it may import (an#578).
-MIXING_IMPORT_ALLOWED = {"audio/loudness.py": {"mixing.loudness", "mixing"}}
+#: The modules that may import ``mixing``, and what they may import: the
+#: shared loudness component (an#578) and the pure filter builder the voice
+#: effects use (an#611). Both lazily, and neither loads a media stack.
+MIXING_IMPORT_ALLOWED = {
+    "audio/loudness.py": {"mixing.loudness", "mixing"},
+    "audio/effects.py": {
+        "mixing.filtergraph",
+        "mixing.filtergraph.resample_pitch_filter",
+    },
+}
 
 
 def test_an_never_imports_mixing():
     """The boundary: `an` MIRRORS `mixing.srt` rather than depending on it.
 
     Reason (an#578): `mixing`'s base install does not carry the GPL-built ffmpeg
-    binary (moviepy -> imageio-ffmpeg sit in its `media` extra), so ONE module may import the shared loudness component,
-    `an/audio/loudness.py` (`mixing.loudness`, lazily, from the bare `an[loudness]`
-    extra). Anything else importing `mixing` is still refused, and
+    binary (moviepy -> imageio-ffmpeg sit in its `media` extra), so two modules
+    may import a pure part of it, lazily: `an/audio/loudness.py` the shared
+    loudness component (`mixing.loudness`), and `an/audio/effects.py` the pitch
+    filter builder (`mixing.filtergraph`, an#611; `mixing` is a core dependency
+    since). Anything else importing `mixing` is still refused, and
     `test_the_loudness_component_loads_no_media_stack` fails if the reason stops
     holding. See `an/captions.py`'s docstring before widening this."""
     root = Path(__file__).resolve().parents[1] / "an"
@@ -646,6 +656,8 @@ def test_the_loudness_component_loads_no_media_stack():
         "m._component().limit_peaks\n"
         "import numpy as np\n"
         "m.integrated_loudness(m._Pcm(np.zeros((22050, 1)) + 0.1, 22050))\n"  # a measurement, not just an import
+        "import an.audio.effects as e\n"
+        "e.filter_chain({'pitch_semitones': 4.0})\n"  # the builder (an#611)
         "bad = [n for n in ('moviepy', 'imageio_ffmpeg', 'imageio', 'scipy', 'cv2', 'pydub')"
         " if n in sys.modules]\n"
         "print(bad)\n"

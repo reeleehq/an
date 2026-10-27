@@ -87,6 +87,7 @@ TRIM_GOLDEN = {1: "d959b357542d137b0b766bbb74c54eebee719859aeb6fc2722bec7b340774
 CHAIN_GOLDEN = {
     1: "acf40b7ecb5d4339a03e0ae1c272f349ee27488ee18a4e7999308bc049059d71",
     2: "87790fcc4b37f741b75bd2f5443df78d3cd6452f04947823a4df722dc13cc504",  # an#350: apad before atempo, output cut to input / tempo
+    3: "be6408914f89d36122b97c1476609ff00776a92575d15a451363efacbb7fc968",  # an#611: mixing's builder; integer asetrate, exact atempo
 }
 
 _CHAIN_SAMPLES = (

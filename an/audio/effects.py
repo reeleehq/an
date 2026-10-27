@@ -23,15 +23,13 @@ TTS provider, so it lives beside the voice the line already resolves through
 rather than in the IR.
 
 >>> normalize_effects({"pitch_semitones": 4})
-{'pitch_semitones': 4.0, 'chain_version': 2}
+{'pitch_semitones': 4.0, 'chain_version': 3, 'chain_sha': '331a8bdbbfb1423c'}
 >>> normalize_effects({"pitch_semitones": 0}) == normalize_effects({"tempo": 1}) == normalize_effects(None) == {}
 True
->>> normalize_effects({"tempo": 1.1, "pitch_semitones": -2})
-{'pitch_semitones': -2.0, 'tempo': 1.1, 'chain_version': 2}
->>> round(_pitch_filter(12), 3)
-0.5
+>>> normalize_effects({"tempo": 1.1, "pitch_semitones": -2})["tempo"]
+1.1
 >>> filter_chain({"tempo": 1.25})
-'aresample=44100,apad=pad_dur=0.25,atempo=1.250000000'
+'aresample=44100,apad=pad_dur=0.25,atempo=1.2500000000'
 >>> normalize_effects({"trim_silence": True})["trim_silence"]
 {'keep_lead_s': 0.1, 'keep_tail_s': 0.2, 'threshold_db': -20.0, 'version': 1}
 >>> normalize_effects({"trim_silence": False}) == {}
@@ -53,12 +51,14 @@ Design, in the order the pipeline uses it:
   ``an.audio.pipeline`` adds it to the audio key only when it is non-empty, so a
   project that declares none keeps every key it ever had.
 - **Stock ffmpeg only.** The chain is ``aresample → asetrate → aresample →
-  atempo``: the sample rate is relabelled by the pitch ratio (pitch and speed both
-  move) and ``atempo`` removes the speed change; a ``tempo`` multiplies into that
-  same ``atempo`` factor (``aresample → atempo`` alone when there is no pitch).
-  A factor outside ``atempo``'s clean ``[0.5, 2]`` is split into stages, each
-  inside it; the pitch-only chain is one stage, character for character what it
-  was before ``tempo`` existed. ``rubberband`` is a better
+  atempo``: the sample rate is relabelled by the pitch ratio, rounded to the
+  integer rate ffmpeg takes (pitch and speed both move), and ``atempo`` removes
+  the speed change of that rate exactly; a ``tempo`` multiplies into that same
+  ``atempo`` factor (``aresample → atempo`` alone when there is no pitch). A
+  factor outside ``atempo``'s clean ``[0.5, 2]`` is split into stages, each
+  inside it. All but the leading ``aresample`` is built by the fleet's one
+  builder, :func:`mixing.filtergraph.resample_pitch_filter` (an#611), which
+  ``mixing.audio.shift_pitch`` runs too. ``rubberband`` is a better
   shifter but is a build option, and its output would differ between machines —
   which a content-hash cache cannot tolerate. The output is bit-exact WAV (no
   encoder tag, no metadata), so two runs produce identical bytes.
@@ -78,6 +78,7 @@ Design, in the order the pipeline uses it:
 
 from __future__ import annotations
 
+import hashlib
 import io
 import json
 import shutil
@@ -94,8 +95,6 @@ from typing import Any
 PITCH_SEMITONES_LIMIT = 12.0  # atempo's stock range is [0.5, 2]: one octave each way
 #: ``tempo`` bounds: half to double speed. Outside it speech stops being speech.
 TEMPO_LIMITS: tuple[float, float] = (0.5, 2.0)
-#: One ``atempo`` stage's clean range; a factor beyond it is chained in stages.
-ATEMPO_STAGE_LIMITS: tuple[float, float] = (0.5, 2.0)
 #: The sample rate the chain runs at (and the shifted WAV is written at).
 EFFECT_SAMPLE_RATE = 44100
 #: The effect that cuts a line's leading and trailing silence (an#254).
@@ -134,8 +133,18 @@ TRIM_VERSION: int = 1
 #:
 #: 2 (an#350): silence padded before the ``atempo`` stages and the output cut
 #: to exactly ``input / tempo`` — ``atempo`` dropped the last 20-40 ms.
-CHAIN_VERSION: int = 2
+#: 3 (an#611): built by :func:`mixing.filtergraph.resample_pitch_filter`. The
+#: ``asetrate`` rate is written as the integer ffmpeg rounded it to anyway, and
+#: ``atempo`` undoes that rounded rate's speed change exactly (it undid the
+#: unrounded ratio's), written to ten decimals.
+CHAIN_VERSION: int = 3
 _FIRST_CHAIN_VERSION: int = 1
+#: Since an#611 the pitch and tempo stages are built in another package
+#: (:mod:`mixing.filtergraph`), so a pitch or tempo line's key also holds a
+#: digest of its chain string: a change made there re-processes the lines it
+#: changes (from their cached raw takes) without an's version knowing of it.
+CHAIN_DIGEST_KEY: str = "chain_sha"
+CHAIN_DIGEST_CHARS: int = 16
 #: Seconds of silence appended before the ``atempo`` stages, so their window
 #: never eats the line's tail (it dropped 20-40 ms of every short padded clip,
 #: an#350); the output is then cut to the exact length the tempo gives.
@@ -198,6 +207,10 @@ def normalize_effects(raw: Mapping[str, Any] | None) -> dict[str, Any]:
         out[TRIM_SILENCE] = trim
     if out and CHAIN_VERSION != _FIRST_CHAIN_VERSION:
         out["chain_version"] = CHAIN_VERSION
+    if chain := filter_chain(out):
+        out[CHAIN_DIGEST_KEY] = hashlib.sha256(chain.encode()).hexdigest()[
+            :CHAIN_DIGEST_CHARS
+        ]
     return out
 
 
@@ -259,56 +272,25 @@ def voice_effects(mall: Mapping | None, voice_id: str) -> dict[str, Any]:
     return normalize_effects(doc.get("effects") if isinstance(doc, Mapping) else None)
 
 
-def _pitch_filter(semitones: float) -> float:
-    """The ``atempo`` factor that cancels the speed change of a pitch shift."""
-    return 1.0 / (2.0 ** (semitones / 12.0))
-
-
-def atempo_stages(
-    factor: float, *, limits: tuple[float, float] = ATEMPO_STAGE_LIMITS
-) -> list[float]:
-    """``factor`` as a product of ``atempo`` stages, each inside ``limits``.
-
-    One stage when ``factor`` already fits (the pitch-only chain, always).
-
-    >>> atempo_stages(1.5)
-    [1.5]
-    >>> atempo_stages(3.0)
-    [2.0, 1.5]
-    >>> atempo_stages(0.3)
-    [0.5, 0.6]
-    """
-    lo, hi = limits
-    stages: list[float] = []
-    while factor > hi:
-        stages.append(hi)
-        factor /= hi
-    while factor < lo:
-        stages.append(lo)
-        factor /= lo
-    return [*stages, factor]
-
-
 def filter_chain(effects: Mapping[str, Any]) -> str:
-    """The ffmpeg ``-af`` chain for normalised ``effects`` (``""`` for none)."""
+    """The ffmpeg ``-af`` chain for normalised ``effects`` (``""`` for none):
+    the input resampled to :data:`EFFECT_SAMPLE_RATE`, then the shared pitch
+    and tempo chain (:func:`mixing.filtergraph.resample_pitch_filter`)."""
     semitones = effects.get("pitch_semitones") or 0.0
     tempo = effects.get("tempo") or 1.0
     if not semitones and tempo == 1.0:
-        return ""
-    rate = EFFECT_SAMPLE_RATE
-    if semitones:
-        ratio = 2.0 ** (semitones / 12.0)
-        head = f"aresample={rate},asetrate={rate * ratio:.6f},aresample={rate}"
-        factor = tempo / ratio
-    else:
-        head, factor = f"aresample={rate}", tempo
-    return ",".join(
-        [
-            head,
-            f"apad=pad_dur={TEMPO_PAD_S:g}",
-            *(f"atempo={f:.9f}" for f in atempo_stages(factor)),
-        ]
+        return ""  # a trim alone needs no chain, and no mixing
+    try:
+        from mixing.filtergraph import resample_pitch_filter
+    except ImportError as e:
+        raise VoiceEffectError(
+            f"the voice-effect chain needs mixing.filtergraph ({e}): "
+            "`pip install -U mixing` (an#611)"
+        ) from e
+    shift = resample_pitch_filter(
+        semitones, EFFECT_SAMPLE_RATE, tempo=tempo, flush_s=TEMPO_PAD_S
     )
+    return f"aresample={EFFECT_SAMPLE_RATE},{shift}"
 
 
 def decode_chain() -> str:
