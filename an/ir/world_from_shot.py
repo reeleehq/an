@@ -10,11 +10,15 @@ stood at one depth ``Z`` in front of a camera at the origin looking down
 
 so the world lowers back to exactly the placements the shot already has, and
 the master's own ``stage`` lines agree with it (the ``viewpoint`` check says
-nothing). ``Z`` defaults to the depth at which the tallest placed entity is
-:data:`DFLT_SUBJECT_HEIGHT` tall. Every member stands at that one depth: what
-is nearer or farther is the author's to say, by moving a member along its
-line of sight (``at`` and ``height`` scaled together keep it where the master
-shows it). The camera itself, the lens and the scene file are the stage's
+nothing). ``Z`` defaults to the depth at which the tallest placed character
+(else the tallest placed entity) is :data:`DFLT_SUBJECT_HEIGHT` tall. A ref
+placed once stands at ``Z``; a ref placed several times is ONE thing, one
+height, at several depths, its largest placement at ``Z`` and the others
+farther by their scale (an#603), so a second viewpoint sees them parallax,
+when those depths agree with the order the master draws them in (listed first
+= farthest; else every member stands at ``Z``, so the master is unchanged). Any
+other depth is the author's to say, by moving a member along its line of sight
+(``at`` and ``height`` scaled together keep it where the master shows it). The camera itself, the lens and the scene file are the stage's
 (:func:`an.stage.world.seed_world`).
 
 >>> from an.ir.schema import AssetRef, Shot, StagePlacement
@@ -106,19 +110,44 @@ def seed_members(
             "whose art can be measured): there is no view to invert"
         )
     if depth is None:
-        tallest = max(scale * native for *_, scale, native in placed)
-        depth = DFLT_SUBJECT_HEIGHT * focal / tallest
-    k = depth / focal  # world units per screen pixel at that depth
-    members = [
-        member_of(
-            e,
-            at=(_tidy(sx * k), _tidy(sy * k), _tidy(depth)),
-            height=_tidy(scale * native * k),
+        depth = DFLT_SUBJECT_HEIGHT * focal / _reference_height(placed)
+    # One height per ref: a ref placed at several scales is one thing at several
+    # depths (an#603). Its largest placement stands at `depth`; one drawn at
+    # half that scale stands twice as far, and every one projects as placed.
+    largest: dict[str, float] = {}
+    for _i, e, _at, scale, _native in placed:
+        largest[e.ref] = max(largest.get(e.ref, 0.0), scale)
+    depths = [depth * largest[e.ref] / scale for _i, e, _at, scale, _n in placed]
+    # The lowering draws far first, so recovered depths must agree with the
+    # master's own drawing order (listed first = behind): else the master would
+    # come back drawn differently, and every member stays at one depth.
+    by_depth = all(a >= b for a, b in zip(depths, depths[1:]))
+    members = []
+    for _i, e, (sx, sy), scale, native in placed:
+        z = depth * largest[e.ref] / scale if by_depth else depth
+        k = z / focal  # world units per screen pixel at that depth
+        members.append(
+            member_of(
+                e,
+                at=(_tidy(sx * k), _tidy(sy * k), _tidy(z)),
+                height=_tidy(
+                    (largest[e.ref] if by_depth else scale) * native * depth / focal
+                ),
+            )
         )
-        for _i, e, (sx, sy), scale, native in placed
-    ]
     environments = [member_of(e) for e in shot.entities if e.kind == "environment"]
     return SeededMembers([*environments, *members], depth, skipped)
+
+
+def _reference_height(placed) -> float:
+    """The screen height the default depth makes :data:`DFLT_SUBJECT_HEIGHT`
+    tall: the tallest placed character when there is one (a person, which is
+    what the default height is), else the tallest placed thing (an#603: a sun
+    or a building would make the world's units read as something else)."""
+    people = [
+        scale * native for _i, e, _at, scale, native in placed if e.kind == "character"
+    ]
+    return max(people or [scale * native for *_, scale, native in placed])
 
 
 #: Significant digits a derived coordinate is written with: far below a

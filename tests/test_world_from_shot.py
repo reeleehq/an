@@ -216,3 +216,79 @@ def test_an_entity_jointed_to_another_is_measured_alone_and_becomes_a_member(tmp
     _, seeded = seed_world(scene, project.mall, "master")
     assert {m.id for m in seeded.members} == set(HAND) and not seeded.skipped
     assert all(not m.joints for m in seeded.members)
+
+
+def test_one_ref_at_two_scales_is_one_thing_at_two_depths(tmp_path):
+    """an#603: the far lamp (listed first, drawn behind) at half the near one's
+    scale is the same lamp twice as far: one height, two depths. The world
+    lowers back to the master, and a viewpoint moved sideways moves the near
+    lamp more (parallax)."""
+    from an.ir.schema import Viewpoint
+
+    project = _project(tmp_path)
+    master = project.scene.timeline[0].model_copy(
+        update={
+            "entities": [
+                _lamp("far", stage=StagePlacement(at=(70.0, 20.0), scale=0.3)),
+                _lamp("near", stage=StagePlacement(at=(-60.0, 80.0), scale=0.6)),
+            ]
+        }
+    )
+    scene = project.scene.model_copy(update={"timeline": [master]})
+    seeded_scene, seeded = seed_world(scene, project.mall, "master")
+    m = {x.id: x for x in seeded.members}
+    assert m["far"].height == pytest.approx(m["near"].height)
+    assert m["far"].at[2] == pytest.approx(2 * m["near"].at[2])
+    bare = seeded_scene.timeline[0].model_copy(
+        update={"entities": [_lamp("far"), _lamp("near")]}
+    )
+    lowered = lower_scene(
+        seeded_scene.model_copy(update={"timeline": [bare]}), project.mall
+    ).scene.timeline[0]
+    placed = {e.id: e.stage for e in lowered.entities}
+    assert placed["far"].at == pytest.approx(
+        (70.0, 20.0), abs=HAND_PLACEMENT_TOLERANCE_PX
+    )
+    assert placed["near"].scale == pytest.approx(0.6, abs=HAND_SCALE_TOLERANCE)
+    world = seeded_scene.world
+    world.viewpoints["aside"] = Viewpoint(at=(0.5, 0.0, 0.0))
+    aside = lower_scene(
+        seeded_scene.model_copy(
+            update={
+                "world": world,
+                "timeline": [bare.model_copy(update={"viewpoint": "aside"})],
+            }
+        ),
+        project.mall,
+    ).scene.timeline[0]
+    moved = {e.id: abs(e.stage.at[0] - placed[e.id].at[0]) for e in aside.entities}
+    assert moved["near"] > moved["far"] > 0
+
+
+def test_the_default_depth_makes_a_character_person_sized_not_the_tallest_thing():
+    from an.ir.world_from_shot import DFLT_SUBJECT_HEIGHT, seed_members
+
+    box = (-10.0, -100.0, 10.0, 0.0)
+    shot = Shot(
+        id="m",
+        duration=1.0,
+        entities=[
+            AssetRef(
+                kind="prop",
+                id="tower",
+                store="props",
+                ref="tower",
+                stage=StagePlacement(at=(0.0, 0.0), scale=3.0),
+            ),
+            AssetRef(
+                kind="character",
+                id="ada",
+                store="characters",
+                ref="ada",
+                stage=StagePlacement(at=(50.0, 0.0), scale=1.0),
+            ),
+        ],
+    )
+    seeded = seed_members(shot, extents={"tower": box, "ada": box}, focal=500.0)
+    ada = next(m for m in seeded.members if m.id == "ada")
+    assert ada.height == pytest.approx(DFLT_SUBJECT_HEIGHT)
