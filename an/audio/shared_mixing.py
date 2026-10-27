@@ -23,6 +23,8 @@ from contextlib import contextmanager
 #: The package, and what the user runs when theirs predates a part ``an`` needs.
 MIXING: str = "mixing"
 UPGRADE_HINT: str = "pip install -U mixing"
+#: ... and when it is not installed at all (an install with ``--no-deps``).
+INSTALL_HINT: str = "pip install mixing"
 #: How Python words ``from mixing import part`` failing on ``part``.
 _CANNOT_IMPORT = re.compile(r"cannot import name '(\w+)'")
 
@@ -55,7 +57,10 @@ def mixing_too_old(*, needed_for: str, error: type[Exception]) -> Iterator[None]
     except ImportError as e:
         part = _missing_part(e)
         if part is None:
-            raise error(f"{needed_for} needs {MIXING}, which failed to import: {e}") from e
+            hint = f": `{INSTALL_HINT}`" if e.name == MIXING else ""
+            raise error(
+                f"{needed_for} needs {MIXING}, which failed to import ({e}){hint}"
+            ) from e
         raise error(
             f"{needed_for} needs {part}, which the installed {MIXING} is too old "
             f"to have: `{UPGRADE_HINT}`"

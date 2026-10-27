@@ -47,7 +47,9 @@ def test_the_render_spread_report_on_a_mixing_too_old_is_loud(monkeypatch):
 
     _too_old(monkeypatch, "loudness")
     monkeypatch.setattr(pipeline.shutil, "which", lambda name: "/bin/ffmpeg")
-    monkeypatch.setattr(loudness, "voiced_lines", lambda scene, mall: {"a": [], "b": []})
+    monkeypatch.setattr(
+        loudness, "voiced_lines", lambda scene, mall: {"a": [], "b": []}
+    )
     scene = SceneIR(
         meta=Meta(title="t"),
         timeline=[
@@ -72,6 +74,9 @@ def test_a_mixing_that_is_absent_or_broken_is_not_called_too_old(monkeypatch):
                 raise failure
         assert "too old" not in str(caught.value)
         assert "failed to import" in str(caught.value)
+        assert ("pip install mixing" in str(caught.value)) == (failure.name == "mixing")
     with pytest.raises(RuntimeError, match=r"needs mixing\.part, which the installed"):
         with mixing_too_old(needed_for="testing", error=RuntimeError):
-            raise ImportError("cannot import name 'part' from 'mixing' (x.py)", name="mixing")
+            raise ImportError(
+                "cannot import name 'part' from 'mixing' (x.py)", name="mixing"
+            )
