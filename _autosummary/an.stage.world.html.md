@@ -17,7 +17,7 @@ extents, film starts, then [`an.ir.world.lower_world()`](an.ir.world.html.md#an.
 
 ### Functions
 
-| [`lower_scene`](#an.stage.world.lower_scene)(scene, mall, \*[, fps, film_starts])   | `scene` as the compiler should see it: every framed shot's placements derived from the world ([`an.ir.world.lower_world()`](an.ir.world.html.md#an.ir.world.lower_world)), with the members' extents measured here and each shot's film start from the assembled timeline (so a travel's streams keep phase across cuts).                                           |
+| [`lower_scene`](#an.stage.world.lower_scene)(scene, mall, \*[, fps, ...])           | `scene` as the compiler should see it: every framed shot's placements derived from the world ([`an.ir.world.lower_world()`](an.ir.world.html.md#an.ir.world.lower_world)), with the members' extents measured here and each shot's film start from the assembled timeline (so a travel's streams keep phase across cuts).                                           |
 |-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`seed_world`](#an.stage.world.seed_world)(scene, mall, shot_id, \*[, focal, ...]) | `scene` with a world derived from its hand-placed shot `shot_id` ([`an.ir.world_from_shot.seed_members()`](an.ir.world_from_shot.html.md#an.ir.world_from_shot.seed_members), an#514): the members, and one viewpoint named after the shot, a camera at the origin with `focal` (pixels; default: the default field of view, so the world frames the same at any resolution). |
 | [`lowered_or_same`](#an.stage.world.lowered_or_same)(scene, mall, \*[, fps])            | The lowered scene, or `scene` itself when it has no world or its world cannot be lowered: for the walks that must see what a framed shot draws (credits, publishability) but are not where a world error is reported (validate is).                                                                                                                                                         |
@@ -25,13 +25,17 @@ extents, film starts, then [`an.ir.world.lower_world()`](an.ir.world.html.md#an.
 | [`native_box`](#an.stage.world.native_box)(ref, mall, \*, width, height)           | The box `ref`'s art occupies at `stage.scale` 1, `(x0, y0, x1, y1)` in scene pixels relative to its placement point; `None` when it draws nothing that can be measured (an unknown ref drawn as a placeholder is still measured: that is what the shot would show).                                                                                                                         |
 | [`world_report`](#an.stage.world.world_report)(lowered)                              | What `an world show` prints: per framed shot, its entities as the compiler sees them (id, kind, at, scale, after) and the lowering's notes.                                                                                                                                                                                                                                                 |
 
-### an.stage.world.lower_scene(scene, mall, , fps=None, film_starts=None)
+### an.stage.world.lower_scene(scene, mall, , fps=None, film_starts=None, project_dir=None, continues=True)
 
 `scene` as the compiler should see it: every framed shot’s placements
 derived from the world ([`an.ir.world.lower_world()`](an.ir.world.html.md#an.ir.world.lower_world)), with the
 members’ extents measured here and each shot’s film start from the
 assembled timeline (so a travel’s streams keep phase across cuts). A scene
-without a world comes back as it is, at no cost.
+without a world comes back as it is, at no cost. Then every shot’s
+`continue:` is resolved ([`an.continuity.continue_shots()`](an.continuity.html.md#an.continuity.continue_shots), an#542):
+a shot that continues another opens as that one ends (`project_dir`:
+where a sibling scene file is read; default the mall’s; `continues`:
+off for the world alone, as `an validate` reports the two apart).
 
 Raises [`an.ir.world.WorldError`](an.ir.world.html.md#an.ir.world.WorldError) for a viewpoint that cannot be
 resolved; `an validate` reports the same error instead of raising.

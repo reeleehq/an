@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=49b8c8aa"></script>
+    <script src="../../../_static/documentation_options.js?v=edc04cb3"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.312" />
+  <meta name="docsearch:version" content="0.1.313" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -769,6 +769,12 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># The store may create the scene it holds, so it need not exist yet.</span>
         <span class="n">resolved</span> <span class="o">=</span> <span class="n">resolve_scene_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="p">,</span> <span class="n">scene_file</span><span class="p">,</span> <span class="n">must_exist</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_md_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_json_path</span> <span class="o">=</span> <span class="n">resolved</span><span class="o">.</span><span class="n">md_path</span><span class="p">,</span> <span class="n">resolved</span><span class="o">.</span><span class="n">json_path</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">project_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The project folder this store's scene file is in (its sibling scene</span>
+<span class="sd">        files are there too: a ``continue:`` reads them, an#542)."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_root</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">md_path</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>

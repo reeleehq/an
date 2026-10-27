@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=49b8c8aa"></script>
+    <script src="../../../_static/documentation_options.js?v=edc04cb3"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.312" />
+  <meta name="docsearch:version" content="0.1.313" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -921,6 +921,9 @@ window.runMermaid = runMermaid;</script>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"transition"</span><span class="p">,</span> <span class="s2">"sounds"</span><span class="p">,</span> <span class="s2">"policy"</span><span class="p">,</span> <span class="s2">"viewpoint"</span><span class="p">,</span> <span class="s2">"joints"</span><span class="p">,</span> <span class="s2">"solve"</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">shot_yaml</span><span class="p">:</span>
                 <span class="n">shot_kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">shot_yaml</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="c1"># an#542: `continue:` (a Python keyword, so `continue_from` in the IR).</span>
+        <span class="k">if</span> <span class="s2">"continue"</span> <span class="ow">in</span> <span class="n">shot_yaml</span><span class="p">:</span>
+            <span class="n">shot_kwargs</span><span class="p">[</span><span class="s2">"continue_from"</span><span class="p">]</span> <span class="o">=</span> <span class="n">shot_yaml</span><span class="p">[</span><span class="s2">"continue"</span><span class="p">]</span>
         <span class="n">shots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Shot</span><span class="p">(</span><span class="o">**</span><span class="n">shot_kwargs</span><span class="p">))</span>
 
     <span class="c1"># An unwritten `duration:` stays 0.0, "unset" (an#557): never filled with a</span>
@@ -1654,6 +1657,8 @@ window.runMermaid = runMermaid;</script>
         <span class="n">shot_yaml</span><span class="p">[</span><span class="s2">"joints"</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"json"</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">joints</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">shot</span><span class="o">.</span><span class="n">solve</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">shot_yaml</span><span class="p">[</span><span class="s2">"solve"</span><span class="p">]</span> <span class="o">=</span> <span class="n">shot</span><span class="o">.</span><span class="n">solve</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"json"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">shot</span><span class="o">.</span><span class="n">continue_from</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># an#542</span>
+        <span class="n">shot_yaml</span><span class="p">[</span><span class="s2">"continue"</span><span class="p">]</span> <span class="o">=</span> <span class="n">shot</span><span class="o">.</span><span class="n">continue_from</span>
     <span class="n">blocks</span><span class="p">[(</span><span class="s2">"yaml"</span><span class="p">,</span> <span class="s2">"shot"</span><span class="p">)]</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_dump</span><span class="p">(</span><span class="n">shot_yaml</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">:</span>
         <span class="n">entities_dump</span> <span class="o">=</span> <span class="p">[</span>

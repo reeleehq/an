@@ -58,6 +58,7 @@
    captions
    cli_status
    conftest
+   continuity
    credits
    data
    determinism

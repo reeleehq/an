@@ -407,7 +407,7 @@ stored scene and no schema version moves.
 * **Type:**
   The scene’s **world** (ADR 0009)
 
-### *class* an.Shot(\*, id, renderer='cutout', duration=5.0, camera=None, entities=<factory>, actions=<factory>, dialogue=<factory>, narration=<factory>, options=<factory>, step_hz=None, transition=None, sounds=<factory>, policy=None, viewpoint=None, welds=<factory>, joints=<factory>, solve=None, \*\*extra_data)
+### *class* an.Shot(\*, id, renderer='cutout', duration=5.0, camera=None, entities=<factory>, actions=<factory>, dialogue=<factory>, narration=<factory>, options=<factory>, step_hz=None, transition=None, sounds=<factory>, policy=None, viewpoint=None, welds=<factory>, joints=<factory>, solve=None, continue_from=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -415,6 +415,18 @@ A single rendered unit. A scene is a sequence of shots.
 
 A shot’s `renderer` selects the backend that draws it. Every renderer must accept the
 same Shot fields; renderer-specific options go under `options`.
+
+#### continue_from *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+`"<shot id>"` in this
+scene, or `"<scene file>#<shot id>"` in a sibling scene file. Every
+entity this shot shares with that one opens as that one ends (its
+transform, swap keys, alpha, and what holds it); this shot’s own opening
+`set`/`tween` wins. Written `continue:` in the shot block; resolved
+before compile ([`an.continuity`](an.continuity.html.md#module-an.continuity)). `None` (omitted): opens as staged.
+
+* **Type:**
+  Open from another shot’s end state (an#542)
 
 #### joints *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[JointSpec](an.ir.schema.html.md#an.ir.schema.JointSpec)]*
 
@@ -785,7 +797,7 @@ False
 * **Return type:**
   [`ValidationReport`](an.ir.validate.html.md#an.ir.validate.ValidationReport)
 
-### an.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None, available_library_lock=None, available_styles=None, available_recordings=None, only=None, fps=None)
+### an.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None, available_library_lock=None, available_styles=None, available_recordings=None, available_scenes=None, only=None, fps=None)
 
 Cross-field semantic checks. Pass live stores in for cross-store checks.
 
@@ -810,6 +822,11 @@ StylePack the scene names (`meta.style_pack`) from `ctx.stores["styles"]`
 (`mall["library_lock"]`): with it, every scene `library:` pin is checked
 against the lockfile (`warning` on disagreement) and every pinned
 check-out against its library version (`info` when it has been edited).
+
+`available_scenes` is the project’s scenes store (`mall["scenes"]`):
+its project folder is where a `continue: <scene file>#<shot>` reads the
+sibling scene file from (an#542). Without it, such a continuation is an
+error naming the missing folder.
 
 The checks are a REGISTRY ([`an.genres.registry.register_check()`](an.genres.registry.html.md#an.genres.registry.register_check)):
 the core’s own register below, a genre’s when it is loaded (the cut-out
@@ -841,6 +858,7 @@ which decides how long a dissolve’s overlap is.
 | [`captions`](an.captions.html.md#module-an.captions)           | Captions from the word timings the audio pipeline already computes (an#175).                                                                            |
 | [`cli_status`](an.cli_status.html.md#module-an.cli_status)       | A command's report that also says how the command ended (an#480).                                                                                       |
 | [`conftest`](an.conftest.html.md#module-an.conftest)           | Collection rules for the package's own doctests.                                                                                                        |
+| [`continuity`](an.continuity.html.md#module-an.continuity)       | Open a shot from another shot's end state (an#542).                                                                                                     |
 | [`credits`](an.credits.html.md#module-an.credits)             | What a rendered video owes, and to whom.                                                                                                                |
 | [`data`](an.data.html.md#module-an.data)                   | Bundled non-Python resources (cutout JS runtime, etc.).                                                                                                 |
 | [`determinism`](an.determinism.html.md#module-an.determinism)     | The determinism perimeter: what must stay true for a render to be reproducible.                                                                         |

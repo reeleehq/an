@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=49b8c8aa"></script>
+    <script src="../_static/documentation_options.js?v=edc04cb3"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.312" />
+  <meta name="docsearch:version" content="0.1.313" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -385,6 +385,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.captions.html">an.captions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.cli_status.html">an.cli_status</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.conftest.html">an.conftest</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.continuity.html">an.continuity</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.credits.html">an.credits</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.data.html">an.data</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.data.cutout_runtime.html">an.data.cutout_runtime</a></li>
@@ -957,6 +958,13 @@ the authored scene (an#279).</p>
 </dl>
 </dd></dl>
 
+<dl class="py property">
+<dt class="sig sig-object py" id="an.stores.ScenesStore.project_dir">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">project_dir</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.15)"><span class="pre">Path</span></a></span><a class="headerlink" href="#an.stores.ScenesStore.project_dir" title="Link to this definition">#</a></dt>
+<dd><p>The project folder this store’s scene file is in (its sibling scene
+files are there too: a <code class="docutils literal notranslate"><span class="pre">continue:</span></code> reads them, an#542).</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -1315,6 +1323,7 @@ the same spelling they always did.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.RenderReportStore"><code class="docutils literal notranslate"><span class="pre">RenderReportStore</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.ScenesStore"><code class="docutils literal notranslate"><span class="pre">ScenesStore</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.ScenesStore.patch_shot_durations"><code class="docutils literal notranslate"><span class="pre">ScenesStore.patch_shot_durations()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.ScenesStore.project_dir"><code class="docutils literal notranslate"><span class="pre">ScenesStore.project_dir</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.ShotArtifactStore"><code class="docutils literal notranslate"><span class="pre">ShotArtifactStore</span></code></a></li>

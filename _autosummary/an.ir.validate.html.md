@@ -156,8 +156,9 @@ The project’s asset-library lockfile (`mall["library_lock"]`, an#240);
 #### lowered *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)* *= None*
 
 every framed shot’s
-placements derived from the world ([`an.ir.world.Lowered`](an.ir.world.html.md#an.ir.world.Lowered)).
-`None` when the scene has no world, or its viewpoints could not be
+placements derived from the world ([`an.ir.world.Lowered`](an.ir.world.html.md#an.ir.world.Lowered)), and
+every `continue:` resolved (an#542). `None` when the scene has
+neither, or its viewpoints or continuations could not be
 resolved (reported as an error at `world`); then `shots` are the
 scene’s own. The `shot` checks run on these shots: a member the world
 adds is an entity to them, and its actions have a target.
@@ -312,7 +313,7 @@ False
 * **Return type:**
   [`ValidationReport`](#an.ir.validate.ValidationReport)
 
-### an.ir.validate.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None, available_library_lock=None, available_styles=None, available_recordings=None, only=None, fps=None)
+### an.ir.validate.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None, available_library_lock=None, available_styles=None, available_recordings=None, available_scenes=None, only=None, fps=None)
 
 Cross-field semantic checks. Pass live stores in for cross-store checks.
 
@@ -337,6 +338,11 @@ StylePack the scene names (`meta.style_pack`) from `ctx.stores["styles"]`
 (`mall["library_lock"]`): with it, every scene `library:` pin is checked
 against the lockfile (`warning` on disagreement) and every pinned
 check-out against its library version (`info` when it has been edited).
+
+`available_scenes` is the project’s scenes store (`mall["scenes"]`):
+its project folder is where a `continue: <scene file>#<shot>` reads the
+sibling scene file from (an#542). Without it, such a continuation is an
+error naming the missing folder.
 
 The checks are a REGISTRY ([`an.genres.registry.register_check()`](an.genres.registry.html.md#an.genres.registry.register_check)):
 the core’s own register below, a genre’s when it is loaded (the cut-out

@@ -77,6 +77,7 @@
 - [an.captions](an.captions.html.md): Captions from the word timings the audio pipeline already computes (an#175).
 - [an.cli_status](an.cli_status.html.md): A command’s report that also says how the command ended (an#480).
 - [an.conftest](an.conftest.html.md): Collection rules for the package’s own doctests.
+- [an.continuity](an.continuity.html.md): Open a shot from another shot’s end state (an#542).
 - [an.credits](an.credits.html.md): What a rendered video owes, and to whom.
 - [an.data](an.data.html.md): Bundled non-Python resources (cutout JS runtime, etc.).
 - [an.data.cutout_runtime](an.data.cutout_runtime.html.md): Moved to &#96;an.stage.runtime&#96; (an#247); this path is a LIVE alias of it.

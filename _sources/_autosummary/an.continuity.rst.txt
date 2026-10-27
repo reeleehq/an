@@ -1,0 +1,27 @@
+an.continuity
+=============
+
+.. automodule:: an.continuity
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      continue_shots
+      end_states
+      opened_channels
+      parse_continue
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      EntityEnd
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      ContinuityError
+   

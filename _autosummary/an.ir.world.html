@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=49b8c8aa"></script>
+    <script src="../_static/documentation_options.js?v=edc04cb3"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.312" />
+  <meta name="docsearch:version" content="0.1.313" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -385,6 +385,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.captions.html">an.captions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.cli_status.html">an.cli_status</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.conftest.html">an.conftest</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.continuity.html">an.continuity</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.credits.html">an.credits</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.data.html">an.data</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.data.cutout_runtime.html">an.data.cutout_runtime</a></li>
@@ -737,7 +738,7 @@ move, and a close-up is the same world seen from nearer.</p>
 <p class="rubric">Classes</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.Lowered" title="an.ir.world.Lowered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Lowered</span></code></a>(scene[, notes, origins])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.Lowered" title="an.ir.world.Lowered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Lowered</span></code></a>(scene[, notes, origins, carried])</p></td>
 <td><p>The scene as the compiler will see it, the notes to report, and for each framed shot where its lowered entities came from (<code class="docutils literal notranslate"><span class="pre">origins</span></code>: per lowered entity index, the author's entity index, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for one the world added), so a finding on a lowered shot can name the author's line.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.ir.world.Placed" title="an.ir.world.Placed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Placed</span></code></a>(id, at, scale, depth, box, in_frame, via)</p></td>
@@ -793,7 +794,7 @@ failed: the lowering’s note says which).</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.ir.world.Lowered">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.world.</span></span><span class="sig-name descname"><span class="pre">Lowered</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scene</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">notes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">list()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">dict()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/world.html#Lowered"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.world.Lowered" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.world.</span></span><span class="sig-name descname"><span class="pre">Lowered</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scene</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">notes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">list()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">dict()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">carried</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">dict()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/world.html#Lowered"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.world.Lowered" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>The scene as the compiler will see it, the notes to report, and for
 each framed shot where its lowered entities came from (<code class="docutils literal notranslate"><span class="pre">origins</span></code>: per
@@ -801,6 +802,14 @@ lowered entity index, the author’s entity index, or <code class="docutils lite
 world added), so a finding on a lowered shot can name the author’s line.</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.world.Lowered.carried">
+<span class="sig-name descname"><span class="pre">carried</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.ir.world.Lowered.carried" title="Link to this definition">#</a></dt>
+<dd><p>Per continued shot (an#542), how many actions its <code class="docutils literal notranslate"><span class="pre">continue:</span></code> put
+before the author’s, so a finding’s <code class="docutils literal notranslate"><span class="pre">actions/&lt;k&gt;</span></code> can name the
+author’s line.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py data">
@@ -1277,7 +1286,10 @@ slot in every shot, which is what keeps a cut continuous.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.Box"><code class="docutils literal notranslate"><span class="pre">Box</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.Extents"><code class="docutils literal notranslate"><span class="pre">Extents</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.HAND_PLACEMENT_TOLERANCE_PX"><code class="docutils literal notranslate"><span class="pre">HAND_PLACEMENT_TOLERANCE_PX</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.Lowered"><code class="docutils literal notranslate"><span class="pre">Lowered</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.Lowered"><code class="docutils literal notranslate"><span class="pre">Lowered</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.Lowered.carried"><code class="docutils literal notranslate"><span class="pre">Lowered.carried</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.PERSPECTIVE_TOLERANCE"><code class="docutils literal notranslate"><span class="pre">PERSPECTIVE_TOLERANCE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.Placed"><code class="docutils literal notranslate"><span class="pre">Placed</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.Placed.at"><code class="docutils literal notranslate"><span class="pre">Placed.at</span></code></a></li>

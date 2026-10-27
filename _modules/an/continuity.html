@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="alternate" type="text/markdown" href="continuity.html.md">
+<link rel="describedby" href="../../llms.txt" type="text/markdown">
+    <title>an.continuity &#8212; an</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx_autodoc_typehints.css?v=057ac668" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/epythet.css?v=c64280fc" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=18bd87630a240e9c25be"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
+
+    <script src="../../_static/documentation_options.js?v=edc04cb3"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=fd10adb8"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+
+
+
+
+const initStyles = () => {
+    const defaultStyle = document.createElement('style');
+    defaultStyle.textContent = "pre.mermaid {\n    /* Same as .mermaid-container > pre */\n    display: block;\n    width: 100%;\n}\n\npre.mermaid > svg {\n    /* Same as .mermaid-container > pre > svg */\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}";
+    document.head.appendChild(defaultStyle);
+
+    const fullscreenStyle = document.createElement('style');
+    fullscreenStyle.textContent = ".mermaid-container {\n    position: relative;\n    display: flex;\n    flex-direction: row;\n    width: 100%;\n}\n\n.mermaid-container > pre {\n    display: block;\n    width: 100%;\n}\n\n.mermaid-container > pre > svg {\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}\n\n.mermaid-fullscreen-btn {\n    position: absolute;\n    width: 28px;\n    height: 28px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.3);\n    border-radius: 4px;\n    cursor: pointer;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    transition: all 0.2s;\n    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);\n    font-size: 14px;\n    line-height: 1;\n    padding: 0;\n    color: #333;\n}\n\n.mermaid-fullscreen-btn:hover {\n    opacity: 100% !important;\n    background: rgba(255, 255, 255, 1);\n    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-btn.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.3);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-btn.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal {\n    display: none;\n    position: fixed !important;\n    top: 0 !important;\n    left: 0 !important;\n    width: 95vw;\n    height: 100vh;\n    background: rgba(255, 255, 255, 0.98);\n    z-index: 9999;\n    padding: 20px;\n    overflow: auto;\n}\n\n.mermaid-fullscreen-modal.dark-theme {\n    background: rgba(0, 0, 0, 0.98);\n}\n\n.mermaid-fullscreen-modal.active {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen {\n    position: relative;\n    width: 95vw;\n    height: 90vh;\n    max-width: 95vw;\n    max-height: 90vh;\n    background: white;\n    border-radius: 8px;\n    padding: 20px;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);\n    overflow: auto;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen.dark-theme {\n    background: #1a1a1a;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);\n}\n\n.mermaid-container-fullscreen pre.mermaid {\n    width: 100%;\n    height: 100%;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen .mermaid svg {\n    height: 100% !important;\n    width: 100% !important;\n    cursor: grab;\n}\n\n.mermaid-fullscreen-close {\n    position: fixed !important;\n    top: 20px !important;\n    right: 20px !important;\n    width: 40px;\n    height: 40px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.2);\n    border-radius: 50%;\n    cursor: pointer;\n    z-index: 10000;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);\n    transition: all 0.2s;\n    font-size: 24px;\n    line-height: 1;\n    color: #333;\n}\n\n.mermaid-fullscreen-close:hover {\n    background: white;\n    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-close.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.2);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-close.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal .mermaid-fullscreen-btn {\n    display: none !important;\n}";
+    document.head.appendChild(fullscreenStyle);
+}
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    // We use a set of heuristics:
+    // 1. Check for common dark mode classes or attributes
+    // 2. Check computed background color brightness
+    if (document.documentElement.classList.contains('dark') ||
+        document.documentElement.getAttribute('data-theme') === 'dark' ||
+        document.body.classList.contains('dark') ||
+        document.body.getAttribute('data-theme') === 'dark') {
+        // console.log("Dark theme detected via class/attribute");
+        return true;
+    }
+    if (document.documentElement.classList.contains('light') ||
+        document.documentElement.getAttribute('data-theme') === 'light' ||
+        document.body.classList.contains('light') ||
+        document.body.getAttribute('data-theme') === 'light') {
+        // console.log("Light theme detected via class/attribute");
+        return false;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // console.log("Dark theme detected via prefers-color-scheme");
+        return true;
+    }
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        // console.log("Background color brightness:", brightness);
+        return brightness < 128;
+    }
+    // console.log("No dark or light theme detected, defaulting to light theme");
+    return false;
+};
+
+let darkTheme = isDarkTheme();
+let modal = null;
+let modalContent = null;
+let previousScrollOffset = [window.scrollX, window.scrollY];
+let _lazyObserver = null;
+let _renderQueue = Promise.resolve();
+let closeModal = () => {};
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal?.classList.contains('active')) {
+        closeModal();
+    }
+});
+
+// Apply d3 zoom to each SVG. Idempotent: an SVG already wrapped is skipped,
+// so this is safe to call both for the initial batch and for diagrams that
+// render lazily once they become visible.
+const addZoomToSvgs = (svgs) => {
+    svgs.each(function() {
+        if (this.getAttribute('data-zoom-applied') === 'true') return;
+        var svg = d3.select(this);
+        svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+        var inner = svg.select("g");
+        var zoom = d3.zoom().on("zoom", function(event) {
+            inner.attr("transform", event.transform);
+        });
+        svg.call(zoom);
+        this.setAttribute('data-zoom-applied', 'true');
+    });
+};
+
+const runMermaid = async (rerun) => {
+    console.log("Running mermaid diagrams, rerun =", rerun);
+    // clear all existing mermaid charts
+    let all_mermaids = document.querySelectorAll(".mermaid");
+
+    if (rerun) {
+        // Disconnect any previous lazy rendering observer
+        if (_lazyObserver) {
+            _lazyObserver.disconnect();
+            _lazyObserver = null;
+        }
+
+        all_mermaids.forEach((el) => {
+            el.removeAttribute('data-mermaid-deferred');
+            el.removeAttribute('data-mermaid-render-failed');
+            if(!el.hasAttribute("data-original-code")) {
+                // store original code
+                // console.log(`Storing original code for first run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+            if(el.getAttribute("data-processed") === "true") {
+                // remove and restore original
+                el.removeAttribute("data-processed");
+                // console.log(`Restoring original code for re-run: `, el.getAttribute('data-original-code'));
+                el.innerHTML = el.getAttribute('data-original-code');
+            } else {
+                // store original code
+                // console.log(`Storing original code for re-run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+        });
+
+        // Separate visible and hidden elements. Mermaid's layout engine measures
+        // text dimensions via the DOM, which fails for elements hidden by a parent
+        // (e.g., Reveal.js non-active slides, sphinx-design unopened tabs),
+        // producing broken SVGs. Render visible elements now, defer hidden ones.
+        const visible = [];
+        const hidden = [];
+        all_mermaids.forEach((el) => {
+            // offsetParent is null for display:none ancestors.
+            // getClientRects().length > 0 catches position:fixed elements
+            // (which also have null offsetParent but are still visible).
+            if (el.offsetParent !== null || el.getClientRects().length > 0) {
+                visible.push(el);
+            } else {
+                hidden.push(el);
+                el.setAttribute('data-mermaid-deferred', 'true');
+            }
+        });
+
+        if (visible.length > 0) {
+            try {
+                await mermaid.run({ nodes: visible });
+            } catch (e) {
+                console.error("Mermaid rendering failed:", e);
+            }
+        }
+
+        // Lazily render hidden elements when they become visible.
+        // Uses a promise chain (_renderQueue) to serialize rendering,
+        // since IntersectionObserver may report multiple entries at once
+        // and mermaid.run() is not safe to call concurrently.
+        if (hidden.length > 0) {
+            if (typeof IntersectionObserver === 'undefined') {
+                console.warn("IntersectionObserver not available; hidden mermaid diagrams will not render.");
+            } else {
+                _renderQueue = Promise.resolve();
+                _lazyObserver = new IntersectionObserver((entries) => {
+                    for (const entry of entries) {
+                        if (entry.isIntersecting && entry.target.getAttribute("data-processed") !== "true") {
+                            _lazyObserver.unobserve(entry.target);
+                            const el = entry.target;
+                            _renderQueue = _renderQueue.then(async () => {
+                                try {
+                                    await mermaid.run({ nodes: [el] });
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    // Apply zoom to the now-rendered diagram, matching
+                                    // the decoration visible diagrams receive.
+                                    if (false) {
+                                        addZoomToSvgs(d3.selectAll("").select(function() {
+                                            return this.querySelector("svg");
+                                        }));
+                                    }
+                                } catch (e) {
+                                    console.error("Mermaid deferred rendering failed:", e);
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    el.setAttribute('data-mermaid-render-failed', 'true');
+                                }
+                            });
+                        }
+                    }
+                });
+                hidden.forEach((el) => _lazyObserver.observe(el));
+            }
+        }
+    }
+
+    all_mermaids = document.querySelectorAll(".mermaid");
+    // Exclude deferred (hidden) and render-failed elements from completion checks
+    const mermaids_active = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])");
+    const mermaids_processed = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])[data-processed='true']");
+
+    if (false) {
+        const mermaids_to_add_zoom = 0 === -1 ? mermaids_active.length : 0;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("").select(function() {
+                return this.querySelector("svg");
+            });
+            // Wait until every active (visible) diagram has rendered. Deferred
+            // diagrams are excluded, so a fixed d3_node_count that counts a
+            // hidden diagram no longer loops forever waiting for its SVG.
+            if(mermaids_active.length !== mermaids_processed.length) {
+                setTimeout(() => runMermaid(false), 200);
+                return;
+            }
+            addZoomToSvgs(svgs);
+        }
+    } else if(mermaids_active.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(() => runMermaid(false), 200);
+        return;
+    }
+
+    // Stop here if not adding fullscreen capability
+    if (!true) return;
+
+    if (modal !== null ) {
+        // Destroy existing modal
+        modal.remove();
+        modal = null;
+        modalContent = null;
+    }
+
+    modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            // Already processed, adjust button class if needed
+            const existingBtn = mermaidDiv.parentNode.querySelector('.mermaid-fullscreen-btn');
+            if (existingBtn) {
+                existingBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+            }
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = "\u26f6";
+        fullscreenBtn.style.opacity = "50%";
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scrollX, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.display = 'block';
+
+                if (false) {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+        container.appendChild(fullscreenBtn);
+    });
+};
+
+
+
+const load = async () => {
+    initStyles();
+
+
+    await runMermaid(true);
+
+    const reRunIfThemeChanges = async () => {
+        const newDarkTheme = isDarkTheme();
+        if (newDarkTheme !== darkTheme) {
+            darkTheme = newDarkTheme;
+            console.log("Theme change detected, re-running mermaid with", darkTheme ? "dark" : "default", "theme");
+            await mermaid.initialize(
+                {...{"startOnLoad": false},
+                ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+                }
+            );
+            await runMermaid(true);
+        }
+    };
+
+    // Update theme classes when theme changes
+    const themeObserver = new MutationObserver(reRunIfThemeChanges);
+    themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+};
+
+
+
+
+
+console.log("Initializing mermaid with", darkTheme ? "dark" : "default", "theme");
+mermaid.initialize(
+    {...{"startOnLoad": false},
+    ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+    }
+);
+
+window.addEventListener("load", load);
+window.runMermaid = runMermaid;</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/an/continuity';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.313" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">an</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">an.continuity</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for an.continuity</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""Open a shot from another shot's end state (an#542).</span>
+
+<span class="sd">A scene that picks up where another left off (the third scene opens on the</span>
+<span class="sd">last frame of the bedtime scene; back to the studio as the studio scene left</span>
+<span class="sd">it) used to rebuild that opening by hand: one ``set`` at 0 per lamp veil,</span>
+<span class="sd">pillow head, robe and aimed musket, each read by eye off the other scene's</span>
+<span class="sd">actions, and a wrong value was a pop at the cut that nothing checked. A shot</span>
+<span class="sd">now says where it continues from::</span>
+
+<span class="sd">    continue: studio                   # a shot of this scene</span>
+<span class="sd">    continue: scene.studio.md#studio   # a shot of a sibling scene file</span>
+
+<span class="sd">and every entity it shares with that shot (by id) opens at that shot's final</span>
+<span class="sd">EVALUATED state: the entity's transform, every channel of its nodes (rotation,</span>
+<span class="sd">swap keys, alpha, tint), and what holds it (a hand: ``held_by`` and</span>
+<span class="sd">``held_rotation``; the ground: ``held_by: ground``). The shot's own opening</span>
+<span class="sd">``set`` or ``tween`` of a channel wins over the carried one.</span>
+
+<span class="sd">:func:`continue_shots` resolves it before compile, as part of the scene the</span>
+<span class="sd">compiler sees (:func:`an.stage.world.lower_scene`): the source shot is</span>
+<span class="sd">compiled (itself lowered and continued first), evaluated at its end by the</span>
+<span class="sd">runtime's executable spec, and its state written into the continuing shot as</span>
+<span class="sd">``set`` actions at 0 and hold overrides. The source can be a later shot, or</span>
+<span class="sd">another scene's; a cycle is refused (:class:`ContinuityError`).</span>
+
+<span class="sd">&gt;&gt;&gt; parse_continue("scene.studio.md#studio"), parse_continue("studio")</span>
+<span class="sd">(('scene.studio.md', 'studio'), (None, 'studio'))</span>
+<span class="sd">"""</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Mapping</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">SceneIR</span><span class="p">,</span> <span class="n">SetAction</span><span class="p">,</span> <span class="n">Shot</span><span class="p">,</span> <span class="n">TweenAction</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"ContinuityError"</span><span class="p">,</span>
+    <span class="s2">"EntityEnd"</span><span class="p">,</span>
+    <span class="s2">"continue_shots"</span><span class="p">,</span>
+    <span class="s2">"end_states"</span><span class="p">,</span>
+    <span class="s2">"opened_channels"</span><span class="p">,</span>
+    <span class="s2">"parse_continue"</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="c1">#: What separates a sibling scene file from a shot id in ``continue:``.</span>
+<span class="n">CONTINUE_SEPARATOR</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"#"</span>
+<span class="c1">#: Transform fields read off an entity's own node: where it stands.</span>
+<span class="n">ROOT_TRANSFORM</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">,</span> <span class="s2">"rotation"</span><span class="p">,</span> <span class="s2">"scale_x"</span><span class="p">,</span> <span class="s2">"scale_y"</span><span class="p">)</span>
+<span class="c1">#: Channels never carried across a cut: draw order the hold layer derives each</span>
+<span class="c1">#: shot, and the mouth, which the new shot's own dialogue drives.</span>
+<span class="n">UNCARRIED_PROPERTIES</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"paint_after"</span><span class="p">,</span> <span class="s2">"viseme"</span><span class="p">})</span>
+<span class="c1">#: Holders that leave an item where it lies, carried as its transform.</span>
+<span class="n">_UNHELD</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"staged"</span><span class="p">,</span> <span class="s2">"air"</span><span class="p">})</span>
+<span class="c1">#: The plain floor: it holds an item at its own x, on the ground line.</span>
+<span class="n">_GROUND</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"ground"</span>
+
+<span class="c1">#: A scene file as continuity keys it (``None``: the scene being resolved).</span>
+<span class="n">FileKey</span> <span class="o">=</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="ContinuityError">
+<a class="viewcode-back" href="../../_autosummary/an.continuity.html#an.continuity.ContinuityError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ContinuityError</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A ``continue:`` that cannot be resolved: an unknown shot or scene file,</span>
+<span class="sd">    a cycle, or a source shot that does not compile. ``shot`` is the shot</span>
+<span class="sd">    whose ``continue:`` it is: ``an validate`` reports it at that shot's</span>
+<span class="sd">    ``continue_from``; a render raises it."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">shot</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shot</span> <span class="o">=</span> <span class="n">shot</span></div>
+
+
+
+<div class="viewcode-block" id="parse_continue">
+<a class="viewcode-back" href="../../_autosummary/an.continuity.html#an.continuity.parse_continue">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_continue</span><span class="p">(</span><span class="n">ref</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">FileKey</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``(scene file or None, shot id)`` of a ``continue:`` value."""</span>
+    <span class="n">file</span><span class="p">,</span> <span class="n">sep</span><span class="p">,</span> <span class="n">shot</span> <span class="o">=</span> <span class="n">ref</span><span class="o">.</span><span class="n">rpartition</span><span class="p">(</span><span class="n">CONTINUE_SEPARATOR</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">sep</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ref</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">shot</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">file</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="n">ContinuityError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"continue: </span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2"> names no shot (write `&lt;shot&gt;` or `&lt;scene file&gt;#&lt;shot&gt;`)"</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span><span class="o">.</span><span class="n">as_posix</span><span class="p">(),</span> <span class="n">shot</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="EntityEnd">
+<a class="viewcode-back" href="../../_autosummary/an.continuity.html#an.continuity.EntityEnd">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EntityEnd</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""One entity as a shot ends: its channels ``{(target, property): value}``</span>
+<span class="sd">    and what holds it (the hold layer's last holder; ``None`` when no hold</span>
+<span class="sd">    layer ran)."""</span>
+
+    <span class="n">channels</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+    <span class="n">holder</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="end_states">
+<a class="viewcode-back" href="../../_autosummary/an.continuity.html#an.continuity.end_states">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">end_states</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">entity_ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">at</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">EntityEnd</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``{entity id: EntityEnd}`` of a compiled document evaluated at ``at``:</span>
+<span class="sd">    each entity's own transform (an alias such as ``rotation_rad`` folded into</span>
+<span class="sd">    the property it writes), then every animated channel of its nodes, one</span>
+<span class="sd">    per write group."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+        <span class="n">_node_chain</span><span class="p">,</span>
+        <span class="n">_pose_for</span><span class="p">,</span>
+        <span class="n">evaluate_timeline</span><span class="p">,</span>
+        <span class="n">timeline_from_scene</span><span class="p">,</span>
+        <span class="n">transform_of</span><span class="p">,</span>
+        <span class="n">write_group</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">pose</span> <span class="o">=</span> <span class="n">evaluate_timeline</span><span class="p">(</span><span class="n">timeline_from_scene</span><span class="p">(</span><span class="n">doc</span><span class="p">),</span> <span class="n">at</span><span class="p">)</span>
+    <span class="n">holders</span> <span class="o">=</span> <span class="p">(((</span><span class="n">doc</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">extensions</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"solve"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"holds"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="s2">"holders"</span>
+    <span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">EntityEnd</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">eid</span> <span class="ow">in</span> <span class="n">entity_ids</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">node</span><span class="p">,</span> <span class="n">path</span> <span class="o">=</span> <span class="n">_node_chain</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">scene</span><span class="p">,</span> <span class="n">eid</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — not drawn (a voice): nothing to carry</span>
+            <span class="k">continue</span>
+        <span class="n">own</span> <span class="o">=</span> <span class="n">_pose_for</span><span class="p">(</span><span class="n">pose</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">folded</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">write_group</span><span class="p">(</span><span class="n">prop</span><span class="p">)):</span> <span class="n">value</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">prop</span><span class="p">),</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">own</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">write_group</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span> <span class="ow">in</span> <span class="n">ROOT_TRANSFORM</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">))</span>
+        <span class="p">}</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">transform_of</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="p">{</span><span class="o">**</span><span class="n">own</span><span class="p">,</span> <span class="o">**</span><span class="n">folded</span><span class="p">})</span>
+        <span class="n">channels</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="n">prop</span><span class="p">):</span> <span class="nb">float</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">prop</span><span class="p">))</span> <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">ROOT_TRANSFORM</span>
+        <span class="p">}</span>
+        <span class="n">channels</span><span class="p">[(</span><span class="n">eid</span><span class="p">,</span> <span class="s2">"alpha"</span><span class="p">)]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">own</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">name</span><span class="p">,</span> <span class="s2">"alpha"</span><span class="p">),</span> <span class="n">node</span><span class="o">.</span><span class="n">transform</span><span class="o">.</span><span class="n">alpha</span><span class="p">))</span>
+        <span class="n">groups</span> <span class="o">=</span> <span class="p">{(</span><span class="n">eid</span><span class="p">,</span> <span class="n">write_group</span><span class="p">(</span><span class="n">p</span><span class="p">))</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">channels</span><span class="p">}</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">prop</span><span class="p">),</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">pose</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">UNCARRIED_PROPERTIES</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">target</span> <span class="o">!=</span> <span class="n">path</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">target</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">path</span> <span class="o">+</span> <span class="s2">"/"</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">eid</span> <span class="o">+</span> <span class="n">target</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="p">:],</span> <span class="n">prop</span><span class="p">)</span>
+            <span class="n">group</span> <span class="o">=</span> <span class="p">(</span><span class="n">key</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">write_group</span><span class="p">(</span><span class="n">prop</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">groups</span> <span class="ow">and</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">channels</span><span class="p">:</span>
+                <span class="k">continue</span>  <span class="c1"># an alias of a channel already carried</span>
+            <span class="n">channels</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="n">groups</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">group</span><span class="p">)</span>
+        <span class="n">timeline</span> <span class="o">=</span> <span class="n">holders</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+        <span class="n">out</span><span class="p">[</span><span class="n">eid</span><span class="p">]</span> <span class="o">=</span> <span class="n">EntityEnd</span><span class="p">(</span><span class="n">channels</span><span class="p">,</span> <span class="n">timeline</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">timeline</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<div class="viewcode-block" id="opened_channels">
+<a class="viewcode-back" href="../../_autosummary/an.continuity.html#an.continuity.opened_channels">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">opened_channels</span><span class="p">(</span><span class="n">shot</span><span class="p">:</span> <span class="n">Shot</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``(target, write group)`` the shot itself gives a value in its first</span>
+<span class="sd">    frame: a ``set``, or a ``tween`` with a ``from``. A tween from where the</span>
+<span class="sd">    entity is (no ``from``) starts from the carried value, so it opens nothing."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.compose</span><span class="w"> </span><span class="kn">import</span> <span class="n">flatten</span><span class="p">,</span> <span class="n">parallel</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">write_group</span>
+
+    <span class="n">first</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">fps</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">write_group</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">property</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">flatten</span><span class="p">(</span><span class="n">parallel</span><span class="p">(</span><span class="o">*</span><span class="n">shot</span><span class="o">.</span><span class="n">actions</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">start</span> <span class="o">&lt;</span> <span class="n">first</span>
+        <span class="ow">and</span> <span class="p">(</span>
+            <span class="nb">isinstance</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">action</span><span class="p">,</span> <span class="n">SetAction</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">action</span><span class="p">,</span> <span class="n">TweenAction</span><span class="p">)</span> <span class="ow">and</span> <span class="n">f</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">from_value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="p">}</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_carried</span><span class="p">(</span>
+    <span class="n">shot</span><span class="p">:</span> <span class="n">Shot</span><span class="p">,</span>
+    <span class="n">ends</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">EntityEnd</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">placed_by_world</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(),</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Shot</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``shot`` opening as ``ends`` (the shared entities' end states).</span>
+
+<span class="sd">    ``placed_by_world``: entities the world places in THIS shot under another</span>
+<span class="sd">    viewpoint than the source's, whose screen placement is not carried (a cut</span>
+<span class="sd">    between two framings is a cut; the world places them). A cut from a</span>
+<span class="sd">    hand-placed shot to a framed one carries the screen placement, as</span>
+<span class="sd">    ``cut_continuity`` reads such a cut: the author placed the source."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.hold</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+        <span class="n">AIM_OVERRIDE</span><span class="p">,</span>
+        <span class="n">ON_OVERRIDE</span><span class="p">,</span>
+        <span class="n">_is_place_target</span><span class="p">,</span>
+        <span class="n">_is_surface_target</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">write_group</span>
+
+    <span class="n">opened</span> <span class="o">=</span> <span class="n">opened_channels</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">)</span>
+    <span class="n">present</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">}</span>
+    <span class="n">sets</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">SetAction</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">entities</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">:</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">ends</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">end</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">entities</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entity</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="n">overrides</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">overrides</span> <span class="ow">or</span> <span class="p">{})</span>
+        <span class="n">skip</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ROOT_TRANSFORM</span><span class="p">)</span> <span class="k">if</span> <span class="n">entity</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">placed_by_world</span> <span class="k">else</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">holder</span> <span class="o">=</span> <span class="n">end</span><span class="o">.</span><span class="n">holder</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">holder</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">holder</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_UNHELD</span>
+            <span class="ow">and</span> <span class="n">ON_OVERRIDE</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">overrides</span>
+        <span class="p">):</span>
+            <span class="k">if</span> <span class="n">holder</span> <span class="o">==</span> <span class="n">_GROUND</span><span class="p">:</span>
+                <span class="n">overrides</span><span class="p">[</span><span class="n">ON_OVERRIDE</span><span class="p">]</span> <span class="o">=</span> <span class="n">holder</span>
+                <span class="n">skip</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"y"</span><span class="p">)</span>  <span class="c1"># the floor sets its height; it keeps its x</span>
+            <span class="k">elif</span> <span class="n">_is_place_target</span><span class="p">(</span><span class="n">holder</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span>
+                <span class="n">_is_surface_target</span><span class="p">(</span><span class="n">holder</span><span class="p">)</span> <span class="ow">and</span> <span class="n">_body</span><span class="p">(</span><span class="n">holder</span><span class="p">)</span> <span class="ow">in</span> <span class="n">present</span>
+            <span class="p">):</span>
+                <span class="n">overrides</span><span class="p">[</span><span class="n">ON_OVERRIDE</span><span class="p">]</span> <span class="o">=</span> <span class="n">holder</span>
+                <span class="n">skip</span> <span class="o">|=</span> <span class="p">{</span><span class="s2">"x"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">}</span>  <span class="c1"># the place puts it there</span>
+            <span class="k">elif</span> <span class="n">_is_surface_target</span><span class="p">(</span><span class="n">holder</span><span class="p">):</span>
+                <span class="k">pass</span>  <span class="c1"># its body is not in this shot: the item stays where it was</span>
+            <span class="k">elif</span> <span class="n">_body</span><span class="p">(</span><span class="n">holder</span><span class="p">)</span> <span class="ow">in</span> <span class="n">present</span><span class="p">:</span>
+                <span class="n">overrides</span><span class="p">[</span><span class="n">ON_OVERRIDE</span><span class="p">]</span> <span class="o">=</span> <span class="n">holder</span>  <span class="c1"># the same hand holds it</span>
+                <span class="n">overrides</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span>
+                    <span class="n">AIM_OVERRIDE</span><span class="p">,</span> <span class="n">end</span><span class="o">.</span><span class="n">channels</span><span class="p">[(</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="s2">"rotation"</span><span class="p">)]</span>
+                <span class="p">)</span>
+                <span class="n">skip</span> <span class="o">|=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ROOT_TRANSFORM</span><span class="p">)</span>  <span class="c1"># the hand places it, aimed</span>
+            <span class="c1"># a holder this shot does not have: the item stays where it was</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">prop</span><span class="p">),</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">end</span><span class="o">.</span><span class="n">channels</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">write_group</span><span class="p">(</span><span class="n">prop</span><span class="p">))</span> <span class="ow">in</span> <span class="n">opened</span><span class="p">:</span>
+                <span class="k">continue</span>  <span class="c1"># the shot's own opening wins</span>
+            <span class="k">if</span> <span class="n">target</span> <span class="o">==</span> <span class="n">entity</span><span class="o">.</span><span class="n">id</span> <span class="ow">and</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">skip</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">sets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SetAction</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">target</span><span class="p">,</span> <span class="nb">property</span><span class="o">=</span><span class="n">prop</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="n">at</span><span class="o">=</span><span class="mf">0.0</span><span class="p">))</span>
+        <span class="n">entities</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"overrides"</span><span class="p">:</span> <span class="n">overrides</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">}))</span>
+    <span class="k">return</span> <span class="n">shot</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span>
+        <span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"entities"</span><span class="p">:</span> <span class="n">entities</span><span class="p">,</span> <span class="s2">"actions"</span><span class="p">:</span> <span class="p">[</span><span class="o">*</span><span class="n">sets</span><span class="p">,</span> <span class="o">*</span><span class="n">shot</span><span class="o">.</span><span class="n">actions</span><span class="p">]}</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_body</span><span class="p">(</span><span class="n">holder</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The entity a holder names (``napoleon@hand_r``, ``crate/lid@surface``)."""</span>
+    <span class="k">return</span> <span class="n">holder</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">"@"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="continue_shots">
+<a class="viewcode-back" href="../../_autosummary/an.continuity.html#an.continuity.continue_shots">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">continue_shots</span><span class="p">(</span>
+    <span class="n">scene</span><span class="p">:</span> <span class="n">SceneIR</span><span class="p">,</span>
+    <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">read_scene</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Path</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">SceneIR</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">lower_world</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">SceneIR</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">compile_shot</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SceneIR</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``scene`` (already world-lowered) with every ``continue:`` resolved.</span>
+
+<span class="sd">    ``project_dir`` is where a sibling scene file is read from (default: the</span>
+<span class="sd">    mall's ``scenes`` store's :attr:`~an.stores.scenes.ScenesStore.project_dir`).</span>
+<span class="sd">    The seams: ``read_scene`` (:func:`an.ir.sync.read_scene`), ``lower_world``</span>
+<span class="sd">    (``(scene, mall, *, fps) -&gt; scene``, :func:`an.stage.world.lower_scene_world`)</span>
+<span class="sd">    and ``compile_shot`` (:func:`an.stage.compile.compile_shot`). Each source</span>
+<span class="sd">    is resolved once, and only the shots a continuation needs are: a sibling</span>
+<span class="sd">    file's other shots are not compiled. A scene without ``continue:`` comes</span>
+<span class="sd">    back as it is.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">continue_from</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">scene</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">resolve_step_hz</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.sync</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_scene</span> <span class="k">as</span> <span class="n">_read</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.world</span><span class="w"> </span><span class="kn">import</span> <span class="n">viewpoint_key</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.compile</span><span class="w"> </span><span class="kn">import</span> <span class="n">compile_shot</span> <span class="k">as</span> <span class="n">_compile</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.compile</span><span class="w"> </span><span class="kn">import</span> <span class="n">style_pack_for</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.world</span><span class="w"> </span><span class="kn">import</span> <span class="n">lower_scene_world</span>
+
+    <span class="n">read_scene</span> <span class="o">=</span> <span class="n">read_scene</span> <span class="ow">or</span> <span class="n">_read</span>
+    <span class="n">compile_shot</span> <span class="o">=</span> <span class="n">compile_shot</span> <span class="ow">or</span> <span class="n">_compile</span>
+    <span class="n">lower_world</span> <span class="o">=</span> <span class="n">lower_world</span> <span class="ow">or</span> <span class="n">lower_scene_world</span>
+    <span class="n">rate</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">fps</span> <span class="k">if</span> <span class="n">fps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">fps</span><span class="p">)</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="n">project_dir</span> <span class="k">if</span> <span class="n">project_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_project_dir</span><span class="p">(</span><span class="n">mall</span><span class="p">)</span>
+    <span class="n">scenes</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">FileKey</span><span class="p">,</span> <span class="n">SceneIR</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="kc">None</span><span class="p">:</span> <span class="n">scene</span><span class="p">}</span>
+    <span class="n">done</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">FileKey</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">Shot</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">compiled</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">FileKey</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># each source compiled once</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="n">file</span><span class="p">:</span> <span class="n">FileKey</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">asked_by</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SceneIR</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">scenes</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">scenes</span><span class="p">[</span><span class="n">file</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">root</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ContinuityError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">asked_by</span><span class="si">!r}</span><span class="s2"> continues a shot of </span><span class="si">{</span><span class="n">file</span><span class="si">!r}</span><span class="s2">, a sibling scene "</span>
+                <span class="s2">"file, and no project folder is known"</span><span class="p">,</span>
+                <span class="n">shot</span><span class="o">=</span><span class="n">asked_by</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">other</span> <span class="o">=</span> <span class="n">read_scene</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">root</span><span class="p">),</span> <span class="n">file</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — named, not swallowed</span>
+            <span class="k">raise</span> <span class="n">ContinuityError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">asked_by</span><span class="si">!r}</span><span class="s2">: scene file </span><span class="si">{</span><span class="n">file</span><span class="si">!r}</span><span class="s2"> cannot be read (</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span>
+                <span class="n">shot</span><span class="o">=</span><span class="n">asked_by</span><span class="p">,</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+        <span class="n">scenes</span><span class="p">[</span><span class="n">file</span><span class="p">]</span> <span class="o">=</span> <span class="n">lower_world</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">rate</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">scenes</span><span class="p">[</span><span class="n">file</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">where</span><span class="p">(</span><span class="n">file</span><span class="p">:</span> <span class="n">FileKey</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">"this scene"</span> <span class="k">if</span> <span class="n">file</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">repr</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">resolved</span><span class="p">(</span><span class="n">file</span><span class="p">:</span> <span class="n">FileKey</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">stack</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Shot</span><span class="p">:</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">done</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">done</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="n">owner</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">asked_by</span><span class="o">=</span><span class="s2">"?"</span><span class="p">)</span>
+        <span class="n">shot</span> <span class="o">=</span> <span class="n">owner</span><span class="o">.</span><span class="n">timeline</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">stack</span><span class="p">:</span>
+            <span class="n">chain</span> <span class="o">=</span> <span class="s2">" -&gt; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">f</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">''</span><span class="si">}{</span><span class="n">CONTINUE_SEPARATOR</span><span class="si">}{</span><span class="n">scenes</span><span class="p">[</span><span class="n">f</span><span class="p">]</span><span class="o">.</span><span class="n">timeline</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">"</span>
+                <span class="k">for</span> <span class="n">f</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="o">*</span><span class="n">stack</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="k">raise</span> <span class="n">ContinuityError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: `continue:` closes a cycle (</span><span class="si">{</span><span class="n">chain</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span> <span class="n">shot</span><span class="o">=</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">shot</span><span class="o">.</span><span class="n">continue_from</span><span class="p">:</span>
+            <span class="n">shot</span> <span class="o">=</span> <span class="n">carried</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="p">(</span><span class="o">*</span><span class="n">stack</span><span class="p">,</span> <span class="n">key</span><span class="p">))</span>
+        <span class="n">done</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">shot</span>
+        <span class="k">return</span> <span class="n">shot</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">carried</span><span class="p">(</span><span class="n">file</span><span class="p">:</span> <span class="n">FileKey</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">shot</span><span class="p">:</span> <span class="n">Shot</span><span class="p">,</span> <span class="n">stack</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Shot</span><span class="p">:</span>
+        <span class="n">src_file</span><span class="p">,</span> <span class="n">sid</span> <span class="o">=</span> <span class="n">parse_continue</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">continue_from</span><span class="p">)</span>
+        <span class="n">src_file</span> <span class="o">=</span> <span class="n">file</span> <span class="k">if</span> <span class="n">src_file</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">src_file</span>
+        <span class="n">owner</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">src_file</span><span class="p">,</span> <span class="n">asked_by</span><span class="o">=</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="n">j</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">owner</span><span class="o">.</span><span class="n">timeline</span><span class="p">)</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">sid</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">j</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ContinuityError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: `continue: </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">continue_from</span><span class="si">}</span><span class="s2">` names no shot "</span>
+                <span class="sa">f</span><span class="s2">"of </span><span class="si">{</span><span class="n">where</span><span class="p">(</span><span class="n">src_file</span><span class="p">)</span><span class="si">}</span><span class="s2"> (its shots: </span><span class="si">{</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">id</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">owner</span><span class="o">.</span><span class="n">timeline</span><span class="p">]</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span>
+                <span class="n">shot</span><span class="o">=</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">resolved</span><span class="p">(</span><span class="n">src_file</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">stack</span><span class="p">)</span>
+        <span class="n">shared</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="p">{</span><span class="n">s</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">source</span><span class="o">.</span><span class="n">entities</span><span class="p">}</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">src_file</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">compiled</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">"ignore"</span><span class="p">)</span>  <span class="c1"># the source's compile reports them</span>
+                    <span class="n">compiled</span><span class="p">[(</span><span class="n">src_file</span><span class="p">,</span> <span class="n">j</span><span class="p">)]</span> <span class="o">=</span> <span class="n">compile_shot</span><span class="p">(</span>
+                        <span class="n">source</span><span class="p">,</span>
+                        <span class="n">mall</span><span class="o">=</span><span class="n">mall</span><span class="p">,</span>
+                        <span class="n">fps</span><span class="o">=</span><span class="n">rate</span><span class="p">,</span>
+                        <span class="n">width</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">owner</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">width</span><span class="p">),</span>
+                        <span class="n">height</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">owner</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">height</span><span class="p">),</span>
+                        <span class="n">default_easing</span><span class="o">=</span><span class="n">owner</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">default_easing</span><span class="p">,</span>
+                        <span class="c1"># as the render compiles it, so the end is its last frame</span>
+                        <span class="n">step_hz</span><span class="o">=</span><span class="n">resolve_step_hz</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">owner</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">step_hz</span><span class="p">),</span>
+                        <span class="n">style_pack</span><span class="o">=</span><span class="n">style_pack_for</span><span class="p">(</span>
+                            <span class="n">owner</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span> <span class="p">(</span><span class="n">mall</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"styles"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+                        <span class="p">),</span>
+                    <span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — the source's own error, named here</span>
+                <span class="k">raise</span> <span class="n">ContinuityError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> continues </span><span class="si">{</span><span class="n">source</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> of </span><span class="si">{</span><span class="n">where</span><span class="p">(</span><span class="n">src_file</span><span class="p">)</span><span class="si">}</span><span class="s2">, "</span>
+                    <span class="sa">f</span><span class="s2">"which does not compile (</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span>
+                    <span class="n">shot</span><span class="o">=</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+        <span class="n">doc</span> <span class="o">=</span> <span class="n">compiled</span><span class="p">[(</span><span class="n">src_file</span><span class="p">,</span> <span class="n">j</span><span class="p">)]</span>
+        <span class="n">world</span> <span class="o">=</span> <span class="n">scenes</span><span class="p">[</span><span class="n">file</span><span class="p">]</span><span class="o">.</span><span class="n">world</span>
+        <span class="n">members</span> <span class="o">=</span> <span class="p">{</span><span class="n">m</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">world</span><span class="o">.</span><span class="n">members</span><span class="p">}</span> <span class="k">if</span> <span class="n">world</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">across</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">shot</span><span class="o">.</span><span class="n">viewpoint</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">source</span><span class="o">.</span><span class="n">viewpoint</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">viewpoint_key</span><span class="p">(</span><span class="n">shot</span><span class="p">)</span> <span class="o">!=</span> <span class="n">viewpoint_key</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">_carried</span><span class="p">(</span>
+            <span class="n">shot</span><span class="p">,</span>
+            <span class="n">end_states</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">shared</span><span class="p">,</span> <span class="n">at</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">duration</span><span class="p">)),</span>
+            <span class="n">fps</span><span class="o">=</span><span class="n">rate</span><span class="p">,</span>
+            <span class="n">placed_by_world</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">(</span><span class="n">members</span> <span class="k">if</span> <span class="n">across</span> <span class="k">else</span> <span class="p">()),</span>
+        <span class="p">)</span>
+
+    <span class="n">timeline</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">resolved</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="p">())</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">continue_from</span> <span class="k">else</span> <span class="n">s</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">scene</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"timeline"</span><span class="p">:</span> <span class="n">timeline</span><span class="p">})</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_project_dir</span><span class="p">(</span><span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The project folder a mall was built over, from its ``scenes`` store."""</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">((</span><span class="n">mall</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"scenes"</span><span class="p">),</span> <span class="s2">"project_dir"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">root</span><span class="p">)</span> <span class="k">if</span> <span class="n">root</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.23.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

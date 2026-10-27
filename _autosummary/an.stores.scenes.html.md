@@ -51,6 +51,11 @@ the authored scene (an#279).
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
+#### *property* project_dir *: [Path](https://docs.python.org/3/library/pathlib.html#pathlib.Path)*
+
+The project folder this store’s scene file is in (its sibling scene
+files are there too: a `continue:` reads them, an#542).
+
 ### an.stores.scenes.patch_shot_duration_md(markdown, shot_id, seconds)
 
 `markdown` with shot `shot_id`’s `duration:` set to `seconds`,

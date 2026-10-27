@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=49b8c8aa"></script>
+    <script src="../../../_static/documentation_options.js?v=edc04cb3"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.312" />
+  <meta name="docsearch:version" content="0.1.313" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -730,6 +730,9 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">dataclasses</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Mapping</span>
 
@@ -991,12 +994,18 @@ window.runMermaid = runMermaid;</script>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">film_starts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">continues</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Lowered</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""``scene`` as the compiler should see it: every framed shot's placements</span>
 <span class="sd">    derived from the world (:func:`an.ir.world.lower_world`), with the</span>
 <span class="sd">    members' extents measured here and each shot's film start from the</span>
 <span class="sd">    assembled timeline (so a travel's streams keep phase across cuts). A scene</span>
-<span class="sd">    without a world comes back as it is, at no cost.</span>
+<span class="sd">    without a world comes back as it is, at no cost. Then every shot's</span>
+<span class="sd">    ``continue:`` is resolved (:func:`an.continuity.continue_shots`, an#542):</span>
+<span class="sd">    a shot that continues another opens as that one ends (``project_dir``:</span>
+<span class="sd">    where a sibling scene file is read; default the mall's; ``continues``:</span>
+<span class="sd">    off for the world alone, as `an validate` reports the two apart).</span>
 
 <span class="sd">    Raises :class:`an.ir.world.WorldError` for a viewpoint that cannot be</span>
 <span class="sd">    resolved; `an validate` reports the same error instead of raising.</span>
@@ -1004,6 +1013,53 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    &gt;&gt;&gt; lower_scene(SceneIR(), {}).scene.timeline</span>
 <span class="sd">    []</span>
 <span class="sd">    """</span>
+    <span class="n">lowered</span> <span class="o">=</span> <span class="n">_lower_world</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span> <span class="n">film_starts</span><span class="o">=</span><span class="n">film_starts</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">with_continues</span><span class="p">(</span><span class="n">lowered</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span> <span class="n">project_dir</span><span class="o">=</span><span class="n">project_dir</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">continues</span>
+        <span class="k">else</span> <span class="n">lowered</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">with_continues</span><span class="p">(</span>
+    <span class="n">lowered</span><span class="p">:</span> <span class="n">Lowered</span><span class="p">,</span>
+    <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Lowered</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``lowered`` with every ``continue:`` resolved (an#542), and how many</span>
+<span class="sd">    actions each continued shot gained in front of the author's."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.continuity</span><span class="w"> </span><span class="kn">import</span> <span class="n">continue_shots</span>
+
+    <span class="n">continued</span> <span class="o">=</span> <span class="n">continue_shots</span><span class="p">(</span><span class="n">lowered</span><span class="o">.</span><span class="n">scene</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span> <span class="n">project_dir</span><span class="o">=</span><span class="n">project_dir</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">continued</span> <span class="ow">is</span> <span class="n">lowered</span><span class="o">.</span><span class="n">scene</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">lowered</span>
+    <span class="n">carried</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">i</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">new</span><span class="o">.</span><span class="n">actions</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">old</span><span class="o">.</span><span class="n">actions</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">lowered</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">,</span> <span class="n">continued</span><span class="o">.</span><span class="n">timeline</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">new</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">old</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">lowered</span><span class="p">,</span> <span class="n">scene</span><span class="o">=</span><span class="n">continued</span><span class="p">,</span> <span class="n">carried</span><span class="o">=</span><span class="n">carried</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">lower_scene_world</span><span class="p">(</span>
+    <span class="n">scene</span><span class="p">:</span> <span class="n">SceneIR</span><span class="p">,</span> <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SceneIR</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``scene`` lowered through its world only: what a continuation reads a</span>
+<span class="sd">    sibling scene file as (:func:`an.continuity.continue_shots`)."""</span>
+    <span class="k">return</span> <span class="n">_lower_world</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span> <span class="n">film_starts</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">scene</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_lower_world</span><span class="p">(</span>
+    <span class="n">scene</span><span class="p">:</span> <span class="n">SceneIR</span><span class="p">,</span>
+    <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">film_starts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Lowered</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The world half of :func:`lower_scene`."""</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">has_world</span><span class="p">(</span><span class="n">scene</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">Lowered</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="p">[])</span>
     <span class="n">width</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">width</span><span class="p">)</span>
@@ -1021,8 +1077,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span>
         <span class="n">extent_problems</span><span class="o">=</span><span class="n">problems</span><span class="p">,</span>
         <span class="n">plane_geometry</span><span class="o">=</span><span class="n">plane_geometry</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">world</span><span class="p">,</span> <span class="n">mall</span><span class="p">),</span>
-    <span class="p">)</span></div>
-
+    <span class="p">)</span>
 
 
 <div class="viewcode-block" id="lowered_or_same">
@@ -1034,8 +1089,15 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    world cannot be lowered: for the walks that must see what a framed shot</span>
 <span class="sd">    draws (credits, publishability) but are not where a world error is</span>
 <span class="sd">    reported (validate is)."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.continuity</span><span class="w"> </span><span class="kn">import</span> <span class="n">ContinuityError</span>
+
     <span class="k">try</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">lower_scene</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">)</span><span class="o">.</span><span class="n">scene</span>
+    <span class="k">except</span> <span class="n">ContinuityError</span><span class="p">:</span>  <span class="c1"># reported by validate; the world still lowers</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">lower_scene</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span> <span class="n">continues</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">scene</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — reported by validate, not here</span>
+            <span class="k">return</span> <span class="n">scene</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — reported by validate, not here</span>
         <span class="k">return</span> <span class="n">scene</span></div>
 

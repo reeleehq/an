@@ -1110,7 +1110,7 @@ Set a property to a value at a specific time. Discrete, no tween.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.Shot(\*, id, renderer='cutout', duration=5.0, camera=None, entities=<factory>, actions=<factory>, dialogue=<factory>, narration=<factory>, options=<factory>, step_hz=None, transition=None, sounds=<factory>, policy=None, viewpoint=None, welds=<factory>, joints=<factory>, solve=None, \*\*extra_data)
+### *class* an.ir.schema.Shot(\*, id, renderer='cutout', duration=5.0, camera=None, entities=<factory>, actions=<factory>, dialogue=<factory>, narration=<factory>, options=<factory>, step_hz=None, transition=None, sounds=<factory>, policy=None, viewpoint=None, welds=<factory>, joints=<factory>, solve=None, continue_from=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -1118,6 +1118,18 @@ A single rendered unit. A scene is a sequence of shots.
 
 A shot’s `renderer` selects the backend that draws it. Every renderer must accept the
 same Shot fields; renderer-specific options go under `options`.
+
+#### continue_from *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+`"<shot id>"` in this
+scene, or `"<scene file>#<shot id>"` in a sibling scene file. Every
+entity this shot shares with that one opens as that one ends (its
+transform, swap keys, alpha, and what holds it); this shot’s own opening
+`set`/`tween` wins. Written `continue:` in the shot block; resolved
+before compile ([`an.continuity`](an.continuity.html.md#module-an.continuity)). `None` (omitted): opens as staged.
+
+* **Type:**
+  Open from another shot’s end state (an#542)
 
 #### joints *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[JointSpec](#an.ir.schema.JointSpec)]*
 

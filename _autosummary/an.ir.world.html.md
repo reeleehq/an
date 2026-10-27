@@ -66,7 +66,7 @@ move, and a close-up is the same world seen from nearer.
 
 ### Classes
 
-| [`Lowered`](#an.ir.world.Lowered)(scene[, notes, origins])                 | The scene as the compiler will see it, the notes to report, and for each framed shot where its lowered entities came from (`origins`: per lowered entity index, the author's entity index, or `None` for one the world added), so a finding on a lowered shot can name the author's line.   |
+| [`Lowered`](#an.ir.world.Lowered)(scene[, notes, origins, carried])        | The scene as the compiler will see it, the notes to report, and for each framed shot where its lowered entities came from (`origins`: per lowered entity index, the author's entity index, or `None` for one the world added), so a finding on a lowered shot can name the author's line.   |
 |---------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`Placed`](#an.ir.world.Placed)(id, at, scale, depth, box, in_frame, via) | Where one member lands in a framed shot.                                                                                                                                                                                                                                                    |
 | [`Projection`](#an.ir.world.Projection)(at, forward, right, down, focal)      | A resolved viewpoint: where the camera is, which way it looks, its lens.                                                                                                                                                                                                                    |
@@ -101,7 +101,7 @@ alias of [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mappin
 A hand `stage.at` this far from the world’s placement is “the same”
 (the cut-continuity tolerance, an#394); farther is a lint warning.
 
-### *class* an.ir.world.Lowered(scene, notes=list(), origins=dict())
+### *class* an.ir.world.Lowered(scene, notes=list(), origins=dict(), carried=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -109,6 +109,12 @@ The scene as the compiler will see it, the notes to report, and for
 each framed shot where its lowered entities came from (`origins`: per
 lowered entity index, the author’s entity index, or `None` for one the
 world added), so a finding on a lowered shot can name the author’s line.
+
+#### carried *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[int](https://docs.python.org/3/builtins/functions.html#int), [int](https://docs.python.org/3/builtins/functions.html#int)]*
+
+Per continued shot (an#542), how many actions its `continue:` put
+before the author’s, so a finding’s `actions/<k>` can name the
+author’s line.
 
 ### an.ir.world.PERSPECTIVE_TOLERANCE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.15*
 
