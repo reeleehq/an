@@ -1257,7 +1257,7 @@ def test_a_stream_of_stroked_paths_compiles_with_its_slot_marker(tmp_path):
 
 
 def test_the_core_override_keys_are_the_owners_constants():
-    from an.base import CORE_OVERRIDE_KEYS, PLANE_FACTORS_OVERRIDE
+    from an.base import CORE_OVERRIDE_KEYS, PAINT_KEYS_OVERRIDE, PLANE_FACTORS_OVERRIDE
     from an.ir.world import ATTACHED_OVERRIDE, STREAM_OVERRIDE
     from an.stage.hold import AIM_OVERRIDE, ON_OVERRIDE
 
@@ -1267,6 +1267,7 @@ def test_the_core_override_keys_are_the_owners_constants():
         ON_OVERRIDE,
         AIM_OVERRIDE,
         PLANE_FACTORS_OVERRIDE,
+        PAINT_KEYS_OVERRIDE,
     }
     assert owners == set(CORE_OVERRIDE_KEYS)
 
@@ -1395,20 +1396,71 @@ def test_a_lane_range_is_measured_across_it_not_at_its_ends():
     lower_world(scene, extents=EXTENTS)  # no "two instances in one slot"
 
 
-def test_a_travel_is_not_reported_as_solids_through_each_other(tmp_path):
+def _lane(scene: SceneIR, lane: float) -> SceneIR:
+    (stream,) = scene.world.travel.streams
+    scene.world.travel = scene.world.travel.model_copy(
+        update={"streams": [stream.model_copy(update={"lane": lane})]}
+    )
+    return scene
+
+
+@pytest.mark.parametrize("lane", [1.2, 0.2])
+def test_a_travel_is_not_reported_as_solids_through_each_other(tmp_path, lane):
     """an#632: three shots down a road of poles. A slot hidden between passes
     overlaps nothing, a nearer pole over a farther one is occlusion, and the
-    draw-order check leaves slots to the world. What is left is the paint
-    inversion of a reused slot (an#634), said as such."""
+    draw-order check leaves slots to the world. And since an#634 a slot reused
+    for a farther instance drops behind the nearer ones, so no pole is painted
+    over a nearer one (7 such pairs a shot at lane 1.2 before, 17 at 0.2)."""
     project = _project(tmp_path)
-    scene = _travel_scene(
-        *[Shot(id=f"s{i}", duration=3.0, viewpoint="road") for i in range(3)]
+    scene = _lane(
+        _travel_scene(*[Shot(id=f"s{i}", duration=3.0, viewpoint="road") for i in range(3)]),
+        lane,
     )
     found = _validate(project, scene).findings
     assert not [f for f in found if "drawn through each other" in f.description]
     assert not [f for f in found if "the order flips" in f.description]
-    inversions = [f for f in found if "though it is the farther" in f.description]
-    assert inversions and all("an#634" in f.description for f in inversions)
+    assert not [f for f in found if "though it is the farther" in f.description]
+
+
+def test_a_reused_slot_is_painted_by_the_depth_of_the_instance_it_draws(tmp_path):
+    """an#634: at every frame, the stream's visible slots are painted far to
+    near (the larger, nearer pole later), read off the compiled document's
+    ``z_index`` keys the way the stage sorts the scene's children."""
+    from an.base import PAINT_KEYS_OVERRIDE, Z_INDEX_PROPERTY
+    from an.stage.compile import compile_shot
+    from an.stage.timeline import entity_alpha, timeline_from_scene
+    from an.timing.timeline import evaluate_timeline
+
+    project = _project(tmp_path)
+    scene = _lane(_travel_scene(Shot(id="s1", duration=3.0, viewpoint="road")), 0.2)
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    slots = [e.id for e in shot.entities if e.overrides and "stream" in e.overrides]
+    assert all(PAINT_KEYS_OVERRIDE in e.overrides for e in shot.entities)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        doc = compile_shot(shot, project.mall)
+    kids = {n.name: n for n in doc.scene.children}
+    timeline = timeline_from_scene(doc)
+    changed = 0
+    for i in range(61):
+        t = 3.0 * i / 60
+        pose = evaluate_timeline(timeline, t)
+        seen = [s for s in slots if entity_alpha(doc, pose, s) > 1e-3]
+        z = {s: pose.get((s, Z_INDEX_PROPERTY), kids[s].z_index) for s in seen}
+        changed += any(z[s] != kids[s].z_index for s in seen)
+        scale = {s: pose.get((s, "scale_x"), kids[s].transform.scale_x) for s in seen}
+        by_paint = sorted(seen, key=z.__getitem__)
+        assert [scale[s] for s in by_paint] == sorted(scale[s] for s in by_paint), t
+    assert changed  # the slots were reused, and their order moved with them
+
+
+def test_a_shot_whose_order_holds_carries_no_paint_keys():
+    """No slot reused (a short shot): nothing recorded, nothing compiled."""
+    from an.base import PAINT_KEYS_OVERRIDE
+
+    scene = _travel_scene(Shot(id="s1", duration=0.2, viewpoint="road"))
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    assert not [e for e in shot.entities if PAINT_KEYS_OVERRIDE in (e.overrides or {})]
 
 
 # --- an#629: a closed-form pass is one exact tween per channel -----------------
@@ -1456,3 +1508,121 @@ def test_a_minute_of_road_costs_a_third_of_what_fitting_did():
     )
     shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
     assert 0 < len(shot.actions) <= 2000
+
+
+def _compiled_road(
+    tmp_path,
+    *,
+    member_after: str | None = None,
+    right_after: str | None = None,
+    stream_after: str | None = "set/hill",
+    hill_depth: float = 1.0,
+):
+    """The road at lane 0.2 under an environment with a foreground band
+    (``set/rail`` over everything), its poles after ``stream_after``;
+    ``left`` / ``right`` placed after ``member_after`` / ``right_after`` when
+    given; the hill at ``hill_depth`` (not 1: the entities after it ride a
+    wrapper). The compiled document."""
+    from an.stage.compile import compile_shot
+
+    root = Path(shutil.copytree(LAMP, tmp_path / "p"))
+    env_dir = root / "assets/environments/stage"
+    shutil.copytree(PLANES / "assets/environments/stage", env_dir)
+    for f in env_dir.glob("*.json"):
+        doc = json.loads(f.read_text(encoding="utf-8"))
+        for plane in doc.get("planes", ()):
+            if plane["name"] == "hill":
+                plane["depth"] = hill_depth
+        f.write_text(json.dumps(doc), encoding="utf-8")
+    project = load(root)
+    env = AssetRef(kind="environment", id="set", store="environments", ref="stage")
+    scene = _lane(
+        _travel_scene(Shot(id="s1", duration=3.0, viewpoint="road", entities=[env])), 0.2
+    )
+    (stream,) = scene.world.travel.streams
+    scene.world.travel = scene.world.travel.model_copy(
+        update={
+            "streams": [stream.model_copy(update={"after": stream_after})],
+            "plates": {"far": ["set/sky"], "vehicle": ["set/hill", "set/rail"]},
+        }
+    )
+    left, right = scene.world.members
+    scene.world.members = [
+        left.model_copy(update={"after": member_after}) if member_after else left,
+        right.model_copy(update={"after": right_after}) if right_after else right,
+    ]
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        return compile_shot(shot, project.mall)
+
+
+def _painted(doc, t: float) -> list[str]:
+    from an.base import Z_INDEX_PROPERTY
+    from an.stage.timeline import timeline_from_scene
+    from an.timing.timeline import evaluate_timeline
+
+    pose = evaluate_timeline(timeline_from_scene(doc), t)
+    z = {
+        n.name: (pose.get((n.name, Z_INDEX_PROPERTY), n.z_index), i)
+        for i, n in enumerate(doc.scene.children)
+    }
+    return sorted(z, key=z.get)
+
+
+@pytest.mark.parametrize("member_after", [None, "set/rail", "pole_0"])
+def test_a_reordered_slot_never_crosses_what_the_author_placed(tmp_path, member_after):
+    """an#634 review: the slots move only among their keyed neighbours. The
+    foreground band stays over every pole; a member placed after the rail
+    stays over the band; one placed after a pole stays just after it; and as
+    the shot opens the order is the built one."""
+    doc = _compiled_road(tmp_path, member_after=member_after)
+    built = [n.name for n in doc.scene.children]
+    assert _painted(doc, 0.0) == built
+    moved = False
+    for t in (0.5, 1.6, 2.3, 2.9):
+        order = _painted(doc, t)
+        moved |= order != built
+        poles = [i for i, n in enumerate(order) if n.startswith("pole_")]
+        assert max(poles) < order.index("set__band_1")
+        if member_after == "set/rail":
+            assert order.index("left") > order.index("set__band_1")
+        if member_after == "pole_0":
+            assert order.index("left") == order.index("pole_0") + 1
+    assert moved
+
+
+@pytest.mark.parametrize("stream_after", [None, "set/hill"])
+def test_a_member_placed_after_a_plane_beside_the_slots_compiles(tmp_path, stream_after):
+    """an#634 re-review: ``right`` placed after the hill lands beside the slots
+    out of depth order; the run ends there, so the scene compiles (as on main)
+    and the slots still move among themselves."""
+    doc = _compiled_road(tmp_path, right_after="set/hill", stream_after=stream_after)
+    built = [n.name for n in doc.scene.children]
+    assert _painted(doc, 0.0) == built
+    assert any(_painted(doc, t) != built for t in (0.5, 1.6, 2.3, 2.9))
+
+
+def test_slots_riding_a_plane_wrapper_are_ordered_inside_it(tmp_path):
+    """an#634 re-review: a stream after a plane whose depth is not 1 rides the
+    plane's ``<env>__after_<k>`` wrapper; its slots are reordered there, and
+    only a child that moves carries ``z_index`` keys."""
+    from an.base import Z_INDEX_PROPERTY
+
+    doc = _compiled_road(tmp_path, hill_depth=0.8)
+    (wrapper,) = [n for n in doc.scene.children if n.scope == "" and n.children]
+    poles = [n.name for n in wrapper.children if n.name.startswith("pole_")]
+    assert len(poles) > 2
+    keyed = {
+        ch.target
+        for clip in doc.animations.values()
+        for ch in clip.channels
+        if ch.property == Z_INDEX_PROPERTY
+    }
+    assert keyed and keyed <= set(poles)
+    assert all(
+        len({k.value for k in ch.keyframes}) > 1
+        for clip in doc.animations.values()
+        for ch in clip.channels
+        if ch.property == Z_INDEX_PROPERTY
+    )

@@ -381,6 +381,17 @@
         return container;
     }
 
+    // The compiler's synthetic top-level node: its children are built into
+    // `root` (the centred camera node), and `root` sorts them like any other
+    // container whose children carry a paint order (a world's stream slots
+    // reused for a farther instance, an#634).
+    function buildSceneRoot(sceneNode, root) {
+        for (const child of (sceneNode.children || [])) {
+            buildSceneTree(child, root, '');
+        }
+        applyPaintOrder(root);
+    }
+
     // Visual kinds a genre's runtime script registers (an#247): checked FIRST,
     // so a genre may also take over a built-in kind. The cut-out mouth and eye are
     // such kinds, registered by cutan's runtime script (an#225). `make(visualSpec, PIXI)` returns the display object.
@@ -1443,11 +1454,16 @@
     }
 
     function applyProperty(node, prop, value) {
-        // Not a transform and not a swap: where the node is painted (an#537).
-        // Spelled literally (ORDER_PROPERTIES' one member) so this function
+        // Not a transform and not a swap: where the node is painted (an#537),
+        // and its place among its sorted container's children (an#634).
+        // Spelled literally (ORDER_PROPERTIES' members) so this function
         // stays self-contained: tests lift it out of the file on its own.
         if (prop === 'paint_after') {
             applyPaintAfter(node, value);
+            return;
+        }
+        if (prop === 'z_index') {
+            node.zIndex = value;  // PixiJS marks the parent to re-sort
             return;
         }
         switch (prop) {
@@ -1563,10 +1579,12 @@
         'rotation_x', 'perspective', 'plane_fade_start', 'plane_fade_end',
     ]);
     const SWAP_WRITE_GROUP = '<swap>';
-    // Where a node is painted (an#537): a string switched at its own key, in
-    // its own write group. Mirror of `an.base.ORDER_PROPERTIES`.
+    // Where a node is painted (an#537), and its place among its sorted
+    // container's children (an#634): each switched at its own key, in its own
+    // write group. Mirror of `an.base.ORDER_PROPERTIES`.
     const PAINT_AFTER = 'paint_after';
-    const ORDER_PROPERTIES = new Set([PAINT_AFTER]);
+    const Z_INDEX = 'z_index';
+    const ORDER_PROPERTIES = new Set([PAINT_AFTER, Z_INDEX]);
     const SHARED_WRITES = { rotation_rad: 'rotation' };
 
     // Port of `an/timing/timeline.py::write_group`: what a property WRITES on its node.
@@ -2177,6 +2195,8 @@
     function captureRest(node, prop) {
         // At rest a node paints at its own place in the tree (an#537).
         if (prop === 'paint_after') return () => applyPaintAfter(node, '');
+        // At rest a node keeps the place its document gave it (an#634).
+        if (prop === 'z_index') { const v = node.zIndex; return () => { node.zIndex = v; }; }
         switch (prop) {
             case 'x': { const v = node.x; return () => { node.x = v; }; }
             case 'y': { const v = node.y; return () => { node.y = v; }; }
@@ -2387,9 +2407,7 @@
             // matching the channel.target strings the compiler emits). Do
             // NOT apply its transform — it's a logical container, and the
             // outer `root` already centers the scene to canvas center.
-            for (const child of (scene.scene.children || [])) {
-                buildSceneTree(child, root, '');
-            }
+            buildSceneRoot(scene.scene, root);
         }
 
         // The overlay (an#155): a SECOND top-level container, centred like

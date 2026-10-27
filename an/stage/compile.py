@@ -36,16 +36,18 @@ import hashlib
 import math
 import re
 import warnings
-from collections.abc import Iterable, Mapping
+from collections.abc import Collection, Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Protocol
 
 from an.base import (
     DEFAULT_RESOLUTION,
+    PAINT_KEYS_OVERRIDE,
     PLANE_REST_VALUES,
     TRANSFORM_PROPERTIES,
     TRIM_PROPERTIES,
+    Z_INDEX_PROPERTY,
     swap_set_name_problem,
 )
 from an.stage.easing import apply_easing
@@ -1231,6 +1233,140 @@ def _parallax_pass(state: CompileState) -> None:
     )
 
 
+def paint_orders(
+    keys: Mapping[str, Sequence[tuple[float, Any]]],
+) -> list[tuple[float, list[str]]]:
+    """The order (back to front) of the entities in ``keys`` (``{id: [(time,
+    key)]}``, each key in force from its time on, a smaller key painted
+    first) at each time any key changes.
+
+    >>> paint_orders({"near": [(0.0, 2)], "slot": [(0.0, 3), (1.5, 1)]})
+    [(0.0, ['near', 'slot']), (1.5, ['slot', 'near'])]
+    """
+    times = sorted({float(t) for ks in keys.values() for t, _ in ks})
+    out = []
+    for t in times:
+        now = {n: [k for at, k in ks if float(at) <= t][-1] for n, ks in keys.items()}
+        out.append(
+            (
+                t,
+                sorted(
+                    now,
+                    key=lambda n: tuple(now[n]) if isinstance(now[n], list) else now[n],
+                ),
+            )
+        )
+    return out
+
+
+def _keyed_runs(names: Sequence[str], opening: Mapping[str, Any]) -> list[list[int]]:
+    """The runs of consecutive places in ``names`` whose names have a key in
+    ``opening`` (their keys as the shot opens), each ending where the built
+    order and the opening keys disagree: a world entity is reordered only
+    among keyed neighbours built in its own order, never across a plane, a
+    band, an entity the author placed after a plane among them, or one the
+    world does not key (an#634).
+
+    >>> _keyed_runs(["sky", "a", "b", "rail", "c", "d"], {"a": 0, "b": 1, "c": 5, "d": 2})
+    [[1, 2], [4], [5]]
+    """
+    runs: list[list[int]] = []
+    for i, name in enumerate(names):
+        if name not in opening:
+            continue
+        prev = runs[-1][-1] if runs else None
+        if prev == i - 1 and _sort_key(opening[names[prev]]) <= _sort_key(
+            opening[name]
+        ):
+            runs[-1].append(i)
+        else:
+            runs.append([i])
+    return runs
+
+
+def _sort_key(key: Any) -> Any:
+    """A paint key as it sorts (a JSON list read back is a tuple)."""
+    return tuple(key) if isinstance(key, list) else key
+
+
+def z_index_keys(
+    names: Sequence[str], keys: Mapping[str, Sequence[tuple[float, Any]]]
+) -> dict[str, list[tuple[float, int]]]:
+    """Each keyed child's ``z_index`` from each time it changes (an#634), in
+    one container whose children are ``names``: within each run of keyed
+    children (:func:`_keyed_runs`), at every time a key changes, they take the
+    run's places in key order (:func:`paint_orders`); every other child keeps
+    its own place. Only a child whose place changes gets keys.
+
+    >>> z_index_keys(["sky", "a", "b"], {"a": [(0, 0), (2, 3)], "b": [(0, 1)]})
+    {'a': [(0.0, 1), (2.0, 2)], 'b': [(0.0, 2), (2.0, 1)]}
+    """
+    out: dict[str, list[tuple[float, int]]] = {}
+    for places in _keyed_runs(names, {n: ks[0][1] for n, ks in keys.items()}):
+        run = [names[i] for i in places]
+        moves: dict[str, list[tuple[float, int]]] = {n: [] for n in run}
+        for t, order in paint_orders({n: keys[n] for n in run}):
+            for place, name in zip(places, order):
+                if not moves[name] or moves[name][-1][1] != place:
+                    moves[name].append((t, place))
+        out.update({n: ks for n, ks in moves.items() if len(ks) > 1})
+    return out
+
+
+def _paint_keys_pass(state: CompileState) -> None:
+    """A world's changing paint order (an#634): in each container of entities
+    (:func:`an.stage.tree.entity_containers`) whose keyed children
+    (``overrides[PAINT_KEYS_OVERRIDE]``) change places, every child gets its
+    place as a static ``z_index`` (so the stage sorts that container) and each
+    one that moves a stepped ``z_index`` channel."""
+    keys = {
+        e.id: e.overrides[PAINT_KEYS_OVERRIDE]
+        for e in state.shot.entities
+        if PAINT_KEYS_OVERRIDE in (e.overrides or {})
+    }
+    if not keys:
+        return
+    channels: list[ChannelJSON] = []
+    for container in stage_tree.entity_containers(state.scene_root):
+        kids = container.children or []
+        names = [k.name for k in kids]
+        moves = z_index_keys(names, {n: keys[n] for n in names if n in keys})
+        if not moves:
+            continue
+        for i, kid in enumerate(kids):
+            if kid.z_index is not None:
+                raise CutoutCompileError(
+                    f"shot {state.shot.id!r}: {kid.name!r} already has a paint "
+                    "order (`z_index`) beside entities the world orders by depth"
+                )
+            kid.z_index = float(i)
+        channels += [
+            ChannelJSON(
+                target=name,
+                property=Z_INDEX_PROPERTY,
+                keyframes=[
+                    KeyframeJSON(time=t, value=float(z), easing="step") for t, z in ks
+                ],
+            )
+            for name, ks in moves.items()
+        ]
+    if not channels:
+        return
+    duration = max(0.001, float(state.shot.duration))
+    anim_id = _fresh_clip_id(f"__paint__{state.shot.id}", state.animations)
+    state.animations[anim_id] = AnimationClipJSON(
+        name=anim_id, duration=duration, channels=channels
+    )
+    state.tracks.append(
+        TrackJSON(
+            target_root="__paint__",
+            clips=[
+                PlacedClipJSON(animation_id=anim_id, start_time=0.0, duration=duration)
+            ],
+        )
+    )
+
+
 def _paint_orders_needed(root: NodeJSON) -> set[str]:
     """The paint orders a compiled tree asks of its engine (an#430):
     ``container`` for a ``z_index``, ``global`` for a ``paint_order``."""
@@ -1339,6 +1475,12 @@ STAGE_COMPILE_PASSES: tuple[CompilePass, ...] = (
     CompilePass("parallax", _parallax_pass, order=700, description="planes' parallax"),
     CompilePass(
         "boil", _boil_pass, order=750, description="a boiling path's drawings (an#443)"
+    ),
+    CompilePass(
+        "paint_keys",
+        _paint_keys_pass,
+        order=800,
+        description="a world's changing paint order, as z_index keys (an#634)",
     ),
     CompilePass(
         "checks", _checks_pass, order=900, description="targets, easings, stand-ins"

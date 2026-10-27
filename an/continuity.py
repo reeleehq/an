@@ -35,6 +35,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from an.base import ORDER_PROPERTIES
 from an.ir.schema import SceneIR, SetAction, Shot, TweenAction
 
 __all__ = [
@@ -50,9 +51,9 @@ __all__ = [
 CONTINUE_SEPARATOR: str = "#"
 #: Transform fields read off an entity's own node: where it stands.
 ROOT_TRANSFORM: tuple[str, ...] = ("x", "y", "rotation", "scale_x", "scale_y")
-#: Channels never carried across a cut: draw order the hold layer derives each
-#: shot, and the mouth, which the new shot's own dialogue drives.
-UNCARRIED_PROPERTIES: frozenset[str] = frozenset({"paint_after", "viseme"})
+#: Channels never carried across a cut: draw order, which the hold layer and the
+#: world derive each shot, and the mouth, which the new shot's own dialogue drives.
+UNCARRIED_PROPERTIES: frozenset[str] = ORDER_PROPERTIES | {"viseme"}
 #: Holders that leave an item where it lies, carried as its transform.
 _UNHELD: frozenset[str] = frozenset({"staged", "air"})
 #: The plain floor: it holds an item at its own x, on the ground line.

@@ -53,7 +53,7 @@ def test_the_cutout_passes_are_the_genres_not_the_stages():
     assert set(CUTOUT.provides()["compile passes"]) >= {p.name for p in CUTOUT.compile_passes}
     with without_genres():
         assert [p.name for p in compile_passes_for_stage()] == [
-            "scene", "counters", "actions", "solve", "camera_follow", "camera_dolly", "camera", "parallax", "boil", "checks",
+            "scene", "counters", "actions", "solve", "camera_follow", "camera_dolly", "camera", "parallax", "boil", "paint_keys", "checks",
         ]
 
 
@@ -97,7 +97,7 @@ def test_a_genre_adds_a_pass_and_an_entity_builder_without_editing_the_stage():
         register_genre(genre)
         doc = _quiet_compile(shot)
         assert [p.name for p in compile_passes_for_stage()][-5:] == [
-            "camera", "stamp", "parallax", "boil", "checks",
+            "stamp", "parallax", "boil", "paint_keys", "checks",
         ]
     assert [n["name"] for n in doc["scene"]["children"]] == ["dial"]
     assert seen and seen[0], "the pass ran after the actions, before the parallax"

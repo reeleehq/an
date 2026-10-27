@@ -1,0 +1,1 @@
+- A stream slot reused for a farther instance is painted behind the nearer slots: the world records paint keys, the compiler steps a `z_index` channel (a new order property the runtime applies, the camera root now sorted) over each run of keyed siblings, never across what the author placed (an#634).

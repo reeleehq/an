@@ -382,7 +382,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_keys": [
+         [
+          0.0,
+          [
+           1.0,
+           -33.0,
+           10000.0
+          ]
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -398,7 +408,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_keys": [
+         [
+          0.0,
+          [
+           1.0,
+           -30.0,
+           10010.0
+          ]
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -414,7 +434,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_keys": [
+         [
+          0.0,
+          [
+           1.0,
+           -27.0,
+           10009.0
+          ]
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -430,7 +460,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_keys": [
+         [
+          0.0,
+          [
+           1.0,
+           -24.0,
+           10008.0
+          ]
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -446,7 +486,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_keys": [
+         [
+          0.0,
+          [
+           1.0,
+           -21.0,
+           10007.0
+          ]
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -462,7 +512,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_keys": [
+         [
+          0.0,
+          [
+           1.0,
+           -18.0,
+           10006.0
+          ]
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -478,7 +538,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_keys": [
+         [
+          0.0,
+          [
+           1.0,
+           -15.0,
+           10005.0
+          ]
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -494,7 +564,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_keys": [
+         [
+          0.0,
+          [
+           1.0,
+           -12.0,
+           10004.0
+          ]
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -510,7 +590,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_keys": [
+         [
+          0.0,
+          [
+           1.0,
+           -9.0,
+           10003.0
+          ]
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -526,7 +616,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_keys": [
+         [
+          0.0,
+          [
+           1.0,
+           -6.0,
+           10002.0
+          ]
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -542,7 +642,25 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_keys": [
+         [
+          0.0,
+          [
+           1.0,
+           -3.0,
+           10001.0
+          ]
+         ],
+         [
+          1.5,
+          [
+           1.0,
+           -36.0,
+           10001.0
+          ]
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -557,7 +675,18 @@
        "id": "left",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "paint_keys": [
+         [
+          0.0,
+          [
+           1.0,
+           -2.0,
+           1000.0
+          ]
+         ]
+        ]
+       },
        "stage": {
         "at": [
          -75.0,
@@ -571,7 +700,18 @@
        "id": "right",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "paint_keys": [
+         [
+          0.0,
+          [
+           1.0,
+           -2.0,
+           1001.0
+          ]
+         ]
+        ]
+       },
        "stage": {
         "at": [
          75.0,
@@ -1601,7 +1741,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_keys": [
+         [
+          0.0,
+          [
+           1.0,
+           -34.0,
+           10003.0
+          ]
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -1617,7 +1767,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_keys": [
+         [
+          0.0,
+          [
+           1.0,
+           -31.0,
+           10002.0
+          ]
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -1633,7 +1793,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_keys": [
+         [
+          0.0,
+          [
+           1.0,
+           -28.0,
+           10001.0
+          ]
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -1649,7 +1819,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_keys": [
+         [
+          0.0,
+          [
+           1.0,
+           -25.0,
+           10000.0
+          ]
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -1665,7 +1845,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_keys": [
+         [
+          0.0,
+          [
+           1.0,
+           -22.0,
+           10010.0
+          ]
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -1681,7 +1871,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_keys": [
+         [
+          0.0,
+          [
+           1.0,
+           -19.0,
+           10009.0
+          ]
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -1697,7 +1897,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_keys": [
+         [
+          0.0,
+          [
+           1.0,
+           -16.0,
+           10008.0
+          ]
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -1713,7 +1923,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_keys": [
+         [
+          0.0,
+          [
+           1.0,
+           -13.0,
+           10007.0
+          ]
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -1729,7 +1949,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_keys": [
+         [
+          0.0,
+          [
+           1.0,
+           -10.0,
+           10006.0
+          ]
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -1745,7 +1975,17 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_keys": [
+         [
+          0.0,
+          [
+           1.0,
+           -7.0,
+           10005.0
+          ]
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -1761,7 +2001,25 @@
        "store": "props",
        "ref": "lamp",
        "overrides": {
-        "stream": "pole"
+        "stream": "pole",
+        "paint_keys": [
+         [
+          0.0,
+          [
+           1.0,
+           -4.0,
+           10004.0
+          ]
+         ],
+         [
+          1.75,
+          [
+           1.0,
+           -37.0,
+           10004.0
+          ]
+         ]
+        ]
        },
        "stage": {
         "at": [
@@ -1776,7 +2034,18 @@
        "id": "left",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "paint_keys": [
+         [
+          0.0,
+          [
+           1.0,
+           -2.0,
+           1000.0
+          ]
+         ]
+        ]
+       },
        "stage": {
         "at": [
          -75.0,
@@ -1790,7 +2059,18 @@
        "id": "right",
        "store": "props",
        "ref": "lamp",
-       "overrides": null,
+       "overrides": {
+        "paint_keys": [
+         [
+          0.0,
+          [
+           1.0,
+           -2.0,
+           1001.0
+          ]
+         ]
+        ]
+       },
        "stage": {
         "at": [
          75.0,

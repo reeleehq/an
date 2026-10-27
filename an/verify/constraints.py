@@ -85,7 +85,7 @@ import math
 from dataclasses import dataclass
 from typing import Any, Callable, Iterator, Mapping
 
-from an.base import STREAM_OVERRIDE, UNSEEN_ALPHA
+from an.base import STREAM_OVERRIDE, UNSEEN_ALPHA, Z_INDEX_PROPERTY
 from an.genres.registry import (
     CORE_OWNER,
     CheckStage,
@@ -826,7 +826,7 @@ def solid_overlaps(
     through the pose and the camera at that instant).
     """
     from an.stage.timeline import entity_alpha, node_box, timeline_from_scene
-    from an.stage.tree import walk_document
+    from an.stage.tree import paint_places, walk_document
     from an.timing.timeline import evaluate_timeline
 
     solids = [e for e in entities if _is_solid(e)]
@@ -840,7 +840,14 @@ def solid_overlaps(
         ]
         for e in solids
     }
-    rank = {eid: i for i, eid in enumerate(painted_order(doc, {e.id for e in solids}))}
+    places = paint_places(doc.scene)
+
+    def painted_at(eid: str, pose: Mapping) -> tuple[tuple[float, int], ...]:
+        """Where ``eid`` is painted now: its place, with its own container's
+        sort key read off its ``z_index`` channel where one writes it (an#634)."""
+        *outer, (z, i) = places.get(eid, ((0.0, 0),))
+        return (*outer, (float(pose.get((eid, Z_INDEX_PROPERTY), z)), i))
+
     timeline = timeline_from_scene(doc)
     first: dict[tuple[str, str], Overlap] = {}
     worst: dict[tuple[str, str], float] = {}
@@ -868,7 +875,9 @@ def solid_overlaps(
                     if not one_art:
                         continue  # the world painted them by depth
                     front, back = (
-                        (a, b) if rank.get(a.id, 0) > rank.get(b.id, 0) else (b, a)
+                        (a, b)
+                        if painted_at(a.id, pose) > painted_at(b.id, pose)
+                        else (b, a)
                     )
                     if _area(boxes[front.id]) >= _area(boxes[back.id]):
                         continue  # the nearer one in front: occlusion
@@ -913,8 +922,8 @@ def check_solidity(ctx: Any) -> None:
                 f"{ctx.path}/entities",
                 f"{o.a!r} is painted over {o.b!r} from {o.at:.2f} s though it is the "
                 f"farther of the two, covering up to {o.fraction:.0%} of the smaller: "
-                "a stream's slot reused for a farther instance keeps the paint order "
-                "it had as the shot opened (an#634).",
+                "the stream's slots are painted out of depth order (an#634: a slot "
+                "reused for a farther instance drops behind the nearer ones).",
             )
             continue
         ctx.report.add(
@@ -950,7 +959,8 @@ class OrderFlip:
 
 
 def painted_order(doc: Any, ids: Any) -> list[str]:
-    """The entities among ``ids`` in the order the compiled scene paints them (back to front).
+    """The entities among ``ids`` in the order the compiled scene paints them
+    (back to front) as the shot opens (:func:`an.stage.tree.paint_places`).
 
     >>> from an.stage.serialize import CutoutSceneJSON, NodeJSON, TimelineJSON
     >>> doc = CutoutSceneJSON(
@@ -960,9 +970,10 @@ def painted_order(doc: Any, ids: Any) -> list[str]:
     >>> painted_order(doc, {"a", "b"})
     ['a', 'b']
     """
-    kids = [(i, n) for i, n in enumerate(doc.scene.children) if n.name in ids]
-    kids.sort(key=lambda p: (p[1].z_index if p[1].z_index is not None else p[0], p[0]))
-    return [n.name for _, n in kids]
+    from an.stage.tree import paint_places
+
+    places = paint_places(doc.scene)
+    return sorted((n for n in places if n in ids), key=places.__getitem__)
 
 
 def order_flips(
