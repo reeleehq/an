@@ -1,0 +1,1 @@
+- A swaying item the holds solver rests or carries is not given a lean (the solver sets its angle): it no longer stays tipped after its frame stops (an#651).

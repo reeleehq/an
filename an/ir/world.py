@@ -2480,6 +2480,20 @@ def _lower_shot(
 
     # The items the holds solver sets the rotation of (an#590): its own list.
     held = set(hold_declarations(shot).items) if swayed else set()
+    for mid in sorted(held & swayed.keys()):
+        # The holds solver sets this one's rotation (it rests, is carried, is
+        # placed): a lean would only be replaced, and a rest taken from the
+        # leaning first frame kept it after the frame stopped (an#651).
+        del swayed[mid]
+        note(
+            "warning",
+            "sway_rotation",
+            mid,
+            "its frame sways, and the holds solver sets its `rotation` (it is "
+            "grasped, placed or `held_by` something): it does not lean; it rests "
+            "and is carried at the angles the solver gives it (an#590, an#651). "
+            "To see it lean, let a swaying holder carry it, or drop the hold.",
+        )
     for mid, lean in swayed.items():
         actions.extend(lean)
         if mid in rotated:
@@ -2489,18 +2503,6 @@ def _lower_shot(
                 mid,
                 "its frame sways (it leans with the frame's acceleration) and the "
                 "shot also animates its `rotation`: the two fight. Drop one.",
-            )
-        elif mid in held:
-            note(
-                "warning",
-                "sway_rotation",
-                mid,
-                "its frame sways (it leans with the frame's acceleration), and the "
-                "holds solver also sets its `rotation` (it is grasped, placed or "
-                "`held_by` something): where the solve rests or carries it, the "
-                "solver's angle replaces the lean, and a rest taken while the "
-                "frame leans keeps that lean after it stops (an#590). Drop the "
-                "hold or `held_by`, or take it out of the swaying frame.",
             )
     for member in world.members:
         if (

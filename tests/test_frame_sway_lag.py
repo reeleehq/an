@@ -360,3 +360,33 @@ def test_a_jump_in_the_first_instants_still_leaves_the_far_side_to_read():
     # from_=0.0 makes 0.05 a step; the ramp after it is real motion on the right side
     a = tree.acceleration("car", 0.0, dt=1 / 24, within=(0.0, 1.0))
     assert a == tree.acceleration("car", 0.05 + 1 / 24, dt=1 / 24, within=(0.0, 1.0))
+
+
+def test_a_resting_item_in_a_braking_car_is_not_left_tipped(tmp_path):
+    """an#651: a lamp the holds solver rests on the ground (``held_by:
+    ground`` with a ground line) in a braking car took its rest angle from the
+    leaning first frame and stayed tipped ~64 degrees after the car stopped.
+    The world leaves its rotation to the solver: it rests upright throughout."""
+    import warnings
+
+    from an.ir.schema import AssetRef, SolveSettings
+    from an.stage.compile import compile_shot
+    from an.stage.timeline import timeline_from_scene
+    from an.timing.timeline import evaluate_timeline
+    from tests.test_world import _project
+
+    scene = _braking(FrameSway())
+    shot = scene.timeline[0]
+    shot.solve = SolveSettings(ground=300)
+    shot.entities.append(
+        AssetRef(kind="prop", id="right", store="props", ref="lamp",
+                 overrides={"held_by": "ground"})
+    )
+    lowered = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    assert _rotation_at(lowered, "right", 0.5) in (None, 0.0)  # no lean emitted
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        doc = compile_shot(lowered, _project(tmp_path).mall)
+    timeline = timeline_from_scene(doc)
+    for t in (0.0, 0.5, 1.5, 1.9):
+        assert evaluate_timeline(timeline, t).get(("right", "rotation"), 0.0) == pytest.approx(0.0, abs=1e-6), t
