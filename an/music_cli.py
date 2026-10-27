@@ -1,7 +1,7 @@
 """``an music …``: acquire a licensed music library from the shell (an#470).
 
-A thin projection of :mod:`an.music_library`, wired into the CLI by
-:data:`an.tools._dispatch_namespaces`.
+A thin projection of :mod:`foley.sources.music_library` through an's bridge,
+:mod:`an.music_library`, wired into the CLI by :data:`an.tools._dispatch_namespaces`.
 """
 
 from __future__ import annotations
@@ -28,7 +28,8 @@ def add_library(
     attribution, and any metadata the titles file gives) and `ATTRIBUTION.md`
     (the blocks to paste under a video) into OUT. A rerun keeps the files the
     previous `tracks.csv` recorded, digest checked, and exits 1 when a title
-    could not be fetched (the table still lists it, with why). A paid library (artlist,
+    could not be fetched, or its licence does not allow the use (the table
+    still lists it, with why). A paid library (artlist,
     epidemic_sound) downloads nothing: its rows are a wishlist.
 
     library: a registered library (incompetech, artlist, epidemic_sound)
@@ -43,11 +44,12 @@ def add_library(
     from an.music_library import (
         FAILED,
         MUSIC_LIBRARIES,
+        REFUSED,
         MusicLibraryError,
         acquire,
         attribution_text,
         files_store,
-        kept_digests,
+        kept_sources,
         titles_by_library,
         titles_from_json,
         tracks_table,
@@ -73,7 +75,7 @@ def add_library(
         store = files_store(out)
         previous = store.get(TRACKS_TABLE, b"").decode("utf-8")
         rows = acquire(
-            library, titles, out=store, pause=pause, kept=kept_digests(previous)
+            library, titles, out=store, pause=pause, kept=kept_sources(previous)
         )
     except MusicLibraryError as e:
         raise SystemExit(f"an music add-library: {e}") from e
@@ -89,7 +91,7 @@ def add_library(
             *reasons,
         ]
     )
-    return failed(report) if counts[FAILED] else report
+    return failed(report) if counts[FAILED] or counts[REFUSED] else report
 
 
 _dispatch_funcs = [add_library]

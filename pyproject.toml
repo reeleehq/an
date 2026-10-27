@@ -72,6 +72,13 @@ dependencies = [
     # base install is light (config2py, dol, xdol) and `filtergraph` is pure;
     # it is imported when a chain is built, never by `import an`.
     "mixing",
+    # The music library (an#656): `an music add-library` is a surface over
+    # `foley.sources.music_library` (registry, mirrors, resilient fetch, audio
+    # probe, licence gate, credit parser), with `an.music_library` bridging its
+    # rows to `AssetSource`. A sibling package (MIT); its base install is dol,
+    # `ocracy` (MIT) and `cw` (MIT), both stdlib-only. Imported when a library
+    # is acquired, never by `import an` (its import is ~0.25 s).
+    "foley",
 ]
 
 [project.scripts]

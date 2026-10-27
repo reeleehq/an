@@ -1,5 +1,9 @@
-"""Acquire a licensed music library with provenance (an#470): offline, every
-network step behind its seam."""
+"""Acquire a licensed music library with provenance (an#470), through an's
+bridge to foley (an#656): offline, every network step behind its seam.
+
+The library is foley's (``foley.sources.music_library``); what these pin is the
+behaviour an relies on, read through :func:`an.music_library.asset_source`
+where a row's provenance is an's ``AssetSource``."""
 
 from __future__ import annotations
 
@@ -21,9 +25,10 @@ from an.music_library import (
     MusicLibraryError,
     MusicToolMissing,
     acquire,
+    asset_source,
     attribution_text,
-    ffprobe_verify,
     kept_digests,
+    probe_verify,
     titles_by_library,
     titles_from_json,
     tracks_table,
@@ -66,14 +71,14 @@ def test_titles_are_fetched_verified_and_recorded_with_their_licence():
     fetch, pauses, store = Fetcher({_url("A"): b"aa", _url("B"): b"bb"}), [], {}
     rows = acquire(
         "incompetech", ["A", "B"], out=store, fetch=fetch, verify=_ok,
-        sleep=pauses.append, pause=2.0,
+        sleep=pauses.append, clock=lambda: 0.0, pause=2.0,
     )  # fmt: skip
     assert [(r.title, r.status, r.file) for r in rows] == [
         ("A", ACQUIRED, "A.mp3"),
         ("B", ACQUIRED, "B.mp3"),
     ]
     assert store == {"A.mp3": b"aa", "B.mp3": b"bb"}
-    src = rows[0].source
+    src = asset_source(rows[0])
     assert (src.license, src.author, src.url) == (
         "cc-by-4.0",
         "Kevin MacLeod",
@@ -93,9 +98,11 @@ def test_the_archive_copy_is_recorded_as_where_the_bytes_came_from():
         "incompetech", ["A"], out={}, fetch=fetch, verify=_ok, sleep=pauses.append
     )
     assert row.status == ACQUIRED and pauses == []
-    assert row.source.url == wayback(_url("A"))
-    assert row.source.source_page_url == _url("A")
-    assert row.source.model_extra["mirror"] == "wayback"
+    src = asset_source(row)
+    assert src.url == wayback(_url("A"))
+    assert src.source_page_url == _url("A")
+    assert src.model_extra["mirror"] == "wayback"
+    assert src.model_extra["rights_verified"] is True
 
 
 def test_a_lost_title_is_a_failed_row_and_the_batch_goes_on():
@@ -155,9 +162,8 @@ def test_a_rerun_keeps_only_what_the_previous_table_recorded():
     rows = _acquire(["A", "B"], fetch, out=store, kept=kept)
     assert [r.status for r in rows] == [KEPT, ACQUIRED]
     assert fetch.calls == [_url("B")], "A not fetched again"
-    assert (
-        rows[0].source.sha256 == kept["A.mp3"] and rows[0].source.license == "cc-by-4.0"
-    )
+    src = asset_source(rows[0])
+    assert src.sha256 == kept["A.mp3"] and src.license == "cc-by-4.0"
     assert store["B.mp3"] == b"new", "an unrecorded file is not stamped with a licence"
     assert kept_digests(tracks_table(rows)) == {
         "A.mp3": kept["A.mp3"],
@@ -168,7 +174,7 @@ def test_a_rerun_keeps_only_what_the_previous_table_recorded():
 def test_a_paid_library_is_a_wishlist_and_downloads_nothing():
     fetch = Fetcher({})
     rows = acquire("epidemic_sound", ["Night Owl"], out={}, fetch=fetch, verify=_ok)
-    assert [(r.status, r.source.license, r.file) for r in rows] == [
+    assert [(r.status, asset_source(r).license, r.file) for r in rows] == [
         (WISHLIST, None, None)
     ]
     assert fetch.calls == [] and attribution_text(rows) == ""
@@ -182,7 +188,10 @@ def test_metadata_rides_the_row_into_the_tracks_table():
     (row,) = csv.DictReader(io.StringIO(tracks_table(rows)))
     assert row["credited_by"] == "vid1; vid2" and row["feel"] == "Bright"
     assert row["tags"] == '{"k": 1}' and "extra" not in row
-    assert row["license"] == "cc-by-4.0" and row["duration_s"] == "1.5"
+    # The table is foley's, in foley's licence ids; the AssetSource is an's.
+    assert row["license"] == "CC-BY-4.0" and row["duration_s"] == "1.5"
+    assert asset_source(rows[0]).license == "cc-by-4.0"
+    assert asset_source(row).model_extra["feel"] == "Bright", "a table row bridges too"
     for clash in ({"license": "cc0-1.0"}, {"status": "acquired"}):
         with pytest.raises(MusicLibraryError, match="drop them"):
             _acquire({"A": clash}, Fetcher({}))
@@ -208,7 +217,9 @@ def test_an_unknown_library_names_the_registered_ones():
 
 
 def test_without_ffprobe_nothing_is_downloaded(monkeypatch):
-    monkeypatch.setattr(shutil, "which", lambda name: None)
+    from foley.sources.music_library import verify
+
+    monkeypatch.setattr(verify, "probe_available", lambda: False)
     fetch = Fetcher({_url("A"): b"aa"})
     with pytest.raises(MusicToolMissing, match="ffprobe"):
         acquire("incompetech", ["A"], out={}, fetch=fetch)
@@ -253,13 +264,13 @@ def _mp3(tmp_path):
 
 
 @pytest.mark.ffmpeg
-def test_ffprobe_verify_reads_audio_and_refuses_an_error_page(tmp_path):
+def test_probe_verify_reads_audio_and_refuses_an_error_page(tmp_path):
     if shutil.which("ffprobe") is None:
         pytest.skip("ffprobe not on PATH")
-    assert ffprobe_verify(_mp3(tmp_path)) == pytest.approx(1.0, abs=0.1)
+    assert probe_verify(_mp3(tmp_path)) == pytest.approx(1.0, abs=0.1)
     for bad in (b"<html>403 Forbidden</html>", b""):
         with pytest.raises(MusicLibraryError):
-            ffprobe_verify(bad)
+            probe_verify(bad)
 
 
 @pytest.mark.ffmpeg
@@ -268,20 +279,22 @@ def test_the_command_writes_files_table_and_attribution_and_resumes(
 ):
     if shutil.which("ffprobe") is None:
         pytest.skip("ffprobe not on PATH")
-    import urllib.request
+    from foley.sources.music_library import fetch
 
     from an.music_cli import add_library
 
     audio, opened = _mp3(tmp_path), []
 
-    class Response(io.BytesIO):
-        headers = {"Content-Type": "audio/mpeg"}
+    class Response:
+        def __init__(self, status_code, content=b"", kind="audio/mpeg"):
+            self.status_code, self.content = status_code, content
+            self.headers = {"Content-Type": kind}
 
-    def urlopen(req, timeout=None):
-        opened.append(req.full_url)
-        return Response(audio)
+    def serve(method, url, **kw):  # foley's transport: (method, url) -> response
+        opened.append(url)
+        return Response(200, audio)
 
-    monkeypatch.setattr(urllib.request, "urlopen", urlopen)
+    monkeypatch.setattr(fetch, "requests_transport", serve)
     titles = tmp_path / "usage.json"
     titles.write_text(json.dumps(["Sneaky Snitch"]), encoding="utf-8")
     out = tmp_path / "macleod"
@@ -297,10 +310,10 @@ def test_the_command_writes_files_table_and_attribution_and_resumes(
 
     from an.cli_status import exit_code_of
 
-    def refuse(req, timeout=None):
-        raise OSError("HTTP Error 403: Forbidden")
+    def refuse(method, url, **kw):
+        return Response(403, b"Forbidden", kind="text/plain")
 
-    monkeypatch.setattr(urllib.request, "urlopen", refuse)
+    monkeypatch.setattr(fetch, "requests_transport", refuse)
     titles.write_text(json.dumps(["Sneaky Snitch", "Gone"]), encoding="utf-8")
     said = add_library("incompetech", titles_from=str(titles), out=str(out), pause=0.0)
-    assert exit_code_of(said) == 1 and "Gone: direct: HTTP Error 403" in said
+    assert exit_code_of(said) == 1 and "Gone: direct: HTTP 403" in said
