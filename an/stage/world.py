@@ -35,6 +35,20 @@ __all__ = [
 ]
 
 
+#: Entity kinds the stage draws nothing for: what no shot places.
+UNDRAWN_KINDS: frozenset[str] = frozenset({"voice"})
+
+
+def draws(ref: AssetRef) -> bool:
+    """Whether the stage draws ``ref`` (an environment, a prop, a character:
+    anything but :data:`UNDRAWN_KINDS`).
+
+    >>> draws(AssetRef(kind="voice", id="v", store="voices", ref="v"))
+    False
+    """
+    return ref.kind not in UNDRAWN_KINDS
+
+
 def native_box(
     ref: AssetRef, mall: Mapping[str, Mapping] | None, *, width: int, height: int
 ) -> Box | None:
@@ -53,13 +67,15 @@ def native_box(
     from an.stage.timeline import node_box, screen_position
     from an.stage.tree import walk_document
 
+    if not draws(ref):
+        return None
     kind = entity_kind(ref.kind)
     specimen = getattr(kind, "specimen", None) if kind is not None else None
     if specimen is None:
-        if ref.kind == "voice":
-            return None
         specimen = stage_specimen
-    bare = ref.model_copy(update={"stage": None})
+    # Alone in its specimen: no placement, and no joint to an entity that is
+    # not there (a hand holding a prop would not compile, an#514 review).
+    bare = ref.model_copy(update={"stage": None, "joints": []})
     shot = specimen(bare)
     if shot.renderer not in STAGE_RENDERER_NAMES:
         return None
@@ -200,7 +216,6 @@ def seed_world(
     ...
     ValueError: no shot 'a' in the scene (its shots: [])
     """
-    from an.genres.registry import entity_kind
     from an.ir.schema import Viewpoint
     from an.ir.world import focal_length
     from an.ir.world_from_shot import seed_members
@@ -221,12 +236,7 @@ def seed_world(
         raise ValueError(f"shot {shot_id!r} already names a viewpoint")
     width = int(scene.meta.resolution.width)
     height = int(scene.meta.resolution.height)
-    drawn = [
-        e
-        for e in shot.entities
-        if e.kind != "environment"
-        and getattr(entity_kind(e.kind), "specimen", None) is not None
-    ]
+    drawn = [e for e in shot.entities if e.kind != "environment" and draws(e)]
     extents: dict[str, Box | None] = {}
     for e in drawn:
         try:

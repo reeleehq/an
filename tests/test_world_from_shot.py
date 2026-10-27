@@ -108,7 +108,10 @@ def test_the_scene_files_prose_is_kept_and_a_dry_run_writes_nothing(tmp_path):
     project = _project(tmp_path)
     before = (project.root / "scene.md").read_text(encoding="utf-8")
     out = from_shot(str(project.root), "master", dry_run=True)
-    assert "dry run" in out and (project.root / "scene.md").read_text() == before
+    assert (
+        "dry run" in out
+        and (project.root / "scene.md").read_text(encoding="utf-8") == before
+    )
     from_shot(str(project.root), "master", depth=4.0, focal=400.0)
     text = (project.root / "scene.md").read_text(encoding="utf-8")
     assert PROSE in text and "world" in text
@@ -195,3 +198,21 @@ def test_a_cut_from_a_framed_to_a_hand_placed_shot_is_still_checked_for_jumps(tm
     assert any(
         "'near'" in f.description and "jump" in f.description for f in report.findings
     )
+
+
+def test_an_entity_jointed_to_another_is_measured_alone_and_becomes_a_member(tmp_path):
+    """A joint ties an entity to another of the same shot: measuring it alone,
+    and the member it becomes, leave the joint with the shot (an#514 review)."""
+    from an.ir.schema import JointSpec
+
+    project = _project(tmp_path)
+    master = project.scene.timeline[0]
+    near, far = master.entities
+    held = near.model_copy(
+        update={"joints": [JointSpec(type="pin", a="body", b="far")]}
+    )
+    shot = master.model_copy(update={"entities": [held, far]})
+    scene = project.scene.model_copy(update={"timeline": [shot]})
+    _, seeded = seed_world(scene, project.mall, "master")
+    assert {m.id for m in seeded.members} == set(HAND) and not seeded.skipped
+    assert all(not m.joints for m in seeded.members)

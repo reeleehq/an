@@ -2845,7 +2845,9 @@ def member_of(entity: AssetRef, **placement: Any) -> WorldMember:
     """The world member a shot entity becomes (the inverse of
     :func:`_entity_of`): its fields as they are, its ``stage`` dropped (a
     member is placed by each shot's viewpoint) and its ``after`` kept, with
-    ``placement`` (``at``, ``height``, ...) where the world stands it.
+    ``placement`` (``at``, ``height``, ...) where the world stands it. Its
+    ``joints`` stay with the shot: they tie it to other entities of THAT shot,
+    and :func:`_entity_of` gives a member none.
 
     >>> e = AssetRef(kind="prop", id="lamp", store="props", ref="lamp",
     ...              stage=StagePlacement(at=(1.0, 2.0), after="set/sky"))
@@ -2853,7 +2855,7 @@ def member_of(entity: AssetRef, **placement: Any) -> WorldMember:
     >>> m.at, m.after, m.stage
     ((0.0, 0.0, 5.0), 'set/sky', None)
     """
-    fields = entity.model_dump(exclude={"stage"}, exclude_none=True)
+    fields = entity.model_dump(exclude={"stage", "joints"}, exclude_none=True)
     if entity.stage is not None and entity.stage.after is not None:
         fields["after"] = entity.stage.after
     return WorldMember(**{**fields, **placement})
