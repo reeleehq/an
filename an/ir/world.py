@@ -2442,7 +2442,6 @@ class _PlaneAnchor:
     at its ``offset``), both taken the first time a shot keys it, so it is the
     same plate across cuts."""
 
-    frame: str
     at: Point3
     rest: float
 
@@ -2493,7 +2492,9 @@ def _with_plane_depths(
         ):
             continue
         offset, box = geometry.get(name, ((0.0, 0.0), None))
-        if tree.is_static(frame, vp_frame, ctx.duration, film_start=ctx.film_start):
+        if (member.id, name) not in anchors and tree.is_static(
+            frame, vp_frame, ctx.duration, film_start=ctx.film_start
+        ):
             to_frame = tree.relative_pose(
                 vp_frame, frame, 0.0, film_start=ctx.film_start
             )
@@ -2534,13 +2535,21 @@ def _with_plane_depths(
     return entity.model_copy(update={"overrides": overrides}), actions
 
 
-def _behind(note: Callable, entity: str, name: str, z: float, frame: str) -> None:
+def _behind(
+    note: Callable,
+    entity: str,
+    name: str,
+    z: float,
+    frame: str,
+    *,
+    then: str = "it keeps its own parallax",
+) -> None:
     note(
         "warning",
         "plane_depths",
         entity,
         f"plane {name!r} is at depth {z:g} in frame {frame!r}, which is not in front "
-        "of the camera as the shot opens: it keeps its own parallax.",
+        f"of the camera as the shot opens: {then}.",
     )
 
 
@@ -2568,48 +2577,51 @@ def _plane_keys(
     shot's own actions on a channel it would key win (a warning); keys the shot
     already holds (a lowered scene lowered again) are not added twice."""
     entity = target.split("/", 1)[0]
+    hide = [set_(target, "alpha", 0.0, at=0.0)]
     anchor = anchors.get(key)
-    if anchor is None or anchor.frame != frame:
+    if anchor is None:
         to_frame = ctx.tree.relative_pose(
             ctx.vp_frame, frame, 0.0, film_start=ctx.film_start
         )
         eye = ctx.projection.transformed(to_frame)
         at = plane_anchor(eye, offset, z, near=sight["near"])
         if at is None:
-            _behind(note, entity, key[1], z, frame)
-            return []
-        anchor = anchors[key] = _PlaneAnchor(frame, at, eye.view(at)[2])
+            _behind(note, entity, key[1], z, frame, then="it is hidden")
+            return hide
+        anchor = anchors[key] = _PlaneAnchor(at, eye.view(at)[2])
     view = ctx.view_fn(frame, lambda t: anchor.at)
     focal = sight["focal"]
     passes = [
         p for p, _ in _sight(view, box=box, m=anchor.rest / focal, **sight).passes
     ]
-    keys = (
-        _pass_actions(target, passes, duration=ctx.duration)
-        if passes
-        else [set_(target, "alpha", 0.0, at=0.0)]
-    )
-    if all(k in existing for k in keys):
+    keys = _pass_actions(target, passes, duration=ctx.duration) if passes else hide
+    there = [a.model_dump(mode="json") for a in existing]
+    if all(k.model_dump(mode="json") in there for k in keys):
         return []  # already there: a lowered scene lowered again
-    keyed = {
-        a.property for k in keys for a in iter_actions(k) if hasattr(a, "property")
-    }
-    hand = sorted(
-        {
-            a.property
-            for top in existing
-            for a in iter_actions(top)
-            if getattr(a, "target", None) == target and a.property in keyed
-        }
-    )
+    hand = {
+        a.property
+        for top in existing
+        for a in iter_actions(top)
+        if getattr(a, "target", None) == target
+    } & set().union(*map(_properties, keys))
+    if hand == {"alpha"}:
+        note(
+            "warning",
+            "plane_depths",
+            entity,
+            f"plane {key[1]!r} is at a depth and the shot's own actions drive its "
+            "`alpha`: they win, so the plane is not hidden while the camera does not "
+            "see it.",
+        )
+        return [k for k in keys if "alpha" not in _properties(k)]
     if hand:
         note(
             "warning",
             "plane_depths",
             entity,
             f"plane {key[1]!r} is at a depth in frame {frame!r}, which moves relative "
-            f"to the viewpoint's, but the shot's own actions drive its {hand}: the "
-            "actions win and the plane is not keyed by its depth.",
+            f"to the viewpoint's, but the shot's own actions drive its {sorted(hand)}: "
+            "the actions win and the plane is not keyed by its depth.",
         )
         return []
     if not passes:
@@ -2621,6 +2633,11 @@ def _plane_keys(
             "shows it: it is hidden.",
         )
     return keys
+
+
+def _properties(action: Any) -> set[str]:
+    """The properties ``action`` and the actions under it drive."""
+    return {a.property for a in iter_actions(action) if hasattr(a, "property")}
 
 
 def _depth_order_notes(

@@ -2696,7 +2696,7 @@ def _report_plane_depths(ctx: ValidationContext, world: Any, env_store: Any) -> 
                 ctx.report.add(
                     "error",
                     where,
-                    f"plane {member.id}/{name!r} has a world depth but `world.travel.plates` "
+                    f"plane '{member.id}/{name}' has a world depth but `world.travel.plates` "
                     "lists it `far`: that is at infinity, factor 0. Drop one.",
                 )
             elif frame in tree and any(
@@ -2809,6 +2809,8 @@ def _core_viewpoint(ctx: ValidationContext) -> None:
                 # a depth says where it is: in the frame a member naming none is in,
                 # as the lowering reads it (`plane_frame`)
                 frame = plane_frame(world, member, plane.name)
+            if frame is not None and frame not in tree:
+                continue  # an unknown frame: the schema refuses one as it loads
             at_infinity = role == "far" or (
                 frame is not None
                 and any(frames[n].coupling == "far" for n in tree.chain(frame))

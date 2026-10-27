@@ -436,13 +436,50 @@ def test_a_fade_on_the_plane_does_not_stop_its_keys():
     assert {a.property for _, a in _hill_keys(shot)} >= {"x", "y", "scale_x", "alpha"}
 
 
-def test_lowering_a_lowered_scene_adds_no_plane_keys_and_no_note():
+@pytest.mark.parametrize("via_json", [False, True], ids=["in memory", "via json"])
+def test_lowering_a_lowered_scene_adds_no_plane_keys_and_no_note(via_json):
+    from an.ir.schema import SceneIR
+
     lowered = lower_world(_moving_scene(), extents=EXTENTS)
-    again = lower_world(lowered.scene, extents=EXTENTS)
+    scene = lowered.scene
+    if via_json:
+        scene = SceneIR.model_validate_json(scene.model_dump_json())
+    again = lower_world(scene, extents=EXTENTS)
     assert len(_hill_keys(again.scene.timeline[0])) == len(
         _hill_keys(lowered.scene.timeline[0])
     )
     assert not [n for n in again.notes if n.kind == "plane_depths"]
+
+
+def test_a_plate_keyed_in_one_shot_is_held_where_it_is_in_a_still_one(tmp_path):
+    from an.ir.compose import set_, tween
+
+    project = _env_project(tmp_path)
+    scene = _moving_scene(shots=2)
+    scene.world.frames["vehicle"] = Frame()  # moved by the shots, not a velocity
+    first, second = scene.timeline
+    first.actions = [tween("vehicle", "at_z", to=SPEED, duration=1.0, from_=0.0)]
+    second.actions = [set_("vehicle", "at_z", SPEED, at=0.0)]
+    end_of_first = _hill_on_screen(project, scene, 1.0, (120.0, 30.0))
+    in_second = _hill_on_screen(project, scene, 0.5, (120.0, 30.0), shot_index=1)
+    want = _exact((0.0, 0.0, 1.0), 1.0, (120.0, 30.0))
+    for got in (end_of_first, in_second):
+        assert (
+            max(abs(g - w) for g, w in zip(got, want)) <= 1.5 * DFLT_TRAVEL_TOLERANCE_PX
+        )
+
+
+def test_a_fade_on_a_plate_that_must_be_hidden_keeps_it_moving():
+    from an.ir.compose import tween
+
+    scene = _moving_scene(
+        duration=8.0,
+        actions=[tween("set/hill", "alpha", to=1.0, duration=1.0, from_=0.0)],
+    )
+    lowered = lower_world(scene, extents=EXTENTS)
+    props = [a.property for _, a in _hill_keys(lowered.scene.timeline[0])]
+    assert "x" in props and props.count("alpha") == 1, "the author's fade, and the keys"
+    assert any("not hidden" in n.message for n in lowered.notes)
 
 
 def test_a_depth_on_a_plane_the_travel_lists_far_is_an_error(tmp_path):
