@@ -202,6 +202,7 @@
 - [an.stores.sounds](an.stores.sounds.html.md): Sounds store — one directory per sound: &#96;sound.json&#96; beside &#96;audio.wav&#96;.
 - [an.stores.sources](an.stores.sources.html.md): The project’s opaque scene sources: files a whole-shot renderer runs as they are.
 - [an.stores.styles](an.stores.styles.html.md): Styles store — visual style presets (color palette, line weight, fonts).
+- [an.stores.transcripts](an.stores.transcripts.html.md): Transcripts as linked artifacts in the project store (an#493).
 - [an.stores.voices](an.stores.voices.html.md): Voices store — pure JSON; one entry per voice.
 - [an.styles](an.styles.html.md): StylePack: art direction as a document, and the first reader the styles store has had.
 - [an.text](an.text.html.md): Moved to &#96;an.stage.text&#96; (an#247); this path is a LIVE alias of it.

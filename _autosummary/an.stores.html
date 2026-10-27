@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=18e2312d"></script>
+    <script src="../_static/documentation_options.js?v=bc9ab534"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.298" />
+  <meta name="docsearch:version" content="0.1.299" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -530,6 +530,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stores.sounds.html">an.stores.sounds</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.sources.html">an.stores.sources</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.styles.html">an.stores.styles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.transcripts.html">an.stores.transcripts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.voices.html">an.stores.voices</a></li>
 </ul>
 </details></li>
@@ -633,7 +634,7 @@
 <p>The mall is the unit of persistence in an. Every long-lived state — assets
 (characters, props, environments, voices, styles, sounds, recordings), the scene file pair, intermediate
 artifacts (audio, viseme tracks, best-of-N take records, per-shot mp4s, the
-content-keyed shot cache),
+content-keyed shot cache, linked transcripts),
 final output and its caption sidecar, the agent’s decision log, and the asset
 library’s lockfile of pinned check-outs — is keyed inside a store. Stores are
 dol-backed so the same call
@@ -647,7 +648,7 @@ sites work against filesystem, SQLite, S3, etc.</p>
 <span class="gp">... </span>        <span class="s1">'environments'</span><span class="p">,</span> <span class="s1">'library_lock'</span><span class="p">,</span> <span class="s1">'measurements'</span><span class="p">,</span> <span class="s1">'output'</span><span class="p">,</span>
 <span class="gp">... </span>        <span class="s1">'pictures'</span><span class="p">,</span> <span class="s1">'previews'</span><span class="p">,</span> <span class="s1">'props'</span><span class="p">,</span> <span class="s1">'recordings'</span><span class="p">,</span> <span class="s1">'render_reports'</span><span class="p">,</span> <span class="s1">'scenes'</span><span class="p">,</span>
 <span class="gp">... </span>        <span class="s1">'shot_cache'</span><span class="p">,</span> <span class="s1">'shots'</span><span class="p">,</span> <span class="s1">'sounds'</span><span class="p">,</span> <span class="s1">'sources'</span><span class="p">,</span> <span class="s1">'styles'</span><span class="p">,</span> <span class="s1">'takes'</span><span class="p">,</span>
-<span class="gp">... </span>        <span class="s1">'visemes'</span><span class="p">,</span> <span class="s1">'voices'</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="s1">'transcripts'</span><span class="p">,</span> <span class="s1">'visemes'</span><span class="p">,</span> <span class="s1">'voices'</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="p">]</span>
 <span class="go">True</span>
 </pre></div>
@@ -1229,7 +1230,10 @@ the same spelling they always did.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="an.stores.styles.html#module-an.stores.styles" title="an.stores.styles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">styles</span></code></a></p></td>
 <td><p>Styles store — visual style presets (color palette, line weight, fonts).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.stores.voices.html#module-an.stores.voices" title="an.stores.voices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voices</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.stores.transcripts.html#module-an.stores.transcripts" title="an.stores.transcripts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transcripts</span></code></a></p></td>
+<td><p>Transcripts as linked artifacts in the project store (an#493).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.stores.voices.html#module-an.stores.voices" title="an.stores.voices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voices</span></code></a></p></td>
 <td><p>Voices store — pure JSON; one entry per voice.</p></td>
 </tr>
 </tbody>

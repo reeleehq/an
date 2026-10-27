@@ -57,4 +57,5 @@ an.stores
    sounds
    sources
    styles
+   transcripts
    voices

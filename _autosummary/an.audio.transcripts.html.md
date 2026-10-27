@@ -43,6 +43,7 @@ All times are seconds from the start of the recording they describe.
 | [`detect_format`](#an.audio.transcripts.detect_format)(text, \*[, suffix])           | Which of [`FORMATS`](#an.audio.transcripts.FORMATS) `text` is, by its file suffix first, then its content.                                                                                                                                                                                                       |
 |----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`parse_transcript`](#an.audio.transcripts.parse_transcript)(source, \*[, fmt])         | Read `source` — a path to a transcript file, or the transcript text itself — into segments.                                                                                                                                                                                                                                    |
+| [`parse_transcript_text`](#an.audio.transcripts.parse_transcript_text)(text, \*[, fmt])      | The transcript `text` (never a path: what a store hands back, an#493) into segments; `fmt` (one of [`FORMATS`](#an.audio.transcripts.FORMATS)) overrides detection.                                                                                                                                              |
 | [`parse_srt`](#an.audio.transcripts.parse_srt)(text)                             | SubRip cues → timed segments; a `speaker:` prefix names the speaker.                                                                                                                                                                                                                                                           |
 | [`parse_vtt`](#an.audio.transcripts.parse_vtt)(text)                             | WebVTT cues → timed segments; `<v Name>` or a `speaker:` prefix names the speaker.                                                                                                                                                                                                                                             |
 | [`parse_plain`](#an.audio.transcripts.parse_plain)(text)                           | One non-empty line per segment, untimed; `speaker: text` names the speaker.                                                                                                                                                                                                                                                    |
@@ -267,6 +268,19 @@ itself — into segments. `fmt` (one of [`FORMATS`](#an.audio.transcripts.FORMAT
 ```pycon
 >>> parse_transcript("carl: Hello.\nned: Hi.")[1]
 TranscriptSegment(text='Hi.', start=None, end=None, speaker='ned', words=None)
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`TranscriptSegment`](#an.audio.transcripts.TranscriptSegment)]
+
+### an.audio.transcripts.parse_transcript_text(text, , fmt=None)
+
+The transcript `text` (never a path: what a store hands back, an#493)
+into segments; `fmt` (one of [`FORMATS`](#an.audio.transcripts.FORMATS)) overrides detection.
+
+```pycon
+>>> parse_transcript_text("note", fmt="plain")[0].text
+'note'
 ```
 
 * **Return type:**

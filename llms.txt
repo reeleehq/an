@@ -204,6 +204,7 @@
 - [an.stores.sounds](_autosummary/an.stores.sounds.html.md): Sounds store — one directory per sound: &#96;sound.json&#96; beside &#96;audio.wav&#96;.
 - [an.stores.sources](_autosummary/an.stores.sources.html.md): The project’s opaque scene sources: files a whole-shot renderer runs as they are.
 - [an.stores.styles](_autosummary/an.stores.styles.html.md): Styles store — visual style presets (color palette, line weight, fonts).
+- [an.stores.transcripts](_autosummary/an.stores.transcripts.html.md): Transcripts as linked artifacts in the project store (an#493).
 - [an.stores.voices](_autosummary/an.stores.voices.html.md): Voices store — pure JSON; one entry per voice.
 - [an.styles](_autosummary/an.styles.html.md): StylePack: art direction as a document, and the first reader the styles store has had.
 - [an.text](_autosummary/an.text.html.md): Moved to &#96;an.stage.text&#96; (an#247); this path is a LIVE alias of it.
@@ -231,7 +232,7 @@
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [an.world_cli](_autosummary/an.world_cli.html.md): &#96;an world …&#96;: the scene’s world from the shell (ADR 0009).
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-27 05:52 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-27 05:58 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
 
 ## Optional
 

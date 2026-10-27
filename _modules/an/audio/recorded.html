@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=18e2312d"></script>
+    <script src="../../../_static/documentation_options.js?v=bc9ab534"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.298" />
+  <meta name="docsearch:version" content="0.1.299" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -779,7 +779,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">MutableMapping</span><span class="p">,</span> <span class="n">Sequence</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">NamedTuple</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.transcripts</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">TranscriptSegment</span><span class="p">,</span>
@@ -788,10 +788,17 @@ window.runMermaid = runMermaid;</script>
     <span class="n">from_transcript_object</span><span class="p">,</span>
     <span class="n">normalize_text</span><span class="p">,</span>
     <span class="n">parse_transcript</span><span class="p">,</span>
+    <span class="n">parse_transcript_text</span><span class="p">,</span>
     <span class="n">rebase_words</span><span class="p">,</span>
     <span class="n">segment_lines</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.tts</span><span class="w"> </span><span class="kn">import</span> <span class="n">AudioClip</span><span class="p">,</span> <span class="n">VoiceMeta</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.stores.transcripts</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">LinkedTranscript</span><span class="p">,</span>
+    <span class="n">TranscriptLinkError</span><span class="p">,</span>
+    <span class="n">is_artifact_ref</span><span class="p">,</span>
+    <span class="n">linked_transcript</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.assets</span><span class="w"> </span><span class="kn">import</span> <span class="n">AssetSource</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.sync</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEFAULT_SCENE_FILE</span>
 
@@ -1481,6 +1488,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">transcript_kind</span><span class="p">:</span> <span class="nb">str</span>
     <span class="c1">#: silence heard between the previous take of the same file and this one</span>
     <span class="n">gap_before</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: the linked transcript artifact it was cut by (``&lt;store&gt;/&lt;key&gt;``, an#493)</span>
+    <span class="n">transcript_ref</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">line</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">where</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
     <span class="n">added</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
@@ -1519,8 +1528,53 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">names</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_parse_transcript_file</span><span class="p">(</span><span class="n">item</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">TranscriptSegment</span><span class="p">]:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">_Given</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The transcript given for one take: its segments, its kind (``'srt'``,</span>
+<span class="sd">    ``'text'``, ...) and the artifact it was read from (``&lt;store&gt;/&lt;key&gt;``,</span>
+<span class="sd">    an#493), if it was."""</span>
+
+    <span class="n">segments</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">TranscriptSegment</span><span class="p">]</span>
+    <span class="n">kind</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">ref</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_linked</span><span class="p">(</span><span class="n">transcript</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``transcript`` with every artifact it names (``artifact:&lt;store&gt;/&lt;key&gt;``,</span>
+<span class="sd">    or a ``lacing.Artifact``; an#493) read out of ``mall`` into a</span>
+<span class="sd">    :class:`~an.stores.transcripts.LinkedTranscript`; anything else as given."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">one</span><span class="p">(</span><span class="n">item</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_artifact_ref</span><span class="p">(</span><span class="n">item</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">item</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">linked_transcript</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">mall</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">TranscriptLinkError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">RecordedVoicesError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">transcript</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">","</span> <span class="ow">in</span> <span class="n">transcript</span><span class="p">:</span>
+        <span class="n">parts</span> <span class="o">=</span> <span class="p">[</span><span class="n">part</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">transcript</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">","</span><span class="p">)</span> <span class="k">if</span> <span class="n">part</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">is_artifact_ref</span><span class="p">(</span><span class="n">part</span><span class="p">)</span> <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">parts</span><span class="p">):</span>
+            <span class="c1"># the CLI's spelling of one transcript per take, an artifact or a</span>
+            <span class="c1"># file each: `--transcript artifact:transcripts/a,b.srt`</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">one</span><span class="p">(</span><span class="n">part</span><span class="p">)</span> <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">parts</span><span class="p">]</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">transcript</span> <span class="ow">is</span> <span class="kc">None</span>
+        <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">transcript</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">,</span> <span class="n">LinkedTranscript</span><span class="p">))</span>
+        <span class="ow">or</span> <span class="n">is_artifact_ref</span><span class="p">(</span><span class="n">transcript</span><span class="p">)</span>
+    <span class="p">):</span>
+        <span class="k">return</span> <span class="n">one</span><span class="p">(</span><span class="n">transcript</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">one</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">transcript</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_parse_transcript_file</span><span class="p">(</span>
+    <span class="n">item</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="n">LinkedTranscript</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">TranscriptSegment</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">""":func:`parse_transcript`, with a refusal that names the file instead of a traceback."""</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">LinkedTranscript</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">parse_transcript_text</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="n">item</span><span class="o">.</span><span class="n">fmt</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">RecordedVoicesError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">item</span><span class="o">.</span><span class="n">ref</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">parse_transcript</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
     <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
@@ -1530,16 +1584,23 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_transcripts_for</span><span class="p">(</span>
-    <span class="n">paths</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Path</span><span class="p">],</span> <span class="n">transcript</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="n">Path</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">TranscriptSegment</span><span class="p">],</span> <span class="nb">str</span><span class="p">]]:</span>
-<span class="w">    </span><span class="sd">"""``{audio path: (segments, kind)}`` from what ``transcript`` names: nothing;</span>
-<span class="sd">    a directory (paired by stem, every take must pair); one file or text per</span>
-<span class="sd">    audio file (same count); one file for one take; or one plain transcript</span>
-<span class="sd">    whose lines are the takes."""</span>
+    <span class="n">paths</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Path</span><span class="p">],</span>
+    <span class="n">transcript</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="o">|</span> <span class="n">Path</span>
+    <span class="o">|</span> <span class="n">LinkedTranscript</span>
+    <span class="o">|</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="n">LinkedTranscript</span><span class="p">]</span>
+    <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="n">Path</span><span class="p">,</span> <span class="n">_Given</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``{audio path: given}`` from what ``transcript`` names: nothing;</span>
+<span class="sd">    a directory (paired by stem, every take must pair); one file, text or</span>
+<span class="sd">    linked artifact per audio file (same count); one for one take; or one</span>
+<span class="sd">    plain transcript whose lines are the takes."""</span>
     <span class="k">if</span> <span class="n">transcript</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">transcript</span> <span class="o">==</span> <span class="s2">""</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">{}</span>
-    <span class="n">items</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">]</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">transcript</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">)):</span>
+    <span class="n">items</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="n">LinkedTranscript</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">transcript</span><span class="p">,</span> <span class="n">LinkedTranscript</span><span class="p">):</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="p">[</span><span class="n">transcript</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">transcript</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">)):</span>
         <span class="n">p</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">transcript</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">transcript</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mi">4096</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">p</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">p</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
             <span class="n">out</span> <span class="o">=</span> <span class="p">{}</span>
@@ -1554,7 +1615,7 @@ window.runMermaid = runMermaid;</script>
                     <span class="kc">None</span><span class="p">,</span>
                 <span class="p">)</span>
                 <span class="k">if</span> <span class="n">match</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">out</span><span class="p">[</span><span class="n">audio</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">out</span><span class="p">[</span><span class="n">audio</span><span class="p">]</span> <span class="o">=</span> <span class="n">_Given</span><span class="p">(</span>
                         <span class="n">_parse_transcript_file</span><span class="p">(</span><span class="n">match</span><span class="p">),</span>
                         <span class="k">match</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">"."</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span>
                     <span class="p">)</span>
@@ -1581,15 +1642,20 @@ window.runMermaid = runMermaid;</script>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">items</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">transcript</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">kind_of</span><span class="p">(</span><span class="n">item</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">kind_of</span><span class="p">(</span><span class="n">item</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="n">LinkedTranscript</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">LinkedTranscript</span><span class="p">):</span>  <span class="c1"># a plain one reads as plain text does</span>
+            <span class="k">return</span> <span class="s2">"text"</span> <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">fmt</span> <span class="o">==</span> <span class="s2">"plain"</span> <span class="k">else</span> <span class="n">item</span><span class="o">.</span><span class="n">fmt</span>
         <span class="n">p</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">item</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mi">4096</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">p</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">p</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
             <span class="k">return</span> <span class="n">p</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">"."</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">or</span> <span class="s2">"text"</span>
         <span class="k">return</span> <span class="s2">"text"</span>
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">ref_of</span><span class="p">(</span><span class="n">item</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">item</span><span class="o">.</span><span class="n">ref</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">LinkedTranscript</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">paths</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">{</span>
-            <span class="n">audio</span><span class="p">:</span> <span class="p">(</span><span class="n">_parse_transcript_file</span><span class="p">(</span><span class="n">item</span><span class="p">),</span> <span class="n">kind_of</span><span class="p">(</span><span class="n">item</span><span class="p">))</span>
+            <span class="n">audio</span><span class="p">:</span> <span class="n">_Given</span><span class="p">(</span><span class="n">_parse_transcript_file</span><span class="p">(</span><span class="n">item</span><span class="p">),</span> <span class="n">kind_of</span><span class="p">(</span><span class="n">item</span><span class="p">),</span> <span class="n">ref_of</span><span class="p">(</span><span class="n">item</span><span class="p">))</span>
             <span class="k">for</span> <span class="n">audio</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">paths</span><span class="p">,</span> <span class="n">items</span><span class="p">)</span>
         <span class="p">}</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
@@ -1598,11 +1664,11 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"(a directory pairs them by stem), or one transcript for one take"</span>
         <span class="p">)</span>
     <span class="n">segments</span> <span class="o">=</span> <span class="n">_parse_transcript_file</span><span class="p">(</span><span class="n">items</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-    <span class="n">kind</span> <span class="o">=</span> <span class="n">kind_of</span><span class="p">(</span><span class="n">items</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">kind</span><span class="p">,</span> <span class="n">ref</span> <span class="o">=</span> <span class="n">kind_of</span><span class="p">(</span><span class="n">items</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">ref_of</span><span class="p">(</span><span class="n">items</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">paths</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">return</span> <span class="p">{</span><span class="n">paths</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="p">(</span><span class="n">segments</span><span class="p">,</span> <span class="n">kind</span><span class="p">)}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">paths</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">_Given</span><span class="p">(</span><span class="n">segments</span><span class="p">,</span> <span class="n">kind</span><span class="p">,</span> <span class="n">ref</span><span class="p">)}</span>
     <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="ow">not</span> <span class="n">s</span><span class="o">.</span><span class="n">timed</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">segments</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">segments</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">paths</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">{</span><span class="n">audio</span><span class="p">:</span> <span class="p">([</span><span class="n">seg</span><span class="p">],</span> <span class="n">kind</span><span class="p">)</span> <span class="k">for</span> <span class="n">audio</span><span class="p">,</span> <span class="n">seg</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">paths</span><span class="p">,</span> <span class="n">segments</span><span class="p">)}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">audio</span><span class="p">:</span> <span class="n">_Given</span><span class="p">([</span><span class="n">seg</span><span class="p">],</span> <span class="n">kind</span><span class="p">,</span> <span class="n">ref</span><span class="p">)</span> <span class="k">for</span> <span class="n">audio</span><span class="p">,</span> <span class="n">seg</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">paths</span><span class="p">,</span> <span class="n">segments</span><span class="p">)}</span>
     <span class="k">raise</span> <span class="n">RecordedVoicesError</span><span class="p">(</span>
         <span class="sa">f</span><span class="s2">"one transcript (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">segments</span><span class="p">)</span><span class="si">}</span><span class="s2"> line(s)) for </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">paths</span><span class="p">)</span><span class="si">}</span><span class="s2"> audio files: a plain "</span>
         <span class="s2">"transcript with one line per file pairs them in order; a timed transcript goes "</span>
@@ -1613,7 +1679,7 @@ window.runMermaid = runMermaid;</script>
 <span class="k">def</span><span class="w"> </span><span class="nf">_timed_segments</span><span class="p">(</span>
     <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
     <span class="n">total</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-    <span class="n">given</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">TranscriptSegment</span><span class="p">],</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">given</span><span class="p">:</span> <span class="n">_Given</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">transcribe</span><span class="p">:</span> <span class="n">Transcriber</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">make_transcriber</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="n">Transcriber</span><span class="p">],</span>
@@ -1630,7 +1696,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="sa">f</span><span class="s2">"the transcriber found no speech with timings in </span><span class="si">{</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span>
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">timed</span><span class="p">,</span> <span class="s2">"asr"</span>
-    <span class="n">segments</span><span class="p">,</span> <span class="n">kind</span> <span class="o">=</span> <span class="n">given</span>
+    <span class="n">segments</span><span class="p">,</span> <span class="n">kind</span><span class="p">,</span> <span class="n">_ref</span> <span class="o">=</span> <span class="n">given</span>
     <span class="n">segments</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">segments</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">text</span><span class="p">]</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">segments</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">RecordedVoicesError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"the transcript for </span><span class="si">{</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> has no lines"</span><span class="p">)</span>
@@ -2028,7 +2094,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">scene</span><span class="p">,</span> <span class="n">mall</span> <span class="o">=</span> <span class="n">proj</span><span class="o">.</span><span class="n">scene</span><span class="p">,</span> <span class="n">proj</span><span class="o">.</span><span class="n">mall</span>
     <span class="k">if</span> <span class="n">RECORDINGS_STORE</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mall</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">RecordedVoicesError</span><span class="p">(</span><span class="s2">"this project's mall has no recordings store"</span><span class="p">)</span>
-    <span class="n">given</span> <span class="o">=</span> <span class="n">_transcripts_for</span><span class="p">(</span><span class="n">paths</span><span class="p">,</span> <span class="n">transcript</span><span class="p">)</span>
+    <span class="n">given</span> <span class="o">=</span> <span class="n">_transcripts_for</span><span class="p">(</span><span class="n">paths</span><span class="p">,</span> <span class="n">_linked</span><span class="p">(</span><span class="n">transcript</span><span class="p">,</span> <span class="n">mall</span><span class="p">))</span>
     <span class="n">speaker_map</span> <span class="o">=</span> <span class="n">_parse_speakers</span><span class="p">(</span><span class="n">speakers</span><span class="p">)</span>
     <span class="n">known</span> <span class="o">=</span> <span class="n">_scene_speakers</span><span class="p">(</span><span class="n">scene</span><span class="p">)</span>
     <span class="n">make_transcriber</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">scribed_transcriber</span><span class="p">(</span><span class="n">transcriber</span><span class="p">,</span> <span class="n">diarize</span><span class="o">=</span><span class="n">diarize</span><span class="p">)</span>  <span class="c1"># noqa: E731</span>
@@ -2062,6 +2128,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">words</span><span class="o">=</span><span class="n">rebase_words</span><span class="p">(</span><span class="n">segment</span><span class="o">.</span><span class="n">words</span><span class="p">,</span> <span class="n">a</span><span class="p">),</span>
                 <span class="n">speaker</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                 <span class="n">transcript_kind</span><span class="o">=</span><span class="n">kind</span><span class="p">,</span>
+                <span class="n">transcript_ref</span><span class="o">=</span><span class="n">given</span><span class="p">[</span><span class="n">path</span><span class="p">]</span><span class="o">.</span><span class="n">ref</span> <span class="k">if</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">given</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
                 <span class="c1"># The silence HEARD: from the previous speech's end to this cut's</span>
                 <span class="c1"># start (the cut keeps its pad, so the pause must not count it twice).</span>
                 <span class="n">gap_before</span><span class="o">=</span><span class="p">(</span><span class="n">a</span> <span class="o">-</span> <span class="n">previous_end</span><span class="p">)</span> <span class="k">if</span> <span class="n">previous_end</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
@@ -2108,6 +2175,11 @@ window.runMermaid = runMermaid;</script>
                 <span class="s2">"denoise"</span><span class="p">:</span> <span class="n">denoise</span><span class="p">,</span>
                 <span class="s2">"transcript"</span><span class="p">:</span> <span class="n">take</span><span class="o">.</span><span class="n">transcript_kind</span><span class="p">,</span>
                 <span class="s2">"line"</span><span class="p">:</span> <span class="n">take</span><span class="o">.</span><span class="n">where</span><span class="p">,</span>
+                <span class="o">**</span><span class="p">(</span>
+                    <span class="p">{</span><span class="s2">"transcript_artifact"</span><span class="p">:</span> <span class="n">take</span><span class="o">.</span><span class="n">transcript_ref</span><span class="p">}</span>
+                    <span class="k">if</span> <span class="n">take</span><span class="o">.</span><span class="n">transcript_ref</span>
+                    <span class="k">else</span> <span class="p">{}</span>
+                <span class="p">),</span>
             <span class="p">},</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">write</span><span class="p">:</span>

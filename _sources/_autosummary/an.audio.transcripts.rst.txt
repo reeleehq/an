@@ -16,6 +16,7 @@ an.audio.transcripts
    
       detect_format
       parse_transcript
+      parse_transcript_text
       parse_srt
       parse_vtt
       parse_plain

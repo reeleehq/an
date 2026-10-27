@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=18e2312d"></script>
+    <script src="../_static/documentation_options.js?v=bc9ab534"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.298" />
+  <meta name="docsearch:version" content="0.1.299" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -530,6 +530,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stores.sounds.html">an.stores.sounds</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.sources.html">an.stores.sources</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.styles.html">an.stores.styles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.transcripts.html">an.stores.transcripts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.voices.html">an.stores.voices</a></li>
 </ul>
 </details></li>
@@ -680,43 +681,46 @@ a transcriber’s timed words are matched to the text (<a class="reference inter
 <tr class="row-even"><td><p><a class="reference internal" href="#an.audio.transcripts.parse_transcript" title="an.audio.transcripts.parse_transcript"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_transcript</span></code></a>(source, *[, fmt])</p></td>
 <td><p>Read <code class="docutils literal notranslate"><span class="pre">source</span></code> — a path to a transcript file, or the transcript text itself — into segments.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.transcripts.parse_srt" title="an.audio.transcripts.parse_srt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_srt</span></code></a>(text)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.transcripts.parse_transcript_text" title="an.audio.transcripts.parse_transcript_text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_transcript_text</span></code></a>(text, *[, fmt])</p></td>
+<td><p>The transcript <code class="docutils literal notranslate"><span class="pre">text</span></code> (never a path: what a store hands back, an#493) into segments; <code class="docutils literal notranslate"><span class="pre">fmt</span></code> (one of <a class="reference internal" href="#an.audio.transcripts.FORMATS" title="an.audio.transcripts.FORMATS"><code class="xref py py-data docutils literal notranslate"><span class="pre">FORMATS</span></code></a>) overrides detection.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.transcripts.parse_srt" title="an.audio.transcripts.parse_srt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_srt</span></code></a>(text)</p></td>
 <td><p>SubRip cues → timed segments; a <code class="docutils literal notranslate"><span class="pre">speaker:</span></code> prefix names the speaker.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.transcripts.parse_vtt" title="an.audio.transcripts.parse_vtt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_vtt</span></code></a>(text)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.transcripts.parse_vtt" title="an.audio.transcripts.parse_vtt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_vtt</span></code></a>(text)</p></td>
 <td><p>WebVTT cues → timed segments; <code class="docutils literal notranslate"><span class="pre">&lt;v</span> <span class="pre">Name&gt;</span></code> or a <code class="docutils literal notranslate"><span class="pre">speaker:</span></code> prefix names the speaker.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.transcripts.parse_plain" title="an.audio.transcripts.parse_plain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_plain</span></code></a>(text)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.transcripts.parse_plain" title="an.audio.transcripts.parse_plain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_plain</span></code></a>(text)</p></td>
 <td><p>One non-empty line per segment, untimed; <code class="docutils literal notranslate"><span class="pre">speaker:</span> <span class="pre">text</span></code> names the speaker.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.transcripts.parse_json" title="an.audio.transcripts.parse_json"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_json</span></code></a>(obj)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.transcripts.parse_json" title="an.audio.transcripts.parse_json"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_json</span></code></a>(obj)</p></td>
 <td><p>A word-timed JSON → segments.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.transcripts.parse_textgrid" title="an.audio.transcripts.parse_textgrid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_textgrid</span></code></a>(text)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.transcripts.parse_textgrid" title="an.audio.transcripts.parse_textgrid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_textgrid</span></code></a>(text)</p></td>
 <td><p>A Praat TextGrid (long or short form, as a forced aligner writes it) → segments.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.transcripts.from_transcript_object" title="an.audio.transcripts.from_transcript_object"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_transcript_object</span></code></a>(obj)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.transcripts.from_transcript_object" title="an.audio.transcripts.from_transcript_object"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_transcript_object</span></code></a>(obj)</p></td>
 <td><p>A transcriber's result — scribed's <code class="docutils literal notranslate"><span class="pre">Transcript</span></code> or anything shaped like it (iterable segments with <code class="docutils literal notranslate"><span class="pre">text</span></code>, <code class="docutils literal notranslate"><span class="pre">start</span></code>, <code class="docutils literal notranslate"><span class="pre">end</span></code>, <code class="docutils literal notranslate"><span class="pre">speaker</span></code> and <code class="docutils literal notranslate"><span class="pre">words</span></code> having <code class="docutils literal notranslate"><span class="pre">text</span></code>/<code class="docutils literal notranslate"><span class="pre">start</span></code>/<code class="docutils literal notranslate"><span class="pre">end</span></code>) — as segments.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.transcripts.parse_timestamp" title="an.audio.transcripts.parse_timestamp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_timestamp</span></code></a>(value)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.transcripts.parse_timestamp" title="an.audio.transcripts.parse_timestamp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_timestamp</span></code></a>(value)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">HH:MM:SS,mmm</span></code> / <code class="docutils literal notranslate"><span class="pre">MM:SS.mmm</span></code> / plain seconds → seconds.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.transcripts.normalize_tokens" title="an.audio.transcripts.normalize_tokens"><code class="xref py py-obj docutils literal notranslate"><span class="pre">normalize_tokens</span></code></a>(text)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.transcripts.normalize_tokens" title="an.audio.transcripts.normalize_tokens"><code class="xref py py-obj docutils literal notranslate"><span class="pre">normalize_tokens</span></code></a>(text)</p></td>
 <td><p>The words of <code class="docutils literal notranslate"><span class="pre">text</span></code> for matching: case-folded, punctuation dropped, an apostrophe inside a word kept.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.transcripts.normalize_text" title="an.audio.transcripts.normalize_text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">normalize_text</span></code></a>(text)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.transcripts.normalize_text" title="an.audio.transcripts.normalize_text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">normalize_text</span></code></a>(text)</p></td>
 <td><p><a class="reference internal" href="#an.audio.transcripts.normalize_tokens" title="an.audio.transcripts.normalize_tokens"><code class="xref py py-func docutils literal notranslate"><span class="pre">normalize_tokens()</span></code></a> joined by single spaces (what two lines are compared by).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.transcripts.align_words" title="an.audio.transcripts.align_words"><code class="xref py py-obj docutils literal notranslate"><span class="pre">align_words</span></code></a>(reference, timed, *[, bounds])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.transcripts.align_words" title="an.audio.transcripts.align_words"><code class="xref py py-obj docutils literal notranslate"><span class="pre">align_words</span></code></a>(reference, timed, *[, bounds])</p></td>
 <td><p>Time the <code class="docutils literal notranslate"><span class="pre">reference</span></code> words (the text the performer was meant to say) by a transcriber's <code class="docutils literal notranslate"><span class="pre">timed</span></code> words of the same audio.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.transcripts.segment_lines" title="an.audio.transcripts.segment_lines"><code class="xref py py-obj docutils literal notranslate"><span class="pre">segment_lines</span></code></a>(lines, timed, *[, bounds])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.transcripts.segment_lines" title="an.audio.transcripts.segment_lines"><code class="xref py py-obj docutils literal notranslate"><span class="pre">segment_lines</span></code></a>(lines, timed, *[, bounds])</p></td>
 <td><p>Time untimed <code class="docutils literal notranslate"><span class="pre">lines</span></code> (a plain transcript) by a transcriber's <code class="docutils literal notranslate"><span class="pre">timed</span></code> words of the whole recording: the lines' words are aligned as one text (<a class="reference internal" href="#an.audio.transcripts.align_words" title="an.audio.transcripts.align_words"><code class="xref py py-func docutils literal notranslate"><span class="pre">align_words()</span></code></a>) and handed back per line, each line spanning its first word's start to its last word's end, with its own <code class="docutils literal notranslate"><span class="pre">words</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.transcripts.cut_spans" title="an.audio.transcripts.cut_spans"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cut_spans</span></code></a>(segments, *, total[, pad_s])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.transcripts.cut_spans" title="an.audio.transcripts.cut_spans"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cut_spans</span></code></a>(segments, *, total[, pad_s])</p></td>
 <td><p>Where to cut the recording for each timed segment: its span widened by <code class="docutils literal notranslate"><span class="pre">pad_s</span></code> on each side, never past the midpoint to its neighbour or the recording's ends (<code class="docutils literal notranslate"><span class="pre">total</span></code> seconds).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.transcripts.rebase_words" title="an.audio.transcripts.rebase_words"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rebase_words</span></code></a>(words, start)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.transcripts.rebase_words" title="an.audio.transcripts.rebase_words"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rebase_words</span></code></a>(words, start)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">words</span></code> re-timed from <code class="docutils literal notranslate"><span class="pre">start</span></code> (a cut's start): the clip-relative words a line keeps.</p></td>
 </tr>
 </tbody>
@@ -990,6 +994,22 @@ itself — into segments. <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.audio.transcripts.parse_transcript_text">
+<span class="sig-prename descclassname"><span class="pre">an.audio.transcripts.</span></span><span class="sig-name descname"><span class="pre">parse_transcript_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/transcripts.html#parse_transcript_text"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.transcripts.parse_transcript_text" title="Link to this definition">#</a></dt>
+<dd><p>The transcript <code class="docutils literal notranslate"><span class="pre">text</span></code> (never a path: what a store hands back, an#493)
+into segments; <code class="docutils literal notranslate"><span class="pre">fmt</span></code> (one of <a class="reference internal" href="#an.audio.transcripts.FORMATS" title="an.audio.transcripts.FORMATS"><code class="xref py py-data docutils literal notranslate"><span class="pre">FORMATS</span></code></a>) overrides detection.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">parse_transcript_text</span><span class="p">(</span><span class="s2">"note"</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s2">"plain"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+<span class="go">'note'</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="#an.audio.transcripts.TranscriptSegment" title="an.audio.transcripts.TranscriptSegment"><code class="xref py py-class docutils literal notranslate"><span class="pre">TranscriptSegment</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.audio.transcripts.parse_vtt">
 <span class="sig-prename descclassname"><span class="pre">an.audio.transcripts.</span></span><span class="sig-name descname"><span class="pre">parse_vtt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/transcripts.html#parse_vtt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.transcripts.parse_vtt" title="Link to this definition">#</a></dt>
 <dd><p>WebVTT cues → timed segments; <code class="docutils literal notranslate"><span class="pre">&lt;v</span> <span class="pre">Name&gt;</span></code> or a <code class="docutils literal notranslate"><span class="pre">speaker:</span></code> prefix names the speaker.</p>
@@ -1109,6 +1129,7 @@ first word’s start to its last word’s end, with its own <code class="docutil
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.transcripts.parse_textgrid"><code class="docutils literal notranslate"><span class="pre">parse_textgrid()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.transcripts.parse_timestamp"><code class="docutils literal notranslate"><span class="pre">parse_timestamp()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.transcripts.parse_transcript"><code class="docutils literal notranslate"><span class="pre">parse_transcript()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.transcripts.parse_transcript_text"><code class="docutils literal notranslate"><span class="pre">parse_transcript_text()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.transcripts.parse_vtt"><code class="docutils literal notranslate"><span class="pre">parse_vtt()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.transcripts.rebase_words"><code class="docutils literal notranslate"><span class="pre">rebase_words()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.transcripts.segment_lines"><code class="docutils literal notranslate"><span class="pre">segment_lines()</span></code></a></li>

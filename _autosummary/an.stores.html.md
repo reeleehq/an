@@ -5,7 +5,7 @@ Project mall: a dict of dol-backed `MutableMapping` stores.
 The mall is the unit of persistence in an. Every long-lived state — assets
 (characters, props, environments, voices, styles, sounds, recordings), the scene file pair, intermediate
 artifacts (audio, viseme tracks, best-of-N take records, per-shot mp4s, the
-content-keyed shot cache),
+content-keyed shot cache, linked transcripts),
 final output and its caption sidecar, the agent’s decision log, and the asset
 library’s lockfile of pinned check-outs — is keyed inside a store. Stores are
 dol-backed so the same call
@@ -21,7 +21,7 @@ sites work against filesystem, SQLite, S3, etc.
 ...         'environments', 'library_lock', 'measurements', 'output',
 ...         'pictures', 'previews', 'props', 'recordings', 'render_reports', 'scenes',
 ...         'shot_cache', 'shots', 'sounds', 'sources', 'styles', 'takes',
-...         'visemes', 'voices',
+...         'transcripts', 'visemes', 'voices',
 ...     ]
 True
 ```
@@ -449,4 +449,5 @@ True
 | [`sounds`](an.stores.sounds.html.md#module-an.stores.sounds)             | Sounds store — one directory per sound: `sound.json` beside `audio.wav`.                 |
 | [`sources`](an.stores.sources.html.md#module-an.stores.sources)           | The project's opaque scene sources: files a whole-shot renderer runs as they are.        |
 | [`styles`](an.stores.styles.html.md#module-an.stores.styles)             | Styles store — visual style presets (color palette, line weight, fonts).                 |
+| [`transcripts`](an.stores.transcripts.html.md#module-an.stores.transcripts)   | Transcripts as linked artifacts in the project store (an#493).                           |
 | [`voices`](an.stores.voices.html.md#module-an.stores.voices)             | Voices store — pure JSON; one entry per voice.                                           |

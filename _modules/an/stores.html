@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../_static/documentation_options.js?v=18e2312d"></script>
+    <script src="../../_static/documentation_options.js?v=bc9ab534"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.298" />
+  <meta name="docsearch:version" content="0.1.299" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -717,7 +717,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">The mall is the unit of persistence in an. Every long-lived state — assets</span>
 <span class="sd">(characters, props, environments, voices, styles, sounds, recordings), the scene file pair, intermediate</span>
 <span class="sd">artifacts (audio, viseme tracks, best-of-N take records, per-shot mp4s, the</span>
-<span class="sd">content-keyed shot cache),</span>
+<span class="sd">content-keyed shot cache, linked transcripts),</span>
 <span class="sd">final output and its caption sidecar, the agent's decision log, and the asset</span>
 <span class="sd">library's lockfile of pinned check-outs — is keyed inside a store. Stores are</span>
 <span class="sd">dol-backed so the same call</span>
@@ -732,7 +732,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">...         'environments', 'library_lock', 'measurements', 'output',</span>
 <span class="sd">...         'pictures', 'previews', 'props', 'recordings', 'render_reports', 'scenes',</span>
 <span class="sd">...         'shot_cache', 'shots', 'sounds', 'sources', 'styles', 'takes',</span>
-<span class="sd">...         'visemes', 'voices',</span>
+<span class="sd">...         'transcripts', 'visemes', 'voices',</span>
 <span class="sd">...     ]</span>
 <span class="sd">True</span>
 <span class="sd">"""</span>
@@ -762,6 +762,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stores.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">StylesStore</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stores.voices</span><span class="w"> </span><span class="kn">import</span> <span class="n">VoicesStore</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.build.shot_cache</span><span class="w"> </span><span class="kn">import</span> <span class="n">shot_cache_store</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.stores.transcripts</span><span class="w"> </span><span class="kn">import</span> <span class="n">transcripts_store</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stores.artifacts</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">AudioArtifactStore</span><span class="p">,</span>
     <span class="n">CaptionsStore</span><span class="p">,</span>
@@ -875,6 +876,9 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># The content-keyed shot cache (ADR 0004): a `lacing.ArtifactStore`,</span>
         <span class="c1"># `catalog/&lt;key&gt;.json` + `blobs/&lt;sha256&gt;`. `render_project` reads it.</span>
         <span class="s2">"shot_cache"</span><span class="p">:</span> <span class="n">shot_cache_store</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"artifacts"</span> <span class="o">/</span> <span class="s2">"shot_cache"</span><span class="p">),</span>
+        <span class="c1"># Transcripts an earlier step produced, named where a transcript file</span>
+        <span class="c1"># is (`artifact:transcripts/&lt;key&gt;`, an#493): a `lacing.ArtifactStore`.</span>
+        <span class="s2">"transcripts"</span><span class="p">:</span> <span class="n">transcripts_store</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"artifacts"</span> <span class="o">/</span> <span class="s2">"transcripts"</span><span class="p">),</span>
         <span class="s2">"previews"</span><span class="p">:</span> <span class="n">PreviewArtifactStore</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"artifacts"</span> <span class="o">/</span> <span class="s2">"previews"</span><span class="p">),</span>
         <span class="c1"># Contact sheets of opaque renders (a Manim shot's settled beats), keyed</span>
         <span class="c1"># by the PNG's sha256 so cached provenance keeps pointing at them.</span>

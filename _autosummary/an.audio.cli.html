@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=18e2312d"></script>
+    <script src="../_static/documentation_options.js?v=bc9ab534"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.298" />
+  <meta name="docsearch:version" content="0.1.299" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -530,6 +530,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stores.sounds.html">an.stores.sounds</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.sources.html">an.stores.sources</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.styles.html">an.stores.styles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.transcripts.html">an.stores.transcripts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.voices.html">an.stores.voices</a></li>
 </ul>
 </details></li>
@@ -721,7 +722,7 @@ matched to the scene’s dialogue (or added to –shot), stored with its provena
 and the speaker’s character speaks with it — nothing synthesized, nothing billed.</p>
 <p>project: the project directory
 audio: the take(s): a file, a directory, a glob, or comma-separated files (one take with several lines, or one file per line)
-transcript: SRT / WebVTT / TextGrid / word JSON (timed: no transcribing) or plain <code class="code docutils literal notranslate"><span class="pre">speaker:</span> <span class="pre">text</span></code> lines; a directory pairs by stem
+transcript: SRT / WebVTT / TextGrid / word JSON (timed: no transcribing) or plain <code class="code docutils literal notranslate"><span class="pre">speaker:</span> <span class="pre">text</span></code> lines; a directory pairs by stem; <code class="code docutils literal notranslate"><span class="pre">artifact:transcripts/&lt;key&gt;</span></code> names one kept in the project’s transcripts store (comma-separate one per take)
 speaker: the one character every take belongs to
 speakers: label=character pairs for a transcript’s or diarizer’s labels and file stems, e.g. spk_0=carl,spk_1=ned
 shot: the shot new lines go into (takes matching no scene line)

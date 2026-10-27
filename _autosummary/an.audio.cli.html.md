@@ -75,7 +75,7 @@ and the speaker’s character speaks with it — nothing synthesized, nothing bi
 
 project: the project directory
 audio: the take(s): a file, a directory, a glob, or comma-separated files (one take with several lines, or one file per line)
-transcript: SRT / WebVTT / TextGrid / word JSON (timed: no transcribing) or plain `speaker: text` lines; a directory pairs by stem
+transcript: SRT / WebVTT / TextGrid / word JSON (timed: no transcribing) or plain `speaker: text` lines; a directory pairs by stem; `artifact:transcripts/<key>` names one kept in the project’s transcripts store (comma-separate one per take)
 speaker: the one character every take belongs to
 speakers: label=character pairs for a transcript’s or diarizer’s labels and file stems, e.g. spk_0=carl,spk_1=ned
 shot: the shot new lines go into (takes matching no scene line)

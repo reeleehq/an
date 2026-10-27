@@ -1,0 +1,36 @@
+an.stores.transcripts
+=====================
+
+.. automodule:: an.stores.transcripts
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      TRANSCRIPTS_STORE
+      ARTIFACT_REF_PREFIX
+      FORMAT_MIME
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      in_memory_transcripts_store
+      is_artifact_ref
+      linked_transcript
+      record_transcript
+      transcripts_store
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      LinkedTranscript
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      TranscriptLinkError
+   

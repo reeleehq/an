@@ -5,19 +5,21 @@ orphan: true
 
 # About this build
 
-This documentation was built on **2026-10-27 05:52 UTC** from commit <a href="https://github.com/reeleehq/an/commit/64ddcaabd5d922dec8b9ecd7c5eb6c628d78f063"><code>64ddcaa</code></a> on branch <code>main</code>, for **an 0.1.298** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-27 05:58 UTC** from commit <a href="https://github.com/reeleehq/an/commit/789bc27b2df05a39e6ca5a749c035ff591e6c8e7"><code>789bc27</code></a> on branch <code>main</code>, for **an 0.1.299** (from <code>pyproject.toml</code>).
 
-:::{note}
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+:::{warning}
+The documentation and the package may be misaligned:
+
+- The documented version (0.1.299) is ahead of the latest release on PyPI (0.1.298): these docs describe unreleased code.
 :::
 
 ## Source
 
 | | |
 |---|---|
-| Commit | <a href="https://github.com/reeleehq/an/commit/64ddcaabd5d922dec8b9ecd7c5eb6c628d78f063"><code>64ddcaabd5d922dec8b9ecd7c5eb6c628d78f063</code></a> |
+| Commit | <a href="https://github.com/reeleehq/an/commit/789bc27b2df05a39e6ca5a749c035ff591e6c8e7"><code>789bc27b2df05a39e6ca5a749c035ff591e6c8e7</code></a> |
 | Branch | <code>main</code> |
-| Tags at this commit | <code>0.1.298</code> |
+| Tags at this commit | <code>0.1.299</code> |
 | Working tree | clean |
 | Remote | <code>https://github.com/reeleehq/an</code> |
 
@@ -26,9 +28,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 | | |
 |---|---|
 | Repository | <code>reeleehq/an</code> |
-| Run | <a href="https://github.com/reeleehq/an/actions/runs/40456724759">40456724759</a> |
+| Run | <a href="https://github.com/reeleehq/an/actions/runs/40457214394">40457214394</a> |
 | Ref | <code>refs/heads/main</code> |
-| Event commit | <code>234da13b4af8449f3e4cae23d04b66a5afa489c0</code> (in the history of the built commit) |
+| Event commit | <code>e0b4ef3408cbd207256b6c73053c1c650404cad2</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -53,13 +55,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.298/">0.1.298</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.298/">0.1.298</a>, older than the documented version (0.1.299).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/an && cd an
-git checkout 64ddcaabd5d922dec8b9ecd7c5eb6c628d78f063
+git checkout 789bc27b2df05a39e6ca5a749c035ff591e6c8e7
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

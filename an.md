@@ -1,4 +1,4 @@
-> built 2026-10-27 05:52 UTC from 64ddcaa (main) · an 0.1.298. Details: build_info.json
+> built 2026-10-27 05:58 UTC from 789bc27 (main) · an 0.1.299. Details: build_info.json
 
 # index.html.md
 
@@ -2089,7 +2089,7 @@ and the speaker’s character speaks with it — nothing synthesized, nothing bi
 
 project: the project directory
 audio: the take(s): a file, a directory, a glob, or comma-separated files (one take with several lines, or one file per line)
-transcript: SRT / WebVTT / TextGrid / word JSON (timed: no transcribing) or plain `speaker: text` lines; a directory pairs by stem
+transcript: SRT / WebVTT / TextGrid / word JSON (timed: no transcribing) or plain `speaker: text` lines; a directory pairs by stem; `artifact:transcripts/<key>` names one kept in the project’s transcripts store (comma-separate one per take)
 speaker: the one character every take belongs to
 speakers: label=character pairs for a transcript’s or diarizer’s labels and file stems, e.g. spk_0=carl,spk_1=ned
 shot: the shot new lines go into (takes matching no scene line)
@@ -5417,6 +5417,7 @@ All times are seconds from the start of the recording they describe.
 | [`detect_format`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.detect_format)(text, \*[, suffix])           | Which of [`FORMATS`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.FORMATS) `text` is, by its file suffix first, then its content.                                                                                                                                                                                                       |
 |----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`parse_transcript`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.parse_transcript)(source, \*[, fmt])         | Read `source` — a path to a transcript file, or the transcript text itself — into segments.                                                                                                                                                                                                                                    |
+| [`parse_transcript_text`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.parse_transcript_text)(text, \*[, fmt])      | The transcript `text` (never a path: what a store hands back, an#493) into segments; `fmt` (one of [`FORMATS`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.FORMATS)) overrides detection.                                                                                                                                              |
 | [`parse_srt`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.parse_srt)(text)                             | SubRip cues → timed segments; a `speaker:` prefix names the speaker.                                                                                                                                                                                                                                                           |
 | [`parse_vtt`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.parse_vtt)(text)                             | WebVTT cues → timed segments; `<v Name>` or a `speaker:` prefix names the speaker.                                                                                                                                                                                                                                             |
 | [`parse_plain`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.parse_plain)(text)                           | One non-empty line per segment, untimed; `speaker: text` names the speaker.                                                                                                                                                                                                                                                    |
@@ -5641,6 +5642,19 @@ itself — into segments. `fmt` (one of [`FORMATS`](_autosummary/an.audio.transc
 ```pycon
 >>> parse_transcript("carl: Hello.\nned: Hi.")[1]
 TranscriptSegment(text='Hi.', start=None, end=None, speaker='ned', words=None)
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`TranscriptSegment`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.TranscriptSegment)]
+
+### an.audio.transcripts.parse_transcript_text(text, , fmt=None)
+
+The transcript `text` (never a path: what a store hands back, an#493)
+into segments; `fmt` (one of [`FORMATS`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.FORMATS)) overrides detection.
+
+```pycon
+>>> parse_transcript_text("note", fmt="plain")[0].text
+'note'
 ```
 
 * **Return type:**
@@ -32633,7 +32647,7 @@ One sentence per camera move, in production terms.
 
 Version of each named camera move (ADR 0003). Bump one when its keys change.
 
-### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions, closing_transition}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.camera.follow', kind='field', version='1', name='shot.camera.follow', title='', description='a camera that follows an entity', usage="camera.follow (optional): {target: <entity id or node path>, axes: x|y|xy, lag: <seconds, optional: the camera trails the target with this time constant>} — the camera tracks the target, keeping it where it stood at the shot's start (a walk across a long set); planes parallax with it. Instead of a move or keys (hold is fine); a shake layers on top.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera.shake', kind='field', version='1', name='shot.camera.shake', title='', description='a jolt of the frame inside the shot', usage='camera.shake (optional): jolts of the frame layered on the move or keys — [{at: s, duration: 0.4, amplitude: 0.015, frequency: 24, decay: true, seed: 0}], amplitude a fraction of the frame height; for an impact, a slam, an explosion. The frame is at rest before \`at\` and after the end; shakes may not overlap or run past the shot.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. On a text block, 'text' swaps a replacement set's string ('texts', unit 'block'; the value is a key) and 'value' is a counter block's number ('counter'; set or tween a number, lowered at compile to the strings the frames show). Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, '#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / plane_fade_start / plane_fade_end tilt the node's plane away from the camera (radians, frame heights, plane px), and then pivot_y slides its content along the plane. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve" | "wipe", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. \\'wipe\\' overlaps the same way, but a hard edge sweeps across the frame in direction (\\'left\\', \\'right\\', \\'up\\' or \\'down\\': the way the edge travels). A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.closing_transition', kind='field', version='1', name='meta.closing_transition', title='', description='how the film ends', usage="meta.closing_transition (optional): how the film ENDS — {kind: 'fade', duration: seconds, color: '#rrggbb'}: the last shot's last duration fades to color (its final frame IS the color) and the sound fades with it; the film's length is unchanged. Omitted (or 'cut') = it ends on its last frame. A dissolve is refused.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
+### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions, closing_transition}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.camera.follow', kind='field', version='1', name='shot.camera.follow', title='', description='a camera that follows an entity', usage="camera.follow (optional): {target: <entity id or node path>, axes: x|y|xy, lag: <seconds, optional: the camera trails the target with this time constant>} — the camera tracks the target, keeping it where it stood at the shot's start (a walk across a long set); planes parallax with it. Instead of a move or keys (hold is fine); a shake layers on top.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera.shake', kind='field', version='1', name='shot.camera.shake', title='', description='a jolt of the frame inside the shot', usage='camera.shake (optional): jolts of the frame layered on the move or keys — [{at: s, duration: 0.4, amplitude: 0.015, frequency: 24, decay: true, seed: 0}], amplitude a fraction of the frame height; for an impact, a slam, an explosion. The frame is at rest before \`at\` and after the end; shakes may not overlap or run past the shot.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. On a text block, 'text' swaps a replacement set's string ('texts', unit 'block'; the value is a key) and 'value' is a counter block's number ('counter'; set or tween a number, lowered at compile to the strings the frames show). Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, '#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / plane_fade_start / plane_fade_end tilt the node's plane away from the camera (radians, frame heights, plane px), and then pivot_y slides its content along the plane. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve" | "wipe", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. \\'wipe\\' overlaps the same way, but a hard edge sweeps across the frame in direction (\\'left\\', \\'right\\', \\'up\\' or \\'down\\': the way the edge travels). A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.closing_transition', kind='field', version='1', name='meta.closing_transition', title='', description='how the film ends', usage="meta.closing_transition (optional): how the film ENDS — {kind: 'fade', duration: seconds, color: '#rrggbb'}: the last shot's last duration fades to color (its final frame IS the color) and the sound fades with it; the film's length is unchanged. Omitted (or 'cut') = it ends on its last frame. A dissolve is refused.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
 
 the core).
 
@@ -40580,7 +40594,7 @@ Project mall: a dict of dol-backed `MutableMapping` stores.
 The mall is the unit of persistence in an. Every long-lived state — assets
 (characters, props, environments, voices, styles, sounds, recordings), the scene file pair, intermediate
 artifacts (audio, viseme tracks, best-of-N take records, per-shot mp4s, the
-content-keyed shot cache),
+content-keyed shot cache, linked transcripts),
 final output and its caption sidecar, the agent’s decision log, and the asset
 library’s lockfile of pinned check-outs — is keyed inside a store. Stores are
 dol-backed so the same call
@@ -40596,7 +40610,7 @@ sites work against filesystem, SQLite, S3, etc.
 ...         'environments', 'library_lock', 'measurements', 'output',
 ...         'pictures', 'previews', 'props', 'recordings', 'render_reports', 'scenes',
 ...         'shot_cache', 'shots', 'sounds', 'sources', 'styles', 'takes',
-...         'visemes', 'voices',
+...         'transcripts', 'visemes', 'voices',
 ...     ]
 True
 ```
@@ -41024,6 +41038,7 @@ True
 | [`sounds`](_autosummary/an.stores.sounds.html.md#module-an.stores.sounds)             | Sounds store — one directory per sound: `sound.json` beside `audio.wav`.                 |
 | [`sources`](_autosummary/an.stores.sources.html.md#module-an.stores.sources)           | The project's opaque scene sources: files a whole-shot renderer runs as they are.        |
 | [`styles`](_autosummary/an.stores.styles.html.md#module-an.stores.styles)             | Styles store — visual style presets (color palette, line weight, fonts).                 |
+| [`transcripts`](_autosummary/an.stores.transcripts.html.md#module-an.stores.transcripts)   | Transcripts as linked artifacts in the project store (an#493).                           |
 | [`voices`](_autosummary/an.stores.voices.html.md#module-an.stores.voices)             | Voices store — pure JSON; one entry per voice.                                           |
 
 
@@ -41404,6 +41419,141 @@ Styles store — visual style presets (color palette, line weight, fonts).
 Bases: `JsonDirStore`
 
 Pure-JSON style descriptors.
+
+
+# _autosummary/an.stores.transcripts.html.md
+
+# an.stores.transcripts
+
+Transcripts as linked artifacts in the project store (an#493).
+
+A transcript an earlier step produced (a speech-to-text pass, a script
+export, a hand-timed SRT) is kept in the mall’s `transcripts` store, a
+`lacing.ArtifactStore` (`catalog/<key>.json` + `blobs/<sha256>`, the
+layout of the shot cache), so a later step can name it instead of a file:
+`an voices import <dir> takes/ --transcript artifact:transcripts/<key>`
+([`an.audio.recorded.import_recordings()`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.import_recordings)), and the take’s provenance
+points at the artifact it was cut by, content included
+(`transcripts/<key>@<sha256>`: a key re-recorded later names other bytes).
+The transcript’s format rides in the record’s `mime` ([`FORMAT_MIME`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.FORMAT_MIME)).
+A transcript is a document the takes are cut BY, before any take exists and
+often covering several, so it is its own store rather than a sidecar of a
+recording.
+
+```pycon
+>>> store = in_memory_transcripts_store()
+>>> art = record_transcript(store, "take1", "1\n00:00:00,000 --> 00:00:01,000\nHello.\n")
+>>> art.mime, art.kind
+('application/x-subrip', 'text')
+>>> linked = linked_transcript("artifact:transcripts/take1", {"transcripts": store})
+>>> linked.fmt, linked.ref == f"transcripts/take1@{art.asset_id}", linked.text.splitlines()[2]
+('srt', True, 'Hello.')
+```
+
+### Module Attributes
+
+| [`TRANSCRIPTS_STORE`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.TRANSCRIPTS_STORE)   | The mall key of the transcripts store.                                                                                                                                                                                                                     |
+|----------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`ARTIFACT_REF_PREFIX`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.ARTIFACT_REF_PREFIX) | How a transcript artifact is named where a path is expected: `artifact:<store>/<key>`, or `artifact:<key>` in [`TRANSCRIPTS_STORE`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.TRANSCRIPTS_STORE) (reelee's `artifact:<id>` spelling, with the store an#493 adds in front). |
+| [`FORMAT_MIME`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.FORMAT_MIME)         | The media type each transcript format is recorded under (and read back from).                                                                                                                                                                              |
+
+### Functions
+
+| [`in_memory_transcripts_store`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.in_memory_transcripts_store)()                   | A transcripts store held in dicts: for tests, and a mall with no disk.                                                                                                                        |
+|--------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`is_artifact_ref`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.is_artifact_ref)(item)                           | Whether `item` names a transcript artifact: an `artifact:` reference or a `lacing.Artifact`.                                                                                                  |
+| [`linked_transcript`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.linked_transcript)(item, mall, \*[, store_name]) | The transcript `item` names: `artifact:<store>/<key>` (`<key>` alone is in `store_name`; a key may itself hold slashes), or a `lacing.Artifact` (filed in `store_name`), read through `mall`. |
+| [`record_transcript`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.record_transcript)(store, key, text, \*[, ...])  | Keep `text` (a transcript, or a `Path` to one; its format detected, a file's suffix first, unless `fmt` says) in `store` under `key`; return its `lacing.Artifact`.                           |
+| [`transcripts_store`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.transcripts_store)(root)                         | A filesystem transcripts store under `root` (lacing's layout).                                                                                                                                |
+
+### Classes
+
+| [`LinkedTranscript`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.LinkedTranscript)(text, fmt, ref)   | A transcript read out of the store: its text, its format, and the reference that names it with its content (`<store>/<key>@<sha256>`).   |
+|-------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------|
+
+### Exceptions
+
+| [`TranscriptLinkError`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.TranscriptLinkError)   | A transcript artifact that cannot be found or read.   |
+|------------------------------------------------------------------------|-------------------------------------------------------|
+
+### an.stores.transcripts.ARTIFACT_REF_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'artifact:'*
+
+How a transcript artifact is named where a path is expected:
+`artifact:<store>/<key>`, or `artifact:<key>` in [`TRANSCRIPTS_STORE`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.TRANSCRIPTS_STORE)
+(reelee’s `artifact:<id>` spelling, with the store an#493 adds in front).
+
+### an.stores.transcripts.FORMAT_MIME *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'json': 'application/json', 'plain': 'text/plain', 'srt': 'application/x-subrip', 'textgrid': 'text/x-praat-textgrid', 'vtt': 'text/vtt'}*
+
+The media type each transcript format is recorded under (and read back from).
+
+### *class* an.stores.transcripts.LinkedTranscript(text, fmt, ref)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A transcript read out of the store: its text, its format, and the
+reference that names it with its content (`<store>/<key>@<sha256>`).
+
+### an.stores.transcripts.TRANSCRIPTS_STORE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'transcripts'*
+
+The mall key of the transcripts store.
+
+### *exception* an.stores.transcripts.TranscriptLinkError
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+A transcript artifact that cannot be found or read.
+
+### an.stores.transcripts.in_memory_transcripts_store()
+
+A transcripts store held in dicts: for tests, and a mall with no disk.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+### an.stores.transcripts.is_artifact_ref(item)
+
+Whether `item` names a transcript artifact: an `artifact:` reference
+or a `lacing.Artifact`.
+
+```pycon
+>>> is_artifact_ref("artifact:transcripts/t"), is_artifact_ref("take.srt")
+(True, False)
+>>> is_artifact_ref("artifact: Hello there.")   # a plain transcript's speaker
+False
+```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+### an.stores.transcripts.linked_transcript(item, mall, , store_name='transcripts')
+
+The transcript `item` names: `artifact:<store>/<key>` (`<key>`
+alone is in `store_name`; a key may itself hold slashes), or a
+`lacing.Artifact` (filed in `store_name`), read through `mall`.
+Raises [`TranscriptLinkError`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.TranscriptLinkError) for a store the mall has not, one
+that is not an artifact store, a key or content it does not hold, or a
+record whose `mime` is not a transcript format.
+
+* **Return type:**
+  [`LinkedTranscript`](_autosummary/an.stores.transcripts.html.md#an.stores.transcripts.LinkedTranscript)
+
+### an.stores.transcripts.record_transcript(store, key, text, , fmt=None, generated_by='processor:an.stores.transcripts', attributed_to='an', derived_from=())
+
+Keep `text` (a transcript, or a `Path` to one; its format detected,
+a file’s suffix first, unless `fmt` says) in `store` under `key`;
+return its `lacing.Artifact`. `generated_by` and `attributed_to` are
+its provenance (`processor:<name>`, who ran it), `derived_from` the
+sha256 of what it was made from (a recording).
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+### an.stores.transcripts.transcripts_store(root)
+
+A filesystem transcripts store under `root` (lacing’s layout).
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 
 # _autosummary/an.stores.voices.html.md
@@ -46134,18 +46284,20 @@ scene: the scene file to read, inside the project (default scene.md; for example
 
 # About this build
 
-This documentation was built on **2026-10-27 05:52 UTC** from commit <a href="https://github.com/reeleehq/an/commit/64ddcaabd5d922dec8b9ecd7c5eb6c628d78f063"><code>64ddcaa</code></a> on branch <code>main</code>, for **an 0.1.298** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-27 05:58 UTC** from commit <a href="https://github.com/reeleehq/an/commit/789bc27b2df05a39e6ca5a749c035ff591e6c8e7"><code>789bc27</code></a> on branch <code>main</code>, for **an 0.1.299** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.1.299) is ahead of the latest release on PyPI (0.1.298): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                    |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/an/commit/64ddcaabd5d922dec8b9ecd7c5eb6c628d78f063"><code>64ddcaabd5d922dec8b9ecd7c5eb6c628d78f063</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/an/commit/789bc27b2df05a39e6ca5a749c035ff591e6c8e7"><code>789bc27b2df05a39e6ca5a749c035ff591e6c8e7</code></a> |
 | Branch              | <code>main</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.298</code>                                                                                                                               |
+| Tags at this commit | <code>0.1.299</code>                                                                                                                               |
 | Working tree        | clean                                                                                                                                              |
 | Remote              | <code>https://github.com/reeleehq/an</code>                                                                                                        |
 
@@ -46154,9 +46306,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/an</code>                                                                   |
-| Run          | <a href="https://github.com/reeleehq/an/actions/runs/40456724759">40456724759</a>          |
+| Run          | <a href="https://github.com/reeleehq/an/actions/runs/40457214394">40457214394</a>          |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>234da13b4af8449f3e4cae23d04b66a5afa489c0</code> (in the history of the built commit) |
+| Event commit | <code>e0b4ef3408cbd207256b6c73053c1c650404cad2</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -46181,13 +46333,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.298/">0.1.298</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.298/">0.1.298</a>, older than the documented version (0.1.299).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/an && cd an
-git checkout 64ddcaabd5d922dec8b9ecd7c5eb6c628d78f063
+git checkout 789bc27b2df05a39e6ca5a749c035ff591e6c8e7
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
