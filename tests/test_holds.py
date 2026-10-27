@@ -1016,3 +1016,101 @@ def test_with_no_ground_given_the_floor_is_where_the_feet_are_not_the_reaching_a
         for y in (-100.0, 100.0)
     )
     assert lowest == pytest.approx(GROUND, abs=1e-3)
+
+
+def test_the_floor_is_where_the_figure_stands_not_its_lowest_part(tmp_path):
+    """an#601: no `solve.ground`, and the figure's left arm hangs below its
+    feet. The figure is placed by its declared `origin` (its feet), so the
+    floor is that line, and the stick laid flat lands on y 200, not on the
+    hanging hand."""
+    import json as _json
+
+    from tests._hold_fixture import _svg
+
+    entities = """- {kind: prop, id: fig, store: props, ref: figure, stage: {at: [-100, 200]}}
+- {kind: prop, id: stick, store: props, ref: stick, stage: {at: [-160, 150], scale: 0.5, after: fig}, overrides: {held_by: ground}}
+"""
+    actions = _TAKE + (
+        "- {kind: place, item: stick, onto: ground@-40, rotation: 1.5708, start: 1.4}"
+    )
+    root = tmp_path / "p"
+    make_project(root, scene(actions, entities=entities, shot="duration: 4.0"))
+    figure = root / "assets" / "props" / "figure"
+    doc = _json.loads((figure / "prop.json").read_text(encoding="utf-8"))
+    doc["skins"]["default"]["slots"]["arm_l"]["arm"]["path"] = "parts/long_arm.svg"
+    (figure / "prop.json").write_text(_json.dumps(doc), encoding="utf-8")
+    # hung 140 units above the feet, 300 long: its hand 160 units below them
+    (figure / "parts" / "long_arm.svg").write_text(
+        _svg(16, 300, "#2f6f9f"), encoding="utf-8"
+    )
+    from an.project import load
+
+    doc = _compile(load(root))
+    hand_l = _stage(doc, "fig/arm_l", 0.0, point=(0.0, 300.0 * K * (1.0 - 0.04)))
+    assert hand_l[1] > GROUND + 10, "the left hand hangs below the feet"
+    g = _gesture(doc, "place")
+    t = g["contact"] + 0.5
+    lowest = max(
+        _stage(doc, "stick", t, point=(x * K, y * K))[1]
+        for x in (-10.0, 10.0)
+        for y in (-100.0, 100.0)
+    )
+    assert lowest == pytest.approx(GROUND, abs=1e-3)
+
+
+def test_a_rig_placed_by_its_middle_is_not_standing_on_it(tmp_path):
+    """an#601 review: an `origin` above a bone is where a rig is placed, not
+    what it stands on. A stand placed by its middle lets go of the stick with
+    no `solve.ground`: the stick falls to the stand's base, not its middle."""
+    import json as _json
+
+    from an.project import load
+
+    entities = """- {kind: prop, id: stand, store: props, ref: stand, stage: {at: [160, 200]}}
+- {kind: prop, id: stick, store: props, ref: stick, stage: {at: [160, 100], scale: 0.5, after: stand}, overrides: {held_by: stand@hand}}
+"""
+    actions = "- {kind: release, item: stick, at: 1.0}"
+    root = tmp_path / "p"
+    make_project(root, scene(actions, entities=entities, shot="duration: 3.0"))
+    stand = root / "assets" / "props" / "stand"
+    doc = _json.loads((stand / "prop.json").read_text(encoding="utf-8"))
+    doc["origin"] = [200.0, 325.0]  # 75 units above its foot
+    (stand / "prop.json").write_text(_json.dumps(doc), encoding="utf-8")
+    doc = _compile(load(root))
+    base = 200.0 + 75.0 * K
+    lowest = _stage(doc, "stick", 2.9, point=INK_BOTTOM)[1]
+    assert lowest == pytest.approx(base, abs=1.0), lowest
+
+
+def test_a_rig_whose_root_bone_is_its_middle_is_not_standing_on_it(tmp_path):
+    """an#601 review 2: the stand's root bone AND its origin at its middle,
+    its art centred on them: no part rests on the origin, so the stick it lets
+    go of falls to the stand's base, not its middle."""
+    import json as _json
+
+    from an.project import load
+
+    entities = """- {kind: prop, id: stand, store: props, ref: stand, stage: {at: [160, 200]}}
+- {kind: prop, id: stick, store: props, ref: stick, stage: {at: [160, 100], scale: 0.5, after: stand}, overrides: {held_by: stand@hand}}
+"""
+    root = tmp_path / "p"
+    make_project(
+        root,
+        scene(
+            "- {kind: release, item: stick, at: 1.0}",
+            entities=entities,
+            shot="duration: 3.0",
+        ),
+    )
+    stand = root / "assets" / "props" / "stand"
+    doc = _json.loads((stand / "prop.json").read_text(encoding="utf-8"))
+    doc["origin"] = [200.0, 325.0]
+    doc["bones"] = [
+        {"name": "root", "x": 200.0, "y": 325.0},
+        {"name": "hand", "parent": "root", "x": 0.0, "y": -175.0},
+    ]
+    doc["skins"]["default"]["slots"]["body"]["body"]["anchor"] = [0.5, 0.5]
+    (stand / "prop.json").write_text(_json.dumps(doc), encoding="utf-8")
+    doc = _compile(load(root))
+    lowest = _stage(doc, "stick", 2.9, point=INK_BOTTOM)[1]
+    assert lowest == pytest.approx(200.0 + 75.0 * K, abs=1.0), lowest

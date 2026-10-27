@@ -719,6 +719,11 @@ class _Ctx:
     #: The solve without the holds' gestures: where a carrier's feet are, which
     #: the derived floor is read from (a reach bends the carrier; an#565).
     floor_run: Run | None = None
+    #: The entities placed by the point they stand on (their rig's declared
+    #: ``origin`` at its base: a figure's feet, a stand's foot, an#601): their
+    #: floor is that point's line, not the lowest of their parts (an arm can
+    #: hang lower).
+    stands: frozenset[str] = frozenset()
 
 
 def _frame_at(times: Sequence[float], t: float) -> int:
@@ -1300,8 +1305,10 @@ def _point_world(
 
 
 def _ground_at(ctx: _Ctx, run: Run, k: int, entity: str | None) -> float | None:
-    """The floor line: the shot's ``ground``, else the bottom of ``entity``'s
-    root parts (the floor it stands on) at frame ``k``, as the solve without
+    """The floor line: the shot's ``ground``; else, for an entity placed by the
+    point it stands on (``ctx.stands``: its rig's ``origin``), that point's
+    line (an#601: an arm hanging below the feet is not the floor); else the
+    bottom of ``entity``'s root parts, at frame ``k``, as the solve without
     the gestures has them (``ctx.floor_run``, else ``run``): a reach bends
     the carrier, and the floor does not drop with its arm. A gesture reads it,
     as it reads a surface, as it is at contact (``g.kc``, an#565): "below the
@@ -1311,6 +1318,9 @@ def _ground_at(ctx: _Ctx, run: Run, k: int, entity: str | None) -> float | None:
         return ctx.ground
     if entity is None:
         return None
+    floor = ctx.floor_run if ctx.floor_run is not None else run
+    if entity in ctx.stands:  # where it stands, as the gesture-free solve has it
+        return _apply(floor.evaluated[k][entity], (0.0, 0.0))[1]
     puppet = ctx.puppet
     roots = [
         p
@@ -1320,12 +1330,49 @@ def _ground_at(ctx: _Ctx, run: Run, k: int, entity: str | None) -> float | None:
     if not roots:
         return None
     lowest = None
-    floor = ctx.floor_run if ctx.floor_run is not None else run
     for p in roots:
         m = _body_world(puppet, floor, k, p)
         y = _lowest(m, ink_points(ctx.doc, puppet.nodes[p], ctx.mall))
         lowest = y if lowest is None else max(lowest, y)
     return lowest
+
+
+def _standing_entities(ctx: _Ctx, base: Run, *, vocab: Any = None) -> frozenset[str]:
+    """The shot's entities placed by the point they stand on (an#601): a
+    declared ``origin`` (an#338) that one of their parts' painted bottom
+    touches in the gesture-free solve as the shot opens (a figure's feet, a
+    stand's foot: within :data:`SUPPORT_TOLERANCE_PX`). An ``origin`` no part
+    rests on (a wheel's hub, a stick's middle, a stand placed by its middle)
+    is where the rig is held, not where it stands, and its floor stays the
+    bottom of its parts. The stance is the AUTHORED placement: a carrier a
+    shot joint moves (welded to a cart) keeps its floor at its ``stage.at``."""
+    from an.stage.solve import _descriptor, _field
+
+    puppet = ctx.puppet
+    parts: dict[str, list[str]] = {}
+    for path, b in puppet.bodies.items():
+        if b.parent_body is None:
+            parts.setdefault(b.entity, []).append(path)
+    out = set()
+    for e in ctx.shot.entities:
+        if e.id not in parts or e.id not in puppet.nodes or not base.evaluated:
+            continue
+        desc = (getattr(vocab, "descriptors", None) or {}).get(e.id) or _descriptor(
+            e, ctx.mall
+        )
+        if _field(desc, "origin") is None:
+            continue
+        stands_at = _apply(base.evaluated[0][e.id], (0.0, 0.0))[1]
+        bottoms = (
+            _lowest(
+                _body_world(puppet, base, 0, p),
+                ink_points(ctx.doc, puppet.nodes[p], ctx.mall),
+            )
+            for p in parts[e.id]
+        )
+        if any(abs(y - stands_at) <= SUPPORT_TOLERANCE_PX for y in bottoms):
+            out.add(e.id)
+    return frozenset(out)
 
 
 def _first_carrier(ctx: _Ctx, item: str) -> str | None:
@@ -2410,6 +2457,7 @@ def solve_holds(
     ctx.gravity = _gravity(shot, state.style_pack)
     ctx.ground = shot.solve.ground if shot.solve is not None else None
     ctx.floor_run = base
+    ctx.stands = _standing_entities(ctx, base, vocab=state.vocab)
     run = base
     if ctx.gestures:
         for _pass in range(HOLD_PLAN_PASSES):

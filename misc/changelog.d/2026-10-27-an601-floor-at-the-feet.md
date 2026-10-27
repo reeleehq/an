@@ -1,0 +1,1 @@
+- Holds: with no `solve.ground`, a carrier whose rig is placed by its base (an `origin` one of its parts' painted bottom rests on: a figure's feet) puts things on that point's line, read from the gesture-free solve, so an arm hanging below the feet is no longer the floor; a rig placed by its middle, and a character rig (no `origin`), keep the lowest of their parts (an#601).
