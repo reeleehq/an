@@ -24,6 +24,7 @@ from an.stage.compile import CutoutCompileError, compile_shot
 from an.stage.rig import (
     RIG_HIERARCHY,
     rig_affordances,
+    rest_world_transforms,
     rig_problems,
     slot_node_paths,
     slot_parent_chain,
@@ -350,3 +351,70 @@ def test_the_runtime_sorts_only_a_container_with_an_index():
     proc = run_node(script)
     assert proc.returncode == 0, proc.stderr
     assert json.loads(proc.stdout.strip().splitlines()[-1]) == [True, [0, 2, 2, 1], True]
+
+
+@pytest.mark.parametrize("nesting", ["bones", "flat"])
+def test_rest_world_transforms_agree_with_the_built_scene_graph(tmp_path, nesting):
+    """an#579: the public rest transform IS the builder's rule: every slot's node
+    lands where the compiled scene graph puts it, rotated and scaled bones included."""
+    doc = _doc()
+    if nesting == "flat":
+        doc.pop("nesting")
+    for i, bone in enumerate(doc["bones"]):
+        bone["rotation_deg"] = 15.0 * (i + 1)
+        bone["scale_x"] = 1.0 + 0.1 * i
+    transforms = rest_world_transforms(doc)
+    scene = compile_shot(_shot(), mall=_mall(tmp_path, doc))
+    root = _world(scene, "lamp")
+    node_paths = slot_node_paths(doc)
+    assert set(transforms) == set(node_paths)
+    for slot, node_path in node_paths.items():
+        got = _world(scene, f"lamp/{node_path}")
+        want = transforms[slot].apply(0.0, 0.0)
+        assert (got[0] - root[0], got[1] - root[1]) == pytest.approx(want, abs=1e-6), slot
+        probe = _world(scene, f"lamp/{node_path}", point=(10.0, 5.0))
+        expected = transforms[slot].apply(10.0, 5.0)
+        assert (probe[0] - root[0], probe[1] - root[1]) == pytest.approx(expected, abs=1e-6), slot
+    assert all(t.posed for t in transforms.values())
+
+
+def test_a_rig_without_rest_pose_is_not_posed_and_the_flag_turns_it_off():
+    doc = _doc()
+    for bone in doc["bones"]:
+        bone.pop("rotation_deg", None)
+        bone.pop("scale_x", None)
+        bone.pop("scale_y", None)
+    assert not any(t.posed for t in rest_world_transforms(doc).values())
+    doc["bones"][0]["rotation_deg"] = 30.0
+    assert any(t.posed for t in rest_world_transforms(doc).values())
+    assert not any(t.posed for t in rest_world_transforms(doc, apply_rest_pose=False).values())
+
+
+def test_a_swap_channel_on_an_early_slot_does_not_break_the_later_slots(tmp_path):
+    """an#579 review: the builder's shared geometry must survive a slot that has an asset set."""
+    doc = _doc()
+    base = doc["skins"]["default"]["slots"]["base"]
+    base["alt"] = {**base["base"], "width": 40.0, "height": 40.0}
+    doc["asset_sets"] = {"look": {"a": "base", "b": "alt"}}
+    scene = compile_shot(_shot(), mall=_mall(tmp_path, doc))
+    assert {"lamp/base/upper/fore/shade"} <= paths(scene.scene)
+
+
+def test_an_old_document_is_not_posed_by_the_helper_either(tmp_path):
+    """an#579 review: the helper decides the rest pose as the builder does (an#339, an#407)."""
+    from an.stage.props import PROP_DOCUMENT_KIND
+
+    doc = _doc()
+    for i, bone in enumerate(doc["bones"]):
+        bone["rotation_deg"] = 15.0 * (i + 1)
+    doc["schema_version"] = "0.1.0"  # drawn before bones posed their parts
+    built = compile_shot(_shot(), mall=_mall(tmp_path, doc))
+    root = _world(built, "lamp")
+    stored = rest_world_transforms(doc, document_kind=PROP_DOCUMENT_KIND)
+    assert not any(t.posed for t in stored.values())
+    for slot, node_path in slot_node_paths(doc).items():
+        got = _world(built, f"lamp/{node_path}")
+        assert (got[0] - root[0], got[1] - root[1]) == pytest.approx(
+            stored[slot].apply(0.0, 0.0), abs=1e-6
+        ), slot
+    assert any(t.posed for t in rest_world_transforms(doc).values())  # unversioned reading: posed

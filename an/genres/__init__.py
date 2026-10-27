@@ -137,7 +137,9 @@ class GenreError(RegistryError):
 #:     ``cli.<namespace>`` functions return to make the CLI exit non-zero.
 #: 10 = the one asset-reference rule (an#552): ``an.stores._common.asset_references``
 #:     and ``asset_ref_problems`` (``(label, message)`` pairs) a genre's validator calls.
-API_LEVEL: int = 10
+#: 11 = a slot's rest world transform (an#579): ``an.stage.rig.rest_world_transforms`` and
+#:     ``RestTransform``, the builder's own rule, for a genre's placement maths.
+API_LEVEL: int = 11
 
 
 class GenreAPILevelError(GenreError, ImportError):

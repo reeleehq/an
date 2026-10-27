@@ -385,6 +385,8 @@ an/
 │   │                        with its declared `origin`, an#338) AND the ONE rig builder,
 │   │                        public: build_rig_subtree, rig_origin, part_probe,
 │   │                        raster_digest, art_src, bone_positions (an#338; compile.py
+│   │                        `rest_world_transforms` (an#579): every slot's rest transform in
+│   │                        the entity frame, from the builder's own `_RigGeometry`;
 │   │                        re-exports the old private spellings); a bone's rest pose
 │   │                        (rotation_deg, scale) poses its part, and each rig kind's
 │   │                        schema bump registers the protective rest-pose migration

@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-10-27
+- **Rest world transforms** (an#579): `an.stage.rig.rest_world_transforms(desc)` returns every slot's rest transform in the entity frame (affine + posed), from the same `_RigGeometry` rule `build_rig_subtree` now uses; genre API level 11.
 - **Sway follow-ups** (an#580): a `set` that steps a frame is a cut, not an acceleration (the stencil slides off it); leaving a swaying frame settles as the frame did; the `max_actions` refusal counts the sway leans.
 - **Voice loudness on the shared component** (an#563): `an.audio.loudness` measures through `mixing.loudness.level_group` (ffmpeg `ebur128` injected as the meter, `METER`, so no scipy) and limits with `mixing.loudness.limit_peaks` (moved there unchanged: `LEVEL_VERSION` stays 1; a scene-level golden recorded from the old code pins every leveled line's gain and bytes). New `loudness` extra (`mixing`, unversioned); without it leveling raises `LoudnessComponentMissing` (a `VoiceLoudnessError` and an `ImportError`) naming the extra, and the spread warning is skipped.
 - **Sync-free read** (an#573): `an.ir.sync.read_scene` and `load(..., sync=False)` read past a stale md/json pair writing nothing; `cache info`, `cache gc` (also `--dry-run`), `credits` and `world show` use it.
