@@ -14,8 +14,6 @@ from collections.abc import MutableMapping
 from pathlib import Path
 from typing import Iterator
 
-from dol import atomic_write
-
 
 class _BlobStore(MutableMapping):
     """Generic file-as-bytes store with a fixed extension.
@@ -43,9 +41,7 @@ class _BlobStore(MutableMapping):
     def __setitem__(self, key: str, value: bytes) -> None:
         p = self._path(key)
         p.parent.mkdir(parents=True, exist_ok=True)
-        # Whole or not at all (an#649): a reader, or a crash, never meets half
-        # a file under a name a record says is current.
-        atomic_write(p, bytes(value))
+        p.write_bytes(value)
 
     def __delitem__(self, key: str) -> None:
         p = self._path(key)
