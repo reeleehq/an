@@ -1,1 +1,0 @@
-- Validate: the solidity check skips an entity unseen at an instant, treats two slots of one stream as occlusion when the nearer is in front and reports the reverse as a paint inversion (an#634), and the draw-order check leaves slots to the world's depth order (an#632).

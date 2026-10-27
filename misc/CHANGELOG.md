@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-10-27
+- Validate: the solidity check skips an entity unseen at an instant, treats two slots of one stream as occlusion when the nearer is in front and reports the reverse as a paint inversion (an#634), and the draw-order check leaves slots to the world's depth order (an#632).
 - A travel past its `max_actions` stops fitting as soon as a running lower bound of its actions crosses the budget, instead of fitting every pass first (an#516, slice B).
 - A travelling stream's slots are sized from the larger of the depth range and the on-screen span under the shot's viewpoint, so a wide lens or a yawed side window lowers instead of being refused (an#516, slice C).
 - World follow-ups (an#516, slice A): slot entities carry `overrides.stream`; an authored slot-like id is refused; a missing world member ref is a validate error and the render warns lowering notes; cut checks skip entities hidden on a side; a shot with no measurable member says so.
