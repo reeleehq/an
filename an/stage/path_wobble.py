@@ -17,8 +17,9 @@ other.
 - **The ends stay put.** The amplitude ramps up over the first and down over
   the last wavelength, so a route still starts and ends where it was drawn
   to, and an arrowhead's tip lands on its target.
-- **Static.** One displacement per path. A *boil* (a wobble that changes on
-  twos) is several displaced polylines on a step channel; not built.
+- **Static.** One displacement per seed. A *boil* (a wobble that changes on
+  twos, an#443) is several of them, seeded ``<seed>:<k>``, on a step channel:
+  :func:`an.stage.paths.drawn_polyline` draws each, the compiler steps them.
 
 >>> pts = wobble_polyline([(0.0, 0.0), (200.0, 0.0)], amplitude=4.0, wavelength=50.0, seed="route:0")
 >>> pts[0], pts[-1]  # the ends are where they were
