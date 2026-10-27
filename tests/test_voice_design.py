@@ -291,3 +291,134 @@ def test_a_damaged_retired_ledger_is_refused_before_anything_is_chosen():
     }
     with pytest.raises(VoiceDesignError, match="damaged"):
         choose_in_entry(entry, "B", by="noel")
+
+
+def test_designing_again_keeps_the_choice_and_retires_what_the_old_design_saved(
+    tmp_path,
+):
+    """an#604: design (every option saved), choose B, design again. The new
+    manifest keeps `chosen` (its option cleared: the new B is another voice;
+    marked to be retired when replaced) and ledgers every OTHER voice the old
+    design saved, so none is orphaned. Choosing the new B then retires the old
+    chosen voice, once."""
+    proj = _voice_project(tmp_path, {"notes": NOTES})
+    first = FakeDesigner(n=3)
+    design_project_voices(proj, designer=first)
+    choose_project_voice(proj, "jerry", "B", designer=first, by="noel", at="t1")
+    again = FakeDesigner(n=3)
+    again.design_voice = lambda description, *, preview, name: SimpleNamespace(
+        segment=f"new-{getattr(preview, 'generated_voice_id', preview)}"
+    )
+    design_project_voices(proj, designer=again)
+    m = _manifest(proj)
+    assert m["chosen"] == {
+        "option": None, "voice_id": "voice-gen1", "chosen_by": "noel",
+        "chosen_at": "t1", "retire_on_replace": True,
+    }  # fmt: skip
+    assert sorted(r["voice_id"] for r in m["retired"]) == ["voice-gen0", "voice-gen2"]
+    from an.audio.voice_design import choose_in_entry
+
+    entry = _manifest(proj)
+    choice = choose_in_entry(entry, "B", by="noel", designer=again)
+    assert (choice.previous, choice.retired) == ("voice-gen1", "voice-gen1")
+    doc = choose_project_voice(proj, "jerry", "B", designer=again, by="noel")
+    assert doc["voice_id"] == "new-gen1"
+    assert sorted(r["voice_id"] for r in _manifest(proj)["retired"]) == [
+        "voice-gen0", "voice-gen1", "voice-gen2",
+    ]  # fmt: skip
+
+
+def test_a_damaged_manifest_is_refused_before_a_re_design_bills_anything(tmp_path):
+    from an.audio.voice_design import VoiceDesignError
+
+    proj = _voice_project(tmp_path, {"notes": NOTES})
+    design_project_voices(proj, designer=FakeDesigner(n=2))
+    path = proj / "artifacts" / "voice_options" / "jerry.json"
+    for damage in (
+        "{not json",
+        json.dumps({"options": [], "retired": {"voice_id": "x"}}),
+    ):
+        path.write_text(damage, encoding="utf-8")
+        d = FakeDesigner(n=2)
+        with pytest.raises(VoiceDesignError, match="damaged"):
+            design_project_voices(proj, designer=d)
+        assert d.calls == [], "nothing designed, nothing saved"
+
+
+def test_a_voice_a_voice_document_names_is_never_retired_by_a_re_design(tmp_path):
+    """Another character cast by hand to one of jerry's option voices."""
+    from an.audio.voice_design import cast_project_voice
+
+    proj = _voice_project(tmp_path, {"notes": NOTES})
+    (proj / "assets" / "voices" / "tom.json").write_text(
+        json.dumps({"provider": "elevenlabs"}), encoding="utf-8"
+    )
+    design_project_voices(proj, designer=FakeDesigner(n=2), refs=["jerry"])
+    cast_project_voice(proj, "tom", "voice-gen0", by="noel")
+    again = FakeDesigner(n=2)
+    again.design_voice = lambda description, *, preview, name: SimpleNamespace(
+        segment="new"
+    )
+    design_project_voices(proj, designer=again, refs=["jerry"])
+    assert [r["voice_id"] for r in _manifest(proj)["retired"]] == ["voice-gen1"]
+
+
+def _redesigned(tmp_path):
+    """Design jerry, choose B, design again (every option saved both times)."""
+    proj = _voice_project(tmp_path, {"notes": NOTES})
+    (proj / "assets" / "voices" / "tom.json").write_text(
+        json.dumps({"provider": "elevenlabs"}), encoding="utf-8"
+    )
+    design_project_voices(proj, designer=FakeDesigner(n=3), refs=["jerry"])
+    choose_project_voice(proj, "jerry", "B", designer=None, by="noel", at="t1")
+    again = FakeDesigner(n=3)
+    again.design_voice = lambda description, *, preview, name: SimpleNamespace(
+        segment=f"new-{getattr(preview, 'generated_voice_id', preview)}"
+    )
+    return proj, again
+
+
+def test_a_carried_choice_another_character_speaks_is_not_retired(tmp_path):
+    from an.audio.voice_design import cast_project_voice
+
+    proj, again = _redesigned(tmp_path)
+    cast_project_voice(proj, "tom", "voice-gen1", by="noel")  # tom speaks jerry's old B
+    design_project_voices(proj, designer=again, refs=["jerry"])
+    choose_project_voice(proj, "jerry", "A", designer=again, by="noel")
+    assert "voice-gen1" not in [r["voice_id"] for r in _manifest(proj)["retired"]]
+
+
+def test_casting_by_hand_over_a_carried_choice_retires_it(tmp_path):
+    from an.audio.voice_design import cast_project_voice
+
+    proj, again = _redesigned(tmp_path)
+    design_project_voices(proj, designer=again, refs=["jerry"])
+    cast_project_voice(proj, "jerry", "HAND", by="noel")
+    m = _manifest(proj)
+    assert "voice-gen1" in [r["voice_id"] for r in m["retired"]]
+    assert m["chosen"]["voice_id"] == "HAND" and "retire_on_replace" not in m["chosen"]
+
+
+@pytest.mark.parametrize(
+    "damage",
+    [
+        {"options": ["x"]},
+        {"options": [], "retired": ["x"]},
+        {"options": [{"voice_id": [1]}]},
+        {"options": [], "chosen": "B"},
+    ],
+)
+def test_a_manifest_damaged_inside_is_refused_before_anything_is_billed(
+    tmp_path, damage
+):
+    from an.audio.voice_design import VoiceDesignError
+
+    proj = _voice_project(tmp_path, {"notes": NOTES})
+    (proj / "artifacts" / "voice_options").mkdir(parents=True, exist_ok=True)
+    (proj / "artifacts" / "voice_options" / "jerry.json").write_text(
+        json.dumps(damage), encoding="utf-8"
+    )
+    d = FakeDesigner(n=2)
+    with pytest.raises(VoiceDesignError, match="damaged"):
+        design_project_voices(proj, designer=d)
+    assert d.calls == []
