@@ -4,3 +4,15 @@ an.util
 .. automodule:: an.util
 
    
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      WINDOWS_RESERVED_NAMES
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      is_windows_reserved
+   

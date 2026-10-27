@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=6846580c"></script>
+    <script src="../../../_static/documentation_options.js?v=a3cfc8c1"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.283" />
+  <meta name="docsearch:version" content="0.1.284" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -756,6 +756,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fnmatch</span><span class="w"> </span><span class="kn">import</span> <span class="n">fnmatchcase</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
@@ -784,7 +785,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">register_action_kind</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">AssetRef</span><span class="p">,</span> <span class="n">Dialogue</span><span class="p">,</span> <span class="n">Meta</span><span class="p">,</span> <span class="n">SceneIR</span><span class="p">,</span> <span class="n">Shot</span><span class="p">,</span> <span class="n">World</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">_read_text</span><span class="p">,</span> <span class="n">_write_json</span><span class="p">,</span> <span class="n">_write_text</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_windows_reserved</span><span class="p">,</span> <span class="n">_read_text</span><span class="p">,</span> <span class="n">_write_json</span><span class="p">,</span> <span class="n">_write_text</span>
 
 
 <span class="c1">#: Two files whose mtimes are closer than this are "the same age" to `sync`,</span>
@@ -2026,8 +2027,29 @@ window.runMermaid = runMermaid;</script>
 <span class="n">PER_SCENE_SUBDIR</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"scenes"</span>
 
 <span class="c1">#: What an output name may be: a file stem that cannot climb out of, or alias,</span>
-<span class="c1">#: the folder it names (``..``, ``.``, ``a/b``; an#554 review).</span>
-<span class="n">_OUTPUT_NAME_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"[\w-][\w.-]*"</span><span class="p">)</span>
+<span class="c1">#: the folder it names (``..``, ``.``, ``a/b``; an#554 review). It starts with a</span>
+<span class="c1">#: letter, digit or ``_`` (a leading ``-`` reads as a command-line flag) and does</span>
+<span class="c1">#: not end with ``.`` (Windows drops the dot, so ``a.`` and ``a`` collide).</span>
+<span class="n">_OUTPUT_NAME_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"\w[\w.-]*(?&lt;!\.)"</span><span class="p">)</span>
+
+<span class="c1">#: Files that may be a scene before they have been read (no ``ir/&lt;stem&gt;.json``</span>
+<span class="c1">#: yet): a render of one would write its output name, so that name is taken.</span>
+<span class="c1">#: Only these claim a name unread; any other ``.md`` claims its own once a</span>
+<span class="c1">#: command has read it.</span>
+<span class="n">SCENE_FILE_GLOB</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"scene*.md"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_output_stem_problem</span><span class="p">(</span><span class="n">stem</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Why ``stem`` cannot be an output name on every platform, or ``None``:</span>
+<span class="sd">    a Windows device name, a trailing dot (Windows drops it, so ``a.`` is ``a``)</span>
+<span class="sd">    or a leading dash (read as a command-line flag)."""</span>
+    <span class="k">if</span> <span class="n">is_windows_reserved</span><span class="p">(</span><span class="n">stem</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">"is a reserved device name on Windows"</span>
+    <span class="k">if</span> <span class="n">stem</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"."</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">"ends with '.', which Windows drops"</span>
+    <span class="k">if</span> <span class="n">stem</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"-"</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">"starts with '-', which reads as a command-line flag"</span>
+    <span class="k">return</span> <span class="kc">None</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">SceneFileError</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
@@ -2096,7 +2118,12 @@ window.runMermaid = runMermaid;</script>
             <span class="c1"># to another output's folder (`render_work/outputs/..` is main's).</span>
             <span class="k">raise</span> <span class="n">SceneFileError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"output name </span><span class="si">{</span><span class="n">output_name</span><span class="si">!r}</span><span class="s2"> must be a file stem (letters, digits, "</span>
-                <span class="s2">"'_', '-' and '.', not starting with '.'), not a path"</span>
+                <span class="s2">"'_', '-' and '.'; not starting with '.' or '-', not ending with "</span>
+                <span class="s2">"'.'), not a path"</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">problem</span> <span class="o">:=</span> <span class="n">_output_stem_problem</span><span class="p">(</span><span class="n">output_name</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">SceneFileError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"output name </span><span class="si">{</span><span class="n">output_name</span><span class="si">!r}</span><span class="s2"> </span><span class="si">{</span><span class="n">problem</span><span class="si">}</span><span class="s2">: pick another --output-name"</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_default</span> <span class="ow">and</span> <span class="n">output_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">DEFAULT_OUTPUT_NAME</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">SceneFileError</span><span class="p">(</span>
@@ -2104,7 +2131,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="n">DEFAULT_SCENE_FILE</span><span class="si">}</span><span class="s2">) output; a render of </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> would "</span>
                 <span class="s2">"overwrite it: pick another --output-name"</span>
             <span class="p">)</span>
-        <span class="k">for</span> <span class="n">other</span> <span class="ow">in</span> <span class="n">project_scene_files</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_dir</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">other</span> <span class="ow">in</span> <span class="n">project_scene_files</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_dir</span><span class="p">,</span> <span class="n">unsynced</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="ow">and</span> <span class="p">(</span>
                 <span class="n">other</span><span class="o">.</span><span class="n">output_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">output_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
             <span class="p">):</span>
@@ -2199,6 +2226,11 @@ window.runMermaid = runMermaid;</script>
             <span class="sa">f</span><span class="s2">"the default scene's (</span><span class="si">{</span><span class="n">DEFAULT_SCENE_FILE</span><span class="si">}</span><span class="s2">) output: rename the file "</span>
             <span class="sa">f</span><span class="s2">"(for example scene.</span><span class="si">{</span><span class="n">stem</span><span class="si">}</span><span class="s2">.md)"</span>
         <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_default</span> <span class="ow">and</span> <span class="p">(</span><span class="n">problem</span> <span class="o">:=</span> <span class="n">_output_stem_problem</span><span class="p">(</span><span class="n">stem</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="n">SceneFileError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"scene file </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> would render to output/</span><span class="si">{</span><span class="n">stem</span><span class="si">}</span><span class="s2">.mp4, a name that "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">problem</span><span class="si">}</span><span class="s2">: rename the file"</span>
+        <span class="p">)</span>
     <span class="n">md_path</span> <span class="o">=</span> <span class="n">pdir</span> <span class="o">/</span> <span class="n">name</span>
     <span class="k">if</span> <span class="n">must_exist</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_default</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">md_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
         <span class="k">raise</span> <span class="n">SceneFileError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"no scene file </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> in </span><span class="si">{</span><span class="n">pdir</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
@@ -2210,12 +2242,18 @@ window.runMermaid = runMermaid;</script>
     <span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">project_scene_files</span><span class="p">(</span><span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">SceneFile</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">project_scene_files</span><span class="p">(</span>
+    <span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">unsynced</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">SceneFile</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Every scene of the project at ``project_dir`` (an#554): the default</span>
 <span class="sd">    ``scene.md`` first, when it or its JSON twin is there, then each other</span>
 <span class="sd">    ``.md`` file directly in the project whose JSON twin ``ir/&lt;stem&gt;.json``</span>
 <span class="sd">    exists (a scene a command has read: notes and READMEs have none), by name.</span>
 <span class="sd">    What a project-wide command (``an cache gc``) must account for.</span>
+
+<span class="sd">    ``unsynced=True`` also lists the ``scene*.md`` files not read yet (no JSON</span>
+<span class="sd">    twin): a render of one would claim its output name, so the output-name</span>
+<span class="sd">    refusal counts them (an#574).</span>
 
 <span class="sd">    &gt;&gt;&gt; import tempfile</span>
 <span class="sd">    &gt;&gt;&gt; with tempfile.TemporaryDirectory() as d:</span>
@@ -2223,8 +2261,11 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    ...     (p / "ir").mkdir()</span>
 <span class="sd">    ...     for name in ("scene.md", "scene.b.md", "README.md", "ir/scene.json", "ir/scene.b.json"):</span>
 <span class="sd">    ...         _ = (p / name).write_text("")</span>
+<span class="sd">    ...     _ = (p / "scene.c.md").write_text("")</span>
 <span class="sd">    ...     [sf.name for sf in project_scene_files(p)]</span>
+<span class="sd">    ...     [sf.name for sf in project_scene_files(p, unsynced=True)]</span>
 <span class="sd">    ['scene.md', 'scene.b.md']</span>
+<span class="sd">    ['scene.md', 'scene.b.md', 'scene.c.md']</span>
 <span class="sd">    """</span>
     <span class="n">pdir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
     <span class="n">default</span> <span class="o">=</span> <span class="n">resolve_scene_file</span><span class="p">(</span><span class="n">pdir</span><span class="p">,</span> <span class="n">must_exist</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -2236,7 +2277,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">sf</span> <span class="o">=</span> <span class="n">resolve_scene_file</span><span class="p">(</span><span class="n">pdir</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">SceneFileError</span><span class="p">:</span>
             <span class="k">continue</span>  <span class="c1"># `Scene.md`, `main.md`, `.hidden.md`: not a scene a command reads</span>
-        <span class="k">if</span> <span class="n">sf</span><span class="o">.</span><span class="n">json_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">sf</span><span class="o">.</span><span class="n">json_path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">or</span> <span class="p">(</span><span class="n">unsynced</span> <span class="ow">and</span> <span class="n">fnmatchcase</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">SCENE_FILE_GLOB</span><span class="p">)):</span>
             <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sf</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">out</span>
 
