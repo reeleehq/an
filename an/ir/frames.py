@@ -105,7 +105,9 @@ def _whole_stencil_centre(
     candidates = [t]
     for j in jumps:
         candidates += [j + h, j - h - _JUMP_EPS_S]
-    return min((c for c in candidates if whole(c)), key=lambda c: abs(c - t), default=None)
+    return min(
+        (c for c in candidates if whole(c)), key=lambda c: abs(c - t), default=None
+    )
 
 
 class FrameError(ValueError):
