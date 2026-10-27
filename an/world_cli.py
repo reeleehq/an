@@ -6,9 +6,9 @@ Thin projections of :mod:`an.stage.world`, wired into the CLI by
 
 from __future__ import annotations
 
-from an.ir.sync import DEFAULT_SCENE_FILE
-
 import json as _json
+
+from an.ir.sync import DEFAULT_SCENE_FILE
 
 __all__ = ["show"]
 
