@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=548016f6"></script>
+    <script src="../../../_static/documentation_options.js?v=f0f892ef"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.296" />
+  <meta name="docsearch:version" content="0.1.297" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -2481,13 +2481,42 @@ window.runMermaid = runMermaid;</script>
     <span class="n">height</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">times</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_Sighting</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""A positioned member in motion relative to the camera, as one passage per</span>
-<span class="sd">    stretch of the shot it is in front of the camera and on screen (it can</span>
-<span class="sd">    leave and come back), each with its depth as it enters; no passage when</span>
-<span class="sd">    it never is. ``times`` is the shot's scan grid (``_grid``), sampled once</span>
-<span class="sd">    for the depth runs and the sighting's series."""</span>
+<span class="w">    </span><span class="sd">"""A positioned member in motion relative to the camera (:func:`_sight` of</span>
+<span class="sd">    where it stands, ``course`` or its own point and tracks)."""</span>
     <span class="n">view</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">view_fn</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">course</span> <span class="ow">or</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">_member_point</span><span class="p">(</span><span class="n">member</span><span class="p">,</span> <span class="n">tracks</span><span class="p">,</span> <span class="n">t</span><span class="p">)))</span>
-    <span class="n">focal</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">projection</span><span class="o">.</span><span class="n">focal</span>
+    <span class="k">return</span> <span class="n">_sight</span><span class="p">(</span>
+        <span class="n">view</span><span class="p">,</span>
+        <span class="n">focal</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">projection</span><span class="o">.</span><span class="n">focal</span><span class="p">,</span>
+        <span class="n">box</span><span class="o">=</span><span class="n">box</span><span class="p">,</span>
+        <span class="n">m</span><span class="o">=</span><span class="n">m</span><span class="p">,</span>
+        <span class="n">near</span><span class="o">=</span><span class="n">near</span><span class="p">,</span>
+        <span class="n">tol</span><span class="o">=</span><span class="n">tol</span><span class="p">,</span>
+        <span class="n">min_step</span><span class="o">=</span><span class="n">min_step</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span>
+        <span class="n">times</span><span class="o">=</span><span class="n">times</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_sight</span><span class="p">(</span>
+    <span class="n">view</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">float</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">focal</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">box</span><span class="p">:</span> <span class="n">Box</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">m</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">near</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">tol</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">min_step</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">width</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">height</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">times</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_Sighting</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Something in motion relative to the camera, ``view`` being ``t -&gt; (right,</span>
+<span class="sd">    down, depth)`` of its point: one passage per stretch of the shot it is in</span>
+<span class="sd">    front of the camera and on screen (it can leave and come back), each with</span>
+<span class="sd">    its depth as it enters; no passage when it never is. Its screen scale is</span>
+<span class="sd">    ``m · focal / depth``. ``times`` is the shot's scan grid (``_grid``),</span>
+<span class="sd">    sampled once for the depth runs and the sighting's series."""</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">g</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
         <span class="k">return</span> <span class="n">to_screen</span><span class="p">(</span><span class="n">view</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
@@ -2618,6 +2647,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">width</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">height</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">plane_geometry</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">Box</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]],</span>
+    <span class="n">plane_anchors</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">_PlaneAnchor</span><span class="p">],</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Shot</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">WorldNote</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]:</span>
     <span class="n">shot</span> <span class="o">=</span> <span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
     <span class="n">world</span> <span class="o">=</span> <span class="n">scene</span><span class="o">.</span><span class="n">world</span>
@@ -2938,6 +2969,32 @@ window.runMermaid = runMermaid;</script>
             <span class="n">actions</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
                 <span class="n">_pass_actions</span><span class="p">(</span><span class="n">mid</span><span class="p">,</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">passes</span><span class="p">[</span><span class="n">mid</span><span class="p">]],</span> <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">)</span>
             <span class="p">)</span>
+    <span class="n">lowered_envs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">envs</span><span class="p">:</span>
+        <span class="n">e</span><span class="p">,</span> <span class="n">plane_actions</span> <span class="o">=</span> <span class="n">_with_plane_depths</span><span class="p">(</span>
+            <span class="n">e</span><span class="p">,</span>
+            <span class="n">members</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">),</span>
+            <span class="n">world</span><span class="o">=</span><span class="n">world</span><span class="p">,</span>
+            <span class="n">ctx</span><span class="o">=</span><span class="n">ctx</span><span class="p">,</span>
+            <span class="n">placed</span><span class="o">=</span><span class="n">placed</span><span class="p">,</span>
+            <span class="n">viewpoint</span><span class="o">=</span><span class="n">vp</span><span class="p">,</span>
+            <span class="n">geometry</span><span class="o">=</span><span class="n">plane_geometry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="p">{}),</span>
+            <span class="n">anchors</span><span class="o">=</span><span class="n">plane_anchors</span><span class="p">,</span>
+            <span class="n">existing</span><span class="o">=</span><span class="p">[</span><span class="o">*</span><span class="n">shot</span><span class="o">.</span><span class="n">actions</span><span class="p">,</span> <span class="o">*</span><span class="n">actions</span><span class="p">],</span>
+            <span class="n">sight</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">focal</span><span class="o">=</span><span class="n">projection</span><span class="o">.</span><span class="n">focal</span><span class="p">,</span>
+                <span class="n">near</span><span class="o">=</span><span class="n">near</span><span class="p">,</span>
+                <span class="n">tol</span><span class="o">=</span><span class="n">tol</span><span class="p">,</span>
+                <span class="n">min_step</span><span class="o">=</span><span class="n">min_step</span><span class="p">,</span>
+                <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
+                <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span>
+                <span class="n">times</span><span class="o">=</span><span class="n">grid</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">note</span><span class="o">=</span><span class="n">note</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">lowered_envs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">e</span><span class="p">,</span> <span class="n">j</span><span class="p">))</span>
+        <span class="n">actions</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">plane_actions</span><span class="p">)</span>
+    <span class="n">envs</span> <span class="o">=</span> <span class="n">lowered_envs</span>
     <span class="n">swayed</span> <span class="o">=</span> <span class="n">_sway_members</span><span class="p">(</span>
         <span class="nb">sorted</span><span class="p">(</span>
             <span class="n">mid</span>
@@ -2993,7 +3050,7 @@ window.runMermaid = runMermaid;</script>
             <span class="k">else</span> <span class="s2">""</span>
         <span class="p">)</span>
         <span class="k">raise</span> <span class="n">WorldError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: the members in motion lower to </span><span class="si">{</span><span class="n">n_motion</span><span class="si">}</span><span class="s2"> actions"</span>
+            <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: the members and planes in motion lower to </span><span class="si">{</span><span class="n">n_motion</span><span class="si">}</span><span class="s2"> actions"</span>
             <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">sway_note</span><span class="si">}</span><span class="s2">, past the `max_actions` (</span><span class="si">{</span><span class="n">budget</span><span class="si">}</span><span class="s2">). Raise `tolerance_px` "</span>
             <span class="s2">"on the travel, cut the shot, or keep fewer members moving relative "</span>
             <span class="s2">"to the camera."</span>
@@ -3036,10 +3093,6 @@ window.runMermaid = runMermaid;</script>
         <span class="k">for</span> <span class="n">stream_id</span><span class="p">,</span> <span class="n">problem</span> <span class="ow">in</span> <span class="n">problems</span><span class="p">:</span>
             <span class="n">note</span><span class="p">(</span><span class="s2">"warning"</span><span class="p">,</span> <span class="s2">"stream"</span><span class="p">,</span> <span class="n">stream_id</span><span class="p">,</span> <span class="n">problem</span><span class="p">)</span>
     <span class="n">ordered</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">item</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-    <span class="n">envs</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="p">(</span><span class="n">_with_plane_factors</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">members</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">),</span> <span class="n">placed</span><span class="p">,</span> <span class="n">vp</span><span class="p">,</span> <span class="n">note</span><span class="p">),</span> <span class="n">j</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">envs</span>
-    <span class="p">]</span>
     <span class="k">if</span> <span class="n">sightings</span><span class="p">:</span>
         <span class="n">_depth_order_notes</span><span class="p">(</span>
             <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">ordered</span><span class="p">],</span>
@@ -3106,23 +3159,137 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">shown</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">shown</span><span class="p">)</span> <span class="k">if</span> <span class="n">shown</span> <span class="k">else</span> <span class="kc">None</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_with_plane_factors</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">plane_frame</span><span class="p">(</span><span class="n">world</span><span class="p">:</span> <span class="n">World</span><span class="p">,</span> <span class="n">member</span><span class="p">:</span> <span class="n">WorldMember</span><span class="p">,</span> <span class="n">plane</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The frame plane ``plane`` of environment ``member`` stands in: its own</span>
+<span class="sd">    ``planes`` entry, else the member's ``in``, else the frame a member that</span>
+<span class="sd">    names none is in (:meth:`World.default_frame`).</span>
+
+<span class="sd">    &gt;&gt;&gt; from an.ir.schema import World, WorldMember</span>
+<span class="sd">    &gt;&gt;&gt; m = WorldMember(kind="environment", id="set", store="environments", ref="e",</span>
+<span class="sd">    ...                 frame="car", planes={"sky": "far"})</span>
+<span class="sd">    &gt;&gt;&gt; plane_frame(World(), m, "sky"), plane_frame(World(), m, "hill")</span>
+<span class="sd">    ('far', 'car')</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">member</span><span class="o">.</span><span class="n">planes</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">plane</span><span class="p">)</span> <span class="ow">or</span> <span class="n">member</span><span class="o">.</span><span class="n">frame</span> <span class="ow">or</span> <span class="n">world</span><span class="o">.</span><span class="n">default_frame</span><span class="p">()</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">plane_anchor</span><span class="p">(</span>
+    <span class="n">eye</span><span class="p">:</span> <span class="n">Projection</span><span class="p">,</span> <span class="n">offset</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">z</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">near</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Point3</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Where a plane at depth ``z`` of its frame stands: the point where the ray</span>
+<span class="sd">    from ``eye`` (the camera, in that frame's units) through the plane's origin</span>
+<span class="sd">    on screen (``offset``, pixels from the frame centre) meets the plane</span>
+<span class="sd">    ``z`` along the camera's look direction from the frame's origin. The plane</span>
+<span class="sd">    is a plate facing the camera through that point, ``z - eye.at · forward``</span>
+<span class="sd">    in front of it; ``None`` when that is less than ``near`` (behind it).</span>
+
+<span class="sd">    &gt;&gt;&gt; eye = Projection((0.0, 0.0, -5.0), (0.0, 0.0, 1.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0), 100.0)</span>
+<span class="sd">    &gt;&gt;&gt; plane_anchor(eye, (0.0, 50.0), 15.0)   # 20 in front of a camera standing at z = -5</span>
+<span class="sd">    (0.0, 10.0, 15.0)</span>
+<span class="sd">    &gt;&gt;&gt; plane_anchor(eye, (0.0, 0.0), -10.0) is None</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; side = Projection((0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (0.0, 0.0, -1.0), (0.0, 1.0, 0.0), 100.0)</span>
+<span class="sd">    &gt;&gt;&gt; plane_anchor(side, (0.0, 0.0), 20.0)   # a camera looking along +x</span>
+<span class="sd">    (20.0, 0.0, 0.0)</span>
+<span class="sd">    """</span>
+    <span class="n">ox</span><span class="p">,</span> <span class="n">oy</span> <span class="o">=</span> <span class="n">offset</span>
+    <span class="n">ray</span> <span class="o">=</span> <span class="n">_add</span><span class="p">(</span>
+        <span class="n">eye</span><span class="o">.</span><span class="n">forward</span><span class="p">,</span>
+        <span class="n">_add</span><span class="p">(</span><span class="n">_mul</span><span class="p">(</span><span class="n">eye</span><span class="o">.</span><span class="n">right</span><span class="p">,</span> <span class="n">ox</span> <span class="o">/</span> <span class="n">eye</span><span class="o">.</span><span class="n">focal</span><span class="p">),</span> <span class="n">_mul</span><span class="p">(</span><span class="n">eye</span><span class="o">.</span><span class="n">down</span><span class="p">,</span> <span class="n">oy</span> <span class="o">/</span> <span class="n">eye</span><span class="o">.</span><span class="n">focal</span><span class="p">)),</span>
+    <span class="p">)</span>
+    <span class="n">reach</span> <span class="o">=</span> <span class="n">z</span> <span class="o">-</span> <span class="n">_dot</span><span class="p">(</span><span class="n">eye</span><span class="o">.</span><span class="n">at</span><span class="p">,</span> <span class="n">eye</span><span class="o">.</span><span class="n">forward</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">reach</span> <span class="o">&lt;=</span> <span class="nb">max</span><span class="p">(</span><span class="n">near</span><span class="p">,</span> <span class="n">_MIN_DEPTH</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">_add</span><span class="p">(</span><span class="n">eye</span><span class="o">.</span><span class="n">at</span><span class="p">,</span> <span class="n">_mul</span><span class="p">(</span><span class="n">ray</span><span class="p">,</span> <span class="n">reach</span><span class="p">))</span>
+
+
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">_PlaneAnchor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A plane at a depth keyed by the world: the point of its frame it stands</span>
+<span class="sd">    at, and the depth at which it shows as its environment draws it (scale 1,</span>
+<span class="sd">    at its ``offset``), both taken the first time a shot keys it, so it is the</span>
+<span class="sd">    same plate across cuts."""</span>
+
+    <span class="n">at</span><span class="p">:</span> <span class="n">Point3</span>
+    <span class="n">rest</span><span class="p">:</span> <span class="nb">float</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_with_plane_depths</span><span class="p">(</span>
     <span class="n">entity</span><span class="p">:</span> <span class="n">AssetRef</span><span class="p">,</span>
     <span class="n">member</span><span class="p">:</span> <span class="n">WorldMember</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">world</span><span class="p">:</span> <span class="n">World</span><span class="p">,</span>
+    <span class="n">ctx</span><span class="p">:</span> <span class="n">_FrameCtx</span><span class="p">,</span>
     <span class="n">placed</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Placed</span><span class="p">],</span>
     <span class="n">viewpoint</span><span class="p">:</span> <span class="n">Viewpoint</span><span class="p">,</span>
+    <span class="n">geometry</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">Box</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]],</span>
+    <span class="n">anchors</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">_PlaneAnchor</span><span class="p">],</span>
+    <span class="n">existing</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span>
+    <span class="n">sight</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
     <span class="n">note</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">],</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AssetRef</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""``entity`` (an environment) carrying the factors its member's ``depths``</span>
-<span class="sd">    derive (:data:`PLANE_FACTORS_OVERRIDE`); unchanged without ``depths``. A</span>
-<span class="sd">    plane's depth is its distance from the camera along the look direction, and</span>
-<span class="sd">    its factor ``z_ref / z`` is relative to :func:`reference_depth`, so it is the</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">AssetRef</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``entity`` (an environment) and the actions its member's ``depths``</span>
+<span class="sd">    derive (an#503); unchanged and none without ``depths``.</span>
+
+<span class="sd">    A plane's depth is its ``z`` in its frame (:func:`plane_frame`), measured</span>
+<span class="sd">    along the camera's look direction from the frame's origin. A plane in a</span>
+<span class="sd">    frame still relative to the camera's gets the parallax factor ``z_ref /</span>
+<span class="sd">    depth`` (:data:`PLANE_FACTORS_OVERRIDE`, :func:`reference_depth`), the</span>
 <span class="sd">    shot's own: the same plane scrolls differently from a wider or a closer</span>
-<span class="sd">    viewpoint, as parallax does."""</span>
+<span class="sd">    viewpoint, as parallax does. A plane in a frame that moves relative to the</span>
+<span class="sd">    camera's is keyed instead (:func:`_plane_keys`). ``geometry`` is each</span>
+<span class="sd">    plane's ``(offset, box)`` (:func:`an.stage.world.plane_geometry`);</span>
+<span class="sd">    ``anchors`` the planes already keyed in earlier shots (updated);</span>
+<span class="sd">    ``existing`` the shot's actions; ``sight`` the knobs of :func:`_sight`.</span>
+<span class="sd">    A plane in a ``far`` frame or a travel's ``far`` plates is skipped: the</span>
+<span class="sd">    validator refuses a depth there."""</span>
     <span class="k">if</span> <span class="n">member</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">member</span><span class="o">.</span><span class="n">depths</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">entity</span>
+        <span class="k">return</span> <span class="n">entity</span><span class="p">,</span> <span class="p">[]</span>
+    <span class="n">tree</span><span class="p">,</span> <span class="n">vp_frame</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">tree</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">vp_frame</span>
+    <span class="n">travel_far</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">world</span><span class="o">.</span><span class="n">travel</span><span class="o">.</span><span class="n">plates</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"far"</span><span class="p">,</span> <span class="p">()))</span> <span class="k">if</span> <span class="n">world</span><span class="o">.</span><span class="n">travel</span> <span class="k">else</span> <span class="nb">set</span><span class="p">()</span>
     <span class="n">z_ref</span> <span class="o">=</span> <span class="n">reference_depth</span><span class="p">(</span><span class="n">placed</span><span class="p">,</span> <span class="n">viewpoint</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">z_ref</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">factors</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">actions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">unmeasured</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">z</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">member</span><span class="o">.</span><span class="n">depths</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+        <span class="n">frame</span> <span class="o">=</span> <span class="n">plane_frame</span><span class="p">(</span><span class="n">world</span><span class="p">,</span> <span class="n">member</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">frame</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">tree</span>
+            <span class="ow">or</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">member</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span> <span class="ow">in</span> <span class="n">travel_far</span>
+            <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">frames</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">coupling</span> <span class="o">==</span> <span class="s2">"far"</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">tree</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="n">frame</span><span class="p">))</span>
+        <span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">offset</span><span class="p">,</span> <span class="n">box</span> <span class="o">=</span> <span class="n">geometry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">((</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="kc">None</span><span class="p">))</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">member</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">anchors</span> <span class="ow">and</span> <span class="n">tree</span><span class="o">.</span><span class="n">is_static</span><span class="p">(</span>
+            <span class="n">frame</span><span class="p">,</span> <span class="n">vp_frame</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span> <span class="n">film_start</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">film_start</span>
+        <span class="p">):</span>
+            <span class="n">to_frame</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">relative_pose</span><span class="p">(</span>
+                <span class="n">vp_frame</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">film_start</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">film_start</span>
+            <span class="p">)</span>
+            <span class="n">eye</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">projection</span><span class="o">.</span><span class="n">transformed</span><span class="p">(</span><span class="n">to_frame</span><span class="p">)</span>
+            <span class="n">at</span> <span class="o">=</span> <span class="n">plane_anchor</span><span class="p">(</span><span class="n">eye</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">near</span><span class="o">=</span><span class="n">sight</span><span class="p">[</span><span class="s2">"near"</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">at</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">_behind</span><span class="p">(</span><span class="n">note</span><span class="p">,</span> <span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">frame</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">z_ref</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">unmeasured</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">factors</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">parallax_factor</span><span class="p">(</span><span class="n">eye</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">at</span><span class="p">)[</span><span class="mi">2</span><span class="p">],</span> <span class="n">z_ref</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="n">keyed</span> <span class="o">=</span> <span class="n">_plane_keys</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">member</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">name</span><span class="p">),</span>
+            <span class="n">ctx</span><span class="p">,</span>
+            <span class="n">frame</span><span class="o">=</span><span class="n">frame</span><span class="p">,</span>
+            <span class="n">z</span><span class="o">=</span><span class="n">z</span><span class="p">,</span>
+            <span class="n">offset</span><span class="o">=</span><span class="n">offset</span><span class="p">,</span>
+            <span class="n">box</span><span class="o">=</span><span class="n">box</span><span class="p">,</span>
+            <span class="n">anchors</span><span class="o">=</span><span class="n">anchors</span><span class="p">,</span>
+            <span class="n">existing</span><span class="o">=</span><span class="n">existing</span><span class="p">,</span>
+            <span class="n">sight</span><span class="o">=</span><span class="n">sight</span><span class="p">,</span>
+            <span class="n">note</span><span class="o">=</span><span class="n">note</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">actions</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">keyed</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">unmeasured</span><span class="p">:</span>
         <span class="n">note</span><span class="p">(</span>
             <span class="s2">"warning"</span><span class="p">,</span>
             <span class="s2">"plane_depths"</span><span class="p">,</span>
@@ -3130,10 +3297,115 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"its planes have world depths but the shot shows no member to measure "</span>
             <span class="s2">"them against: the planes keep their own parallax factors."</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="k">return</span> <span class="n">entity</span>
-    <span class="n">factors</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">parallax_factor</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">z_ref</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">member</span><span class="o">.</span><span class="n">depths</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">factors</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">entity</span><span class="p">,</span> <span class="n">actions</span>
     <span class="n">overrides</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">overrides</span> <span class="ow">or</span> <span class="p">{}),</span> <span class="n">PLANE_FACTORS_OVERRIDE</span><span class="p">:</span> <span class="n">factors</span><span class="p">}</span>
-    <span class="k">return</span> <span class="n">entity</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"overrides"</span><span class="p">:</span> <span class="n">overrides</span><span class="p">})</span>
+    <span class="k">return</span> <span class="n">entity</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"overrides"</span><span class="p">:</span> <span class="n">overrides</span><span class="p">}),</span> <span class="n">actions</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_behind</span><span class="p">(</span>
+    <span class="n">note</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+    <span class="n">entity</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">z</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">frame</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">then</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"it keeps its own parallax"</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">note</span><span class="p">(</span>
+        <span class="s2">"warning"</span><span class="p">,</span>
+        <span class="s2">"plane_depths"</span><span class="p">,</span>
+        <span class="n">entity</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"plane </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> is at depth </span><span class="si">{</span><span class="n">z</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> in frame </span><span class="si">{</span><span class="n">frame</span><span class="si">!r}</span><span class="s2">, which is not in front "</span>
+        <span class="sa">f</span><span class="s2">"of the camera as the shot opens: </span><span class="si">{</span><span class="n">then</span><span class="si">}</span><span class="s2">."</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_plane_keys</span><span class="p">(</span>
+    <span class="n">target</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">key</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+    <span class="n">ctx</span><span class="p">:</span> <span class="n">_FrameCtx</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">frame</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">z</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">offset</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+    <span class="n">box</span><span class="p">:</span> <span class="n">Box</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">anchors</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">_PlaneAnchor</span><span class="p">],</span>
+    <span class="n">existing</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span>
+    <span class="n">sight</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">note</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The keys of a plane standing still in a frame that moves relative to the</span>
+<span class="sd">    camera (an#503): a plate in ``world`` under a moving ``vehicle`` streams past</span>
+<span class="sd">    at its depth, as a member does (:func:`_sight`: its screen position and</span>
+<span class="sd">    apparent size, fitted to the travel's tolerance, hidden while it is behind</span>
+<span class="sd">    the camera or off screen). It is anchored (:class:`_PlaneAnchor`) the first</span>
+<span class="sd">    time a shot keys it, so a cut continues the same plate. It rides the 2D</span>
+<span class="sd">    camera as the character plane does, as every member in motion does. The</span>
+<span class="sd">    shot's own actions on a channel it would key win (a warning); keys the shot</span>
+<span class="sd">    already holds (a lowered scene lowered again) are not added twice."""</span>
+    <span class="n">entity</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">hide</span> <span class="o">=</span> <span class="p">[</span><span class="n">set_</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="s2">"alpha"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">at</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)]</span>
+    <span class="n">anchor</span> <span class="o">=</span> <span class="n">anchors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">anchor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">to_frame</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">relative_pose</span><span class="p">(</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">vp_frame</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">film_start</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">film_start</span>
+        <span class="p">)</span>
+        <span class="n">eye</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">projection</span><span class="o">.</span><span class="n">transformed</span><span class="p">(</span><span class="n">to_frame</span><span class="p">)</span>
+        <span class="n">at</span> <span class="o">=</span> <span class="n">plane_anchor</span><span class="p">(</span><span class="n">eye</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">near</span><span class="o">=</span><span class="n">sight</span><span class="p">[</span><span class="s2">"near"</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">at</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_behind</span><span class="p">(</span><span class="n">note</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">z</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="n">then</span><span class="o">=</span><span class="s2">"it is hidden"</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">hide</span>
+        <span class="n">anchor</span> <span class="o">=</span> <span class="n">anchors</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">_PlaneAnchor</span><span class="p">(</span><span class="n">at</span><span class="p">,</span> <span class="n">eye</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">at</span><span class="p">)[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">view</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">view_fn</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">anchor</span><span class="o">.</span><span class="n">at</span><span class="p">)</span>
+    <span class="n">focal</span> <span class="o">=</span> <span class="n">sight</span><span class="p">[</span><span class="s2">"focal"</span><span class="p">]</span>
+    <span class="n">passes</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">p</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">_sight</span><span class="p">(</span><span class="n">view</span><span class="p">,</span> <span class="n">box</span><span class="o">=</span><span class="n">box</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="n">anchor</span><span class="o">.</span><span class="n">rest</span> <span class="o">/</span> <span class="n">focal</span><span class="p">,</span> <span class="o">**</span><span class="n">sight</span><span class="p">)</span><span class="o">.</span><span class="n">passes</span>
+    <span class="p">]</span>
+    <span class="n">keys</span> <span class="o">=</span> <span class="n">_pass_actions</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">passes</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span> <span class="k">if</span> <span class="n">passes</span> <span class="k">else</span> <span class="n">hide</span>
+    <span class="n">there</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"json"</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">existing</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"json"</span><span class="p">)</span> <span class="ow">in</span> <span class="n">there</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[]</span>  <span class="c1"># already there: a lowered scene lowered again</span>
+    <span class="n">hand</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">a</span><span class="o">.</span><span class="n">property</span>
+        <span class="k">for</span> <span class="n">top</span> <span class="ow">in</span> <span class="n">existing</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">iter_actions</span><span class="p">(</span><span class="n">top</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s2">"target"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="n">target</span>
+    <span class="p">}</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">()</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="n">_properties</span><span class="p">,</span> <span class="n">keys</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">hand</span> <span class="o">==</span> <span class="p">{</span><span class="s2">"alpha"</span><span class="p">}:</span>
+        <span class="n">note</span><span class="p">(</span>
+            <span class="s2">"warning"</span><span class="p">,</span>
+            <span class="s2">"plane_depths"</span><span class="p">,</span>
+            <span class="n">entity</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"plane </span><span class="si">{</span><span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">!r}</span><span class="s2"> is at a depth and the shot's own actions drive its "</span>
+            <span class="s2">"`alpha`: they win, so the plane is not hidden while the camera does not "</span>
+            <span class="s2">"see it."</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span> <span class="k">if</span> <span class="s2">"alpha"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_properties</span><span class="p">(</span><span class="n">k</span><span class="p">)]</span>
+    <span class="k">if</span> <span class="n">hand</span><span class="p">:</span>
+        <span class="n">note</span><span class="p">(</span>
+            <span class="s2">"warning"</span><span class="p">,</span>
+            <span class="s2">"plane_depths"</span><span class="p">,</span>
+            <span class="n">entity</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"plane </span><span class="si">{</span><span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">!r}</span><span class="s2"> is at a depth in frame </span><span class="si">{</span><span class="n">frame</span><span class="si">!r}</span><span class="s2">, which moves relative "</span>
+            <span class="sa">f</span><span class="s2">"to the viewpoint's, but the shot's own actions drive its </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">hand</span><span class="p">)</span><span class="si">}</span><span class="s2">: "</span>
+            <span class="s2">"the actions win and the plane is not keyed by its depth."</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">passes</span><span class="p">:</span>
+        <span class="n">note</span><span class="p">(</span>
+            <span class="s2">"info"</span><span class="p">,</span>
+            <span class="s2">"plane_depths"</span><span class="p">,</span>
+            <span class="n">entity</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"plane </span><span class="si">{</span><span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">!r}</span><span class="s2"> is at a depth in frame </span><span class="si">{</span><span class="n">frame</span><span class="si">!r}</span><span class="s2"> and the shot never "</span>
+            <span class="s2">"shows it: it is hidden."</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">keys</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_properties</span><span class="p">(</span><span class="n">action</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The properties ``action`` and the actions under it drive."""</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">a</span><span class="o">.</span><span class="n">property</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">iter_actions</span><span class="p">(</span><span class="n">action</span><span class="p">)</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s2">"property"</span><span class="p">)}</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_depth_order_notes</span><span class="p">(</span>
@@ -3425,6 +3697,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">film_starts</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">extent_problems</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">plane_geometry</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">Box</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]]</span>
+    <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Lowered</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""The scene with every framed shot's placements derived from the world.</span>
 
@@ -3442,7 +3716,12 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    ``extents`` is what the stage measured (:func:`an.stage.world.member_extents`),</span>
 <span class="sd">    ``extent_problems`` why some could not be; ``film_starts`` is where each</span>
 <span class="sd">    shot starts in the film, so stream phase is continuous across cuts (the</span>
-<span class="sd">    shot sum by default).</span>
+<span class="sd">    shot sum by default); ``plane_geometry`` is ``{environment member id: {plane:</span>
+<span class="sd">    (offset, box)}}``, each plane's origin on screen (``Plane.offset``) and its</span>
+<span class="sd">    drawn box around it (``None``: unknown), read by the stage</span>
+<span class="sd">    (:func:`an.stage.world.plane_geometry`): where a plane at a world depth is</span>
+<span class="sd">    anchored and when it is on screen (an#503; the origin and no box for one</span>
+<span class="sd">    it does not name).</span>
 
 <span class="sd">    Raises :class:`WorldError` for a viewpoint the world cannot resolve.</span>
 
@@ -3462,6 +3741,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">shots</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Shot</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">notes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">WorldNote</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">origins</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">plane_anchors</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">_PlaneAnchor</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># across the cuts</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">shot</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">shot</span><span class="o">.</span><span class="n">viewpoint</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">shots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">shot</span><span class="p">)</span>
@@ -3475,6 +3755,8 @@ window.runMermaid = runMermaid;</script>
             <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
             <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span>
             <span class="n">fps</span><span class="o">=</span><span class="n">rate</span><span class="p">,</span>
+            <span class="n">plane_geometry</span><span class="o">=</span><span class="n">plane_geometry</span> <span class="ow">or</span> <span class="p">{},</span>
+            <span class="n">plane_anchors</span><span class="o">=</span><span class="n">plane_anchors</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">shots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lowered</span><span class="p">)</span>
         <span class="n">notes</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">shot_notes</span><span class="p">)</span>

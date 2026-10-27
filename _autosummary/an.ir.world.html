@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=548016f6"></script>
+    <script src="../_static/documentation_options.js?v=f0f892ef"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.296" />
+  <meta name="docsearch:version" content="0.1.297" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -1037,7 +1037,7 @@ so scale grows with the pixel’s distance below the horizon.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.ir.world.lower_world">
-<span class="sig-prename descclassname"><span class="pre">an.ir.world.</span></span><span class="sig-name descname"><span class="pre">lower_world</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scene</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">extents</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">film_starts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extent_problems</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/world.html#lower_world"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.world.lower_world" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.ir.world.</span></span><span class="sig-name descname"><span class="pre">lower_world</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scene</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">extents</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">film_starts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extent_problems</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plane_geometry</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/world.html#lower_world"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.world.lower_world" title="Link to this definition">#</a></dt>
 <dd><p>The scene with every framed shot’s placements derived from the world.</p>
 <p>A shot without a viewpoint is returned as it is. For a framed shot: its
 listed entities keep their order of appearance among themselves but are
@@ -1052,7 +1052,12 @@ lowered gains nothing from a second pass.</p>
 <p><code class="docutils literal notranslate"><span class="pre">extents</span></code> is what the stage measured (<a class="reference internal" href="an.stage.world.html#an.stage.world.member_extents" title="an.stage.world.member_extents"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.stage.world.member_extents()</span></code></a>),
 <code class="docutils literal notranslate"><span class="pre">extent_problems</span></code> why some could not be; <code class="docutils literal notranslate"><span class="pre">film_starts</span></code> is where each
 shot starts in the film, so stream phase is continuous across cuts (the
-shot sum by default).</p>
+shot sum by default); <code class="docutils literal notranslate"><span class="pre">plane_geometry</span></code> is <code class="docutils literal notranslate"><span class="pre">{environment</span> <span class="pre">member</span> <span class="pre">id:</span> <span class="pre">{plane:</span>
+<span class="pre">(offset,</span> <span class="pre">box)}}</span></code>, each plane’s origin on screen (<code class="docutils literal notranslate"><span class="pre">Plane.offset</span></code>) and its
+drawn box around it (<code class="docutils literal notranslate"><span class="pre">None</span></code>: unknown), read by the stage
+(<code class="xref py py-func docutils literal notranslate"><span class="pre">an.stage.world.plane_geometry()</span></code>): where a plane at a world depth is
+anchored and when it is on screen (an#503; the origin and no box for one
+it does not name).</p>
 <p>Raises <a class="reference internal" href="#an.ir.world.WorldError" title="an.ir.world.WorldError"><code class="xref py py-class docutils literal notranslate"><span class="pre">WorldError</span></code></a> for a viewpoint the world cannot resolve.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lower_world</span><span class="p">(</span><span class="n">SceneIR</span><span class="p">(),</span> <span class="n">extents</span><span class="o">=</span><span class="p">{})</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span>
 <span class="go">[]</span>

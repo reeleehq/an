@@ -1,4 +1,4 @@
-> built 2026-10-27 04:46 UTC from cfc53ba (main) · an 0.1.296. Details: build_info.json
+> built 2026-10-27 05:47 UTC from e0b4ef3 (main) · an 0.1.297. Details: build_info.json
 
 # index.html.md
 
@@ -5768,6 +5768,10 @@ Two steps, both plain functions over injected stores:
   but a choice must come before the previews expire).
 - [`choose_voice_option()`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.choose_voice_option): the `voice_id` of the chosen option (saving it
   as a voice first when it was not persisted).
+- [`choose_in_entry()`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.choose_in_entry): the choice made in one manifest entry (that
+  `voice_id`, the designed voice it replaces retired, who chose it and
+  when), returning the voice document and the replaced voice: the step every
+  chooser shares, the CLI’s [`choose_project_voice()`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.choose_project_voice) and a connector’s alike.
 
 **Two more routes to a voice** (an#485). Design from notes can miss a
 regional accent entirely (every design of “rural Limerick Irish” came out
@@ -5842,7 +5846,8 @@ Designing is billed by the provider; nothing here is called by a render.
 | [`plan_auditions`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.plan_auditions)(entry, lines, \*[, ref, ...])       | The reels to make for one voice's manifest `entry`, every one checked BEFORE anything is billed: the named `options` exist (default: every option with a voice id) and are saved voices, there are `lines` to speak, and an option whose recorded reel was made under this very key is skipped unless `redo`.                                                                                                                                                                                                                                                                          |
 | [`run_auditions`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.run_auditions)(jobs, \*, reels, tts[, gap_s, ...])  | Make every reel of `jobs` with `tts` (`synthesize(text, voice_id, \*\*options)` per line — billed), `gap_s` apart, into `reels` under the job's reel key, and record it on the job's option (`audition`, `audition_lines`, `audition_key`); `on_reel` is called after each reel is recorded, so a failure later loses nothing paid for.                                                                                                                                                                                                                                                |
 | [`cast_project_voice`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.cast_project_voice)(project_dir, ref[, ...])        | Record a voice picked by hand (from `an voices list`, or the document's own `voice_id`) as the writer's choice for `ref`: `voice_id` (default: the one the document already names), `chosen_by`, `chosen_at`; no options manifest needed and nothing billed.                                                                                                                                                                                                                                                                                                                           |
-| [`choose_project_voice`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.choose_project_voice)(project_dir, ref, option, \*) | Write the chosen option's `voice_id` into `assets/voices/<ref>.json`, with who chose it (`by`, default the login name) and when (`at`, default now; [`record_choice()`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.record_choice)); return the document.                                                                                                                                                                                                                                                                                                                                            |
+| [`choose_in_entry`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.choose_in_entry)(entry, option, \*[, by, ...])      | Make `option` the choice of one voice's options manifest `entry` (an#549): the one choose step an's `an voices choose` and a connector (reelee's production pack) share.                                                                                                                                                                                                                                                                                                                                                                                                               |
+| [`choose_project_voice`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.choose_project_voice)(project_dir, ref, option, \*) | Write the chosen option's `voice_id` into `assets/voices/<ref>.json`, with who chose it (`by`, default the login name) and when (`at`, default now), and the choice into its options manifest ([`choose_in_entry()`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.choose_in_entry)); return the document.                                                                                                                                                                                                                                                                                               |
 | [`choose_voice_option`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.choose_voice_option)(entry, option, \*[, ref, ...]) | The provider `voice_id` of `option` in one voice's manifest `entry`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | [`default_chooser`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.default_chooser)()                                  | Who a choice is recorded as when nobody is named: the login name.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | [`default_designer`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.default_designer)(\*[, api_key])                    | The designer used when none is given: [`ElevenLabsVoiceDesigner`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.ElevenLabsVoiceDesigner).                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
@@ -5862,11 +5867,12 @@ Designing is billed by the provider; nothing here is called by a render.
 
 ### Classes
 
-| [`ElevenLabsVoiceDesigner`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.ElevenLabsVoiceDesigner)(\*[, api_key, ...])      | ElevenLabs Voice Design through the `elevenlabs` SDK (what an's ElevenLabs TTS already uses): the default designer, with voxy's two-method shape.                                                                                 |
-|---------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`ElevenLabsVoiceLibrary`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.ElevenLabsVoiceLibrary)(\*[, api_key, ...])       | ElevenLabs' shared voice library through the `elevenlabs` SDK (`voices.get_shared`): voices other accounts published, human-tagged by accent, age and gender, with a region often in the description ("Cork", "west of Ireland"). |
-| [`LibraryVoice`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.LibraryVoice)(voice_id[, name, description, ...]) | One candidate from a provider's shared voice library.                                                                                                                                                                             |
-| [`AuditionJob`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.AuditionJob)(ref, option, lines, effects, key)    | One reel to make: an option of one voice, the lines it speaks, and the content key the reel is recorded under (so it is never made twice).                                                                                        |
+| [`ElevenLabsVoiceDesigner`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.ElevenLabsVoiceDesigner)(\*[, api_key, ...])      | ElevenLabs Voice Design through the `elevenlabs` SDK (what an's ElevenLabs TTS already uses): the default designer, with voxy's two-method shape.                                                                                                                                                                               |
+|---------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`ElevenLabsVoiceLibrary`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.ElevenLabsVoiceLibrary)(\*[, api_key, ...])       | ElevenLabs' shared voice library through the `elevenlabs` SDK (`voices.get_shared`): voices other accounts published, human-tagged by accent, age and gender, with a region often in the description ("Cork", "west of Ireland").                                                                                               |
+| [`LibraryVoice`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.LibraryVoice)(voice_id[, name, description, ...]) | One candidate from a provider's shared voice library.                                                                                                                                                                                                                                                                           |
+| [`AuditionJob`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.AuditionJob)(ref, option, lines, effects, key)    | One reel to make: an option of one voice, the lines it speaks, and the content key the reel is recorded under (so it is never made twice).                                                                                                                                                                                      |
+| [`VoiceChoice`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.VoiceChoice)(document[, previous, retired])       | What [`choose_in_entry()`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.choose_in_entry) did: the voice document; `previous`, the voice the choice displaced (what a voice file written before still names; `None` when it displaced none); and `retired`, that voice when it went into the `retired` ledger (one the choose step itself saved). |
 
 ### Exceptions
 
@@ -5953,6 +5959,15 @@ One candidate from a provider’s shared voice library.
 #### owner_id *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
 
 The account that shares it (ElevenLabs `public_owner_id`).
+
+### *class* an.audio.voice_design.VoiceChoice(document, previous=None, retired=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+What [`choose_in_entry()`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.choose_in_entry) did: the voice document; `previous`, the
+voice the choice displaced (what a voice file written before still
+names; `None` when it displaced none); and `retired`, that voice when
+it went into the `retired` ledger (one the choose step itself saved).
 
 ### *exception* an.audio.voice_design.VoiceDesignError
 
@@ -6061,11 +6076,54 @@ document’s when given. Returns the document.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
+### an.audio.voice_design.choose_in_entry(entry, option, , by=None, designer=None, ref='', at=None, doc=None)
+
+Make `option` the choice of one voice’s options manifest `entry`
+(an#549): the one choose step an’s `an voices choose` and a connector
+(reelee’s production pack) share. Returns the voice document
+([`record_choice()`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.record_choice) of `doc`, default an empty one: a caller that
+keeps the voice file elsewhere merges these keys into it) and the voice
+it replaced.
+
+`entry` is updated in place: `chosen` records the option, its
+`voice_id`, `chosen_by` and `chosen_at`. Choosing the option already
+chosen reuses its voice (nothing is saved), and keeps its `chosen_at`
+when the same chooser chooses it again and no `at` is given. Choosing
+another one names its voice (saved as a provider voice when it was not,
+[`choose_voice_option()`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.choose_voice_option), and marked `saved_by_choice` on its option)
+and retires the voice it replaces when a choice saved it: its option no
+longer names it, and `entry["retired"]` records it (`{voice_id,
+option, name_prefix}`), never deleted here (a copy of the manifest, or a
+voice file already written, may still name it: freeing the provider’s
+slot is a separate, explicit act). A voice saved when the options were
+designed (`persist=True`), a library voice and one cast by hand stay
+named where they are. `by` defaults to the login name (see
+[`record_choice()`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.record_choice)).
+
+```pycon
+>>> from types import SimpleNamespace
+>>> class Saver:   # a designer that saves a preview as voice "v<preview>"
+...     def design_voice(self, notes, *, preview, name): return SimpleNamespace(voice_id="v" + preview)
+>>> entry = {"notes": "n", "options": [{"option": "A", "generated_voice_id": "a"},
+...                                    {"option": "B", "generated_voice_id": "b"}]}
+>>> choose_in_entry(entry, "a", by="noel", at="t1", designer=Saver()).document["voice_id"]
+'va'
+>>> choice = choose_in_entry(entry, "B", by="noel", at="t2", designer=Saver())
+>>> choice.previous, choice.retired, [o["voice_id"] for o in entry["options"]]
+('va', 'va', [None, 'vb'])
+>>> choose_in_entry(entry, "B", by="noel").document["chosen_at"]   # the same choice again
+'t2'
+```
+
+* **Return type:**
+  [`VoiceChoice`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.VoiceChoice)
+
 ### an.audio.voice_design.choose_project_voice(project_dir, ref, option, , designer=None, by=None, at=None)
 
 Write the chosen option’s `voice_id` into `assets/voices/<ref>.json`,
 with who chose it (`by`, default the login name) and when (`at`, default
-now; [`record_choice()`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.record_choice)); return the document.
+now), and the choice into its options manifest ([`choose_in_entry()`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.choose_in_entry));
+return the document.
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
@@ -20374,7 +20432,7 @@ Repeat `action` `count` times.
 * **Return type:**
   [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction)
 
-### an.ir.lower_world(scene, , extents, film_starts=None, fps=None, extent_problems=None)
+### an.ir.lower_world(scene, , extents, film_starts=None, fps=None, extent_problems=None, plane_geometry=None)
 
 The scene with every framed shot’s placements derived from the world.
 
@@ -20392,7 +20450,12 @@ lowered gains nothing from a second pass.
 `extents` is what the stage measured ([`an.stage.world.member_extents()`](_autosummary/an.stage.world.html.md#an.stage.world.member_extents)),
 `extent_problems` why some could not be; `film_starts` is where each
 shot starts in the film, so stream phase is continuous across cuts (the
-shot sum by default).
+shot sum by default); `plane_geometry` is `{environment member id: {plane:
+(offset, box)}}`, each plane’s origin on screen (`Plane.offset`) and its
+drawn box around it (`None`: unknown), read by the stage
+(`an.stage.world.plane_geometry()`): where a plane at a world depth is
+anchored and when it is on screen (an#503; the origin and no box for one
+it does not name).
 
 Raises `WorldError` for a viewpoint the world cannot resolve.
 
@@ -23407,7 +23470,7 @@ False
 * **Return type:**
   [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
-### an.ir.world.lower_world(scene, , extents, film_starts=None, fps=None, extent_problems=None)
+### an.ir.world.lower_world(scene, , extents, film_starts=None, fps=None, extent_problems=None, plane_geometry=None)
 
 The scene with every framed shot’s placements derived from the world.
 
@@ -23425,7 +23488,12 @@ lowered gains nothing from a second pass.
 `extents` is what the stage measured ([`an.stage.world.member_extents()`](_autosummary/an.stage.world.html.md#an.stage.world.member_extents)),
 `extent_problems` why some could not be; `film_starts` is where each
 shot starts in the film, so stream phase is continuous across cuts (the
-shot sum by default).
+shot sum by default); `plane_geometry` is `{environment member id: {plane:
+(offset, box)}}`, each plane’s origin on screen (`Plane.offset`) and its
+drawn box around it (`None`: unknown), read by the stage
+(`an.stage.world.plane_geometry()`): where a plane at a world depth is
+anchored and when it is on screen (an#503; the origin and no box for one
+it does not name).
 
 Raises [`WorldError`](_autosummary/an.ir.world.html.md#an.ir.world.WorldError) for a viewpoint the world cannot resolve.
 
@@ -32565,7 +32633,7 @@ One sentence per camera move, in production terms.
 
 Version of each named camera move (ADR 0003). Bump one when its keys change.
 
-### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions, closing_transition}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.camera.follow', kind='field', version='1', name='shot.camera.follow', title='', description='a camera that follows an entity', usage="camera.follow (optional): {target: <entity id or node path>, axes: x|y|xy, lag: <seconds, optional: the camera trails the target with this time constant>} — the camera tracks the target, keeping it where it stood at the shot's start (a walk across a long set); planes parallax with it. Instead of a move or keys (hold is fine); a shake layers on top.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera.shake', kind='field', version='1', name='shot.camera.shake', title='', description='a jolt of the frame inside the shot', usage='camera.shake (optional): jolts of the frame layered on the move or keys — [{at: s, duration: 0.4, amplitude: 0.015, frequency: 24, decay: true, seed: 0}], amplitude a fraction of the frame height; for an impact, a slam, an explosion. The frame is at rest before \`at\` and after the end; shakes may not overlap or run past the shot.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. On a text block, 'text' swaps a replacement set's string ('texts', unit 'block'; the value is a key) and 'value' is a counter block's number ('counter'; set or tween a number, lowered at compile to the strings the frames show). Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, '#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / plane_fade_start / plane_fade_end tilt the node's plane away from the camera (radians, frame heights, plane px), and then pivot_y slides its content along the plane. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve" | "wipe", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. \\'wipe\\' overlaps the same way, but a hard edge sweeps across the frame in direction (\\'left\\', \\'right\\', \\'up\\' or \\'down\\': the way the edge travels). A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.closing_transition', kind='field', version='1', name='meta.closing_transition', title='', description='how the film ends', usage="meta.closing_transition (optional): how the film ENDS — {kind: 'fade', duration: seconds, color: '#rrggbb'}: the last shot's last duration fades to color (its final frame IS the color) and the sound fades with it; the film's length is unchanged. Omitted (or 'cut') = it ends on its last frame. A dissolve is refused.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
+### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions, closing_transition}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.camera.follow', kind='field', version='1', name='shot.camera.follow', title='', description='a camera that follows an entity', usage="camera.follow (optional): {target: <entity id or node path>, axes: x|y|xy, lag: <seconds, optional: the camera trails the target with this time constant>} — the camera tracks the target, keeping it where it stood at the shot's start (a walk across a long set); planes parallax with it. Instead of a move or keys (hold is fine); a shake layers on top.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera.shake', kind='field', version='1', name='shot.camera.shake', title='', description='a jolt of the frame inside the shot', usage='camera.shake (optional): jolts of the frame layered on the move or keys — [{at: s, duration: 0.4, amplitude: 0.015, frequency: 24, decay: true, seed: 0}], amplitude a fraction of the frame height; for an impact, a slam, an explosion. The frame is at rest before \`at\` and after the end; shakes may not overlap or run past the shot.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. On a text block, 'text' swaps a replacement set's string ('texts', unit 'block'; the value is a key) and 'value' is a counter block's number ('counter'; set or tween a number, lowered at compile to the strings the frames show). Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, '#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / plane_fade_start / plane_fade_end tilt the node's plane away from the camera (radians, frame heights, plane px), and then pivot_y slides its content along the plane. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve" | "wipe", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. \\'wipe\\' overlaps the same way, but a hard edge sweeps across the frame in direction (\\'left\\', \\'right\\', \\'up\\' or \\'down\\': the way the edge travels). A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.closing_transition', kind='field', version='1', name='meta.closing_transition', title='', description='how the film ends', usage="meta.closing_transition (optional): how the film ENDS — {kind: 'fade', duration: seconds, color: '#rrggbb'}: the last shot's last duration fades to color (its final frame IS the color) and the sound fades with it; the film's length is unchanged. Omitted (or 'cut') = it ends on its last frame. A dissolve is refused.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
 
 the core).
 
@@ -46066,18 +46134,20 @@ scene: the scene file to read, inside the project (default scene.md; for example
 
 # About this build
 
-This documentation was built on **2026-10-27 04:46 UTC** from commit <a href="https://github.com/reeleehq/an/commit/cfc53baa7950b71726ddece6c9859efabc45a655"><code>cfc53ba</code></a> on branch <code>main</code>, for **an 0.1.296** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-27 05:47 UTC** from commit <a href="https://github.com/reeleehq/an/commit/e0b4ef3408cbd207256b6c73053c1c650404cad2"><code>e0b4ef3</code></a> on branch <code>main</code>, for **an 0.1.297** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.1.297) is ahead of the latest release on PyPI (0.1.296): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                    |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/an/commit/cfc53baa7950b71726ddece6c9859efabc45a655"><code>cfc53baa7950b71726ddece6c9859efabc45a655</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/an/commit/e0b4ef3408cbd207256b6c73053c1c650404cad2"><code>e0b4ef3408cbd207256b6c73053c1c650404cad2</code></a> |
 | Branch              | <code>main</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.296</code>                                                                                                                               |
+| Tags at this commit | none                                                                                                                                               |
 | Working tree        | clean                                                                                                                                              |
 | Remote              | <code>https://github.com/reeleehq/an</code>                                                                                                        |
 
@@ -46086,9 +46156,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/an</code>                                                                   |
-| Run          | <a href="https://github.com/reeleehq/an/actions/runs/40450807573">40450807573</a>          |
+| Run          | <a href="https://github.com/reeleehq/an/actions/runs/40456359893">40456359893</a>          |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>6ac8c43082871832a099b66cc0ed459f72d42a68</code> (in the history of the built commit) |
+| Event commit | <code>085e8c9fca7ad09f558bd78ec82341ff9b340e0b</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -46113,13 +46183,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.296/">0.1.296</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.296/">0.1.296</a>, older than the documented version (0.1.297).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/an && cd an
-git checkout cfc53baa7950b71726ddece6c9859efabc45a655
+git checkout e0b4ef3408cbd207256b6c73053c1c650404cad2
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

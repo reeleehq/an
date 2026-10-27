@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=548016f6"></script>
+    <script src="../../../_static/documentation_options.js?v=f0f892ef"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.296" />
+  <meta name="docsearch:version" content="0.1.297" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -3409,8 +3409,10 @@ window.runMermaid = runMermaid;</script>
 <span class="k">def</span><span class="w"> </span><span class="nf">_report_plane_depths</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">,</span> <span class="n">world</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">env_store</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""The planes an environment member gives a world depth (``depths``, an#503)</span>
 <span class="sd">    exist in the environment and carry no parallax of their own: one fact has</span>
-<span class="sd">    one spelling. Reported once per member, at the first framed shot."""</span>
+<span class="sd">    one spelling; none is in a ``far`` frame (at infinity: factor 0). Reported</span>
+<span class="sd">    once per member, at the first framed shot."""</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.frames</span><span class="w"> </span><span class="kn">import</span> <span class="n">FrameTree</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.world</span><span class="w"> </span><span class="kn">import</span> <span class="n">plane_frame</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.environments</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
         <span class="n">ENVIRONMENT_DOCUMENT_KIND</span><span class="p">,</span>
         <span class="n">EnvironmentDescriptor</span><span class="p">,</span>
@@ -3433,8 +3435,18 @@ window.runMermaid = runMermaid;</script>
         <span class="n">tree</span> <span class="o">=</span> <span class="n">FrameTree</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">member</span><span class="o">.</span><span class="n">depths</span><span class="p">):</span>
             <span class="n">where</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"world/members/</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">"</span>
-            <span class="n">frame</span> <span class="o">=</span> <span class="p">(</span><span class="n">member</span><span class="o">.</span><span class="n">planes</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="ow">or</span> <span class="n">member</span><span class="o">.</span><span class="n">frame</span>
-            <span class="k">if</span> <span class="n">frame</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span>
+            <span class="n">frame</span> <span class="o">=</span> <span class="n">plane_frame</span><span class="p">(</span><span class="n">world</span><span class="p">,</span> <span class="n">member</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="n">travel_far</span> <span class="o">=</span> <span class="n">world</span><span class="o">.</span><span class="n">travel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">member</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span> <span class="ow">in</span> <span class="p">(</span>
+                <span class="n">world</span><span class="o">.</span><span class="n">travel</span><span class="o">.</span><span class="n">plates</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"far"</span><span class="p">,</span> <span class="p">())</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">travel_far</span><span class="p">:</span>
+                <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                    <span class="s2">"error"</span><span class="p">,</span>
+                    <span class="n">where</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">"plane '</span><span class="si">{</span><span class="n">member</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">' has a world depth but `world.travel.plates` "</span>
+                    <span class="s2">"lists it `far`: that is at infinity, factor 0. Drop one."</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="n">frame</span> <span class="ow">in</span> <span class="n">tree</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span>
                 <span class="n">frames</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">coupling</span> <span class="o">==</span> <span class="s2">"far"</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">tree</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
             <span class="p">):</span>
                 <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
@@ -3462,20 +3474,6 @@ window.runMermaid = runMermaid;</script>
                     <span class="s2">"descriptor's depth at 1.0 and let the world depth derive the factor, "</span>
                     <span class="s2">"or drop the world depth."</span><span class="p">,</span>
                 <span class="p">)</span>
-            <span class="k">if</span> <span class="p">(</span>
-                <span class="n">frame</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-                <span class="ow">and</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">planes</span>
-                <span class="ow">and</span> <span class="ow">not</span> <span class="n">tree</span><span class="o">.</span><span class="n">is_still</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
-                <span class="ow">and</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">frames</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">coupling</span> <span class="o">==</span> <span class="s2">"far"</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">tree</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="n">frame</span><span class="p">))</span>
-            <span class="p">):</span>
-                <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
-                    <span class="s2">"warning"</span><span class="p">,</span>
-                    <span class="n">where</span><span class="p">,</span>
-                    <span class="sa">f</span><span class="s2">"plane </span><span class="si">{</span><span class="n">member</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> has a world depth and is in frame "</span>
-                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">frame</span><span class="si">!r}</span><span class="s2">, which moves: the derived factor assumes the plane "</span>
-                    <span class="s2">"stays still relative to the camera's frame. A plane in a frame "</span>
-                    <span class="s2">"that moves relative to the camera is not derived yet (an#503)."</span><span class="p">,</span>
-                <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_core_viewpoint</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -3488,7 +3486,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    only) it must be pinned, parallax factor 0; in the viewpoint's frame it</span>
 <span class="sd">    rides with the camera; in any other frame that moves relative to the</span>
 <span class="sd">    camera it would stand still while the view moves, which is the plate with</span>
-<span class="sd">    near objects baked in (a warning)."""</span>
+<span class="sd">    near objects baked in (a warning), unless it is at a world depth there</span>
+<span class="sd">    (``depths``), which the lowering keys (an#503)."""</span>
     <span class="n">shot</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">shot</span>
     <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="s2">"viewpoint"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">ctx</span><span class="o">.</span><span class="n">lowered</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span>
@@ -3501,7 +3500,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">_report_plane_depths</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">world</span><span class="p">,</span> <span class="n">env_store</span><span class="p">)</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.frames</span><span class="w"> </span><span class="kn">import</span> <span class="n">FrameTree</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">WORLD_FRAME</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.world</span><span class="w"> </span><span class="kn">import</span> <span class="n">viewpoint_of</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.world</span><span class="w"> </span><span class="kn">import</span> <span class="n">plane_frame</span><span class="p">,</span> <span class="n">viewpoint_of</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.environments</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
         <span class="n">ENVIRONMENT_DOCUMENT_KIND</span><span class="p">,</span>
         <span class="n">environment_from_document</span><span class="p">,</span>
@@ -3549,6 +3548,16 @@ window.runMermaid = runMermaid;</script>
                 <span class="k">if</span> <span class="n">member</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
                 <span class="k">else</span> <span class="kc">None</span>
             <span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">frame</span> <span class="ow">is</span> <span class="kc">None</span>
+                <span class="ow">and</span> <span class="n">member</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="ow">and</span> <span class="n">plane</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="n">member</span><span class="o">.</span><span class="n">depths</span> <span class="ow">or</span> <span class="p">{})</span>
+            <span class="p">):</span>
+                <span class="c1"># a depth says where it is: in the frame a member naming none is in,</span>
+                <span class="c1"># as the lowering reads it (`plane_frame`)</span>
+                <span class="n">frame</span> <span class="o">=</span> <span class="n">plane_frame</span><span class="p">(</span><span class="n">world</span><span class="p">,</span> <span class="n">member</span><span class="p">,</span> <span class="n">plane</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">frame</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">frame</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">tree</span><span class="p">:</span>
+                <span class="k">continue</span>  <span class="c1"># an unknown frame: the schema refuses one as it loads</span>
             <span class="n">at_infinity</span> <span class="o">=</span> <span class="n">role</span> <span class="o">==</span> <span class="s2">"far"</span> <span class="ow">or</span> <span class="p">(</span>
                 <span class="n">frame</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
                 <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">frames</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">coupling</span> <span class="o">==</span> <span class="s2">"far"</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">tree</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="n">frame</span><span class="p">))</span>
@@ -3585,8 +3594,10 @@ window.runMermaid = runMermaid;</script>
                         <span class="sa">f</span><span class="s2">"(at infinity), but its parallax factor is </span><span class="si">{</span><span class="n">plane</span><span class="o">.</span><span class="n">factors</span><span class="p">()</span><span class="si">}</span><span class="s2">: a far "</span>
                         <span class="s2">"plate is pinned, `depth: 0`."</span><span class="p">,</span>
                     <span class="p">)</span>
-            <span class="k">elif</span> <span class="n">frame</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">tree</span><span class="o">.</span><span class="n">is_static</span><span class="p">(</span>
-                <span class="n">frame</span><span class="p">,</span> <span class="n">vp_frame</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="p">(</span>
+                <span class="n">frame</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="ow">and</span> <span class="n">plane</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">member</span><span class="o">.</span><span class="n">depths</span> <span class="ow">or</span> <span class="p">{})</span>
+                <span class="ow">and</span> <span class="ow">not</span> <span class="n">tree</span><span class="o">.</span><span class="n">is_static</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">vp_frame</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">))</span>
             <span class="p">):</span>
                 <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
                     <span class="s2">"warning"</span><span class="p">,</span>

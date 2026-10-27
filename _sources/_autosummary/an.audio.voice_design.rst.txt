@@ -15,6 +15,7 @@ an.audio.voice\_design
       plan_auditions
       run_auditions
       cast_project_voice
+      choose_in_entry
       choose_project_voice
       choose_voice_option
       default_chooser
@@ -41,6 +42,7 @@ an.audio.voice\_design
       ElevenLabsVoiceLibrary
       LibraryVoice
       AuditionJob
+      VoiceChoice
    
    .. rubric:: Exceptions
 

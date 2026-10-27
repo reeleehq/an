@@ -300,7 +300,7 @@ False
 * **Return type:**
   [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
-### an.ir.world.lower_world(scene, , extents, film_starts=None, fps=None, extent_problems=None)
+### an.ir.world.lower_world(scene, , extents, film_starts=None, fps=None, extent_problems=None, plane_geometry=None)
 
 The scene with every framed shot’s placements derived from the world.
 
@@ -318,7 +318,12 @@ lowered gains nothing from a second pass.
 `extents` is what the stage measured ([`an.stage.world.member_extents()`](an.stage.world.html.md#an.stage.world.member_extents)),
 `extent_problems` why some could not be; `film_starts` is where each
 shot starts in the film, so stream phase is continuous across cuts (the
-shot sum by default).
+shot sum by default); `plane_geometry` is `{environment member id: {plane:
+(offset, box)}}`, each plane’s origin on screen (`Plane.offset`) and its
+drawn box around it (`None`: unknown), read by the stage
+(`an.stage.world.plane_geometry()`): where a plane at a world depth is
+anchored and when it is on screen (an#503; the origin and no box for one
+it does not name).
 
 Raises [`WorldError`](#an.ir.world.WorldError) for a viewpoint the world cannot resolve.
 

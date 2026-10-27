@@ -22,6 +22,10 @@ Two steps, both plain functions over injected stores:
   but a choice must come before the previews expire).
 - [`choose_voice_option()`](#an.audio.voice_design.choose_voice_option): the `voice_id` of the chosen option (saving it
   as a voice first when it was not persisted).
+- [`choose_in_entry()`](#an.audio.voice_design.choose_in_entry): the choice made in one manifest entry (that
+  `voice_id`, the designed voice it replaces retired, who chose it and
+  when), returning the voice document and the replaced voice: the step every
+  chooser shares, the CLI’s [`choose_project_voice()`](#an.audio.voice_design.choose_project_voice) and a connector’s alike.
 
 **Two more routes to a voice** (an#485). Design from notes can miss a
 regional accent entirely (every design of “rural Limerick Irish” came out
@@ -96,7 +100,8 @@ Designing is billed by the provider; nothing here is called by a render.
 | [`plan_auditions`](#an.audio.voice_design.plan_auditions)(entry, lines, \*[, ref, ...])       | The reels to make for one voice's manifest `entry`, every one checked BEFORE anything is billed: the named `options` exist (default: every option with a voice id) and are saved voices, there are `lines` to speak, and an option whose recorded reel was made under this very key is skipped unless `redo`.                                                                                                                                                                                                                                                                          |
 | [`run_auditions`](#an.audio.voice_design.run_auditions)(jobs, \*, reels, tts[, gap_s, ...])  | Make every reel of `jobs` with `tts` (`synthesize(text, voice_id, \*\*options)` per line — billed), `gap_s` apart, into `reels` under the job's reel key, and record it on the job's option (`audition`, `audition_lines`, `audition_key`); `on_reel` is called after each reel is recorded, so a failure later loses nothing paid for.                                                                                                                                                                                                                                                |
 | [`cast_project_voice`](#an.audio.voice_design.cast_project_voice)(project_dir, ref[, ...])        | Record a voice picked by hand (from `an voices list`, or the document's own `voice_id`) as the writer's choice for `ref`: `voice_id` (default: the one the document already names), `chosen_by`, `chosen_at`; no options manifest needed and nothing billed.                                                                                                                                                                                                                                                                                                                           |
-| [`choose_project_voice`](#an.audio.voice_design.choose_project_voice)(project_dir, ref, option, \*) | Write the chosen option's `voice_id` into `assets/voices/<ref>.json`, with who chose it (`by`, default the login name) and when (`at`, default now; [`record_choice()`](#an.audio.voice_design.record_choice)); return the document.                                                                                                                                                                                                                                                                                                                                            |
+| [`choose_in_entry`](#an.audio.voice_design.choose_in_entry)(entry, option, \*[, by, ...])      | Make `option` the choice of one voice's options manifest `entry` (an#549): the one choose step an's `an voices choose` and a connector (reelee's production pack) share.                                                                                                                                                                                                                                                                                                                                                                                                               |
+| [`choose_project_voice`](#an.audio.voice_design.choose_project_voice)(project_dir, ref, option, \*) | Write the chosen option's `voice_id` into `assets/voices/<ref>.json`, with who chose it (`by`, default the login name) and when (`at`, default now), and the choice into its options manifest ([`choose_in_entry()`](#an.audio.voice_design.choose_in_entry)); return the document.                                                                                                                                                                                                                                                                                               |
 | [`choose_voice_option`](#an.audio.voice_design.choose_voice_option)(entry, option, \*[, ref, ...]) | The provider `voice_id` of `option` in one voice's manifest `entry`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | [`default_chooser`](#an.audio.voice_design.default_chooser)()                                  | Who a choice is recorded as when nobody is named: the login name.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | [`default_designer`](#an.audio.voice_design.default_designer)(\*[, api_key])                    | The designer used when none is given: [`ElevenLabsVoiceDesigner`](#an.audio.voice_design.ElevenLabsVoiceDesigner).                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
@@ -116,11 +121,12 @@ Designing is billed by the provider; nothing here is called by a render.
 
 ### Classes
 
-| [`ElevenLabsVoiceDesigner`](#an.audio.voice_design.ElevenLabsVoiceDesigner)(\*[, api_key, ...])      | ElevenLabs Voice Design through the `elevenlabs` SDK (what an's ElevenLabs TTS already uses): the default designer, with voxy's two-method shape.                                                                                 |
-|---------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`ElevenLabsVoiceLibrary`](#an.audio.voice_design.ElevenLabsVoiceLibrary)(\*[, api_key, ...])       | ElevenLabs' shared voice library through the `elevenlabs` SDK (`voices.get_shared`): voices other accounts published, human-tagged by accent, age and gender, with a region often in the description ("Cork", "west of Ireland"). |
-| [`LibraryVoice`](#an.audio.voice_design.LibraryVoice)(voice_id[, name, description, ...]) | One candidate from a provider's shared voice library.                                                                                                                                                                             |
-| [`AuditionJob`](#an.audio.voice_design.AuditionJob)(ref, option, lines, effects, key)    | One reel to make: an option of one voice, the lines it speaks, and the content key the reel is recorded under (so it is never made twice).                                                                                        |
+| [`ElevenLabsVoiceDesigner`](#an.audio.voice_design.ElevenLabsVoiceDesigner)(\*[, api_key, ...])      | ElevenLabs Voice Design through the `elevenlabs` SDK (what an's ElevenLabs TTS already uses): the default designer, with voxy's two-method shape.                                                                                                                                                                               |
+|---------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`ElevenLabsVoiceLibrary`](#an.audio.voice_design.ElevenLabsVoiceLibrary)(\*[, api_key, ...])       | ElevenLabs' shared voice library through the `elevenlabs` SDK (`voices.get_shared`): voices other accounts published, human-tagged by accent, age and gender, with a region often in the description ("Cork", "west of Ireland").                                                                                               |
+| [`LibraryVoice`](#an.audio.voice_design.LibraryVoice)(voice_id[, name, description, ...]) | One candidate from a provider's shared voice library.                                                                                                                                                                                                                                                                           |
+| [`AuditionJob`](#an.audio.voice_design.AuditionJob)(ref, option, lines, effects, key)    | One reel to make: an option of one voice, the lines it speaks, and the content key the reel is recorded under (so it is never made twice).                                                                                                                                                                                      |
+| [`VoiceChoice`](#an.audio.voice_design.VoiceChoice)(document[, previous, retired])       | What [`choose_in_entry()`](#an.audio.voice_design.choose_in_entry) did: the voice document; `previous`, the voice the choice displaced (what a voice file written before still names; `None` when it displaced none); and `retired`, that voice when it went into the `retired` ledger (one the choose step itself saved). |
 
 ### Exceptions
 
@@ -207,6 +213,15 @@ One candidate from a provider’s shared voice library.
 #### owner_id *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
 
 The account that shares it (ElevenLabs `public_owner_id`).
+
+### *class* an.audio.voice_design.VoiceChoice(document, previous=None, retired=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+What [`choose_in_entry()`](#an.audio.voice_design.choose_in_entry) did: the voice document; `previous`, the
+voice the choice displaced (what a voice file written before still
+names; `None` when it displaced none); and `retired`, that voice when
+it went into the `retired` ledger (one the choose step itself saved).
 
 ### *exception* an.audio.voice_design.VoiceDesignError
 
@@ -315,11 +330,54 @@ document’s when given. Returns the document.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
+### an.audio.voice_design.choose_in_entry(entry, option, , by=None, designer=None, ref='', at=None, doc=None)
+
+Make `option` the choice of one voice’s options manifest `entry`
+(an#549): the one choose step an’s `an voices choose` and a connector
+(reelee’s production pack) share. Returns the voice document
+([`record_choice()`](#an.audio.voice_design.record_choice) of `doc`, default an empty one: a caller that
+keeps the voice file elsewhere merges these keys into it) and the voice
+it replaced.
+
+`entry` is updated in place: `chosen` records the option, its
+`voice_id`, `chosen_by` and `chosen_at`. Choosing the option already
+chosen reuses its voice (nothing is saved), and keeps its `chosen_at`
+when the same chooser chooses it again and no `at` is given. Choosing
+another one names its voice (saved as a provider voice when it was not,
+[`choose_voice_option()`](#an.audio.voice_design.choose_voice_option), and marked `saved_by_choice` on its option)
+and retires the voice it replaces when a choice saved it: its option no
+longer names it, and `entry["retired"]` records it (`{voice_id,
+option, name_prefix}`), never deleted here (a copy of the manifest, or a
+voice file already written, may still name it: freeing the provider’s
+slot is a separate, explicit act). A voice saved when the options were
+designed (`persist=True`), a library voice and one cast by hand stay
+named where they are. `by` defaults to the login name (see
+[`record_choice()`](#an.audio.voice_design.record_choice)).
+
+```pycon
+>>> from types import SimpleNamespace
+>>> class Saver:   # a designer that saves a preview as voice "v<preview>"
+...     def design_voice(self, notes, *, preview, name): return SimpleNamespace(voice_id="v" + preview)
+>>> entry = {"notes": "n", "options": [{"option": "A", "generated_voice_id": "a"},
+...                                    {"option": "B", "generated_voice_id": "b"}]}
+>>> choose_in_entry(entry, "a", by="noel", at="t1", designer=Saver()).document["voice_id"]
+'va'
+>>> choice = choose_in_entry(entry, "B", by="noel", at="t2", designer=Saver())
+>>> choice.previous, choice.retired, [o["voice_id"] for o in entry["options"]]
+('va', 'va', [None, 'vb'])
+>>> choose_in_entry(entry, "B", by="noel").document["chosen_at"]   # the same choice again
+'t2'
+```
+
+* **Return type:**
+  [`VoiceChoice`](#an.audio.voice_design.VoiceChoice)
+
 ### an.audio.voice_design.choose_project_voice(project_dir, ref, option, , designer=None, by=None, at=None)
 
 Write the chosen option’s `voice_id` into `assets/voices/<ref>.json`,
 with who chose it (`by`, default the login name) and when (`at`, default
-now; [`record_choice()`](#an.audio.voice_design.record_choice)); return the document.
+now), and the choice into its options manifest ([`choose_in_entry()`](#an.audio.voice_design.choose_in_entry));
+return the document.
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
