@@ -3586,9 +3586,19 @@ def depth_order_problems(
             )
             if k is not None:
                 if swapped(k):
-                    behind_id, front_id, d_near, d_far = front.id, behind.id, df[k], db[k]
+                    behind_id, front_id, d_near, d_far = (
+                        front.id,
+                        behind.id,
+                        df[k],
+                        db[k],
+                    )
                 else:
-                    behind_id, front_id, d_near, d_far = behind.id, front.id, db[k], df[k]
+                    behind_id, front_id, d_near, d_far = (
+                        behind.id,
+                        front.id,
+                        db[k],
+                        df[k],
+                    )
                 out.append(
                     (
                         behind_id,
