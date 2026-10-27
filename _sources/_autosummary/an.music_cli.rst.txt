@@ -1,0 +1,12 @@
+an.music\_cli
+=============
+
+.. automodule:: an.music_cli
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      add_library
+   

@@ -1,0 +1,44 @@
+an.music\_library
+=================
+
+.. automodule:: an.music_library
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      MUSIC_LIBRARIES
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      acquire
+      attribution_text
+      direct
+      ffprobe_verify
+      files_store
+      kept_digests
+      polite_fetch
+      register_music_library
+      safe_file_name
+      titles_by_library
+      titles_from_json
+      tracks_table
+      wayback
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      AcquiredTrack
+      MusicLibrary
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      MusicLibraryError
+      MusicToolMissing
+   

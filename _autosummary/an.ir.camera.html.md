@@ -22,20 +22,24 @@ container as `root`. `+x` moves the CAMERA right, which moves content left.
 
 | [`PAN_FRACTION`](#an.ir.camera.PAN_FRACTION)   | How far a pan travels, as a fraction of the canvas width (a tilt uses the same fraction of the height).   |
 |-----------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| [`DOLLY_IN`](#an.ir.camera.DOLLY_IN)       | How far the named dollies travel (an#478), as `CameraKey.dolly`.                                          |
 | [`CAMERA_MOVES`](#an.ir.camera.CAMERA_MOVES)   | The named moves, as KEY LISTS.                                                                            |
 
 ### Functions
 
-| [`camera_keys`](#an.ir.camera.camera_keys)(shot, \*, width, height)          | The shot's camera as an explicit key list — the ONE resolver.                            |
-|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
-| [`camera_shake_offsets`](#an.ir.camera.camera_shake_offsets)(shot, \*, width, height) | The shot's camera shakes as `(time, dx, dy)` screen offsets — the ONE resolver (an#429). |
+| [`camera_keys`](#an.ir.camera.camera_keys)(shot, \*, width, height)          | The shot's camera as an explicit key list — the ONE resolver.                                                                                                                                       |
+|------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`camera_shake_offsets`](#an.ir.camera.camera_shake_offsets)(shot, \*, width, height) | The shot's camera shakes as `(time, dx, dy)` screen offsets — the ONE resolver (an#429).                                                                                                            |
+| [`dolly_frames`](#an.ir.camera.dolly_frames)(keys, \*, duration, fps)         | `keys` as one linear key per frame when any of them dollies (an#478), else `keys` unchanged (and a single key, which is no move, as a single `zoom` key is not).                                    |
+| [`dolly_growth`](#an.ir.camera.dolly_growth)(factor, dolly)                   | How much a plane of parallax `factor` grows when the camera has travelled `dolly` (an#478): a pinhole camera, the plane at distance `1 / factor` in units of the character plane's.                 |
+| [`plane_dolly_scale`](#an.ir.camera.plane_dolly_scale)(factor, dolly, \*[, plane]) | The scale a plane of parallax `factor` takes ON TOP of the root's zoom when the camera has travelled `dolly` (an#478): its growth over the character plane's, `(1 − dolly) / (1 − factor · dolly)`. |
 
 ### Exceptions
 
 | [`CameraError`](#an.ir.camera.CameraError)   | A camera that cannot be resolved into keys.   |
 |----------------------------------------------------------------|-----------------------------------------------|
 
-### an.ir.camera.CAMERA_MOVES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/typing.html#typing.Callable)[[[float](https://docs.python.org/3/builtins/functions.html#float)], [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[CameraKey](an.ir.schema.html.md#an.ir.schema.CameraKey)]]]* *= {'hold': <function <lambda>>, 'pan_left': <function <lambda>>, 'pan_right': <function <lambda>>, 'pull_out': <function <lambda>>, 'push_in': <function <lambda>>, 'tilt_down': <function <lambda>>, 'tilt_up': <function <lambda>>, 'zoom_in': <function <lambda>>, 'zoom_out': <function <lambda>>}*
+### an.ir.camera.CAMERA_MOVES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/typing.html#typing.Callable)[[[float](https://docs.python.org/3/builtins/functions.html#float)], [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[CameraKey](an.ir.schema.html.md#an.ir.schema.CameraKey)]]]* *= {'dolly_in': <function <lambda>>, 'dolly_out': <function <lambda>>, 'hold': <function <lambda>>, 'pan_left': <function <lambda>>, 'pan_right': <function <lambda>>, 'pull_out': <function <lambda>>, 'push_in': <function <lambda>>, 'tilt_down': <function <lambda>>, 'tilt_up': <function <lambda>>, 'zoom_in': <function <lambda>>, 'zoom_out': <function <lambda>>}*
 
 The named moves, as KEY LISTS. `move` is sugar over `keys` — one code path,
 two front doors.
@@ -58,6 +62,13 @@ A camera that cannot be resolved into keys.
 A plain `ValueError` subclass so the IR layer can raise it without knowing
 about any renderer; the cutout compiler re-raises it as a
 `CutoutCompileError` at its own boundary.
+
+### an.ir.camera.DOLLY_IN *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.2*
+
+How far the named dollies travel (an#478), as `CameraKey.dolly`. Chosen
+so the character plane grows as under `push_in` (×1.25) and `pull_out`
+(×0.8): `dolly_in` is `push_in` with depth, a foreground plane at depth
+1.4 growing ×1.39 and a moon at 0.08 ×1.02 (the design of record’s numbers).
 
 ### an.ir.camera.PAN_FRACTION *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.3333333333333333*
 
@@ -108,3 +119,56 @@ this, so a shake that validates cannot then raise (as with
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
+
+### an.ir.camera.dolly_frames(keys, , duration, fps)
+
+`keys` as one linear key per frame when any of them dollies (an#478),
+else `keys` unchanged (and a single key, which is no move, as a single
+`zoom` key is not).
+
+A dolly’s growth is not linear in its travel, so a key list that eases
+`dolly` cannot be eased in `zoom` too: each frame’s key is the camera
+evaluated there (every field by the keys’ own easings), its `zoom`
+multiplied by the character plane’s growth. Exact at every whole frame, as
+a follow is (an#445); a sample between two frames (a motion-blur shutter)
+sees the two frames’ keys interpolated linearly, and a `step` easing
+becomes a one-frame ramp.
+
+```pycon
+>>> frames = dolly_frames(CAMERA_MOVES["dolly_in"](1.0), duration=1.0, fps=4)
+>>> [(k.at, round(k.zoom, 3), round(k.dolly, 3)) for k in frames][::2]
+[(0.0, 1.0, 0.0), (0.5, 1.111, 0.1), (1.0, 1.25, 0.2)]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`CameraKey`](an.ir.schema.html.md#an.ir.schema.CameraKey)]
+
+### an.ir.camera.dolly_growth(factor, dolly)
+
+How much a plane of parallax `factor` grows when the camera has
+travelled `dolly` (an#478): a pinhole camera, the plane at distance
+`1 / factor` in units of the character plane’s.
+
+```pycon
+>>> dolly_growth(1.0, 0.2), round(dolly_growth(1.4, 0.2), 3), dolly_growth(0.0, 0.2)
+(1.25, 1.389, 1.0)
+```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+### an.ir.camera.plane_dolly_scale(factor, dolly, , plane='')
+
+The scale a plane of parallax `factor` takes ON TOP of the root’s zoom
+when the camera has travelled `dolly` (an#478): its growth over the
+character plane’s, `(1 − dolly) / (1 − factor · dolly)`. Exactly `1.0`
+without a dolly or at `factor` 1. A dolly that reaches the plane (the
+camera at or past it) is a [`CameraError`](#an.ir.camera.CameraError).
+
+```pycon
+>>> plane_dolly_scale(1.0, 0.2), plane_dolly_scale(0.0, 0.0), round(plane_dolly_scale(0.0, 0.2), 3)
+(1.0, 1.0, 0.8)
+```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)

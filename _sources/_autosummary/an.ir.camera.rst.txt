@@ -9,6 +9,7 @@ an.ir.camera
    .. autosummary::
    
       PAN_FRACTION
+      DOLLY_IN
       CAMERA_MOVES
    
    .. rubric:: Functions
@@ -17,6 +18,9 @@ an.ir.camera
    
       camera_keys
       camera_shake_offsets
+      dolly_frames
+      dolly_growth
+      plane_dolly_scale
    
    .. rubric:: Exceptions
 

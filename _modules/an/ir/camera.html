@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=391ca18b"></script>
+    <script src="../../../_static/documentation_options.js?v=7e4042c0"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.309" />
+  <meta name="docsearch:version" content="0.1.311" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -740,10 +740,15 @@ window.runMermaid = runMermaid;</script>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">"CAMERA_MOVES"</span><span class="p">,</span>
+    <span class="s2">"DOLLY_IN"</span><span class="p">,</span>
+    <span class="s2">"DOLLY_OUT"</span><span class="p">,</span>
     <span class="s2">"PAN_FRACTION"</span><span class="p">,</span>
     <span class="s2">"CameraError"</span><span class="p">,</span>
     <span class="s2">"camera_keys"</span><span class="p">,</span>
     <span class="s2">"camera_shake_offsets"</span><span class="p">,</span>
+    <span class="s2">"dolly_frames"</span><span class="p">,</span>
+    <span class="s2">"dolly_growth"</span><span class="p">,</span>
+    <span class="s2">"plane_dolly_scale"</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="c1">#: How far a pan travels, as a fraction of the canvas width (a tilt uses the</span>
@@ -751,6 +756,14 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: resolution and is the one number a named pan has to choose; an author who</span>
 <span class="c1">#: wants a different distance writes `keys` and says so.</span>
 <span class="n">PAN_FRACTION</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="mf">3.0</span>
+
+
+<span class="c1">#: How far the named dollies travel (an#478), as :attr:`CameraKey.dolly`. Chosen</span>
+<span class="c1">#: so the character plane grows as under ``push_in`` (×1.25) and ``pull_out``</span>
+<span class="c1">#: (×0.8): ``dolly_in`` is ``push_in`` with depth, a foreground plane at depth</span>
+<span class="c1">#: 1.4 growing ×1.39 and a moon at 0.08 ×1.02 (the design of record's numbers).</span>
+<span class="n">DOLLY_IN</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span>
+<span class="n">DOLLY_OUT</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.25</span>
 
 
 <div class="viewcode-block" id="CameraError">
@@ -770,6 +783,14 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="p">[</span>
         <span class="n">CameraKey</span><span class="p">(</span><span class="n">at</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">zoom</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">easing</span><span class="o">=</span><span class="s2">"ease_in_out"</span><span class="p">),</span>
         <span class="n">CameraKey</span><span class="p">(</span><span class="n">at</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span> <span class="n">zoom</span><span class="o">=</span><span class="n">end</span><span class="p">),</span>
+    <span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_dolly_keys</span><span class="p">(</span><span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">CameraKey</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Two keys that vary only ``dolly`` (an#478), eased as a push-in is."""</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="n">CameraKey</span><span class="p">(</span><span class="n">at</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">easing</span><span class="o">=</span><span class="s2">"ease_in_out"</span><span class="p">),</span>
+        <span class="n">CameraKey</span><span class="p">(</span><span class="n">at</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span> <span class="n">dolly</span><span class="o">=</span><span class="n">end</span><span class="p">),</span>
     <span class="p">]</span>
 
 
@@ -808,6 +829,10 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"pan_right"</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="n">_move_keys</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
     <span class="s2">"tilt_up"</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="n">_move_keys</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">),</span>
     <span class="s2">"tilt_down"</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="n">_move_keys</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+    <span class="c1"># an#478: the camera travels toward (away from) the scene, so each plane</span>
+    <span class="c1"># grows by its depth; a flat zoom grows them all alike.</span>
+    <span class="s2">"dolly_in"</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="n">_dolly_keys</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">DOLLY_IN</span><span class="p">),</span>
+    <span class="s2">"dolly_out"</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="n">_dolly_keys</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">DOLLY_OUT</span><span class="p">),</span>
 <span class="p">}</span>
 
 <span class="c1">#: Moves a pan/tilt scales by the canvas HEIGHT rather than the width. A frame</span>
@@ -983,6 +1008,96 @@ window.runMermaid = runMermaid;</script>
             <span class="n">env</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">j</span> <span class="o">/</span> <span class="n">steps</span> <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">decay</span> <span class="k">else</span> <span class="mf">1.0</span>
             <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span> <span class="o">=</span> <span class="p">(</span><span class="n">amp</span> <span class="o">*</span> <span class="n">env</span> <span class="o">*</span> <span class="n">rng</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
             <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">t</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<div class="viewcode-block" id="dolly_growth">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.camera.html#an.ir.camera.dolly_growth">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">dolly_growth</span><span class="p">(</span><span class="n">factor</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">dolly</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""How much a plane of parallax ``factor`` grows when the camera has</span>
+<span class="sd">    travelled ``dolly`` (an#478): a pinhole camera, the plane at distance</span>
+<span class="sd">    ``1 / factor`` in units of the character plane's.</span>
+
+<span class="sd">    &gt;&gt;&gt; dolly_growth(1.0, 0.2), round(dolly_growth(1.4, 0.2), 3), dolly_growth(0.0, 0.2)</span>
+<span class="sd">    (1.25, 1.389, 1.0)</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">factor</span> <span class="o">*</span> <span class="n">dolly</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="plane_dolly_scale">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.camera.html#an.ir.camera.plane_dolly_scale">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plane_dolly_scale</span><span class="p">(</span><span class="n">factor</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">dolly</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">plane</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The scale a plane of parallax ``factor`` takes ON TOP of the root's zoom</span>
+<span class="sd">    when the camera has travelled ``dolly`` (an#478): its growth over the</span>
+<span class="sd">    character plane's, ``(1 − dolly) / (1 − factor · dolly)``. Exactly ``1.0``</span>
+<span class="sd">    without a dolly or at ``factor`` 1. A dolly that reaches the plane (the</span>
+<span class="sd">    camera at or past it) is a :class:`CameraError`.</span>
+
+<span class="sd">    &gt;&gt;&gt; plane_dolly_scale(1.0, 0.2), plane_dolly_scale(0.0, 0.0), round(plane_dolly_scale(0.0, 0.2), 3)</span>
+<span class="sd">    (1.0, 1.0, 0.8)</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">factor</span> <span class="o">*</span> <span class="n">dolly</span> <span class="o">&gt;=</span> <span class="mf">1.0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">CameraError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"the camera dollies </span><span class="si">{</span><span class="n">dolly</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> of the way to the character plane, "</span>
+            <span class="sa">f</span><span class="s2">"which takes it past plane </span><span class="si">{</span><span class="n">plane</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'?'</span><span class="si">!r}</span><span class="s2"> (depth </span><span class="si">{</span><span class="n">factor</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">, at "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="mf">1.0</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">factor</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> of that distance). Dolly less, or move the plane "</span>
+            <span class="s2">"further back."</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">dolly_growth</span><span class="p">(</span><span class="n">factor</span><span class="p">,</span> <span class="n">dolly</span><span class="p">)</span> <span class="o">/</span> <span class="n">dolly_growth</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">dolly</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="dolly_frames">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.camera.html#an.ir.camera.dolly_frames">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">dolly_frames</span><span class="p">(</span>
+    <span class="n">keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CameraKey</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">CameraKey</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``keys`` as one linear key per frame when any of them dollies (an#478),</span>
+<span class="sd">    else ``keys`` unchanged (and a single key, which is no move, as a single</span>
+<span class="sd">    ``zoom`` key is not).</span>
+
+<span class="sd">    A dolly's growth is not linear in its travel, so a key list that eases</span>
+<span class="sd">    ``dolly`` cannot be eased in ``zoom`` too: each frame's key is the camera</span>
+<span class="sd">    evaluated there (every field by the keys' own easings), its ``zoom``</span>
+<span class="sd">    multiplied by the character plane's growth. Exact at every whole frame, as</span>
+<span class="sd">    a follow is (an#445); a sample between two frames (a motion-blur shutter)</span>
+<span class="sd">    sees the two frames' keys interpolated linearly, and a ``step`` easing</span>
+<span class="sd">    becomes a one-frame ramp.</span>
+
+<span class="sd">    &gt;&gt;&gt; frames = dolly_frames(CAMERA_MOVES["dolly_in"](1.0), duration=1.0, fps=4)</span>
+<span class="sd">    &gt;&gt;&gt; [(k.at, round(k.zoom, 3), round(k.dolly, 3)) for k in frames][::2]</span>
+<span class="sd">    [(0.0, 1.0, 0.0), (0.5, 1.111, 0.1), (1.0, 1.25, 0.2)]</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">dolly</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">keys</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.channel</span><span class="w"> </span><span class="kn">import</span> <span class="n">Channel</span><span class="p">,</span> <span class="n">Keyframe</span><span class="p">,</span> <span class="n">evaluate</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">channel</span><span class="p">(</span><span class="n">field</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Channel</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Channel</span><span class="p">(</span>
+            <span class="s2">"camera"</span><span class="p">,</span>
+            <span class="n">field</span><span class="p">,</span>
+            <span class="p">[</span><span class="n">Keyframe</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">at</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">field</span><span class="p">)),</span> <span class="n">k</span><span class="o">.</span><span class="n">easing</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">],</span>
+        <span class="p">)</span>
+
+    <span class="n">fields</span> <span class="o">=</span> <span class="p">{</span><span class="n">f</span><span class="p">:</span> <span class="n">channel</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">,</span> <span class="s2">"zoom"</span><span class="p">,</span> <span class="s2">"rotation"</span><span class="p">,</span> <span class="s2">"dolly"</span><span class="p">)}</span>
+    <span class="n">frames</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">duration</span> <span class="o">*</span> <span class="n">fps</span><span class="p">))</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">frames</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="n">n</span> <span class="o">/</span> <span class="n">fps</span><span class="p">)</span>
+        <span class="n">at</span> <span class="o">=</span> <span class="p">{</span><span class="n">f</span><span class="p">:</span> <span class="n">evaluate</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span><span class="p">,</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">fields</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">CameraKey</span><span class="p">(</span>
+                <span class="n">at</span><span class="o">=</span><span class="n">t</span><span class="p">,</span>
+                <span class="n">x</span><span class="o">=</span><span class="n">at</span><span class="p">[</span><span class="s2">"x"</span><span class="p">],</span>
+                <span class="n">y</span><span class="o">=</span><span class="n">at</span><span class="p">[</span><span class="s2">"y"</span><span class="p">],</span>
+                <span class="n">zoom</span><span class="o">=</span><span class="n">at</span><span class="p">[</span><span class="s2">"zoom"</span><span class="p">]</span> <span class="o">*</span> <span class="n">dolly_growth</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">at</span><span class="p">[</span><span class="s2">"dolly"</span><span class="p">]),</span>
+                <span class="n">rotation</span><span class="o">=</span><span class="n">at</span><span class="p">[</span><span class="s2">"rotation"</span><span class="p">],</span>
+                <span class="n">dolly</span><span class="o">=</span><span class="n">at</span><span class="p">[</span><span class="s2">"dolly"</span><span class="p">],</span>
+                <span class="n">easing</span><span class="o">=</span><span class="s2">"linear"</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
     <span class="k">return</span> <span class="n">out</span></div>
 
 </pre></div>

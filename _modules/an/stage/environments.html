@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=391ca18b"></script>
+    <script src="../../../_static/documentation_options.js?v=7e4042c0"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.309" />
+  <meta name="docsearch:version" content="0.1.311" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -740,17 +740,13 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">`&gt; 1.0`      foreground: nearer than the characters, moving faster</span>
 <span class="sd">===========  ===============================================================</span>
 
-<span class="sd">**`depth` governs translation only, and that is a stated limit rather than an</span>
-<span class="sd">oversight.** The compensation is on `x`/`y`; `root.scale` and `root.rotation`</span>
-<span class="sd">multiply the whole composed expression, so no per-plane factor can cancel</span>
-<span class="sd">them. Measured: a `depth = 0` plane under `push_in` grows 1.0 → 1.25× and</span>
-<span class="sd">drifts, exactly like the character plane.</span>
-
-<span class="sd">Depth-aware zoom is the **dolly**, and the design of record defers it with its</span>
-<span class="sd">reason: a true dolly grows the foreground ×1.40 while the moon grows ×1.02,</span>
-<span class="sd">where today's `push_in` grows both ×1.25 — precisely the uniform zoom the 1937</span>
-<span class="sd">multiplane camera was built to replace. Until `dolly_in` exists, pair a</span>
-<span class="sd">`depth = 0` plate with a pan, not a zoom.</span>
+<span class="sd">**A zoom is flat; a dolly has depth.** Under `push_in` (a zoom) every plane</span>
+<span class="sd">grows alike: `root.scale` multiplies the whole composed expression, so a</span>
+<span class="sd">`depth = 0` plane grows 1.0 → 1.25× like the character plane. Under</span>
+<span class="sd">`dolly_in` (an#478) the camera travels into the planes, and each grows by its</span>
+<span class="sd">own depth: the foreground ×1.39, the character plane ×1.25, a moon at 0.08</span>
+<span class="sd">×1.02, which is what the 1937 multiplane camera was built for. Use a dolly</span>
+<span class="sd">when depth should read; a zoom when the whole frame should.</span>
 
 <span class="sd">Sign trap, pinned here because every surveyed tool disagrees: **larger depth =</span>
 <span class="sd">nearer = faster.** Unity's z-derived factor uses the INVERSE convention</span>
@@ -1175,6 +1171,41 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="kc">None</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">plane_transform</span><span class="p">(</span>
+    <span class="n">plane</span><span class="p">:</span> <span class="n">Plane</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">rest</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+    <span class="n">camera</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+    <span class="n">dolly</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``(x, y, scale)`` of a node that carries ``plane``'s parallax, at</span>
+<span class="sd">    ``rest`` when the camera is, with the camera at ``camera`` having travelled</span>
+<span class="sd">    ``dolly`` (an#478): the one formula the compiler emits and validate checks.</span>
+
+<span class="sd">    The scale is the plane's pinhole growth over the root's, from its</span>
+<span class="sd">    ``depth`` alone (:func:`an.ir.camera.plane_dolly_scale`; ``parallax`` is a</span>
+<span class="sd">    TRANSLATION override and never stretches it), and per axis of factor ``f``</span>
+<span class="sd">    ``x = s·x0 + cam·(1 − s·f)``. Without a dolly ``s`` is exactly 1: the</span>
+<span class="sd">    translation-only parallax of an#110.</span>
+
+<span class="sd">    &gt;&gt;&gt; plane_transform(Plane(name="p", depth=0.5), rest=(10.0, 0.0), camera=(100.0, 0.0))</span>
+<span class="sd">    (60.0, 0.0, 1.0)</span>
+<span class="sd">    &gt;&gt;&gt; x, y, s = plane_transform(Plane(name="p", depth=0.4, parallax=(0.4, 1.0)),</span>
+<span class="sd">    ...                           rest=(0.0, 0.0), camera=(0.0, 50.0), dolly=0.2)</span>
+<span class="sd">    &gt;&gt;&gt; round(s, 4), round(y, 3)</span>
+<span class="sd">    (0.8696, 6.522)</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.camera</span><span class="w"> </span><span class="kn">import</span> <span class="n">plane_dolly_scale</span>
+
+    <span class="n">s</span> <span class="o">=</span> <span class="n">plane_dolly_scale</span><span class="p">(</span><span class="n">plane</span><span class="o">.</span><span class="n">depth</span><span class="p">,</span> <span class="n">dolly</span><span class="p">,</span> <span class="n">plane</span><span class="o">=</span><span class="n">plane</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">fx</span><span class="p">,</span> <span class="n">fy</span> <span class="o">=</span> <span class="n">plane</span><span class="o">.</span><span class="n">factors</span><span class="p">()</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">s</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">rest</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">camera</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">s</span> <span class="o">*</span> <span class="n">fx</span><span class="p">),</span>
+        <span class="n">s</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">rest</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">camera</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">s</span> <span class="o">*</span> <span class="n">fy</span><span class="p">),</span>
+        <span class="n">s</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
 <div class="viewcode-block" id="plane_rect">
 <a class="viewcode-back" href="../../../_autosummary/an.stage.environments.html#an.stage.environments.plane_rect">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">plane_rect</span><span class="p">(</span>
@@ -1182,13 +1213,17 @@ window.runMermaid = runMermaid;</script>
     <span class="n">art_size</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">camera</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+    <span class="n">dolly</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Rect</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Where ``plane`` is drawn, in scene pixels, with the camera at ``camera``.</span>
+<span class="w">    </span><span class="sd">"""Where ``plane`` is drawn, in scene pixels, with the camera at ``camera``</span>
+<span class="sd">    having travelled ``dolly`` (an#478).</span>
 
 <span class="sd">    The compiler's own geometry, restated for a pre-flight: the box is the</span>
 <span class="sd">    declared `size` or the art's extent (``art_size``), the art is fitted into</span>
 <span class="sd">    it by `fit`, placed by `anchor` at `offset`, and the plane's parallax</span>
-<span class="sd">    compensation moves it by ``(1 − f) · camera`` per axis. ``None`` when the</span>
+<span class="sd">    compensation moves it by ``(1 − f) · camera`` per axis; under a dolly it</span>
+<span class="sd">    also scales by :func:`an.ir.camera.plane_dolly_scale` about its position</span>
+<span class="sd">    (a :class:`an.ir.camera.CameraError` when the dolly reaches it). ``None`` when the</span>
 <span class="sd">    extent cannot be known (an image whose art cannot be measured and whose</span>
 <span class="sd">    `fit` makes the drawn size depend on it) — an unknown, not a hole.</span>
 
@@ -1211,9 +1246,8 @@ window.runMermaid = runMermaid;</script>
                 <span class="k">return</span> <span class="kc">None</span>
             <span class="n">k</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">w</span> <span class="o">/</span> <span class="n">art_size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">h</span> <span class="o">/</span> <span class="n">art_size</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
             <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">art_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">k</span><span class="p">,</span> <span class="n">art_size</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">k</span>
-    <span class="n">fx</span><span class="p">,</span> <span class="n">fy</span> <span class="o">=</span> <span class="n">plane</span><span class="o">.</span><span class="n">factors</span><span class="p">()</span>
-    <span class="n">x</span> <span class="o">=</span> <span class="n">plane</span><span class="o">.</span><span class="n">offset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">fx</span><span class="p">)</span> <span class="o">*</span> <span class="n">camera</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">y</span> <span class="o">=</span> <span class="n">plane</span><span class="o">.</span><span class="n">offset</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">fy</span><span class="p">)</span> <span class="o">*</span> <span class="n">camera</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="n">plane_transform</span><span class="p">(</span><span class="n">plane</span><span class="p">,</span> <span class="n">rest</span><span class="o">=</span><span class="n">plane</span><span class="o">.</span><span class="n">offset</span><span class="p">,</span> <span class="n">camera</span><span class="o">=</span><span class="n">camera</span><span class="p">,</span> <span class="n">dolly</span><span class="o">=</span><span class="n">dolly</span><span class="p">)</span>
+    <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">w</span> <span class="o">*</span> <span class="n">s</span><span class="p">,</span> <span class="n">h</span> <span class="o">*</span> <span class="n">s</span>
     <span class="c1"># A `fill` is emitted as a centred rect — the compiler does not pass the</span>
     <span class="c1"># anchor to it. An image honours the anchor, and so does a gradient with a</span>
     <span class="c1"># declared size; one without covers the canvas, centred, like a fill.</span>

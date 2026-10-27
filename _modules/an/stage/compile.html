@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=391ca18b"></script>
+    <script src="../../../_static/documentation_options.js?v=7e4042c0"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.309" />
+  <meta name="docsearch:version" content="0.1.311" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -827,7 +827,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.raster</span><span class="w"> </span><span class="kn">import</span> <span class="n">art_size</span><span class="p">,</span> <span class="n">is_raster</span><span class="p">,</span> <span class="n">short_digest</span><span class="p">,</span> <span class="n">versioned_src</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.camera</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAMERA_MOVES</span><span class="p">,</span> <span class="n">PAN_FRACTION</span><span class="p">,</span> <span class="n">CameraError</span>  <span class="c1"># noqa: F401  (re-exported)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.camera</span><span class="w"> </span><span class="kn">import</span> <span class="n">camera_keys</span> <span class="k">as</span> <span class="n">_camera_keys</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.camera</span><span class="w"> </span><span class="kn">import</span> <span class="n">camera_shake_offsets</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.camera</span><span class="w"> </span><span class="kn">import</span> <span class="n">camera_shake_offsets</span><span class="p">,</span> <span class="n">dolly_frames</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.migrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentKind</span><span class="p">,</span> <span class="n">migrate</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.environments</span><span class="w"> </span><span class="kn">import</span> <span class="n">PLANE_FILL_SPAN</span> <span class="k">as</span> <span class="n">_PLANE_FILL_SPAN</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.environments</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -836,6 +836,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">Plane</span><span class="p">,</span>
     <span class="n">PlaneFactorError</span><span class="p">,</span>
     <span class="n">environment_from_document</span><span class="p">,</span>
+    <span class="n">plane_transform</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.props</span><span class="w"> </span><span class="kn">import</span> <span class="n">PROP_DOCUMENT_KIND</span><span class="p">,</span> <span class="n">PropDescriptor</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.paths</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -1776,6 +1777,21 @@ window.runMermaid = runMermaid;</script>
     <span class="n">state</span><span class="o">.</span><span class="n">products</span><span class="p">[</span><span class="n">CAMERA_KEYS_PRODUCT</span><span class="p">]</span> <span class="o">=</span> <span class="n">camera_follow_keys</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_camera_dolly_pass</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">CompileState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A dollying camera (an#478): its keys, one per frame (:func:`dolly_frames`),</span>
+<span class="sd">    so the root's zoom is the character plane's pinhole growth at every frame</span>
+<span class="sd">    and the parallax pass grows each plane by its own. A camera with no</span>
+<span class="sd">    ``dolly`` is left exactly as it was."""</span>
+    <span class="n">keys</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">products</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">CAMERA_KEYS_PRODUCT</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">keys</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="n">camera_keys</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">height</span><span class="p">)</span>
+    <span class="n">framed</span> <span class="o">=</span> <span class="n">dolly_frames</span><span class="p">(</span>
+        <span class="n">keys</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="mf">0.001</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">)),</span> <span class="n">fps</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">fps</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">framed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">keys</span><span class="p">:</span>
+        <span class="n">state</span><span class="o">.</span><span class="n">products</span><span class="p">[</span><span class="n">CAMERA_KEYS_PRODUCT</span><span class="p">]</span> <span class="o">=</span> <span class="n">framed</span>
+
+
 <div class="viewcode-block" id="camera_follow_keys">
 <a class="viewcode-back" href="../../../_autosummary/an.stage.compile.html#an.adapters.cutout.camera_follow_keys">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">camera_follow_keys</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">CompileState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">CameraKey</span><span class="p">]:</span>
@@ -2057,6 +2073,12 @@ window.runMermaid = runMermaid;</script>
         <span class="n">_camera_follow_pass</span><span class="p">,</span>
         <span class="n">order</span><span class="o">=</span><span class="mi">550</span><span class="p">,</span>
         <span class="n">description</span><span class="o">=</span><span class="s2">"a following camera's keys, from the compiled motion (an#445)"</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">CompilePass</span><span class="p">(</span>
+        <span class="s2">"camera_dolly"</span><span class="p">,</span>
+        <span class="n">_camera_dolly_pass</span><span class="p">,</span>
+        <span class="n">order</span><span class="o">=</span><span class="mi">575</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">"a dollying camera's keys, one per frame (an#478)"</span><span class="p">,</span>
     <span class="p">),</span>
     <span class="n">CompilePass</span><span class="p">(</span>
         <span class="s2">"camera"</span><span class="p">,</span> <span class="n">_camera_pass</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">"the camera onto the scene root"</span>
@@ -3235,9 +3257,10 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    it does not fight this — which is exactly what the collision check below</span>
 <span class="sd">    refuses.</span>
 
-<span class="sd">    **Translation only.** `root.scale` and `root.rotation` multiply the whole</span>
-<span class="sd">    composed expression, so no per-plane factor can cancel them: a `depth = 0`</span>
-<span class="sd">    plate still grows under a push-in. Depth-aware zoom is the dolly, deferred.</span>
+<span class="sd">    **A zoom is not compensated; a dolly is.** `root.scale` and `root.rotation`</span>
+<span class="sd">    multiply the whole composed expression, so a `depth = 0` plate still grows</span>
+<span class="sd">    under a push-in. A dolly (an#478) scales each plane by its depth on top of</span>
+<span class="sd">    the root (:func:`_plane_compensations`).</span>
 
 <span class="sd">    Ordering note, since the call site's comment used to overstate it: running</span>
 <span class="sd">    this after the camera is TIDY, not load-bearing. The two passes write</span>
@@ -3276,13 +3299,9 @@ window.runMermaid = runMermaid;</script>
             <span class="k">if</span> <span class="n">band</span><span class="o">.</span><span class="n">environment</span> <span class="o">!=</span> <span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">:</span>
                 <span class="k">continue</span>
             <span class="p">(</span><span class="n">plane</span><span class="p">,)</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">env</span><span class="o">.</span><span class="n">planes</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">band</span><span class="o">.</span><span class="n">plane</span><span class="p">]</span>
-            <span class="n">fx</span><span class="p">,</span> <span class="n">fy</span> <span class="o">=</span> <span class="n">plane</span><span class="o">.</span><span class="n">factors</span><span class="p">()</span>
-            <span class="k">for</span> <span class="n">factor</span><span class="p">,</span> <span class="n">prop</span> <span class="ow">in</span> <span class="p">((</span><span class="n">fx</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">),</span> <span class="p">(</span><span class="n">fy</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">)):</span>
-                <span class="k">if</span> <span class="n">factor</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">:</span>
-                    <span class="k">continue</span>
-                <span class="n">values</span> <span class="o">=</span> <span class="p">[(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">factor</span><span class="p">)</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">prop</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">]</span>
-                <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">v</span> <span class="o">==</span> <span class="mf">0.0</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">values</span><span class="p">):</span>
-                    <span class="k">continue</span>
+            <span class="k">for</span> <span class="n">prop</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">_plane_compensations</span><span class="p">(</span>
+                <span class="n">plane</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">rest</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">where</span><span class="o">=</span><span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">"</span>
+            <span class="p">):</span>
                 <span class="k">if</span> <span class="p">(</span><span class="n">band</span><span class="o">.</span><span class="n">wrapper</span><span class="p">,</span> <span class="n">prop</span><span class="p">)</span> <span class="ow">in</span> <span class="n">authored</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span>
                         <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">band</span><span class="o">.</span><span class="n">wrapper</span><span class="si">!r}</span><span class="s2"> carries plane "</span>
@@ -3317,20 +3336,10 @@ window.runMermaid = runMermaid;</script>
 <span class="w">    </span><span class="sd">"""The per-plane half of :func:`_add_parallax_clips`."""</span>
     <span class="n">parents</span> <span class="o">=</span> <span class="n">plane_parents</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">plane</span> <span class="ow">in</span> <span class="n">env</span><span class="o">.</span><span class="n">planes</span><span class="p">:</span>
-        <span class="n">fx</span><span class="p">,</span> <span class="n">fy</span> <span class="o">=</span> <span class="n">plane</span><span class="o">.</span><span class="n">factors</span><span class="p">()</span>
-        <span class="n">ox</span><span class="p">,</span> <span class="n">oy</span> <span class="o">=</span> <span class="n">plane</span><span class="o">.</span><span class="n">offset</span>
         <span class="n">target</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">parents</span><span class="p">[</span><span class="n">plane</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">plane</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span>
-        <span class="k">for</span> <span class="n">factor</span><span class="p">,</span> <span class="n">prop</span><span class="p">,</span> <span class="n">cam_field</span><span class="p">,</span> <span class="n">rest</span> <span class="ow">in</span> <span class="p">(</span>
-            <span class="p">(</span><span class="n">fx</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">ox</span><span class="p">)),</span>
-            <span class="p">(</span><span class="n">fy</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">oy</span><span class="p">)),</span>
+        <span class="k">for</span> <span class="n">prop</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">_plane_compensations</span><span class="p">(</span>
+            <span class="n">plane</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">rest</span><span class="o">=</span><span class="n">plane</span><span class="o">.</span><span class="n">offset</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot_id</span><span class="si">!r}</span><span class="s2">"</span>
         <span class="p">):</span>
-            <span class="k">if</span> <span class="n">factor</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">:</span>
-                <span class="k">continue</span>  <span class="c1"># rides the camera; emitting nothing is the point</span>
-            <span class="n">values</span> <span class="o">=</span> <span class="p">[</span>
-                <span class="n">rest</span> <span class="o">+</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">factor</span><span class="p">)</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">cam_field</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span>
-            <span class="p">]</span>
-            <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">v</span> <span class="o">==</span> <span class="n">rest</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">values</span><span class="p">):</span>
-                <span class="k">continue</span>  <span class="c1"># the camera does not move on this axis</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">prop</span><span class="p">)</span> <span class="ow">in</span> <span class="n">authored</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot_id</span><span class="si">!r}</span><span class="s2">: plane </span><span class="si">{</span><span class="n">target</span><span class="si">!r}</span><span class="s2"> has depth </span><span class="si">{</span><span class="n">plane</span><span class="o">.</span><span class="n">depth</span><span class="si">}</span><span class="s2"> so "</span>
@@ -3352,6 +3361,45 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">animations</span><span class="p">,</span>
                 <span class="n">tracks</span><span class="p">,</span>
             <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_plane_compensations</span><span class="p">(</span>
+    <span class="n">plane</span><span class="p">:</span> <span class="n">Plane</span><span class="p">,</span>
+    <span class="n">keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CameraKey</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">rest</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+    <span class="n">where</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]]]:</span>
+<span class="w">    </span><span class="sd">"""``(property, value per key)`` the stage drives on a node that carries</span>
+<span class="sd">    ``plane``'s parallax, at ``rest`` when the camera is: only the channels</span>
+<span class="sd">    that move, from :func:`an.stage.environments.plane_transform` at each key.</span>
+
+<span class="sd">    Without a dolly that is ``x0 + (1 − f)·cam`` per axis and no scale, the</span>
+<span class="sd">    translation-only parallax of an#110; a plane at depth 1 rides the camera</span>
+<span class="sd">    and emits nothing. Under a dolly (an#478) the plane also scales by its</span>
+<span class="sd">    depth, uniformly; one the dolly would reach is refused.</span>
+
+<span class="sd">    &gt;&gt;&gt; keys = [CameraKey(at=0.0), CameraKey(at=1.0, x=100.0, dolly=0.2)]</span>
+<span class="sd">    &gt;&gt;&gt; [(p, [round(v, 3) for v in vs]) for p, vs in</span>
+<span class="sd">    ...  _plane_compensations(Plane(name="fg", depth=1.4), keys, rest=(0, 0), where="s")]</span>
+<span class="sd">    [('x', [0.0, -55.556]), ('scale_x', [1.0, 1.111]), ('scale_y', [1.0, 1.111])]</span>
+<span class="sd">    """</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">poses</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">plane_transform</span><span class="p">(</span><span class="n">plane</span><span class="p">,</span> <span class="n">rest</span><span class="o">=</span><span class="n">rest</span><span class="p">,</span> <span class="n">camera</span><span class="o">=</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">k</span><span class="o">.</span><span class="n">y</span><span class="p">),</span> <span class="n">dolly</span><span class="o">=</span><span class="n">k</span><span class="o">.</span><span class="n">dolly</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span>
+        <span class="p">]</span>
+    <span class="k">except</span> <span class="n">CameraError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">axis</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">((</span><span class="s2">"x"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">)):</span>
+        <span class="n">moves</span> <span class="o">=</span> <span class="p">[</span><span class="n">pose</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">pose</span> <span class="ow">in</span> <span class="n">poses</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">v</span> <span class="o">!=</span> <span class="nb">float</span><span class="p">(</span><span class="n">rest</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">moves</span><span class="p">):</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">axis</span><span class="p">,</span> <span class="n">moves</span><span class="p">))</span>
+    <span class="n">scales</span> <span class="o">=</span> <span class="p">[</span><span class="n">pose</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">pose</span> <span class="ow">in</span> <span class="n">poses</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">s</span> <span class="o">!=</span> <span class="mf">1.0</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">scales</span><span class="p">):</span>
+        <span class="n">out</span> <span class="o">+=</span> <span class="p">[(</span><span class="s2">"scale_x"</span><span class="p">,</span> <span class="n">scales</span><span class="p">),</span> <span class="p">(</span><span class="s2">"scale_y"</span><span class="p">,</span> <span class="n">scales</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">out</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_fresh_clip_id</span><span class="p">(</span><span class="n">base</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">animations</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>

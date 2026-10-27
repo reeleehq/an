@@ -28,9 +28,9 @@ formulas join it instead of redefining it.
 
 ### Module Attributes
 
-| [`FRAMING_2D`](#an.semantic.views.FRAMING_2D)   | where the frame is, how close, how rolled.                 |
-|---------------------------------------------------------------|------------------------------------------------------------|
-| [`ORBIT_3D`](#an.semantic.views.ORBIT_3D)     | a camera on a sphere around a target (previz's turntable). |
+| [`MULTIPLANE`](#an.semantic.views.MULTIPLANE)   | the 2D framing plus how far the camera has travelled into a scene of planes at depths, so each plane grows by its own depth.   |
+|---------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------|
+| [`ORBIT_3D`](#an.semantic.views.ORBIT_3D)     | a camera on a sphere around a target (previz's turntable).                                                                     |
 
 ### Functions
 
@@ -43,14 +43,15 @@ formulas join it instead of redefining it.
 |------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|
 | [`ViewSpace`](#an.semantic.views.ViewSpace)(entry, capability)                        | A declared view space: its vocabulary entry and the engine capability to lower it. |
 
-### an.semantic.views.FRAMING_2D *: [ViewSpace](#an.semantic.views.ViewSpace)* *= ViewSpace(entry=Entry(id='view.framing2d', kind='view_space', version='1', name='framing2d', title='', description='a 2D framing of a flat picture: position, zoom (log), roll (angle)', usage='axes: x (frame widths, linear), y (frame heights, linear), zoom (ratio, log), rotation (rad, angle)', params={'type': 'object', 'properties': {'x': {'type': 'number', 'unit': 'frame widths', 'scale': 'linear', 'default': 0.0, 'description': '+x moves the view right'}, 'y': {'type': 'number', 'unit': 'frame heights', 'scale': 'linear', 'default': 0.0, 'description': '+y moves the view down'}, 'zoom': {'type': 'number', 'unit': 'ratio', 'scale': 'log', 'default': 1.0, 'description': 'on-screen magnification; > 1 is closer'}, 'rotation': {'type': 'number', 'unit': 'rad', 'scale': 'angle', 'default': 0.0, 'description': "the view's roll"}}}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), capability=Capability(name='space.framing2d', description='the engine lowers moves through the framing2d view space: a 2D framing of a flat picture: position, zoom (log), roll (angle)', remedy='render with an engine that lowers the framing2d view space', subject='engine', command=None, version='1'))*
+### an.semantic.views.MULTIPLANE *: [ViewSpace](#an.semantic.views.ViewSpace)* *= ViewSpace(entry=Entry(id='view.multiplane', kind='view_space', version='1', name='multiplane', title='', description='a 2D framing that also travels in depth through planes (a dolly)', usage='axes: x (frame widths, linear), y (frame heights, linear), zoom (ratio, log), rotation (rad, angle), dolly (character-plane distance, linear)', params={'type': 'object', 'properties': {'x': {'type': 'number', 'unit': 'frame widths', 'scale': 'linear', 'default': 0.0, 'description': '+x moves the view right'}, 'y': {'type': 'number', 'unit': 'frame heights', 'scale': 'linear', 'default': 0.0, 'description': '+y moves the view down'}, 'zoom': {'type': 'number', 'unit': 'ratio', 'scale': 'log', 'default': 1.0, 'description': 'on-screen magnification; > 1 is closer'}, 'rotation': {'type': 'number', 'unit': 'rad', 'scale': 'angle', 'default': 0.0, 'description': "the view's roll"}, 'dolly': {'type': 'number', 'unit': 'character-plane distance', 'scale': 'linear', 'default': 0.0, 'description': 'travel toward the scene; 0.2 is a fifth of the way to the character plane'}}}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), capability=Capability(name='space.multiplane', description='the engine lowers moves through the multiplane view space: a 2D framing that also travels in depth through planes (a dolly)', remedy='render with an engine that lowers the multiplane view space', subject='engine', command=None, version='1'))*
 
-where the frame is, how close, how rolled. Every
-engine that shows a flat picture lowers it — by cropping pixels (burns) or by
-re-rendering into the frame (the stage engine).
+the 2D framing plus how far the camera has
+travelled into a scene of planes at depths, so each plane grows by its own
+depth. A crop engine cannot lower it (its pixels have no depth); the stage
+engine does, from its planes’ parallax factors.
 
 * **Type:**
-  The 2D framing space
+  The multiplane space (an#478)
 
 ### an.semantic.views.ORBIT_3D *: [ViewSpace](#an.semantic.views.ViewSpace)* *= ViewSpace(entry=Entry(id='view.orbit3d', kind='view_space', version='1', name='orbit3d', title='', description='an orbit camera around a 3D target: azimuth and elevation (angles), distance (log)', usage='axes: azimuth (rad, angle), elevation (rad, angle), distance (scene units, log), target_x (scene units, linear), target_y (scene units, linear), target_z (scene units, linear)', params={'type': 'object', 'properties': {'azimuth': {'type': 'number', 'unit': 'rad', 'scale': 'angle', 'default': 0.0, 'description': 'around the target'}, 'elevation': {'type': 'number', 'unit': 'rad', 'scale': 'angle', 'default': 0.0, 'description': "above the target's horizon"}, 'distance': {'type': 'number', 'unit': 'scene units', 'scale': 'log', 'default': 1.0, 'description': 'from the target'}, 'target_x': {'type': 'number', 'unit': 'scene units', 'scale': 'linear', 'default': 0.0}, 'target_y': {'type': 'number', 'unit': 'scene units', 'scale': 'linear', 'default': 0.0}, 'target_z': {'type': 'number', 'unit': 'scene units', 'scale': 'linear', 'default': 0.0}}}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), capability=Capability(name='space.orbit3d', description='the engine lowers moves through the orbit3d view space: an orbit camera around a 3D target: azimuth and elevation (angles), distance (log)', remedy='render with an engine that lowers the orbit3d view space', subject='engine', command=None, version='1'))*
 

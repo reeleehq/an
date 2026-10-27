@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=391ca18b"></script>
+    <script src="../_static/documentation_options.js?v=7e4042c0"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.309" />
+  <meta name="docsearch:version" content="0.1.311" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -461,6 +461,8 @@
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.motion.html">an.motion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.music_cli.html">an.music_cli</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.music_library.html">an.music_library</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.orchestrate.html">an.orchestrate</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.paint.html">an.paint</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.paths.html">an.paths</a></li>
@@ -795,7 +797,7 @@ refuse by name. The union is never rebuilt at registration.</p></li>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.CameraFollow" title="an.ir.schema.CameraFollow"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CameraFollow</span></code></a>(*, target[, axes, lag])</p></td>
 <td><p>A camera that follows an entity (an#445): the frame keeps <code class="docutils literal notranslate"><span class="pre">target</span></code> where it stood at the shot's start.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.CameraKey" title="an.ir.schema.CameraKey"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CameraKey</span></code></a>(*[, at, x, y, zoom, rotation, easing])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.CameraKey" title="an.ir.schema.CameraKey"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CameraKey</span></code></a>(*[, at, x, y, zoom, rotation, ...])</p></td>
 <td><p>One camera pose at one time — the explicit door behind the named moves.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.CameraShake" title="an.ir.schema.CameraShake"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CameraShake</span></code></a>(*[, at, duration, amplitude, ...])</p></td>
@@ -1120,7 +1122,7 @@ a first-order filter, so after <code class="docutils literal notranslate"><span 
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.ir.schema.CameraKey">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.schema.</span></span><span class="sig-name descname"><span class="pre">CameraKey</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">easing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">extra_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/schema.html#CameraKey"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.schema.CameraKey" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.schema.</span></span><span class="sig-name descname"><span class="pre">CameraKey</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dolly</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">easing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">extra_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/schema.html#CameraKey"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.schema.CameraKey" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_IRModel</span></code></p>
 <p>One camera pose at one time — the explicit door behind the named moves.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">CameraKey</span><span class="p">(</span><span class="n">at</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">x</span><span class="o">=-</span><span class="mf">160.0</span><span class="p">,</span> <span class="n">zoom</span><span class="o">=</span><span class="mf">1.25</span><span class="p">)</span><span class="o">.</span><span class="n">x</span>
@@ -1140,6 +1142,16 @@ would put it on both and move every camera scene’s contract hash. The
 named moves supply the easing they have always supplied.</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.schema.CameraKey.dolly">
+<span class="sig-name descname"><span class="pre">dolly</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><a class="headerlink" href="#an.ir.schema.CameraKey.dolly" title="Link to this definition">#</a></dt>
+<dd><p>How far the camera has travelled toward the scene (an#478), as a
+fraction of its distance to the character plane: <code class="docutils literal notranslate"><span class="pre">0.2</span></code> is a fifth of
+the way, negative is backing away. Unlike <code class="docutils literal notranslate"><span class="pre">zoom</span></code> it grows each plane by
+its depth (a pinhole camera): the foreground most, the sky not at all.
+Below <code class="docutils literal notranslate"><span class="pre">1</span></code>: at <code class="docutils literal notranslate"><span class="pre">1</span></code> the camera stands on the character plane.</p>
+</dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.ir.schema.CameraKey.model_config">
 <span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.15)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow',</span> <span class="pre">'populate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#an.ir.schema.CameraKey.model_config" title="Link to this definition">#</a></dt>
@@ -3083,6 +3095,7 @@ without loading them (<a class="reference internal" href="an.genres.html#an.genr
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.CameraKey"><code class="docutils literal notranslate"><span class="pre">CameraKey</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.CameraKey.dolly"><code class="docutils literal notranslate"><span class="pre">CameraKey.dolly</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.CameraKey.model_config"><code class="docutils literal notranslate"><span class="pre">CameraKey.model_config</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.CameraKey.rotation"><code class="docutils literal notranslate"><span class="pre">CameraKey.rotation</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.CameraKey.x"><code class="docutils literal notranslate"><span class="pre">CameraKey.x</span></code></a></li>

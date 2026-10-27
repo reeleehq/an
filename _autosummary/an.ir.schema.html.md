@@ -86,7 +86,7 @@ True
 | [`Attachment`](#an.ir.schema.Attachment)(\*, to[, at, scale])                    | A member that goes where another member goes (ADR 0009 decision 1).                                                                                                                                                                                                                      |
 | [`Camera`](#an.ir.schema.Camera)(\*[, shake, follow, move, keys])            | Camera state for a shot: a named move, or explicit keys.                                                                                                                                                                                                                                 |
 | [`CameraFollow`](#an.ir.schema.CameraFollow)(\*, target[, axes, lag])              | A camera that follows an entity (an#445): the frame keeps `target` where it stood at the shot's start.                                                                                                                                                                                   |
-| [`CameraKey`](#an.ir.schema.CameraKey)(\*[, at, x, y, zoom, rotation, easing])  | One camera pose at one time — the explicit door behind the named moves.                                                                                                                                                                                                                  |
+| [`CameraKey`](#an.ir.schema.CameraKey)(\*[, at, x, y, zoom, rotation, ...])     | One camera pose at one time — the explicit door behind the named moves.                                                                                                                                                                                                                  |
 | [`CameraShake`](#an.ir.schema.CameraShake)(\*[, at, duration, amplitude, ...])    | A jolt of the frame inside a shot (an#429): seeded screen-space jitter.                                                                                                                                                                                                                  |
 | [`Captions`](#an.ir.schema.Captions)(\*[, burn, sidecar, max_chars, ...])      | Captions for the whole film, built from the dialogue's word timings.                                                                                                                                                                                                                     |
 | [`CueAnchor`](#an.ir.schema.CueAnchor)(\*, when, reaches[, offset, shot])       | A sound cue's time, taken from the picture (an#317): when a node reaches a frame row or column.                                                                                                                                                                                          |
@@ -303,7 +303,7 @@ a first-order filter, so after `lag` seconds of a step it has covered
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.CameraKey(, at=0.0, x=0.0, y=0.0, zoom=1.0, rotation=0.0, easing=None, \*\*extra_data)
+### *class* an.ir.schema.CameraKey(, at=0.0, x=0.0, y=0.0, zoom=1.0, rotation=0.0, dolly=0.0, easing=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -326,6 +326,14 @@ style choice: today’s emitter puts `"ease_in_out"` on the first keyframe
 and `null` on the terminal one, so a per-key default of `"ease_in_out"`
 would put it on both and move every camera scene’s contract hash. The
 named moves supply the easing they have always supplied.
+
+#### dolly *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+How far the camera has travelled toward the scene (an#478), as a
+fraction of its distance to the character plane: `0.2` is a fifth of
+the way, negative is backing away. Unlike `zoom` it grows each plane by
+its depth (a pinhole camera): the foreground most, the sky not at all.
+Below `1`: at `1` the camera stands on the character plane.
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 

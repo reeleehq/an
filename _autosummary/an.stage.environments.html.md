@@ -23,17 +23,13 @@ coordinates — a ratio, not a distance:
 | `1.0`       | the character plane; **emits nothing**, which is today’s<br/>behaviour for everything and why this is byte-identity-free                      |
 | `> 1.0`     | foreground: nearer than the characters, moving faster                                                                                         |
 
-**\`depth\` governs translation only, and that is a stated limit rather than an
-oversight.** The compensation is on `x`/`y`; `root.scale` and `root.rotation`
-multiply the whole composed expression, so no per-plane factor can cancel
-them. Measured: a `depth = 0` plane under `push_in` grows 1.0 → 1.25× and
-drifts, exactly like the character plane.
-
-Depth-aware zoom is the **dolly**, and the design of record defers it with its
-reason: a true dolly grows the foreground ×1.40 while the moon grows ×1.02,
-where today’s `push_in` grows both ×1.25 — precisely the uniform zoom the 1937
-multiplane camera was built to replace. Until `dolly_in` exists, pair a
-`depth = 0` plate with a pan, not a zoom.
+**A zoom is flat; a dolly has depth.** Under `push_in` (a zoom) every plane
+grows alike: `root.scale` multiplies the whole composed expression, so a
+`depth = 0` plane grows 1.0 → 1.25× like the character plane. Under
+`dolly_in` (an#478) the camera travels into the planes, and each grows by its
+own depth: the foreground ×1.39, the character plane ×1.25, a moon at 0.08
+×1.02, which is what the 1937 multiplane camera was built for. Use a dolly
+when depth should read; a zoom when the whole frame should.
 
 Sign trap, pinned here because every surveyed tool disagrees: \*\*larger depth =
 nearer = faster.\*\* Unity’s z-derived factor uses the INVERSE convention
@@ -56,7 +52,7 @@ that share a depth.
 
 | [`frame_rect`](#an.stage.environments.frame_rect)(\*, x, y, zoom, rotation, width, ...)   | The scene region a camera pose shows: centred on the camera, the canvas divided by the zoom, grown to the axis-aligned box of a rolled frame — CONSERVATIVE under roll (the box contains corners the rotated frame does not show, so a plate that covers a rolled view can still be flagged).   |
 |-----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`plane_rect`](#an.stage.environments.plane_rect)(plane, art_size, \*[, camera])          | Where `plane` is drawn, in scene pixels, with the camera at `camera`.                                                                                                                                                                                                                           |
+| [`plane_rect`](#an.stage.environments.plane_rect)(plane, art_size, \*[, camera, dolly])   | Where `plane` is drawn, in scene pixels, with the camera at `camera` having travelled `dolly` (an#478).                                                                                                                                                                                         |
 | [`uncovered_part`](#an.stage.environments.uncovered_part)(view, covers)                       | The bounding box of the part of `view` no rect in `covers` covers.                                                                                                                                                                                                                              |
 
 ### Classes
@@ -330,14 +326,17 @@ canvas centre, so a pose shows `camera ± canvas / (2 · zoom)`.
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
-### an.stage.environments.plane_rect(plane, art_size, , camera=(0.0, 0.0))
+### an.stage.environments.plane_rect(plane, art_size, , camera=(0.0, 0.0), dolly=0.0)
 
-Where `plane` is drawn, in scene pixels, with the camera at `camera`.
+Where `plane` is drawn, in scene pixels, with the camera at `camera`
+having travelled `dolly` (an#478).
 
 The compiler’s own geometry, restated for a pre-flight: the box is the
 declared `size` or the art’s extent (`art_size`), the art is fitted into
 it by `fit`, placed by `anchor` at `offset`, and the plane’s parallax
-compensation moves it by `(1 − f) · camera` per axis. `None` when the
+compensation moves it by `(1 − f) · camera` per axis; under a dolly it
+also scales by [`an.ir.camera.plane_dolly_scale()`](an.ir.camera.html.md#an.ir.camera.plane_dolly_scale) about its position
+(a [`an.ir.camera.CameraError`](an.ir.camera.html.md#an.ir.camera.CameraError) when the dolly reaches it). `None` when the
 extent cannot be known (an image whose art cannot be measured and whose
 `fit` makes the drawn size depend on it) — an unknown, not a hole.
 

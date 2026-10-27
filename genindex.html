@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="_static/documentation_options.js?v=391ca18b"></script>
+    <script src="_static/documentation_options.js?v=7e4042c0"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.309" />
+  <meta name="docsearch:version" content="0.1.311" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -727,6 +727,10 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="_autosummary/an.measurements.html#an.measurements.accept_measured">accept_measured() (in module an.measurements)</a>
 </li>
+      <li><a href="_autosummary/an.music_library.html#an.music_library.acquire">acquire() (in module an.music_library)</a>
+</li>
+      <li><a href="_autosummary/an.music_library.html#an.music_library.AcquiredTrack">AcquiredTrack (class in an.music_library)</a>
+</li>
       <li><a href="_autosummary/an.ir.schema.html#an.ir.schema.Action">Action (in module an.ir.schema)</a>
 </li>
       <li><a href="_autosummary/an.genres.html#an.genres.action_kind">action_kind() (in module an.genres)</a>
@@ -756,6 +760,8 @@ window.runMermaid = runMermaid;</script>
 </li>
       </ul></li>
       <li><a href="_autosummary/an.media.mp4.html#an.media.mp4.add_audio">add_audio() (in module an.media.mp4)</a>
+</li>
+      <li><a href="_autosummary/an.music_cli.html#an.music_cli.add_library">add_library() (in module an.music_cli)</a>
 </li>
       <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.add_recording">add_recording() (in module an.audio.recorded)</a>
 </li>
@@ -1740,13 +1746,27 @@ window.runMermaid = runMermaid;</script>
         <li><a href="_autosummary/an.media.supersample.html#module-an.media.supersample">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     an.motion
 
       <ul>
         <li><a href="_autosummary/an.motion.html#module-an.motion">module</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    an.music_cli
+
+      <ul>
+        <li><a href="_autosummary/an.music_cli.html#module-an.music_cli">module</a>
+</li>
+      </ul></li>
+      <li>
+    an.music_library
+
+      <ul>
+        <li><a href="_autosummary/an.music_library.html#module-an.music_library">module</a>
 </li>
       </ul></li>
       <li>
@@ -2623,6 +2643,8 @@ window.runMermaid = runMermaid;</script>
       <li><a href="_autosummary/an.stage.rig.html#an.stage.rig.attachment_box">attachment_box() (in module an.stage.rig)</a>
 </li>
       <li><a href="_autosummary/an.ir.assets.html#an.ir.assets.ATTRIBUTION_REQUIRING_LICENSES">ATTRIBUTION_REQUIRING_LICENSES (in module an.ir.assets)</a>
+</li>
+      <li><a href="_autosummary/an.music_library.html#an.music_library.attribution_text">attribution_text() (in module an.music_library)</a>
 </li>
       <li><a href="_autosummary/an.audio.takes.html#an.audio.takes.audio_digest">audio_digest() (in module an.audio.takes)</a>
 </li>
@@ -3804,14 +3826,14 @@ window.runMermaid = runMermaid;</script>
         <li><a href="_autosummary/an.stage.serialize.html#an.stage.serialize.AssetResolutionJSON.detail">(an.stage.serialize.AssetResolutionJSON attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/an.build.keys.html#an.build.keys.ShotKeyInputs.details">details (an.build.keys.ShotKeyInputs attribute)</a>
 
       <ul>
         <li><a href="_autosummary/an.build.html#an.build.ShotKeyInputs.details">(an.build.ShotKeyInputs attribute)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/an.audio.transcripts.html#an.audio.transcripts.detect_format">detect_format() (in module an.audio.transcripts)</a>
 </li>
       <li><a href="_autosummary/an.verify.media.html#an.verify.media.detect_silence">detect_silence() (in module an.verify.media)</a>
@@ -3948,6 +3970,8 @@ window.runMermaid = runMermaid;</script>
       </ul></li>
       <li><a href="_autosummary/an.bench.masks.html#an.bench.masks.dilate">dilate() (in module an.bench.masks)</a>
 </li>
+      <li><a href="_autosummary/an.music_library.html#an.music_library.direct">direct() (in module an.music_library)</a>
+</li>
       <li><a href="_autosummary/an.html#an.Dialogue.direction">direction (an.Dialogue attribute)</a>
 
       <ul>
@@ -3989,6 +4013,14 @@ window.runMermaid = runMermaid;</script>
       <li><a href="_autosummary/an.bench.capture.html#an.bench.capture.distinct_png_sizes">distinct_png_sizes() (in module an.bench.capture)</a>
 </li>
       <li><a href="_autosummary/an.ir.html#an.ir.DocumentKind">DocumentKind (class in an.ir)</a>
+</li>
+      <li><a href="_autosummary/an.ir.schema.html#an.ir.schema.CameraKey.dolly">dolly (an.ir.schema.CameraKey attribute)</a>
+</li>
+      <li><a href="_autosummary/an.ir.camera.html#an.ir.camera.dolly_frames">dolly_frames() (in module an.ir.camera)</a>
+</li>
+      <li><a href="_autosummary/an.ir.camera.html#an.ir.camera.dolly_growth">dolly_growth() (in module an.ir.camera)</a>
+</li>
+      <li><a href="_autosummary/an.ir.camera.html#an.ir.camera.DOLLY_IN">DOLLY_IN (in module an.ir.camera)</a>
 </li>
       <li><a href="_autosummary/an.stage.paths.html#an.stage.paths.draw_on_through">draw_on_through() (in module an.stage.paths)</a>
 </li>
@@ -4374,6 +4406,8 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="_autosummary/an.bench.environment.html#an.bench.environment.ffmpeg_identity">ffmpeg_identity() (in module an.bench.environment)</a>
 </li>
+      <li><a href="_autosummary/an.music_library.html#an.music_library.ffprobe_verify">ffprobe_verify() (in module an.music_library)</a>
+</li>
       <li><a href="_autosummary/an.timing.html#an.timing.Address.field_path">field_path (an.timing.Address property)</a>
 
       <ul>
@@ -4397,6 +4431,10 @@ window.runMermaid = runMermaid;</script>
       <li><a href="_autosummary/an.bench.mutants.html#an.bench.mutants.Mutant.file">file (an.bench.mutants.Mutant attribute)</a>
 </li>
       <li><a href="_autosummary/an.build.keys.html#an.build.keys.file_digest">file_digest() (in module an.build.keys)</a>
+</li>
+      <li><a href="_autosummary/an.music_library.html#an.music_library.MusicLibrary.file_name">file_name() (an.music_library.MusicLibrary method)</a>
+</li>
+      <li><a href="_autosummary/an.music_library.html#an.music_library.files_store">files_store() (in module an.music_library)</a>
 </li>
       <li><a href="_autosummary/an.stage.paths.html#an.stage.paths.PathDescriptor.fill">fill (an.stage.paths.PathDescriptor attribute)</a>
 </li>
@@ -4516,10 +4554,10 @@ window.runMermaid = runMermaid;</script>
         <li><a href="_autosummary/an.kinematics.joints.html#an.kinematics.joints.Force">(class in an.kinematics.joints)</a>
 </li>
       </ul></li>
-      <li><a href="_autosummary/an.stage.compile.html#an.stage.compile.foreground_node_name">foreground_node_name() (in module an.stage.compile)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_autosummary/an.stage.compile.html#an.stage.compile.foreground_node_name">foreground_node_name() (in module an.stage.compile)</a>
+</li>
       <li><a href="_autosummary/an.stage.compile.html#an.stage.compile.FOREGROUND_SUFFIX">FOREGROUND_SUFFIX (in module an.stage.compile)</a>
 </li>
       <li><a href="_autosummary/an.credits.html#an.credits.CreditsReport.format">format() (an.credits.CreditsReport method)</a>
@@ -4699,8 +4737,6 @@ window.runMermaid = runMermaid;</script>
       <li><a href="_autosummary/an.ir.schema.html#an.ir.schema.FrameSway">FrameSway (class in an.ir.schema)</a>
 </li>
       <li><a href="_autosummary/an.ir.frames.html#an.ir.frames.FrameTree">FrameTree (class in an.ir.frames)</a>
-</li>
-      <li><a href="_autosummary/an.semantic.views.html#an.semantic.views.FRAMING_2D">FRAMING_2D (in module an.semantic.views)</a>
 </li>
       <li><a href="_autosummary/an.audio.pipeline.html#an.audio.pipeline.free_and_repeatable">free_and_repeatable() (in module an.audio.pipeline)</a>
 </li>
@@ -5245,6 +5281,8 @@ window.runMermaid = runMermaid;</script>
       <li><a href="_autosummary/an.project.html#an.project.keep_out_of_git">keep_out_of_git() (in module an.project)</a>
 </li>
       <li><a href="_autosummary/an.project.html#an.project.keep_reports_out_of_git">keep_reports_out_of_git() (in module an.project)</a>
+</li>
+      <li><a href="_autosummary/an.music_library.html#an.music_library.kept_digests">kept_digests() (in module an.music_library)</a>
 </li>
       <li><a href="_autosummary/an.capabilities.html#an.capabilities.KEY_SEP">KEY_SEP (in module an.capabilities)</a>
 </li>
@@ -6432,6 +6470,10 @@ window.runMermaid = runMermaid;</script>
 </li>
         <li><a href="_autosummary/an.motion.html#module-an.motion">an.motion</a>
 </li>
+        <li><a href="_autosummary/an.music_cli.html#module-an.music_cli">an.music_cli</a>
+</li>
+        <li><a href="_autosummary/an.music_library.html#module-an.music_library">an.music_library</a>
+</li>
         <li><a href="_autosummary/an.orchestrate.html#module-an.orchestrate">an.orchestrate</a>
 </li>
         <li><a href="_autosummary/an.paint.html#module-an.paint">an.paint</a>
@@ -6645,6 +6687,16 @@ window.runMermaid = runMermaid;</script>
         <li><a href="_autosummary/an.media.sinks.html#an.media.sinks.Mp4Sink">(class in an.media.sinks)</a>
 </li>
       </ul></li>
+      <li><a href="_autosummary/an.semantic.views.html#an.semantic.views.MULTIPLANE">MULTIPLANE (in module an.semantic.views)</a>
+</li>
+      <li><a href="_autosummary/an.music_library.html#an.music_library.MUSIC_LIBRARIES">MUSIC_LIBRARIES (in module an.music_library)</a>
+</li>
+      <li><a href="_autosummary/an.music_library.html#an.music_library.MusicLibrary">MusicLibrary (class in an.music_library)</a>
+</li>
+      <li><a href="_autosummary/an.music_library.html#an.music_library.MusicLibraryError">MusicLibraryError</a>
+</li>
+      <li><a href="_autosummary/an.music_library.html#an.music_library.MusicToolMissing">MusicToolMissing</a>
+</li>
       <li><a href="_autosummary/an.bench.mutants.html#an.bench.mutants.Mutant">Mutant (class in an.bench.mutants)</a>
 </li>
       <li><a href="_autosummary/an.bench.mutants.html#an.bench.mutants.MutantError">MutantError</a>
@@ -7119,6 +7171,8 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="_autosummary/an.bench.stage.html#an.bench.stage.plane_centroids">plane_centroids() (in module an.bench.stage)</a>
 </li>
+      <li><a href="_autosummary/an.ir.camera.html#an.ir.camera.plane_dolly_scale">plane_dolly_scale() (in module an.ir.camera)</a>
+</li>
       <li><a href="_autosummary/an.stage.compile.html#an.stage.compile.PLANE_EDGE_ON_MARGIN">PLANE_EDGE_ON_MARGIN (in module an.stage.compile)</a>
 </li>
       <li><a href="_autosummary/an.base.html#an.base.PLANE_FACTORS_OVERRIDE">PLANE_FACTORS_OVERRIDE (in module an.base)</a>
@@ -7202,6 +7256,8 @@ window.runMermaid = runMermaid;</script>
 </li>
       </ul></li>
       <li><a href="_autosummary/an.semantic.html#an.semantic.Policy">Policy (class in an.semantic)</a>
+</li>
+      <li><a href="_autosummary/an.music_library.html#an.music_library.polite_fetch">polite_fetch() (in module an.music_library)</a>
 </li>
       <li><a href="_autosummary/an.motion.html#an.motion.pop_in">pop_in() (in module an.motion)</a>
 </li>
@@ -7739,6 +7795,8 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="_autosummary/an.ir.html#an.ir.register_migration">register_migration() (in module an.ir)</a>
 </li>
+      <li><a href="_autosummary/an.music_library.html#an.music_library.register_music_library">register_music_library() (in module an.music_library)</a>
+</li>
       <li><a href="_autosummary/an.adapters.html#an.adapters.register_renderer">register_renderer() (in module an.adapters)</a>
 </li>
       <li><a href="_autosummary/an.stage.rig.html#an.stage.rig.register_rest_pose_migration">register_rest_pose_migration() (in module an.stage.rig)</a>
@@ -8215,6 +8273,8 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="_autosummary/an.stage.timeline.html#an.stage.timeline.Transform2D.rotation_x">rotation_x (an.stage.timeline.Transform2D attribute)</a>
 </li>
+      <li><a href="_autosummary/an.music_library.html#an.music_library.AcquiredTrack.row">row() (an.music_library.AcquiredTrack method)</a>
+</li>
       <li><a href="_autosummary/an.audio.voice_design.html#an.audio.voice_design.run_auditions">run_auditions() (in module an.audio.voice_design)</a>
 </li>
       <li><a href="_autosummary/an.bench.run.html#an.bench.run.run_bench">run_bench() (in module an.bench.run)</a>
@@ -8273,6 +8333,8 @@ window.runMermaid = runMermaid;</script>
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_autosummary/an.music_library.html#an.music_library.safe_file_name">safe_file_name() (in module an.music_library)</a>
+</li>
       <li><a href="_autosummary/an.ir.frames.html#an.ir.frames.Pose.same_as">same_as() (an.ir.frames.Pose method)</a>
 </li>
       <li><a href="_autosummary/an.audio.voice_design.html#an.audio.voice_design.sample_text_from_lines">sample_text_from_lines() (in module an.audio.voice_design)</a>
@@ -8753,10 +8815,10 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="_autosummary/an.stage.props.html#an.stage.props.PropDescriptor.source_svg">source_svg (an.stage.props.PropDescriptor attribute)</a>
 </li>
-      <li><a href="_autosummary/an.bench.imageio.html#an.bench.imageio.source_yuv">source_yuv() (in module an.bench.imageio)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_autosummary/an.bench.imageio.html#an.bench.imageio.source_yuv">source_yuv() (in module an.bench.imageio)</a>
+</li>
       <li><a href="_autosummary/an.bench.imageio.html#an.bench.imageio.source_yuv_command">source_yuv_command() (in module an.bench.imageio)</a>
 </li>
       <li><a href="_autosummary/an.adapters.manim_adapter.html#an.adapters.manim_adapter.SourceFile">SourceFile (class in an.adapters.manim_adapter)</a>
@@ -9395,6 +9457,10 @@ window.runMermaid = runMermaid;</script>
         <li><a href="_autosummary/an.build.shot_cache.html#an.build.shot_cache.BuildReport.timing_table">(an.build.shot_cache.BuildReport method)</a>
 </li>
       </ul></li>
+      <li><a href="_autosummary/an.music_library.html#an.music_library.titles_by_library">titles_by_library() (in module an.music_library)</a>
+</li>
+      <li><a href="_autosummary/an.music_library.html#an.music_library.titles_from_json">titles_from_json() (in module an.music_library)</a>
+</li>
       <li><a href="_autosummary/an.render.html#an.render.TMP_TOKEN">TMP_TOKEN (in module an.render)</a>
 </li>
   </ul></td>
@@ -9461,6 +9527,8 @@ window.runMermaid = runMermaid;</script>
         <li><a href="_autosummary/an.stage.serialize.html#an.stage.serialize.TrackJSON">(class in an.stage.serialize)</a>
 </li>
       </ul></li>
+      <li><a href="_autosummary/an.music_library.html#an.music_library.tracks_table">tracks_table() (in module an.music_library)</a>
+</li>
       <li><a href="_autosummary/an.verify.media.html#an.verify.media.transcribe">transcribe() (in module an.verify.media)</a>
 </li>
       <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.TranscriberUnavailableError">TranscriberUnavailableError</a>
@@ -9979,6 +10047,8 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.wav_seconds">wav_seconds() (in module an.audio.recorded)</a>
 </li>
+      <li><a href="_autosummary/an.music_library.html#an.music_library.wayback">wayback() (in module an.music_library)</a>
+</li>
       <li><a href="_autosummary/an.ir.schema.html#an.ir.schema.Weld">Weld (class in an.ir.schema)</a>
 
       <ul>
@@ -10077,10 +10147,10 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="_autosummary/an.stage.paths.html#an.stage.paths.PathDescriptor.wobble_wavelength_px">wobble_wavelength_px (an.stage.paths.PathDescriptor property)</a>
 </li>
-      <li><a href="_autosummary/an.stage.path_wobble.html#an.stage.path_wobble.wobble_with_vertices">wobble_with_vertices() (in module an.stage.path_wobble)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_autosummary/an.stage.path_wobble.html#an.stage.path_wobble.wobble_with_vertices">wobble_with_vertices() (in module an.stage.path_wobble)</a>
+</li>
       <li><a href="_autosummary/an.html#an.Dialogue.word_timings">word_timings (an.Dialogue attribute)</a>
 
       <ul>

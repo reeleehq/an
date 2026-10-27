@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="alternate" type="text/markdown" href="music_library.html.md">
+<link rel="describedby" href="../../llms.txt" type="text/markdown">
+    <title>an.music_library &#8212; an</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx_autodoc_typehints.css?v=057ac668" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/epythet.css?v=c64280fc" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=18bd87630a240e9c25be"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
+
+    <script src="../../_static/documentation_options.js?v=7e4042c0"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=fd10adb8"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+
+
+
+
+const initStyles = () => {
+    const defaultStyle = document.createElement('style');
+    defaultStyle.textContent = "pre.mermaid {\n    /* Same as .mermaid-container > pre */\n    display: block;\n    width: 100%;\n}\n\npre.mermaid > svg {\n    /* Same as .mermaid-container > pre > svg */\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}";
+    document.head.appendChild(defaultStyle);
+
+    const fullscreenStyle = document.createElement('style');
+    fullscreenStyle.textContent = ".mermaid-container {\n    position: relative;\n    display: flex;\n    flex-direction: row;\n    width: 100%;\n}\n\n.mermaid-container > pre {\n    display: block;\n    width: 100%;\n}\n\n.mermaid-container > pre > svg {\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}\n\n.mermaid-fullscreen-btn {\n    position: absolute;\n    width: 28px;\n    height: 28px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.3);\n    border-radius: 4px;\n    cursor: pointer;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    transition: all 0.2s;\n    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);\n    font-size: 14px;\n    line-height: 1;\n    padding: 0;\n    color: #333;\n}\n\n.mermaid-fullscreen-btn:hover {\n    opacity: 100% !important;\n    background: rgba(255, 255, 255, 1);\n    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-btn.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.3);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-btn.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal {\n    display: none;\n    position: fixed !important;\n    top: 0 !important;\n    left: 0 !important;\n    width: 95vw;\n    height: 100vh;\n    background: rgba(255, 255, 255, 0.98);\n    z-index: 9999;\n    padding: 20px;\n    overflow: auto;\n}\n\n.mermaid-fullscreen-modal.dark-theme {\n    background: rgba(0, 0, 0, 0.98);\n}\n\n.mermaid-fullscreen-modal.active {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen {\n    position: relative;\n    width: 95vw;\n    height: 90vh;\n    max-width: 95vw;\n    max-height: 90vh;\n    background: white;\n    border-radius: 8px;\n    padding: 20px;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);\n    overflow: auto;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen.dark-theme {\n    background: #1a1a1a;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);\n}\n\n.mermaid-container-fullscreen pre.mermaid {\n    width: 100%;\n    height: 100%;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen .mermaid svg {\n    height: 100% !important;\n    width: 100% !important;\n    cursor: grab;\n}\n\n.mermaid-fullscreen-close {\n    position: fixed !important;\n    top: 20px !important;\n    right: 20px !important;\n    width: 40px;\n    height: 40px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.2);\n    border-radius: 50%;\n    cursor: pointer;\n    z-index: 10000;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);\n    transition: all 0.2s;\n    font-size: 24px;\n    line-height: 1;\n    color: #333;\n}\n\n.mermaid-fullscreen-close:hover {\n    background: white;\n    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-close.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.2);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-close.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal .mermaid-fullscreen-btn {\n    display: none !important;\n}";
+    document.head.appendChild(fullscreenStyle);
+}
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    // We use a set of heuristics:
+    // 1. Check for common dark mode classes or attributes
+    // 2. Check computed background color brightness
+    if (document.documentElement.classList.contains('dark') ||
+        document.documentElement.getAttribute('data-theme') === 'dark' ||
+        document.body.classList.contains('dark') ||
+        document.body.getAttribute('data-theme') === 'dark') {
+        // console.log("Dark theme detected via class/attribute");
+        return true;
+    }
+    if (document.documentElement.classList.contains('light') ||
+        document.documentElement.getAttribute('data-theme') === 'light' ||
+        document.body.classList.contains('light') ||
+        document.body.getAttribute('data-theme') === 'light') {
+        // console.log("Light theme detected via class/attribute");
+        return false;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // console.log("Dark theme detected via prefers-color-scheme");
+        return true;
+    }
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        // console.log("Background color brightness:", brightness);
+        return brightness < 128;
+    }
+    // console.log("No dark or light theme detected, defaulting to light theme");
+    return false;
+};
+
+let darkTheme = isDarkTheme();
+let modal = null;
+let modalContent = null;
+let previousScrollOffset = [window.scrollX, window.scrollY];
+let _lazyObserver = null;
+let _renderQueue = Promise.resolve();
+let closeModal = () => {};
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal?.classList.contains('active')) {
+        closeModal();
+    }
+});
+
+// Apply d3 zoom to each SVG. Idempotent: an SVG already wrapped is skipped,
+// so this is safe to call both for the initial batch and for diagrams that
+// render lazily once they become visible.
+const addZoomToSvgs = (svgs) => {
+    svgs.each(function() {
+        if (this.getAttribute('data-zoom-applied') === 'true') return;
+        var svg = d3.select(this);
+        svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+        var inner = svg.select("g");
+        var zoom = d3.zoom().on("zoom", function(event) {
+            inner.attr("transform", event.transform);
+        });
+        svg.call(zoom);
+        this.setAttribute('data-zoom-applied', 'true');
+    });
+};
+
+const runMermaid = async (rerun) => {
+    console.log("Running mermaid diagrams, rerun =", rerun);
+    // clear all existing mermaid charts
+    let all_mermaids = document.querySelectorAll(".mermaid");
+
+    if (rerun) {
+        // Disconnect any previous lazy rendering observer
+        if (_lazyObserver) {
+            _lazyObserver.disconnect();
+            _lazyObserver = null;
+        }
+
+        all_mermaids.forEach((el) => {
+            el.removeAttribute('data-mermaid-deferred');
+            el.removeAttribute('data-mermaid-render-failed');
+            if(!el.hasAttribute("data-original-code")) {
+                // store original code
+                // console.log(`Storing original code for first run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+            if(el.getAttribute("data-processed") === "true") {
+                // remove and restore original
+                el.removeAttribute("data-processed");
+                // console.log(`Restoring original code for re-run: `, el.getAttribute('data-original-code'));
+                el.innerHTML = el.getAttribute('data-original-code');
+            } else {
+                // store original code
+                // console.log(`Storing original code for re-run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+        });
+
+        // Separate visible and hidden elements. Mermaid's layout engine measures
+        // text dimensions via the DOM, which fails for elements hidden by a parent
+        // (e.g., Reveal.js non-active slides, sphinx-design unopened tabs),
+        // producing broken SVGs. Render visible elements now, defer hidden ones.
+        const visible = [];
+        const hidden = [];
+        all_mermaids.forEach((el) => {
+            // offsetParent is null for display:none ancestors.
+            // getClientRects().length > 0 catches position:fixed elements
+            // (which also have null offsetParent but are still visible).
+            if (el.offsetParent !== null || el.getClientRects().length > 0) {
+                visible.push(el);
+            } else {
+                hidden.push(el);
+                el.setAttribute('data-mermaid-deferred', 'true');
+            }
+        });
+
+        if (visible.length > 0) {
+            try {
+                await mermaid.run({ nodes: visible });
+            } catch (e) {
+                console.error("Mermaid rendering failed:", e);
+            }
+        }
+
+        // Lazily render hidden elements when they become visible.
+        // Uses a promise chain (_renderQueue) to serialize rendering,
+        // since IntersectionObserver may report multiple entries at once
+        // and mermaid.run() is not safe to call concurrently.
+        if (hidden.length > 0) {
+            if (typeof IntersectionObserver === 'undefined') {
+                console.warn("IntersectionObserver not available; hidden mermaid diagrams will not render.");
+            } else {
+                _renderQueue = Promise.resolve();
+                _lazyObserver = new IntersectionObserver((entries) => {
+                    for (const entry of entries) {
+                        if (entry.isIntersecting && entry.target.getAttribute("data-processed") !== "true") {
+                            _lazyObserver.unobserve(entry.target);
+                            const el = entry.target;
+                            _renderQueue = _renderQueue.then(async () => {
+                                try {
+                                    await mermaid.run({ nodes: [el] });
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    // Apply zoom to the now-rendered diagram, matching
+                                    // the decoration visible diagrams receive.
+                                    if (false) {
+                                        addZoomToSvgs(d3.selectAll("").select(function() {
+                                            return this.querySelector("svg");
+                                        }));
+                                    }
+                                } catch (e) {
+                                    console.error("Mermaid deferred rendering failed:", e);
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    el.setAttribute('data-mermaid-render-failed', 'true');
+                                }
+                            });
+                        }
+                    }
+                });
+                hidden.forEach((el) => _lazyObserver.observe(el));
+            }
+        }
+    }
+
+    all_mermaids = document.querySelectorAll(".mermaid");
+    // Exclude deferred (hidden) and render-failed elements from completion checks
+    const mermaids_active = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])");
+    const mermaids_processed = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])[data-processed='true']");
+
+    if (false) {
+        const mermaids_to_add_zoom = 0 === -1 ? mermaids_active.length : 0;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("").select(function() {
+                return this.querySelector("svg");
+            });
+            // Wait until every active (visible) diagram has rendered. Deferred
+            // diagrams are excluded, so a fixed d3_node_count that counts a
+            // hidden diagram no longer loops forever waiting for its SVG.
+            if(mermaids_active.length !== mermaids_processed.length) {
+                setTimeout(() => runMermaid(false), 200);
+                return;
+            }
+            addZoomToSvgs(svgs);
+        }
+    } else if(mermaids_active.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(() => runMermaid(false), 200);
+        return;
+    }
+
+    // Stop here if not adding fullscreen capability
+    if (!true) return;
+
+    if (modal !== null ) {
+        // Destroy existing modal
+        modal.remove();
+        modal = null;
+        modalContent = null;
+    }
+
+    modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            // Already processed, adjust button class if needed
+            const existingBtn = mermaidDiv.parentNode.querySelector('.mermaid-fullscreen-btn');
+            if (existingBtn) {
+                existingBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+            }
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = "\u26f6";
+        fullscreenBtn.style.opacity = "50%";
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scrollX, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.display = 'block';
+
+                if (false) {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+        container.appendChild(fullscreenBtn);
+    });
+};
+
+
+
+const load = async () => {
+    initStyles();
+
+
+    await runMermaid(true);
+
+    const reRunIfThemeChanges = async () => {
+        const newDarkTheme = isDarkTheme();
+        if (newDarkTheme !== darkTheme) {
+            darkTheme = newDarkTheme;
+            console.log("Theme change detected, re-running mermaid with", darkTheme ? "dark" : "default", "theme");
+            await mermaid.initialize(
+                {...{"startOnLoad": false},
+                ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+                }
+            );
+            await runMermaid(true);
+        }
+    };
+
+    // Update theme classes when theme changes
+    const themeObserver = new MutationObserver(reRunIfThemeChanges);
+    themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+};
+
+
+
+
+
+console.log("Initializing mermaid with", darkTheme ? "dark" : "default", "theme");
+mermaid.initialize(
+    {...{"startOnLoad": false},
+    ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+    }
+);
+
+window.addEventListener("load", load);
+window.runMermaid = runMermaid;</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/an/music_library';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.311" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">an</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">an.music_library</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for an.music_library</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""Acquire a licensed music library, with provenance (an#470).</span>
+
+<span class="sd">A production that scores itself from free libraries wrote the same script each</span>
+<span class="sd">time: turn the titles a channel credits into download URLs, fetch them politely,</span>
+<span class="sd">check each file is audio, record where it came from and under which licence,</span>
+<span class="sd">and collect the attribution lines the licence asks for. :func:`acquire` is that</span>
+<span class="sd">script, and ``an music add-library`` its command:</span>
+
+<span class="sd">    an music add-library incompetech --titles-from usage.json --out audio/macleod</span>
+
+<span class="sd">- **A library is data** (:class:`MusicLibrary`): who made it, its licence, the</span>
+<span class="sd">  attribution it asks for, the names a video credits it by, and the rule from</span>
+<span class="sd">  a title to the file's URL. The registry (:data:`MUSIC_LIBRARIES`,</span>
+<span class="sd">  :func:`register_music_library`) holds ``incompetech`` (Kevin MacLeod, CC BY</span>
+<span class="sd">  4.0) and two paid libraries, ``artlist`` and ``epidemic_sound``, which never</span>
+<span class="sd">  download: their titles become wishlist rows to license by hand. A library</span>
+<span class="sd">  whose licence this package has not checked is registered by the caller, who</span>
+<span class="sd">  vouches for it.</span>
+<span class="sd">- **Every step is a seam** (keyword arguments with working defaults):</span>
+<span class="sd">  ``fetch`` (``url -&gt; bytes``, :func:`polite_fetch`), ``mirrors`` (where else</span>
+<span class="sd">  a URL's bytes may be: :func:`direct`, then :func:`wayback`, the Internet</span>
+<span class="sd">  Archive's raw copy, the only route to a site that refuses scripts),</span>
+<span class="sd">  ``verify`` (``bytes -&gt; seconds``, :func:`ffprobe_verify`), ``sleep`` (the</span>
+<span class="sd">  pause before a second request to the same host) and ``out`` (any</span>
+<span class="sd">  ``{file name: bytes}`` store; a folder by default).</span>
+<span class="sd">- **A row is an** :class:`an.ir.assets.AssetSource`, the provenance a sound in</span>
+<span class="sd">  the project's store carries: ``url`` is where the bytes came from (the</span>
+<span class="sd">  mirror that served them), ``source_page_url`` the library's own address.</span>
+<span class="sd">  A title that fails is a ``failed`` row with its reasons; the batch goes on. A</span>
+<span class="sd">  file whose digest a previous run recorded (``kept``) is not fetched again,</span>
+<span class="sd">  so a rerun resumes.</span>
+
+<span class="sd">&gt;&gt;&gt; lib = MUSIC_LIBRARIES["incompetech"]</span>
+<span class="sd">&gt;&gt;&gt; lib.track_url("Sneaky Snitch")</span>
+<span class="sd">'https://incompetech.com/music/royalty-free/mp3-royaltyfree/Sneaky%20Snitch.mp3'</span>
+<span class="sd">&gt;&gt;&gt; print(lib.attribution_for("Sneaky Snitch"))</span>
+<span class="sd">"Sneaky Snitch" Kevin MacLeod (incompetech.com)</span>
+<span class="sd">Licensed under Creative Commons: By Attribution 4.0 License</span>
+<span class="sd">http://creativecommons.org/licenses/by/4.0/</span>
+<span class="sd">"""</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">http.client</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">unicodedata</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">urllib.request</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">MutableMapping</span><span class="p">,</span> <span class="n">Sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">urllib.parse</span><span class="w"> </span><span class="kn">import</span> <span class="n">quote</span><span class="p">,</span> <span class="n">urlparse</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.assets</span><span class="w"> </span><span class="kn">import</span> <span class="n">AssetSource</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"MUSIC_LIBRARIES"</span><span class="p">,</span>
+    <span class="s2">"AcquiredTrack"</span><span class="p">,</span>
+    <span class="s2">"MusicLibrary"</span><span class="p">,</span>
+    <span class="s2">"MusicLibraryError"</span><span class="p">,</span>
+    <span class="s2">"MusicToolMissing"</span><span class="p">,</span>
+    <span class="s2">"acquire"</span><span class="p">,</span>
+    <span class="s2">"attribution_text"</span><span class="p">,</span>
+    <span class="s2">"direct"</span><span class="p">,</span>
+    <span class="s2">"ffprobe_verify"</span><span class="p">,</span>
+    <span class="s2">"files_store"</span><span class="p">,</span>
+    <span class="s2">"kept_digests"</span><span class="p">,</span>
+    <span class="s2">"polite_fetch"</span><span class="p">,</span>
+    <span class="s2">"register_music_library"</span><span class="p">,</span>
+    <span class="s2">"safe_file_name"</span><span class="p">,</span>
+    <span class="s2">"titles_by_library"</span><span class="p">,</span>
+    <span class="s2">"titles_from_json"</span><span class="p">,</span>
+    <span class="s2">"tracks_table"</span><span class="p">,</span>
+    <span class="s2">"wayback"</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="c1">#: Seconds between two requests to one host: a library is someone's website.</span>
+<span class="n">DFLT_PAUSE_S</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span>
+<span class="c1">#: How a download introduces itself.</span>
+<span class="n">USER_AGENT</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"an-music-library (+https://github.com/reeleehq/an)"</span>
+<span class="c1">#: Seconds a download may take before it counts as failed.</span>
+<span class="n">DFLT_TIMEOUT_S</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">60.0</span>
+<span class="c1">#: The largest file a download keeps: a music track is a few MB; a body past</span>
+<span class="c1">#: this is not one.</span>
+<span class="n">DFLT_MAX_BYTES</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span>
+<span class="c1">#: The Internet Archive's raw-file form of a URL (``id_``: the bytes as</span>
+<span class="c1">#: archived, not the archive's page around them; ``2``: the latest capture).</span>
+<span class="n">WAYBACK_RAW</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"https://web.archive.org/web/2id_/</span><span class="si">{url}</span><span class="s2">"</span>
+<span class="c1">#: The extension a track is saved with when its library names no other.</span>
+<span class="n">DFLT_SUFFIX</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">".mp3"</span>
+<span class="c1">#: The row statuses.</span>
+<span class="n">ACQUIRED</span><span class="p">,</span> <span class="n">KEPT</span><span class="p">,</span> <span class="n">FAILED</span><span class="p">,</span> <span class="n">WISHLIST</span> <span class="o">=</span> <span class="s2">"acquired"</span><span class="p">,</span> <span class="s2">"kept"</span><span class="p">,</span> <span class="s2">"failed"</span><span class="p">,</span> <span class="s2">"wishlist"</span>
+<span class="c1">#: The tracks table's columns, in order (a row's other extras, a catalogue's</span>
+<span class="c1">#: ``feel`` or ``genre``, follow in name order).</span>
+<span class="n">TRACK_COLUMNS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"title"</span><span class="p">,</span>
+    <span class="s2">"library"</span><span class="p">,</span>
+    <span class="s2">"status"</span><span class="p">,</span>
+    <span class="s2">"file"</span><span class="p">,</span>
+    <span class="s2">"duration_s"</span><span class="p">,</span>
+    <span class="s2">"sha256"</span><span class="p">,</span>
+    <span class="s2">"license"</span><span class="p">,</span>
+    <span class="s2">"license_url"</span><span class="p">,</span>
+    <span class="s2">"author"</span><span class="p">,</span>
+    <span class="s2">"url"</span><span class="p">,</span>
+    <span class="s2">"source_page_url"</span><span class="p">,</span>
+    <span class="s2">"mirror"</span><span class="p">,</span>
+    <span class="s2">"attribution"</span><span class="p">,</span>
+    <span class="s2">"credited_by"</span><span class="p">,</span>
+    <span class="s2">"error"</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="c1">#: The columns a titles file's metadata fills (the rest the library states).</span>
+<span class="n">METADATA_COLUMNS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"credited_by"</span><span class="p">,)</span>
+<span class="c1">#: What a fetch, a verification or a store write may raise for ONE title (an</span>
+<span class="c1">#: HTTP or URL error is an ``OSError``; a :class:`MusicLibraryError` a</span>
+<span class="c1">#: ``ValueError``); anything else is a bug and stops the batch.</span>
+<span class="n">_TITLE_ERRORS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">type</span><span class="p">[</span><span class="ne">BaseException</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="ne">OSError</span><span class="p">,</span>
+    <span class="ne">ValueError</span><span class="p">,</span>
+    <span class="ne">KeyError</span><span class="p">,</span>
+    <span class="n">http</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">HTTPException</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="MusicLibraryError">
+<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.MusicLibraryError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MusicLibraryError</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A library, a title or a file that cannot be used, and why."""</span></div>
+
+
+
+<div class="viewcode-block" id="MusicToolMissing">
+<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.MusicToolMissing">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MusicToolMissing</span><span class="p">(</span><span class="ne">RuntimeError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A tool every title needs is missing: the batch stops before it starts."""</span></div>
+
+
+
+<div class="viewcode-block" id="safe_file_name">
+<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.safe_file_name">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">safe_file_name</span><span class="p">(</span><span class="n">title</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">suffix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_SUFFIX</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``title`` as a file name: NFC, path separators as ``-``, no leading dot.</span>
+
+<span class="sd">    &gt;&gt;&gt; safe_file_name("AC/DC"), safe_file_name("../../escape")</span>
+<span class="sd">    ('AC-DC.mp3', '-..-escape.mp3')</span>
+<span class="sd">    """</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">unicodedata</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="s2">"NFC"</span><span class="p">,</span> <span class="n">title</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="s2">"-"</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"</span><span class="se">\\</span><span class="s2">"</span><span class="p">,</span> <span class="s2">"-"</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">". "</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"title </span><span class="si">{</span><span class="n">title</span><span class="si">!r}</span><span class="s2"> gives no file name"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">name</span> <span class="o">+</span> <span class="n">suffix</span></div>
+
+
+
+<div class="viewcode-block" id="MusicLibrary">
+<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.MusicLibrary">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MusicLibrary</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""One library: who made it, under which licence, and where a title's file is.</span>
+
+<span class="sd">    ``license`` is ``None`` for a PAID library (its titles become wishlist rows,</span>
+<span class="sd">    never downloads); ``track_url`` is then unused. ``attribution`` is a</span>
+<span class="sd">    template over ``{title}``, ``{author}`` and ``{license_url}``. ``aliases``</span>
+<span class="sd">    are the names a video description credits it by (``From Epidemic Sound:``,</span>
+<span class="sd">    ``Kevin MacLeod (incompetech.com)``); ``file_name`` the name a title is</span>
+<span class="sd">    saved under.</span>
+<span class="sd">    """</span>
+
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">author</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">license</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="n">track_url</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">license_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">attribution</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'"</span><span class="si">{title}</span><span class="s1">" </span><span class="si">{author}</span><span class="s1">'</span>
+    <span class="n">author_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">aliases</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">file_name</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">safe_file_name</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">paid</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">license</span> <span class="ow">is</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">attribution_for</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">attribution</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">author</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">author</span><span class="p">,</span> <span class="n">license_url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">license_url</span> <span class="ow">or</span> <span class="s2">""</span>
+        <span class="p">)</span></div>
+
+
+
+<span class="c1">#: The registered libraries, by name.</span>
+<span class="n">MUSIC_LIBRARIES</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">MusicLibrary</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+
+<div class="viewcode-block" id="register_music_library">
+<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.register_music_library">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">register_music_library</span><span class="p">(</span><span class="n">library</span><span class="p">:</span> <span class="n">MusicLibrary</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">replace</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Add ``library`` to :data:`MUSIC_LIBRARIES` (``replace`` to redefine one)."""</span>
+    <span class="k">if</span> <span class="n">library</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">MUSIC_LIBRARIES</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">replace</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"music library </span><span class="si">{</span><span class="n">library</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> is already registered; pass replace=True"</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">library</span><span class="o">.</span><span class="n">paid</span> <span class="ow">and</span> <span class="n">library</span><span class="o">.</span><span class="n">track_url</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"music library </span><span class="si">{</span><span class="n">library</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> is free but has no track_url rule"</span>
+        <span class="p">)</span>
+    <span class="n">MUSIC_LIBRARIES</span><span class="p">[</span><span class="n">library</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">library</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_incompetech_url</span><span class="p">(</span><span class="n">title</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Kevin MacLeod's rule: the MP3 is the title, quoted, under one folder."""</span>
+    <span class="k">return</span> <span class="s2">"https://incompetech.com/music/royalty-free/mp3-royaltyfree/"</span> <span class="o">+</span> <span class="n">quote</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">title</span><span class="si">}</span><span class="s2">.mp3"</span>
+    <span class="p">)</span>
+
+
+<span class="n">register_music_library</span><span class="p">(</span>
+    <span class="n">MusicLibrary</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">"incompetech"</span><span class="p">,</span>
+        <span class="n">author</span><span class="o">=</span><span class="s2">"Kevin MacLeod"</span><span class="p">,</span>
+        <span class="n">license</span><span class="o">=</span><span class="s2">"cc-by-4.0"</span><span class="p">,</span>
+        <span class="n">license_url</span><span class="o">=</span><span class="s2">"http://creativecommons.org/licenses/by/4.0/"</span><span class="p">,</span>
+        <span class="n">author_url</span><span class="o">=</span><span class="s2">"https://incompetech.com"</span><span class="p">,</span>
+        <span class="n">track_url</span><span class="o">=</span><span class="n">_incompetech_url</span><span class="p">,</span>
+        <span class="c1"># The wording incompetech asks for, verbatim.</span>
+        <span class="n">attribution</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">'"</span><span class="si">{title}</span><span class="s1">" </span><span class="si">{author}</span><span class="s1"> (incompetech.com)</span><span class="se">\n</span><span class="s1">'</span>
+            <span class="s2">"Licensed under Creative Commons: By Attribution 4.0 License</span><span class="se">\n</span><span class="s2">"</span>
+            <span class="s2">"</span><span class="si">{license_url}</span><span class="s2">"</span>
+        <span class="p">),</span>
+        <span class="n">aliases</span><span class="o">=</span><span class="p">(</span><span class="s2">"Kevin MacLeod"</span><span class="p">,</span> <span class="s2">"incompetech"</span><span class="p">,</span> <span class="s2">"incompetech.com"</span><span class="p">),</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+<span class="n">register_music_library</span><span class="p">(</span>
+    <span class="n">MusicLibrary</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"artlist"</span><span class="p">,</span> <span class="n">author</span><span class="o">=</span><span class="s2">"Artlist"</span><span class="p">,</span> <span class="n">license</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">aliases</span><span class="o">=</span><span class="p">(</span><span class="s2">"Artlist"</span><span class="p">,))</span>
+<span class="p">)</span>
+<span class="n">register_music_library</span><span class="p">(</span>
+    <span class="n">MusicLibrary</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">"epidemic_sound"</span><span class="p">,</span>
+        <span class="n">author</span><span class="o">=</span><span class="s2">"Epidemic Sound"</span><span class="p">,</span>
+        <span class="n">license</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">aliases</span><span class="o">=</span><span class="p">(</span><span class="s2">"Epidemic Sound"</span><span class="p">,</span> <span class="s2">"Epidemic"</span><span class="p">),</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="direct">
+<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.direct">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">direct</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The URL itself: the library's own server."""</span>
+    <span class="k">return</span> <span class="n">url</span></div>
+
+
+
+<div class="viewcode-block" id="wayback">
+<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.wayback">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">wayback</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The Internet Archive's raw copy of ``url`` (:data:`WAYBACK_RAW`).</span>
+
+<span class="sd">    &gt;&gt;&gt; wayback("https://example.org/a.mp3")</span>
+<span class="sd">    'https://web.archive.org/web/2id_/https://example.org/a.mp3'</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">WAYBACK_RAW</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">)</span></div>
+
+
+
+<span class="c1">#: Where to look for a file, in order.</span>
+<span class="n">DFLT_MIRRORS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">direct</span><span class="p">,</span> <span class="n">wayback</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="polite_fetch">
+<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.polite_fetch">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">polite_fetch</span><span class="p">(</span>
+    <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_TIMEOUT_S</span><span class="p">,</span> <span class="n">max_bytes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DFLT_MAX_BYTES</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``url``'s bytes, asked for with a named user agent. An HTTP error raises;</span>
+<span class="sd">    so does a text page (an error page served with 200) and a body over</span>
+<span class="sd">    ``max_bytes``, before it is read."""</span>
+    <span class="n">request</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">"User-Agent"</span><span class="p">:</span> <span class="n">USER_AGENT</span><span class="p">})</span>
+    <span class="k">with</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span> <span class="k">as</span> <span class="n">response</span><span class="p">:</span>  <span class="c1"># noqa: S310</span>
+        <span class="n">kind</span> <span class="o">=</span> <span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"Content-Type"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">";"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">kind</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"text/"</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2"> is a </span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s2"> page, not audio"</span><span class="p">)</span>
+        <span class="n">size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"Content-Length"</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">size</span> <span class="o">&gt;</span> <span class="n">max_bytes</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2"> is </span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2"> bytes, over </span><span class="si">{</span><span class="n">max_bytes</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">max_bytes</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">max_bytes</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2"> is over </span><span class="si">{</span><span class="n">max_bytes</span><span class="si">}</span><span class="s2"> bytes"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">data</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_ffprobe</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">exe</span> <span class="o">=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">"ffprobe"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">exe</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">MusicToolMissing</span><span class="p">(</span>
+            <span class="s2">"verifying a track needs ffprobe (it comes with ffmpeg: "</span>
+            <span class="s2">"https://ffmpeg.org/download.html)"</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">exe</span>
+
+
+<div class="viewcode-block" id="ffprobe_verify">
+<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.ffprobe_verify">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ffprobe_verify</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The duration of the audio ``data``, in seconds; :class:`MusicLibraryError`</span>
+<span class="sd">    when it is empty, has no audio stream, or no duration (an error page saved</span>
+<span class="sd">    as ``.mp3`` is all three). Probed from a temporary file: from a pipe,</span>
+<span class="sd">    ffprobe reports no duration."""</span>
+    <span class="n">exe</span> <span class="o">=</span> <span class="n">_ffprobe</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">data</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span><span class="s2">"the file is empty"</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tmp</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span> <span class="o">/</span> <span class="s2">"track"</span>
+        <span class="n">path</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">probe</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">exe</span><span class="p">,</span> <span class="s2">"-v"</span><span class="p">,</span> <span class="s2">"error"</span><span class="p">,</span> <span class="s2">"-show_entries"</span><span class="p">,</span> <span class="s2">"stream=codec_type:format=duration"</span><span class="p">,</span>
+             <span class="s2">"-of"</span><span class="p">,</span> <span class="s2">"json"</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)],</span>
+            <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>  <span class="c1"># fmt: skip</span>
+    <span class="n">info</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">probe</span><span class="o">.</span><span class="n">stdout</span> <span class="ow">or</span> <span class="s2">"</span><span class="si">{}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"codec_type"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"audio"</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"streams"</span><span class="p">,</span> <span class="p">())):</span>
+        <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span><span class="s2">"the file has no audio stream"</span><span class="p">)</span>
+    <span class="n">duration</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"format"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"duration"</span><span class="p">)</span> <span class="ow">or</span> <span class="mf">0.0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">duration</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span><span class="s2">"the file has no duration"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">duration</span></div>
+
+
+
+<div class="viewcode-block" id="AcquiredTrack">
+<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.AcquiredTrack">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">AcquiredTrack</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""One row of the tracks table: a title, what became of it, and its provenance."""</span>
+
+    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">library</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">status</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">source</span><span class="p">:</span> <span class="n">AssetSource</span>
+    <span class="n">file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">duration_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">error</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="AcquiredTrack.row">
+<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.AcquiredTrack.row">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">row</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""The row as the tracks table writes it (a list joined by ``; ``, a</span>
+<span class="sd">        mapping as JSON)."""</span>
+        <span class="n">src</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">exclude_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="p">{</span><span class="s2">"provider"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">})</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"title"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">title</span><span class="p">,</span>
+            <span class="s2">"library"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">library</span><span class="p">,</span>
+            <span class="s2">"status"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">,</span>
+            <span class="s2">"file"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">,</span>
+            <span class="s2">"duration_s"</span><span class="p">:</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">duration_s</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">duration_s</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+            <span class="s2">"error"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">,</span>
+            <span class="o">**</span><span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">src</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span> <span class="o">!=</span> <span class="p">{}},</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">_cell</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">out</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span></div>
+</div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_cell</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="s2">"; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">value</span>
+
+
+<div class="viewcode-block" id="acquire">
+<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.acquire">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">acquire</span><span class="p">(</span>
+    <span class="n">library</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">MusicLibrary</span><span class="p">,</span>
+    <span class="n">titles</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="n">MutableMapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">],</span>
+    <span class="n">fetch</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">bytes</span><span class="p">]</span> <span class="o">=</span> <span class="n">polite_fetch</span><span class="p">,</span>
+    <span class="n">mirrors</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="n">DFLT_MIRRORS</span><span class="p">,</span>
+    <span class="n">verify</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">bytes</span><span class="p">],</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">ffprobe_verify</span><span class="p">,</span>
+    <span class="n">pause</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_PAUSE_S</span><span class="p">,</span>
+    <span class="n">sleep</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">float</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">,</span>
+    <span class="n">kept</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">AcquiredTrack</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Download ``titles`` of ``library`` into ``out``, verified, one row each.</span>
+
+<span class="sd">    ``titles`` is a list, or ``{title: metadata}`` whose metadata (``credited_by``:</span>
+<span class="sd">    the videos that credit it; a catalogue's ``feel``, ``genre``, ...) is kept</span>
+<span class="sd">    on the row. Each title is fetched from each of ``mirrors`` in turn until one</span>
+<span class="sd">    gives bytes ``verify`` accepts; ``pause`` seconds pass before a second</span>
+<span class="sd">    request to the same host. ``kept`` is ``{file name: sha256}`` a previous run</span>
+<span class="sd">    recorded (:func:`kept_digests`): a file in ``out`` with that digest is kept,</span>
+<span class="sd">    any other is fetched again. A paid library downloads nothing and returns</span>
+<span class="sd">    wishlist rows.</span>
+<span class="sd">    """</span>
+    <span class="n">lib</span> <span class="o">=</span> <span class="n">_library</span><span class="p">(</span><span class="n">library</span><span class="p">)</span>
+    <span class="n">meta</span> <span class="o">=</span> <span class="n">_titles_meta</span><span class="p">(</span><span class="n">titles</span><span class="p">,</span> <span class="n">lib</span><span class="p">)</span>
+    <span class="n">store</span> <span class="o">=</span> <span class="n">files_store</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+    <span class="n">kept</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">kept</span> <span class="ow">or</span> <span class="p">{})</span>
+    <span class="k">if</span> <span class="n">verify</span> <span class="ow">is</span> <span class="n">ffprobe_verify</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">lib</span><span class="o">.</span><span class="n">paid</span><span class="p">:</span>
+        <span class="n">_ffprobe</span><span class="p">()</span>  <span class="c1"># stop before the first download, not after it</span>
+    <span class="n">names</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">lib</span><span class="o">.</span><span class="n">paid</span> <span class="k">else</span> <span class="n">_file_names</span><span class="p">(</span><span class="n">lib</span><span class="p">,</span> <span class="n">meta</span><span class="p">)</span>
+    <span class="n">hosts</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">wait</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">host</span> <span class="o">=</span> <span class="n">urlparse</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">netloc</span>
+        <span class="k">if</span> <span class="n">host</span> <span class="ow">in</span> <span class="n">hosts</span><span class="p">:</span>
+            <span class="n">sleep</span><span class="p">(</span><span class="n">pause</span><span class="p">)</span>
+        <span class="n">hosts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">host</span><span class="p">)</span>
+
+    <span class="n">rows</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">AcquiredTrack</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">title</span><span class="p">,</span> <span class="n">extra</span> <span class="ow">in</span> <span class="n">meta</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">AssetSource</span><span class="p">(</span>
+            <span class="n">provider</span><span class="o">=</span><span class="n">lib</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="nb">id</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
+            <span class="n">license</span><span class="o">=</span><span class="n">lib</span><span class="o">.</span><span class="n">license</span><span class="p">,</span>
+            <span class="n">license_url</span><span class="o">=</span><span class="n">lib</span><span class="o">.</span><span class="n">license_url</span><span class="p">,</span>
+            <span class="n">author</span><span class="o">=</span><span class="n">lib</span><span class="o">.</span><span class="n">author</span><span class="p">,</span>
+            <span class="n">author_url</span><span class="o">=</span><span class="n">lib</span><span class="o">.</span><span class="n">author_url</span><span class="p">,</span>
+            <span class="n">attribution</span><span class="o">=</span><span class="kc">None</span> <span class="k">if</span> <span class="n">lib</span><span class="o">.</span><span class="n">paid</span> <span class="k">else</span> <span class="n">lib</span><span class="o">.</span><span class="n">attribution_for</span><span class="p">(</span><span class="n">title</span><span class="p">),</span>
+            <span class="o">**</span><span class="n">extra</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">lib</span><span class="o">.</span><span class="n">paid</span><span class="p">:</span>
+            <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">AcquiredTrack</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">lib</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">WISHLIST</span><span class="p">,</span> <span class="n">source</span><span class="p">))</span>
+            <span class="k">continue</span>
+        <span class="n">page</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">track_url</span><span class="p">(</span><span class="n">title</span><span class="p">),</span> <span class="n">names</span><span class="p">[</span><span class="n">title</span><span class="p">]</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"source_page_url"</span><span class="p">:</span> <span class="n">page</span><span class="p">})</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">kept</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">store</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">store</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span> <span class="o">==</span> <span class="n">kept</span><span class="p">[</span><span class="n">name</span><span class="p">]:</span>
+                    <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="n">_row</span><span class="p">(</span><span class="n">lib</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">KEPT</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">verify</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+                    <span class="p">)</span>
+                    <span class="k">continue</span>
+            <span class="n">data</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">mirror</span> <span class="o">=</span> <span class="n">_fetch_verified</span><span class="p">(</span>
+                <span class="n">page</span><span class="p">,</span> <span class="n">mirrors</span><span class="o">=</span><span class="n">mirrors</span><span class="p">,</span> <span class="n">fetch</span><span class="o">=</span><span class="n">fetch</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="n">wait</span>
+            <span class="p">)</span>
+            <span class="n">store</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="k">except</span> <span class="n">_TITLE_ERRORS</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">AcquiredTrack</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">lib</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">FAILED</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
+            <span class="k">continue</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"url"</span><span class="p">:</span> <span class="n">url</span><span class="p">,</span> <span class="s2">"mirror"</span><span class="p">:</span> <span class="n">mirror</span><span class="p">})</span>
+        <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_row</span><span class="p">(</span><span class="n">lib</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">ACQUIRED</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">duration</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">rows</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_fetch_verified</span><span class="p">(</span>
+    <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">mirrors</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">]],</span>
+    <span class="n">fetch</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">bytes</span><span class="p">],</span>
+    <span class="n">verify</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">bytes</span><span class="p">],</span> <span class="nb">float</span><span class="p">],</span>
+    <span class="n">wait</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``(bytes, seconds, the URL that served them, its mirror's name)`` from</span>
+<span class="sd">    the first of ``mirrors`` whose bytes ``verify`` accepts; every mirror's</span>
+<span class="sd">    reason in one :class:`MusicLibraryError` when none does."""</span>
+    <span class="n">reasons</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">mirror</span> <span class="ow">in</span> <span class="n">mirrors</span><span class="p">:</span>
+        <span class="n">where</span> <span class="o">=</span> <span class="n">mirror</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">wait</span><span class="p">(</span><span class="n">where</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">fetch</span><span class="p">(</span><span class="n">where</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">verify</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">where</span><span class="p">,</span> <span class="n">mirror</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="k">except</span> <span class="n">_TITLE_ERRORS</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">reasons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">mirror</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span><span class="s2">"; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">reasons</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_titles_meta</span><span class="p">(</span><span class="n">titles</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">lib</span><span class="p">:</span> <span class="n">MusicLibrary</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``titles`` as ``{title: metadata}``, refused when it is neither a list of</span>
+<span class="sd">    titles nor such a mapping, or when metadata would restate the library."""</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">titles</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span><span class="s2">"titles is one string; pass a list of titles"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">titles</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="n">meta</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">title</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">titles</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">title</span><span class="si">!r}</span><span class="s2">: metadata must be an object (</span><span class="se">{{</span><span class="s2">'feel': ...</span><span class="se">}}</span><span class="s2">), got </span><span class="si">{</span><span class="n">m</span><span class="si">!r}</span><span class="s2">"</span>
+                <span class="p">)</span>
+            <span class="n">meta</span><span class="p">[</span><span class="n">title</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">meta</span> <span class="o">=</span> <span class="p">{</span><span class="n">t</span><span class="p">:</span> <span class="p">{}</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">titles</span><span class="p">}</span>
+    <span class="n">reserved</span> <span class="o">=</span> <span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">AssetSource</span><span class="o">.</span><span class="n">model_fields</span><span class="p">)</span> <span class="o">|</span> <span class="nb">set</span><span class="p">(</span><span class="n">TRACK_COLUMNS</span><span class="p">))</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span>
+        <span class="n">METADATA_COLUMNS</span>
+    <span class="p">)</span>
+    <span class="k">for</span> <span class="n">title</span><span class="p">,</span> <span class="n">extra</span> <span class="ow">in</span> <span class="n">meta</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">title</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"a title must be a non-empty string, got </span><span class="si">{</span><span class="n">title</span><span class="si">!r}</span><span class="s2">"</span>
+            <span class="p">)</span>
+        <span class="n">clash</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">extra</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">reserved</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">clash</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">title</span><span class="si">!r}</span><span class="s2">: its metadata sets </span><span class="si">{</span><span class="n">clash</span><span class="si">}</span><span class="s2">, which the library or the "</span>
+                <span class="sa">f</span><span class="s2">"table states (</span><span class="si">{</span><span class="n">lib</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">); drop them from the titles file"</span>
+            <span class="p">)</span>
+    <span class="k">return</span> <span class="n">meta</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_file_names</span><span class="p">(</span><span class="n">lib</span><span class="p">:</span> <span class="n">MusicLibrary</span><span class="p">,</span> <span class="n">meta</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``{title: file name}``, refused when two titles share a file (as a</span>
+<span class="sd">    case-insensitive disk sees it)."""</span>
+    <span class="n">names</span> <span class="o">=</span> <span class="p">{</span><span class="n">title</span><span class="p">:</span> <span class="n">lib</span><span class="o">.</span><span class="n">file_name</span><span class="p">(</span><span class="n">title</span><span class="p">)</span> <span class="k">for</span> <span class="n">title</span> <span class="ow">in</span> <span class="n">meta</span><span class="p">}</span>
+    <span class="n">seen</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">title</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">unicodedata</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="s2">"NFC"</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">casefold</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"titles </span><span class="si">{</span><span class="n">seen</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="si">!r}</span><span class="s2"> and </span><span class="si">{</span><span class="n">title</span><span class="si">!r}</span><span class="s2"> would both be saved as </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">"</span>
+            <span class="p">)</span>
+        <span class="n">seen</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">title</span>
+    <span class="k">return</span> <span class="n">names</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_library</span><span class="p">(</span><span class="n">library</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">MusicLibrary</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MusicLibrary</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">MusicLibrary</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">library</span>
+    <span class="k">if</span> <span class="n">library</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">MUSIC_LIBRARIES</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"no music library </span><span class="si">{</span><span class="n">library</span><span class="si">!r}</span><span class="s2">; registered: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">MUSIC_LIBRARIES</span><span class="p">)</span><span class="si">}</span><span class="s2"> "</span>
+            <span class="s2">"(register_music_library adds one, with the licence you vouch for)"</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">MUSIC_LIBRARIES</span><span class="p">[</span><span class="n">library</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="files_store">
+<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.files_store">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">files_store</span><span class="p">(</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="n">MutableMapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MutableMapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``out`` as a ``{file name: bytes}`` store: a folder (made if missing)</span>
+<span class="sd">    becomes a ``dol.Files`` over it; a mapping is used as it is."""</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">MutableMapping</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">out</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">dol</span><span class="w"> </span><span class="kn">import</span> <span class="n">Files</span>
+
+    <span class="n">Path</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Files</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">out</span><span class="p">))</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_row</span><span class="p">(</span>
+    <span class="n">lib</span><span class="p">:</span> <span class="n">MusicLibrary</span><span class="p">,</span>
+    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">status</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">source</span><span class="p">:</span> <span class="n">AssetSource</span><span class="p">,</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span>
+    <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AcquiredTrack</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">AcquiredTrack</span><span class="p">(</span>
+        <span class="n">title</span><span class="p">,</span>
+        <span class="n">lib</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="n">status</span><span class="p">,</span>
+        <span class="n">source</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"sha256"</span><span class="p">:</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()}),</span>
+        <span class="n">file</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+        <span class="n">duration_s</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="tracks_table">
+<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.tracks_table">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">tracks_table</span><span class="p">(</span><span class="n">rows</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">AcquiredTrack</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The tracks table as CSV text: :data:`TRACK_COLUMNS`, then any extra the</span>
+<span class="sd">    rows carry, in name order."""</span>
+    <span class="n">dicts</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">row</span><span class="p">()</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">]</span>
+    <span class="n">extras</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">({</span><span class="n">k</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dicts</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">d</span><span class="p">}</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">TRACK_COLUMNS</span><span class="p">))</span>
+    <span class="n">buffer</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">()</span>
+    <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictWriter</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="n">fieldnames</span><span class="o">=</span><span class="p">[</span><span class="o">*</span><span class="n">TRACK_COLUMNS</span><span class="p">,</span> <span class="o">*</span><span class="n">extras</span><span class="p">])</span>
+    <span class="n">writer</span><span class="o">.</span><span class="n">writeheader</span><span class="p">()</span>
+    <span class="n">writer</span><span class="o">.</span><span class="n">writerows</span><span class="p">(</span><span class="n">dicts</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">buffer</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="kept_digests">
+<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.kept_digests">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">kept_digests</span><span class="p">(</span><span class="n">table</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``{file: sha256}`` of the acquired or kept rows of a tracks table</span>
+<span class="sd">    (:func:`tracks_table`'s text): what a rerun may keep."""</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="n">r</span><span class="p">[</span><span class="s2">"file"</span><span class="p">]:</span> <span class="n">r</span><span class="p">[</span><span class="s2">"sha256"</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictReader</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">(</span><span class="n">table</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"status"</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="n">ACQUIRED</span><span class="p">,</span> <span class="n">KEPT</span><span class="p">)</span> <span class="ow">and</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"file"</span><span class="p">)</span> <span class="ow">and</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"sha256"</span><span class="p">)</span>
+    <span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="attribution_text">
+<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.attribution_text">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">attribution_text</span><span class="p">(</span><span class="n">rows</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">AcquiredTrack</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The attribution blocks to paste under a video, one per track that has</span>
+<span class="sd">    one (acquired or kept), blank-line separated, each once.</span>
+
+<span class="sd">    &gt;&gt;&gt; src = AssetSource(provider="x", attribution='"A" B')</span>
+<span class="sd">    &gt;&gt;&gt; attribution_text([AcquiredTrack("A", "x", ACQUIRED, src)] * 2)</span>
+<span class="sd">    '"A" B\\n'</span>
+<span class="sd">    """</span>
+    <span class="n">blocks</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span>
+        <span class="n">r</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">attribution</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status</span> <span class="ow">in</span> <span class="p">(</span><span class="n">ACQUIRED</span><span class="p">,</span> <span class="n">KEPT</span><span class="p">)</span> <span class="ow">and</span> <span class="n">r</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">attribution</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="s2">"</span><span class="se">\n\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">blocks</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span> <span class="k">if</span> <span class="n">blocks</span> <span class="k">else</span> <span class="s2">""</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="titles_from_json">
+<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.titles_from_json">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">titles_from_json</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""A titles file's JSON: a list of titles, or ``{title: {metadata}}``.</span>
+
+<span class="sd">    &gt;&gt;&gt; titles_from_json('["A", "B"]'), titles_from_json('{"A": {"feel": "Bright"}}')</span>
+<span class="sd">    (['A', 'B'], {'A': {'feel': 'Bright'}})</span>
+<span class="sd">    """</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">titles</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"the titles file is not JSON (</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+    <span class="n">shapes</span> <span class="o">=</span> <span class="s1">'a list of titles (["A", "B"]) or an object ({"A": {"feel": "Bright"}})'</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">titles</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">titles</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">titles</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">titles</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">titles</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+        <span class="k">return</span> <span class="n">titles</span>
+    <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"the titles file must hold </span><span class="si">{</span><span class="n">shapes</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span></div>
+
+
+
+<span class="c1">#: What a credit line may carry before its title: a timestamp (``0:00``,</span>
+<span class="c1">#: ``(1:02:03) -``) and a label (``Song:``, ``Track -``).</span>
+<span class="n">_TIMESTAMP</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"^\(?\d{1,2}:\d</span><span class="si">{2}</span><span class="s2">(?::\d</span><span class="si">{2}</span><span class="s2">)?\)?\s*[-–—|:]?\s*"</span><span class="p">)</span>
+<span class="n">_LABEL</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"^(?:song|track|title)\s*[:\-–—]\s*"</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+<span class="c1">#: The attribution form, ``"Title" Author (site)``.</span>
+<span class="n">_QUOTED</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">'^["“](?P&lt;title&gt;[^"”]+)["”]\s*(?:by\s+|[-–—]\s*)?(?P&lt;who&gt;.*)$'</span><span class="p">)</span>
+<span class="c1">#: What may wrap a library's name in a header (``From Epidemic Sound:``,</span>
+<span class="c1">#: ``Music by Kevin MacLeod (incompetech.com)``, ``Music: Artlist``).</span>
+<span class="n">_HEADER_PREFIX</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+    <span class="sa">r</span><span class="s2">"^(?:from|music\s+by|music\s+from|music)\b\s*[:\-–]?\s*"</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span>
+<span class="p">)</span>
+<span class="n">_PARENS</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"\s*\([^)]*\)"</span><span class="p">)</span>
+<span class="c1">#: Lines in a credit block that are not titles: a link, the licence's words.</span>
+<span class="n">_NOISE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"https?://|^www\.|licen[cs]ed under|creative\s+commons"</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="titles_by_library">
+<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.titles_by_library">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">titles_by_library</span><span class="p">(</span><span class="n">description</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""The titles a video description credits, by registered library.</span>
+
+<span class="sd">    A line naming a library (by name or alias, with ``From``/``Music by``/</span>
+<span class="sd">    ``Music:`` and a parenthetical allowed around it) opens its block, and each</span>
+<span class="sd">    following line is a title until a blank line; a timestamp, a</span>
+<span class="sd">    ``Song:``/``Track:`` label, quotes and bullets are stripped, and links and</span>
+<span class="sd">    licence lines skipped. The attribution form (``"Title" Kevin MacLeod</span>
+<span class="sd">    (incompetech.com)``) credits its title wherever it stands.</span>
+
+<span class="sd">    &gt;&gt;&gt; text = '''Music:</span>
+<span class="sd">    ... From Epidemic Sound:</span>
+<span class="sd">    ... - 0:00 Night Owl</span>
+<span class="sd">    ... - Song: "Morning Light"</span>
+<span class="sd">    ... https://www.epidemicsound.com/</span>
+<span class="sd">    ...</span>
+<span class="sd">    ... "Sneaky Snitch" Kevin MacLeod (incompetech.com)</span>
+<span class="sd">    ... Licensed under Creative Commons: By Attribution 4.0 License'''</span>
+<span class="sd">    &gt;&gt;&gt; titles_by_library(text)</span>
+<span class="sd">    {'epidemic_sound': ['Night Owl', 'Morning Light'], 'incompetech': ['Sneaky Snitch']}</span>
+<span class="sd">    """</span>
+    <span class="n">names</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">alias</span><span class="o">.</span><span class="n">casefold</span><span class="p">():</span> <span class="n">lib</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">for</span> <span class="n">lib</span> <span class="ow">in</span> <span class="n">MUSIC_LIBRARIES</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">alias</span> <span class="ow">in</span> <span class="p">(</span><span class="n">lib</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="o">*</span><span class="n">lib</span><span class="o">.</span><span class="n">aliases</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">library_named</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">bare</span> <span class="o">=</span> <span class="n">_PARENS</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">":"</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">bare</span> <span class="o">=</span> <span class="n">_HEADER_PREFIX</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="n">bare</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">":"</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">names</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">bare</span><span class="o">.</span><span class="n">casefold</span><span class="p">())</span>
+
+    <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">credit</span><span class="p">(</span><span class="n">library</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">titles</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="k">if</span> <span class="n">title</span> <span class="ow">and</span> <span class="n">title</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">titles</span><span class="p">:</span>
+            <span class="n">titles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+
+    <span class="n">current</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">description</span><span class="o">.</span><span class="n">splitlines</span><span class="p">():</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">"-•*·"</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">text</span><span class="p">:</span>
+            <span class="n">current</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">_NOISE</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">quoted</span> <span class="o">=</span> <span class="n">_QUOTED</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">quoted</span> <span class="ow">and</span> <span class="p">(</span><span class="n">library</span> <span class="o">:=</span> <span class="n">library_named</span><span class="p">(</span><span class="n">quoted</span><span class="p">[</span><span class="s2">"who"</span><span class="p">])):</span>
+            <span class="n">credit</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">quoted</span><span class="p">[</span><span class="s2">"title"</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">library</span> <span class="o">:=</span> <span class="n">library_named</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+            <span class="n">current</span> <span class="o">=</span> <span class="n">library</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">current</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="n">_LABEL</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="n">_TIMESTAMP</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="n">text</span><span class="p">))</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">'"“”'</span><span class="p">)</span>
+            <span class="n">credit</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="n">title</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">out</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span><span class="p">}</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.23.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

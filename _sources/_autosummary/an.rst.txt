@@ -75,6 +75,8 @@
    measurements
    media
    motion
+   music_cli
+   music_library
    orchestrate
    paint
    paths

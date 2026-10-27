@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=391ca18b"></script>
+    <script src="../../../_static/documentation_options.js?v=7e4042c0"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.309" />
+  <meta name="docsearch:version" content="0.1.311" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -749,11 +749,14 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">lru_cache</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.genres.registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">CORE_OWNER</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.semantic.entries</span><span class="w"> </span><span class="kn">import</span> <span class="n">Entry</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.semantic.registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_entry</span><span class="p">,</span> <span class="n">register_view</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.semantic.views</span><span class="w"> </span><span class="kn">import</span> <span class="n">ViewSpace</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">"CAMERA_MOVE_DESCRIPTIONS"</span><span class="p">,</span>
@@ -773,6 +776,8 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"pan_right"</span><span class="p">:</span> <span class="s2">"1"</span><span class="p">,</span>
     <span class="s2">"tilt_up"</span><span class="p">:</span> <span class="s2">"1"</span><span class="p">,</span>
     <span class="s2">"tilt_down"</span><span class="p">:</span> <span class="s2">"1"</span><span class="p">,</span>
+    <span class="s2">"dolly_in"</span><span class="p">:</span> <span class="s2">"1"</span><span class="p">,</span>
+    <span class="s2">"dolly_out"</span><span class="p">:</span> <span class="s2">"1"</span><span class="p">,</span>
 <span class="p">}</span>
 
 <span class="c1">#: One sentence per camera move, in production terms.</span>
@@ -786,6 +791,8 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"pan_right"</span><span class="p">:</span> <span class="s2">"truck the camera right across the frame"</span><span class="p">,</span>
     <span class="s2">"tilt_up"</span><span class="p">:</span> <span class="s2">"move the camera up across the frame (spans the frame height)"</span><span class="p">,</span>
     <span class="s2">"tilt_down"</span><span class="p">:</span> <span class="s2">"move the camera down across the frame"</span><span class="p">,</span>
+    <span class="s2">"dolly_in"</span><span class="p">:</span> <span class="s2">"travel into the scene: each plane grows by its depth (the character plane ×1.25 like push_in, the foreground more, the sky not at all), eased"</span><span class="p">,</span>
+    <span class="s2">"dolly_out"</span><span class="p">:</span> <span class="s2">"travel back out of the scene: the character plane shrinks ×0.8, the background less, eased"</span><span class="p">,</span>
 <span class="p">}</span>
 
 
@@ -962,15 +969,30 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: How the engines lower a framing move (an#257), said once for every move.</span>
 <span class="n">CAMERA_MOVE_USAGE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="p">(</span>
     <span class="s2">"spelled `camera: {move: &lt;name&gt;}` on a shot (sugar over `camera.keys`). A path "</span>
-    <span class="s2">"through the framing2d view space (`params.path`, time 0..1 over the shot; x/y "</span>
-    <span class="s2">"in frame widths/heights, zoom a ratio): the stage engine re-renders the scene "</span>
-    <span class="s2">"into the moving frame (no resolution loss); a crop engine moves a crop over "</span>
-    <span class="s2">"fixed pixels"</span>
+    <span class="s2">"through its view space (`params.space`: framing2d, or multiplane for a dolly; "</span>
+    <span class="s2">"`params.path`, time 0..1 over the shot; x/y in frame widths/heights, zoom a "</span>
+    <span class="s2">"ratio, dolly a fraction of the way to the character plane): the stage engine "</span>
+    <span class="s2">"re-renders the scene into the moving frame (no resolution loss); a crop engine "</span>
+    <span class="s2">"moves a crop over fixed pixels and lowers no dolly"</span>
 <span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">camera_move_space</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"ViewSpace"</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The view space a named move travels through: ``multiplane`` for a dolly</span>
+<span class="sd">    (an#478), else ``framing2d``.</span>
+
+<span class="sd">    &gt;&gt;&gt; camera_move_space("dolly_in").entry.name, camera_move_space("push_in").entry.name</span>
+<span class="sd">    ('multiplane', 'framing2d')</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.camera</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAMERA_MOVES</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.semantic.views</span><span class="w"> </span><span class="kn">import</span> <span class="n">FRAMING_2D</span><span class="p">,</span> <span class="n">MULTIPLANE</span>
+
+    <span class="n">dollies</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">dolly</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">CAMERA_MOVES</span><span class="p">[</span><span class="n">name</span><span class="p">](</span><span class="mf">1.0</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">MULTIPLANE</span> <span class="k">if</span> <span class="n">dollies</span> <span class="k">else</span> <span class="n">FRAMING_2D</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">camera_move_path</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
-<span class="w">    </span><span class="sd">"""The move as keys in the framing2d view space, read off :data:`an.ir.camera.CAMERA_MOVES`.</span>
+<span class="w">    </span><span class="sd">"""The move as keys in its view space (:func:`camera_move_space`), read off :data:`an.ir.camera.CAMERA_MOVES`.</span>
 
 <span class="sd">    Derived, never restated: the move's own key list at a unit duration, with</span>
 <span class="sd">    every axis the move changes (x/y in frame spans, as ``camera_keys`` scales</span>
@@ -980,9 +1002,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    ([{'at': 0.0, 'zoom': 1.0}, {'at': 1.0, 'zoom': 1.25}], [{'at': 0.0, 'x': 0.0}, {'at': 1.0, 'x': -1.0}])</span>
 <span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.camera</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAMERA_MOVES</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.semantic.views</span><span class="w"> </span><span class="kn">import</span> <span class="n">FRAMING_2D</span>
 
-    <span class="n">rest</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="p">[</span><span class="s2">"default"</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">FRAMING_2D</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">"properties"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="n">space</span> <span class="o">=</span> <span class="n">camera_move_space</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">rest</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="p">[</span><span class="s2">"default"</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">space</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">"properties"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
     <span class="n">keys</span> <span class="o">=</span> <span class="n">CAMERA_MOVES</span><span class="p">[</span><span class="n">name</span><span class="p">](</span><span class="mf">1.0</span><span class="p">)</span>
     <span class="n">moved</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">a</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rest</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">r</span><span class="p">))</span> <span class="o">!=</span> <span class="n">r</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">)</span>
@@ -995,9 +1017,9 @@ window.runMermaid = runMermaid;</script>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_camera_moves</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Entry</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.camera</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAMERA_MOVES</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.semantic.views</span><span class="w"> </span><span class="kn">import</span> <span class="n">FRAMING_2D</span>
 
     <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">CAMERA_MOVES</span><span class="p">:</span>
+        <span class="n">space</span> <span class="o">=</span> <span class="n">camera_move_space</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
         <span class="k">yield</span> <span class="p">(</span>
             <span class="n">Entry</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"camera.</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
@@ -1010,13 +1032,13 @@ window.runMermaid = runMermaid;</script>
                     <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"object"</span><span class="p">,</span>
                     <span class="s2">"properties"</span><span class="p">:</span> <span class="p">{</span>
                         <span class="s2">"space"</span><span class="p">:</span> <span class="p">{</span>
-                            <span class="s2">"const"</span><span class="p">:</span> <span class="n">FRAMING_2D</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">term</span><span class="p">,</span>
-                            <span class="s2">"default"</span><span class="p">:</span> <span class="n">FRAMING_2D</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">term</span><span class="p">,</span>
+                            <span class="s2">"const"</span><span class="p">:</span> <span class="n">space</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">term</span><span class="p">,</span>
+                            <span class="s2">"default"</span><span class="p">:</span> <span class="n">space</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">term</span><span class="p">,</span>
                         <span class="p">},</span>
                         <span class="s2">"path"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"array"</span><span class="p">,</span> <span class="s2">"default"</span><span class="p">:</span> <span class="n">camera_move_path</span><span class="p">(</span><span class="n">name</span><span class="p">)},</span>
                     <span class="p">},</span>
                 <span class="p">},</span>
-                <span class="n">requires</span><span class="o">=</span><span class="p">(</span><span class="n">FRAMING_2D</span><span class="o">.</span><span class="n">requirement</span><span class="p">,),</span>
+                <span class="n">requires</span><span class="o">=</span><span class="p">(</span><span class="n">space</span><span class="o">.</span><span class="n">requirement</span><span class="p">,),</span>
             <span class="p">),</span>
             <span class="n">CORE_OWNER</span><span class="p">,</span>
         <span class="p">)</span>

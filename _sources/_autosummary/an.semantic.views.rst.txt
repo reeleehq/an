@@ -8,7 +8,7 @@ an.semantic.views
 
    .. autosummary::
    
-      FRAMING_2D
+      MULTIPLANE
       ORBIT_3D
    
    .. rubric:: Functions

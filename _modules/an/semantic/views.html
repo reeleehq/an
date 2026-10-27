@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=391ca18b"></script>
+    <script src="../../../_static/documentation_options.js?v=7e4042c0"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.309" />
+  <meta name="docsearch:version" content="0.1.311" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -751,6 +751,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">"FRAMING_2D"</span><span class="p">,</span>
+    <span class="s2">"MULTIPLANE"</span><span class="p">,</span>
     <span class="s2">"ORBIT_3D"</span><span class="p">,</span>
     <span class="s2">"ViewField"</span><span class="p">,</span>
     <span class="s2">"ViewSpace"</span><span class="p">,</span>
@@ -844,17 +845,33 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: The 2D framing space: where the frame is, how close, how rolled. Every</span>
 <span class="c1">#: engine that shows a flat picture lowers it — by cropping pixels (burns) or by</span>
 <span class="c1">#: re-rendering into the frame (the stage engine).</span>
+<span class="n">FRAMING_2D_FIELDS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">ViewField</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">ViewField</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="s2">"frame widths"</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">"+x moves the view right"</span><span class="p">),</span>
+    <span class="n">ViewField</span><span class="p">(</span><span class="s2">"y"</span><span class="p">,</span> <span class="s2">"frame heights"</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">"+y moves the view down"</span><span class="p">),</span>
+    <span class="n">ViewField</span><span class="p">(</span><span class="s2">"zoom"</span><span class="p">,</span> <span class="s2">"ratio"</span><span class="p">,</span> <span class="s2">"log"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s2">"on-screen magnification; &gt; 1 is closer"</span><span class="p">),</span>
+    <span class="n">ViewField</span><span class="p">(</span><span class="s2">"rotation"</span><span class="p">,</span> <span class="s2">"rad"</span><span class="p">,</span> <span class="s2">"angle"</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">"the view's roll"</span><span class="p">),</span>
+<span class="p">)</span>
 <span class="n">FRAMING_2D</span><span class="p">:</span> <span class="n">ViewSpace</span> <span class="o">=</span> <span class="n">view_space</span><span class="p">(</span>
     <span class="s2">"framing2d"</span><span class="p">,</span>
-    <span class="p">(</span>
-        <span class="n">ViewField</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="s2">"frame widths"</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">"+x moves the view right"</span><span class="p">),</span>
-        <span class="n">ViewField</span><span class="p">(</span><span class="s2">"y"</span><span class="p">,</span> <span class="s2">"frame heights"</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">"+y moves the view down"</span><span class="p">),</span>
-        <span class="n">ViewField</span><span class="p">(</span>
-            <span class="s2">"zoom"</span><span class="p">,</span> <span class="s2">"ratio"</span><span class="p">,</span> <span class="s2">"log"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s2">"on-screen magnification; &gt; 1 is closer"</span>
-        <span class="p">),</span>
-        <span class="n">ViewField</span><span class="p">(</span><span class="s2">"rotation"</span><span class="p">,</span> <span class="s2">"rad"</span><span class="p">,</span> <span class="s2">"angle"</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">"the view's roll"</span><span class="p">),</span>
-    <span class="p">),</span>
+    <span class="n">FRAMING_2D_FIELDS</span><span class="p">,</span>
     <span class="n">description</span><span class="o">=</span><span class="s2">"a 2D framing of a flat picture: position, zoom (log), roll (angle)"</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1">#: The multiplane space (an#478): the 2D framing plus how far the camera has</span>
+<span class="c1">#: travelled into a scene of planes at depths, so each plane grows by its own</span>
+<span class="c1">#: depth. A crop engine cannot lower it (its pixels have no depth); the stage</span>
+<span class="c1">#: engine does, from its planes' parallax factors.</span>
+<span class="n">MULTIPLANE</span><span class="p">:</span> <span class="n">ViewSpace</span> <span class="o">=</span> <span class="n">view_space</span><span class="p">(</span>
+    <span class="s2">"multiplane"</span><span class="p">,</span>
+    <span class="p">(</span>
+        <span class="o">*</span><span class="n">FRAMING_2D_FIELDS</span><span class="p">,</span>
+        <span class="n">ViewField</span><span class="p">(</span>
+            <span class="s2">"dolly"</span><span class="p">,</span>
+            <span class="s2">"character-plane distance"</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">"travel toward the scene; 0.2 is a fifth of the way to the character plane"</span><span class="p">,</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"a 2D framing that also travels in depth through planes (a dolly)"</span><span class="p">,</span>
 <span class="p">)</span>
 
 <span class="c1">#: The 3D orbit space: a camera on a sphere around a target (previz's turntable).</span>
@@ -874,7 +891,7 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span>
 
 <span class="c1">#: The view spaces the core declares (registered by :mod:`an.semantic.seeds`).</span>
-<span class="n">CORE_VIEW_SPACES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">ViewSpace</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">FRAMING_2D</span><span class="p">,</span> <span class="n">ORBIT_3D</span><span class="p">)</span>
+<span class="n">CORE_VIEW_SPACES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">ViewSpace</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">FRAMING_2D</span><span class="p">,</span> <span class="n">MULTIPLANE</span><span class="p">,</span> <span class="n">ORBIT_3D</span><span class="p">)</span>
 </pre></div>
 
                 </article>

@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=391ca18b"></script>
+    <script src="../_static/documentation_options.js?v=7e4042c0"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.309" />
+  <meta name="docsearch:version" content="0.1.311" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -461,6 +461,8 @@
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.motion.html">an.motion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.music_cli.html">an.music_cli</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.music_library.html">an.music_library</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.orchestrate.html">an.orchestrate</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.paint.html">an.paint</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.paths.html">an.paths</a></li>
@@ -671,16 +673,13 @@ behaviour for everything and why this is byte-identity-free</p></td>
 </tbody>
 </table>
 </div>
-<p><strong>`depth` governs translation only, and that is a stated limit rather than an
-oversight.</strong> The compensation is on <code class="code docutils literal notranslate"><span class="pre">x</span></code>/<code class="code docutils literal notranslate"><span class="pre">y</span></code>; <code class="code docutils literal notranslate"><span class="pre">root.scale</span></code> and <code class="code docutils literal notranslate"><span class="pre">root.rotation</span></code>
-multiply the whole composed expression, so no per-plane factor can cancel
-them. Measured: a <code class="code docutils literal notranslate"><span class="pre">depth</span> <span class="pre">=</span> <span class="pre">0</span></code> plane under <code class="code docutils literal notranslate"><span class="pre">push_in</span></code> grows 1.0 → 1.25× and
-drifts, exactly like the character plane.</p>
-<p>Depth-aware zoom is the <strong>dolly</strong>, and the design of record defers it with its
-reason: a true dolly grows the foreground ×1.40 while the moon grows ×1.02,
-where today’s <code class="code docutils literal notranslate"><span class="pre">push_in</span></code> grows both ×1.25 — precisely the uniform zoom the 1937
-multiplane camera was built to replace. Until <code class="code docutils literal notranslate"><span class="pre">dolly_in</span></code> exists, pair a
-<code class="code docutils literal notranslate"><span class="pre">depth</span> <span class="pre">=</span> <span class="pre">0</span></code> plate with a pan, not a zoom.</p>
+<p><strong>A zoom is flat; a dolly has depth.</strong> Under <code class="code docutils literal notranslate"><span class="pre">push_in</span></code> (a zoom) every plane
+grows alike: <code class="code docutils literal notranslate"><span class="pre">root.scale</span></code> multiplies the whole composed expression, so a
+<code class="code docutils literal notranslate"><span class="pre">depth</span> <span class="pre">=</span> <span class="pre">0</span></code> plane grows 1.0 → 1.25× like the character plane. Under
+<code class="code docutils literal notranslate"><span class="pre">dolly_in</span></code> (an#478) the camera travels into the planes, and each grows by its
+own depth: the foreground ×1.39, the character plane ×1.25, a moon at 0.08
+×1.02, which is what the 1937 multiplane camera was built for. Use a dolly
+when depth should read; a zoom when the whole frame should.</p>
 <p>Sign trap, pinned here because every surveyed tool disagrees: **larger depth =
 nearer = faster.** Unity’s z-derived factor uses the INVERSE convention
 (<code class="code docutils literal notranslate"><span class="pre">f_unity</span> <span class="pre">≡</span> <span class="pre">1</span> <span class="pre">−</span> <span class="pre">f_godot</span></code>), so a Unity tutorial read while writing this code
@@ -710,8 +709,8 @@ that share a depth.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.environments.frame_rect" title="an.stage.environments.frame_rect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">frame_rect</span></code></a>(*, x, y, zoom, rotation, width, ...)</p></td>
 <td><p>The scene region a camera pose shows: centred on the camera, the canvas divided by the zoom, grown to the axis-aligned box of a rolled frame — CONSERVATIVE under roll (the box contains corners the rotated frame does not show, so a plate that covers a rolled view can still be flagged).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.environments.plane_rect" title="an.stage.environments.plane_rect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plane_rect</span></code></a>(plane, art_size, *[, camera])</p></td>
-<td><p>Where <code class="docutils literal notranslate"><span class="pre">plane</span></code> is drawn, in scene pixels, with the camera at <code class="docutils literal notranslate"><span class="pre">camera</span></code>.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.environments.plane_rect" title="an.stage.environments.plane_rect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plane_rect</span></code></a>(plane, art_size, *[, camera, dolly])</p></td>
+<td><p>Where <code class="docutils literal notranslate"><span class="pre">plane</span></code> is drawn, in scene pixels, with the camera at <code class="docutils literal notranslate"><span class="pre">camera</span></code> having travelled <code class="docutils literal notranslate"><span class="pre">dolly</span></code> (an#478).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.environments.uncovered_part" title="an.stage.environments.uncovered_part"><code class="xref py py-obj docutils literal notranslate"><span class="pre">uncovered_part</span></code></a>(view, covers)</p></td>
 <td><p>The bounding box of the part of <code class="docutils literal notranslate"><span class="pre">view</span></code> no rect in <code class="docutils literal notranslate"><span class="pre">covers</span></code> covers.</p></td>
@@ -1052,12 +1051,15 @@ canvas centre, so a pose shows <code class="docutils literal notranslate"><span 
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.stage.environments.plane_rect">
-<span class="sig-prename descclassname"><span class="pre">an.stage.environments.</span></span><span class="sig-name descname"><span class="pre">plane_rect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plane</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">art_size</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">camera</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.0,</span> <span class="pre">0.0)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/environments.html#plane_rect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.environments.plane_rect" title="Link to this definition">#</a></dt>
-<dd><p>Where <code class="docutils literal notranslate"><span class="pre">plane</span></code> is drawn, in scene pixels, with the camera at <code class="docutils literal notranslate"><span class="pre">camera</span></code>.</p>
+<span class="sig-prename descclassname"><span class="pre">an.stage.environments.</span></span><span class="sig-name descname"><span class="pre">plane_rect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plane</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">art_size</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">camera</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.0,</span> <span class="pre">0.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dolly</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/environments.html#plane_rect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.environments.plane_rect" title="Link to this definition">#</a></dt>
+<dd><p>Where <code class="docutils literal notranslate"><span class="pre">plane</span></code> is drawn, in scene pixels, with the camera at <code class="docutils literal notranslate"><span class="pre">camera</span></code>
+having travelled <code class="docutils literal notranslate"><span class="pre">dolly</span></code> (an#478).</p>
 <p>The compiler’s own geometry, restated for a pre-flight: the box is the
 declared <code class="code docutils literal notranslate"><span class="pre">size</span></code> or the art’s extent (<code class="docutils literal notranslate"><span class="pre">art_size</span></code>), the art is fitted into
 it by <code class="code docutils literal notranslate"><span class="pre">fit</span></code>, placed by <code class="code docutils literal notranslate"><span class="pre">anchor</span></code> at <code class="code docutils literal notranslate"><span class="pre">offset</span></code>, and the plane’s parallax
-compensation moves it by <code class="docutils literal notranslate"><span class="pre">(1</span> <span class="pre">−</span> <span class="pre">f)</span> <span class="pre">·</span> <span class="pre">camera</span></code> per axis. <code class="docutils literal notranslate"><span class="pre">None</span></code> when the
+compensation moves it by <code class="docutils literal notranslate"><span class="pre">(1</span> <span class="pre">−</span> <span class="pre">f)</span> <span class="pre">·</span> <span class="pre">camera</span></code> per axis; under a dolly it
+also scales by <a class="reference internal" href="an.ir.camera.html#an.ir.camera.plane_dolly_scale" title="an.ir.camera.plane_dolly_scale"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.ir.camera.plane_dolly_scale()</span></code></a> about its position
+(a <a class="reference internal" href="an.ir.camera.html#an.ir.camera.CameraError" title="an.ir.camera.CameraError"><code class="xref py py-class docutils literal notranslate"><span class="pre">an.ir.camera.CameraError</span></code></a> when the dolly reaches it). <code class="docutils literal notranslate"><span class="pre">None</span></code> when the
 extent cannot be known (an image whose art cannot be measured and whose
 <code class="code docutils literal notranslate"><span class="pre">fit</span></code> makes the drawn size depend on it) — an unknown, not a hole.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plane_rect</span><span class="p">(</span><span class="n">Plane</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"p"</span><span class="p">,</span> <span class="n">art</span><span class="o">=</span><span class="n">PlaneArt</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">"image"</span><span class="p">,</span> <span class="n">src</span><span class="o">=</span><span class="s2">"a.png"</span><span class="p">),</span>
