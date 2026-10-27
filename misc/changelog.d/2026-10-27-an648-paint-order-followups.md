@@ -1,1 +1,0 @@
-- Paint order follow-ups (an#648): a pole passing a member at rest is painted over it from the instant it is nearer; an entity placed after a moving world entity rides its paint key; a held item follows a host that a `z_index` key moves; `paint_orders` reads each key once.

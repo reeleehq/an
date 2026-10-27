@@ -4,6 +4,8 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-10-27
+- Paint order follow-ups (an#648): a pole passing a member at rest is painted over it from the instant it is nearer; an entity placed after a moving world entity rides its paint key; a held item follows a host that a `z_index` key moves; `paint_orders` reads each key once.
+- A swaying item `held_by` something as the shot opens is not given a lean (the solver rests it at its own angle): it no longer stays tipped after its frame stops; one grasped later leans until the grasp (an#651).
 - `sway_rotation` also warns for a swaying member the holds solver rotates (grasped, placed, `held_by`; the solver's own item list): where the solve rests or carries it, the solver's angle replaces the lean (an#590).
 - `sync` and `read_scene` share one decision, `_scene_side` (the newer side wins, the Markdown on a tie that disagrees); `_settle_a_tie` is gone (an#584).
 - Two audition runs at once keep each other's reels, and design, choose and cast keep them too: every write of an options manifest takes its file lock (`JsonDirStore.locked`, dol), records into the manifest as stored now, and JSON stores write atomically (an#587); designing again keeps the reel records of an option whose label and voice it finds again (an#588); `an init` ignores the lock files.
