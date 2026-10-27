@@ -30,6 +30,8 @@ refusals into the :class:`TranscriptLinkError` that says which part is missing.
 
 from __future__ import annotations
 
+import re
+
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
@@ -216,7 +218,10 @@ def linked_transcript(
         )
     # A reference read back keeps its own key; one read now names what it found.
     named = key if pin is not None and not _is_artifact(item) else found.key
-    reference = _recorded(ArtifactRef(named, store=name, pin=found.content_hash))
+    try:
+        reference = _recorded(ArtifactRef(named, store=name, pin=found.content_hash))
+    except ValueError:  # a key an older an recorded, which lacing now refuses
+        reference = f"{name}/{named}@{found.content_hash}"
     text = found.data.decode("utf-8-sig")
     mime = getattr(found.record, "mime", None)
     fmt = next((f for f, m in FORMAT_MIME.items() if m == mime), None)
@@ -303,6 +308,11 @@ def orphan_transcript_blobs(store: Any, *, named: Iterable[str] = ()) -> list[st
     return sorted(h for h in store.iter_blobs() if h not in kept)
 
 
+#: A recorded reference as an wrote it before lacing read them
+#: (``<store>/<key>@<sha256>``, any key): :func:`pin_of`'s fallback.
+_LEGACY_PINNED = re.compile(r".+@([0-9a-fA-F]{64})")
+
+
 def pin_of(reference: str) -> str | None:
     """The content digest a recorded reference pins (``<store>/<key>@<sha256>``,
     read by ``lacing.ArtifactRef`` with or without its ``artifact:`` prefix);
@@ -310,13 +320,19 @@ def pin_of(reference: str) -> str | None:
 
     >>> pin_of("transcripts/k@" + "a" * 64) == "a" * 64, pin_of("transcripts/k")
     (True, None)
+    >>> pin_of("transcripts/my take@" + "A" * 64) == "a" * 64  # an older an's key
+    True
     """
     from lacing import ArtifactRef
 
+    text = str(reference or "")
     try:
-        return ArtifactRef.parse(str(reference or ""), require_prefix=False).pin
+        return ArtifactRef.parse(text, require_prefix=False).pin
     except ValueError:
-        return None
+        # What an older an recorded under a key lacing now refuses (a space in
+        # it): still a pin, or `an cache gc` would collect what it names.
+        legacy = _LEGACY_PINNED.fullmatch(text)
+        return legacy.group(1).lower() if legacy else None
 
 
 def _is_artifact(item: Any) -> bool:

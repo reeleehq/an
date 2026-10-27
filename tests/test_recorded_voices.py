@@ -956,6 +956,9 @@ def test_lacing_reads_the_reference_and_an_names_what_is_missing():
     for key in ("a b", "/a", f"k@{'0' * 64}"):
         with pytest.raises(TranscriptLinkError, match="choose another transcript key"):
             record_transcript(store, key, SRT)
+    # What an older an recorded under a key lacing now refuses is still a pin
+    # (else `an cache gc` would collect what the take names).
+    assert pin_of(f"transcripts/my take@{art.asset_id}") == art.asset_id
 
 
 def _textgrid(
