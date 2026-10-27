@@ -1320,7 +1320,7 @@ def _ground_at(ctx: _Ctx, run: Run, k: int, entity: str | None) -> float | None:
     if not roots:
         return None
     lowest = None
-    floor = ctx.floor_run or run
+    floor = ctx.floor_run if ctx.floor_run is not None else run
     for p in roots:
         m = _body_world(puppet, floor, k, p)
         y = _lowest(m, ink_points(ctx.doc, puppet.nodes[p], ctx.mall))
