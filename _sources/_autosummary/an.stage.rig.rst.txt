@@ -45,6 +45,7 @@ an.stage.rig
       register_rest_pose_migration
       rest_pose_protection
       rest_transform
+      rest_world_transforms
       rig_affordances
       rig_origin
       rig_origin_problems
@@ -61,6 +62,7 @@ an.stage.rig
       Attachment
       Bone
       BoneAnchor
+      RestWorldTransform
       RigDocument
       RigJoint
       RigModel

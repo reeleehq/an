@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=d8556570"></script>
+    <script src="../_static/documentation_options.js?v=3b710222"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.289" />
+  <meta name="docsearch:version" content="0.1.290" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -763,28 +763,31 @@ could not have done. The compiler re-exports the old private spellings.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.rest_transform" title="an.stage.rig.rest_transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rest_transform</span></code></a>(bone)</p></td>
 <td><p>The node transform fields a bone's rest pose sets (an#339): its <code class="docutils literal notranslate"><span class="pre">rotation_deg</span></code> in radians and its scales, <code class="docutils literal notranslate"><span class="pre">-0.0</span></code> normalised to <code class="docutils literal notranslate"><span class="pre">0.0</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.rig_affordances" title="an.stage.rig.rig_affordances"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rig_affordances</span></code></a>(desc)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.rest_world_transforms" title="an.stage.rig.rest_world_transforms"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rest_world_transforms</span></code></a>(desc, *[, ...])</p></td>
+<td><p>The rest transform of every slot's node in the entity's frame: the builder's own rule (<a class="reference internal" href="#an.stage.rig.build_rig_subtree" title="an.stage.rig.build_rig_subtree"><code class="xref py py-func docutils literal notranslate"><span class="pre">build_rig_subtree()</span></code></a>, <code class="docutils literal notranslate"><span class="pre">flat</span></code> or <code class="docutils literal notranslate"><span class="pre">bones</span></code> nesting, a bone's rest rotation and scale included, a part nested under another composing through it), for a rig that draws no art yet or whose art is missing too.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.rig_affordances" title="an.stage.rig.rig_affordances"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rig_affordances</span></code></a>(desc)</p></td>
 <td><p>What a rig's structure affords, derived from the rig model (an#340).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.rig_origin" title="an.stage.rig.rig_origin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rig_origin</span></code></a>(desc)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.rig_origin" title="an.stage.rig.rig_origin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rig_origin</span></code></a>(desc)</p></td>
 <td><p>The point of the rig, in view_box units, that lands at the entity's placement.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.rig_origin_problems" title="an.stage.rig.rig_origin_problems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rig_origin_problems</span></code></a>(desc)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.rig_origin_problems" title="an.stage.rig.rig_origin_problems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rig_origin_problems</span></code></a>(desc)</p></td>
 <td><p>What is wrong with a rig's declared origin, as warnings (an#338).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.rig_problems" title="an.stage.rig.rig_problems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rig_problems</span></code></a>(desc)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.rig_problems" title="an.stage.rig.rig_problems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rig_problems</span></code></a>(desc)</p></td>
 <td><p>What is structurally wrong with a rig's bones and slots (an#340).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.rig_rest_problems" title="an.stage.rig.rig_rest_problems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rig_rest_problems</span></code></a>(desc)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.rig_rest_problems" title="an.stage.rig.rig_rest_problems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rig_rest_problems</span></code></a>(desc)</p></td>
 <td><p>Warnings about a rig's rest pose (an#339), on a model or a raw document.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.rig_structure" title="an.stage.rig.rig_structure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rig_structure</span></code></a>(desc, *[, built])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.rig_structure" title="an.stage.rig.rig_structure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rig_structure</span></code></a>(desc, *[, built])</p></td>
 <td><p>The bodies, joints and bone anchors of a rig: the core's reading of ANY rig as a jointed figure (ADR 0008 decision 3), the one the <code class="docutils literal notranslate"><span class="pre">solve</span></code> pass builds its bodies from.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.slot_node_paths" title="an.stage.rig.slot_node_paths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">slot_node_paths</span></code></a>(desc)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.slot_node_paths" title="an.stage.rig.slot_node_paths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">slot_node_paths</span></code></a>(desc)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{slot:</span> <span class="pre">its</span> <span class="pre">node</span> <span class="pre">path</span> <span class="pre">relative</span> <span class="pre">to</span> <span class="pre">the</span> <span class="pre">entity}</span></code> (<code class="docutils literal notranslate"><span class="pre">torso/arm/hand</span></code>), by <a class="reference internal" href="#an.stage.rig.slot_parent_chain" title="an.stage.rig.slot_parent_chain"><code class="xref py py-func docutils literal notranslate"><span class="pre">slot_parent_chain()</span></code></a>; a slot caught in a cycle maps to its own name.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.slot_parent_chain" title="an.stage.rig.slot_parent_chain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">slot_parent_chain</span></code></a>(desc)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.slot_parent_chain" title="an.stage.rig.slot_parent_chain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">slot_parent_chain</span></code></a>(desc)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{slot:</span> <span class="pre">the</span> <span class="pre">slot</span> <span class="pre">it</span> <span class="pre">nests</span> <span class="pre">under,</span> <span class="pre">or</span> <span class="pre">None}</span></code>: THE nesting rule (an#340).</p></td>
 </tr>
 </tbody>
@@ -802,22 +805,25 @@ could not have done. The compiler re-exports the old private spellings.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.BoneAnchor" title="an.stage.rig.BoneAnchor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BoneAnchor</span></code></a>(on, offset)</p></td>
 <td><p>Where a bone sits at rest, in scene px: <code class="docutils literal notranslate"><span class="pre">offset</span></code> in the local frame of slot <code class="docutils literal notranslate"><span class="pre">on</span></code>'s node (a bone carried by a nested chain, <code class="docutils literal notranslate"><span class="pre">nesting:</span> <span class="pre">bones</span></code>), or in the entity's own frame when <code class="docutils literal notranslate"><span class="pre">on</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.RigDocument" title="an.stage.rig.RigDocument"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RigDocument</span></code></a>(*[, origin, rest_rotation, nesting])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.RestWorldTransform" title="an.stage.rig.RestWorldTransform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RestWorldTransform</span></code></a>([a, b, c, d, tx, ty, posed])</p></td>
+<td><p>A slot's node at rest, in the entity's frame (scene px): the affine that takes a point of the slot's node to the entity's frame, <code class="docutils literal notranslate"><span class="pre">(x,</span> <span class="pre">y)</span> <span class="pre">-&gt;</span> <span class="pre">(a·x</span> <span class="pre">+</span> <span class="pre">c·y</span> <span class="pre">+</span> <span class="pre">tx,</span> <span class="pre">b·x</span> <span class="pre">+</span> <span class="pre">d·y</span> <span class="pre">+</span> <span class="pre">ty)</span></code> (the scene graph's own order: scale, then rotate, then translate, down the chain), and whether any node on the chain is <code class="docutils literal notranslate"><span class="pre">posed</span></code>, turned or scaled at rest (a bone's rest rotation or scale).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.RigDocument" title="an.stage.rig.RigDocument"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RigDocument</span></code></a>(*[, origin, rest_rotation, nesting])</p></td>
 <td><p>The base of every document that IS a rig: <code class="docutils literal notranslate"><span class="pre">PropDescriptor</span></code>, <code class="docutils literal notranslate"><span class="pre">CharacterDescriptor</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.RigJoint" title="an.stage.rig.RigJoint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RigJoint</span></code></a>(child, parent, bone[, kind, limits])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.RigJoint" title="an.stage.rig.RigJoint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RigJoint</span></code></a>(child, parent, bone[, kind, limits])</p></td>
 <td><p>A joint a rig's bones declare: slot <code class="docutils literal notranslate"><span class="pre">child</span></code> turns about its bone's position on slot <code class="docutils literal notranslate"><span class="pre">parent</span></code> (<code class="docutils literal notranslate"><span class="pre">kind=&quot;hinge&quot;</span></code>, within the bone's <code class="docutils literal notranslate"><span class="pre">limits</span></code>, degrees about the rest pose), or is held to it (<code class="docutils literal notranslate"><span class="pre">&quot;weld&quot;</span></code>: a second part on the same bone, which must go where the first goes).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.RigModel" title="an.stage.rig.RigModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RigModel</span></code></a>(**extra_data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.RigModel" title="an.stage.rig.RigModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RigModel</span></code></a>(**extra_data)</p></td>
 <td><p>Common config: forward-compatible reads, strict writes.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.RigStructure" title="an.stage.rig.RigStructure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RigStructure</span></code></a>(bodies, body_bone, joints, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.RigStructure" title="an.stage.rig.RigStructure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RigStructure</span></code></a>(bodies, body_bone, joints, ...)</p></td>
 <td><p>What a rig is as bodies and joints (<a class="reference internal" href="#an.stage.rig.rig_structure" title="an.stage.rig.rig_structure"><code class="xref py py-func docutils literal notranslate"><span class="pre">rig_structure()</span></code></a>).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.Skin" title="an.stage.rig.Skin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Skin</span></code></a>(*[, name, slots])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.Skin" title="an.stage.rig.Skin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Skin</span></code></a>(*[, name, slots])</p></td>
 <td><p>A named outfit/variant: maps slot → {attachment_name → Attachment}.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.Slot" title="an.stage.rig.Slot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Slot</span></code></a>(*, name, bone[, draw_order, attachment])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.Slot" title="an.stage.rig.Slot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Slot</span></code></a>(*, name, bone[, draw_order, attachment])</p></td>
 <td><p>A draw-order slot bound to a bone, displaying one attachment at a time.</p></td>
 </tr>
 </tbody>
@@ -1023,6 +1029,46 @@ by the core in <a class="reference internal" href="an.capabilities.subjects.html
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stage.rig.</span></span><span class="sig-name descname"><span class="pre">RestPoseWarning</span></span><a class="reference internal" href="../_modules/an/stage/rig.html#RestPoseWarning"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.rig.RestPoseWarning" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#UserWarning" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserWarning</span></code></a></p>
 <p>A rig’s bone rest pose was NOT applied, because the document may predate it.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.stage.rig.RestWorldTransform">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stage.rig.</span></span><span class="sig-name descname"><span class="pre">RestWorldTransform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ty</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">posed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/rig.html#RestWorldTransform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.rig.RestWorldTransform" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A slot’s node at rest, in the entity’s frame (scene px): the affine that
+takes a point of the slot’s node to the entity’s frame, <code class="docutils literal notranslate"><span class="pre">(x,</span> <span class="pre">y)</span> <span class="pre">-&gt;</span> <span class="pre">(a·x</span> <span class="pre">+</span>
+<span class="pre">c·y</span> <span class="pre">+</span> <span class="pre">tx,</span> <span class="pre">b·x</span> <span class="pre">+</span> <span class="pre">d·y</span> <span class="pre">+</span> <span class="pre">ty)</span></code> (the scene graph’s own order: scale, then
+rotate, then translate, down the chain), and whether any node on the chain
+is <code class="docutils literal notranslate"><span class="pre">posed</span></code>, turned or scaled at rest (a bone’s rest rotation or scale).</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="an.stage.rig.RestWorldTransform.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/rig.html#RestWorldTransform.apply"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.rig.RestWorldTransform.apply" title="Link to this definition">#</a></dt>
+<dd><p>The entity-frame point of the node-local point <code class="docutils literal notranslate"><span class="pre">(x,</span> <span class="pre">y)</span></code>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">RestWorldTransform</span><span class="p">(</span><span class="n">tx</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">ty</span><span class="o">=</span><span class="mf">4.0</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+<span class="go">(4.0, 5.0)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="an.stage.rig.RestWorldTransform.then">
+<span class="sig-name descname"><span class="pre">then</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/rig.html#RestWorldTransform.then"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.rig.RestWorldTransform.then" title="Link to this definition">#</a></dt>
+<dd><p>This transform under a child node at <code class="docutils literal notranslate"><span class="pre">(x,</span> <span class="pre">y)</span></code>, <code class="docutils literal notranslate"><span class="pre">rotation</span></code> (radians),
+scaled by <code class="docutils literal notranslate"><span class="pre">scale_x</span></code>, <code class="docutils literal notranslate"><span class="pre">scale_y</span></code>: the child’s world transform.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.stage.rig.RestWorldTransform" title="an.stage.rig.RestWorldTransform"><code class="xref py py-class docutils literal notranslate"><span class="pre">RestWorldTransform</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -1730,6 +1776,36 @@ ABSOLUTE: <code class="docutils literal notranslate"><span class="pre">to:</span
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.stage.rig.rest_world_transforms">
+<span class="sig-prename descclassname"><span class="pre">an.stage.rig.</span></span><span class="sig-name descname"><span class="pre">rest_world_transforms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">desc</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">apply_rest_pose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">document_kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/rig.html#rest_world_transforms"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.rig.rest_world_transforms" title="Link to this definition">#</a></dt>
+<dd><p>The rest transform of every slot’s node in the entity’s frame: the
+builder’s own rule (<a class="reference internal" href="#an.stage.rig.build_rig_subtree" title="an.stage.rig.build_rig_subtree"><code class="xref py py-func docutils literal notranslate"><span class="pre">build_rig_subtree()</span></code></a>, <code class="docutils literal notranslate"><span class="pre">flat</span></code> or <code class="docutils literal notranslate"><span class="pre">bones</span></code>
+nesting, a bone’s rest rotation and scale included, a part nested under
+another composing through it), for a rig that draws no art yet or whose art
+is missing too. <code class="docutils literal notranslate"><span class="pre">apply_rest_pose</span></code> defaults to the descriptor’s
+<code class="docutils literal notranslate"><span class="pre">rest_rotation</span></code>. The builder also turns the pose off for an old document
+it cannot date: give the stored document as a mapping with its
+<code class="docutils literal notranslate"><span class="pre">document_kind</span></code> (a prop’s or a character’s) and the helper migrates it and
+decides exactly as the builder does; or pass <code class="docutils literal notranslate"><span class="pre">apply_rest_pose</span></code> itself.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">rig</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"nesting"</span><span class="p">:</span> <span class="s2">"bones"</span><span class="p">,</span> <span class="s2">"view_box"</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">345</span><span class="p">,</span> <span class="mi">345</span><span class="p">],</span> <span class="s2">"origin"</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>       <span class="s2">"bones"</span><span class="p">:</span> <span class="p">[{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"arm"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">"rotation_deg"</span><span class="p">:</span> <span class="mi">90</span><span class="p">},</span> <span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"hand"</span><span class="p">,</span> <span class="s2">"parent"</span><span class="p">:</span> <span class="s2">"arm"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">:</span> <span class="mi">20</span><span class="p">}],</span>
+<span class="gp">... </span>       <span class="s2">"slots"</span><span class="p">:</span> <span class="p">[{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"arm"</span><span class="p">,</span> <span class="s2">"bone"</span><span class="p">:</span> <span class="s2">"arm"</span><span class="p">},</span> <span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"hand"</span><span class="p">,</span> <span class="s2">"bone"</span><span class="p">:</span> <span class="s2">"hand"</span><span class="p">}],</span>
+<span class="gp">... </span>       <span class="s2">"skins"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"default"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"slots"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"arm"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"a"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"path"</span><span class="p">:</span> <span class="s2">"a.svg"</span><span class="p">}},</span> <span class="s2">"hand"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"h"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"path"</span><span class="p">:</span> <span class="s2">"h.svg"</span><span class="p">}}}}}}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">rest_world_transforms</span><span class="p">(</span><span class="n">rig</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="p">[</span><span class="s2">"arm"</span><span class="p">]</span><span class="o">.</span><span class="n">posed</span><span class="p">,</span> <span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="s2">"arm"</span><span class="p">]</span><span class="o">.</span><span class="n">tx</span><span class="p">,</span> <span class="n">t</span><span class="p">[</span><span class="s2">"arm"</span><span class="p">]</span><span class="o">.</span><span class="n">ty</span><span class="p">)</span>
+<span class="go">(True, (10.0, 0.0))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">tuple</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">t</span><span class="p">[</span><span class="s2">"hand"</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>  <span class="c1"># 20 below the arm, turned 90 degrees clockwise</span>
+<span class="go">(-10.0, 0.0)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference internal" href="#an.stage.rig.RestWorldTransform" title="an.stage.rig.RestWorldTransform"><code class="xref py py-class docutils literal notranslate"><span class="pre">RestWorldTransform</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.stage.rig.rig_affordances">
 <span class="sig-prename descclassname"><span class="pre">an.stage.rig.</span></span><span class="sig-name descname"><span class="pre">rig_affordances</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">desc</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/rig.html#rig_affordances"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.rig.rig_affordances" title="Link to this definition">#</a></dt>
 <dd><p>What a rig’s structure affords, derived from the rig model (an#340).</p>
@@ -2026,6 +2102,11 @@ names it and the builder refuses it.</p></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.rig.RIG_DOCUMENT_OPTIONAL_FIELDS"><code class="docutils literal notranslate"><span class="pre">RIG_DOCUMENT_OPTIONAL_FIELDS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.rig.RIG_HIERARCHY"><code class="docutils literal notranslate"><span class="pre">RIG_HIERARCHY</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.rig.RestPoseWarning"><code class="docutils literal notranslate"><span class="pre">RestPoseWarning</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.rig.RestWorldTransform"><code class="docutils literal notranslate"><span class="pre">RestWorldTransform</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.rig.RestWorldTransform.apply"><code class="docutils literal notranslate"><span class="pre">RestWorldTransform.apply()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.rig.RestWorldTransform.then"><code class="docutils literal notranslate"><span class="pre">RestWorldTransform.then()</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.rig.RigDocument"><code class="docutils literal notranslate"><span class="pre">RigDocument</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.rig.RigDocument.model_config"><code class="docutils literal notranslate"><span class="pre">RigDocument.model_config</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.rig.RigDocument.nesting"><code class="docutils literal notranslate"><span class="pre">RigDocument.nesting</span></code></a></li>
@@ -2073,6 +2154,7 @@ names it and the builder refuses it.</p></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.rig.register_rest_pose_migration"><code class="docutils literal notranslate"><span class="pre">register_rest_pose_migration()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.rig.rest_pose_protection"><code class="docutils literal notranslate"><span class="pre">rest_pose_protection()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.rig.rest_transform"><code class="docutils literal notranslate"><span class="pre">rest_transform()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.rig.rest_world_transforms"><code class="docutils literal notranslate"><span class="pre">rest_world_transforms()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.rig.rig_affordances"><code class="docutils literal notranslate"><span class="pre">rig_affordances()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.rig.rig_origin"><code class="docutils literal notranslate"><span class="pre">rig_origin()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.rig.rig_origin_problems"><code class="docutils literal notranslate"><span class="pre">rig_origin_problems()</span></code></a></li>

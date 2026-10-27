@@ -1,4 +1,4 @@
-> built 2026-10-27 02:38 UTC from a446bdd (main) · an 0.1.289. Details: build_info.json
+> built 2026-10-27 02:51 UTC from bc6e505 (main) · an 0.1.290. Details: build_info.json
 
 # index.html.md
 
@@ -16000,7 +16000,7 @@ genre defined in the same process).
 | [`RegistryError`](_autosummary/an.genres.html.md#an.genres.RegistryError)                                | A registration is malformed or collides with one already made.         |
 | [`UnregisteredKindError`](_autosummary/an.genres.html.md#an.genres.UnregisteredKindError)(what, name, \*[, ...]) | A document names a kind no loaded genre registered.                    |
 
-### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 10*
+### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 11*
 
 every hook, registry
 field and moved path a genre package may rely on. Bumped by each change a
@@ -16043,6 +16043,9 @@ Levels (one line each; `tests/test_genre_gate.py` holds the list complete):
 
 10 = the one asset-reference rule (an#552): `an.stores._common.asset_references`
 : and `asset_ref_problems` (`(label, message)` pairs) a genre’s validator calls.
+
+11 = a slot’s rest world transform (an#579): `an.stage.rig.rest_world_transforms` and
+: `RestTransform`, the builder’s own rule, for a genre’s placement maths.
 
 * **Type:**
   The level of the genre-facing API this `an` provides
@@ -36808,51 +36811,53 @@ Two layers live here:
 
 ### Functions
 
-| [`art_src`](_autosummary/an.stage.rig.html.md#an.stage.rig.art_src)(ref, rel_path, \*[, art_prefix])           | Path used inside the runtime dir, relative to `index.html`.                                                                                                                                                                                                                                                       |
-|-----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`attachment_box`](_autosummary/an.stage.rig.html.md#an.stage.rig.attachment_box)(width, height, art)                 | The box a part draws in, in view_box units: the declared size wins, the art's aspect is kept (an#220).                                                                                                                                                                                                            |
-| [`bone_extent_centre`](_autosummary/an.stage.rig.html.md#an.stage.rig.bone_extent_centre)(bones)                          | The DEFAULT point in view_box space that the entity's placement refers to, when the rig declares no [`RigDocument.origin`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigDocument.origin) ([`rig_origin()`](_autosummary/an.stage.rig.html.md#an.stage.rig.rig_origin)).                                                                          |
-| [`bone_positions`](_autosummary/an.stage.rig.html.md#an.stage.rig.bone_positions)(desc)                               | Absolute `(x, y)` per bone, in view_box units.                                                                                                                                                                                                                                                                    |
-| [`bones_carry_a_rest_pose`](_autosummary/an.stage.rig.html.md#an.stage.rig.bones_carry_a_rest_pose)(doc)                       | Whether any bone of a (raw or model) rig document has a non-zero `rotation_deg` or a non-unit `scale_x`/`scale_y`.                                                                                                                                                                                                |
-| [`build_rig_subtree`](_autosummary/an.stage.rig.html.md#an.stage.rig.build_rig_subtree)(entity, desc_data, \*, textures) | Build the scene subtree for a rig (a prop or a character), **from its descriptor**.                                                                                                                                                                                                                               |
-| [`chain_draw_order_problems`](_autosummary/an.stage.rig.html.md#an.stage.rig.chain_draw_order_problems)(desc)                    | Where a nested chain asks the STAGE for a draw order it cannot give (an#340, an#403).                                                                                                                                                                                                                             |
-| [`chain_paint_order`](_autosummary/an.stage.rig.html.md#an.stage.rig.chain_paint_order)(desc, \*[, built])               | How each container of a nested chain must order what it holds (an#403).                                                                                                                                                                                                                                           |
-| [`chain_pose_problems`](_autosummary/an.stage.rig.html.md#an.stage.rig.chain_pose_problems)(desc)                          | A rest pose the stage cannot apply in a nested chain (an#340).                                                                                                                                                                                                                                                    |
-| [`declared_origin`](_autosummary/an.stage.rig.html.md#an.stage.rig.declared_origin)(desc)                              | The rig's DECLARED origin as two floats, or `None` when it declares none.                                                                                                                                                                                                                                         |
-| [`drawn_attachment`](_autosummary/an.stage.rig.html.md#an.stage.rig.drawn_attachment)(desc, skin, slot)                 | The `(name, attachment)` a slot draws by default, or `None`.                                                                                                                                                                                                                                                      |
-| [`global_paint_order`](_autosummary/an.stage.rig.html.md#an.stage.rig.global_paint_order)(desc, \*[, built])              | The node paths of a rig's slots, relative to its entity, in DECLARED draw order: the paint list the stage uses when a nested chain interleaves with an unrelated part (an#430), which no sort of a container's own items can give ([`chain_draw_order_problems()`](_autosummary/an.stage.rig.html.md#an.stage.rig.chain_draw_order_problems)). |
-| [`legacy_rest_pose_unknown`](_autosummary/an.stage.rig.html.md#an.stage.rig.legacy_rest_pose_unknown)(raw, kind, \*, since)     | The builder guard (an#339): whether `raw` may be a pre-rest-pose document that its migration could not see.                                                                                                                                                                                                       |
-| [`natural_paint_order`](_autosummary/an.stage.rig.html.md#an.stage.rig.natural_paint_order)(order, keys)                   | What each container holds in the builder's own order: the slot's visual first, then its children by their own `(draw_order, name)`.                                                                                                                                                                               |
-| [`nesting_of`](_autosummary/an.stage.rig.html.md#an.stage.rig.nesting_of)(desc)                                   | `"flat"` or `"bones"` (an#340); unset is flat.                                                                                                                                                                                                                                                                    |
-| [`omit_unset_rig_fields`](_autosummary/an.stage.rig.html.md#an.stage.rig.omit_unset_rig_fields)(data)                        | Drop every unset [`RigDocument`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigDocument) field from a dumped document, in place.                                                                                                                                                                                             |
-| [`part_probe`](_autosummary/an.stage.rig.html.md#an.stage.rig.part_probe)(characters_store, \*[, art_prefix])     | A probe answering `(art exists, the size it rasterises at)` for a part.                                                                                                                                                                                                                                           |
-| [`primary_slot_per_bone`](_autosummary/an.stage.rig.html.md#an.stage.rig.primary_slot_per_bone)(desc)                        | `{bone name: the slot that IS that bone}`, when one exists.                                                                                                                                                                                                                                                       |
-| [`protect_legacy_rest_pose`](_autosummary/an.stage.rig.html.md#an.stage.rig.protect_legacy_rest_pose)(doc)                      | The migration step every rig kind runs onto the version that applies the rest pose (an#339).                                                                                                                                                                                                                      |
-| [`raster_digest`](_autosummary/an.stage.rig.html.md#an.stage.rig.raster_digest)(store, \*[, art_prefix])             | `digest(src)`: a short content digest for RASTER art, else `None`.                                                                                                                                                                                                                                                |
-| [`register_rest_pose_migration`](_autosummary/an.stage.rig.html.md#an.stage.rig.register_rest_pose_migration)(kind, ...)            | Register the protective rest-pose step for one rig kind (an#339).                                                                                                                                                                                                                                                 |
-| [`rest_pose_protection`](_autosummary/an.stage.rig.html.md#an.stage.rig.rest_pose_protection)(raw, migrated, \*[, kind])    | What to say when the MIGRATION, on this read, kept a rig's pose unapplied (an#407).                                                                                                                                                                                                                               |
-| [`rest_transform`](_autosummary/an.stage.rig.html.md#an.stage.rig.rest_transform)(bone)                               | The node transform fields a bone's rest pose sets (an#339): its `rotation_deg` in radians and its scales, `-0.0` normalised to `0.0`.                                                                                                                                                                             |
-| [`rig_affordances`](_autosummary/an.stage.rig.html.md#an.stage.rig.rig_affordances)(desc)                              | What a rig's structure affords, derived from the rig model (an#340).                                                                                                                                                                                                                                              |
-| [`rig_origin`](_autosummary/an.stage.rig.html.md#an.stage.rig.rig_origin)(desc)                                   | The point of the rig, in view_box units, that lands at the entity's placement.                                                                                                                                                                                                                                    |
-| [`rig_origin_problems`](_autosummary/an.stage.rig.html.md#an.stage.rig.rig_origin_problems)(desc)                          | What is wrong with a rig's declared origin, as warnings (an#338).                                                                                                                                                                                                                                                 |
-| [`rig_problems`](_autosummary/an.stage.rig.html.md#an.stage.rig.rig_problems)(desc)                                 | What is structurally wrong with a rig's bones and slots (an#340).                                                                                                                                                                                                                                                 |
-| [`rig_rest_problems`](_autosummary/an.stage.rig.html.md#an.stage.rig.rig_rest_problems)(desc)                            | Warnings about a rig's rest pose (an#339), on a model or a raw document.                                                                                                                                                                                                                                          |
-| [`rig_structure`](_autosummary/an.stage.rig.html.md#an.stage.rig.rig_structure)(desc, \*[, built])                   | The bodies, joints and bone anchors of a rig: the core's reading of ANY rig as a jointed figure (ADR 0008 decision 3), the one the `solve` pass builds its bodies from.                                                                                                                                           |
-| [`slot_node_paths`](_autosummary/an.stage.rig.html.md#an.stage.rig.slot_node_paths)(desc)                              | `{slot: its node path relative to the entity}` (`torso/arm/hand`), by [`slot_parent_chain()`](_autosummary/an.stage.rig.html.md#an.stage.rig.slot_parent_chain); a slot caught in a cycle maps to its own name.                                                                                                                        |
-| [`slot_parent_chain`](_autosummary/an.stage.rig.html.md#an.stage.rig.slot_parent_chain)(desc)                            | `{slot: the slot it nests under, or None}`: THE nesting rule (an#340).                                                                                                                                                                                                                                            |
+| [`art_src`](_autosummary/an.stage.rig.html.md#an.stage.rig.art_src)(ref, rel_path, \*[, art_prefix])           | Path used inside the runtime dir, relative to `index.html`.                                                                                                                                                                                                                                                                                        |
+|-----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`attachment_box`](_autosummary/an.stage.rig.html.md#an.stage.rig.attachment_box)(width, height, art)                 | The box a part draws in, in view_box units: the declared size wins, the art's aspect is kept (an#220).                                                                                                                                                                                                                                             |
+| [`bone_extent_centre`](_autosummary/an.stage.rig.html.md#an.stage.rig.bone_extent_centre)(bones)                          | The DEFAULT point in view_box space that the entity's placement refers to, when the rig declares no [`RigDocument.origin`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigDocument.origin) ([`rig_origin()`](_autosummary/an.stage.rig.html.md#an.stage.rig.rig_origin)).                                                                                                           |
+| [`bone_positions`](_autosummary/an.stage.rig.html.md#an.stage.rig.bone_positions)(desc)                               | Absolute `(x, y)` per bone, in view_box units.                                                                                                                                                                                                                                                                                                     |
+| [`bones_carry_a_rest_pose`](_autosummary/an.stage.rig.html.md#an.stage.rig.bones_carry_a_rest_pose)(doc)                       | Whether any bone of a (raw or model) rig document has a non-zero `rotation_deg` or a non-unit `scale_x`/`scale_y`.                                                                                                                                                                                                                                 |
+| [`build_rig_subtree`](_autosummary/an.stage.rig.html.md#an.stage.rig.build_rig_subtree)(entity, desc_data, \*, textures) | Build the scene subtree for a rig (a prop or a character), **from its descriptor**.                                                                                                                                                                                                                                                                |
+| [`chain_draw_order_problems`](_autosummary/an.stage.rig.html.md#an.stage.rig.chain_draw_order_problems)(desc)                    | Where a nested chain asks the STAGE for a draw order it cannot give (an#340, an#403).                                                                                                                                                                                                                                                              |
+| [`chain_paint_order`](_autosummary/an.stage.rig.html.md#an.stage.rig.chain_paint_order)(desc, \*[, built])               | How each container of a nested chain must order what it holds (an#403).                                                                                                                                                                                                                                                                            |
+| [`chain_pose_problems`](_autosummary/an.stage.rig.html.md#an.stage.rig.chain_pose_problems)(desc)                          | A rest pose the stage cannot apply in a nested chain (an#340).                                                                                                                                                                                                                                                                                     |
+| [`declared_origin`](_autosummary/an.stage.rig.html.md#an.stage.rig.declared_origin)(desc)                              | The rig's DECLARED origin as two floats, or `None` when it declares none.                                                                                                                                                                                                                                                                          |
+| [`drawn_attachment`](_autosummary/an.stage.rig.html.md#an.stage.rig.drawn_attachment)(desc, skin, slot)                 | The `(name, attachment)` a slot draws by default, or `None`.                                                                                                                                                                                                                                                                                       |
+| [`global_paint_order`](_autosummary/an.stage.rig.html.md#an.stage.rig.global_paint_order)(desc, \*[, built])              | The node paths of a rig's slots, relative to its entity, in DECLARED draw order: the paint list the stage uses when a nested chain interleaves with an unrelated part (an#430), which no sort of a container's own items can give ([`chain_draw_order_problems()`](_autosummary/an.stage.rig.html.md#an.stage.rig.chain_draw_order_problems)).                                  |
+| [`legacy_rest_pose_unknown`](_autosummary/an.stage.rig.html.md#an.stage.rig.legacy_rest_pose_unknown)(raw, kind, \*, since)     | The builder guard (an#339): whether `raw` may be a pre-rest-pose document that its migration could not see.                                                                                                                                                                                                                                        |
+| [`natural_paint_order`](_autosummary/an.stage.rig.html.md#an.stage.rig.natural_paint_order)(order, keys)                   | What each container holds in the builder's own order: the slot's visual first, then its children by their own `(draw_order, name)`.                                                                                                                                                                                                                |
+| [`nesting_of`](_autosummary/an.stage.rig.html.md#an.stage.rig.nesting_of)(desc)                                   | `"flat"` or `"bones"` (an#340); unset is flat.                                                                                                                                                                                                                                                                                                     |
+| [`omit_unset_rig_fields`](_autosummary/an.stage.rig.html.md#an.stage.rig.omit_unset_rig_fields)(data)                        | Drop every unset [`RigDocument`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigDocument) field from a dumped document, in place.                                                                                                                                                                                                                              |
+| [`part_probe`](_autosummary/an.stage.rig.html.md#an.stage.rig.part_probe)(characters_store, \*[, art_prefix])     | A probe answering `(art exists, the size it rasterises at)` for a part.                                                                                                                                                                                                                                                                            |
+| [`primary_slot_per_bone`](_autosummary/an.stage.rig.html.md#an.stage.rig.primary_slot_per_bone)(desc)                        | `{bone name: the slot that IS that bone}`, when one exists.                                                                                                                                                                                                                                                                                        |
+| [`protect_legacy_rest_pose`](_autosummary/an.stage.rig.html.md#an.stage.rig.protect_legacy_rest_pose)(doc)                      | The migration step every rig kind runs onto the version that applies the rest pose (an#339).                                                                                                                                                                                                                                                       |
+| [`raster_digest`](_autosummary/an.stage.rig.html.md#an.stage.rig.raster_digest)(store, \*[, art_prefix])             | `digest(src)`: a short content digest for RASTER art, else `None`.                                                                                                                                                                                                                                                                                 |
+| [`register_rest_pose_migration`](_autosummary/an.stage.rig.html.md#an.stage.rig.register_rest_pose_migration)(kind, ...)            | Register the protective rest-pose step for one rig kind (an#339).                                                                                                                                                                                                                                                                                  |
+| [`rest_pose_protection`](_autosummary/an.stage.rig.html.md#an.stage.rig.rest_pose_protection)(raw, migrated, \*[, kind])    | What to say when the MIGRATION, on this read, kept a rig's pose unapplied (an#407).                                                                                                                                                                                                                                                                |
+| [`rest_transform`](_autosummary/an.stage.rig.html.md#an.stage.rig.rest_transform)(bone)                               | The node transform fields a bone's rest pose sets (an#339): its `rotation_deg` in radians and its scales, `-0.0` normalised to `0.0`.                                                                                                                                                                                                              |
+| [`rest_world_transforms`](_autosummary/an.stage.rig.html.md#an.stage.rig.rest_world_transforms)(desc, \*[, ...])             | The rest transform of every slot's node in the entity's frame: the builder's own rule ([`build_rig_subtree()`](_autosummary/an.stage.rig.html.md#an.stage.rig.build_rig_subtree), `flat` or `bones` nesting, a bone's rest rotation and scale included, a part nested under another composing through it), for a rig that draws no art yet or whose art is missing too. |
+| [`rig_affordances`](_autosummary/an.stage.rig.html.md#an.stage.rig.rig_affordances)(desc)                              | What a rig's structure affords, derived from the rig model (an#340).                                                                                                                                                                                                                                                                               |
+| [`rig_origin`](_autosummary/an.stage.rig.html.md#an.stage.rig.rig_origin)(desc)                                   | The point of the rig, in view_box units, that lands at the entity's placement.                                                                                                                                                                                                                                                                     |
+| [`rig_origin_problems`](_autosummary/an.stage.rig.html.md#an.stage.rig.rig_origin_problems)(desc)                          | What is wrong with a rig's declared origin, as warnings (an#338).                                                                                                                                                                                                                                                                                  |
+| [`rig_problems`](_autosummary/an.stage.rig.html.md#an.stage.rig.rig_problems)(desc)                                 | What is structurally wrong with a rig's bones and slots (an#340).                                                                                                                                                                                                                                                                                  |
+| [`rig_rest_problems`](_autosummary/an.stage.rig.html.md#an.stage.rig.rig_rest_problems)(desc)                            | Warnings about a rig's rest pose (an#339), on a model or a raw document.                                                                                                                                                                                                                                                                           |
+| [`rig_structure`](_autosummary/an.stage.rig.html.md#an.stage.rig.rig_structure)(desc, \*[, built])                   | The bodies, joints and bone anchors of a rig: the core's reading of ANY rig as a jointed figure (ADR 0008 decision 3), the one the `solve` pass builds its bodies from.                                                                                                                                                                            |
+| [`slot_node_paths`](_autosummary/an.stage.rig.html.md#an.stage.rig.slot_node_paths)(desc)                              | `{slot: its node path relative to the entity}` (`torso/arm/hand`), by [`slot_parent_chain()`](_autosummary/an.stage.rig.html.md#an.stage.rig.slot_parent_chain); a slot caught in a cycle maps to its own name.                                                                                                                                                         |
+| [`slot_parent_chain`](_autosummary/an.stage.rig.html.md#an.stage.rig.slot_parent_chain)(desc)                            | `{slot: the slot it nests under, or None}`: THE nesting rule (an#340).                                                                                                                                                                                                                                                                             |
 
 ### Classes
 
-| [`Attachment`](_autosummary/an.stage.rig.html.md#an.stage.rig.Attachment)(\*, path[, anchor, x, y, width, ...])   | A drawable: an SVG path + anchor point (in 0..1 per-axis units).                                                                                                                                                                                                         |
-|-----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`Bone`](_autosummary/an.stage.rig.html.md#an.stage.rig.Bone)(\*, name[, parent, x, y, rotation_deg, ...])  | A skeleton joint with a local transform relative to its parent.                                                                                                                                                                                                          |
-| [`BoneAnchor`](_autosummary/an.stage.rig.html.md#an.stage.rig.BoneAnchor)(on, offset)                             | Where a bone sits at rest, in scene px: `offset` in the local frame of slot `on`'s node (a bone carried by a nested chain, `nesting: bones`), or in the entity's own frame when `on` is `None`.                                                                          |
-| [`RigDocument`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigDocument)(\*[, origin, rest_rotation, nesting])  | The base of every document that IS a rig: `PropDescriptor`, `CharacterDescriptor`.                                                                                                                                                                                       |
-| [`RigJoint`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigJoint)(child, parent, bone[, kind, limits])      | A joint a rig's bones declare: slot `child` turns about its bone's position on slot `parent` (`kind="hinge"`, within the bone's `limits`, degrees about the rest pose), or is held to it (`"weld"`: a second part on the same bone, which must go where the first goes). |
-| [`RigModel`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigModel)(\*\*extra_data)                           | Common config: forward-compatible reads, strict writes.                                                                                                                                                                                                                  |
-| [`RigStructure`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigStructure)(bodies, body_bone, joints, ...)       | What a rig is as bodies and joints ([`rig_structure()`](_autosummary/an.stage.rig.html.md#an.stage.rig.rig_structure)).                                                                                                                                                                   |
-| [`Skin`](_autosummary/an.stage.rig.html.md#an.stage.rig.Skin)(\*[, name, slots])                            | A named outfit/variant: maps slot → {attachment_name → Attachment}.                                                                                                                                                                                                      |
-| [`Slot`](_autosummary/an.stage.rig.html.md#an.stage.rig.Slot)(\*, name, bone[, draw_order, attachment])     | A draw-order slot bound to a bone, displaying one attachment at a time.                                                                                                                                                                                                  |
+| [`Attachment`](_autosummary/an.stage.rig.html.md#an.stage.rig.Attachment)(\*, path[, anchor, x, y, width, ...])   | A drawable: an SVG path + anchor point (in 0..1 per-axis units).                                                                                                                                                                                                                                                                                                           |
+|-----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`Bone`](_autosummary/an.stage.rig.html.md#an.stage.rig.Bone)(\*, name[, parent, x, y, rotation_deg, ...])  | A skeleton joint with a local transform relative to its parent.                                                                                                                                                                                                                                                                                                            |
+| [`BoneAnchor`](_autosummary/an.stage.rig.html.md#an.stage.rig.BoneAnchor)(on, offset)                             | Where a bone sits at rest, in scene px: `offset` in the local frame of slot `on`'s node (a bone carried by a nested chain, `nesting: bones`), or in the entity's own frame when `on` is `None`.                                                                                                                                                                            |
+| [`RestWorldTransform`](_autosummary/an.stage.rig.html.md#an.stage.rig.RestWorldTransform)([a, b, c, d, tx, ty, posed])    | A slot's node at rest, in the entity's frame (scene px): the affine that takes a point of the slot's node to the entity's frame, `(x, y) -> (a·x + c·y + tx, b·x + d·y + ty)` (the scene graph's own order: scale, then rotate, then translate, down the chain), and whether any node on the chain is `posed`, turned or scaled at rest (a bone's rest rotation or scale). |
+| [`RigDocument`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigDocument)(\*[, origin, rest_rotation, nesting])  | The base of every document that IS a rig: `PropDescriptor`, `CharacterDescriptor`.                                                                                                                                                                                                                                                                                         |
+| [`RigJoint`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigJoint)(child, parent, bone[, kind, limits])      | A joint a rig's bones declare: slot `child` turns about its bone's position on slot `parent` (`kind="hinge"`, within the bone's `limits`, degrees about the rest pose), or is held to it (`"weld"`: a second part on the same bone, which must go where the first goes).                                                                                                   |
+| [`RigModel`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigModel)(\*\*extra_data)                           | Common config: forward-compatible reads, strict writes.                                                                                                                                                                                                                                                                                                                    |
+| [`RigStructure`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigStructure)(bodies, body_bone, joints, ...)       | What a rig is as bodies and joints ([`rig_structure()`](_autosummary/an.stage.rig.html.md#an.stage.rig.rig_structure)).                                                                                                                                                                                                                                                                     |
+| [`Skin`](_autosummary/an.stage.rig.html.md#an.stage.rig.Skin)(\*[, name, slots])                            | A named outfit/variant: maps slot → {attachment_name → Attachment}.                                                                                                                                                                                                                                                                                                        |
+| [`Slot`](_autosummary/an.stage.rig.html.md#an.stage.rig.Slot)(\*, name, bone[, draw_order, attachment])     | A draw-order slot bound to a bone, displaying one attachment at a time.                                                                                                                                                                                                                                                                                                    |
 
 ### Exceptions
 
@@ -37008,6 +37013,36 @@ by the core in [`an.capabilities.subjects`](_autosummary/an.capabilities.subject
 Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
 
 A rig’s bone rest pose was NOT applied, because the document may predate it.
+
+### *class* an.stage.rig.RestWorldTransform(a=1.0, b=0.0, c=0.0, d=1.0, tx=0.0, ty=0.0, posed=False)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A slot’s node at rest, in the entity’s frame (scene px): the affine that
+takes a point of the slot’s node to the entity’s frame, `(x, y) -> (a·x +
+c·y + tx, b·x + d·y + ty)` (the scene graph’s own order: scale, then
+rotate, then translate, down the chain), and whether any node on the chain
+is `posed`, turned or scaled at rest (a bone’s rest rotation or scale).
+
+#### apply(x, y)
+
+The entity-frame point of the node-local point `(x, y)`.
+
+```pycon
+>>> RestWorldTransform(tx=3.0, ty=4.0).apply(1.0, 1.0)
+(4.0, 5.0)
+```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+#### then(x, y, rotation, scale_x, scale_y)
+
+This transform under a child node at `(x, y)`, `rotation` (radians),
+scaled by `scale_x`, `scale_y`: the child’s world transform.
+
+* **Return type:**
+  [`RestWorldTransform`](_autosummary/an.stage.rig.html.md#an.stage.rig.RestWorldTransform)
 
 ### *class* an.stage.rig.RigDocument(, origin=None, rest_rotation=None, nesting=None, \*\*extra_data)
 
@@ -37631,6 +37666,33 @@ ABSOLUTE: `to: 0` straightens a part whose rest is splayed.
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+### an.stage.rig.rest_world_transforms(desc, , apply_rest_pose=None, document_kind=None)
+
+The rest transform of every slot’s node in the entity’s frame: the
+builder’s own rule ([`build_rig_subtree()`](_autosummary/an.stage.rig.html.md#an.stage.rig.build_rig_subtree), `flat` or `bones`
+nesting, a bone’s rest rotation and scale included, a part nested under
+another composing through it), for a rig that draws no art yet or whose art
+is missing too. `apply_rest_pose` defaults to the descriptor’s
+`rest_rotation`. The builder also turns the pose off for an old document
+it cannot date: give the stored document as a mapping with its
+`document_kind` (a prop’s or a character’s) and the helper migrates it and
+decides exactly as the builder does; or pass `apply_rest_pose` itself.
+
+```pycon
+>>> rig = {"nesting": "bones", "view_box": [0, 0, 345, 345], "origin": [0, 0],
+...        "bones": [{"name": "arm", "x": 10, "rotation_deg": 90}, {"name": "hand", "parent": "arm", "y": 20}],
+...        "slots": [{"name": "arm", "bone": "arm"}, {"name": "hand", "bone": "hand"}],
+...        "skins": {"default": {"slots": {"arm": {"a": {"path": "a.svg"}}, "hand": {"h": {"path": "h.svg"}}}}}}
+>>> t = rest_world_transforms(rig)
+>>> t["arm"].posed, (t["arm"].tx, t["arm"].ty)
+(True, (10.0, 0.0))
+>>> tuple(round(v, 6) for v in t["hand"].apply(0.0, 0.0))  # 20 below the arm, turned 90 degrees clockwise
+(-10.0, 0.0)
+```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`RestWorldTransform`](_autosummary/an.stage.rig.html.md#an.stage.rig.RestWorldTransform)]
 
 ### an.stage.rig.rig_affordances(desc)
 
@@ -45976,7 +46038,7 @@ scene: the scene file to read, inside the project (default scene.md; for example
 
 # About this build
 
-This documentation was built on **2026-10-27 02:38 UTC** from commit <a href="https://github.com/reeleehq/an/commit/a446bddc6d5a0f921b69486195960bb63bffb0a5"><code>a446bdd</code></a> on branch <code>main</code>, for **an 0.1.289** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-27 02:51 UTC** from commit <a href="https://github.com/reeleehq/an/commit/bc6e5053f4e299e179dc347ade65585a912351a8"><code>bc6e505</code></a> on branch <code>main</code>, for **an 0.1.290** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -45985,9 +46047,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                    |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/an/commit/a446bddc6d5a0f921b69486195960bb63bffb0a5"><code>a446bddc6d5a0f921b69486195960bb63bffb0a5</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/an/commit/bc6e5053f4e299e179dc347ade65585a912351a8"><code>bc6e5053f4e299e179dc347ade65585a912351a8</code></a> |
 | Branch              | <code>main</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.289</code>                                                                                                                               |
+| Tags at this commit | <code>0.1.290</code>                                                                                                                               |
 | Working tree        | clean                                                                                                                                              |
 | Remote              | <code>https://github.com/reeleehq/an</code>                                                                                                        |
 
@@ -45996,9 +46058,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/an</code>                                                                   |
-| Run          | <a href="https://github.com/reeleehq/an/actions/runs/40438809322">40438809322</a>          |
+| Run          | <a href="https://github.com/reeleehq/an/actions/runs/40440045176">40440045176</a>          |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>ebf23dac35bcc666c6c3c3ed9247dae6d4924c29</code> (in the history of the built commit) |
+| Event commit | <code>39c724ce177ba1922ef4f1a210db0bf5c784cd69</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -46023,13 +46085,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.289/">0.1.289</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.290/">0.1.290</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/an && cd an
-git checkout a446bddc6d5a0f921b69486195960bb63bffb0a5
+git checkout bc6e5053f4e299e179dc347ade65585a912351a8
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

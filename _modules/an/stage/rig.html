@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=d8556570"></script>
+    <script src="../../../_static/documentation_options.js?v=3b710222"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.289" />
+  <meta name="docsearch:version" content="0.1.290" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1779,12 +1779,10 @@ window.runMermaid = runMermaid;</script>
             <span class="n">desc</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="n">_dump_rig</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
         <span class="p">)</span>
     <span class="p">)</span>
-    <span class="n">k</span> <span class="o">=</span> <span class="n">SCENE_PX_PER_VIEW_BOX</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">view</span><span class="o">.</span><span class="n">view_box</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="ow">or</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="n">skin</span> <span class="o">=</span> <span class="n">view</span><span class="o">.</span><span class="n">skins</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"default"</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">view</span><span class="o">.</span><span class="n">skins</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span> <span class="n">Skin</span><span class="p">())</span>
-    <span class="n">parents</span> <span class="o">=</span> <span class="n">slot_parent_chain</span><span class="p">(</span><span class="n">view</span><span class="p">)</span>
+    <span class="n">geo</span> <span class="o">=</span> <span class="n">_RigGeometry</span><span class="p">(</span><span class="n">view</span><span class="p">)</span>  <span class="c1"># the builder's own reading of the rig (an#579)</span>
+    <span class="n">k</span><span class="p">,</span> <span class="n">skin</span><span class="p">,</span> <span class="n">parents</span> <span class="o">=</span> <span class="n">geo</span><span class="o">.</span><span class="n">k</span><span class="p">,</span> <span class="n">geo</span><span class="o">.</span><span class="n">skin</span><span class="p">,</span> <span class="n">geo</span><span class="o">.</span><span class="n">parents</span>
     <span class="n">paths</span> <span class="o">=</span> <span class="n">slot_node_paths</span><span class="p">(</span><span class="n">view</span><span class="p">)</span>
-    <span class="n">slot_of</span> <span class="o">=</span> <span class="p">{</span><span class="n">sl</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">sl</span> <span class="k">for</span> <span class="n">sl</span> <span class="ow">in</span> <span class="n">view</span><span class="o">.</span><span class="n">slots</span><span class="p">}</span>
-    <span class="n">bone_of</span> <span class="o">=</span> <span class="p">{</span><span class="n">b</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">b</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">view</span><span class="o">.</span><span class="n">bones</span><span class="p">}</span>
+    <span class="n">slot_of</span><span class="p">,</span> <span class="n">bone_of</span> <span class="o">=</span> <span class="n">geo</span><span class="o">.</span><span class="n">slot_of</span><span class="p">,</span> <span class="n">geo</span><span class="o">.</span><span class="n">bone_of</span>
     <span class="n">drawn</span> <span class="o">=</span> <span class="p">{</span>
         <span class="n">sl</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">att</span>
         <span class="k">for</span> <span class="n">sl</span> <span class="ow">in</span> <span class="n">view</span><span class="o">.</span><span class="n">slots</span>
@@ -1812,12 +1810,10 @@ window.runMermaid = runMermaid;</script>
             <span class="k">yield</span> <span class="n">cursor</span>
             <span class="n">cursor</span> <span class="o">=</span> <span class="n">bone_of</span><span class="p">[</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">parent</span>
 
-    <span class="n">positions</span> <span class="o">=</span> <span class="n">bone_positions</span><span class="p">(</span><span class="n">view</span><span class="p">)</span>
-    <span class="n">origin</span> <span class="o">=</span> <span class="n">rig_origin</span><span class="p">(</span><span class="n">view</span><span class="p">)</span>
+    <span class="n">positions</span><span class="p">,</span> <span class="n">origin</span><span class="p">,</span> <span class="n">bones_mode</span> <span class="o">=</span> <span class="n">geo</span><span class="o">.</span><span class="n">bones</span><span class="p">,</span> <span class="n">geo</span><span class="o">.</span><span class="n">origin</span><span class="p">,</span> <span class="n">geo</span><span class="o">.</span><span class="n">bones_mode</span>
     <span class="n">primary</span> <span class="o">=</span> <span class="p">{</span>
         <span class="n">b</span><span class="p">:</span> <span class="n">sl</span> <span class="k">for</span> <span class="n">b</span><span class="p">,</span> <span class="n">sl</span> <span class="ow">in</span> <span class="n">primary_slot_per_bone</span><span class="p">(</span><span class="n">view</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">sl</span> <span class="ow">in</span> <span class="n">built_set</span>
     <span class="p">}</span>
-    <span class="n">bones_mode</span> <span class="o">=</span> <span class="n">nesting_of</span><span class="p">(</span><span class="n">view</span><span class="p">)</span> <span class="o">==</span> <span class="n">BONES_NESTING</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">offset_of</span><span class="p">(</span><span class="n">slot</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
         <span class="n">att</span> <span class="o">=</span> <span class="n">drawn</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">slot</span><span class="p">)</span>
@@ -2395,6 +2391,201 @@ window.runMermaid = runMermaid;</script>
     <span class="p">}</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_migrate_for_rest_pose</span><span class="p">(</span>
+    <span class="n">raw</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">document_kind</span><span class="p">:</span> <span class="n">DocumentKind</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``(the migrated document, whether it predates the rest pose)``: the</span>
+<span class="sd">    decision :func:`build_rig_subtree` and :func:`rest_world_transforms` share,</span>
+<span class="sd">    so an old document is posed by neither (an#339, an#407)."""</span>
+    <span class="n">legacy_pose</span> <span class="o">=</span> <span class="n">legacy_rest_pose_unknown</span><span class="p">(</span>
+        <span class="n">raw</span><span class="p">,</span> <span class="n">document_kind</span><span class="p">,</span> <span class="n">since</span><span class="o">=</span><span class="n">REST_POSE_SINCE</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">document_kind</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">migrated</span> <span class="o">=</span> <span class="n">migrate</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">raw</span><span class="p">),</span> <span class="n">kind</span><span class="o">=</span><span class="n">document_kind</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="c1"># A migration that saw the document decided already (it writes</span>
+    <span class="c1"># `rest_rotation` when it must); the guard is for one it could not see.</span>
+    <span class="k">return</span> <span class="n">migrated</span><span class="p">,</span> <span class="n">legacy_pose</span> <span class="ow">and</span> <span class="s2">"rest_rotation"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">migrated</span>
+
+
+<div class="viewcode-block" id="RestWorldTransform">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.RestWorldTransform">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RestWorldTransform</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A slot's node at rest, in the entity's frame (scene px): the affine that</span>
+<span class="sd">    takes a point of the slot's node to the entity's frame, ``(x, y) -&gt; (a·x +</span>
+<span class="sd">    c·y + tx, b·x + d·y + ty)`` (the scene graph's own order: scale, then</span>
+<span class="sd">    rotate, then translate, down the chain), and whether any node on the chain</span>
+<span class="sd">    is ``posed``, turned or scaled at rest (a bone's rest rotation or scale)."""</span>
+
+    <span class="n">a</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="n">b</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">c</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">d</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="n">tx</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">ty</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">posed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="RestWorldTransform.apply">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.RestWorldTransform.apply">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""The entity-frame point of the node-local point ``(x, y)``.</span>
+
+<span class="sd">        &gt;&gt;&gt; RestWorldTransform(tx=3.0, ty=4.0).apply(1.0, 1.0)</span>
+<span class="sd">        (4.0, 5.0)</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span> <span class="o">*</span> <span class="n">y</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">tx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="o">*</span> <span class="n">y</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">ty</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RestWorldTransform.then">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.RestWorldTransform.then">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">then</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">rotation</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">scale_x</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">scale_y</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"RestWorldTransform"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""This transform under a child node at ``(x, y)``, ``rotation`` (radians),</span>
+<span class="sd">        scaled by ``scale_x``, ``scale_y``: the child's world transform."""</span>
+        <span class="n">cos</span><span class="p">,</span> <span class="n">sin</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">rotation</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">rotation</span><span class="p">)</span>
+        <span class="n">la</span><span class="p">,</span> <span class="n">lb</span><span class="p">,</span> <span class="n">lc</span><span class="p">,</span> <span class="n">ld</span> <span class="o">=</span> <span class="n">cos</span> <span class="o">*</span> <span class="n">scale_x</span><span class="p">,</span> <span class="n">sin</span> <span class="o">*</span> <span class="n">scale_x</span><span class="p">,</span> <span class="o">-</span><span class="n">sin</span> <span class="o">*</span> <span class="n">scale_y</span><span class="p">,</span> <span class="n">cos</span> <span class="o">*</span> <span class="n">scale_y</span>
+        <span class="k">return</span> <span class="n">RestWorldTransform</span><span class="p">(</span>
+            <span class="n">a</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">*</span> <span class="n">la</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span> <span class="o">*</span> <span class="n">lb</span><span class="p">,</span>
+            <span class="n">b</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">*</span> <span class="n">la</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="o">*</span> <span class="n">lb</span><span class="p">,</span>
+            <span class="n">c</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">*</span> <span class="n">lc</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span> <span class="o">*</span> <span class="n">ld</span><span class="p">,</span>
+            <span class="n">d</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">*</span> <span class="n">lc</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="o">*</span> <span class="n">ld</span><span class="p">,</span>
+            <span class="n">tx</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span> <span class="o">*</span> <span class="n">y</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">tx</span><span class="p">,</span>
+            <span class="n">ty</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="o">*</span> <span class="n">y</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">ty</span><span class="p">,</span>
+            <span class="n">posed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">posed</span> <span class="ow">or</span> <span class="nb">bool</span><span class="p">(</span><span class="n">rotation</span><span class="p">)</span> <span class="ow">or</span> <span class="n">scale_x</span> <span class="o">!=</span> <span class="mf">1.0</span> <span class="ow">or</span> <span class="n">scale_y</span> <span class="o">!=</span> <span class="mf">1.0</span><span class="p">,</span>
+        <span class="p">)</span></div>
+</div>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_RigGeometry</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Where a rig's slot nodes sit and how they are posed at rest: the ONE</span>
+<span class="sd">    place the builder (:func:`build_rig_subtree`) and the rest readers</span>
+<span class="sd">    (:func:`rest_world_transforms`) get a slot's local transform from, so a</span>
+<span class="sd">    copy of the rule cannot drift from it (an#579)."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">desc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">apply_rest_pose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">desc</span> <span class="o">=</span> <span class="n">desc</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">apply_rest_pose</span> <span class="o">=</span> <span class="n">apply_rest_pose</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bone_of</span> <span class="o">=</span> <span class="p">{</span><span class="n">b</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">b</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">desc</span><span class="o">.</span><span class="n">bones</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">slot_of</span> <span class="o">=</span> <span class="p">{</span><span class="n">sl</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">sl</span> <span class="k">for</span> <span class="n">sl</span> <span class="ow">in</span> <span class="n">desc</span><span class="o">.</span><span class="n">slots</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">=</span> <span class="n">SCENE_PX_PER_VIEW_BOX</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">view_box</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="ow">or</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">skin</span> <span class="o">=</span> <span class="n">desc</span><span class="o">.</span><span class="n">skins</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"default"</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">skins</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span> <span class="n">Skin</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bones</span> <span class="o">=</span> <span class="n">bone_positions</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">origin</span> <span class="o">=</span> <span class="n">rig_origin</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parents</span> <span class="o">=</span> <span class="n">slot_parent_chain</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bones_mode</span> <span class="o">=</span> <span class="n">nesting_of</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span> <span class="o">==</span> <span class="n">BONES_NESTING</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_offset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">slot</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+        <span class="n">drawn</span> <span class="o">=</span> <span class="n">drawn_attachment</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">desc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">skin</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">slot_of</span><span class="p">[</span><span class="n">slot</span><span class="p">])</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">drawn</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">drawn</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">y</span><span class="p">)</span> <span class="k">if</span> <span class="n">drawn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">local</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">"""``(x, y, rest)`` of slot ``name``'s node in its parent's frame (scene</span>
+<span class="sd">        px), ``rest`` being the rotation and scales its bone's rest pose sets</span>
+<span class="sd">        (empty when it has none, or when a part on the same bone carries it)."""</span>
+        <span class="n">slot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">slot_of</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+        <span class="n">parent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">nested</span> <span class="o">=</span> <span class="n">parent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="c1"># Position = the slot's bone, plus the attachment's own offset from it.</span>
+        <span class="c1"># Both are needed: five face parts share one `head` bone, so the bone</span>
+        <span class="c1"># alone would stack them, and the offset alone would ignore the rig.</span>
+        <span class="n">bone_x</span><span class="p">,</span> <span class="n">bone_y</span> <span class="o">=</span> <span class="n">bone_x0</span><span class="p">,</span> <span class="n">bone_y0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bones</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">slot</span><span class="o">.</span><span class="n">bone</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">nested</span><span class="p">:</span>
+            <span class="n">parent_bone</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">slot_of</span><span class="p">[</span><span class="n">parent</span><span class="p">]</span><span class="o">.</span><span class="n">bone</span>
+            <span class="n">parent_x</span><span class="p">,</span> <span class="n">parent_y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bones</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">parent_bone</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+            <span class="n">bone_x</span><span class="p">,</span> <span class="n">bone_y</span> <span class="o">=</span> <span class="n">bone_x0</span> <span class="o">-</span> <span class="n">parent_x</span><span class="p">,</span> <span class="n">bone_y0</span> <span class="o">-</span> <span class="n">parent_y</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bones_mode</span><span class="p">:</span>
+                <span class="c1"># Relative to the parent BONE: the parent node sits at its bone</span>
+                <span class="c1"># plus its own attachment offset, which a chain must not inherit.</span>
+                <span class="n">parent_ox</span><span class="p">,</span> <span class="n">parent_oy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+                <span class="n">bone_x</span> <span class="o">-=</span> <span class="n">parent_ox</span>
+                <span class="n">bone_y</span> <span class="o">-=</span> <span class="n">parent_oy</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bone_x</span><span class="p">,</span> <span class="n">bone_y</span> <span class="o">=</span> <span class="n">bone_x</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">origin</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">bone_y</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">origin</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">ox</span><span class="p">,</span> <span class="n">oy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">bone_x</span> <span class="o">+=</span> <span class="n">ox</span>
+        <span class="n">bone_y</span> <span class="o">+=</span> <span class="n">oy</span>
+        <span class="c1"># The bone's rest pose (an#339) poses the part that IS on it; a slot</span>
+        <span class="c1"># nested under a part on the SAME bone gets it from that parent.</span>
+        <span class="n">rest</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">rest_transform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bone_of</span><span class="p">[</span><span class="n">slot</span><span class="o">.</span><span class="n">bone</span><span class="p">])</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">apply_rest_pose</span>
+            <span class="ow">and</span> <span class="n">slot</span><span class="o">.</span><span class="n">bone</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bone_of</span>
+            <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">nested</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">slot_of</span><span class="p">[</span><span class="n">parent</span><span class="p">]</span><span class="o">.</span><span class="n">bone</span> <span class="o">==</span> <span class="n">slot</span><span class="o">.</span><span class="n">bone</span><span class="p">)</span>
+            <span class="k">else</span> <span class="p">{}</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">bone_x</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">,</span> <span class="n">bone_y</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">,</span> <span class="n">rest</span>
+
+
+<div class="viewcode-block" id="rest_world_transforms">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.rest_world_transforms">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rest_world_transforms</span><span class="p">(</span>
+    <span class="n">desc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">apply_rest_pose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">document_kind</span><span class="p">:</span> <span class="n">DocumentKind</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">RestWorldTransform</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The rest transform of every slot's node in the entity's frame: the</span>
+<span class="sd">    builder's own rule (:func:`build_rig_subtree`, ``flat`` or ``bones``</span>
+<span class="sd">    nesting, a bone's rest rotation and scale included, a part nested under</span>
+<span class="sd">    another composing through it), for a rig that draws no art yet or whose art</span>
+<span class="sd">    is missing too. ``apply_rest_pose`` defaults to the descriptor's</span>
+<span class="sd">    ``rest_rotation``. The builder also turns the pose off for an old document</span>
+<span class="sd">    it cannot date: give the stored document as a mapping with its</span>
+<span class="sd">    ``document_kind`` (a prop's or a character's) and the helper migrates it and</span>
+<span class="sd">    decides exactly as the builder does; or pass ``apply_rest_pose`` itself.</span>
+
+<span class="sd">    &gt;&gt;&gt; rig = {"nesting": "bones", "view_box": [0, 0, 345, 345], "origin": [0, 0],</span>
+<span class="sd">    ...        "bones": [{"name": "arm", "x": 10, "rotation_deg": 90}, {"name": "hand", "parent": "arm", "y": 20}],</span>
+<span class="sd">    ...        "slots": [{"name": "arm", "bone": "arm"}, {"name": "hand", "bone": "hand"}],</span>
+<span class="sd">    ...        "skins": {"default": {"slots": {"arm": {"a": {"path": "a.svg"}}, "hand": {"h": {"path": "h.svg"}}}}}}</span>
+<span class="sd">    &gt;&gt;&gt; t = rest_world_transforms(rig)</span>
+<span class="sd">    &gt;&gt;&gt; t["arm"].posed, (t["arm"].tx, t["arm"].ty)</span>
+<span class="sd">    (True, (10.0, 0.0))</span>
+<span class="sd">    &gt;&gt;&gt; tuple(round(v, 6) for v in t["hand"].apply(0.0, 0.0))  # 20 below the arm, turned 90 degrees clockwise</span>
+<span class="sd">    (-10.0, 0.0)</span>
+<span class="sd">    """</span>
+    <span class="n">legacy_pose</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">document_kind</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="n">desc</span><span class="p">,</span> <span class="n">legacy_pose</span> <span class="o">=</span> <span class="n">_migrate_for_rest_pose</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">document_kind</span><span class="p">)</span>
+    <span class="n">view</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">desc</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">_RigView</span><span class="p">)</span>
+        <span class="k">else</span> <span class="n">_RigView</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span>
+            <span class="n">desc</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="n">_dump_rig</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">apply_rest_pose</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">apply_rest_pose</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">_field_of</span><span class="p">(</span><span class="n">view</span><span class="p">,</span> <span class="s2">"rest_rotation"</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">False</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">legacy_pose</span>
+        <span class="p">)</span>
+    <span class="n">geometry</span> <span class="o">=</span> <span class="n">_RigGeometry</span><span class="p">(</span><span class="n">view</span><span class="p">,</span> <span class="n">apply_rest_pose</span><span class="o">=</span><span class="n">apply_rest_pose</span><span class="p">)</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">RestWorldTransform</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">of</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">seen</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">())</span> <span class="o">-&gt;</span> <span class="n">RestWorldTransform</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">out</span><span class="p">:</span>
+            <span class="n">parent</span> <span class="o">=</span> <span class="n">geometry</span><span class="o">.</span><span class="n">parents</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">above</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">of</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">seen</span> <span class="o">|</span> <span class="p">{</span><span class="n">name</span><span class="p">})</span>
+                <span class="k">if</span> <span class="n">parent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">parent</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen</span>
+                <span class="k">else</span> <span class="n">RestWorldTransform</span><span class="p">()</span>
+            <span class="p">)</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">rest</span> <span class="o">=</span> <span class="n">geometry</span><span class="o">.</span><span class="n">local</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">above</span><span class="o">.</span><span class="n">then</span><span class="p">(</span>
+                <span class="n">x</span><span class="p">,</span>
+                <span class="n">y</span><span class="p">,</span>
+                <span class="n">rest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"rotation"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+                <span class="n">rest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"scale_x"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+                <span class="n">rest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"scale_y"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">geometry</span><span class="o">.</span><span class="n">slot_of</span><span class="p">:</span>
+        <span class="n">of</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
 <div class="viewcode-block" id="build_rig_subtree">
 <a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.build_rig_subtree">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">build_rig_subtree</span><span class="p">(</span>
@@ -2472,13 +2663,9 @@ window.runMermaid = runMermaid;</script>
     <span class="c1"># face_overlay — and differs only in what it seeds when they are empty, so</span>
     <span class="c1"># the code below never asks which kind it has (an#108).</span>
     <span class="n">raw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">desc_data</span><span class="p">)</span>
-    <span class="n">legacy_pose</span> <span class="o">=</span> <span class="n">legacy_rest_pose_unknown</span><span class="p">(</span>
-        <span class="n">raw</span><span class="p">,</span> <span class="n">document_kind</span><span class="p">,</span> <span class="n">since</span><span class="o">=</span><span class="n">REST_POSE_SINCE</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">document_kind</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-    <span class="p">)</span>
-    <span class="n">migrated</span> <span class="o">=</span> <span class="n">migrate</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">raw</span><span class="p">),</span> <span class="n">kind</span><span class="o">=</span><span class="n">document_kind</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>  <span class="c1"># raw stays as stored</span>
-    <span class="c1"># A migration that saw the document decided already (it writes</span>
-    <span class="c1"># `rest_rotation` when it must); the guard is for one it could not see.</span>
-    <span class="n">legacy_pose</span> <span class="o">=</span> <span class="n">legacy_pose</span> <span class="ow">and</span> <span class="s2">"rest_rotation"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">migrated</span>
+    <span class="n">migrated</span><span class="p">,</span> <span class="n">legacy_pose</span> <span class="o">=</span> <span class="n">_migrate_for_rest_pose</span><span class="p">(</span>
+        <span class="n">raw</span><span class="p">,</span> <span class="n">document_kind</span>
+    <span class="p">)</span>  <span class="c1"># raw stays as stored</span>
     <span class="n">desc</span> <span class="o">=</span> <span class="n">descriptor_model</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">migrated</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">legacy_pose</span><span class="p">:</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
@@ -2498,18 +2685,14 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># The protection is a guess about an old document (an#407): say so, or</span>
         <span class="c1"># an author who added a rotation to an old file sees nothing happen.</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">protected</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">RestPoseWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-    <span class="n">bone_of</span> <span class="o">=</span> <span class="p">{</span><span class="n">b</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">b</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">desc</span><span class="o">.</span><span class="n">bones</span><span class="p">}</span>
     <span class="n">ref</span> <span class="o">=</span> <span class="n">entity</span><span class="o">.</span><span class="n">ref</span> <span class="ow">or</span> <span class="n">entity</span><span class="o">.</span><span class="n">id</span>
-    <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">view_box_height</span> <span class="o">=</span> <span class="n">desc</span><span class="o">.</span><span class="n">view_box</span>
-    <span class="n">k</span> <span class="o">=</span> <span class="n">SCENE_PX_PER_VIEW_BOX</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">view_box_height</span> <span class="ow">or</span> <span class="mi">1</span><span class="p">)</span>
-
-    <span class="n">skin</span> <span class="o">=</span> <span class="n">desc</span><span class="o">.</span><span class="n">skins</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"default"</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">skins</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span> <span class="n">Skin</span><span class="p">())</span>
-    <span class="n">bones</span> <span class="o">=</span> <span class="n">bone_positions</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
-    <span class="n">origin</span> <span class="o">=</span> <span class="n">rig_origin</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
-    <span class="c1"># Shared with a genre's part paths (`cutan.characters.play`) so a `play`</span>
-    <span class="c1"># resolves against the nesting the builder actually uses (an#7, an#340).</span>
-    <span class="n">parents</span> <span class="o">=</span> <span class="n">slot_parent_chain</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
-    <span class="n">bones_mode</span> <span class="o">=</span> <span class="n">nesting_of</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span> <span class="o">==</span> <span class="n">BONES_NESTING</span>
+    <span class="c1"># Where every node sits and how it is posed at rest: one rule, shared with</span>
+    <span class="c1"># `rest_world_transforms` (an#579). `parents` is shared with a genre's part</span>
+    <span class="c1"># paths (`cutan.characters.play`) so a `play` resolves against the nesting</span>
+    <span class="c1"># the builder actually uses (an#7, an#340).</span>
+    <span class="n">rig_geo</span> <span class="o">=</span> <span class="n">_RigGeometry</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">apply_rest_pose</span><span class="o">=</span><span class="n">apply_rest_pose</span><span class="p">)</span>
+    <span class="n">k</span><span class="p">,</span> <span class="n">skin</span><span class="p">,</span> <span class="n">parents</span> <span class="o">=</span> <span class="n">rig_geo</span><span class="o">.</span><span class="n">k</span><span class="p">,</span> <span class="n">rig_geo</span><span class="o">.</span><span class="n">skin</span><span class="p">,</span> <span class="n">rig_geo</span><span class="o">.</span><span class="n">parents</span>
+    <span class="n">bones_mode</span><span class="p">,</span> <span class="n">slot_of</span> <span class="o">=</span> <span class="n">rig_geo</span><span class="o">.</span><span class="n">bones_mode</span><span class="p">,</span> <span class="n">rig_geo</span><span class="o">.</span><span class="n">slot_of</span>
     <span class="k">if</span> <span class="n">bones_mode</span><span class="p">:</span>
         <span class="c1"># A chain interleaved with an unrelated part is no longer refused</span>
         <span class="c1"># here (an#430): it is painted from a global list (`paint_order`),</span>
@@ -2522,7 +2705,6 @@ window.runMermaid = runMermaid;</script>
                 <span class="sa">f</span><span class="s2">"rig </span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2"> cannot be built with `nesting: bones`: "</span>
                 <span class="o">+</span> <span class="s2">"; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">broken</span><span class="p">)</span>
             <span class="p">)</span>
-    <span class="n">slot_of</span> <span class="o">=</span> <span class="p">{</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">desc</span><span class="o">.</span><span class="n">slots</span><span class="p">}</span>
     <span class="n">skip</span> <span class="o">=</span> <span class="p">(</span>
         <span class="nb">set</span><span class="p">(</span><span class="n">skip_slots</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">skip_slots</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
@@ -2590,25 +2772,7 @@ window.runMermaid = runMermaid;</script>
             <span class="k">continue</span>
         <span class="n">attachment_name</span><span class="p">,</span> <span class="n">attachment</span> <span class="o">=</span> <span class="n">resolved</span>
 
-        <span class="c1"># Position = the slot's bone, plus the attachment's own offset from it.</span>
-        <span class="c1"># Both are needed: five face parts share one `head` bone, so the bone</span>
-        <span class="c1"># alone would stack them, and the offset alone would ignore the rig.</span>
-        <span class="n">bone_x</span><span class="p">,</span> <span class="n">bone_y</span> <span class="o">=</span> <span class="n">bone_x0</span><span class="p">,</span> <span class="n">bone_y0</span> <span class="o">=</span> <span class="n">bones</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">slot</span><span class="o">.</span><span class="n">bone</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">nested</span><span class="p">:</span>
-            <span class="n">parent_bone</span> <span class="o">=</span> <span class="n">slot_of</span><span class="p">[</span><span class="n">parent</span><span class="p">]</span><span class="o">.</span><span class="n">bone</span>
-            <span class="n">parent_x</span><span class="p">,</span> <span class="n">parent_y</span> <span class="o">=</span> <span class="n">bones</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">parent_bone</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
-            <span class="n">bone_x</span><span class="p">,</span> <span class="n">bone_y</span> <span class="o">=</span> <span class="n">bone_x0</span> <span class="o">-</span> <span class="n">parent_x</span><span class="p">,</span> <span class="n">bone_y0</span> <span class="o">-</span> <span class="n">parent_y</span>
-            <span class="k">if</span> <span class="n">bones_mode</span><span class="p">:</span>
-                <span class="c1"># Relative to the parent BONE: the parent node sits at its bone</span>
-                <span class="c1"># plus its own attachment offset, which a chain must not inherit.</span>
-                <span class="n">drawn_parent</span> <span class="o">=</span> <span class="n">drawn_attachment</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">skin</span><span class="p">,</span> <span class="n">slot_of</span><span class="p">[</span><span class="n">parent</span><span class="p">])</span>
-                <span class="k">if</span> <span class="n">drawn_parent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">bone_x</span> <span class="o">-=</span> <span class="n">drawn_parent</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">x</span>
-                    <span class="n">bone_y</span> <span class="o">-=</span> <span class="n">drawn_parent</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">y</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">bone_x</span><span class="p">,</span> <span class="n">bone_y</span> <span class="o">=</span> <span class="n">bone_x</span> <span class="o">-</span> <span class="n">origin</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">bone_y</span> <span class="o">-</span> <span class="n">origin</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-        <span class="n">bone_x</span> <span class="o">+=</span> <span class="n">attachment</span><span class="o">.</span><span class="n">x</span>
-        <span class="n">bone_y</span> <span class="o">+=</span> <span class="n">attachment</span><span class="o">.</span><span class="n">y</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">rest</span> <span class="o">=</span> <span class="n">rig_geo</span><span class="o">.</span><span class="n">local</span><span class="p">(</span><span class="n">slot</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 
         <span class="n">extent</span> <span class="o">=</span> <span class="n">_box_of</span><span class="p">(</span><span class="n">attachment</span><span class="p">)</span>
         <span class="n">visual</span> <span class="o">=</span> <span class="n">VisualJSON</span><span class="p">(</span>
@@ -2652,18 +2816,9 @@ window.runMermaid = runMermaid;</script>
             <span class="k">if</span> <span class="n">geometry</span><span class="p">:</span>
                 <span class="n">visual</span><span class="o">.</span><span class="n">asset_geometry</span> <span class="o">=</span> <span class="n">geometry</span>
 
-        <span class="c1"># The bone's rest pose (an#339) poses the part that IS on it; a slot</span>
-        <span class="c1"># nested under a part on the SAME bone gets it from that parent.</span>
-        <span class="n">rest</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">rest_transform</span><span class="p">(</span><span class="n">bone_of</span><span class="p">[</span><span class="n">slot</span><span class="o">.</span><span class="n">bone</span><span class="p">])</span>
-            <span class="k">if</span> <span class="n">apply_rest_pose</span>
-            <span class="ow">and</span> <span class="n">slot</span><span class="o">.</span><span class="n">bone</span> <span class="ow">in</span> <span class="n">bone_of</span>
-            <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">nested</span> <span class="ow">and</span> <span class="n">slot_of</span><span class="p">[</span><span class="n">parent</span><span class="p">]</span><span class="o">.</span><span class="n">bone</span> <span class="o">==</span> <span class="n">slot</span><span class="o">.</span><span class="n">bone</span><span class="p">)</span>
-            <span class="k">else</span> <span class="p">{}</span>
-        <span class="p">)</span>
         <span class="n">node</span> <span class="o">=</span> <span class="n">NodeJSON</span><span class="p">(</span>
             <span class="n">name</span><span class="o">=</span><span class="n">slot</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-            <span class="n">transform</span><span class="o">=</span><span class="n">TransformJSON</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">bone_x</span> <span class="o">*</span> <span class="n">k</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">bone_y</span> <span class="o">*</span> <span class="n">k</span><span class="p">,</span> <span class="o">**</span><span class="n">rest</span><span class="p">),</span>
+            <span class="n">transform</span><span class="o">=</span><span class="n">TransformJSON</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="o">**</span><span class="n">rest</span><span class="p">),</span>
             <span class="n">visual</span><span class="o">=</span><span class="n">visual</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">nodes</span><span class="p">[</span><span class="n">slot</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">node</span>
