@@ -242,7 +242,9 @@ def lag_filter(values: Sequence[float], *, lag: float, dt: float) -> list[float]
     ValueError: lag_filter: the sample step `dt` must be positive (got 0.0).
     """
     if not dt > 0:
-        raise ValueError(f"lag_filter: the sample step `dt` must be positive (got {dt!r}).")
+        raise ValueError(
+            f"lag_filter: the sample step `dt` must be positive (got {dt!r})."
+        )
     if lag <= 0 or not values:
         return list(values)
     k = 1.0 - math.exp(-dt / lag)

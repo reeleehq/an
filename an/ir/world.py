@@ -1592,7 +1592,9 @@ def _lean_actions(
     v0, segments = fitted
     out: list[Any] = [set_(entity_id, "rotation", v0, at=0.0)]
     for ta, tb, va, vb, easing in segments:
-        tw = tween(entity_id, "rotation", to=vb, duration=tb - ta, from_=va, easing=easing)
+        tw = tween(
+            entity_id, "rotation", to=vb, duration=tb - ta, from_=va, easing=easing
+        )
         out.append(sequence(delay(ta), tw) if ta > 0 else tw)
     return out
 

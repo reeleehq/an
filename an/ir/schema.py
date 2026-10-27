@@ -1242,9 +1242,7 @@ class FrameSway(_IRModel):
     gravity: float = Field(default=DFLT_WORLD_GRAVITY, gt=0, allow_inf_nan=False)
     #: The most a member leans, degrees: a stop with no easing is an impulse,
     #: and an impulse would flip it over for a frame.
-    limit: float = Field(
-        default=DFLT_SWAY_LIMIT_DEG, gt=0, le=90, allow_inf_nan=False
-    )
+    limit: float = Field(default=DFLT_SWAY_LIMIT_DEG, gt=0, le=90, allow_inf_nan=False)
 
     @model_serializer(mode="wrap")
     def _omit_defaults(self, handler):

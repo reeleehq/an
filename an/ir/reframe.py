@@ -55,6 +55,7 @@ __all__ = [
     "DFLT_WORLD_GRAVITY",
 ]
 
+
 class ReframeAction(ExtensionAction):
     """Member ``target`` leaves its frame for ``to`` at ``at`` (shot seconds).
 
