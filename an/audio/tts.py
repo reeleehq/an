@@ -36,6 +36,11 @@ class AudioClip:
     #: lip-sync provider that aligns from words prefers these to its own
     #: transcription, and the audio pipeline stamps them on the line.
     words: list[tuple[str, float, float]] | None = None
+    #: The clip's phone timings, ``(phone, start_s, end_s)`` from the clip's
+    #: start, when an aligner gave them (a TextGrid's ``phones`` tier on a
+    #: recorded take, an#491); ``None`` otherwise. A lip-sync provider that
+    #: maps phones to mouth shapes can use them instead of spreading letters.
+    phones: list[tuple[str, float, float]] | None = None
 
 
 @runtime_checkable

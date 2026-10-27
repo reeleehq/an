@@ -56,6 +56,7 @@ from __future__ import annotations
 import datetime as _dt
 import difflib
 import hashlib
+import json
 import io
 import re
 import shutil
@@ -123,6 +124,9 @@ PROVIDER_NAME: str = "recorded"
 RECORDINGS_STORE: str = "recordings"
 #: The ``synthesize`` keyword (and audio-key option) naming the take by digest.
 RECORDING_OPTION: str = "recording"
+#: The audio-key option of a take with phones: a digest of its words and
+#: phones, so new timings on the same audio re-sync (an#491).
+TIMINGS_OPTION: str = "timings"
 #: The shape of a record in the store; raised when a field changes meaning.
 RECORD_VERSION: int = 1
 #: The voice document a speaker's takes are bound to, when ``voice`` names none.
@@ -286,6 +290,7 @@ def add_recording(
     source: AssetSource | Mapping[str, Any],
     words: Iterable[WordTiming] | None = None,
     imported_at: str | None = None,
+    phones: Iterable[WordTiming] | None = None,
 ) -> tuple[str, dict]:
     """Put a take (WAV ``audio`` of ``speaker`` saying ``text``, spoken for
     ``voice``) in ``store`` with its provenance; ``(key, record)``.
@@ -311,7 +316,8 @@ def add_recording(
         "sample_rate": sample_rate,
         "channels": channels,
         "sha256": digest,
-        "words": [[w[0], float(w[1]), float(w[2])] for w in words] if words else None,
+        "words": _timings(words),
+        **({"phones": _timings(phones)} if phones else {}),  # an#491
         "source": source.model_dump(exclude_none=True),
         "imported_at": imported_at
         or _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="microseconds"),
@@ -319,6 +325,16 @@ def add_recording(
     store[key] = record
     store.write_audio(key, audio)
     return key, record
+
+
+def _timings(timings: Iterable[WordTiming] | None) -> list | None:
+    """Timings as a record stores them: ``[[label, start, end], ...]``."""
+    return [[t[0], float(t[1]), float(t[2])] for t in timings] if timings else None
+
+
+def _read_timings(stored: Any) -> list[WordTiming] | None:
+    """A record's ``[[label, start, end], ...]`` back as tuples (``None`` when absent)."""
+    return [(str(t[0]), float(t[1]), float(t[2])) for t in stored] if stored else None
 
 
 # --- the provider --------------------------------------------------------------
@@ -383,7 +399,11 @@ class RecordedTTS:
         voice_id: str | None = None,
     ) -> dict[str, Any]:
         """``{"recording": <digest>}`` of the take this line has — the audio key
-        follows the take, so a re-recorded line is new audio.
+        follows the take, so a re-recorded line is new audio. A take with
+        phones adds ``{"timings": <digest>}`` of its words and phones (an#491):
+        the same audio imported again with new timings is new audio to the
+        caches, so the lip-sync sees them. (Only then: a take without phones
+        keys as before.)
 
         A line with no take is refused HERE, when the pipeline resolves every
         line's request before the first synthesis: nothing of the scene is
@@ -397,7 +417,13 @@ class RecordedTTS:
             raise RecordingMissingError(
                 f"voice {voice_id!r} is recorded, but there is no take of {text!r}; {IMPORT_HINT}"
             )
-        return {RECORDING_OPTION: found[1]["sha256"]}
+        record = found[1]
+        options = {RECORDING_OPTION: record["sha256"]}
+        if record.get("phones"):
+            options[TIMINGS_OPTION] = hashlib.sha256(
+                json.dumps([record.get("words"), record["phones"]]).encode()
+            ).hexdigest()
+        return options
 
     def synthesize(
         self,
@@ -422,7 +448,6 @@ class RecordedTTS:
             )
         key, _ = found
         record, audio = read_recording(self.recordings, key)
-        words = record.get("words") or None
         return AudioClip(
             bytes_=audio,
             duration=float(record["duration"]),
@@ -430,17 +455,24 @@ class RecordedTTS:
             channels=int(record.get("channels") or 1),
             voice_id=voice_id,
             transcript=text,
-            words=(
-                [(str(w[0]), float(w[1]), float(w[2])) for w in words]
-                if words
-                else None
-            ),
+            words=_read_timings(record.get("words")),
+            phones=_read_timings(record.get("phones")),
         )
 
     # -- the pipeline's read-back hook ------------------------------------------
 
     def words_for_clip(self, clip: AudioClip) -> list[WordTiming] | None:
         """The stored words of the take whose bytes ``clip`` carries, or ``None``."""
+        record = self._record_for_clip(clip)
+        return _read_timings(record.get("words")) if record else None
+
+    def phones_for_clip(self, clip: AudioClip) -> list[WordTiming] | None:
+        """The stored phones of the take whose bytes ``clip`` carries, or ``None`` (an#491)."""
+        record = self._record_for_clip(clip)
+        return _read_timings(record.get("phones")) if record else None
+
+    def _record_for_clip(self, clip: AudioClip) -> Mapping[str, Any] | None:
+        """The record of the take whose bytes ``clip`` carries, or ``None``."""
         if self.recordings is None or clip.bytes_ is None:
             return None
         digest = hashlib.sha256(clip.bytes_).hexdigest()
@@ -448,10 +480,7 @@ class RecordedTTS:
         if key is None:
             self._digests = None  # a take imported since: look again, once
             key = self._index().get(digest)
-        if key is None:
-            return None
-        words = self.recordings[key].get("words")
-        return [(str(w[0]), float(w[1]), float(w[2])) for w in words] if words else None
+        return self.recordings[key] if key is not None else None
 
     def _index(self) -> dict[str, str]:
         if self._digests is None:
@@ -709,6 +738,8 @@ class _Take:
     words: tuple[WordTiming, ...] | None
     speaker: str | None
     transcript_kind: str
+    #: the take's phone timings, clip-relative, when the transcript had them (an#491)
+    phones: tuple[WordTiming, ...] | None = None
     #: silence heard between the previous take of the same file and this one
     gap_before: float | None = None
     #: the linked transcript artifact it was cut by (``<store>/<key>``, an#493)
@@ -1369,6 +1400,7 @@ def import_recordings(
                 span=(a, b),
                 wav=clip,
                 words=rebase_words(segment.words, a),
+                phones=rebase_words(segment.phones, a),
                 speaker=None,
                 transcript_kind=kind,
                 transcript_ref=given[path].ref if path in given else None,
@@ -1434,6 +1466,7 @@ def import_recordings(
                 audio=take.wav,
                 source=source,
                 words=take.words,
+                phones=take.phones,
                 imported_at=stamp,
             )
             duration = float(record["duration"])

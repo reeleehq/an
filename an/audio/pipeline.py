@@ -1937,12 +1937,15 @@ def _with_clip_words(tts: TTSProvider, clip: AudioClip) -> AudioClip:
     timed transcript), when the clip does not carry them already — so a line
     read back from the audio store aligns from the same words as a fresh one.
     """
-    hook = getattr(tts, "words_for_clip", None)
-    if hook is None or getattr(clip, "words", None) is not None:
-        return clip
-    words = hook(clip)
-    if words:
-        clip.words = [(str(w[0]), float(w[1]), float(w[2])) for w in words]
+    for field in ("words", "phones"):  # phones too (an#491)
+        hook = getattr(tts, f"{field}_for_clip", None)
+        if hook is None or getattr(clip, field, None) is not None:
+            continue
+        timings = hook(clip)
+        if timings:
+            setattr(
+                clip, field, [(str(t[0]), float(t[1]), float(t[2])) for t in timings]
+            )
     return clip
 
 
