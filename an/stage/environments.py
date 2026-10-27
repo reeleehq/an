@@ -57,7 +57,8 @@ from pydantic import BaseModel, ConfigDict, Field, model_serializer, model_valid
 
 from an.ir.assets import AssetSource
 from an.paint import Gradient
-from an.ir.migrate import DocumentKind, omit_unset, register_kind
+from an.base import PLANE_FACTORS_OVERRIDE
+from an.ir.migrate import DocumentKind, migrate, omit_unset, register_kind
 
 __all__ = [
     "ENVIRONMENT_SCHEMA_VERSION",
@@ -342,6 +343,11 @@ class EnvironmentDescriptor(_EnvModel):
 # --- framing: what a camera shows, and what the planes cover (an#211) --------
 
 
+class PlaneFactorError(ValueError):
+    """The parallax factors a world depth derives cannot be given to the environment
+    (an unknown plane, a plane with a parallax of its own, a bad value; an#503)."""
+
+
 def own_parallax(plane: Plane) -> bool:
     """Whether ``plane`` carries a parallax of its own (a ``depth`` other than
     1.0, or a per-axis ``parallax``): the other spelling of what a world depth
@@ -370,9 +376,14 @@ def with_plane_factors(
     0.1
     """
     names = {p.name for p in env.planes}
+    bad = {k: v for k, v in factors.items() if not (0.0 <= v < float("inf"))}
+    if bad:
+        raise PlaneFactorError(
+            f"{where}: parallax factors {bad} must be finite and >= 0"
+        )
     unknown = sorted(set(factors) - names)
     if unknown:
-        raise ValueError(
+        raise PlaneFactorError(
             f"{where}: world depths name planes {unknown} that the environment "
             f"does not have (its planes: {sorted(names)})"
         )
@@ -380,7 +391,7 @@ def with_plane_factors(
     for plane in env.planes:
         if plane.name in factors:
             if own_parallax(plane):
-                raise ValueError(
+                raise PlaneFactorError(
                     f"{where}: plane {plane.name!r} has a world depth and a parallax of "
                     f"its own (depth {plane.depth}, parallax {plane.parallax}): two "
                     "spellings of one fact. Drop one."
@@ -388,6 +399,29 @@ def with_plane_factors(
             plane = plane.model_copy(update={"depth": float(factors[plane.name])})
         planes.append(plane)
     return env.model_copy(update={"planes": planes})
+
+
+def environment_from_document(raw: Any, entity: Any = None) -> EnvironmentDescriptor:
+    """The environment ``raw`` stores, MIGRATED and with the parallax factors
+    ``entity`` carries (``overrides[PLANE_FACTORS_OVERRIDE]``, what the world's
+    plane depths derive, an#503) applied: the one reading of a descriptor that
+    the compiler and the validators share, so neither sees a plane at a
+    factor the other does not. Raises ``ValueError`` for a document that does
+    not validate, or factors :func:`with_plane_factors` refuses (:class:`PlaneFactorError`).
+
+    >>> doc = {"kind": "EnvironmentDescriptor", "name": "e", "planes": [{"name": "sky"}]}
+    >>> from types import SimpleNamespace
+    >>> e = SimpleNamespace(id="set", overrides={PLANE_FACTORS_OVERRIDE: {"sky": 0.5}})
+    >>> environment_from_document(doc, e).planes[0].depth
+    0.5
+    """
+    env = EnvironmentDescriptor.model_validate(
+        migrate(dict(raw), kind=ENVIRONMENT_DOCUMENT_KIND.name)
+    )
+    factors = (getattr(entity, "overrides", None) or {}).get(PLANE_FACTORS_OVERRIDE)
+    if factors:
+        env = with_plane_factors(env, factors, where=f"entity {entity.id!r}")
+    return env
 
 
 def plane_rect(

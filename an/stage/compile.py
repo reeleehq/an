@@ -43,7 +43,6 @@ from typing import Any, Callable, Protocol
 
 from an.base import (
     DEFAULT_RESOLUTION,
-    PLANE_FACTORS_OVERRIDE,
     PLANE_REST_VALUES,
     TRANSFORM_PROPERTIES,
     TRIM_PROPERTIES,
@@ -121,7 +120,8 @@ from an.stage.environments import (
     ENVIRONMENT_DOCUMENT_KIND,
     EnvironmentDescriptor,
     Plane,
-    with_plane_factors,
+    PlaneFactorError,
+    environment_from_document,
 )
 from an.stage.props import PROP_DOCUMENT_KIND, PropDescriptor
 from an.stage.paths import (
@@ -2133,15 +2133,10 @@ def _environment_descriptor(
         return None
     if not isinstance(raw, dict) or raw.get("kind") != ENVIRONMENT_DOCUMENT_KIND.name:
         return None
-    env = EnvironmentDescriptor.model_validate(
-        migrate(dict(raw), kind=ENVIRONMENT_DOCUMENT_KIND.name)
-    )
-    factors = (entity.overrides or {}).get(PLANE_FACTORS_OVERRIDE)
-    if factors:
-        try:
-            env = with_plane_factors(env, factors, where=f"entity {entity.id!r}")
-        except ValueError as e:
-            raise CutoutCompileError(str(e)) from None
+    try:
+        env = environment_from_document(raw, entity)
+    except PlaneFactorError as e:  # the factors the world derived, refused
+        raise CutoutCompileError(str(e)) from None
     return env if env.planes else None
 
 

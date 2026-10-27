@@ -984,7 +984,10 @@ def _check_flat_pan(shot, keys, path: str, report: "ValidationReport", stores) -
     env_store = (stores or {}).get("environments")
     if env_store is None:
         return
-    from an.stage.environments import ENVIRONMENT_DOCUMENT_KIND, EnvironmentDescriptor
+    from an.stage.environments import (
+        ENVIRONMENT_DOCUMENT_KIND,
+        environment_from_document,
+    )
 
     factors: list[tuple[float, float]] = []
     for entity in shot.entities:
@@ -1003,9 +1006,7 @@ def _check_flat_pan(shot, keys, path: str, report: "ValidationReport", stores) -
             # MIGRATED, as the compiler reads it — a pre-flight that validates
             # a document differently from the thing it predicts is its own
             # defect, which is the rule `_rig_document` already follows.
-            env = EnvironmentDescriptor.model_validate(
-                migrate(dict(raw), kind=ENVIRONMENT_DOCUMENT_KIND.name)
-            )
+            env = environment_from_document(raw, entity)
         except Exception:  # noqa: BLE001 — a malformed descriptor is another check's
             continue
         # `factors()`, not `depth`: `parallax` OVERRIDES `depth`, so reading the
@@ -1062,6 +1063,7 @@ def _check_framing(
     from an.stage.environments import (
         ENVIRONMENT_DOCUMENT_KIND,
         EnvironmentDescriptor,
+        environment_from_document,
         frame_rect,
         plane_rect,
         uncovered_part,
@@ -1080,9 +1082,7 @@ def _check_framing(
         ):
             return
         try:
-            env = EnvironmentDescriptor.model_validate(
-                migrate(dict(raw), kind=ENVIRONMENT_DOCUMENT_KIND.name)
-            )
+            env = environment_from_document(raw, entity)
         except Exception:  # noqa: BLE001 — a malformed descriptor is another check's
             return
         if not env.planes:
@@ -2715,6 +2715,20 @@ def _report_plane_depths(ctx: ValidationContext, world: Any, env_store: Any) -> 
                     "descriptor's depth at 1.0 and let the world depth derive the factor, "
                     "or drop the world depth.",
                 )
+            if (
+                frame is not None
+                and name in planes
+                and not tree.is_still(frame)
+                and not any(frames[n].coupling == "far" for n in tree.chain(frame))
+            ):
+                ctx.report.add(
+                    "warning",
+                    where,
+                    f"plane {member.id}/{name!r} has a world depth and is in frame "
+                    f"{frame!r}, which moves: the derived factor assumes the plane "
+                    "stays still relative to the camera's frame. A plane in a frame "
+                    "that moves relative to the camera is not derived yet (an#503).",
+                )
 
 
 def _core_viewpoint(ctx: ValidationContext) -> None:
@@ -2741,7 +2755,10 @@ def _core_viewpoint(ctx: ValidationContext) -> None:
     from an.ir.frames import FrameTree
     from an.ir.schema import WORLD_FRAME
     from an.ir.world import viewpoint_of
-    from an.stage.environments import ENVIRONMENT_DOCUMENT_KIND, EnvironmentDescriptor
+    from an.stage.environments import (
+        ENVIRONMENT_DOCUMENT_KIND,
+        environment_from_document,
+    )
 
     travel = world.travel
     frames = world.all_frames()
@@ -2773,9 +2790,7 @@ def _core_viewpoint(ctx: ValidationContext) -> None:
         ):
             continue
         try:
-            env = EnvironmentDescriptor.model_validate(
-                migrate(dict(raw), kind=ENVIRONMENT_DOCUMENT_KIND.name)
-            )
+            env = environment_from_document(raw, entity)
         except Exception:  # noqa: BLE001 — a malformed descriptor is another check's
             continue
         member = members.get(entity.id)

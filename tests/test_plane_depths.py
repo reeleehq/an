@@ -192,3 +192,68 @@ def test_a_plane_in_a_far_frame_cannot_also_have_a_depth(tmp_path):
         f.severity == "error" and "coupled by rotation only" in f.description
         for f in report.findings
     )
+
+
+def test_validate_reads_the_derived_factors_not_the_raw_descriptor(tmp_path):
+    """The parallax check must see what the compiler sees: planes at different depths scroll differently."""
+    project = _env_project(tmp_path)
+    scene = _scene_with({"sky": Z, "hill": 4.0})
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        report = validate_semantic(
+            scene,
+            available_props=project.mall["props"],
+            available_environments=project.mall["environments"],
+        )
+    assert not [
+        f for f in report.findings if "all moving at the same rate" in f.description
+    ]
+
+
+def test_the_reference_depth_is_the_subjects_when_the_viewpoint_names_one():
+    from an.ir.schema import Viewpoint
+    from an.ir.world import Placed, reference_depth
+
+    shown = {
+        "a": Placed("a", (0, 0), 1.0, 2.0, None, True, "world"),
+        "b": Placed("b", (0, 0), 1.0, 6.0, None, True, "world"),
+        "hat": Placed("hat", (0, 0), 1.0, 6.0, None, True, "attached"),
+    }
+    assert (
+        reference_depth(shown, Viewpoint()) == 4.0
+    )  # an attached member is not counted twice
+    assert reference_depth(shown, Viewpoint(subject="b")) == 6.0
+    assert reference_depth({}, Viewpoint()) is None
+
+
+def test_a_plane_with_a_depth_in_a_moving_frame_is_warned_about(tmp_path):
+    from an.ir.schema import Frame, FrameMoving
+
+    project = _env_project(tmp_path)
+    scene = _scene_with({"sky": Z})
+    scene.world.frames = {"car": Frame(moving=FrameMoving(speed=1.0))}
+    scene.world.members[-1].planes = {"sky": "car"}
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        report = validate_semantic(
+            scene,
+            available_props=project.mall["props"],
+            available_environments=project.mall["environments"],
+        )
+    assert any(
+        f.severity == "warning" and "not derived yet" in f.description
+        for f in report.findings
+    )
+
+
+@pytest.mark.parametrize("bad", [-1.0, float("inf")])
+def test_factors_a_hand_wrote_into_overrides_must_be_finite_and_not_negative(
+    tmp_path, bad
+):
+    project = _env_project(tmp_path)
+    shot = _shot()
+    shot.entities[0] = shot.entities[0].model_copy(
+        update={"overrides": {PLANE_FACTORS_OVERRIDE: {"sky": bad}}}
+    )
+    with pytest.raises(CutoutCompileError, match="finite and >= 0"):
+        compile_shot(shot, project.mall, fps=24, width=320, height=240)
