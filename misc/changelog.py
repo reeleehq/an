@@ -3,9 +3,10 @@
 Two PRs that each append a line under today's date in ``misc/CHANGELOG.md``
 conflict, and GitHub's mergeability check ignores the ``merge=union``
 attribute, so parallel PRs serialised on a rebase each. Instead a PR adds
-``misc/changelog.d/<YYYY-MM-DD>-<slug>.md`` holding its entry (a line starting
+``misc/changelog.d/<YYYY-MM-DD>-an<issue>-<slug>.md`` holding its entry (a line starting
 ``- ``), a file no other PR touches. The changelog's form is unchanged: dated
-``## YYYY-MM-DD`` sections, newest first, entries in a section by file name.
+``## YYYY-MM-DD`` sections, newest first, entries in a section by file name
+(alphabetical, not merge order).
 
     python misc/changelog.py render   # print the changelog as it reads with the fragments
     python misc/changelog.py fold     # write it into misc/CHANGELOG.md, delete the fragments
@@ -18,6 +19,8 @@ Standard library only.
 
 from __future__ import annotations
 
+import datetime
+import os
 import re
 import sys
 from collections.abc import Iterable, Mapping
@@ -26,8 +29,9 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 CHANGELOG = HERE / "CHANGELOG.md"
 FRAGMENTS_DIR = HERE / "changelog.d"
-#: ``2026-10-27-slug.md``: the date the entry belongs under, then a slug.
-FRAGMENT_NAME = re.compile(r"(?P<date>\d{4}-\d{2}-\d{2})-[\w.-]+\.md")
+#: ``2026-10-27-an469-slug.md``: the date the entry belongs under, the issue
+#: or PR number (so two PRs cannot pick the same name), then a slug.
+FRAGMENT_NAME = re.compile(r"(?P<date>\d{4}-\d{2}-\d{2})-(?:an|pr)\d+-[\w.-]+\.md")
 SECTION = re.compile(r"## (\d{4}-\d{2}-\d{2})\s*$")
 
 
@@ -40,20 +44,25 @@ def read_fragments(directory: Path = FRAGMENTS_DIR) -> dict[str, list[tuple[str,
 
     >>> import tempfile
     >>> with tempfile.TemporaryDirectory() as d:
-    ...     _ = (Path(d) / "2026-10-27-b.md").write_text("- **B** (an#2).\\n")
-    ...     _ = (Path(d) / "2026-10-27-a.md").write_text("- **A** (an#1).\\n")
+    ...     _ = (Path(d) / "2026-10-27-an2-b.md").write_text("- **B** (an#2).\\n")
+    ...     _ = (Path(d) / "2026-10-27-an1-a.md").write_text("- **A** (an#1).\\n")
     ...     {k: [n for n, _ in v] for k, v in read_fragments(Path(d)).items()}
-    {'2026-10-27': ['2026-10-27-a.md', '2026-10-27-b.md']}
+    {'2026-10-27': ['2026-10-27-an1-a.md', '2026-10-27-an2-b.md']}
     """
     out: dict[str, list[tuple[str, str]]] = {}
-    for path in sorted(directory.glob("*.md")) if directory.is_dir() else ():
+    for path in sorted(directory.iterdir()) if directory.is_dir() else ():
         if path.name == "README.md":
             continue
         match = FRAGMENT_NAME.fullmatch(path.name)
         if match is None:
             raise FragmentError(
-                f"{path.name}: name it <YYYY-MM-DD>-<slug>.md (the date it belongs under)"
+                f"{path.name}: name it <YYYY-MM-DD>-an<issue>-<slug>.md "
+                "(the date it belongs under, the issue or PR number, a slug)"
             )
+        try:
+            datetime.date.fromisoformat(match["date"])
+        except ValueError:
+            raise FragmentError(f"{path.name}: {match['date']} is not a date") from None
         entry = path.read_text(encoding="utf-8").strip()
         if not entry.startswith("- ") or "\n## " in entry or entry.startswith("## "):
             raise FragmentError(
@@ -121,9 +130,11 @@ def fold(changelog: Path = CHANGELOG, directory: Path = FRAGMENTS_DIR) -> int:
     fragments = read_fragments(directory)
     count = sum(len(v) for v in fragments.values())
     if count:
-        changelog.write_text(
+        tmp = changelog.with_suffix(".md.tmp")  # written whole, then swapped in
+        tmp.write_text(
             render(changelog.read_text(encoding="utf-8"), fragments), encoding="utf-8"
         )
+        os.replace(tmp, changelog)
         for entries in fragments.values():
             for name, _ in entries:
                 (directory / name).unlink()

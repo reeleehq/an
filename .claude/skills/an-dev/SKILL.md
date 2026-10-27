@@ -287,7 +287,7 @@ it.
 
 ## Per-PR housekeeping
 
-- Append a one-line entry under today's date in `misc/CHANGELOG.md`.
+- Add a changelog fragment, `misc/changelog.d/<today>-an<issue>-<slug>.md` (one `- ` line; `misc/changelog.py`); never edit `misc/CHANGELOG.md` in a PR.
 - If a non-trivial design decision was made without explicit user blessing, log it (in the PR description for repo-level work; in `.an/decisions.jsonl` for project-level work).
 - Update the matching skill in `.claude/skills/` if the user-facing surface changed.
 

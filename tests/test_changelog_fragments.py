@@ -36,8 +36,8 @@ def test_every_committed_fragment_is_well_formed():
 
 def test_two_prs_that_each_add_an_entry_touch_different_files_and_both_render(tmp_path):
     d = tmp_path / "changelog.d"
-    _write(d, "2026-10-27-pr-a.md", "- **A** (an#1): a.\n")
-    _write(d, "2026-10-27-pr-b.md", "- **B** (an#2): b.\n")
+    _write(d, "2026-10-27-pr1-a.md", "- **A** (an#1): a.\n")
+    _write(d, "2026-10-27-pr2-b.md", "- **B** (an#2): b.\n")
     out = tool.render(LEGACY, tool.read_fragments(d))
     assert out.index("## 2026-10-27") < out.index("## 2026-10-26")  # newest first
     assert out.index("**A**") < out.index("**B**") < out.index("## 2026-10-26")
@@ -46,9 +46,9 @@ def test_two_prs_that_each_add_an_entry_touch_different_files_and_both_render(tm
 
 def test_an_entry_goes_to_the_top_of_its_dates_section_and_a_gap_date_between(tmp_path):
     d = tmp_path / "changelog.d"
-    _write(d, "2026-10-26-late.md", "- late\n")
-    _write(d, "2026-10-25-x.md", "- x\n")
-    _write(d, "2026-10-25-y.md", "- y\n")
+    _write(d, "2026-10-26-an3-late.md", "- late\n")
+    _write(d, "2026-10-25-an4-x.md", "- x\n")
+    _write(d, "2026-10-25-an5-y.md", "- y\n")
     out = tool.render(LEGACY, tool.read_fragments(d))
     assert "## 2026-10-26\n- late\n- old one" in out
     assert "## 2026-10-25\n- x\n- y\n- older" in out
@@ -60,7 +60,7 @@ def test_an_entry_goes_to_the_top_of_its_dates_section_and_a_gap_date_between(tm
 def test_fold_writes_the_entries_and_deletes_the_fragments(tmp_path):
     d, log = tmp_path / "changelog.d", tmp_path / "CHANGELOG.md"
     log.write_text(LEGACY, encoding="utf-8")
-    _write(d, "2026-10-27-a.md", "- a\n")
+    _write(d, "2026-10-27-an6-a.md", "- a\n")
     assert tool.fold(log, d) == 1
     assert "## 2026-10-27\n- a\n" in log.read_text(encoding="utf-8")
     assert not list(d.glob("2026-*.md"))
@@ -71,8 +71,11 @@ def test_fold_writes_the_entries_and_deletes_the_fragments(tmp_path):
     "name, text",
     [
         ("notes.md", "- x\n"),  # no date
-        ("2026-10-27-x.md", "no bullet\n"),
-        ("2026-10-27-y.md", "## 2026-10-27\n- heading\n"),
+        ("2026-10-27-x.md", "- no issue number\n"),
+        ("2026-10-27-an1-x.md", "no bullet\n"),
+        ("2026-10-27-an1-y.md", "## 2026-10-27\n- heading\n"),
+        ("2026-13-45-an1-z.md", "- not a date\n"),
+        ("2026-10-27-an1-w.txt", "- wrong extension\n"),
     ],
 )
 def test_a_malformed_fragment_is_refused_with_what_to_do(tmp_path, name, text):
