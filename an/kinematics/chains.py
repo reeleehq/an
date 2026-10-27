@@ -96,8 +96,8 @@ def arc_chain(
 
     >>> angles = arc_chain((0.0, 0.0), (35.0, 0.0), [1.0] * 50)
     >>> tip = (sum(math.cos(a) for a in angles), sum(math.sin(a) for a in angles))
-    >>> tuple(round(c, 9) for c in tip)
-    (35.0, 0.0)
+    >>> math.isclose(tip[0], 35.0, abs_tol=1e-9), math.isclose(tip[1], 0.0, abs_tol=1e-9)
+    (True, True)
     >>> arc_chain((0.0, 0.0), (60.0, 0.0), [1.0] * 50) is None
     True
     """
