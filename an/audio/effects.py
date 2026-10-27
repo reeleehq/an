@@ -23,11 +23,11 @@ TTS provider, so it lives beside the voice the line already resolves through
 rather than in the IR.
 
 >>> normalize_effects({"pitch_semitones": 4})
-{'pitch_semitones': 4.0, 'chain_version': 3}
+{'pitch_semitones': 4.0, 'chain_version': 3, 'chain_sha': '331a8bdbbfb1423c'}
 >>> normalize_effects({"pitch_semitones": 0}) == normalize_effects({"tempo": 1}) == normalize_effects(None) == {}
 True
->>> normalize_effects({"tempo": 1.1, "pitch_semitones": -2})
-{'pitch_semitones': -2.0, 'tempo': 1.1, 'chain_version': 3}
+>>> normalize_effects({"tempo": 1.1, "pitch_semitones": -2})["tempo"]
+1.1
 >>> filter_chain({"tempo": 1.25})
 'aresample=44100,apad=pad_dur=0.25,atempo=1.2500000000'
 >>> normalize_effects({"trim_silence": True})["trim_silence"]
@@ -78,6 +78,7 @@ Design, in the order the pipeline uses it:
 
 from __future__ import annotations
 
+import hashlib
 import io
 import json
 import shutil
@@ -138,6 +139,12 @@ TRIM_VERSION: int = 1
 #: unrounded ratio's), written to ten decimals.
 CHAIN_VERSION: int = 3
 _FIRST_CHAIN_VERSION: int = 1
+#: Since an#611 the pitch and tempo stages are built in another package
+#: (:mod:`mixing.filtergraph`), so a pitch or tempo line's key also holds a
+#: digest of its chain string: a change made there re-processes the lines it
+#: changes (from their cached raw takes) without an's version knowing of it.
+CHAIN_DIGEST_KEY: str = "chain_sha"
+CHAIN_DIGEST_CHARS: int = 16
 #: Seconds of silence appended before the ``atempo`` stages, so their window
 #: never eats the line's tail (it dropped 20-40 ms of every short padded clip,
 #: an#350); the output is then cut to the exact length the tempo gives.
@@ -200,6 +207,10 @@ def normalize_effects(raw: Mapping[str, Any] | None) -> dict[str, Any]:
         out[TRIM_SILENCE] = trim
     if out and CHAIN_VERSION != _FIRST_CHAIN_VERSION:
         out["chain_version"] = CHAIN_VERSION
+    if chain := filter_chain(out):
+        out[CHAIN_DIGEST_KEY] = hashlib.sha256(chain.encode()).hexdigest()[
+            :CHAIN_DIGEST_CHARS
+        ]
     return out
 
 
@@ -265,6 +276,10 @@ def filter_chain(effects: Mapping[str, Any]) -> str:
     """The ffmpeg ``-af`` chain for normalised ``effects`` (``""`` for none):
     the input resampled to :data:`EFFECT_SAMPLE_RATE`, then the shared pitch
     and tempo chain (:func:`mixing.filtergraph.resample_pitch_filter`)."""
+    semitones = effects.get("pitch_semitones") or 0.0
+    tempo = effects.get("tempo") or 1.0
+    if not semitones and tempo == 1.0:
+        return ""  # a trim alone needs no chain, and no mixing
     try:
         from mixing.filtergraph import resample_pitch_filter
     except ImportError as e:
@@ -273,12 +288,9 @@ def filter_chain(effects: Mapping[str, Any]) -> str:
             "`pip install -U mixing` (an#611)"
         ) from e
     shift = resample_pitch_filter(
-        effects.get("pitch_semitones") or 0.0,
-        EFFECT_SAMPLE_RATE,
-        tempo=effects.get("tempo") or 1.0,
-        flush_s=TEMPO_PAD_S,
+        semitones, EFFECT_SAMPLE_RATE, tempo=tempo, flush_s=TEMPO_PAD_S
     )
-    return f"aresample={EFFECT_SAMPLE_RATE},{shift}" if shift else ""
+    return f"aresample={EFFECT_SAMPLE_RATE},{shift}"
 
 
 def decode_chain() -> str:
