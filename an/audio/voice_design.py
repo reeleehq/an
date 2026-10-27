@@ -112,6 +112,7 @@ __all__ = [
     "run_auditions",
     "cast_project_voice",
     "VoiceChoice",
+    "carry_over",
     "choose_in_entry",
     "choose_project_voice",
     "choose_voice_option",
@@ -1404,8 +1405,54 @@ def design_project_voices(
                 if o.get("sample")
                 else None
             )
+        if ref in options:
+            entry = carry_over(options[ref], entry)
         options[ref] = entry
     return manifest
+
+
+def carry_over(previous: Mapping, entry: MutableMapping) -> MutableMapping:
+    """``entry`` (a voice's options, designed again) keeping what the previous
+    design's entry recorded (an#604): its ``chosen`` (the voice the voice
+    document names, by whom and when; its ``option`` cleared, since this
+    design's option of that label is another voice), and its ``retired``
+    ledger, joined by every voice the previous design saved that this one no
+    longer names (the chosen one too: it stays named by ``chosen`` until
+    another choice replaces it). A library option's voice is another
+    account's and is never retired. ``entry`` is returned, updated.
+
+    >>> old = {"name_prefix": "p", "options": [{"option": "A", "voice_id": "v1"},
+    ...        {"option": "L1", "kind": "library", "voice_id": "pub"}],
+    ...        "chosen": {"option": "A", "voice_id": "v1", "chosen_by": "n", "chosen_at": "t"}}
+    >>> new = carry_over(old, {"options": [{"option": "A", "voice_id": "v9"}]})
+    >>> new["chosen"]["option"], new["chosen"]["voice_id"], new["retired"]
+    (None, 'v1', [{'voice_id': 'v1', 'option': 'A', 'name_prefix': 'p'}])
+    """
+    named = {o.get("voice_id") for o in entry.get("options", ())}
+    retired = [r for r in previous.get("retired") or () if isinstance(r, Mapping)]
+    known = {r.get("voice_id") for r in retired}
+    for o in previous.get("options", ()):
+        voice = o.get("voice_id")
+        if (
+            voice
+            and voice not in named
+            and voice not in known
+            and o.get("kind") != "library"
+        ):
+            retired.append(
+                {
+                    "voice_id": voice,
+                    "option": o.get("option"),
+                    "name_prefix": previous.get("name_prefix"),
+                }
+            )
+            known.add(voice)
+    if retired:
+        entry["retired"] = retired
+    chosen = previous.get("chosen")
+    if isinstance(chosen, Mapping) and chosen.get("voice_id"):
+        entry["chosen"] = {**chosen, "option": None}
+    return entry
 
 
 def audition_project_voices(

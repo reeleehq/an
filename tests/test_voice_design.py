@@ -291,3 +291,41 @@ def test_a_damaged_retired_ledger_is_refused_before_anything_is_chosen():
     }
     with pytest.raises(VoiceDesignError, match="damaged"):
         choose_in_entry(entry, "B", by="noel")
+
+
+def test_designing_again_keeps_the_choice_and_retires_what_the_old_design_saved(
+    tmp_path,
+):
+    """an#604: design (every option saved), choose B, design again. The new
+    manifest keeps `chosen` (its option cleared: the new B is another voice)
+    and ledgers every voice the old design saved, so none is orphaned; the
+    chosen one stays named by `chosen`, so nothing frees it while it is used.
+    Choosing the new B then saves nothing old and retires nothing twice."""
+    proj = _voice_project(tmp_path, {"notes": NOTES})
+    first = FakeDesigner(n=3)
+    design_project_voices(proj, designer=first)
+    choose_project_voice(proj, "jerry", "B", designer=first, by="noel", at="t1")
+    again = FakeDesigner(n=3)
+    again.design_voice = lambda description, *, preview, name: SimpleNamespace(
+        segment=f"new-{getattr(preview, 'generated_voice_id', preview)}"
+    )
+    design_project_voices(proj, designer=again)
+    m = _manifest(proj)
+    assert m["chosen"] == {
+        "option": None,
+        "voice_id": "voice-gen1",
+        "chosen_by": "noel",
+        "chosen_at": "t1",
+    }
+    assert sorted(r["voice_id"] for r in m["retired"]) == [
+        "voice-gen0",
+        "voice-gen1",
+        "voice-gen2",
+    ]
+    doc = choose_project_voice(proj, "jerry", "B", designer=again, by="noel")
+    assert doc["voice_id"] == "new-gen1"
+    assert sorted(r["voice_id"] for r in _manifest(proj)["retired"]) == [
+        "voice-gen0",
+        "voice-gen1",
+        "voice-gen2",
+    ]

@@ -1,0 +1,1 @@
+- Designing a voice again keeps its options manifest's `chosen` (its option cleared: the new design's option of that label is another voice) and moves every voice the old design saved into `retired`, so none is orphaned (an#604).
