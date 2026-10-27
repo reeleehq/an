@@ -331,7 +331,7 @@ document’s when given. Returns the document.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
-### an.audio.voice_design.choose_in_entry(entry, option, , by=None, designer=None, ref='', at=None, doc=None, in_use=())
+### an.audio.voice_design.choose_in_entry(entry, option, , by=None, designer=None, ref='', at=None, doc=None, in_use=(), name_prefix=None)
 
 Make `option` the choice of one voice’s options manifest `entry`
 (an#549): the one choose step an’s `an voices choose` and a connector
@@ -345,17 +345,21 @@ it replaced.
 chosen reuses its voice (nothing is saved), and keeps its `chosen_at`
 when the same chooser chooses it again and no `at` is given. Choosing
 another one names its voice (saved as a provider voice when it was not,
-[`choose_voice_option()`](#an.audio.voice_design.choose_voice_option), and marked `saved_by_choice` on its option)
-and retires the voice it replaces when a choice saved it: its option no
-longer names it, and `entry["retired"]` records it (`{voice_id,
-option, name_prefix}`), never deleted here (a copy of the manifest, or a
+[`choose_voice_option()`](#an.audio.voice_design.choose_voice_option), named under `name_prefix`, default the
+entry’s, and marked `saved_by_choice` and `saved_under` that prefix on
+its option) and retires the voice it replaces when a choice saved it: its
+option no longer names it, and `entry["retired"]` records it
+(`{voice_id, option, name_prefix}`, the prefix it was saved under, an#618),
+never deleted here (a copy of the manifest, or a
 voice file already written, may still name it: freeing the provider’s
 slot is a separate, explicit act). A voice saved when the options were
 designed (`persist=True`), a library voice and one cast by hand stay
 named where they are; a choice carried over a re-design (`retire_on_replace`,
 an#604) is retired when replaced. A voice in `in_use` (one another voice
-document speaks) is never retired: pass the project’s other voices. `by` defaults to the login name (see
-[`record_choice()`](#an.audio.voice_design.record_choice)).
+document speaks) is never retired: pass the project’s other voices. `by`
+defaults to the login name (see [`record_choice()`](#an.audio.voice_design.record_choice)). A host choosing for
+a project of its own (a fork) passes its `name_prefix` rather than
+re-stamping the entry’s, which names the voices the entry already saved.
 
 ```pycon
 >>> from types import SimpleNamespace
@@ -372,6 +376,18 @@ document speaks) is never retired: pass the project’s other voices. `by` defau
 't2'
 ```
 
+A voice keeps the prefix it was saved under when a fork chooses with its own:
+
+```pycon
+>>> src = {"notes": "n", "name_prefix": "src", "options": [
+...     {"option": "A", "generated_voice_id": "a"}, {"option": "B", "generated_voice_id": "b"}]}
+>>> _ = choose_in_entry(src, "A", by="noel", designer=Saver())
+>>> choose_in_entry(src, "B", by="ann", designer=Saver(), name_prefix="fork").retired
+'va'
+>>> src["retired"], src["options"][1]["saved_under"], src["name_prefix"]
+([{'voice_id': 'va', 'option': 'A', 'name_prefix': 'src'}], 'fork', 'src')
+```
+
 * **Return type:**
   [`VoiceChoice`](#an.audio.voice_design.VoiceChoice)
 
@@ -385,12 +401,12 @@ return the document.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
-### an.audio.voice_design.choose_voice_option(entry, option, , ref='', designer=None)
+### an.audio.voice_design.choose_voice_option(entry, option, , ref='', designer=None, name_prefix=None)
 
 The provider `voice_id` of `option` in one voice’s manifest `entry`.
 
 An option that was not persisted is saved as a voice now (its preview must
-not have expired).
+not have expired), named under `name_prefix` (default: the entry’s).
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

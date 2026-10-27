@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=9d642592"></script>
+    <script src="../../../_static/documentation_options.js?v=391ca18b"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.308" />
+  <meta name="docsearch:version" content="0.1.309" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -874,6 +874,13 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: choice (the option was not persisted when designed), so a later choice of</span>
 <span class="c1">#: another option retires it (:func:`choose_in_entry`, an#549).</span>
 <span class="n">SAVED_BY_CHOICE_KEY</span> <span class="o">=</span> <span class="s2">"saved_by_choice"</span>
+<span class="c1">#: Beside :data:`SAVED_BY_CHOICE_KEY` on an option, and on a ``chosen``</span>
+<span class="c1">#: carried over a re-design: the name prefix its voice was saved under, which</span>
+<span class="c1">#: its ``retired`` row carries (an#618). A host that names a choice's voice</span>
+<span class="c1">#: with its own prefix (``choose_in_entry(name_prefix=)``) never relabels a</span>
+<span class="c1">#: voice saved under another; a record without it was saved under the entry's</span>
+<span class="c1">#: ``name_prefix``.</span>
+<span class="n">SAVED_UNDER_KEY</span> <span class="o">=</span> <span class="s2">"saved_under"</span>
 <span class="c1">#: A voice a render may speak although nobody chose it: a timing draft. Any</span>
 <span class="c1">#: truthy value; a string says why, and the render report repeats it.</span>
 <span class="n">PROVISIONAL_KEY</span> <span class="o">=</span> <span class="s2">"provisional"</span>
@@ -1551,12 +1558,17 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="choose_voice_option">
 <a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.choose_voice_option">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">choose_voice_option</span><span class="p">(</span>
-    <span class="n">entry</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">option</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ref</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span> <span class="n">designer</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">entry</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span>
+    <span class="n">option</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">ref</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">designer</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">name_prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""The provider ``voice_id`` of ``option`` in one voice's manifest ``entry``.</span>
 
 <span class="sd">    An option that was not persisted is saved as a voice now (its preview must</span>
-<span class="sd">    not have expired).</span>
+<span class="sd">    not have expired), named under ``name_prefix`` (default: the entry's).</span>
 <span class="sd">    """</span>
     <span class="n">found</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
         <span class="p">(</span><span class="n">o</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"options"</span><span class="p">,</span> <span class="p">())</span> <span class="k">if</span> <span class="n">o</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"option"</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">option</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()),</span>
@@ -1574,7 +1586,8 @@ window.runMermaid = runMermaid;</script>
             <span class="sa">f</span><span class="s2">"option </span><span class="si">{</span><span class="n">found</span><span class="p">[</span><span class="s1">'option'</span><span class="p">]</span><span class="si">!r}{</span><span class="sa">f</span><span class="s1">' for </span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s1">'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">ref</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">''</span><span class="si">}</span><span class="s2"> has no voice id to choose"</span>
         <span class="p">)</span>
     <span class="n">designer</span> <span class="o">=</span> <span class="n">designer</span> <span class="k">if</span> <span class="n">designer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">default_designer</span><span class="p">()</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'name_prefix'</span><span class="p">,</span><span class="w"> </span><span class="s1">'an'</span><span class="p">)</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">found</span><span class="p">[</span><span class="s1">'option'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="n">prefix</span> <span class="o">=</span> <span class="n">name_prefix</span> <span class="k">if</span> <span class="n">name_prefix</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_prefix_of</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">found</span><span class="p">[</span><span class="s1">'option'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">_voice_id_of</span><span class="p">(</span>
         <span class="n">designer</span><span class="o">.</span><span class="n">design_voice</span><span class="p">(</span>
             <span class="n">entry</span><span class="p">[</span><span class="s2">"notes"</span><span class="p">],</span> <span class="n">preview</span><span class="o">=</span><span class="n">found</span><span class="p">[</span><span class="s2">"generated_voice_id"</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span>
@@ -2252,6 +2265,8 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: the earlier design's, so the next choice that displaces it retires it</span>
 <span class="c1">#: (:func:`choose_in_entry`), as it would an option's voice a choice saved.</span>
 <span class="n">RETIRE_ON_REPLACE_KEY</span> <span class="o">=</span> <span class="s2">"retire_on_replace"</span>
+<span class="c1">#: What a carried ``chosen`` keeps while it names the same voice.</span>
+<span class="n">_CARRIED_KEYS</span> <span class="o">=</span> <span class="p">(</span><span class="n">RETIRE_ON_REPLACE_KEY</span><span class="p">,</span> <span class="n">SAVED_UNDER_KEY</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="merge_redesign">
@@ -2292,21 +2307,33 @@ window.runMermaid = runMermaid;</script>
                 <span class="p">{</span>
                     <span class="s2">"voice_id"</span><span class="p">:</span> <span class="n">voice</span><span class="p">,</span>
                     <span class="s2">"option"</span><span class="p">:</span> <span class="n">o</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"option"</span><span class="p">),</span>
-                    <span class="s2">"name_prefix"</span><span class="p">:</span> <span class="n">previous</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"name_prefix"</span><span class="p">),</span>
+                    <span class="s2">"name_prefix"</span><span class="p">:</span> <span class="n">_saved_under</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">previous</span><span class="p">),</span>
                 <span class="p">}</span>
             <span class="p">)</span>
             <span class="n">named</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">voice</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">retired</span><span class="p">:</span>
         <span class="n">entry</span><span class="p">[</span><span class="s2">"retired"</span><span class="p">]</span> <span class="o">=</span> <span class="n">retired</span>
     <span class="k">if</span> <span class="n">chosen</span> <span class="ow">and</span> <span class="n">chosen</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"voice_id"</span><span class="p">):</span>
-        <span class="n">designed</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span>
-            <span class="n">o</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"option"</span><span class="p">)</span> <span class="o">==</span> <span class="n">chosen</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"option"</span><span class="p">)</span> <span class="ow">and</span> <span class="n">o</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"kind"</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">"library"</span>
-            <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">previous</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"options"</span><span class="p">,</span> <span class="p">())</span>
+        <span class="n">designed</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
+            <span class="p">(</span>
+                <span class="n">o</span>
+                <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">previous</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"options"</span><span class="p">,</span> <span class="p">())</span>
+                <span class="k">if</span> <span class="n">o</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"option"</span><span class="p">)</span> <span class="o">==</span> <span class="n">chosen</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"option"</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="n">o</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"kind"</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">"library"</span>
+            <span class="p">),</span>
+            <span class="kc">None</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">entry</span><span class="p">[</span><span class="s2">"chosen"</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
             <span class="o">**</span><span class="n">chosen</span><span class="p">,</span>
             <span class="s2">"option"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="o">**</span><span class="p">({</span><span class="n">RETIRE_ON_REPLACE_KEY</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span> <span class="k">if</span> <span class="n">designed</span> <span class="k">else</span> <span class="p">{}),</span>
+            <span class="o">**</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="n">RETIRE_ON_REPLACE_KEY</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="n">SAVED_UNDER_KEY</span><span class="p">:</span> <span class="n">_saved_under</span><span class="p">(</span><span class="n">designed</span><span class="p">,</span> <span class="n">previous</span><span class="p">),</span>
+                <span class="p">}</span>
+                <span class="k">if</span> <span class="n">designed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="k">else</span> <span class="p">{}</span>
+            <span class="p">),</span>
         <span class="p">}</span>
     <span class="k">return</span> <span class="n">entry</span></div>
 
@@ -2459,6 +2486,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">at</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">doc</span><span class="p">:</span> <span class="n">Mapping</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">in_use</span><span class="p">:</span> <span class="n">Collection</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(),</span>
+    <span class="n">name_prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VoiceChoice</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Make ``option`` the choice of one voice's options manifest ``entry``</span>
 <span class="sd">    (an#549): the one choose step an's ``an voices choose`` and a connector</span>
@@ -2472,17 +2500,21 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    chosen reuses its voice (nothing is saved), and keeps its ``chosen_at``</span>
 <span class="sd">    when the same chooser chooses it again and no ``at`` is given. Choosing</span>
 <span class="sd">    another one names its voice (saved as a provider voice when it was not,</span>
-<span class="sd">    :func:`choose_voice_option`, and marked ``saved_by_choice`` on its option)</span>
-<span class="sd">    and retires the voice it replaces when a choice saved it: its option no</span>
-<span class="sd">    longer names it, and ``entry["retired"]`` records it (``{voice_id,</span>
-<span class="sd">    option, name_prefix}``), never deleted here (a copy of the manifest, or a</span>
+<span class="sd">    :func:`choose_voice_option`, named under ``name_prefix``, default the</span>
+<span class="sd">    entry's, and marked ``saved_by_choice`` and ``saved_under`` that prefix on</span>
+<span class="sd">    its option) and retires the voice it replaces when a choice saved it: its</span>
+<span class="sd">    option no longer names it, and ``entry["retired"]`` records it</span>
+<span class="sd">    (``{voice_id, option, name_prefix}``, the prefix it was saved under, an#618),</span>
+<span class="sd">    never deleted here (a copy of the manifest, or a</span>
 <span class="sd">    voice file already written, may still name it: freeing the provider's</span>
 <span class="sd">    slot is a separate, explicit act). A voice saved when the options were</span>
 <span class="sd">    designed (``persist=True``), a library voice and one cast by hand stay</span>
 <span class="sd">    named where they are; a choice carried over a re-design (``retire_on_replace``,</span>
 <span class="sd">    an#604) is retired when replaced. A voice in ``in_use`` (one another voice</span>
-<span class="sd">    document speaks) is never retired: pass the project's other voices. ``by`` defaults to the login name (see</span>
-<span class="sd">    :func:`record_choice`).</span>
+<span class="sd">    document speaks) is never retired: pass the project's other voices. ``by``</span>
+<span class="sd">    defaults to the login name (see :func:`record_choice`). A host choosing for</span>
+<span class="sd">    a project of its own (a fork) passes its ``name_prefix`` rather than</span>
+<span class="sd">    re-stamping the entry's, which names the voices the entry already saved.</span>
 
 <span class="sd">    &gt;&gt;&gt; from types import SimpleNamespace</span>
 <span class="sd">    &gt;&gt;&gt; class Saver:   # a designer that saves a preview as voice "v&lt;preview&gt;"</span>
@@ -2496,6 +2528,16 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    ('va', 'va', [None, 'vb'])</span>
 <span class="sd">    &gt;&gt;&gt; choose_in_entry(entry, "B", by="noel").document["chosen_at"]   # the same choice again</span>
 <span class="sd">    't2'</span>
+
+<span class="sd">    A voice keeps the prefix it was saved under when a fork chooses with its own:</span>
+
+<span class="sd">    &gt;&gt;&gt; src = {"notes": "n", "name_prefix": "src", "options": [</span>
+<span class="sd">    ...     {"option": "A", "generated_voice_id": "a"}, {"option": "B", "generated_voice_id": "b"}]}</span>
+<span class="sd">    &gt;&gt;&gt; _ = choose_in_entry(src, "A", by="noel", designer=Saver())</span>
+<span class="sd">    &gt;&gt;&gt; choose_in_entry(src, "B", by="ann", designer=Saver(), name_prefix="fork").retired</span>
+<span class="sd">    'va'</span>
+<span class="sd">    &gt;&gt;&gt; src["retired"], src["options"][1]["saved_under"], src["name_prefix"]</span>
+<span class="sd">    ([{'voice_id': 'va', 'option': 'A', 'name_prefix': 'src'}], 'fork', 'src')</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"retired"</span><span class="p">,</span> <span class="p">[]),</span> <span class="nb">list</span><span class="p">):</span>
         <span class="k">raise</span> <span class="n">VoiceDesignError</span><span class="p">(</span>
@@ -2515,7 +2557,10 @@ window.runMermaid = runMermaid;</script>
             <span class="p">(</span><span class="n">o</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"options"</span><span class="p">,</span> <span class="p">())</span> <span class="k">if</span> <span class="n">o</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"option"</span><span class="p">)</span> <span class="o">==</span> <span class="n">label</span><span class="p">),</span> <span class="kc">None</span>
         <span class="p">)</span>
         <span class="n">saved</span> <span class="o">=</span> <span class="n">option_of</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">option_of</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"voice_id"</span><span class="p">)</span>
-        <span class="n">voice_id</span> <span class="o">=</span> <span class="n">choose_voice_option</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="n">ref</span><span class="p">,</span> <span class="n">designer</span><span class="o">=</span><span class="n">designer</span><span class="p">)</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="n">name_prefix</span> <span class="k">if</span> <span class="n">name_prefix</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_prefix_of</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+        <span class="n">voice_id</span> <span class="o">=</span> <span class="n">choose_voice_option</span><span class="p">(</span>
+            <span class="n">entry</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="n">ref</span><span class="p">,</span> <span class="n">designer</span><span class="o">=</span><span class="n">designer</span><span class="p">,</span> <span class="n">name_prefix</span><span class="o">=</span><span class="n">prefix</span>
+        <span class="p">)</span>
         <span class="n">displaced</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">previous</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"voice_id"</span><span class="p">)</span> <span class="k">if</span> <span class="n">previous</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"voice_id"</span><span class="p">)</span> <span class="o">!=</span> <span class="n">voice_id</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="p">)</span>
@@ -2524,6 +2569,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">option_of</span><span class="p">[</span><span class="s2">"voice_id"</span><span class="p">]</span> <span class="o">=</span> <span class="n">voice_id</span>
             <span class="k">if</span> <span class="n">saved</span><span class="p">:</span>
                 <span class="n">option_of</span><span class="p">[</span><span class="n">SAVED_BY_CHOICE_KEY</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">option_of</span><span class="p">[</span><span class="n">SAVED_UNDER_KEY</span><span class="p">]</span> <span class="o">=</span> <span class="n">prefix</span>
     <span class="n">document</span> <span class="o">=</span> <span class="n">record_choice</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="n">chooser</span><span class="p">,</span> <span class="n">at</span><span class="o">=</span><span class="n">at</span><span class="p">,</span> <span class="n">provider</span><span class="o">=</span><span class="n">DESIGN_PROVIDER</span><span class="p">)</span>
     <span class="n">entry</span><span class="p">[</span><span class="s2">"chosen"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_chosen_record</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">document</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">VoiceChoice</span><span class="p">(</span><span class="n">document</span><span class="p">,</span> <span class="n">displaced</span><span class="p">,</span> <span class="n">retired</span><span class="p">)</span></div>
@@ -2551,8 +2597,8 @@ window.runMermaid = runMermaid;</script>
 <span class="w">    </span><span class="sd">"""Retire the voice ``previous`` (the choice being replaced) named, when a</span>
 <span class="sd">    choice saved it (its option is marked ``saved_by_choice``) and it is not</span>
 <span class="sd">    ``keep``: its option no longer names it, and the ``retired`` ledger does,</span>
-<span class="sd">    with whose name it carries (a copy of the manifest inherits the row, not</span>
-<span class="sd">    the right to delete it). Returns the retired voice, or ``None``."""</span>
+<span class="sd">    with the prefix it was saved under (a copy of the manifest inherits the</span>
+<span class="sd">    row, not the right to delete it). Returns the retired voice, or ``None``."""</span>
     <span class="n">old</span> <span class="o">=</span> <span class="n">previous</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"voice_id"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">old</span> <span class="ow">in</span> <span class="n">in_use</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># another voice document speaks it: not ours to free</span>
@@ -2563,7 +2609,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="p">{</span>
                     <span class="s2">"voice_id"</span><span class="p">:</span> <span class="n">old</span><span class="p">,</span>
                     <span class="s2">"option"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                    <span class="s2">"name_prefix"</span><span class="p">:</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"name_prefix"</span><span class="p">),</span>
+                    <span class="s2">"name_prefix"</span><span class="p">:</span> <span class="n">_saved_under</span><span class="p">(</span><span class="n">previous</span><span class="p">,</span> <span class="n">entry</span><span class="p">),</span>
                 <span class="p">}</span>
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">old</span>
@@ -2580,16 +2626,28 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">old</span> <span class="ow">or</span> <span class="n">old</span> <span class="o">==</span> <span class="n">keep</span> <span class="ow">or</span> <span class="n">previous</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"option"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">saved</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
     <span class="n">retired</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">"retired"</span><span class="p">,</span> <span class="p">[])</span>
-    <span class="n">saved</span><span class="p">[</span><span class="s2">"voice_id"</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">saved</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">SAVED_BY_CHOICE_KEY</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="n">retired</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
         <span class="p">{</span>
             <span class="s2">"voice_id"</span><span class="p">:</span> <span class="n">old</span><span class="p">,</span>
             <span class="s2">"option"</span><span class="p">:</span> <span class="n">previous</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"option"</span><span class="p">),</span>
-            <span class="s2">"name_prefix"</span><span class="p">:</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"name_prefix"</span><span class="p">),</span>
+            <span class="s2">"name_prefix"</span><span class="p">:</span> <span class="n">_saved_under</span><span class="p">(</span><span class="n">saved</span><span class="p">,</span> <span class="n">entry</span><span class="p">),</span>
         <span class="p">}</span>
     <span class="p">)</span>
+    <span class="n">saved</span><span class="p">[</span><span class="s2">"voice_id"</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">saved</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">SAVED_BY_CHOICE_KEY</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">saved</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">SAVED_UNDER_KEY</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">old</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_prefix_of</span><span class="p">(</span><span class="n">entry</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The prefix ``entry``'s voices are named under (``an`` when it names none)."""</span>
+    <span class="k">return</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"name_prefix"</span><span class="p">,</span> <span class="s2">"an"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_saved_under</span><span class="p">(</span><span class="n">record</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">entry</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The prefix the voice ``record`` (an option, or a carried ``chosen``) was</span>
+<span class="sd">    saved under: its own :data:`SAVED_UNDER_KEY`, else ``entry``'s (an#618)."""</span>
+    <span class="k">return</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">SAVED_UNDER_KEY</span><span class="p">,</span> <span class="n">_prefix_of</span><span class="p">(</span><span class="n">entry</span><span class="p">))</span>
 
 
 <div class="viewcode-block" id="choose_project_voice">
@@ -2667,7 +2725,9 @@ window.runMermaid = runMermaid;</script>
             <span class="p">)</span>
         <span class="n">entry</span><span class="p">[</span><span class="s2">"chosen"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_chosen_record</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">doc</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">previous</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">RETIRE_ON_REPLACE_KEY</span><span class="p">)</span> <span class="ow">and</span> <span class="n">previous</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"voice_id"</span><span class="p">)</span> <span class="o">==</span> <span class="n">chosen</span><span class="p">:</span>
-            <span class="n">entry</span><span class="p">[</span><span class="s2">"chosen"</span><span class="p">][</span><span class="n">RETIRE_ON_REPLACE_KEY</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">entry</span><span class="p">[</span><span class="s2">"chosen"</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">previous</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">_CARRIED_KEYS</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">previous</span><span class="p">}</span>
+            <span class="p">)</span>
         <span class="n">options</span><span class="p">[</span><span class="n">ref</span><span class="p">]</span> <span class="o">=</span> <span class="n">entry</span>
     <span class="k">return</span> <span class="n">doc</span></div>
 
