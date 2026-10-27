@@ -2039,3 +2039,42 @@ def test_breakpoints_a_float_noise_apart_are_one():
     )
     times = sorted({t for ks in keys.values() for t, _ in ks})
     assert all(t1 - t0 > 1e-6 for t0, t1 in zip(times, times[1:])), times
+
+
+def test_a_pair_the_paint_keys_order_is_not_reported_out_of_order():
+    """an#681: ``left`` stands by the road and passes ``right`` (at rest in
+    the car) at 1.5 s, right behind it on screen. The paint keys swap them
+    there, so the ``draw_order`` check, which reads each instant's order from
+    those keys, has nothing to report about the pair."""
+    scene = _lane(_travel_scene(Shot(id="s1", duration=3.0, viewpoint="road")), 0.2)
+    left = scene.world.members[0]
+    scene.world.members[0] = left.model_copy(update={"frame": "world", "at": (0.5, 0.4, 8.0)})
+    notes = lower_world(scene, extents=EXTENTS).notes
+    assert [n.message for n in notes if n.kind == "draw_order"] == []
+
+
+def test_a_walker_passes_behind_a_standing_member_with_no_travel(tmp_path):
+    """an#679: no travel. ``left`` walks away from the camera (``at_z`` from
+    1 to 5) past ``right``, standing at depth 2, at 0.75 s: it is painted over
+    ``right`` while nearer and under it once behind, keyed at the crossing as
+    in a travelling view."""
+    from an.ir.compose import tween
+    from an.stage.compile import compile_shot
+
+    walk = tween("left", "at_z", to=5.0, duration=3.0, from_=1.0, easing="linear")
+    scene = _two_lamps_scene(
+        timeline=[Shot(id="s1", duration=3.0, viewpoint="two", actions=[walk])]
+    )
+    assert scene.world.travel is None
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        doc = compile_shot(shot, _project(tmp_path).mall)
+    seen = set()
+    for i in range(60):
+        t = 3.0 * i / 60 + 0.013  # between the key times
+        nearer = 1.0 + 4.0 * t / 3.0 < 2.0
+        order = _painted(doc, t)
+        assert (order.index("left") > order.index("right")) == nearer, (t, order)
+        seen.add(nearer)
+    assert seen == {True, False}

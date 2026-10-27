@@ -1,0 +1,1 @@
+- **World crossings are keyed without a travel** (an#679): the lowering computes the depth-ordered paint keys (`_crossing_paint_keys`) in any world, not only one with a travel, so a member walking behind a standing one is painted behind it while it is behind.
