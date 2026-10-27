@@ -1,1 +1,0 @@
-- World paint order: streams at different rates (a stream at rest in the viewpoint's frame included), scanned passes and members in motion are keyed at their depths between the times any two swap, so every visible pair is painted far to near (an#658).
