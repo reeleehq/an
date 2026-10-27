@@ -115,14 +115,18 @@ DFLT_CONFLICT_RETRY: int = 4
 #: tolerance): a conflict is what more passes do not fix. Giving a joint up
 #: settles a conflict when it leaves at most this fraction of the failure.
 DFLT_CONFLICT_PROGRESS: float = 0.5
-#: How fast (scene units per second; per frame in pose mode) the free end of
-#: a chain walks toward a grip it lost and that is back within reach, when
-#: one frame cannot close the gap (an#645): a 50-link rope 600 units away
-#: takes it back in about a second, at 24 fps.
+#: How fast (scene units per second of film) the free end of a chain is led
+#: back to a grip it lost out of reach and that is back within reach, when one
+#: frame cannot close the gap (an#645): a 50-link rope 600 units from its end
+#: takes it back in about a second.
 DFLT_REGRIP_SPEED: float = 600.0
-#: The walking point holds the chain's end with this compliance: stiff enough
-#: to lead it, never a failure that a conflict would settle by giving up a link.
-DFLT_REGRIP_COMPLIANCE: float = 1e-6
+#: A led grip is taken (its pin enforced again) once its gap is this small
+#: (scene units): the rejoin the stage's own check calls a snap is over 2.
+DFLT_REGRIP_SNAP: float = 1.0
+#: The strength of that lead (a :class:`Force` pull toward the walking point):
+#: a compliant pull, which closes no loop a conflict could settle by giving up
+#: a link.
+DFLT_REGRIP_STRENGTH: float = 1e6
 #: The most trial solves :func:`solve` spends looking for the joint to give
 #: up in a conflict (each is a full solve of the frame).
 DFLT_MAX_DROP_TRIALS: int = 12
@@ -141,8 +145,8 @@ DFLT_SEGMENT_MARGIN: float = 0.5
 #: (a changed projection, order, or default): part of every cache key built
 #: on this module.
 #: 2: a slow retry keeps going while it converges (an#568); 3: a conflict gives up
-#: the first candidate that halves the failure (an#641); 4: a lost grip back in
-#: reach is walked to, and a compliant joint closes no conflict loop (an#645).
+#: the first candidate that halves the failure (an#641); 4: a grip lost out of
+#: reach is led back over several frames (an#645).
 SOLVER_VERSION: str = "4"
 #: The most passes a frame whose first retry made progress is given, as a
 #: multiple of ``iterations``: its retry is repeated with ``retry`` times the
@@ -1239,9 +1243,7 @@ def _loop_mates(st: _State, rows: list[_Row], failing: set[int]) -> set[int]:
 
     edges: dict[int, tuple[int, int]] = {}
     for kind, j, p in rows:
-        # A compliant joint stretches rather than fails, so it closes no loop
-        # a conflict could be in (a chain led by a walking point, an#645).
-        if j >= 0 and j not in edges and not p[-1] > 0.0:
+        if j >= 0 and j not in edges:
             edges[j] = (node(p[0]), node(p[1] if kind == "ang" else p[3]))
     adjacency: dict[int, list[tuple[int, int]]] = {}
     blocks: list[list[int]] = []
@@ -1499,6 +1501,7 @@ def solve_frames(
     forces: Sequence[Force] = (),
     gravity: Gravity | None = None,
     regrip_speed: float | None = DFLT_REGRIP_SPEED,
+    regrip_strength: float = DFLT_REGRIP_STRENGTH,
     **options: Any,
 ) -> FramesResult:
     """``frames`` solves in a row, each starting from the last: the caller's
@@ -1531,8 +1534,11 @@ def solve_frames(
     base = resolve_rests(current, joints)
     enforced_before = [j.joined for j in base]
     poses, unsat, lims, snaps, drops = [], [], [], [], []
-    regripping: set[int] = set()  # the joints given up on the frame before
-    tried: set[int] = set()  # ... of them, the ones tried within reach and refused
+    tolerance = options.get("tolerance", DFLT_TOLERANCE)
+    step = (regrip_speed or 0.0) * dt if dt is not None else 0.0
+    lost: set[int] = set()  # grips the geometry ruled out on the frame before
+    walking: dict[int, float] = {}  # grips being led back: the gap last frame
+    regained: set[int] = set()  # grips the lead took back, held since
     for k in range(frames):
         frame_joints = base
         if joints_at is not None:
@@ -1553,40 +1559,84 @@ def solve_frames(
             targets = targets_at(k)
         else:
             targets = targets_at[k]
-        # A grip given up on the frame before and back within reach now: its
-        # free end is pinned to a point that walks toward the grip at
-        # `regrip_speed`, until the gap is one step and the grip itself is
-        # tried. A long chain hanging far from it closes the gap over a few
-        # frames instead of in one, which no frame can, so it is neither given
-        # up again nor a link given up in its place (an#645).
-        step = (regrip_speed or 0.0) * (dt if dt is not None else 1.0)
-        walking = (
-            _walking_anchors(
-                current,
-                frame_joints,
-                targets,
-                regripping & tried,
-                step=step,
-                tolerance=options.get("tolerance", DFLT_TOLERANCE),
+
+        # A grip lost out of reach and back within it, farther than one frame
+        # can close (a long chain hanging far from it), is led back: unjoined
+        # for the frame, its free point pulled (a Force, which closes no loop)
+        # toward a point that walks toward the grip at `regrip_speed`; within
+        # a step the grip itself is tried, and if taking it would tear the
+        # chain the frame is pulled straight at it instead (an#645). Only in
+        # dynamic mode: a pose has no time to walk in.
+        def lead(grips: Collection[int], walked: Mapping[int, float], **kw: Any):
+            return _regrip_leads(
+                current, frame_joints, targets, grips, walked, tolerance=tolerance, **kw
             )
-            if regripping & tried and step > 0.0
-            else {}
+
+        # Led grips walk on (within a snap they are tried themselves); a grip
+        # back within reach is tried itself first, as a short chain or an arm
+        # swings back at once.
+        leads, within = (
+            lead(walking.keys(), walking, step=step) if step > 0.0 else ({}, set())
         )
-        r = solve(
-            current,
-            [walking.get(j, fj) for j, fj in enumerate(frame_joints)],
-            targets=targets,
-            forces=forces,
-            gravity=gravity,
-            dt=dt,
-            **options,
+
+        def frame(led: Mapping[int, tuple[Point, Any, float]]) -> SolveResult:
+            return solve(
+                current,
+                [
+                    replace(fj, joined=False) if i in led else fj
+                    for i, fj in enumerate(frame_joints)
+                ],
+                targets=targets,
+                forces=(
+                    *forces,
+                    *(
+                        Force(free, toward=toward, strength=regrip_strength)
+                        for free, toward, _gap in led.values()
+                    ),
+                ),
+                gravity=gravity,
+                dt=dt,
+                **options,
+            )
+
+        r = frame(leads)
+        before = set(drops[-1]) if drops else set()
+        trying = (within | lost) - leads.keys() if step > 0.0 else set()
+        refused = set(r.dropped) & trying
+        tore = set(r.dropped) - trying - set(r.out_of_reach) - before - leads.keys()
+        if trying and (refused or tore):
+            # The grip refused, or taking it gives a link up: led instead, a
+            # step at a time from out of reach, straight at it from within a
+            # snap, and tried again next frame.
+            leads.update(lead(trying - within, {}, step=step)[0])
+            leads.update(lead(trying & within, {}, step=0.0, snap=-1.0)[0])
+            r = frame(leads)
+        torn = set(r.dropped) - regained - set(r.out_of_reach) - before - leads.keys()
+        if torn and regained:
+            # A link is given up while a grip the lead took back holds: the
+            # grip goes first, as it would in any conflict (an#641), and is led
+            # back again.
+            leads.update(lead(regained, {}, step=0.0, snap=-1.0)[0])
+            r = frame(leads)
+        regained = (
+            (regained | (within - set(r.dropped))) - leads.keys() - set(r.dropped)
         )
-        if walking:  # not the grip yet: reported as given up, and still walking
-            r = replace(r, dropped=tuple(sorted({*r.dropped, *walking})))
-        # The grip itself is tried first on the frame it is back within reach
-        # (a short chain closes the gap at once); it walks from the next.
-        tried = {j for j in r.dropped if j not in r.out_of_reach}
-        regripping = set(r.dropped)
+        walking = {}
+        if leads:  # led, not held: given up, at the gap the grip still has
+            walking = {j: _gap(r.bodies, frame_joints[j]) for j in leads}
+            r = replace(
+                r,
+                dropped=tuple(sorted({*r.dropped, *leads})),
+                unsatisfied=tuple(
+                    sorted(
+                        {
+                            **dict(r.unsatisfied),
+                            **{j: g for j, g in walking.items() if g > tolerance},
+                        }.items()
+                    )
+                ),
+            )
+        lost = set(r.out_of_reach)
         snaps += [(k, j, gap) for j, gap in reengaged if j not in r.dropped]
         enforced_before = [
             joint.joined and j not in r.dropped for j, joint in enumerate(frame_joints)
@@ -1616,62 +1666,55 @@ def _with_rest(frame_joint: Joint, base_joint: Joint) -> Joint:
     return frame_joint
 
 
-def _walking_anchors(
+def _regrip_leads(
     bodies: Sequence[Body],
     joints: Sequence[Joint],
     targets: Targets | None,
-    given_up: Collection[int],
+    grips: Collection[int],
+    walked: Mapping[int, float],
     *,
     step: float,
     tolerance: float,
-) -> dict[int, Pin]:
-    """The joints in ``given_up`` (given up on the frame before) that are back
-    within reach, each as a pin of its free point to a point ``step`` toward
-    its held one (:func:`_regrip_anchor`), while it is farther than a step."""
+    snap: float = DFLT_REGRIP_SNAP,
+) -> tuple[dict[int, tuple[Point, Any, float]], set[int]]:
+    """The grips (pins with one held side) in ``grips`` that are within reach,
+    as ``({joint: (free point, where to pull it, gap)}, {joint})``: the first
+    those farther than ``step``, pulled toward a point ``step`` along the gap
+    (``step`` 0: toward the held point itself), the second those within a
+    step, to be tried themselves. A grip whose gap grew since it was last led
+    (``walked``) is in neither: it is no longer led (an#645). The last step
+    pulls straight at the held point, so the grip is taken within
+    :data:`DFLT_REGRIP_SNAP` rather than across a step."""
     st = _State(bodies)
     st.drive(targets)
     st.restore_held()
     far = set(_out_of_reach(st, _rows(st, joints, ()), tolerance))
-    out = {}
-    for j in sorted(given_up):
-        if j < len(joints) and joints[j].joined and j not in far:
-            anchor = _regrip_anchor(bodies, joints[j], targets, step)
-            if anchor is not None:
-                out[j] = anchor
-    return out
-
-
-def _regrip_anchor(
-    bodies: Sequence[Body],
-    joint: Joint,
-    targets: Targets | None,
-    step: float,
-) -> Pin | None:
-    """``joint`` (a pin between a free point and a held one) with its free
-    point pinned instead, compliantly, to a world point ``step`` from where it
-    is, toward the held point (an#645); ``None`` when it is within a step, for
-    another joint, or a pin both or neither of whose sides are held."""
-    if not isinstance(joint, Pin):
-        return None
-    st = _State(bodies)
-    st.drive(targets)
-    sides = [(point, *st.offset(point)) for point in (joint.a, joint.b)]
-    held = [i == 0 or bodies[i - 1].fixed or i in st.held for _, i, _lx, _ly in sides]
-    if held[0] == held[1]:
-        return None
-    (free, fi, fx, fy), (_, hi, hx, hy) = sides if held[1] else sides[::-1]
-    ax, ay = st.world(fi, fx, fy)
-    bx, by = st.world(hi, hx, hy)
-    gap = math.hypot(bx - ax, by - ay)
-    if gap <= step:
-        return None  # one step from the grip: the grip itself is tried
-    f = step / gap
-    return replace(
-        joint,
-        a=free,
-        b=Point(WORLD, ax + f * (bx - ax), ay + f * (by - ay)),
-        compliance=max(joint.compliance, DFLT_REGRIP_COMPLIANCE),
-    )
+    leads: dict[int, tuple[Point, Any, float]] = {}
+    within: set[int] = set()
+    for j in sorted(grips):
+        joint = joints[j]
+        if not isinstance(joint, Pin) or not joint.joined or j in far:
+            continue
+        sides = [(point, *st.offset(point)) for point in (joint.a, joint.b)]
+        held = [
+            i == 0 or bodies[i - 1].fixed or i in st.held for _p, i, _x, _y in sides
+        ]
+        if held[0] == held[1]:
+            continue
+        (free, fi, fx, fy), (fixed, hi, hx, hy) = sides if held[1] else sides[::-1]
+        ax, ay = st.world(fi, fx, fy)
+        bx, by = st.world(hi, hx, hy)
+        gap = math.hypot(bx - ax, by - ay)
+        if gap > walked.get(j, math.inf):
+            continue  # not closing: no longer led
+        if gap <= snap:
+            within.add(j)
+        elif step <= 0.0 or gap <= step:
+            leads[j] = (free, fixed, gap)  # the last step: straight at the grip
+        else:
+            f = step / gap
+            leads[j] = (free, (ax + f * (bx - ax), ay + f * (by - ay)), gap)
+    return leads, within
 
 
 def _gap(bodies: Sequence[Body], joint: Joint) -> float:

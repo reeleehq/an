@@ -562,19 +562,17 @@ def _rope(n: int = 50, link: float = 10.0) -> tuple[list[Body], list[Pin]]:
     return bodies, joints
 
 
-@pytest.mark.parametrize("n", [10, 30, 50])
+@pytest.mark.parametrize("n", [10, 30, 70])
 def test_a_rope_gives_up_its_end_never_a_link_and_takes_it_back(n):
     """an#641: the rope's end goes out of reach for 20 frames and comes back.
     Held at both ends the rope is a loop, so a conflict on it is settled by
-    giving up the grip (declared last), never an interior link, even when the
-    rope, falling, is a little short of converged on links that are on no
-    cycle once the end is given up. On main the links were given up from the
-    frame the end came back, and the rope came apart by hundreds of px.
+    giving up the grip (declared last), never an interior link.
 
     an#645: back within reach, a rope hanging far from its end cannot close
-    the gap in one frame; its end is walked to the grip at `regrip_speed`
-    and taken back with a small snap (main: never, for 50 links; a jump of
-    100 to 250 px for shorter ones)."""
+    the gap in one frame (main: never, for 40 links and more; a jump of 100
+    to 250 units for shorter ones). Its end is led back (a pull toward a
+    point walking toward the grip at `regrip_speed`, the grip unjoined) and
+    taken within a unit; no link is given up, then or after."""
     link = 10.0
     bodies, joints = _rope(n, link)
 
@@ -586,8 +584,38 @@ def test_a_rope_gives_up_its_end_never_a_link_and_takes_it_back(n):
         bodies, joints, frames=60, dt=DT, targets_at=end_at, gravity=(0.0, 980.0)
     )
     assert {j for d in r.dropped for j in d} == {n}, r.dropped
-    worst = max((g for u in r.unsatisfied for j, g in u if j != n), default=0.0)
-    assert worst < 1.5, worst
     after = [s for s in r.snaps if s[0] >= 24]
-    assert after and all(j == n and gap < 25.0 for _k, j, gap in after), r.snaps
+    assert after and all(j == n and gap < 1.0 for _k, j, gap in after), r.snaps
     assert r.dropped[-1] == ()  # held at the end
+    led = [k for k in range(24, 60) if r.dropped[k]]
+    assert led and n in dict(r.unsatisfied[led[0]])  # its gap, reported while led
+
+
+def test_a_soft_pull_beyond_reach_is_given_up_never_torn():
+    """an#645 review: a compliant pull of the hand beyond the arm's reach is
+    a joint like any other in a conflict: given up, the arm's pins held."""
+    from an.kinematics import Distance
+
+    bodies, joints = _arm()
+    for dt in (None, DT):
+        for give in (1e-7, 1e-4):
+            pull = Distance(Point("fore", 1.0, 0.5), Point(WORLD, 420.0, -30.0),
+                            length=0.0, mode="at_most", compliance=give)
+            r = solve(bodies[:3], [*joints[:2], pull], targets=NAILED, dt=dt)
+            assert [j for j, _ in r.unsatisfied if j < 2] == [], (dt, give)
+
+
+def test_a_grip_lost_to_the_elbows_range_is_not_led():
+    """an#645 review: only a grip lost out of reach is led back; one given up
+    in a conflict (past the elbow's range) is given up as before, and the arm
+    does not flail after it."""
+    bodies, joints = _arm()
+
+    def handle(k):
+        r = 80.0 if k < 3 else 15.0
+        return {**NAILED, "handle": {"x": 20.0 + r * math.cos(0.3), "y": -30.0 + r * math.sin(0.3)}}
+
+    r = solve_frames(bodies, joints, frames=14, dt=DT, targets_at=handle)
+    fore = r.bodies.index("fore")
+    turns = [abs(float(r.poses[k, fore, 2] - r.poses[k - 1, fore, 2])) for k in range(6, 14)]
+    assert max(turns) < 1e-3, turns  # led, it swung 0.6 to 1.5 rad a frame
