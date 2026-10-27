@@ -579,7 +579,7 @@ def other_scenes(project_dir: str | Path) -> list[tuple[Any, Any]]:
         if sf.is_default:
             continue
         try:
-            out.append((sf, load(project_dir, scene_file=sf)))
+            out.append((sf, load(project_dir, scene_file=sf, sync=False)))
         except Exception as e:  # noqa: BLE001 — refuse rather than guess
             raise CacheGcError(
                 f"cannot read the project's scene {sf.name} ({type(e).__name__}: "
@@ -614,7 +614,7 @@ def collect_garbage(
     """
     from an.project import load
 
-    project = load(project_dir)
+    project = load(project_dir, sync=False)  # a collection reads the scene (an#573)
     store = project.mall.get(SHOT_CACHE_STORE)
     report = GcReport(dry_run=dry_run)
     if store is None:
@@ -1030,7 +1030,7 @@ def cache_info(
     (it says why it is unknown instead)."""
     from an.project import load
 
-    project = load(project_dir)
+    project = load(project_dir, sync=False)  # a collection reads the scene (an#573)
     store = project.mall.get(SHOT_CACHE_STORE)
     layout = _fs_layout(store) if store is not None else None
     info = CacheInfo(path=str(layout[1].parent) if layout else SHOT_CACHE_STORE)

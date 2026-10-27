@@ -1631,6 +1631,60 @@ def sync(
     return result
 
 
+def read_scene(
+    project_dir: str | Path, scene_file: "str | Path | SceneFile" = DEFAULT_SCENE_FILE
+) -> SceneIR:
+    """The scene :func:`sync` followed by a read of the JSON would give, with
+    nothing written (an#573): the newer of the pair wins, the Markdown on a
+    tie that disagrees. For the read-only commands (``an cache info``,
+    ``an cache gc --dry-run``), which must leave every file's bytes and mtime
+    as they were; :func:`sync` repairs the pair, this reads past a stale one.
+
+    Raises like :func:`sync` for a scene that is not there
+    (:class:`SceneFileError`) and for a document that cannot be read.
+
+    >>> import tempfile
+    >>> with tempfile.TemporaryDirectory() as d:
+    ...     _ = (Path(d) / "scene.md").write_text("# Title\\n")
+    ...     read_scene(d).meta.title, (Path(d) / "ir").exists()
+    ('Title', False)
+    """
+    resolved = resolve_scene_file(project_dir, scene_file)
+    md_path, json_path = resolved.md_path, resolved.json_path
+    md_exists, json_exists = md_path.exists(), json_path.exists()
+    if not md_exists and not json_exists:
+        raise SceneFileError(
+            f"no scene file {resolved.name!r} in {resolved.project_dir}"
+        )
+
+    def from_json() -> SceneIR:
+        scene = scene_from_json_doc(json.loads(_read_text(json_path)), source=json_path)
+        return (
+            unset_unwritten_duration(scene, _read_text(md_path)) if md_exists else scene
+        )
+
+    if not json_exists:
+        return markdown_to_ir(_read_text(md_path))
+    if not md_exists:
+        return from_json()
+    skew = json_path.stat().st_mtime - md_path.stat().st_mtime
+    if skew > SYNC_MTIME_TOLERANCE_S:
+        return from_json()
+    if skew < -SYNC_MTIME_TOLERANCE_S:
+        return markdown_to_ir(_read_text(md_path))
+    # The same age: the Markdown is the human source of truth when they
+    # disagree (`_settle_a_tie`, minus the warning and the write).
+    try:
+        json_scene = from_json()
+        if _md_canonical(_read_text(md_path)) == _md_canonical(
+            ir_to_markdown(json_scene)
+        ):
+            return json_scene
+        return markdown_to_ir(_read_text(md_path))
+    except Exception:  # noqa: BLE001 - an unreadable side: the JSON read says why
+        return from_json()
+
+
 class SyncTieWarning(UserWarning):
     """A scene's markdown (``scene.md``) and its JSON twin (``ir/scene.json``)
     had the same age and disagreed."""

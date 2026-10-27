@@ -1284,8 +1284,7 @@ def _scene_record(option: Mapping, sf: Any, reels: Any = None) -> dict | None:
         default_folder = AUDITIONS_DIR.as_posix() + "/"
         path = str(legacy.get(AUDITION_PATH_KEY, ""))
         if (AUDITIONS_KEY not in option) or (
-            path.startswith(default_folder)
-            and "/" not in path[len(default_folder) :]
+            path.startswith(default_folder) and "/" not in path[len(default_folder) :]
         ):
             record = legacy
     if record and reels is not None:
@@ -1431,7 +1430,9 @@ def audition_project_voices(
     _, manifests, _ = _project_stores(project_dir)
     reels = _project_reels(project_dir, sf)
     reels_dir = sf.per_scene_dir(AUDITIONS_DIR)
-    default_scene = resolve_scene_file(project_dir, DEFAULT_SCENE_FILE, must_exist=False)
+    default_scene = resolve_scene_file(
+        project_dir, DEFAULT_SCENE_FILE, must_exist=False
+    )
     inputs = _project_audition_inputs(project_dir, tts, scene_file=sf)
     wanted = list(refs) if refs is not None else sorted(manifests)
     if not wanted:
@@ -1446,7 +1447,9 @@ def audition_project_voices(
         entry = dict(manifests[ref])
         entry["options"] = [dict(o) for o in entry.get("options", ())]
         entries[ref] = entry
-        for o in entry["options"]:  # a pre-per-scene reel is the default scene's: keep it so
+        for o in entry[
+            "options"
+        ]:  # a pre-per-scene reel is the default scene's: keep it so
             if (legacy := _scene_record(o, default_scene)) and AUDITIONS_KEY not in o:
                 o[AUDITIONS_KEY] = {default_scene.name: legacy}
         lines, effects = inputs(ref)
