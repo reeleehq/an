@@ -93,11 +93,11 @@ choice (the side its range allows, else the side it already has).
 arm swinging back from a refused grip toward one inside its length but past
 its elbow's range halved its failure on the first retry, then sat at ~1.2 px
 for any number of passes: it was reported as slow and never given up. The
-retry now repeats while each round halves what is left (up to
+retry now repeats while each round still makes progress (up to
 ``DFLT_CONVERGE_CAP`` × ``iterations``) and a stall is resolved as a conflict.
 On 300 random out-and-back reaches, no frame is left failing in either mode
-(108 were, up to 6 px); a 50-link rope with its end out of reach costs ~86
-rather than ~48 ms a frame, with 7 rather than 22 frames failing.
+(126 were, up to 6 px); a 50-link rope with its end out of reach costs ~90
+rather than ~40 ms a frame, with 7 rather than 22 frames failing.
 
 Not in this version: friction (a contact is frictionless: a lamp on a table
 sliding sideways stays where it is until the edge passes), blending a snap

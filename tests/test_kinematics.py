@@ -511,7 +511,7 @@ def test_the_frame_after_a_refusal_holds_every_joint_it_keeps():
     bodies, joints = _arm()
     r = solve_frames(bodies, joints, frames=14, dt=DT, targets_at=_out_and_back)
     regrips = [k for k in range(1, 14) if r.dropped[k - 1] and not r.dropped[k]]
-    assert regrips
+    assert regrips and all(d == () for d in r.dropped[8:]), r.dropped  # held again
     for k in range(14):
         assert [j for j, _ in r.unsatisfied[k] if j not in r.dropped[k]] == [], k
 
