@@ -2659,6 +2659,64 @@ def _core_world(ctx: ValidationContext) -> None:
                 )
 
 
+def _report_plane_depths(ctx: ValidationContext, world: Any, env_store: Any) -> None:
+    """The planes an environment member gives a world depth (``depths``, an#503)
+    exist in the environment and carry no parallax of their own: one fact has
+    one spelling. Reported once per member, at the first framed shot."""
+    from an.ir.frames import FrameTree
+    from an.stage.environments import (
+        ENVIRONMENT_DOCUMENT_KIND,
+        EnvironmentDescriptor,
+        own_parallax,
+    )
+
+    for j, member in enumerate(world.members):
+        if not member.depths or ("plane_depths", member.id) in ctx.memo:
+            continue
+        ctx.memo[("plane_depths", member.id)] = True
+        try:
+            raw = env_store[member.ref]
+            env = EnvironmentDescriptor.model_validate(
+                migrate(dict(raw), kind=ENVIRONMENT_DOCUMENT_KIND.name)
+            )
+        except Exception:  # noqa: BLE001 — a missing or malformed environment is another check's
+            continue
+        planes = {p.name: p for p in env.planes}
+        frames = world.all_frames()
+        tree = FrameTree(frames)
+        for name in sorted(member.depths):
+            where = f"world/members/{j}"
+            frame = (member.planes or {}).get(name) or member.frame
+            if frame is not None and any(
+                frames[n].coupling == "far" for n in tree.chain(frame)
+            ):
+                ctx.report.add(
+                    "error",
+                    where,
+                    f"plane {member.id}/{name!r} has a world depth but is in frame "
+                    f"{frame!r}, coupled by rotation only: that is at infinity, "
+                    "factor 0. Drop the depth.",
+                )
+            elif name not in planes:
+                ctx.report.add(
+                    "error",
+                    where,
+                    f"member {member.id!r} gives plane {name!r} a world depth, but "
+                    f"environment {member.ref!r} has no such plane (its planes: "
+                    f"{sorted(planes)}).",
+                )
+            elif own_parallax(planes[name]):
+                ctx.report.add(
+                    "error",
+                    where,
+                    f"plane {member.id}/{name!r} has a world depth ({member.depths[name]:g}) "
+                    f"and a parallax of its own (depth {planes[name].depth}, parallax "
+                    f"{planes[name].parallax}): two spellings of one fact. Keep the "
+                    "descriptor's depth at 1.0 and let the world depth derive the factor, "
+                    "or drop the world depth.",
+                )
+
+
 def _core_viewpoint(ctx: ValidationContext) -> None:
     """What the world did to this framed shot (ADR 0009): the members it
     added (info), a hand placement that disagrees with it (warning), a listed
@@ -2679,6 +2737,7 @@ def _core_viewpoint(ctx: ValidationContext) -> None:
     env_store = ctx.stores.get("environments")
     if world is None or env_store is None:
         return
+    _report_plane_depths(ctx, world, env_store)
     from an.ir.frames import FrameTree
     from an.ir.schema import WORLD_FRAME
     from an.ir.world import viewpoint_of

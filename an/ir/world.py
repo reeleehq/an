@@ -44,6 +44,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Callable, Collection, Mapping, Sequence
 
+from an.base import PLANE_FACTORS_OVERRIDE
 from an.ir.compose import (
     delay,
     flatten,
@@ -134,6 +135,12 @@ _FLAT_CHANNEL_EPS: float = 1e-6
 #: The key the lowering records a member's attachment under in the entity's
 #: ``overrides``, for a pass that places it from its host (ADR 0009).
 ATTACHED_OVERRIDE: str = "attached"
+#: The key the lowering records the parallax factors derived from an
+#: environment member's ``depths`` under, in the entity's ``overrides``
+#: (``{plane name: factor}``, an#503): the compiler reads them where it reads a
+#: plane's own ``depth``, so a plane at a world depth compiles exactly as one
+#: with that factor written by hand.
+PLANE_FACTORS_OVERRIDE: str = "plane_factors"
 
 
 class WorldError(ValueError):
@@ -2237,6 +2244,9 @@ def _lower_shot(
         for stream_id, problem in problems:
             note("warning", "stream", stream_id, problem)
     ordered.sort(key=lambda item: item[0])
+    envs = [
+        (_with_plane_factors(e, members.get(e.id), placed, note), j) for e, j in envs
+    ]
     entities = [e for e, _ in envs] + [e for _, e, _ in ordered]
     origins = [j for _, j in envs] + [j for _, _, j in ordered]
     return (
@@ -2244,6 +2254,46 @@ def _lower_shot(
         notes,
         origins,
     )
+
+
+def parallax_factor(z: float, z_ref: float) -> float:
+    """The parallax factor of a plane ``z`` deep when what the shot shows is
+    ``z_ref`` deep: a camera translating by ``d`` shifts the plane by ``f * d / z``
+    and the character plane by ``f * d / z_ref``, so relative to it the plane
+    moves by ``z_ref / z`` (a plane at the reference depth is 1, which emits
+    nothing; a far one tends to 0).
+
+    >>> parallax_factor(20.0, 2.0), parallax_factor(2.0, 2.0), parallax_factor(1.0, 2.0)
+    (0.1, 1.0, 2.0)
+    """
+    return z_ref / z
+
+
+def _with_plane_factors(
+    entity: AssetRef,
+    member: WorldMember | None,
+    placed: Mapping[str, Placed],
+    note: Callable[[str, str, str, str], None],
+) -> AssetRef:
+    """``entity`` (an environment) carrying the factors its member's ``depths``
+    derive (:data:`PLANE_FACTORS_OVERRIDE`); unchanged without ``depths``. The
+    reference depth is the mean depth of what the shot shows in frame."""
+    if member is None or not member.depths:
+        return entity
+    shown = [p.depth for p in placed.values() if p.depth is not None and p.in_frame]
+    if not shown:
+        note(
+            "warning",
+            "plane_depths",
+            entity.id,
+            "its planes have world depths but the shot shows no member to measure "
+            "them against: the planes keep their own parallax factors.",
+        )
+        return entity
+    z_ref = sum(shown) / len(shown)
+    factors = {name: parallax_factor(z, z_ref) for name, z in member.depths.items()}
+    overrides = {**(entity.overrides or {}), PLANE_FACTORS_OVERRIDE: factors}
+    return entity.model_copy(update={"overrides": overrides})
 
 
 def _is_slot_id(entity_id: str, travel: Travel) -> bool:

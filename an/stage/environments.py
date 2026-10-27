@@ -342,6 +342,54 @@ class EnvironmentDescriptor(_EnvModel):
 # --- framing: what a camera shows, and what the planes cover (an#211) --------
 
 
+def own_parallax(plane: Plane) -> bool:
+    """Whether ``plane`` carries a parallax of its own (a ``depth`` other than
+    1.0, or a per-axis ``parallax``): the other spelling of what a world depth
+    derives (an#503).
+
+    >>> own_parallax(Plane(name="a")), own_parallax(Plane(name="a", depth=0.1))
+    (False, True)
+    """
+    return plane.depth != 1.0 or plane.parallax is not None
+
+
+def with_plane_factors(
+    env: EnvironmentDescriptor,
+    factors: Mapping[str, float],
+    *,
+    where: str = "an environment",
+) -> EnvironmentDescriptor:
+    """``env`` with each named plane's parallax factor set to ``factors[name]``,
+    the factors a world depth derives (an#503). The result compiles exactly as a
+    descriptor with those factors written by hand. A plane that already has a
+    parallax of its own, or a name no plane has, is refused: two spellings of
+    one fact, and a depth for a plane that is not there.
+
+    >>> env = EnvironmentDescriptor(name="e", planes=[Plane(name="sky")])
+    >>> with_plane_factors(env, {"sky": 0.1}).planes[0].depth
+    0.1
+    """
+    names = {p.name for p in env.planes}
+    unknown = sorted(set(factors) - names)
+    if unknown:
+        raise ValueError(
+            f"{where}: world depths name planes {unknown} that the environment "
+            f"does not have (its planes: {sorted(names)})"
+        )
+    planes = []
+    for plane in env.planes:
+        if plane.name in factors:
+            if own_parallax(plane):
+                raise ValueError(
+                    f"{where}: plane {plane.name!r} has a world depth and a parallax of "
+                    f"its own (depth {plane.depth}, parallax {plane.parallax}): two "
+                    "spellings of one fact. Drop one."
+                )
+            plane = plane.model_copy(update={"depth": float(factors[plane.name])})
+        planes.append(plane)
+    return env.model_copy(update={"planes": planes})
+
+
 def plane_rect(
     plane: Plane,
     art_size: tuple[float, float] | None,

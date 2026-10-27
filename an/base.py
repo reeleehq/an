@@ -226,6 +226,12 @@ TRIM_PROPERTIES: frozenset[str] = frozenset({"trim_start", "trim_end", "dash_off
 #: node keeps its place in the transform tree, so it moves, turns and fades
 #: exactly as before; only its paint moves. Not authorable: the hold layer emits
 #: it (a held item draws just above the part that holds it, an#537).
+#: The key the world's lowering records the parallax factors derived from an
+#: environment member's ``depths`` under, in the entity's ``overrides``
+#: (``{plane name: factor}``, an#503): the compiler reads them where it reads a
+#: plane's own ``depth``, so a plane at a world depth compiles exactly as one
+#: with that factor written by hand.
+PLANE_FACTORS_OVERRIDE: str = "plane_factors"
 PAINT_AFTER_PROPERTY: str = "paint_after"
 
 #: The non-numeric properties the runtime applies itself (outside

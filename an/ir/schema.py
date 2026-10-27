@@ -564,10 +564,31 @@ class WorldMember(AssetRef):
     #: cabin plate and a sky plate).
     frame: str | None = _FRAME_FIELD
     planes: dict[str, str] | None = None
+    #: An environment's planes at a world depth, ``{plane name: z}`` in world
+    #: units (an#503): the parallax factor of a plane is DERIVED from it, ``z_ref /
+    #: z`` with ``z_ref`` the depth of what the shot shows (the character plane),
+    #: so a plane declares where it is and not how fast it scrolls. A plane
+    #: with a depth must keep the descriptor's own ``depth`` (1.0) and
+    #: ``parallax`` unset: two spellings of one fact are refused. What is at
+    #: infinity is a plane in a ``far`` frame, not a depth.
+    depths: dict[str, float] | None = None
 
     @model_validator(mode="after")
     def _one_way_to_place_it(self) -> "WorldMember":
         where = f"world member {self.id!r}"
+        if self.depths is not None:
+            if self.kind != "environment":
+                raise ValueError(
+                    f"{where} is not an environment: only an environment has `depths` "
+                    "(the world depth of each of its planes)."
+                )
+            bad = {k: v for k, v in self.depths.items() if not (0 < v < float("inf"))}
+            if bad:
+                raise ValueError(
+                    f"{where} has plane depths {bad}: a depth is a positive, finite "
+                    "distance in world units (what is at infinity is a plane in a "
+                    "`far` frame)."
+                )
         if self.stage is not None:
             raise ValueError(
                 f"{where} carries `stage`: a member is placed by each shot's "
@@ -632,6 +653,7 @@ class WorldMember(AssetRef):
                 "units_per_px",
                 "attached",
                 "after",
+                "depths",
                 "frame",
                 "planes",
             )
