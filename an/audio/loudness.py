@@ -128,6 +128,16 @@ def _require_ffmpeg(doing: str) -> None:
         )
 
 
+def _install_hint() -> str:
+    """How to get the component: the extra, or (when ``mixing`` is there but
+    predates ``mixing.loudness``, 0.0.64) an upgrade, which the extra would not do."""
+    import importlib.util
+
+    if importlib.util.find_spec("mixing") is not None:
+        return "upgrade mixing (`pip install -U mixing`; mixing.loudness is in 0.0.64 and later)"
+    return INSTALL_HINT
+
+
 def _component() -> Any:
     """:mod:`mixing.loudness`, or :class:`LoudnessComponentMissing` naming the extra."""
     try:
@@ -135,7 +145,7 @@ def _component() -> Any:
     except ImportError as e:
         raise LoudnessComponentMissing(
             f"leveling voices needs the shared loudness component "
-            f"(mixing.loudness): {INSTALL_HINT}"
+            f"(mixing.loudness): {_install_hint()}"
         ) from e
     return loudness
 
@@ -422,14 +432,21 @@ def level_voices(
             )
         level = VoiceLevel(voice, lufs, lines=len(lines))
         levels.append(level)
+        for caught in capped:
+            if caught.category is UserWarning:  # the component capped the gain: said per voice
+                warnings.warn(
+                    f"voice {voice!r}: {caught.message}",
+                    VoiceLoudnessWarning,
+                    stacklevel=3,
+                )
+            else:  # anything else is not ours to relabel: pass it on as it was
+                warnings.warn_explicit(
+                    caught.message, caught.category, caught.filename, caught.lineno
+                )
         if not lufs > SILENCE_LUFS:
             for line in lines:
                 line.audio_ref, line.leveled = _source(line), None
             continue  # silence (the offline provider): nothing to level
-        for caught in capped:  # the component capped the gain: said per voice
-            warnings.warn(
-                f"voice {voice!r}: {caught.message}", VoiceLoudnessWarning, stacklevel=3
-            )
         if previous is not None and abs(gain - previous) < GAIN_STEP_DB:
             gain = previous  # hysteresis: a move under a step re-levels nothing
 

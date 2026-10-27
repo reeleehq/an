@@ -21,10 +21,25 @@ def no_mixing(monkeypatch):
         monkeypatch.delattr(sys.modules["mixing"], "loudness", raising=False)
 
 
-def test_leveling_without_the_component_names_the_extra(no_mixing):
+def test_leveling_without_mixing_names_the_extra(monkeypatch):
+    monkeypatch.setitem(sys.modules, "mixing", None)  # no mixing at all
+    monkeypatch.setitem(sys.modules, "mixing.loudness", None)
     assert not loudness.component_available()
     with pytest.raises(loudness.LoudnessComponentMissing, match=r"an\[loudness\]"):
         loudness.limit_peaks([[2.0]], ceiling=1.0)
+
+
+def test_an_older_mixing_is_told_to_upgrade_not_to_install_the_extra(no_mixing):
+    """mixing is there but predates `mixing.loudness`: the extra is already satisfied."""
+    import importlib.util
+
+    if importlib.util.find_spec("mixing") is None:
+        pytest.skip("mixing is not installed")
+    assert not loudness.component_available()
+    with pytest.raises(loudness.LoudnessComponentMissing, match="upgrade mixing"):
+        loudness.limit_peaks([[2.0]], ceiling=1.0)
+    assert issubclass(loudness.LoudnessComponentMissing, loudness.VoiceLoudnessError)
+    assert issubclass(loudness.LoudnessComponentMissing, ImportError)
     assert issubclass(loudness.LoudnessComponentMissing, loudness.VoiceLoudnessError)
     assert issubclass(loudness.LoudnessComponentMissing, ImportError)
 

@@ -588,15 +588,14 @@ def test_the_subrip_mirror_matches_mixing_field_for_field_and_byte_for_byte():
 
 
 #: The one module that may import ``mixing``, and what it may import (an#578).
-MIXING_IMPORT_ALLOWED = {"loudness.py": {"mixing.loudness", "mixing"}}
+MIXING_IMPORT_ALLOWED = {"audio/loudness.py": {"mixing.loudness", "mixing"}}
 
 
 def test_an_never_imports_mixing():
     """The boundary: `an` MIRRORS `mixing.srt` rather than depending on it.
 
-    Reason, as of mixing 0.0.64 (an#578): `mixing`'s base install no longer
-    carries the GPL-built ffmpeg binary (moviepy -> imageio-ffmpeg now sit in
-    its `media` extra), so ONE module may import the shared loudness component,
+    Reason (an#578): `mixing`'s base install does not carry the GPL-built ffmpeg
+    binary (moviepy -> imageio-ffmpeg sit in its `media` extra), so ONE module may import the shared loudness component,
     `an/audio/loudness.py` (`mixing.loudness`, lazily, from the bare `an[loudness]`
     extra). Anything else importing `mixing` is still refused, and
     `test_the_loudness_component_loads_no_media_stack` fails if the reason stops
@@ -604,8 +603,15 @@ def test_an_never_imports_mixing():
     root = Path(__file__).resolve().parents[1] / "an"
     offenders = []
     for path in root.rglob("*.py"):
-        allowed = MIXING_IMPORT_ALLOWED.get(path.name, set()) if path.parent.name == "audio" else set()
-        for node in ast.walk(ast.parse(path.read_text("utf-8"))):
+        allowed = MIXING_IMPORT_ALLOWED.get(path.relative_to(root).as_posix(), set())
+        tree = ast.parse(path.read_text("utf-8"))
+        in_function = {
+            id(n)
+            for fn in ast.walk(tree)
+            if isinstance(fn, (ast.FunctionDef, ast.AsyncFunctionDef))
+            for n in ast.walk(fn)
+        }
+        for node in ast.walk(tree):
             names = []
             if isinstance(node, ast.Import):
                 names = [a.name for a in node.names]
@@ -614,7 +620,8 @@ def test_an_never_imports_mixing():
             offenders += [
                 f"{path.name}: {n}"
                 for n in names
-                if n.split(".")[0] == "mixing" and n not in allowed
+                if n.split(".")[0] == "mixing"
+                and (n not in allowed or id(node) not in in_function)  # lazy only
             ]
     assert offenders == []
 
@@ -634,6 +641,8 @@ def test_the_loudness_component_loads_no_media_stack():
         "import sys, an.audio.loudness as m\n"
         "m.component_available()\n"
         "m._component().limit_peaks\n"
+        "import numpy as np\n"
+        "m.integrated_loudness(m._Pcm(np.zeros((22050, 1)) + 0.1, 22050))\n"  # a measurement, not just an import
         "bad = [n for n in ('moviepy', 'imageio_ffmpeg', 'imageio', 'scipy', 'cv2', 'pydub')"
         " if n in sys.modules]\n"
         "print(bad)\n"
