@@ -927,6 +927,37 @@ def test_a_pinned_reference_reads_its_bytes_after_its_key_is_gone(tmp_path):
     assert HELLO in again.text and again.fmt == "srt"
 
 
+def test_lacing_reads_the_reference_and_an_names_what_is_missing():
+    """an#670: `lacing.ArtifactRef` parses and `resolve_in_mall` reads; an's
+    refusals still say which part is missing, and a pin in capitals is a pin."""
+    from an.stores.transcripts import (
+        TranscriptLinkError,
+        in_memory_transcripts_store,
+        linked_transcript,
+        pin_of,
+        record_transcript,
+    )
+
+    store = in_memory_transcripts_store()
+    art = record_transcript(store, "k", SRT)
+    mall = {"transcripts": store}
+    shouting = f"artifact:transcripts/k@{art.asset_id.upper()}"
+    assert linked_transcript(shouting, mall).ref == f"transcripts/k@{art.asset_id}"
+    assert pin_of(shouting.removeprefix("artifact:")) == art.asset_id
+    for item, says in [
+        ("take.srt", "not an artifact reference"),
+        ("artifact:nope", "no transcript 'nope'"),
+        (f"artifact:transcripts/k@{'0' * 64}", "no longer kept"),
+    ]:
+        with pytest.raises(TranscriptLinkError, match=says):
+            linked_transcript(item, mall)
+    with pytest.raises(TranscriptLinkError, match="no 'transcripts' store"):
+        linked_transcript("artifact:k", {"other": store})
+    for key in ("a b", "/a", f"k@{'0' * 64}"):
+        with pytest.raises(TranscriptLinkError, match="choose another transcript key"):
+            record_transcript(store, key, SRT)
+
+
 def _textgrid(
     tiers: dict[str, list[tuple[float, float, str]]], xmax: float = 4.0
 ) -> str:
