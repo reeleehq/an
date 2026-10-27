@@ -23,7 +23,11 @@ import pytest
 
 from an.adapters.cutout.compile import CutoutCompileError, compile_shot
 from an.adapters.cutout.serialize import to_dict
-from an.adapters.cutout.timeline import evaluate_timeline, screen_position, timeline_from_scene
+from an.adapters.cutout.timeline import (
+    evaluate_timeline,
+    screen_position,
+    timeline_from_scene,
+)
 from an.ir.compose import tween
 from an.ir.schema import (
     AssetRef,
@@ -42,7 +46,12 @@ W, H = 320, 240
 
 
 def _plane(name, color, *, size=None, depth=1.0, offset=(0.0, 0.0)):
-    out = {"name": name, "art": {"kind": "fill", "color": color}, "depth": depth, "offset": list(offset)}
+    out = {
+        "name": name,
+        "art": {"kind": "fill", "color": color},
+        "depth": depth,
+        "offset": list(offset),
+    }
     if size is not None:
         out["size"] = list(size)
     return out
@@ -59,7 +68,10 @@ def _mall(**props):
         ],
     }
     text = {"kind": "TextDescriptor", "name": "t", "text": "O", "unit": "line"}
-    return {"environments": {"w": env}, "props": {k: {**text, **v} for k, v in props.items()}}
+    return {
+        "environments": {"w": env},
+        "props": {k: {**text, **v} for k, v in props.items()},
+    }
 
 
 def _prop(eid, after=None, *, at=None):
@@ -69,14 +81,19 @@ def _prop(eid, after=None, *, at=None):
 
 def _shot(*entities, actions=(), pan=0.0) -> Shot:
     camera = (
-        Camera(keys=[CameraKey(at=0.0, x=0.0), CameraKey(at=1.0, x=pan)]) if pan else None
+        Camera(keys=[CameraKey(at=0.0, x=0.0), CameraKey(at=1.0, x=pan)])
+        if pan
+        else None
     )
     return Shot(
         id="s",
         renderer="stage",
         duration=1.0,
         camera=camera,
-        entities=[AssetRef(kind="environment", id="set", store="environments", ref="w"), *entities],
+        entities=[
+            AssetRef(kind="environment", id="set", store="environments", ref="w"),
+            *entities,
+        ],
         actions=list(actions),
     )
 
@@ -95,9 +112,14 @@ def _top(doc) -> list[tuple[str, str | None, list[str]]]:
 
 
 def _errors(shot, mall) -> list[str]:
-    scene = SceneIR(meta=Meta(duration=1.0, resolution=Resolution(width=W, height=H)), timeline=[shot])
+    scene = SceneIR(
+        meta=Meta(duration=1.0, resolution=Resolution(width=W, height=H)),
+        timeline=[shot],
+    )
     report = validate_semantic(
-        scene, available_environments=mall["environments"], available_props=mall["props"]
+        scene,
+        available_environments=mall["environments"],
+        available_props=mall["props"],
     )
     return [f.description for f in report.findings if f.severity == "error"]
 
@@ -128,7 +150,9 @@ def test_an_entity_after_a_plane_is_drawn_between_the_planes():
         ("set__band_1", "set", ["wall", "sill"]),
     ]
     # Every plane keeps its one address; the entity keeps its own.
-    assert {"set/sky", "set/wall", "set/sill", "disc", "disc/line_0"} <= tree.paths(doc.scene)
+    assert {"set/sky", "set/wall", "set/sill", "disc", "disc/line_0"} <= tree.paths(
+        doc.scene
+    )
 
 
 def test_followers_keep_entity_order_and_a_follower_s_follower_comes_right_after_it():
@@ -145,7 +169,10 @@ def test_followers_keep_entity_order_and_a_follower_s_follower_comes_right_after
 
 
 def test_after_an_entity_orders_without_any_plane():
-    doc = _compile(_shot(_prop("grid"), _prop("mark", "grid"), _prop("label")), _mall(grid={}, mark={}, label={}))
+    doc = _compile(
+        _shot(_prop("grid"), _prop("mark", "grid"), _prop("label")),
+        _mall(grid={}, mark={}, label={}),
+    )
     assert [n for n, _, _ in _top(doc)] == ["set", "grid", "mark", "label"]
 
 
@@ -159,7 +186,10 @@ def test_an_entity_after_a_far_plane_moves_with_it_not_with_the_camera():
     first, last = evaluate_timeline(tl, 0.0), evaluate_timeline(tl, 1.0)
 
     def dx(path):
-        return screen_position(doc, path, pose=last)[0] - screen_position(doc, path, pose=first)[0]
+        return (
+            screen_position(doc, path, pose=last)[0]
+            - screen_position(doc, path, pose=first)[0]
+        )
 
     assert dx("set/sky") == pytest.approx(-20.0)  # depth 0.25 of an 80 px pan
     assert dx("disc") == pytest.approx(dx("set/sky"))
@@ -174,7 +204,11 @@ def test_a_locked_off_shot_emits_no_wrapper_clip():
 
 
 def test_an_authored_channel_on_the_wrapper_is_refused():
-    shot = _shot(_prop("disc", "set/sky"), actions=[tween("set__after_0", "x", 5.0, 1.0, from_=0.0)], pan=80.0)
+    shot = _shot(
+        _prop("disc", "set/sky"),
+        actions=[tween("set__after_0", "x", 5.0, 1.0, from_=0.0)],
+        pan=80.0,
+    )
     with pytest.raises(CutoutCompileError, match="set__after_0"):
         _compile(shot, _mall(disc={}))
 
@@ -186,7 +220,9 @@ def test_a_synthetic_clip_id_is_asserted_new():
     keys = [CameraKey(at=0.0, x=0.0), CameraKey(at=1.0, x=10.0)]
     _add_compensation_clip("id", "a", "x", keys, [0.0, 1.0], 1.0, animations, tracks)
     with pytest.raises(CutoutCompileError, match="already taken"):
-        _add_compensation_clip("id", "b", "x", keys, [0.0, 1.0], 1.0, animations, tracks)
+        _add_compensation_clip(
+            "id", "b", "x", keys, [0.0, 1.0], 1.0, animations, tracks
+        )
 
 
 # --- the refusals -----------------------------------------------------------------------
@@ -201,11 +237,15 @@ def test_a_synthetic_clip_id_is_asserted_new():
         ([_prop("a", "b"), _prop("b", "a")], "cycle"),
     ],
 )
-def test_an_anchor_the_shot_cannot_honour_is_refused_at_compile_and_validate(entities, needle):
+def test_an_anchor_the_shot_cannot_honour_is_refused_at_compile_and_validate(
+    entities, needle
+):
     mall = _mall(a={}, b={})
     with pytest.raises(CutoutCompileError, match=needle):
         _compile(_shot(*entities), mall)
-    assert any(needle in e for e in _errors(_shot(*entities), mall)), _errors(_shot(*entities), mall)
+    assert any(needle in e for e in _errors(_shot(*entities), mall)), _errors(
+        _shot(*entities), mall
+    )
 
 
 def test_an_overlay_text_block_refuses_after():
@@ -219,7 +259,13 @@ def test_an_overlay_text_block_refuses_after():
 def test_validate_reserves_double_underscore_in_entity_ids():
     mall = _mall(**{"set__band_1": {}})
     shot = _shot(_prop("set__band_1"), _prop("disc", "set/sky"))
-    assert any("reserved for the stage" in e for e in _errors(shot, {**mall, "props": {**mall["props"], "disc": mall["props"]["set__band_1"]}}))
+    assert any(
+        "reserved for the stage" in e
+        for e in _errors(
+            shot,
+            {**mall, "props": {**mall["props"], "disc": mall["props"]["set__band_1"]}},
+        )
+    )
 
 
 def test_a_path_indexed_twice_is_refused_at_compile():
@@ -227,3 +273,37 @@ def test_a_path_indexed_twice_is_refused_at_compile():
     shot = _shot(_prop("disc", "set/sky"), _prop("set__band_1"))
     with pytest.raises(CutoutCompileError, match="twice"):
         _compile(shot, mall)
+
+
+def test_two_parallax_clips_whose_ids_read_alike_both_compile():
+    """an#609: environment `a` plane `b_c` and environment `a_b` plane `c` join
+    to one synthetic id; the second takes `~2` instead of refusing the scene,
+    and both planes move."""
+    from an.stage.timeline import timeline_from_scene
+    from an.timing import evaluate_timeline
+
+    def env(plane):
+        return {"kind": "EnvironmentDescriptor", "name": plane, "planes": [
+            {"name": plane, "art": {"kind": "fill", "color": "#102040"}, "depth": 0.25}]}  # fmt: skip
+
+    shot = Shot(
+        id="s",
+        renderer="stage",
+        duration=1.0,
+        camera=Camera(keys=[CameraKey(at=0.0, x=0.0), CameraKey(at=1.0, x=100.0)]),
+        entities=[
+            AssetRef(kind="environment", id="a", store="environments", ref="e1"),
+            AssetRef(kind="environment", id="a_b", store="environments", ref="e2"),
+        ],
+    )
+    doc = compile_shot(
+        shot,
+        {"environments": {"e1": env("b_c"), "e2": env("c")}},
+        fps=24,
+        width=320,
+        height=240,
+    )
+    ids = sorted(a for a in doc.animations if a.startswith("__parallax__"))
+    assert ids == ["__parallax__s_a_b_c_x", "__parallax__s_a_b_c_x~2"]
+    pose = evaluate_timeline(timeline_from_scene(doc), 0.5)
+    assert pose[("a/b_c", "x")] == pose[("a_b/c", "x")] != 0.0

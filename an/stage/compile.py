@@ -1129,6 +1129,11 @@ def _in_step(a: float, b: float) -> bool:
     return abs(ratio - round(ratio)) <= _BOIL_STEP_EPS * ratio
 
 
+def _is_path_entity(entity_id: str, vocab: Any) -> bool:
+    """Whether ``entity_id``'s node draws a stroked path (its refusals name paths)."""
+    return entity_id in (getattr(vocab, "path_nodes", None) or ())
+
+
 def _boil_pass(state: CompileState) -> None:
     """A boiling path's drawing, stepped (an#443): one ``boil`` channel per
     path node that carries drawings, stepping through them at its rate, which
@@ -1151,9 +1156,10 @@ def _boil_pass(state: CompileState) -> None:
         if state.step_hz and not _in_step(hz, float(state.step_hz)):
             warnings.warn(
                 f"shot {state.shot.id!r}: path {node.name!r} boils at {hz:g} Hz and the "
-                f"shot's poses step at {state.step_hz:g} Hz: the line changes on frames "
-                "the pose does not, and the two read as a stutter. Boil at a multiple "
-                f"or a divisor of {state.step_hz:g} (`boil_hz: {state.step_hz:g}`).",
+                f"shot's poses step at {state.step_hz:g} Hz, on no common grid: the two "
+                "beat against each other and read as a stutter. Boil at a multiple or a "
+                f"divisor of {state.step_hz:g} (`boil_hz: {state.step_hz:g}`).",
+                CutoutCompileWarning,
                 stacklevel=2,
             )
         if len(keys) < 2:
@@ -1161,6 +1167,7 @@ def _boil_pass(state: CompileState) -> None:
                 f"shot {state.shot.id!r}: path {node.name!r} boils at {hz:g} Hz, once "
                 f"every {1 / hz:g} s, and the shot is {duration:g} s long: it never "
                 "steps to its next drawing.",
+                CutoutCompileWarning,
                 stacklevel=2,
             )
         anim_id = _fresh_clip_id(
@@ -2566,9 +2573,11 @@ def _emit_plane_compensation(
 
 def _fresh_clip_id(base: str, animations: Mapping[str, Any]) -> str:
     """``base``, or ``base~2``, ``base~3``... when a synthetic clip already took
-    it (an#609): two node paths that read alike once their slashes are
-    underscores (``a/b`` and ``a_b``) are two clips, not a refused scene. The
-    first keeps the bare id, so every id that compiled before is unchanged.
+    it (an#609): two parallax clips whose names read alike once joined by
+    underscores (environment ``a`` plane ``b_c``, environment ``a_b`` plane
+    ``c``) are two clips, not a refused scene. The first keeps the bare id, so
+    every id that compiled before is unchanged. (A boil clip is named by its
+    unique entity id and cannot collide; it asks too, as a backstop.)
 
     >>> _fresh_clip_id("p", {}), _fresh_clip_id("p", {"p": 0, "p~2": 0})
     ('p', 'p~3')
@@ -4037,7 +4046,7 @@ def _check_swap_action(
                     declared_sets[set_name] = declared_sets[set_name] | frozenset(
                         key_map
                     )
-        if not declared_sets and prop == BOIL_SET:
+        if not declared_sets and prop == BOIL_SET and _is_path_entity(entity_id, vocab):
             raise CutoutCompileError(
                 f"action targets {target!r}:{prop!r}: `{BOIL_SET}` is a boiling path's "
                 "own channel, compiled from its `boil_hz` (an#443), not one an action "

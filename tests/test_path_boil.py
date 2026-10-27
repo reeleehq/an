@@ -260,3 +260,21 @@ def test_an_authored_boil_action_is_refused_by_naming_boil_hz():
             width=320,
             height=240,
         )
+
+
+def test_a_boil_action_on_something_that_is_not_a_path_gets_the_ordinary_refusal():
+    from an.ir.compose import set_
+    from an.stage.compile import CutoutCompileError
+
+    shot = Shot(
+        id="s",
+        duration=0.5,
+        entities=[
+            AssetRef(kind="environment", id="set", store="environments", ref="e")
+        ],
+        actions=[set_("set", BOIL_SET, "1", at=0.0)],
+    )
+    env = {"kind": "EnvironmentDescriptor", "name": "e", "planes": [{"name": "sky"}]}
+    with pytest.raises(CutoutCompileError) as err:
+        compile_shot(shot, {"environments": {"e": env}}, fps=24, width=320, height=240)
+    assert "boil_hz" not in str(err.value)
