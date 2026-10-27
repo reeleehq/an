@@ -1726,7 +1726,8 @@ def test_a_rider_whose_host_is_in_a_plane_wrapper_keeps_its_place(tmp_path):
 
 
 def _spy_passes(monkeypatch) -> dict:
-    """The lowering's closed-form passes per slot, ``{slot: [(start, depth0, rate)]}``."""
+    """The lowering's passes per slot, ``{slot: [(start, depth0, motion)]}`` (the
+    motion a rate, or a scanned pass's depths on the scan grid, an#658)."""
     from an.ir import world as world_mod
 
     seen: dict = {}
@@ -1771,3 +1772,169 @@ def test_a_member_moving_with_the_road_keeps_its_place_among_the_poles(tmp_path,
             assert (order.index(pole) > order.index("right")) == (depth0 + rate * t < 2.0), (pole, t)
             checked += 1
     assert checked
+
+
+# --- an#658: crossings between things that move differently ----------------------
+
+#: Pairs whose true depths are closer than this at a checked instant are left
+#: out (they are crossing there; the keys switch exactly at the crossing).
+_DEPTH_MARGIN = 1e-3
+
+
+def _spied_depth(
+    seen: dict, slot: str, t: float, *, duration: float, fps: float = 24.0
+) -> float:
+    """A slot's true depth at ``t`` from the lowering's own passes: a closed
+    form, or a scanned pass's depths on the scan grid (linear between them)."""
+    from an.ir import world as world_mod
+
+    _, depth0, motion = [p for p in seen[slot] if p[0] <= t][-1]
+    if isinstance(motion, float):
+        return depth0 + motion * t
+    grid = world_mod._grid(0.0, duration, world_mod._MIN_SAMPLE_FRAMES / fps)
+    i = min(max(1, sum(g <= t for g in grid)), len(grid) - 1)
+    u = (t - grid[i - 1]) / (grid[i] - grid[i - 1])
+    return motion[i - 1] + (motion[i] - motion[i - 1]) * u
+
+
+def _assert_painted_far_to_near(tmp_path, scene: SceneIR, depth_of) -> set:
+    """At instants between the key times, every visible pair of entities whose
+    true depth ``depth_of(name, t)`` is known is painted farther first. The
+    pairs seen in both orders (a crossing happened) are returned."""
+    from an.stage.compile import compile_shot
+    from an.stage.timeline import entity_alpha, timeline_from_scene
+    from an.timing.timeline import evaluate_timeline
+
+    shot = lower_world(scene, extents={**EXTENTS, "post": BOX, "car": BOX}).scene.timeline[0]
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        doc = compile_shot(shot, _project(tmp_path).mall)
+    timeline = timeline_from_scene(doc)
+    duration = float(shot.duration)
+    orders: dict[tuple[str, str], set[bool]] = {}
+    for i in range(1, 60):
+        t = duration * i / 60 + 0.013
+        order = _painted(doc, t)
+        pose = evaluate_timeline(timeline, t)
+        depth = {
+            n: d
+            for n in order
+            if (d := depth_of(n, t)) is not None and entity_alpha(doc, pose, n) > 1e-3
+        }
+        for a in depth:
+            for b in depth:
+                if a < b and abs(depth[a] - depth[b]) > _DEPTH_MARGIN:
+                    a_nearer = depth[a] < depth[b]
+                    assert (order.index(a) > order.index(b)) == a_nearer, (a, b, t, depth[a], depth[b])
+                    orders.setdefault((a, b), set()).add(a_nearer)
+    assert orders
+    return {pair for pair, seen in orders.items() if len(seen) == 2}
+
+
+def _with_stream(scene: SceneIR, stream: Stream) -> SceneIR:
+    scene.world.travel = scene.world.travel.model_copy(
+        update={"streams": [*scene.world.travel.streams, stream]}
+    )
+    return scene
+
+
+def test_streams_at_different_rates_are_painted_by_their_depths(tmp_path, monkeypatch):
+    """an#658: the poles stand in the world (they approach at the car's
+    speed); the posts ride the car (rate 0: at rest relative to the camera,
+    as the lamps are). The poles pass both the lamps and the posts, and at
+    every instant each visible pair is painted far to near."""
+    seen = _spy_passes(monkeypatch)
+    scene = _lane(_travel_scene(Shot(id="s1", duration=3.0, viewpoint="road")), 0.2)
+    scene = _with_stream(
+        scene,
+        Stream(id="post", ref="lamp", height=1.5, every=2.5, lane=-0.3, y=0.0, frame="vehicle"),
+    )
+
+    def depth_of(name: str, t: float) -> float | None:
+        if name in ("left", "right"):
+            return 2.0
+        if name in seen:
+            return _spied_depth(seen, name, t, duration=3.0)
+        return None
+
+    crossed = _assert_painted_far_to_near(tmp_path, scene, depth_of)
+    kinds = {tuple(sorted(n.split("_")[0] for n in pair)) for pair in crossed}
+    assert ("pole", "post") in kinds and ("left", "pole") in kinds, kinds
+
+
+def test_a_scanned_stream_is_painted_by_its_depth_among_the_others(tmp_path, monkeypatch):
+    """an#658: oncoming cars stand in a frame that moves toward the camera, so
+    their passes are scanned, not closed-form; they overtake the poles' depths
+    and pass the lamps, and every visible pair is painted far to near."""
+    from an.ir.schema import Frame, FrameMoving
+
+    seen = _spy_passes(monkeypatch)
+    scene = _lane(_travel_scene(Shot(id="s1", duration=3.0, viewpoint="road")), 0.2)
+    scene.world.frames = {
+        "oncoming": Frame(moving=FrameMoving(direction=(0.0, 0.0, -1.0), speed=4.0))
+    }
+    scene = _with_stream(
+        scene,
+        Stream(id="car", ref="lamp", height=1.5, every=5.0, lane=-0.4, y=0.0, frame="oncoming"),
+    )
+
+    def depth_of(name: str, t: float) -> float | None:
+        if name in ("left", "right"):
+            return 2.0
+        if name in seen:
+            return _spied_depth(seen, name, t, duration=3.0)
+        return None
+
+    crossed = _assert_painted_far_to_near(tmp_path, scene, depth_of)
+    car_motions = [m for s, ps in seen.items() if s.startswith("car_") for _, _, m in ps]
+    assert car_motions and not any(isinstance(m, float) for m in car_motions)
+    kinds = {tuple(sorted(n.split("_")[0] for n in pair)) for pair in crossed}
+    assert ("car", "pole") in kinds and ("car", "left") in kinds, kinds
+
+
+def test_a_member_walking_away_is_painted_by_its_depth_among_the_poles(tmp_path, monkeypatch):
+    """an#658: ``right`` walks away down the car (``at_z`` from 2 to 14) while
+    the poles come at it: each pole is painted under it while farther and over
+    it once nearer, and ``left`` (at rest) under it once it is past."""
+    from an.ir.compose import tween
+
+    seen = _spy_passes(monkeypatch)
+    walk = tween("right", "at_z", to=14.0, duration=3.0, from_=2.0, easing="linear")
+    scene = _lane(
+        _travel_scene(Shot(id="s1", duration=3.0, viewpoint="road", actions=[walk])), 0.2
+    )
+
+    def depth_of(name: str, t: float) -> float | None:
+        if name == "left":
+            return 2.0
+        if name == "right":
+            return 2.0 + 4.0 * t
+        if name in seen:
+            return _spied_depth(seen, name, t, duration=3.0)
+        return None
+
+    crossed = _assert_painted_far_to_near(tmp_path, scene, depth_of)
+    kinds = {tuple(sorted(n.split("_")[0] for n in pair)) for pair in crossed}
+    assert ("pole", "right") in kinds, kinds
+
+
+def test_a_member_moving_with_the_road_passes_one_at_rest(tmp_path, monkeypatch):
+    """an#658: ``left`` stands by the road (approaching like the poles, so the
+    shared-rate keys hold) and passes ``right``, at rest in the car, at 1.5 s:
+    its crossing re-keys ``right`` as a pole's does, and every visible pair is
+    painted far to near."""
+    seen = _spy_passes(monkeypatch)
+    scene = _lane(_travel_scene(Shot(id="s1", duration=3.0, viewpoint="road")), 0.2)
+    left = scene.world.members[0]
+    scene.world.members[0] = left.model_copy(update={"frame": "world", "at": (-0.5, 0.4, 8.0)})
+
+    def depth_of(name: str, t: float) -> float | None:
+        if name == "left":
+            return 8.0 - 4.0 * t
+        if name == "right":
+            return 2.0
+        if name in seen:
+            return _spied_depth(seen, name, t, duration=3.0)
+        return None
+
+    assert ("left", "right") in _assert_painted_far_to_near(tmp_path, scene, depth_of)
