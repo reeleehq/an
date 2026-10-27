@@ -39,6 +39,9 @@ __all__ = [
     "in_memory_transcripts_store",
     "is_artifact_ref",
     "linked_transcript",
+    "orphan_transcript_blobs",
+    "transcript_blobs_named",
+    "parse_artifact_ref",
     "record_transcript",
     "transcripts_store",
 ]
@@ -52,6 +55,8 @@ ARTIFACT_REF_PREFIX: str = "artifact:"
 #: A reference: the prefix and a name with no whitespace (so a plain
 #: ``artifact: some words`` transcript line is not taken for one).
 _REF = re.compile(re.escape(ARTIFACT_REF_PREFIX) + r"[^\s/][^\s]*")
+#: A recorded reference's content pin: ``<key>@<sha256>``.
+_PINNED = re.compile(r"(?P<key>.+)@(?P<pin>[0-9a-f]{64})")
 #: The media type each transcript format is recorded under (and read back from).
 FORMAT_MIME: dict[str, str] = {
     "srt": "application/x-subrip",
@@ -149,21 +154,51 @@ def is_artifact_ref(item: Any) -> bool:
     return _is_artifact(item)
 
 
+def parse_artifact_ref(
+    ref: str, mall: Mapping[str, Any], *, store_name: str = TRANSCRIPTS_STORE
+) -> tuple[str, str, str | None]:
+    """``(store, key, pin)`` of ``artifact:[<store>/]<key>[@<sha256>]`` (an#607):
+    the first segment names a store of ``mall`` when it is one that holds the
+    key (else the whole name is a key of ``store_name``, so a transcript keyed
+    ``takes/a`` is found though the mall has a ``takes`` store); ``pin`` is the
+    content a recorded reference names, ``None`` when it names none.
+
+    >>> mall = {"transcripts": {"takes/a": 1}, "takes": {}}
+    >>> parse_artifact_ref("artifact:takes/a", mall)
+    ('transcripts', 'takes/a', None)
+    >>> parse_artifact_ref("artifact:transcripts/k@" + "0" * 64, mall)[1:]
+    ('k', '0000000000000000000000000000000000000000000000000000000000000000')
+    """
+    name = ref.strip()[len(ARTIFACT_REF_PREFIX) :]
+    pinned = _PINNED.fullmatch(name)
+    pin = None
+    if pinned:
+        name, pin = pinned["key"], pinned["pin"]
+    head, sep, rest = name.partition("/")
+    if (
+        sep
+        and head in mall
+        and (_has(mall[head], rest) or not _has(mall.get(store_name) or {}, name))
+    ):
+        return head, rest, pin
+    return store_name, name, pin
+
+
 def linked_transcript(
     item: Any, mall: Mapping[str, Any], *, store_name: str = TRANSCRIPTS_STORE
 ) -> LinkedTranscript:
-    """The transcript ``item`` names: ``artifact:<store>/<key>`` (``<key>``
-    alone is in ``store_name``; a key may itself hold slashes), or a
-    ``lacing.Artifact`` (filed in ``store_name``), read through ``mall``.
-    Raises :class:`TranscriptLinkError` for a store the mall has not, one
-    that is not an artifact store, a key or content it does not hold, or a
-    record whose ``mime`` is not a transcript format."""
+    """The transcript ``item`` names: ``artifact:[<store>/]<key>[@<sha256>]``
+    (:func:`parse_artifact_ref`), or a ``lacing.Artifact`` (filed in
+    ``store_name``), read through ``mall``. A pinned reference (what a take's
+    provenance records) reads exactly those bytes, even after the key was
+    recorded again. Raises :class:`TranscriptLinkError` for a store the mall
+    has not, one that is not an artifact store, a key or content it does not
+    hold, or a record whose ``mime`` is not a transcript format."""
+    pin = None
     if _is_artifact(item):
         artifact, name = item, store_name
     else:
-        name = str(item).strip()[len(ARTIFACT_REF_PREFIX) :]
-        head, sep, rest = name.partition("/")
-        name, key = (head, rest) if sep and head in mall else (store_name, name)
+        name, key, pin = parse_artifact_ref(str(item), mall, store_name=store_name)
     if name not in mall:
         raise TranscriptLinkError(
             f"{item!r}: the project has no {name!r} store (its stores: {sorted(mall)})"
@@ -176,21 +211,9 @@ def linked_transcript(
                 f"no record in the {name!r} store holds transcript {item.asset_id}"
             )
     else:
-        try:
-            artifact = store[key]
-        except KeyError:
-            raise TranscriptLinkError(
-                f"{item!r}: no transcript {key!r} in the {name!r} store"
-            ) from None
-        except ValueError as e:  # a record that does not validate (pydantic)
-            raise TranscriptLinkError(
-                f"{item!r}: the record {key!r} in the {name!r} store is damaged: {e}"
-            ) from None
-    if not _is_artifact(artifact):
-        raise TranscriptLinkError(
-            f"{item!r}: the {name!r} store keeps {type(artifact).__name__}s, not "
-            "transcript artifacts"
-        )
+        artifact = _record(store, key, item=item, name=name)
+    if pin is not None and pin != artifact.asset_id:
+        return _pinned(store, f"{name}/{key}@{pin}", pin)
     ref = f"{name}/{key}@{artifact.asset_id}"
     fmt = next((f for f, m in FORMAT_MIME.items() if m == artifact.mime), None)
     if fmt is None:
@@ -202,6 +225,89 @@ def linked_transcript(
     if data is None:
         raise TranscriptLinkError(f"{ref}: its content is missing")
     return LinkedTranscript(data.decode("utf-8-sig"), fmt, ref)
+
+
+def _record(store: Any, key: str, *, item: Any, name: str) -> Any:
+    """The artifact record at ``key``, or a :class:`TranscriptLinkError` naming why not."""
+    try:
+        artifact = store[key]
+    except KeyError:
+        raise TranscriptLinkError(
+            f"{item!r}: no transcript {key!r} in the {name!r} store"
+        ) from None
+    except ValueError as e:  # a record that does not validate (pydantic)
+        raise TranscriptLinkError(
+            f"{item!r}: the record {key!r} in the {name!r} store is damaged: {e}"
+        ) from None
+    if not _is_artifact(artifact):
+        raise TranscriptLinkError(
+            f"{item!r}: the {name!r} store keeps {type(artifact).__name__}s, not "
+            "transcript artifacts"
+        )
+    return artifact
+
+
+def _pinned(store: Any, ref: str, pin: str) -> LinkedTranscript:
+    """The transcript ``pin`` names, its key since recorded again: its own bytes,
+    its format read from them."""
+    from an.audio.transcripts import detect_format
+
+    data = store.get_blob(pin)
+    if data is None:
+        raise TranscriptLinkError(
+            f"{ref}: the key now names other content, and the content pinned is no "
+            "longer kept (an `an cache gc` collects what nothing names)"
+        )
+    text = data.decode("utf-8-sig")
+    return LinkedTranscript(text, detect_format(text), ref)
+
+
+def _has(store: Any, key: str) -> bool:
+    try:
+        return key in store
+    except Exception:  # noqa: BLE001 — a store that cannot say does not hold it
+        return False
+
+
+def transcript_blobs_named(
+    mall: Mapping[str, Any], *, store_name: str = TRANSCRIPTS_STORE
+) -> set[str]:
+    """The transcript contents something still names (an#607): a catalog
+    record of ``store_name``, or a take's provenance
+    (``recordings``' ``source.extra.transcript_artifact``, its ``@<sha256>``).
+    A damaged record names nothing."""
+    store = mall.get(store_name)
+    named: set[str] = set()
+    for key in list(store or ()):
+        try:
+            named.add(store[key].asset_id)
+        except Exception:  # noqa: BLE001 — a damaged record names nothing
+            continue
+    for record in (mall.get("recordings") or {}).values():
+        extra = ((record or {}).get("source") or {}).get("extra") or {}
+        pinned = _PINNED.fullmatch(str(extra.get("transcript_artifact") or ""))
+        if pinned:
+            named.add(pinned["pin"])
+    return named
+
+
+def orphan_transcript_blobs(
+    mall: Mapping[str, Any], *, store_name: str = TRANSCRIPTS_STORE
+) -> list[str]:
+    """The transcript contents nothing names any more (:func:`transcript_blobs_named`):
+    what re-recording a key left behind once no take points at it.
+
+    >>> store = in_memory_transcripts_store()
+    >>> first = record_transcript(store, "k", "carl: Hello.")
+    >>> _ = record_transcript(store, "k", "carl: Hello there.")
+    >>> orphan_transcript_blobs({"transcripts": store}) == [first.asset_id]
+    True
+    """
+    store = mall.get(store_name)
+    if store is None:
+        return []
+    named = transcript_blobs_named(mall, store_name=store_name)
+    return sorted(h for h in store.iter_blobs() if h not in named)
 
 
 def _holds(store: Any, key: str, asset_id: str) -> bool:

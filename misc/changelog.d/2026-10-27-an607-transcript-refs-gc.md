@@ -1,0 +1,1 @@
+- Transcript artifacts (an#607): a take's recorded reference (`transcripts/<key>@<sha256>`) reads back the content it pinned; `artifact:takes/a` finds a transcript keyed `takes/a` though the mall has a `takes` store; `an cache gc` collects transcript blobs no record and no take names.

@@ -835,3 +835,50 @@ def test_a_linked_transcript_passed_in_and_a_damaged_record(tmp_path):
         "1\n00:00:00,000 --> 00:00:01,000\nnot me\n", encoding="utf-8"
     )
     assert parse_transcript_text("note", fmt="plain")[0].text == "note"
+
+
+def test_a_recorded_reference_reads_back_the_content_it_names(tmp_path):
+    """an#607: the provenance a take records (`transcripts/<key>@<sha256>`)
+    is a reference too, and it reads the bytes it pinned even after the key was
+    recorded again; a key that starts like a mall store is still found."""
+    from an.stores.transcripts import linked_transcript, record_transcript
+
+    root = _project(tmp_path)
+    mall = load(root).mall
+    import_recordings(root, _take(tmp_path), transcript=_srt(tmp_path), license=LICENSE)
+    first = record_transcript(mall["transcripts"], "k", SRT)
+    pinned = linked_transcript("artifact:transcripts/k", mall).ref
+    record_transcript(mall["transcripts"], "k", "carl: something else\n")
+    again = linked_transcript(f"artifact:{pinned}", mall)
+    assert again.ref == pinned and again.fmt == "srt" and HELLO in again.text
+    assert pinned.endswith(first.asset_id)
+    record_transcript(mall["transcripts"], "takes/a", SRT)  # `takes` is a mall store
+    assert linked_transcript("artifact:takes/a", mall).ref.startswith(
+        "transcripts/takes/a@"
+    )
+
+
+def test_gc_collects_the_transcripts_nothing_names(tmp_path):
+    from an.build.gc import collect_garbage
+    from an.stores.transcripts import record_transcript
+
+    root = _project(tmp_path)
+    mall = load(root).mall
+    used = record_transcript(mall["transcripts"], "take", SRT)
+    import_recordings(
+        root, _take(tmp_path), transcript="artifact:transcripts/take", license=LICENSE
+    )
+    record_transcript(
+        mall["transcripts"], "take", "carl: Hello there, Ned.\n"
+    )  # the take still names `used`
+    dropped = record_transcript(mall["transcripts"], "scratch", "carl: a draft\n")
+    record_transcript(mall["transcripts"], "scratch", "carl: the final draft\n")
+    import time
+
+    later = time.time() + 3600  # past the protection horizon of what was just written
+    dry = collect_garbage(root, dry_run=True, now=later, force=True)
+    assert dry.deleted_derived.get("transcripts") == [dropped.asset_id]
+    collect_garbage(root, now=later, force=True)
+    store = load(root).mall["transcripts"]
+    assert store.get_blob(dropped.asset_id) is None
+    assert store.get_blob(used.asset_id) is not None, "a take still names it"
