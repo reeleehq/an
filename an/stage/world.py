@@ -17,18 +17,36 @@ extents, film starts, then :func:`an.ir.world.lower_world`.
 from __future__ import annotations
 
 import warnings
-from typing import Any, Mapping
+from typing import TYPE_CHECKING, Any, Mapping
 
 from an.ir.schema import AssetRef, SceneIR, World, stage_specimen
 from an.ir.world import Box, Lowered, WorldError, has_world, lower_world
 
+if TYPE_CHECKING:
+    from an.ir.world_from_shot import SeededMembers
+
 __all__ = [
     "lower_scene",
+    "seed_world",
     "lowered_or_same",
     "member_extents",
     "native_box",
     "world_report",
 ]
+
+
+#: Entity kinds the stage draws nothing for: what no shot places.
+UNDRAWN_KINDS: frozenset[str] = frozenset({"voice"})
+
+
+def draws(ref: AssetRef) -> bool:
+    """Whether the stage draws ``ref`` (an environment, a prop, a character:
+    anything but :data:`UNDRAWN_KINDS`).
+
+    >>> draws(AssetRef(kind="voice", id="v", store="voices", ref="v"))
+    False
+    """
+    return ref.kind not in UNDRAWN_KINDS
 
 
 def native_box(
@@ -49,13 +67,15 @@ def native_box(
     from an.stage.timeline import node_box, screen_position
     from an.stage.tree import walk_document
 
+    if not draws(ref):
+        return None
     kind = entity_kind(ref.kind)
     specimen = getattr(kind, "specimen", None) if kind is not None else None
     if specimen is None:
-        if ref.kind == "voice":
-            return None
         specimen = stage_specimen
-    bare = ref.model_copy(update={"stage": None})
+    # Alone in its specimen: no placement, and no joint to an entity that is
+    # not there (a hand holding a prop would not compile, an#514 review).
+    bare = ref.model_copy(update={"stage": None, "joints": []})
     shot = specimen(bare)
     if shot.renderer not in STAGE_RENDERER_NAMES:
         return None
@@ -168,6 +188,69 @@ def plane_geometry(
             continue
         out[member.id] = {p.name: geometry(p) for p in env.planes}
     return out
+
+
+def seed_world(
+    scene: SceneIR,
+    mall: Mapping[str, Mapping] | None,
+    shot_id: str,
+    *,
+    focal: float | None = None,
+    depth: float | None = None,
+) -> tuple[SceneIR, "SeededMembers"]:
+    """``scene`` with a world derived from its hand-placed shot ``shot_id``
+    (:func:`an.ir.world_from_shot.seed_members`, an#514): the members, and one
+    viewpoint named after the shot, a camera at the origin with ``focal``
+    (pixels; default: the default field of view, so the world frames the same
+    at any resolution). The shot names that viewpoint and keeps its own
+    ``stage`` lines, which agree with the world. The art is measured here,
+    as the lowering measures it (:func:`native_box`; a measurement that fails
+    leaves the entity out, said in ``skipped``).
+
+    Raises ``ValueError`` for a scene that already has a world, an unknown
+    shot or one that already names a viewpoint, and what
+    :func:`~an.ir.world_from_shot.seed_members` refuses.
+
+    >>> seed_world(SceneIR(), {}, "a")
+    Traceback (most recent call last):
+    ...
+    ValueError: no shot 'a' in the scene (its shots: [])
+    """
+    from an.ir.schema import Viewpoint
+    from an.ir.world import focal_length
+    from an.ir.world_from_shot import seed_members
+
+    if scene.world is not None:
+        raise ValueError(
+            "the scene already has a `world`: a world is derived from a shot once; "
+            "add members or viewpoints to it by hand"
+        )
+    index = next((i for i, s in enumerate(scene.timeline) if s.id == shot_id), None)
+    if index is None:
+        raise ValueError(
+            f"no shot {shot_id!r} in the scene (its shots: "
+            f"{[s.id for s in scene.timeline]})"
+        )
+    shot = scene.timeline[index]
+    if shot.viewpoint is not None:
+        raise ValueError(f"shot {shot_id!r} already names a viewpoint")
+    width = int(scene.meta.resolution.width)
+    height = int(scene.meta.resolution.height)
+    drawn = [e for e in shot.entities if e.kind != "environment" and draws(e)]
+    extents: dict[str, Box | None] = {}
+    for e in drawn:
+        try:
+            extents[e.id] = native_box(e, mall, width=width, height=height)
+        except Exception:  # noqa: BLE001 — unmeasured is a reason to leave it out, as `member_extents` says
+            extents[e.id] = None
+    lens = Viewpoint(at=(0.0, 0.0, 0.0), focal=focal)
+    seeded = seed_members(
+        shot, extents=extents, focal=focal_length(lens, width=width), depth=depth
+    )
+    world = World(members=seeded.members, viewpoints={shot_id: lens})
+    timeline = list(scene.timeline)
+    timeline[index] = shot.model_copy(update={"viewpoint": shot_id})
+    return scene.model_copy(update={"world": world, "timeline": timeline}), seeded
 
 
 def lower_scene(

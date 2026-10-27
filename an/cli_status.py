@@ -88,4 +88,5 @@ EXIT_POLICY: dict[str, str] = {
     "props validate": "failed: a FAILED report (an#480)",
     "props contract": "0",
     "world show": "refuses",
+    "world from-shot": "refuses",
 }

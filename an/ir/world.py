@@ -102,6 +102,7 @@ __all__ = [
     "frame_poses",
     "has_world",
     "lower_world",
+    "member_of",
     "member_placements",
     "pose_look",
     "resolve_viewpoint",
@@ -2838,6 +2839,26 @@ def _entity_of(member: WorldMember, *, stage: StagePlacement | None = None) -> A
         library=member.library,
         stage=stage,
     )
+
+
+def member_of(entity: AssetRef, **placement: Any) -> WorldMember:
+    """The world member a shot entity becomes (the inverse of
+    :func:`_entity_of`): its fields as they are, its ``stage`` dropped (a
+    member is placed by each shot's viewpoint) and its ``after`` kept, with
+    ``placement`` (``at``, ``height``, ...) where the world stands it. Its
+    ``joints`` stay with the shot: they tie it to other entities of THAT shot,
+    and :func:`_entity_of` gives a member none.
+
+    >>> e = AssetRef(kind="prop", id="lamp", store="props", ref="lamp",
+    ...              stage=StagePlacement(at=(1.0, 2.0), after="set/sky"))
+    >>> m = member_of(e, at=(0.0, 0.0, 5.0), height=1.0)
+    >>> m.at, m.after, m.stage
+    ((0.0, 0.0, 5.0), 'set/sky', None)
+    """
+    fields = entity.model_dump(exclude={"stage", "joints"}, exclude_none=True)
+    if entity.stage is not None and entity.stage.after is not None:
+        fields["after"] = entity.stage.after
+    return WorldMember(**{**fields, **placement})
 
 
 def pose_look(pose: Pose) -> tuple[float, float]:
