@@ -27,6 +27,7 @@ from an.audio.cli import _dispatch_funcs as _voices_dispatch_funcs
 from an.library.cli import _dispatch_funcs as _library_dispatch_funcs
 from an.build.cli import _dispatch_funcs as _cache_dispatch_funcs
 from an.sounds_cli import _dispatch_funcs as _sounds_dispatch_funcs
+from an.music_cli import _dispatch_funcs as _music_dispatch_funcs
 from an.props_cli import _dispatch_funcs as _props_dispatch_funcs
 from an.world_cli import _dispatch_funcs as _world_dispatch_funcs
 from an.library.root import CORE_PACKAGE
@@ -800,6 +801,9 @@ _dispatch_namespaces: dict[str, list] = {
     "cache": _cache_dispatch_funcs,
     # The sounds store (an#318): `an sounds add <dir> <key> <url> --license …`.
     "sounds": _sounds_dispatch_funcs,
+    # A licensed music library (an#470): `an music add-library incompetech
+    # --titles-from usage.json --out audio/macleod`.
+    "music": _music_dispatch_funcs,
     # A prop's asset folder (an#340): `an props validate <key>`, `an props contract`.
     "props": _props_dispatch_funcs,
     # The scene's world (ADR 0009): `an world show` prints every framed shot

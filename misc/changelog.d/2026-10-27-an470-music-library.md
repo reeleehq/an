@@ -1,0 +1,1 @@
+- `an music add-library` / `an.music_library.acquire`: download a licensed music library (incompetech built in; paid libraries as wishlist rows), verified with ffprobe, with a tracks table of `AssetSource` provenance and the attribution blocks (an#470).
