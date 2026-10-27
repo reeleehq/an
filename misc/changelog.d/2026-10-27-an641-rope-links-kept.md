@@ -1,0 +1,1 @@
+- The solve gives up the first candidate (last declared first) whose loss at least halves a conflict's failure, so a rope held at both ends gives up its end, never a link (it came apart by hundreds of px); `SOLVER_VERSION` 3 (an#641). Re-gripping a far end over several frames is an#645.
