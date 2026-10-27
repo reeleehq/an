@@ -91,6 +91,7 @@ import copy
 import io
 import re
 import wave
+import warnings
 from collections.abc import Callable, Collection, Iterable, Mapping, MutableMapping
 from dataclasses import dataclass
 from pathlib import Path
@@ -103,6 +104,7 @@ __all__ = [
     "ElevenLabsVoiceLibrary",
     "LibraryVoice",
     "VoiceDesignError",
+    "VoiceDesignWarning",
     "AuditionJob",
     "announce_auditions",
     "audition_key",
@@ -226,6 +228,10 @@ _STDERR = object()
 
 class VoiceDesignError(ValueError):
     """A voice that cannot be designed or chosen (no notes, an unknown option, ...)."""
+
+
+class VoiceDesignWarning(UserWarning):
+    """Something paid for was not kept (a reel whose option was designed again)."""
 
 
 class ElevenLabsVoiceDesigner:
@@ -1034,13 +1040,14 @@ def run_auditions(
     tts: Any,
     gap_s: float = AUDITION_GAP_S,
     announce: Any = _STDERR,
-    on_reel: Callable[[AuditionJob], None] | None = None,
+    keep: Callable[[AuditionJob, bytes], None] | None = None,
 ) -> None:
     """Make every reel of ``jobs`` with ``tts`` (``synthesize(text, voice_id,
-    **options)`` per line — billed), ``gap_s`` apart, into ``reels`` under the
-    job's reel key, and record it on the job's option (``audition``,
-    ``audition_lines``, ``audition_key``); ``on_reel`` is called after each
-    reel is recorded, so a failure later loses nothing paid for. ``announce``
+    **options)`` per line — billed), ``gap_s`` apart, record it on the job's
+    option (``audition``, ``audition_lines``, ``audition_key``) and keep it as
+    soon as it is made, so a failure later loses nothing paid for: ``keep(job,
+    wav)``, by default ``reels[job.reel] = wav`` (a caller that also records
+    the reel elsewhere writes both in one step, an#649). ``announce``
     (default: a line on stderr; ``None`` for silence) is told the whole bill
     first, and the provider is asked ``check_available()`` before the first
     request."""
@@ -1068,12 +1075,14 @@ def run_auditions(
                     f"{getattr(tts, 'name', 'the provider')} returned no audio for {text!r}"
                 )
             parts.append(_reel_wav(audio, job.effects))
-        reels[job.reel] = _join_wavs(parts, gap_s=gap_s)
+        wav = _join_wavs(parts, gap_s=gap_s)
         job.option[AUDITION_KEY] = job.reel
         job.option[AUDITION_LINES_KEY] = len(job.lines)
         job.option[AUDITION_CONTENT_KEY] = job.key
-        if on_reel is not None:
-            on_reel(job)
+        if keep is None:
+            reels[job.reel] = wav
+        else:
+            keep(job, wav)
 
 
 def audition_voice_options(
@@ -1453,7 +1462,9 @@ def design_project_voices(
         # Reels an audition recorded while this design ran are kept (an#587).
         with options.locked(ref):
             if isinstance(stored := _previous_entries(options).get(ref), Mapping):
-                _carry_reels(stored, entry)  # a damaged one is replaced: it was paid for
+                _carry_reels(
+                    stored, entry
+                )  # a damaged one is replaced: it was paid for
             options[ref] = entry
     return manifest
 
@@ -1694,27 +1705,40 @@ def audition_project_voices(
             recorded=lambda option: _scene_record(option, sf, reels),
         )
 
-    def record(job: AuditionJob) -> None:
+    def keep(job: AuditionJob, wav: bytes) -> None:
         # run_auditions has put the reel's fields on the option (the latest made);
         # add where it is, and keep this scene's own record beside it.
         job.option[AUDITION_PATH_KEY] = (reels_dir / f"{job.reel}.wav").as_posix()
         made = _pick(job.option, AUDITION_RECORD_KEYS)
         job.option.setdefault(AUDITIONS_KEY, {})[sf.name] = made
         # Written per reel, so a later failure loses nothing paid; into the
-        # manifest as it is NOW, so a run beside this one keeps its reels (an#587).
+        # manifest as it is NOW, so a run beside this one keeps its reels
+        # (an#587); and the reel's bytes with it, only while the option is
+        # still this voice, so a re-design (and a run of it) in between never
+        # finds another voice's audio under its reel's name (an#649).
         with manifests.locked(job.ref):
             if job.ref not in manifests:
                 raise VoiceDesignError(
                     f"the options manifest of {job.ref!r} was removed during the "
-                    f"audition; its reel {job.reel!r} is on disk but recorded nowhere"
+                    f"audition; its reel {job.reel!r} was made and not kept"
                 )
-            manifests[job.ref] = _with_reel(
-                manifests[job.ref], job.option, scene=sf.name
-            )
+            stored = manifests[job.ref]
+            if not any(
+                _reel_identity(o) == _reel_identity(job.option)
+                for o in stored.get("options", ())
+            ):
+                warnings.warn(
+                    f"{job.ref} {job.option.get('option')}: the option was designed "
+                    "again during the audition (another voice now), so its reel "
+                    "was not kept; audition it again",
+                    VoiceDesignWarning,
+                    stacklevel=2,
+                )
+                return
+            reels[job.reel] = wav
+            manifests[job.ref] = _with_reel(stored, job.option, scene=sf.name)
 
-    run_auditions(
-        jobs, reels=reels, tts=tts, gap_s=gap_s, announce=announce, on_reel=record
-    )
+    run_auditions(jobs, reels=reels, tts=tts, gap_s=gap_s, announce=announce, keep=keep)
     return entries
 
 

@@ -1,0 +1,1 @@
+- An audition reel is written under the manifest lock, only while its option is still the same voice (a re-design in between leaves the newer reel alone and warns, `VoiceDesignWarning`); `an.library.registry` writes through `dol.atomic_write` (an#649).

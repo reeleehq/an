@@ -616,3 +616,30 @@ def test_a_reel_recorded_while_a_design_runs_is_kept(tmp_path):
                           .read_text(encoding="utf-8"))
     (l1,) = [o for o in manifest["options"] if o["option"] == "L1"]
     assert "scene.b.md" in l1.get("auditions", {})
+
+
+def test_a_reel_made_for_a_voice_designed_away_meanwhile_is_not_kept(tmp_path):
+    """an#649: run A auditions option A; meanwhile A is designed again (another
+    voice) and run B auditions the new voice. A's reel is not written over B's
+    file (which the manifest says is current), and A is told."""
+    from an.audio.voice_design import VoiceDesignWarning
+
+    root = _two_scene_project(tmp_path)
+    reel = Path(root) / "artifacts" / "voice_auditions" / "jerry_A.wav"
+    b, made_by_b = FakeTTS(seconds=0.5), []
+
+    class Interleaved(FakeTTS):
+        def synthesize(self, text, voice_id, **kw):
+            if not self.requests:  # the other terminal re-designs and auditions A
+                design_project_voices(root, designer=_Redesigner(n=1), library=FakeLibrary(n=1))
+                audition_project_voices(root, ["jerry"], tts=b, options=["A"], announce=None)
+                made_by_b.append(reel.read_bytes())
+            return super().synthesize(text, voice_id, **kw)
+
+    with pytest.warns(VoiceDesignWarning, match="designed again"):
+        audition_project_voices(root, ["jerry"], tts=Interleaved(seconds=0.25),
+                                options=["A"], announce=None)
+    assert made_by_b and reel.read_bytes() == made_by_b[0]
+    billed = len(b.requests)
+    audition_project_voices(root, ["jerry"], tts=b, options=["A"], announce=None)
+    assert len(b.requests) == billed  # B's reel is on record and current
