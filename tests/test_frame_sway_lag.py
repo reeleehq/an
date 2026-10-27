@@ -278,6 +278,12 @@ def test_a_swaying_item_the_holds_solver_rotates_warns(how):
     assert [n.entity for n in said] == ["right"] and "holds solver" in said[0].message
 
 
+def test_a_swaying_member_nothing_rotates_is_not_warned():
+    """The warning is about a second writer of `rotation`: none, no warning."""
+    notes = lower_world(_braking(FrameSway()), extents=EXTENTS).notes
+    assert not [n for n in notes if n.kind == "sway_rotation"]
+
+
 def test_a_sway_dumps_only_what_differs_from_its_defaults_and_round_trips():
     assert FrameSway().model_dump() == {}
     assert FrameSway(gain=2.0, limit=30.0).model_dump() == {"gain": 2.0, "limit": 30.0}

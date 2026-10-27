@@ -2434,7 +2434,7 @@ def _lower_shot(
     from an.stage.hold import hold_declarations
 
     # The items the holds solver sets the rotation of (an#590): its own list.
-    held = set(hold_declarations(shot).items)
+    held = set(hold_declarations(shot).items) if swayed else set()
     for mid, lean in swayed.items():
         actions.extend(lean)
         if mid in rotated:
