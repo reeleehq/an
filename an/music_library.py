@@ -114,6 +114,11 @@ FOLEY_LICENSE_CODES: Mapping[str, str | None] = {"unknown": None}
 #: The row columns that describe the acquisition, not the asset: they stay in the
 #: tracks table. ``title`` and ``library`` become ``id`` and ``provider``.
 ROW_ONLY: frozenset[str] = frozenset({"status", "file", "duration_s", "error"})
+#: The licence flags a row carries: a tracks table read back from CSV gives them as
+#: ``"True"`` / ``"False"``, which :func:`asset_source` makes booleans again.
+FLAG_COLUMNS: frozenset[str] = frozenset({"rights_verified", "commercial_ok"})
+#: How a CSV cell spells a flag.
+CSV_BOOLEANS: Mapping[str, bool] = {"True": True, "False": False}
 #: Row columns an :class:`AssetSource` field of the same name takes as is.
 SAME_NAME: tuple[str, ...] = (
     "url",
@@ -167,11 +172,14 @@ def asset_source(
     author, attribution and ``sha256`` keep their names. The acquisition's own
     columns (:data:`ROW_ONLY`) stay in the table; every other column
     (``rights_verified``, ``commercial_ok``, ``mirror``, ``credited_by``, a titles
-    file's metadata) rides as an extra. Empty cells are dropped. A track also
+    file's metadata) rides as an extra; a licence flag read back from CSV
+    (:data:`FLAG_COLUMNS`) is a boolean again. Empty cells are dropped. A track also
     gives its licence's ``creator_url`` as ``author_url`` and whether its terms let
     the bytes be kept as ``cacheable``.
     """
     row = dict(track) if isinstance(track, Mapping) else track.row()
+    for k in FLAG_COLUMNS & row.keys():
+        row[k] = CSV_BOOLEANS.get(row[k], row[k])
     fields: dict[str, Any] = {}
     if not isinstance(track, Mapping):
         fields["author_url"] = track.license.creator_url

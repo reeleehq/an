@@ -192,6 +192,10 @@ def test_metadata_rides_the_row_into_the_tracks_table():
     assert row["license"] == "CC-BY-4.0" and row["duration_s"] == "1.5"
     assert asset_source(rows[0]).license == "cc-by-4.0"
     assert asset_source(row).model_extra["feel"] == "Bright", "a table row bridges too"
+    flags = ("rights_verified", "commercial_ok")
+    assert [asset_source(row).model_extra[k] for k in flags] == [
+        asset_source(rows[0]).model_extra[k] for k in flags
+    ], "a licence flag read back from CSV is a boolean, as the track's is"
     for clash in ({"license": "cc0-1.0"}, {"status": "acquired"}):
         with pytest.raises(MusicLibraryError, match="drop them"):
             _acquire({"A": clash}, Fetcher({}))
@@ -317,3 +321,30 @@ def test_the_command_writes_files_table_and_attribution_and_resumes(
     titles.write_text(json.dumps(["Sneaky Snitch", "Gone"]), encoding="utf-8")
     said = add_library("incompetech", titles_from=str(titles), out=str(out), pause=0.0)
     assert exit_code_of(said) == 1 and "Gone: direct: HTTP 403" in said
+
+
+def test_a_title_its_licence_refuses_makes_the_command_exit_1(tmp_path, monkeypatch):
+    """A refused title is a row with why, and the command says so with exit 1, as
+    for a failed one (an#656 review)."""
+    import an.music_library
+    from foley.sources.music_library import REFUSED, AcquiredTrack, track_license
+
+    from an.cli_status import exit_code_of
+    from an.music_cli import add_library
+
+    lib = MUSIC_LIBRARIES["incompetech"]
+
+    def refuse_all(library, titles, **kw):
+        why = "refused for the intended use: not for this use"
+        return [
+            AcquiredTrack(t, library, REFUSED, track_license(lib, t), error=why)
+            for t in titles
+        ]
+
+    monkeypatch.setattr(an.music_library, "acquire", refuse_all)
+    titles = tmp_path / "usage.json"
+    titles.write_text(json.dumps(["Sneaky Snitch"]), encoding="utf-8")
+    said = add_library("incompetech", titles_from=str(titles), out=str(tmp_path / "o"))
+    assert exit_code_of(said) == 1
+    assert "1 refused" in said and "Sneaky Snitch: refused for the intended use" in said
+    assert "refused" in (tmp_path / "o" / "tracks.csv").read_text(encoding="utf-8")

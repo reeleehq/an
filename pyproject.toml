@@ -76,9 +76,10 @@ dependencies = [
     # `foley.sources.music_library` (registry, mirrors, resilient fetch, audio
     # probe, licence gate, credit parser), with `an.music_library` bridging its
     # rows to `AssetSource`. A sibling package (MIT); its base install is dol,
-    # `ocracy` (MIT) and `cw` (MIT), both stdlib-only. Imported when a library
-    # is acquired, never by `import an` (its import is ~0.25 s).
-    "foley",
+    # `ocracy` (MIT) and `cw` (MIT), both stdlib-only, and its `music-library`
+    # extra adds `requests`, the default transport. Imported when a library is
+    # acquired, never by `import an` (its import is ~0.25 s).
+    "foley[music-library]",
 ]
 
 [project.scripts]
