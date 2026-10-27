@@ -1115,14 +1115,12 @@ def solve(
             tolerance=tolerance,
             angle_tolerance=angle_tolerance,
         )
-        failure = 0.0
-        for j, r in unsatisfied:
-            if j not in skip:
-                failure += r / tolerance if math.isfinite(r) else math.inf
-        for j, c in limits:
-            if j not in skip:
-                failure += abs(c) / angle_tolerance
-        return _Attempt(st, rows, residuals, unsatisfied, limits, tuple(skip), failure)
+        failing = [
+            (j, r / tolerance if math.isfinite(r) else math.inf)
+            for j, r in unsatisfied
+            if j not in skip
+        ] + [(j, abs(c) / angle_tolerance) for j, c in limits if j not in skip]
+        return _Attempt(st, rows, residuals, unsatisfied, limits, tuple(skip), tuple(failing))
 
     result = attempt(iterations, unreachable, nudge=False)
     if result.failure and retry > 1:
@@ -1168,7 +1166,19 @@ class _Attempt:
     unsatisfied: tuple[tuple[int, float], ...]
     limits: tuple[tuple[int, float], ...]
     dropped: tuple[int, ...]
-    failure: float
+    failing: tuple[tuple[int, float], ...]  # (joint, its residual over its tolerance)
+
+    @property
+    def failure(self) -> float:
+        return sum(f for _, f in self.failing)
+
+    @property
+    def conflict(self) -> float:
+        """The failure on joints that lie on a cycle: what giving a joint up
+        can fix. A joint on no cycle (a link of a rope whose far end was given
+        up) failing is slow convergence, never a conflict (an#641)."""
+        mates = _loop_mates(self.st, self.rows, {j for j, _ in self.failing})
+        return sum(f for j, f in self.failing if j in mates)
 
 
 def _give_up_conflicts(
@@ -1176,14 +1186,18 @@ def _give_up_conflicts(
 ) -> _Attempt:
     """Give up joints until the frame holds. The candidates are the joints
     that share a loop (a cycle through the held bodies) with a failing one,
-    tried last-declared first; the first whose loss lets everything else
-    hold is given up. If none does, the one that most reduces the failure is,
-    provided it at least halves it; else nothing more is. At most
+    tried last-declared first; the first whose loss leaves no loop failing
+    (:attr:`_Attempt.conflict`) and at least halves the failure is given up.
+    What is left then fails on joints on no cycle, which is slow convergence,
+    not a conflict: a rope whose far end is given up hangs from its hook, and
+    a link a little short of converged is reported, never given up in the end's
+    place (an#641). If no candidate does, the one that most reduces the failure
+    is, provided it at least halves it; else nothing more is. At most
     :data:`DFLT_MAX_DROP_TRIALS` trial solves in all."""
     trials = 0
-    while result.failure and trials < DFLT_MAX_DROP_TRIALS:
-        failing = {j for j, _ in result.unsatisfied} | {j for j, _ in result.limits}
-        failing.difference_update(result.dropped)
+    while result.conflict and trials < DFLT_MAX_DROP_TRIALS:
+        enough = DFLT_CONFLICT_PROGRESS * result.failure
+        failing = {j for j, _ in result.failing}
         candidates = sorted(_loop_mates(result.st, result.rows, failing), reverse=True)
         best: _Attempt | None = None
         for j in candidates:
@@ -1191,11 +1205,12 @@ def _give_up_conflicts(
                 break
             trials += 1
             trial = attempt(passes, (*result.dropped, j), nudge=False)
+            if trial.failure <= enough and not trial.conflict:
+                best = trial
+                break
             if best is None or trial.failure < best.failure:
                 best = trial
-            if not trial.failure:
-                break
-        if best is None or best.failure > DFLT_CONFLICT_PROGRESS * result.failure:
+        if best is None or best.failure > enough:
             break
         result = best
     return result

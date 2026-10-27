@@ -542,3 +542,41 @@ def test_a_retry_that_stalls_is_a_conflict_in_dynamic_mode():
     assert r.dropped[4] == (2,), r.dropped
     for k in range(10):
         assert [j for j, _ in r.unsatisfied[k] if j not in r.dropped[k]] == [], k
+
+
+def _rope(n: int = 50, link: float = 10.0) -> tuple[list[Body], list[Pin]]:
+    """A rope of ``n`` links hung from the world at one end and held at the
+    other by a fixed body ``end`` (declared last: the grip)."""
+    bodies = [
+        Body(f"p{k}", x=k * link, y=0.0, width=link, height=2.0, origin=(0.0, 0.5))
+        for k in range(n)
+    ]
+    bodies.append(
+        Body("end", x=n * link * 0.7, y=0.0, width=2.0, height=2.0, fixed=True)
+    )
+    joints = [Pin(Point("p0", 0.0, 0.5), Point(WORLD, 0.0, 0.0))]
+    joints += [Pin(Point(f"p{k}", 0.0, 0.5), Point(f"p{k - 1}", 1.0, 0.5)) for k in range(1, n)]
+    joints.append(Pin(Point(f"p{n - 1}", 1.0, 0.5), Point("end", 0.5, 0.5)))
+    return bodies, joints
+
+
+@pytest.mark.parametrize("dt", [DT, None])
+def test_a_rope_gives_up_its_end_never_a_link(dt):
+    """an#641: the rope's end goes out of reach for 20 frames and comes back.
+    Held at both ends the rope is a loop, so a conflict on it is settled by
+    giving up the grip (declared last), never an interior link, even when the
+    rope, falling, is still a little short of converged: that is slow
+    convergence, not a conflict. On main the links were given up from the
+    frame the end came back, and the rope came apart by hundreds of px."""
+    n, link = 50, 10.0
+    bodies, joints = _rope(n, link)
+
+    def end_at(k):
+        x = n * link * (1.3 if 4 <= k < 24 else 0.7)
+        return {"end": {"x": x, "y": 0.0}}
+
+    kw = {"gravity": (0.0, 980.0)} if dt else {}
+    r = solve_frames(bodies, joints, frames=40, dt=dt, targets_at=end_at, **kw)
+    assert {j for d in r.dropped for j in d} <= {n}, r.dropped
+    worst = max((g for u in r.unsatisfied for j, g in u if j != n), default=0.0)
+    assert worst < 1.0, worst

@@ -1,0 +1,1 @@
+- The solve gives up the grip of a rope held at both ends, never an interior link: a conflict is judged by what still fails on a loop, and a link a little short of converged is slow convergence, reported (an#641).
