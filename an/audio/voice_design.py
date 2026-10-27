@@ -21,9 +21,9 @@ Two steps, both plain functions over injected stores:
 - :func:`choose_voice_option`: the ``voice_id`` of the chosen option (saving it
   as a voice first when it was not persisted).
 - :func:`choose_in_entry`: the choice made in one manifest entry (that
-  ``voice_id``, the voice it replaces retired, who chose it and when),
-  returning the voice document: the step every chooser shares, the CLI's
-  :func:`choose_project_voice` and a connector's alike.
+  ``voice_id``, the designed voice it replaces retired, who chose it and
+  when), returning the voice document and the replaced voice: the step every
+  chooser shares, the CLI's :func:`choose_project_voice` and a connector's alike.
 
 **Two more routes to a voice** (an#485). Design from notes can miss a
 regional accent entirely (every design of "rural Limerick Irish" came out
@@ -111,6 +111,7 @@ __all__ = [
     "plan_auditions",
     "run_auditions",
     "cast_project_voice",
+    "VoiceChoice",
     "choose_in_entry",
     "choose_project_voice",
     "choose_voice_option",
@@ -1487,6 +1488,15 @@ def audition_project_voices(
     return entries
 
 
+@dataclass(frozen=True)
+class VoiceChoice:
+    """What :func:`choose_in_entry` did: the voice document, and the voice the
+    choice replaced and retired (``None`` when it replaced none it may retire)."""
+
+    document: dict
+    replaced: str | None = None
+
+
 def choose_in_entry(
     entry: MutableMapping,
     option: str,
@@ -1496,96 +1506,101 @@ def choose_in_entry(
     ref: str = "",
     at: str | None = None,
     doc: Mapping | None = None,
-) -> dict:
+) -> VoiceChoice:
     """Make ``option`` the choice of one voice's options manifest ``entry``
     (an#549): the one choose step an's ``an voices choose`` and a connector
     (reelee's production pack) share. Returns the voice document
     (:func:`record_choice` of ``doc``, default an empty one: a caller that
-    keeps the voice file elsewhere merges these keys into it).
+    keeps the voice file elsewhere merges these keys into it) and the voice
+    it replaced.
 
     ``entry`` is updated in place: ``chosen`` records the option, its
     ``voice_id``, ``chosen_by`` and ``chosen_at``. Choosing the option already
-    chosen reuses its voice (nothing is saved), and the same chooser keeps the
-    first ``chosen_at``. Choosing another one names its voice on its option
-    (saved as a provider voice when it was not, :func:`choose_voice_option`;
-    taken back from the ledger below when it was retired) and retires the
-    voice it replaces: that option no longer names it, and ``entry["retired"]``
-    records it (``{voice_id, option, name_prefix}``), never deleted here, since
-    a copy of the manifest or a voice file already written may still name it:
-    freeing the provider's slot is a separate, explicit act. ``by`` defaults to
-    the login name (see :func:`record_choice`).
+    chosen reuses its voice (nothing is saved), and keeps its ``chosen_at``
+    when the same chooser chooses it again and no ``at`` is given. Choosing
+    another one names its voice (saved as a provider voice when it was not,
+    :func:`choose_voice_option`) and retires the designed voice it replaces:
+    its option no longer names it, and ``entry["retired"]`` records it
+    (``{voice_id, option, name_prefix}``), never deleted here (a copy of the
+    manifest, or a voice file already written, may still name it: freeing the
+    provider's slot is a separate, explicit act). A voice this manifest did
+    not save (a library voice, or one cast by hand) is never retired. ``by``
+    defaults to the login name (see :func:`record_choice`).
 
-    >>> entry = {"options": [{"option": "A", "voice_id": "va"}, {"option": "B", "voice_id": "vb"}]}
-    >>> choose_in_entry(entry, "a", by="noel", at="t1")["voice_id"]
+    >>> entry = {"options": [{"option": "A", "generated_voice_id": "ga", "voice_id": "va"},
+    ...                      {"option": "B", "generated_voice_id": "gb", "voice_id": "vb"}]}
+    >>> choose_in_entry(entry, "a", by="noel", at="t1").document["voice_id"]
     'va'
-    >>> choose_in_entry(entry, "B", by="noel", at="t2")["chosen_at"], entry["retired"]
-    ('t2', [{'voice_id': 'va', 'option': 'A', 'name_prefix': None}])
-    >>> [o["voice_id"] for o in entry["options"]]
-    [None, 'vb']
-    >>> choose_in_entry(entry, "B", by="noel", at="t3")["chosen_at"]   # the same choice again
+    >>> choice = choose_in_entry(entry, "B", by="noel", at="t2")
+    >>> choice.replaced, entry["retired"], [o["voice_id"] for o in entry["options"]]
+    ('va', [{'voice_id': 'va', 'option': 'A', 'name_prefix': None}], [None, 'vb'])
+    >>> choose_in_entry(entry, "B", by="noel").document["chosen_at"]   # the same choice again
     't2'
-    >>> choose_in_entry(entry, "A", by="noel")["voice_id"], [r["voice_id"] for r in entry["retired"]]
-    ('va', ['vb'])
     """
+    if not isinstance(entry.get("retired", []), list):
+        raise VoiceDesignError(
+            f"the options manifest's `retired` is {type(entry['retired']).__name__}, "
+            "not a list: the manifest is damaged; nothing was chosen"
+        )
     label = str(option).strip().upper()
     previous = entry.get("chosen") or {}
     chooser = (by or "").strip() or default_chooser()
+    replaced = None
     if previous.get("option") == label and previous.get("voice_id"):
         voice_id = previous["voice_id"]
-        if previous.get(CHOSEN_BY_KEY) == chooser:
-            at = previous.get(CHOSEN_AT_KEY) or at
+        if at is None and previous.get(CHOSEN_BY_KEY) == chooser:
+            at = previous.get(CHOSEN_AT_KEY)
     else:
-        voice_id = _unretire(entry, label) or choose_voice_option(
-            entry, label, ref=ref, designer=designer
-        )
-        _retire(entry, previous, keep=voice_id)
+        voice_id = choose_voice_option(entry, label, ref=ref, designer=designer)
+        replaced = _retire(entry, previous, keep=voice_id)
         for o in entry.get("options", ()):
             if o.get("option") == label:
                 o["voice_id"] = voice_id
-    chosen = record_choice(doc, voice_id, by=chooser, at=at, provider=DESIGN_PROVIDER)
-    entry["chosen"] = {
-        "option": label,
-        "voice_id": voice_id,
-        CHOSEN_BY_KEY: chosen[CHOSEN_BY_KEY],
-        CHOSEN_AT_KEY: chosen[CHOSEN_AT_KEY],
+    document = record_choice(doc, voice_id, by=chooser, at=at, provider=DESIGN_PROVIDER)
+    entry["chosen"] = _chosen_record(label, document)
+    return VoiceChoice(document, replaced)
+
+
+def _chosen_record(option: str | None, document: Mapping) -> dict:
+    """An options manifest's ``chosen``: the option (``None``: cast by hand),
+    and the voice document's ``voice_id``, ``chosen_by`` and ``chosen_at``."""
+    return {
+        "option": option,
+        "voice_id": document["voice_id"],
+        CHOSEN_BY_KEY: document[CHOSEN_BY_KEY],
+        CHOSEN_AT_KEY: document[CHOSEN_AT_KEY],
     }
-    return chosen
 
 
-def _unretire(entry: MutableMapping, label: str) -> str | None:
-    """The voice option ``label`` had before another was chosen, taken back
-    out of ``entry["retired"]``; ``None`` when it has none there."""
-    retired = entry.get("retired") or []
-    for i in range(len(retired) - 1, -1, -1):
-        row = retired[i]
-        if (
-            isinstance(row, Mapping)
-            and row.get("option") == label
-            and row.get("voice_id")
-        ):
-            del retired[i]
-            return row["voice_id"]
-    return None
-
-
-def _retire(entry: MutableMapping, previous: Mapping, *, keep: str) -> None:
+def _retire(entry: MutableMapping, previous: Mapping, *, keep: str) -> str | None:
     """Retire the voice ``previous`` (the choice being replaced) named, unless
-    it is ``keep``: its option no longer names it, and the ``retired`` ledger
-    does, with whose name it carries (a copy of the manifest inherits the row,
-    not the right to delete it)."""
+    it is ``keep`` or a voice this manifest did not save: one cast by hand
+    (``option`` ``None``) or a library option's (another account's). Its
+    option no longer names it, and the ``retired`` ledger does, with whose
+    name it carries (a copy of the manifest inherits the row, not the right to
+    delete it). Returns the retired voice, or ``None``."""
     old = previous.get("voice_id")
-    if not old or old == keep:
-        return
-    for o in entry.get("options", ()):
-        if o.get("voice_id") == old:
-            o["voice_id"] = None
-    entry.setdefault("retired", []).append(
+    designed = next(
+        (
+            o
+            for o in entry.get("options", ())
+            if o.get("option") == previous.get("option") and o.get("kind") != "library"
+        ),
+        None,
+    )
+    if not old or old == keep or previous.get("option") is None or designed is None:
+        return None
+    retired = entry.setdefault("retired", [])
+    if designed.get("voice_id") == old:
+        designed["voice_id"] = None
+    retired.append(
         {
             "voice_id": old,
             "option": previous.get("option"),
             "name_prefix": entry.get("name_prefix"),
         }
     )
+    return old
 
 
 def choose_project_voice(
@@ -1613,7 +1628,7 @@ def choose_project_voice(
         ref=ref,
         at=at,
         doc=voices[ref] if ref in voices else {},
-    )
+    ).document
     voices[ref] = doc
     options[ref] = entry
     return doc
@@ -1647,11 +1662,8 @@ def cast_project_voice(
     voices[ref] = doc
     if ref in options:
         entry = dict(options[ref])
-        entry["chosen"] = {
-            "option": None,
-            "voice_id": chosen,
-            CHOSEN_BY_KEY: doc[CHOSEN_BY_KEY],
-            CHOSEN_AT_KEY: doc[CHOSEN_AT_KEY],
-        }
+        # cast by hand: what it replaces is not retired (the designed voice
+        # stays named on its option), and it is never retired itself
+        entry["chosen"] = _chosen_record(None, doc)
         options[ref] = entry
     return doc
