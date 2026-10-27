@@ -1081,6 +1081,61 @@ def camera_follow_keys(state: CompileState) -> list[CameraKey]:
     ]
 
 
+#: The swap set a boiling path's drawings are keyed in (an#443): the runtime's
+#: path registers it as a draw set, ``"0"`` the static wobble's drawing.
+BOIL_SET: str = "boil"
+
+
+def boil_keys(hz: float, drawings: int, duration: float) -> list[tuple[float, str]]:
+    """``(time, drawing)`` of a boil: drawing ``k mod drawings`` from ``k / hz``,
+    every step of the shot (an#443). The steps are on the shot's own clock, so
+    the line changes exactly on them, every render.
+
+    >>> boil_keys(12.0, 3, 0.3)
+    [(0.0, '0'), (0.08333333333333333, '1'), (0.16666666666666666, '2'), (0.25, '0')]
+    """
+    steps = max(1, math.ceil(duration * hz - 1e-9))
+    return [(k / hz, str(k % drawings)) for k in range(steps)]
+
+
+def _boil_pass(state: CompileState) -> None:
+    """A boiling path's drawing, stepped (an#443): one ``boil`` channel per
+    path node that carries variants, stepping through them at its rate."""
+    duration = max(0.001, float(state.shot.duration))
+    for path, node in stage_tree.walk_children(state.scene_root):
+        v = node.visual
+        if v is None or v.path is None or not v.path.variants or not v.path.boil_hz:
+            continue
+        hz = v.path.boil_hz
+        anim_id = f"__boil__{state.shot.id}_{path.replace('/', '_')}"
+        if anim_id in state.animations:
+            raise CutoutCompileError(f"boil clip id {anim_id!r} is already taken")
+        state.animations[anim_id] = AnimationClipJSON(
+            name=anim_id,
+            duration=duration,
+            channels=[
+                ChannelJSON(
+                    target=path,
+                    property=BOIL_SET,
+                    keyframes=[
+                        KeyframeJSON(time=t, value=key, easing="step")
+                        for t, key in boil_keys(hz, len(v.path.variants) + 1, duration)
+                    ],
+                )
+            ],
+        )
+        state.tracks.append(
+            TrackJSON(
+                target_root="__boil__",
+                clips=[
+                    PlacedClipJSON(
+                        animation_id=anim_id, start_time=0.0, duration=duration
+                    )
+                ],
+            )
+        )
+
+
 def _parallax_pass(state: CompileState) -> None:
     """Planes' parallax. After the camera, which reads in the order it happens --
     though not load-bearing: the two write disjoint targets. What IS load-bearing
@@ -1197,6 +1252,9 @@ STAGE_COMPILE_PASSES: tuple[CompilePass, ...] = (
         "camera", _camera_pass, order=600, description="the camera onto the scene root"
     ),
     CompilePass("parallax", _parallax_pass, order=700, description="planes' parallax"),
+    CompilePass(
+        "boil", _boil_pass, order=750, description="a boiling path's drawings (an#443)"
+    ),
     CompilePass(
         "checks", _checks_pass, order=900, description="targets, easings, stand-ins"
     ),
@@ -2666,6 +2724,14 @@ def _build_path_subtree(
         )
     )
     points, _ = drawn_polyline(desc, entity.id)
+    variants = (
+        [
+            drawn_polyline(desc, entity.id, variant=k)[0]
+            for k in range(1, desc.boil_variants)
+        ]
+        if desc.boil_hz
+        else None
+    )
     colour = _path_colour(desc, entity, style_pack, reached)
     return NodeJSON(
         name=entity.id,
@@ -2691,6 +2757,8 @@ def _build_path_subtree(
                 fill=desc.fill,
                 fill_alpha=desc.fill_alpha,
                 width_profile=desc.width_profile,
+                variants=variants,
+                boil_hz=desc.boil_hz or None,
             ),
         ),
     )

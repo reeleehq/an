@@ -1,0 +1,16 @@
+{
+  "schema_version": "0.1.0",
+  "kind": "PathDescriptor",
+  "name": "route",
+  "points": [[-110, 50], [-20, 50], [20, -40], [110, -40]],
+  "color": "#c0392b",
+  "width": 6,
+  "cap": "butt",
+  "dash": 18,
+  "gap": 8,
+  "wobble": 4,
+  "arrowhead": true,
+  "trim_end": 0.85,
+  "boil_hz": 12,
+  "boil_variants": 2
+}

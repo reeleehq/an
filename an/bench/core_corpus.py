@@ -10,6 +10,7 @@ scene      what it is the gate for
 ========== ===================================================================
 path_draw  paths — dash phase, trim, arrowheads, a StylePack's stroke role
 path_wobble hand-drawn paths — a wobbled frame and a wobbled arrow drawing on (an#161)
+path_boil  boiling paths — a hand-drawn line drawn again on twos (an#443)
 path_taper variable-width paths — a brush stroke, a tapered arrow drawing on (an#161)
 path_shape closed and filled paths — a whole filled badge, a region fading in under its border drawing on (an#161)
 stage_pan  planes and the camera's TRANSLATION — parallax at three depths
@@ -51,7 +52,7 @@ knobs, the throwaway copy and the browser-free contract hash moved here from
 them. Nothing here imports the stage at module level.
 
 >>> sorted(CORE_FIXTURES)
-['after_plane', 'front_plane', 'path_draw', 'path_shape', 'path_taper', 'path_wobble', 'rig_chain', 'rig_interleave', 'rig_order', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_outline', 'text_swap', 'transitions']
+['after_plane', 'front_plane', 'path_boil', 'path_draw', 'path_shape', 'path_taper', 'path_wobble', 'rig_chain', 'rig_interleave', 'rig_order', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_outline', 'text_swap', 'transitions']
 """
 
 from __future__ import annotations
@@ -144,6 +145,19 @@ CORE_FIXTURES: dict[str, Fixture] = {
             "entity id, no trigonometry), so the frame is the same in both "
             "goldens and only the route grows; a change to the noise, the "
             "seed, the end envelope or the resampling moves both."
+        ),
+    ),
+    "path_boil": Fixture(
+        path=f"{CORPUS_DIRNAME}/path_boil",
+        expect_visual_kinds=frozenset({"path"}),
+        golden_frames=(1 / 24, 2 / 24),
+        golden_note=(
+            "two boiling paths (an#443): the wobbled frame of `path_wobble` "
+            "drawn three ways and a dashed, trimmed arrow drawn two ways, both "
+            "stepping to their next drawing every 1/12 s. Nothing else moves, so "
+            "the two goldens straddle a step: frame 1 is drawing 0 (the static "
+            "wobble's bytes), frame 2 is drawing 1; a change to the variant "
+            "seeds, the step clock or the runtime's draw set moves frame 2 only."
         ),
     ),
     "path_shape": Fixture(
