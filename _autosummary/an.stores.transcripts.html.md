@@ -34,12 +34,15 @@ recording.
 
 ### Functions
 
-| [`in_memory_transcripts_store`](#an.stores.transcripts.in_memory_transcripts_store)()                   | A transcripts store held in dicts: for tests, and a mall with no disk.                                                                                                                        |
-|--------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`is_artifact_ref`](#an.stores.transcripts.is_artifact_ref)(item)                           | Whether `item` names a transcript artifact: an `artifact:` reference or a `lacing.Artifact`.                                                                                                  |
-| [`linked_transcript`](#an.stores.transcripts.linked_transcript)(item, mall, \*[, store_name]) | The transcript `item` names: `artifact:<store>/<key>` (`<key>` alone is in `store_name`; a key may itself hold slashes), or a `lacing.Artifact` (filed in `store_name`), read through `mall`. |
-| [`record_transcript`](#an.stores.transcripts.record_transcript)(store, key, text, \*[, ...])  | Keep `text` (a transcript, or a `Path` to one; its format detected, a file's suffix first, unless `fmt` says) in `store` under `key`; return its `lacing.Artifact`.                           |
-| [`transcripts_store`](#an.stores.transcripts.transcripts_store)(root)                         | A filesystem transcripts store under `root` (lacing's layout).                                                                                                                                |
+| [`in_memory_transcripts_store`](#an.stores.transcripts.in_memory_transcripts_store)()                   | A transcripts store held in dicts: for tests, and a mall with no disk.                                                                                                                                                                                                                                                                                       |
+|--------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`is_artifact_ref`](#an.stores.transcripts.is_artifact_ref)(item)                           | Whether `item` names a transcript artifact: an `artifact:` reference or a `lacing.Artifact`.                                                                                                                                                                                                                                                                 |
+| [`linked_transcript`](#an.stores.transcripts.linked_transcript)(item, mall, \*[, store_name]) | The transcript `item` names: `artifact:[<store>/]<key>[@<sha256>]` ([`parse_artifact_ref()`](#an.stores.transcripts.parse_artifact_ref)), or a `lacing.Artifact` (filed in `store_name`), read through `mall`.                                                                                                                                             |
+| [`orphan_transcript_blobs`](#an.stores.transcripts.orphan_transcript_blobs)(store, \*[, named])     | The transcript contents of `store` that no catalog record and nothing in `named` (the pins a take's provenance records, an#607) names: what re-recording a key left behind.                                                                                                                                                                                  |
+| [`parse_artifact_ref`](#an.stores.transcripts.parse_artifact_ref)(ref, mall, \*[, store_name]) | `(store, key, pin)` of `artifact:[<store>/]<key>[@<sha256>]` (an#607): the first segment names a store of `mall` when it is one that holds the key (else the whole name is a key of `store_name`, so a transcript keyed `takes/a` is found though the mall has a `takes` store); `pin` is the content a recorded reference names, `None` when it names none. |
+| [`pin_of`](#an.stores.transcripts.pin_of)(reference)                               | The content digest a recorded reference pins (`<store>/<key>@<sha256>`).                                                                                                                                                                                                                                                                                     |
+| [`record_transcript`](#an.stores.transcripts.record_transcript)(store, key, text, \*[, ...])  | Keep `text` (a transcript, or a `Path` to one; its format detected, a file's suffix first, unless `fmt` says) in `store` under `key`; return its `lacing.Artifact`.                                                                                                                                                                                          |
+| [`transcripts_store`](#an.stores.transcripts.transcripts_store)(root)                         | A filesystem transcripts store under `root` (lacing's layout).                                                                                                                                                                                                                                                                                               |
 
 ### Classes
 
@@ -48,8 +51,9 @@ recording.
 
 ### Exceptions
 
-| [`TranscriptLinkError`](#an.stores.transcripts.TranscriptLinkError)   | A transcript artifact that cannot be found or read.   |
-|------------------------------------------------------------------------|-------------------------------------------------------|
+| [`TranscriptCatalogUnreadable`](#an.stores.transcripts.TranscriptCatalogUnreadable)   | A transcripts catalog record cannot be read: what it names is unknown, so nothing can be said to be named by nothing (an#607).   |
+|--------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
+| [`TranscriptLinkError`](#an.stores.transcripts.TranscriptLinkError)           | A transcript artifact that cannot be found or read.                                                                              |
 
 ### an.stores.transcripts.ARTIFACT_REF_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'artifact:'*
 
@@ -71,6 +75,13 @@ reference that names it with its content (`<store>/<key>@<sha256>`).
 ### an.stores.transcripts.TRANSCRIPTS_STORE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'transcripts'*
 
 The mall key of the transcripts store.
+
+### *exception* an.stores.transcripts.TranscriptCatalogUnreadable
+
+Bases: [`TranscriptLinkError`](#an.stores.transcripts.TranscriptLinkError)
+
+A transcripts catalog record cannot be read: what it names is unknown,
+so nothing can be said to be named by nothing (an#607).
 
 ### *exception* an.stores.transcripts.TranscriptLinkError
 
@@ -102,15 +113,67 @@ False
 
 ### an.stores.transcripts.linked_transcript(item, mall, , store_name='transcripts')
 
-The transcript `item` names: `artifact:<store>/<key>` (`<key>`
-alone is in `store_name`; a key may itself hold slashes), or a
-`lacing.Artifact` (filed in `store_name`), read through `mall`.
-Raises [`TranscriptLinkError`](#an.stores.transcripts.TranscriptLinkError) for a store the mall has not, one
-that is not an artifact store, a key or content it does not hold, or a
-record whose `mime` is not a transcript format.
+The transcript `item` names: `artifact:[<store>/]<key>[@<sha256>]`
+([`parse_artifact_ref()`](#an.stores.transcripts.parse_artifact_ref)), or a `lacing.Artifact` (filed in
+`store_name`), read through `mall`. A pinned reference (what a take’s
+provenance records) reads exactly those bytes, even after the key was
+recorded again. Raises [`TranscriptLinkError`](#an.stores.transcripts.TranscriptLinkError) for a store the mall
+has not, one that is not an artifact store, a key or content it does not
+hold, or a record whose `mime` is not a transcript format.
 
 * **Return type:**
   [`LinkedTranscript`](#an.stores.transcripts.LinkedTranscript)
+
+### an.stores.transcripts.orphan_transcript_blobs(store, , named=())
+
+The transcript contents of `store` that no catalog record and nothing
+in `named` (the pins a take’s provenance records, an#607) names: what
+re-recording a key left behind. Raises [`TranscriptCatalogUnreadable`](#an.stores.transcripts.TranscriptCatalogUnreadable)
+when a record cannot be read, since its blob might be the one it names.
+
+```pycon
+>>> store = in_memory_transcripts_store()
+>>> first = record_transcript(store, "k", "carl: Hello.")
+>>> _ = record_transcript(store, "k", "carl: Hello there.")
+>>> orphan_transcript_blobs(store) == [first.asset_id]
+True
+>>> orphan_transcript_blobs(store, named=[first.asset_id])
+[]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+### an.stores.transcripts.parse_artifact_ref(ref, mall, , store_name='transcripts')
+
+`(store, key, pin)` of `artifact:[<store>/]<key>[@<sha256>]` (an#607):
+the first segment names a store of `mall` when it is one that holds the
+key (else the whole name is a key of `store_name`, so a transcript keyed
+`takes/a` is found though the mall has a `takes` store); `pin` is the
+content a recorded reference names, `None` when it names none.
+
+```pycon
+>>> mall = {"transcripts": {"takes/a": 1}, "takes": {}}
+>>> parse_artifact_ref("artifact:takes/a", mall)
+('transcripts', 'takes/a', None)
+>>> parse_artifact_ref("artifact:transcripts/k@" + "0" * 64, mall)[1:]
+('k', '0000000000000000000000000000000000000000000000000000000000000000')
+```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)]
+
+### an.stores.transcripts.pin_of(reference)
+
+The content digest a recorded reference pins (`<store>/<key>@<sha256>`).
+
+```pycon
+>>> pin_of("transcripts/k@" + "a" * 64) == "a" * 64, pin_of("transcripts/k")
+(True, None)
+```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.stores.transcripts.record_transcript(store, key, text, , fmt=None, generated_by='processor:an.stores.transcripts', attributed_to='an', derived_from=())
 

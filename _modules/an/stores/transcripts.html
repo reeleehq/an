@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=890f9cf7"></script>
+    <script src="../../../_static/documentation_options.js?v=42860c3a"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.303" />
+  <meta name="docsearch:version" content="0.1.304" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -752,10 +752,14 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"FORMAT_MIME"</span><span class="p">,</span>
     <span class="s2">"LinkedTranscript"</span><span class="p">,</span>
     <span class="s2">"TRANSCRIPTS_STORE"</span><span class="p">,</span>
+    <span class="s2">"TranscriptCatalogUnreadable"</span><span class="p">,</span>
     <span class="s2">"TranscriptLinkError"</span><span class="p">,</span>
     <span class="s2">"in_memory_transcripts_store"</span><span class="p">,</span>
     <span class="s2">"is_artifact_ref"</span><span class="p">,</span>
     <span class="s2">"linked_transcript"</span><span class="p">,</span>
+    <span class="s2">"orphan_transcript_blobs"</span><span class="p">,</span>
+    <span class="s2">"parse_artifact_ref"</span><span class="p">,</span>
+    <span class="s2">"pin_of"</span><span class="p">,</span>
     <span class="s2">"record_transcript"</span><span class="p">,</span>
     <span class="s2">"transcripts_store"</span><span class="p">,</span>
 <span class="p">]</span>
@@ -769,6 +773,8 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: A reference: the prefix and a name with no whitespace (so a plain</span>
 <span class="c1">#: ``artifact: some words`` transcript line is not taken for one).</span>
 <span class="n">_REF</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">ARTIFACT_REF_PREFIX</span><span class="p">)</span> <span class="o">+</span> <span class="sa">r</span><span class="s2">"[^\s/][^\s]*"</span><span class="p">)</span>
+<span class="c1">#: A recorded reference's content pin: ``&lt;key&gt;@&lt;sha256&gt;``.</span>
+<span class="n">_PINNED</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"(?P&lt;key&gt;.+)@(?P&lt;pin&gt;[0-9a-f]</span><span class="si">{64}</span><span class="s2">)"</span><span class="p">)</span>
 <span class="c1">#: The media type each transcript format is recorded under (and read back from).</span>
 <span class="n">FORMAT_MIME</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">"srt"</span><span class="p">:</span> <span class="s2">"application/x-subrip"</span><span class="p">,</span>
@@ -848,6 +854,11 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">Path</span><span class="p">):</span>
         <span class="n">suffix</span><span class="p">,</span> <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">suffix</span><span class="p">,</span> <span class="n">text</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8-sig"</span><span class="p">)</span>
     <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">removeprefix</span><span class="p">(</span><span class="n">_BOM</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">_PINNED</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">TranscriptLinkError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"transcript key </span><span class="si">{</span><span class="n">key</span><span class="si">!r}</span><span class="s2"> ends in `@&lt;sha256&gt;`, which a reference reads as "</span>
+            <span class="s2">"a content pin: choose another key"</span>
+        <span class="p">)</span>
     <span class="n">fmt</span> <span class="o">=</span> <span class="p">(</span><span class="n">fmt</span> <span class="ow">or</span> <span class="n">detect_format</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="n">suffix</span><span class="p">))</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">fmt</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">FORMAT_MIME</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">TranscriptLinkError</span><span class="p">(</span>
@@ -884,28 +895,63 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<div class="viewcode-block" id="parse_artifact_ref">
+<a class="viewcode-back" href="../../../_autosummary/an.stores.transcripts.html#an.stores.transcripts.parse_artifact_ref">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_artifact_ref</span><span class="p">(</span>
+    <span class="n">ref</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">store_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">TRANSCRIPTS_STORE</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``(store, key, pin)`` of ``artifact:[&lt;store&gt;/]&lt;key&gt;[@&lt;sha256&gt;]`` (an#607):</span>
+<span class="sd">    the first segment names a store of ``mall`` when it is one that holds the</span>
+<span class="sd">    key (else the whole name is a key of ``store_name``, so a transcript keyed</span>
+<span class="sd">    ``takes/a`` is found though the mall has a ``takes`` store); ``pin`` is the</span>
+<span class="sd">    content a recorded reference names, ``None`` when it names none.</span>
+
+<span class="sd">    &gt;&gt;&gt; mall = {"transcripts": {"takes/a": 1}, "takes": {}}</span>
+<span class="sd">    &gt;&gt;&gt; parse_artifact_ref("artifact:takes/a", mall)</span>
+<span class="sd">    ('transcripts', 'takes/a', None)</span>
+<span class="sd">    &gt;&gt;&gt; parse_artifact_ref("artifact:transcripts/k@" + "0" * 64, mall)[1:]</span>
+<span class="sd">    ('k', '0000000000000000000000000000000000000000000000000000000000000000')</span>
+<span class="sd">    """</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">ref</span><span class="o">.</span><span class="n">strip</span><span class="p">()[</span><span class="nb">len</span><span class="p">(</span><span class="n">ARTIFACT_REF_PREFIX</span><span class="p">)</span> <span class="p">:]</span>
+    <span class="n">pinned</span> <span class="o">=</span> <span class="n">_PINNED</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">pin</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">pinned</span><span class="p">:</span>
+        <span class="n">name</span><span class="p">,</span> <span class="n">pin</span> <span class="o">=</span> <span class="n">pinned</span><span class="p">[</span><span class="s2">"key"</span><span class="p">],</span> <span class="n">pinned</span><span class="p">[</span><span class="s2">"pin"</span><span class="p">]</span>
+    <span class="n">head</span><span class="p">,</span> <span class="n">sep</span><span class="p">,</span> <span class="n">rest</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">"/"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">sep</span>
+        <span class="ow">and</span> <span class="n">head</span> <span class="ow">in</span> <span class="n">mall</span>
+        <span class="ow">and</span> <span class="p">(</span><span class="n">_has</span><span class="p">(</span><span class="n">mall</span><span class="p">[</span><span class="n">head</span><span class="p">],</span> <span class="n">rest</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">_has</span><span class="p">(</span><span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">store_name</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{},</span> <span class="n">name</span><span class="p">))</span>
+    <span class="p">):</span>
+        <span class="k">return</span> <span class="n">head</span><span class="p">,</span> <span class="n">rest</span><span class="p">,</span> <span class="n">pin</span>
+    <span class="k">return</span> <span class="n">store_name</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">pin</span></div>
+
+
+
 <div class="viewcode-block" id="linked_transcript">
 <a class="viewcode-back" href="../../../_autosummary/an.stores.transcripts.html#an.stores.transcripts.linked_transcript">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">linked_transcript</span><span class="p">(</span>
     <span class="n">item</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">store_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">TRANSCRIPTS_STORE</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LinkedTranscript</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""The transcript ``item`` names: ``artifact:&lt;store&gt;/&lt;key&gt;`` (``&lt;key&gt;``</span>
-<span class="sd">    alone is in ``store_name``; a key may itself hold slashes), or a</span>
-<span class="sd">    ``lacing.Artifact`` (filed in ``store_name``), read through ``mall``.</span>
-<span class="sd">    Raises :class:`TranscriptLinkError` for a store the mall has not, one</span>
-<span class="sd">    that is not an artifact store, a key or content it does not hold, or a</span>
-<span class="sd">    record whose ``mime`` is not a transcript format."""</span>
+<span class="w">    </span><span class="sd">"""The transcript ``item`` names: ``artifact:[&lt;store&gt;/]&lt;key&gt;[@&lt;sha256&gt;]``</span>
+<span class="sd">    (:func:`parse_artifact_ref`), or a ``lacing.Artifact`` (filed in</span>
+<span class="sd">    ``store_name``), read through ``mall``. A pinned reference (what a take's</span>
+<span class="sd">    provenance records) reads exactly those bytes, even after the key was</span>
+<span class="sd">    recorded again. Raises :class:`TranscriptLinkError` for a store the mall</span>
+<span class="sd">    has not, one that is not an artifact store, a key or content it does not</span>
+<span class="sd">    hold, or a record whose ``mime`` is not a transcript format."""</span>
+    <span class="n">pin</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">_is_artifact</span><span class="p">(</span><span class="n">item</span><span class="p">):</span>
         <span class="n">artifact</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">item</span><span class="p">,</span> <span class="n">store_name</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">item</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()[</span><span class="nb">len</span><span class="p">(</span><span class="n">ARTIFACT_REF_PREFIX</span><span class="p">)</span> <span class="p">:]</span>
-        <span class="n">head</span><span class="p">,</span> <span class="n">sep</span><span class="p">,</span> <span class="n">rest</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">"/"</span><span class="p">)</span>
-        <span class="n">name</span><span class="p">,</span> <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">head</span><span class="p">,</span> <span class="n">rest</span><span class="p">)</span> <span class="k">if</span> <span class="n">sep</span> <span class="ow">and</span> <span class="n">head</span> <span class="ow">in</span> <span class="n">mall</span> <span class="k">else</span> <span class="p">(</span><span class="n">store_name</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="n">name</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">pin</span> <span class="o">=</span> <span class="n">parse_artifact_ref</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">item</span><span class="p">),</span> <span class="n">mall</span><span class="p">,</span> <span class="n">store_name</span><span class="o">=</span><span class="n">store_name</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mall</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">TranscriptLinkError</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">item</span><span class="si">!r}</span><span class="s2">: the project has no </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> store (its stores: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">mall</span><span class="p">)</span><span class="si">}</span><span class="s2">)"</span>
         <span class="p">)</span>
     <span class="n">store</span> <span class="o">=</span> <span class="n">mall</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">pin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># the bytes it pinned, whatever the key names now</span>
+        <span class="k">return</span> <span class="n">_pinned</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">@</span><span class="si">{</span><span class="n">pin</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">pin</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">_is_artifact</span><span class="p">(</span><span class="n">item</span><span class="p">):</span>
         <span class="n">key</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">store</span> <span class="k">if</span> <span class="n">_holds</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">asset_id</span><span class="p">)),</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -913,21 +959,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="sa">f</span><span class="s2">"no record in the </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> store holds transcript </span><span class="si">{</span><span class="n">item</span><span class="o">.</span><span class="n">asset_id</span><span class="si">}</span><span class="s2">"</span>
             <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">artifact</span> <span class="o">=</span> <span class="n">store</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
-        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">TranscriptLinkError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">item</span><span class="si">!r}</span><span class="s2">: no transcript </span><span class="si">{</span><span class="n">key</span><span class="si">!r}</span><span class="s2"> in the </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> store"</span>
-            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
-        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># a record that does not validate (pydantic)</span>
-            <span class="k">raise</span> <span class="n">TranscriptLinkError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">item</span><span class="si">!r}</span><span class="s2">: the record </span><span class="si">{</span><span class="n">key</span><span class="si">!r}</span><span class="s2"> in the </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> store is damaged: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span>
-            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_artifact</span><span class="p">(</span><span class="n">artifact</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="n">TranscriptLinkError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">item</span><span class="si">!r}</span><span class="s2">: the </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> store keeps </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">artifact</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">s, not "</span>
-            <span class="s2">"transcript artifacts"</span>
-        <span class="p">)</span>
+        <span class="n">artifact</span> <span class="o">=</span> <span class="n">_record</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">item</span><span class="o">=</span><span class="n">item</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
     <span class="n">ref</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">@</span><span class="si">{</span><span class="n">artifact</span><span class="o">.</span><span class="n">asset_id</span><span class="si">}</span><span class="s2">"</span>
     <span class="n">fmt</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">FORMAT_MIME</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">m</span> <span class="o">==</span> <span class="n">artifact</span><span class="o">.</span><span class="n">mime</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">fmt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -939,6 +971,107 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">TranscriptLinkError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2">: its content is missing"</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">LinkedTranscript</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">"utf-8-sig"</span><span class="p">),</span> <span class="n">fmt</span><span class="p">,</span> <span class="n">ref</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_record</span><span class="p">(</span><span class="n">store</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">item</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The artifact record at ``key``, or a :class:`TranscriptLinkError` naming why not."""</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">artifact</span> <span class="o">=</span> <span class="n">store</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">TranscriptLinkError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">item</span><span class="si">!r}</span><span class="s2">: no transcript </span><span class="si">{</span><span class="n">key</span><span class="si">!r}</span><span class="s2"> in the </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> store"</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># a record that does not validate (pydantic)</span>
+        <span class="k">raise</span> <span class="n">TranscriptLinkError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">item</span><span class="si">!r}</span><span class="s2">: the record </span><span class="si">{</span><span class="n">key</span><span class="si">!r}</span><span class="s2"> in the </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> store is damaged: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_artifact</span><span class="p">(</span><span class="n">artifact</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">TranscriptLinkError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">item</span><span class="si">!r}</span><span class="s2">: the </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> store keeps </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">artifact</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">s, not "</span>
+            <span class="s2">"transcript artifacts"</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">artifact</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_pinned</span><span class="p">(</span><span class="n">store</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">ref</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pin</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LinkedTranscript</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The transcript ``pin`` names: its bytes, read even when its key now names</span>
+<span class="sd">    other content or is gone; its format from a record that still holds those</span>
+<span class="sd">    bytes, else read from them (a plain transcript that looks like another</span>
+<span class="sd">    format is then read as that one)."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.transcripts</span><span class="w"> </span><span class="kn">import</span> <span class="n">detect_format</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="s2">"get_blob"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="n">TranscriptLinkError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2">: that store keeps no transcript artifacts"</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">get_blob</span><span class="p">(</span><span class="n">pin</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">TranscriptLinkError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2">: the content pinned is no longer kept (`an cache gc` collects "</span>
+            <span class="s2">"what nothing names)"</span>
+        <span class="p">)</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">"utf-8-sig"</span><span class="p">)</span>
+    <span class="n">mime</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">store</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">mime</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">store</span><span class="p">)</span> <span class="k">if</span> <span class="n">_holds</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">pin</span><span class="p">)),</span>
+        <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">fmt</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">FORMAT_MIME</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">m</span> <span class="o">==</span> <span class="n">mime</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">LinkedTranscript</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">fmt</span> <span class="ow">or</span> <span class="n">detect_format</span><span class="p">(</span><span class="n">text</span><span class="p">),</span> <span class="n">ref</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_has</span><span class="p">(</span><span class="n">store</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">store</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — a store that cannot say does not hold it</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+
+<div class="viewcode-block" id="TranscriptCatalogUnreadable">
+<a class="viewcode-back" href="../../../_autosummary/an.stores.transcripts.html#an.stores.transcripts.TranscriptCatalogUnreadable">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TranscriptCatalogUnreadable</span><span class="p">(</span><span class="n">TranscriptLinkError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A transcripts catalog record cannot be read: what it names is unknown,</span>
+<span class="sd">    so nothing can be said to be named by nothing (an#607)."""</span></div>
+
+
+
+<div class="viewcode-block" id="orphan_transcript_blobs">
+<a class="viewcode-back" href="../../../_autosummary/an.stores.transcripts.html#an.stores.transcripts.orphan_transcript_blobs">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">orphan_transcript_blobs</span><span class="p">(</span><span class="n">store</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">named</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">())</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The transcript contents of ``store`` that no catalog record and nothing</span>
+<span class="sd">    in ``named`` (the pins a take's provenance records, an#607) names: what</span>
+<span class="sd">    re-recording a key left behind. Raises :class:`TranscriptCatalogUnreadable`</span>
+<span class="sd">    when a record cannot be read, since its blob might be the one it names.</span>
+
+<span class="sd">    &gt;&gt;&gt; store = in_memory_transcripts_store()</span>
+<span class="sd">    &gt;&gt;&gt; first = record_transcript(store, "k", "carl: Hello.")</span>
+<span class="sd">    &gt;&gt;&gt; _ = record_transcript(store, "k", "carl: Hello there.")</span>
+<span class="sd">    &gt;&gt;&gt; orphan_transcript_blobs(store) == [first.asset_id]</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; orphan_transcript_blobs(store, named=[first.asset_id])</span>
+<span class="sd">    []</span>
+<span class="sd">    """</span>
+    <span class="n">kept</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">named</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">store</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">kept</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">store</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">asset_id</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — unknown is not "names nothing"</span>
+            <span class="k">raise</span> <span class="n">TranscriptCatalogUnreadable</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"the transcripts record </span><span class="si">{</span><span class="n">key</span><span class="si">!r}</span><span class="s2"> cannot be read (</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">): "</span>
+                <span class="s2">"no transcript content is collected until it is repaired or removed"</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">h</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">store</span><span class="o">.</span><span class="n">iter_blobs</span><span class="p">()</span> <span class="k">if</span> <span class="n">h</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kept</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="pin_of">
+<a class="viewcode-back" href="../../../_autosummary/an.stores.transcripts.html#an.stores.transcripts.pin_of">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">pin_of</span><span class="p">(</span><span class="n">reference</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The content digest a recorded reference pins (``&lt;store&gt;/&lt;key&gt;@&lt;sha256&gt;``).</span>
+
+<span class="sd">    &gt;&gt;&gt; pin_of("transcripts/k@" + "a" * 64) == "a" * 64, pin_of("transcripts/k")</span>
+<span class="sd">    (True, None)</span>
+<span class="sd">    """</span>
+    <span class="n">pinned</span> <span class="o">=</span> <span class="n">_PINNED</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">reference</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">pinned</span><span class="p">[</span><span class="s2">"pin"</span><span class="p">]</span> <span class="k">if</span> <span class="n">pinned</span> <span class="k">else</span> <span class="kc">None</span></div>
 
 
 

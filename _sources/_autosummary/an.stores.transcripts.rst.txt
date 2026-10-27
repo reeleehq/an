@@ -19,6 +19,9 @@ an.stores.transcripts
       in_memory_transcripts_store
       is_artifact_ref
       linked_transcript
+      orphan_transcript_blobs
+      parse_artifact_ref
+      pin_of
       record_transcript
       transcripts_store
    
@@ -32,5 +35,6 @@ an.stores.transcripts
 
    .. autosummary::
    
+      TranscriptCatalogUnreadable
       TranscriptLinkError
    

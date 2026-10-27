@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=890f9cf7"></script>
+    <script src="../../../_static/documentation_options.js?v=42860c3a"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.303" />
+  <meta name="docsearch:version" content="0.1.304" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1295,6 +1295,47 @@ window.runMermaid = runMermaid;</script>
     <span class="n">store</span><span class="o">.</span><span class="n">delete_blob</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_collect_transcripts</span><span class="p">(</span><span class="n">mall</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="n">GcReport</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">horizon</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The transcript contents nothing names any more (an#607): no catalog</span>
+<span class="sd">    record and no take (:func:`an.audio.recorded.recorded_transcript_pins`),</span>
+<span class="sd">    reported as the ``transcripts`` derived store. Kept: one written after</span>
+<span class="sd">    ``horizon`` or whose write time is unknown (a remote store: it may be a</span>
+<span class="sd">    transcript being recorded now), and everything when a record or a take</span>
+<span class="sd">    cannot be read (it might name any of them). Re-checked on disk at the last</span>
+<span class="sd">    moment, as the shot cache's blobs are."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.recorded</span><span class="w"> </span><span class="kn">import</span> <span class="n">recorded_transcript_pins</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stores.transcripts</span><span class="w"> </span><span class="kn">import</span> <span class="n">TRANSCRIPTS_STORE</span><span class="p">,</span> <span class="n">orphan_transcript_blobs</span>
+
+    <span class="n">store</span> <span class="o">=</span> <span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">TRANSCRIPTS_STORE</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">store</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">layout</span> <span class="o">=</span> <span class="n">_fs_layout</span><span class="p">(</span><span class="n">store</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">layout</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>  <span class="c1"># a remote store cannot say when a blob was written: keep them all</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">named</span> <span class="o">=</span> <span class="n">recorded_transcript_pins</span><span class="p">(</span><span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"recordings"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span>
+        <span class="n">orphans</span> <span class="o">=</span> <span class="n">orphan_transcript_blobs</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">named</span><span class="o">=</span><span class="n">named</span><span class="p">)</span>
+        <span class="n">sizes</span> <span class="o">=</span> <span class="n">_blobs</span><span class="p">(</span><span class="n">store</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — unknown: keep everything this run, after the</span>
+        <span class="k">return</span>  <span class="c1"># shot cache was collected, so a listing error never loses its report</span>
+    <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">orphans</span><span class="p">:</span>
+        <span class="n">size</span><span class="p">,</span> <span class="n">written</span> <span class="o">=</span> <span class="n">sizes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">written</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">written</span> <span class="o">&gt;=</span> <span class="n">horizon</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">report</span><span class="o">.</span><span class="n">dry_run</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">layout</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">h</span><span class="p">)</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">st_mtime</span> <span class="o">&gt;=</span> <span class="n">horizon</span><span class="p">:</span>
+                    <span class="k">continue</span>  <span class="c1"># written again since the listing</span>
+                <span class="n">_remove_blob</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">layout</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+                <span class="k">continue</span>  <span class="c1"># someone else removed it: neither deleted here nor failed</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">):</span>
+                <span class="n">report</span><span class="o">.</span><span class="n">failed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+                <span class="k">continue</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">deleted_derived</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">TRANSCRIPTS_STORE</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">derived_freed</span> <span class="o">+=</span> <span class="n">size</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_protection_horizon</span><span class="p">(</span><span class="n">project_root</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">now</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Anything written at or after this time is left alone: the earlier of</span>
 <span class="sd">    this collection's start and every live render's start, less the slack."""</span>
@@ -1357,11 +1398,12 @@ window.runMermaid = runMermaid;</script>
     <span class="n">project</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="n">sync</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># a collection reads the scene (an#573)</span>
     <span class="n">store</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">SHOT_CACHE_STORE</span><span class="p">)</span>
     <span class="n">report</span> <span class="o">=</span> <span class="n">GcReport</span><span class="p">(</span><span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">store</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">report</span>
-    <span class="n">others</span> <span class="o">=</span> <span class="n">other_scenes</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
     <span class="n">now</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="k">if</span> <span class="n">now</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">now</span>
     <span class="n">horizon</span> <span class="o">=</span> <span class="n">_protection_horizon</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">now</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">store</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_collect_transcripts</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">horizon</span><span class="o">=</span><span class="n">horizon</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">report</span>
+    <span class="n">others</span> <span class="o">=</span> <span class="n">other_scenes</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
     <span class="n">entries</span> <span class="o">=</span> <span class="n">inventory</span><span class="p">(</span><span class="n">store</span><span class="p">)</span>
     <span class="n">blobs</span> <span class="o">=</span> <span class="n">_blobs</span><span class="p">(</span><span class="n">store</span><span class="p">)</span>
     <span class="n">report</span><span class="o">.</span><span class="n">bytes_before</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">size</span> <span class="k">for</span> <span class="n">size</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">blobs</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
@@ -1432,6 +1474,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">shot_cache_kept_bytes</span><span class="o">=</span><span class="n">report</span><span class="o">.</span><span class="n">bytes_before</span> <span class="o">-</span> <span class="nb">sum</span><span class="p">(</span><span class="n">doomed_blobs</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span>
             <span class="n">dry_run</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="n">report</span><span class="p">,</span>
         <span class="p">)</span>  <span class="c1"># fmt: skip</span>
+        <span class="n">_collect_transcripts</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">horizon</span><span class="o">=</span><span class="n">horizon</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">report</span>
     <span class="n">layout</span> <span class="o">=</span> <span class="n">_fs_layout</span><span class="p">(</span><span class="n">store</span><span class="p">)</span>
     <span class="c1"># Records first, then blobs: a record must never name a blob that is gone.</span>
@@ -1470,6 +1513,8 @@ window.runMermaid = runMermaid;</script>
         <span class="n">shot_cache_kept_bytes</span><span class="o">=</span><span class="n">report</span><span class="o">.</span><span class="n">bytes_before</span> <span class="o">-</span> <span class="n">report</span><span class="o">.</span><span class="n">freed_bytes</span><span class="p">,</span>
         <span class="n">dry_run</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="n">report</span><span class="p">,</span>
     <span class="p">)</span>  <span class="c1"># fmt: skip</span>
+    <span class="c1"># Last, after every refusal: a collection that refuses deletes nothing.</span>
+    <span class="n">_collect_transcripts</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">horizon</span><span class="o">=</span><span class="n">horizon</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">report</span></div>
 
 

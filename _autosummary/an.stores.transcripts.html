@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=890f9cf7"></script>
+    <script src="../_static/documentation_options.js?v=42860c3a"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.303" />
+  <meta name="docsearch:version" content="0.1.304" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -681,12 +681,21 @@ recording.</p>
 <td><p>Whether <code class="docutils literal notranslate"><span class="pre">item</span></code> names a transcript artifact: an <code class="docutils literal notranslate"><span class="pre">artifact:</span></code> reference or a <code class="docutils literal notranslate"><span class="pre">lacing.Artifact</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.transcripts.linked_transcript" title="an.stores.transcripts.linked_transcript"><code class="xref py py-obj docutils literal notranslate"><span class="pre">linked_transcript</span></code></a>(item, mall, *[, store_name])</p></td>
-<td><p>The transcript <code class="docutils literal notranslate"><span class="pre">item</span></code> names: <code class="docutils literal notranslate"><span class="pre">artifact:&lt;store&gt;/&lt;key&gt;</span></code> (<code class="docutils literal notranslate"><span class="pre">&lt;key&gt;</span></code> alone is in <code class="docutils literal notranslate"><span class="pre">store_name</span></code>; a key may itself hold slashes), or a <code class="docutils literal notranslate"><span class="pre">lacing.Artifact</span></code> (filed in <code class="docutils literal notranslate"><span class="pre">store_name</span></code>), read through <code class="docutils literal notranslate"><span class="pre">mall</span></code>.</p></td>
+<td><p>The transcript <code class="docutils literal notranslate"><span class="pre">item</span></code> names: <code class="docutils literal notranslate"><span class="pre">artifact:[&lt;store&gt;/]&lt;key&gt;[&#64;&lt;sha256&gt;]</span></code> (<a class="reference internal" href="#an.stores.transcripts.parse_artifact_ref" title="an.stores.transcripts.parse_artifact_ref"><code class="xref py py-func docutils literal notranslate"><span class="pre">parse_artifact_ref()</span></code></a>), or a <code class="docutils literal notranslate"><span class="pre">lacing.Artifact</span></code> (filed in <code class="docutils literal notranslate"><span class="pre">store_name</span></code>), read through <code class="docutils literal notranslate"><span class="pre">mall</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stores.transcripts.record_transcript" title="an.stores.transcripts.record_transcript"><code class="xref py py-obj docutils literal notranslate"><span class="pre">record_transcript</span></code></a>(store, key, text, *[, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stores.transcripts.orphan_transcript_blobs" title="an.stores.transcripts.orphan_transcript_blobs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">orphan_transcript_blobs</span></code></a>(store, *[, named])</p></td>
+<td><p>The transcript contents of <code class="docutils literal notranslate"><span class="pre">store</span></code> that no catalog record and nothing in <code class="docutils literal notranslate"><span class="pre">named</span></code> (the pins a take's provenance records, an#607) names: what re-recording a key left behind.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.transcripts.parse_artifact_ref" title="an.stores.transcripts.parse_artifact_ref"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_artifact_ref</span></code></a>(ref, mall, *[, store_name])</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(store,</span> <span class="pre">key,</span> <span class="pre">pin)</span></code> of <code class="docutils literal notranslate"><span class="pre">artifact:[&lt;store&gt;/]&lt;key&gt;[&#64;&lt;sha256&gt;]</span></code> (an#607): the first segment names a store of <code class="docutils literal notranslate"><span class="pre">mall</span></code> when it is one that holds the key (else the whole name is a key of <code class="docutils literal notranslate"><span class="pre">store_name</span></code>, so a transcript keyed <code class="docutils literal notranslate"><span class="pre">takes/a</span></code> is found though the mall has a <code class="docutils literal notranslate"><span class="pre">takes</span></code> store); <code class="docutils literal notranslate"><span class="pre">pin</span></code> is the content a recorded reference names, <code class="docutils literal notranslate"><span class="pre">None</span></code> when it names none.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stores.transcripts.pin_of" title="an.stores.transcripts.pin_of"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pin_of</span></code></a>(reference)</p></td>
+<td><p>The content digest a recorded reference pins (<code class="docutils literal notranslate"><span class="pre">&lt;store&gt;/&lt;key&gt;&#64;&lt;sha256&gt;</span></code>).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.transcripts.record_transcript" title="an.stores.transcripts.record_transcript"><code class="xref py py-obj docutils literal notranslate"><span class="pre">record_transcript</span></code></a>(store, key, text, *[, ...])</p></td>
 <td><p>Keep <code class="docutils literal notranslate"><span class="pre">text</span></code> (a transcript, or a <code class="docutils literal notranslate"><span class="pre">Path</span></code> to one; its format detected, a file's suffix first, unless <code class="docutils literal notranslate"><span class="pre">fmt</span></code> says) in <code class="docutils literal notranslate"><span class="pre">store</span></code> under <code class="docutils literal notranslate"><span class="pre">key</span></code>; return its <code class="docutils literal notranslate"><span class="pre">lacing.Artifact</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.transcripts.transcripts_store" title="an.stores.transcripts.transcripts_store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transcripts_store</span></code></a>(root)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stores.transcripts.transcripts_store" title="an.stores.transcripts.transcripts_store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transcripts_store</span></code></a>(root)</p></td>
 <td><p>A filesystem transcripts store under <code class="docutils literal notranslate"><span class="pre">root</span></code> (lacing's layout).</p></td>
 </tr>
 </tbody>
@@ -704,7 +713,10 @@ recording.</p>
 <p class="rubric">Exceptions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.transcripts.TranscriptLinkError" title="an.stores.transcripts.TranscriptLinkError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TranscriptLinkError</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.transcripts.TranscriptCatalogUnreadable" title="an.stores.transcripts.TranscriptCatalogUnreadable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TranscriptCatalogUnreadable</span></code></a></p></td>
+<td><p>A transcripts catalog record cannot be read: what it names is unknown, so nothing can be said to be named by nothing (an#607).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stores.transcripts.TranscriptLinkError" title="an.stores.transcripts.TranscriptLinkError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TranscriptLinkError</span></code></a></p></td>
 <td><p>A transcript artifact that cannot be found or read.</p></td>
 </tr>
 </tbody>
@@ -738,6 +750,14 @@ reference that names it with its content (<code class="docutils literal notransl
 <dt class="sig sig-object py" id="an.stores.transcripts.TRANSCRIPTS_STORE">
 <span class="sig-prename descclassname"><span class="pre">an.stores.transcripts.</span></span><span class="sig-name descname"><span class="pre">TRANSCRIPTS_STORE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'transcripts'</span></span><a class="headerlink" href="#an.stores.transcripts.TRANSCRIPTS_STORE" title="Link to this definition">#</a></dt>
 <dd><p>The mall key of the transcripts store.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="an.stores.transcripts.TranscriptCatalogUnreadable">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stores.transcripts.</span></span><span class="sig-name descname"><span class="pre">TranscriptCatalogUnreadable</span></span><a class="reference internal" href="../_modules/an/stores/transcripts.html#TranscriptCatalogUnreadable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.transcripts.TranscriptCatalogUnreadable" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#an.stores.transcripts.TranscriptLinkError" title="an.stores.transcripts.TranscriptLinkError"><code class="xref py py-class docutils literal notranslate"><span class="pre">TranscriptLinkError</span></code></a></p>
+<p>A transcripts catalog record cannot be read: what it names is unknown,
+so nothing can be said to be named by nothing (an#607).</p>
 </dd></dl>
 
 <dl class="py exception">
@@ -779,15 +799,76 @@ or a <code class="docutils literal notranslate"><span class="pre">lacing.Artifac
 <dl class="py function">
 <dt class="sig sig-object py" id="an.stores.transcripts.linked_transcript">
 <span class="sig-prename descclassname"><span class="pre">an.stores.transcripts.</span></span><span class="sig-name descname"><span class="pre">linked_transcript</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">store_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'transcripts'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores/transcripts.html#linked_transcript"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.transcripts.linked_transcript" title="Link to this definition">#</a></dt>
-<dd><p>The transcript <code class="docutils literal notranslate"><span class="pre">item</span></code> names: <code class="docutils literal notranslate"><span class="pre">artifact:&lt;store&gt;/&lt;key&gt;</span></code> (<code class="docutils literal notranslate"><span class="pre">&lt;key&gt;</span></code>
-alone is in <code class="docutils literal notranslate"><span class="pre">store_name</span></code>; a key may itself hold slashes), or a
-<code class="docutils literal notranslate"><span class="pre">lacing.Artifact</span></code> (filed in <code class="docutils literal notranslate"><span class="pre">store_name</span></code>), read through <code class="docutils literal notranslate"><span class="pre">mall</span></code>.
-Raises <a class="reference internal" href="#an.stores.transcripts.TranscriptLinkError" title="an.stores.transcripts.TranscriptLinkError"><code class="xref py py-class docutils literal notranslate"><span class="pre">TranscriptLinkError</span></code></a> for a store the mall has not, one
-that is not an artifact store, a key or content it does not hold, or a
-record whose <code class="docutils literal notranslate"><span class="pre">mime</span></code> is not a transcript format.</p>
+<dd><p>The transcript <code class="docutils literal notranslate"><span class="pre">item</span></code> names: <code class="docutils literal notranslate"><span class="pre">artifact:[&lt;store&gt;/]&lt;key&gt;[&#64;&lt;sha256&gt;]</span></code>
+(<a class="reference internal" href="#an.stores.transcripts.parse_artifact_ref" title="an.stores.transcripts.parse_artifact_ref"><code class="xref py py-func docutils literal notranslate"><span class="pre">parse_artifact_ref()</span></code></a>), or a <code class="docutils literal notranslate"><span class="pre">lacing.Artifact</span></code> (filed in
+<code class="docutils literal notranslate"><span class="pre">store_name</span></code>), read through <code class="docutils literal notranslate"><span class="pre">mall</span></code>. A pinned reference (what a take’s
+provenance records) reads exactly those bytes, even after the key was
+recorded again. Raises <a class="reference internal" href="#an.stores.transcripts.TranscriptLinkError" title="an.stores.transcripts.TranscriptLinkError"><code class="xref py py-class docutils literal notranslate"><span class="pre">TranscriptLinkError</span></code></a> for a store the mall
+has not, one that is not an artifact store, a key or content it does not
+hold, or a record whose <code class="docutils literal notranslate"><span class="pre">mime</span></code> is not a transcript format.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.stores.transcripts.LinkedTranscript" title="an.stores.transcripts.LinkedTranscript"><code class="xref py py-class docutils literal notranslate"><span class="pre">LinkedTranscript</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stores.transcripts.orphan_transcript_blobs">
+<span class="sig-prename descclassname"><span class="pre">an.stores.transcripts.</span></span><span class="sig-name descname"><span class="pre">orphan_transcript_blobs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">store</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">named</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores/transcripts.html#orphan_transcript_blobs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.transcripts.orphan_transcript_blobs" title="Link to this definition">#</a></dt>
+<dd><p>The transcript contents of <code class="docutils literal notranslate"><span class="pre">store</span></code> that no catalog record and nothing
+in <code class="docutils literal notranslate"><span class="pre">named</span></code> (the pins a take’s provenance records, an#607) names: what
+re-recording a key left behind. Raises <a class="reference internal" href="#an.stores.transcripts.TranscriptCatalogUnreadable" title="an.stores.transcripts.TranscriptCatalogUnreadable"><code class="xref py py-class docutils literal notranslate"><span class="pre">TranscriptCatalogUnreadable</span></code></a>
+when a record cannot be read, since its blob might be the one it names.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">store</span> <span class="o">=</span> <span class="n">in_memory_transcripts_store</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">first</span> <span class="o">=</span> <span class="n">record_transcript</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="s2">"k"</span><span class="p">,</span> <span class="s2">"carl: Hello."</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">record_transcript</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="s2">"k"</span><span class="p">,</span> <span class="s2">"carl: Hello there."</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">orphan_transcript_blobs</span><span class="p">(</span><span class="n">store</span><span class="p">)</span> <span class="o">==</span> <span class="p">[</span><span class="n">first</span><span class="o">.</span><span class="n">asset_id</span><span class="p">]</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">orphan_transcript_blobs</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">named</span><span class="o">=</span><span class="p">[</span><span class="n">first</span><span class="o">.</span><span class="n">asset_id</span><span class="p">])</span>
+<span class="go">[]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stores.transcripts.parse_artifact_ref">
+<span class="sig-prename descclassname"><span class="pre">an.stores.transcripts.</span></span><span class="sig-name descname"><span class="pre">parse_artifact_ref</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">store_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'transcripts'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores/transcripts.html#parse_artifact_ref"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.transcripts.parse_artifact_ref" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">(store,</span> <span class="pre">key,</span> <span class="pre">pin)</span></code> of <code class="docutils literal notranslate"><span class="pre">artifact:[&lt;store&gt;/]&lt;key&gt;[&#64;&lt;sha256&gt;]</span></code> (an#607):
+the first segment names a store of <code class="docutils literal notranslate"><span class="pre">mall</span></code> when it is one that holds the
+key (else the whole name is a key of <code class="docutils literal notranslate"><span class="pre">store_name</span></code>, so a transcript keyed
+<code class="docutils literal notranslate"><span class="pre">takes/a</span></code> is found though the mall has a <code class="docutils literal notranslate"><span class="pre">takes</span></code> store); <code class="docutils literal notranslate"><span class="pre">pin</span></code> is the
+content a recorded reference names, <code class="docutils literal notranslate"><span class="pre">None</span></code> when it names none.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mall</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"transcripts"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"takes/a"</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span> <span class="s2">"takes"</span><span class="p">:</span> <span class="p">{}}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parse_artifact_ref</span><span class="p">(</span><span class="s2">"artifact:takes/a"</span><span class="p">,</span> <span class="n">mall</span><span class="p">)</span>
+<span class="go">('transcripts', 'takes/a', None)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parse_artifact_ref</span><span class="p">(</span><span class="s2">"artifact:transcripts/k@"</span> <span class="o">+</span> <span class="s2">"0"</span> <span class="o">*</span> <span class="mi">64</span><span class="p">,</span> <span class="n">mall</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]</span>
+<span class="go">('k', '0000000000000000000000000000000000000000000000000000000000000000')</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stores.transcripts.pin_of">
+<span class="sig-prename descclassname"><span class="pre">an.stores.transcripts.</span></span><span class="sig-name descname"><span class="pre">pin_of</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reference</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores/transcripts.html#pin_of"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.transcripts.pin_of" title="Link to this definition">#</a></dt>
+<dd><p>The content digest a recorded reference pins (<code class="docutils literal notranslate"><span class="pre">&lt;store&gt;/&lt;key&gt;&#64;&lt;sha256&gt;</span></code>).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pin_of</span><span class="p">(</span><span class="s2">"transcripts/k@"</span> <span class="o">+</span> <span class="s2">"a"</span> <span class="o">*</span> <span class="mi">64</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"a"</span> <span class="o">*</span> <span class="mi">64</span><span class="p">,</span> <span class="n">pin_of</span><span class="p">(</span><span class="s2">"transcripts/k"</span><span class="p">)</span>
+<span class="go">(True, None)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -871,10 +952,14 @@ sha256 of what it was made from (a recording).</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.transcripts.FORMAT_MIME"><code class="docutils literal notranslate"><span class="pre">FORMAT_MIME</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.transcripts.LinkedTranscript"><code class="docutils literal notranslate"><span class="pre">LinkedTranscript</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.transcripts.TRANSCRIPTS_STORE"><code class="docutils literal notranslate"><span class="pre">TRANSCRIPTS_STORE</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.transcripts.TranscriptCatalogUnreadable"><code class="docutils literal notranslate"><span class="pre">TranscriptCatalogUnreadable</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.transcripts.TranscriptLinkError"><code class="docutils literal notranslate"><span class="pre">TranscriptLinkError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.transcripts.in_memory_transcripts_store"><code class="docutils literal notranslate"><span class="pre">in_memory_transcripts_store()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.transcripts.is_artifact_ref"><code class="docutils literal notranslate"><span class="pre">is_artifact_ref()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.transcripts.linked_transcript"><code class="docutils literal notranslate"><span class="pre">linked_transcript()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.transcripts.orphan_transcript_blobs"><code class="docutils literal notranslate"><span class="pre">orphan_transcript_blobs()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.transcripts.parse_artifact_ref"><code class="docutils literal notranslate"><span class="pre">parse_artifact_ref()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.transcripts.pin_of"><code class="docutils literal notranslate"><span class="pre">pin_of()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.transcripts.record_transcript"><code class="docutils literal notranslate"><span class="pre">record_transcript()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.transcripts.transcripts_store"><code class="docutils literal notranslate"><span class="pre">transcripts_store()</span></code></a></li>
 </ul>
