@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=54fb851a"></script>
+    <script src="../_static/documentation_options.js?v=f0830103"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.328" />
+  <meta name="docsearch:version" content="0.1.329" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -756,22 +756,25 @@ for.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.kinematics.two_bone" title="an.kinematics.two_bone"><code class="xref py py-obj docutils literal notranslate"><span class="pre">two_bone</span></code></a>(root, target, lengths, *[, bend])</p></td>
 <td><p>Absolute angles <code class="docutils literal notranslate"><span class="pre">(theta1,</span> <span class="pre">theta2)</span></code> of two links of <code class="docutils literal notranslate"><span class="pre">lengths</span></code> <code class="docutils literal notranslate"><span class="pre">(l1,</span> <span class="pre">l2)</span></code> hinged at <code class="docutils literal notranslate"><span class="pre">root</span></code> so that the tip meets <code class="docutils literal notranslate"><span class="pre">target</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> when the target is out of <a class="reference internal" href="#an.kinematics.reach" title="an.kinematics.reach"><code class="xref py py-func docutils literal notranslate"><span class="pre">reach()</span></code></a>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.kinematics.solve" title="an.kinematics.solve"><code class="xref py py-obj docutils literal notranslate"><span class="pre">solve</span></code></a>(bodies, joints, *[, targets, forces, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.kinematics.arc_chain" title="an.kinematics.arc_chain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">arc_chain</span></code></a>(root, target, lengths, *[, bend])</p></td>
+<td><p>Absolute angles of links of <code class="docutils literal notranslate"><span class="pre">lengths</span></code>, end to end from <code class="docutils literal notranslate"><span class="pre">root</span></code>, laid on one circular arc whose ends are <code class="docutils literal notranslate"><span class="pre">root</span></code> and <code class="docutils literal notranslate"><span class="pre">target</span></code>: the slack pose of a chain held at both ends nearer than its length (an#646), which no two-link form gives a long chain.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.kinematics.solve" title="an.kinematics.solve"><code class="xref py py-obj docutils literal notranslate"><span class="pre">solve</span></code></a>(bodies, joints, *[, targets, forces, ...])</p></td>
 <td><p>One frame: the poses of all <code class="docutils literal notranslate"><span class="pre">bodies</span></code> that satisfy the joined <code class="docutils literal notranslate"><span class="pre">joints</span></code> with the <code class="docutils literal notranslate"><span class="pre">targets</span></code> held, forces and <code class="docutils literal notranslate"><span class="pre">gravity</span></code> acting.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.kinematics.solve_frames" title="an.kinematics.solve_frames"><code class="xref py py-obj docutils literal notranslate"><span class="pre">solve_frames</span></code></a>(bodies, joints, *, frames, dt)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.kinematics.solve_frames" title="an.kinematics.solve_frames"><code class="xref py py-obj docutils literal notranslate"><span class="pre">solve_frames</span></code></a>(bodies, joints, *, frames, dt)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">frames</span></code> solves in a row, each starting from the last: the caller's time dimension.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.kinematics.resolve_rests" title="an.kinematics.resolve_rests"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_rests</span></code></a>(bodies, joints)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.kinematics.resolve_rests" title="an.kinematics.resolve_rests"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_rests</span></code></a>(bodies, joints)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">joints</span></code> with every <code class="docutils literal notranslate"><span class="pre">rest=None</span></code> hinge and weld given the relative angle the bodies have now, so a run of frames measures its limits from one pose rather than from each frame's.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.kinematics.quantize" title="an.kinematics.quantize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">quantize</span></code></a>(poses, *[, position_quantum, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.kinematics.quantize" title="an.kinematics.quantize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">quantize</span></code></a>(poses, *[, position_quantum, ...])</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">poses</span></code> (any shape whose last axis is <code class="xref py py-data docutils literal notranslate"><span class="pre">POSE_CHANNELS</span></code>) rounded to the quanta a document stores: positions and scale to <code class="docutils literal notranslate"><span class="pre">position_quantum</span></code>, rotation to <code class="docutils literal notranslate"><span class="pre">angle_quantum</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.kinematics.digest" title="an.kinematics.digest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">digest</span></code></a>(poses, **quanta)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.kinematics.digest" title="an.kinematics.digest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">digest</span></code></a>(poses, **quanta)</p></td>
 <td><p>A hex digest of the quantized poses' bytes, with the solver version: for comparing solved poses on one platform (a golden test).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.kinematics.inputs_digest" title="an.kinematics.inputs_digest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">inputs_digest</span></code></a>(bodies, joints, *[, targets, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.kinematics.inputs_digest" title="an.kinematics.inputs_digest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">inputs_digest</span></code></a>(bodies, joints, *[, targets, ...])</p></td>
 <td><p>A hex digest of everything a solve reads, with <code class="xref py py-data docutils literal notranslate"><span class="pre">SOLVER_VERSION</span></code>: the cache key for a solve (or a run of them: pass the per-frame targets as a list, and <code class="docutils literal notranslate"><span class="pre">frames</span></code>, <code class="docutils literal notranslate"><span class="pre">dt</span></code> and the rest as <code class="docutils literal notranslate"><span class="pre">options</span></code>).</p></td>
 </tr>
 </tbody>
@@ -1043,6 +1046,31 @@ given up in a conflict (module docstring), in the order they were.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.kinematics.arc_chain">
+<span class="sig-prename descclassname"><span class="pre">an.kinematics.</span></span><span class="sig-name descname"><span class="pre">arc_chain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lengths</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">bend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/kinematics/chains.html#arc_chain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.kinematics.arc_chain" title="Link to this definition">#</a></dt>
+<dd><p>Absolute angles of links of <code class="docutils literal notranslate"><span class="pre">lengths</span></code>, end to end from <code class="docutils literal notranslate"><span class="pre">root</span></code>, laid
+on one circular arc whose ends are <code class="docutils literal notranslate"><span class="pre">root</span></code> and <code class="docutils literal notranslate"><span class="pre">target</span></code>: the slack pose
+of a chain held at both ends nearer than its length (an#646), which no
+two-link form gives a long chain. <code class="docutils literal notranslate"><span class="pre">None</span></code> when the chain cannot sag
+(<code class="docutils literal notranslate"><span class="pre">target</span></code> at or past its length, or on the root) or no arc fits.</p>
+<p><code class="docutils literal notranslate"><span class="pre">bend</span></code> is the side, as for <a class="reference internal" href="#an.kinematics.two_bone" title="an.kinematics.two_bone"><code class="xref py py-func docutils literal notranslate"><span class="pre">two_bone()</span></code></a>: <code class="docutils literal notranslate"><span class="pre">+1</span></code> sags
+counter-clockwise of the root-to-target line.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">angles</span> <span class="o">=</span> <span class="n">arc_chain</span><span class="p">((</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">35.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">50</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tip</span> <span class="o">=</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">angles</span><span class="p">),</span> <span class="nb">sum</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">angles</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">math</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">tip</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mf">35.0</span><span class="p">,</span> <span class="n">abs_tol</span><span class="o">=</span><span class="mf">1e-9</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">tip</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">abs_tol</span><span class="o">=</span><span class="mf">1e-9</span><span class="p">)</span>
+<span class="go">(True, True)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arc_chain</span><span class="p">((</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">60.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">50</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>] | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.kinematics.digest">
 <span class="sig-prename descclassname"><span class="pre">an.kinematics.</span></span><span class="sig-name descname"><span class="pre">digest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">poses</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">quanta</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/kinematics/solver.html#digest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.kinematics.digest" title="Link to this definition">#</a></dt>
 <dd><p>A hex digest of the quantized poses’ bytes, with the solver version:
@@ -1291,7 +1319,7 @@ which one is right is the author’s (or a hinge range’s) choice.</p>
 <td><p>Bodies and the points on them: the things a joint joins and a driver moves.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="an.kinematics.chains.html#module-an.kinematics.chains" title="an.kinematics.chains"><code class="xref py py-obj docutils literal notranslate"><span class="pre">chains</span></code></a></p></td>
-<td><p>Closed-form pieces for chains: the two-link reach and its reachable range.</p></td>
+<td><p>Closed-form pieces for chains: the two-link reach and its reachable range, and the arc a longer chain held at both ends sags on (<a class="reference internal" href="#an.kinematics.arc_chain" title="an.kinematics.arc_chain"><code class="xref py py-func docutils literal notranslate"><span class="pre">arc_chain()</span></code></a>).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="an.kinematics.joints.html#module-an.kinematics.joints" title="an.kinematics.joints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">joints</span></code></a></p></td>
 <td><p>Joints: declared relations between two bodies, or a body and the world.</p></td>
@@ -1370,6 +1398,7 @@ which one is right is the author’s (or a hinge range’s) choice.</p>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.Weld"><code class="docutils literal notranslate"><span class="pre">Weld</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.arc_chain"><code class="docutils literal notranslate"><span class="pre">arc_chain()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.digest"><code class="docutils literal notranslate"><span class="pre">digest()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.inertia"><code class="docutils literal notranslate"><span class="pre">inertia()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.inputs_digest"><code class="docutils literal notranslate"><span class="pre">inputs_digest()</span></code></a></li>

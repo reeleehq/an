@@ -1,4 +1,4 @@
-> built 2026-10-27 18:04 UTC from 016595f (main) · an 0.1.328. Details: build_info.json
+> built 2026-10-27 18:18 UTC from 33a1d3c (main) · an 0.1.329. Details: build_info.json
 
 # index.html.md
 
@@ -24528,7 +24528,8 @@ a body posed in it); a [`WORLD`](_autosummary/an.kinematics.bodies.html.md#an.ki
 
 # an.kinematics.chains
 
-Closed-form pieces for chains: the two-link reach and its reachable range.
+Closed-form pieces for chains: the two-link reach and its reachable range,
+and the arc a longer chain held at both ends sags on ([`arc_chain()`](_autosummary/an.kinematics.chains.html.md#an.kinematics.chains.arc_chain)).
 
 A two-link chain (an upper arm and a forearm, a thigh and a shin) with its
 root held and its tip asked for is the common case of every puppet, and it
@@ -24548,9 +24549,33 @@ True
 
 ### Functions
 
-| [`reach`](_autosummary/an.kinematics.chains.html.md#an.kinematics.chains.reach)(l1, l2)                               | The `(nearest, farthest)` distance from the root a two-link chain of lengths `l1` and `l2` can put its tip.                                                                                                         |
-|----------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`two_bone`](_autosummary/an.kinematics.chains.html.md#an.kinematics.chains.two_bone)(root, target, lengths, \*[, bend]) | Absolute angles `(theta1, theta2)` of two links of `lengths` `(l1, l2)` hinged at `root` so that the tip meets `target`; `None` when the target is out of [`reach()`](_autosummary/an.kinematics.chains.html.md#an.kinematics.chains.reach). |
+| [`arc_chain`](_autosummary/an.kinematics.chains.html.md#an.kinematics.chains.arc_chain)(root, target, lengths, \*[, bend])   | Absolute angles of links of `lengths`, end to end from `root`, laid on one circular arc whose ends are `root` and `target`: the slack pose of a chain held at both ends nearer than its length (an#646), which no two-link form gives a long chain.   |
+|-------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`reach`](_autosummary/an.kinematics.chains.html.md#an.kinematics.chains.reach)(l1, l2)                                  | The `(nearest, farthest)` distance from the root a two-link chain of lengths `l1` and `l2` can put its tip.                                                                                                                                           |
+| [`two_bone`](_autosummary/an.kinematics.chains.html.md#an.kinematics.chains.two_bone)(root, target, lengths, \*[, bend])    | Absolute angles `(theta1, theta2)` of two links of `lengths` `(l1, l2)` hinged at `root` so that the tip meets `target`; `None` when the target is out of [`reach()`](_autosummary/an.kinematics.chains.html.md#an.kinematics.chains.reach).                                   |
+
+### an.kinematics.chains.arc_chain(root, target, lengths, , bend=1)
+
+Absolute angles of links of `lengths`, end to end from `root`, laid
+on one circular arc whose ends are `root` and `target`: the slack pose
+of a chain held at both ends nearer than its length (an#646), which no
+two-link form gives a long chain. `None` when the chain cannot sag
+(`target` at or past its length, or on the root) or no arc fits.
+
+`bend` is the side, as for [`two_bone()`](_autosummary/an.kinematics.chains.html.md#an.kinematics.chains.two_bone): `+1` sags
+counter-clockwise of the root-to-target line.
+
+```pycon
+>>> angles = arc_chain((0.0, 0.0), (35.0, 0.0), [1.0] * 50)
+>>> tip = (sum(math.cos(a) for a in angles), sum(math.sin(a) for a in angles))
+>>> math.isclose(tip[0], 35.0, abs_tol=1e-9), math.isclose(tip[1], 0.0, abs_tol=1e-9)
+(True, True)
+>>> arc_chain((0.0, 0.0), (60.0, 0.0), [1.0] * 50) is None
+True
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.kinematics.chains.reach(l1, l2)
 
@@ -24704,18 +24729,19 @@ for.
 
 ### Functions
 
-| [`mass`](_autosummary/an.kinematics.html.md#an.kinematics.mass)(body)                                        | The body's mass: density × scaled area; `inf` for a fixed body.                                                                                                                                                     |
-|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`inertia`](_autosummary/an.kinematics.html.md#an.kinematics.inertia)(body)                                     | Rotational inertia about the body's pose point (parallel-axis from the extent's centre); `inf` for a fixed body.                                                                                                    |
-| [`point_world`](_autosummary/an.kinematics.html.md#an.kinematics.point_world)(body, point)                          | The point's position in the body's frame of reference (the world, for a body posed in it); a `WORLD` point is returned as is.                                                                                       |
-| [`reach`](_autosummary/an.kinematics.html.md#an.kinematics.reach)(l1, l2)                                     | The `(nearest, farthest)` distance from the root a two-link chain of lengths `l1` and `l2` can put its tip.                                                                                                         |
-| [`two_bone`](_autosummary/an.kinematics.html.md#an.kinematics.two_bone)(root, target, lengths, \*[, bend])       | Absolute angles `(theta1, theta2)` of two links of `lengths` `(l1, l2)` hinged at `root` so that the tip meets `target`; `None` when the target is out of [`reach()`](_autosummary/an.kinematics.html.md#an.kinematics.reach). |
-| [`solve`](_autosummary/an.kinematics.html.md#an.kinematics.solve)(bodies, joints, \*[, targets, forces, ...]) | One frame: the poses of all `bodies` that satisfy the joined `joints` with the `targets` held, forces and `gravity` acting.                                                                                         |
-| [`solve_frames`](_autosummary/an.kinematics.html.md#an.kinematics.solve_frames)(bodies, joints, \*, frames, dt)      | `frames` solves in a row, each starting from the last: the caller's time dimension.                                                                                                                                 |
-| [`resolve_rests`](_autosummary/an.kinematics.html.md#an.kinematics.resolve_rests)(bodies, joints)                     | `joints` with every `rest=None` hinge and weld given the relative angle the bodies have now, so a run of frames measures its limits from one pose rather than from each frame's.                                    |
-| [`quantize`](_autosummary/an.kinematics.html.md#an.kinematics.quantize)(poses, \*[, position_quantum, ...])      | `poses` (any shape whose last axis is `POSE_CHANNELS`) rounded to the quanta a document stores: positions and scale to `position_quantum`, rotation to `angle_quantum`.                                             |
-| [`digest`](_autosummary/an.kinematics.html.md#an.kinematics.digest)(poses, \*\*quanta)                         | A hex digest of the quantized poses' bytes, with the solver version: for comparing solved poses on one platform (a golden test).                                                                                    |
-| [`inputs_digest`](_autosummary/an.kinematics.html.md#an.kinematics.inputs_digest)(bodies, joints, \*[, targets, ...]) | A hex digest of everything a solve reads, with `SOLVER_VERSION`: the cache key for a solve (or a run of them: pass the per-frame targets as a list, and `frames`, `dt` and the rest as `options`).                  |
+| [`mass`](_autosummary/an.kinematics.html.md#an.kinematics.mass)(body)                                        | The body's mass: density × scaled area; `inf` for a fixed body.                                                                                                                                                                                     |
+|----------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`inertia`](_autosummary/an.kinematics.html.md#an.kinematics.inertia)(body)                                     | Rotational inertia about the body's pose point (parallel-axis from the extent's centre); `inf` for a fixed body.                                                                                                                                    |
+| [`point_world`](_autosummary/an.kinematics.html.md#an.kinematics.point_world)(body, point)                          | The point's position in the body's frame of reference (the world, for a body posed in it); a `WORLD` point is returned as is.                                                                                                                       |
+| [`reach`](_autosummary/an.kinematics.html.md#an.kinematics.reach)(l1, l2)                                     | The `(nearest, farthest)` distance from the root a two-link chain of lengths `l1` and `l2` can put its tip.                                                                                                                                         |
+| [`two_bone`](_autosummary/an.kinematics.html.md#an.kinematics.two_bone)(root, target, lengths, \*[, bend])       | Absolute angles `(theta1, theta2)` of two links of `lengths` `(l1, l2)` hinged at `root` so that the tip meets `target`; `None` when the target is out of [`reach()`](_autosummary/an.kinematics.html.md#an.kinematics.reach).                                 |
+| [`arc_chain`](_autosummary/an.kinematics.html.md#an.kinematics.arc_chain)(root, target, lengths, \*[, bend])      | Absolute angles of links of `lengths`, end to end from `root`, laid on one circular arc whose ends are `root` and `target`: the slack pose of a chain held at both ends nearer than its length (an#646), which no two-link form gives a long chain. |
+| [`solve`](_autosummary/an.kinematics.html.md#an.kinematics.solve)(bodies, joints, \*[, targets, forces, ...]) | One frame: the poses of all `bodies` that satisfy the joined `joints` with the `targets` held, forces and `gravity` acting.                                                                                                                         |
+| [`solve_frames`](_autosummary/an.kinematics.html.md#an.kinematics.solve_frames)(bodies, joints, \*, frames, dt)      | `frames` solves in a row, each starting from the last: the caller's time dimension.                                                                                                                                                                 |
+| [`resolve_rests`](_autosummary/an.kinematics.html.md#an.kinematics.resolve_rests)(bodies, joints)                     | `joints` with every `rest=None` hinge and weld given the relative angle the bodies have now, so a run of frames measures its limits from one pose rather than from each frame's.                                                                    |
+| [`quantize`](_autosummary/an.kinematics.html.md#an.kinematics.quantize)(poses, \*[, position_quantum, ...])      | `poses` (any shape whose last axis is `POSE_CHANNELS`) rounded to the quanta a document stores: positions and scale to `position_quantum`, rotation to `angle_quantum`.                                                                             |
+| [`digest`](_autosummary/an.kinematics.html.md#an.kinematics.digest)(poses, \*\*quanta)                         | A hex digest of the quantized poses' bytes, with the solver version: for comparing solved poses on one platform (a golden test).                                                                                                                    |
+| [`inputs_digest`](_autosummary/an.kinematics.html.md#an.kinematics.inputs_digest)(bodies, joints, \*[, targets, ...]) | A hex digest of everything a solve reads, with `SOLVER_VERSION`: the cache key for a solve (or a run of them: pass the per-frame targets as a list, and `frames`, `dt` and the rest as `options`).                                                  |
 
 ### Classes
 
@@ -24925,6 +24951,29 @@ A pin plus a fixed relative angle (`rest`, or the starting one).
 >>> Weld(Point("hat", 0.5, 1.0), Point("head", 0.5, 0.0)).rest is None
 True
 ```
+
+### an.kinematics.arc_chain(root, target, lengths, , bend=1)
+
+Absolute angles of links of `lengths`, end to end from `root`, laid
+on one circular arc whose ends are `root` and `target`: the slack pose
+of a chain held at both ends nearer than its length (an#646), which no
+two-link form gives a long chain. `None` when the chain cannot sag
+(`target` at or past its length, or on the root) or no arc fits.
+
+`bend` is the side, as for [`two_bone()`](_autosummary/an.kinematics.html.md#an.kinematics.two_bone): `+1` sags
+counter-clockwise of the root-to-target line.
+
+```pycon
+>>> angles = arc_chain((0.0, 0.0), (35.0, 0.0), [1.0] * 50)
+>>> tip = (sum(math.cos(a) for a in angles), sum(math.sin(a) for a in angles))
+>>> math.isclose(tip[0], 35.0, abs_tol=1e-9), math.isclose(tip[1], 0.0, abs_tol=1e-9)
+(True, True)
+>>> arc_chain((0.0, 0.0), (60.0, 0.0), [1.0] * 50) is None
+True
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.kinematics.digest(poses, \*\*quanta)
 
@@ -25143,11 +25192,11 @@ which one is right is the author’s (or a hinge range’s) choice.
 
 ### Modules
 
-| [`bodies`](_autosummary/an.kinematics.bodies.html.md#module-an.kinematics.bodies)   | Bodies and the points on them: the things a joint joins and a driver moves.   |
-|---------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
-| [`chains`](_autosummary/an.kinematics.chains.html.md#module-an.kinematics.chains)   | Closed-form pieces for chains: the two-link reach and its reachable range.    |
-| [`joints`](_autosummary/an.kinematics.joints.html.md#module-an.kinematics.joints)   | Joints: declared relations between two bodies, or a body and the world.       |
-| [`solver`](_autosummary/an.kinematics.solver.html.md#module-an.kinematics.solver)   | The solve: bodies joined at points, driven at a few, settled by gravity.      |
+| [`bodies`](_autosummary/an.kinematics.bodies.html.md#module-an.kinematics.bodies)   | Bodies and the points on them: the things a joint joins and a driver moves.                                                                                                                     |
+|---------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`chains`](_autosummary/an.kinematics.chains.html.md#module-an.kinematics.chains)   | Closed-form pieces for chains: the two-link reach and its reachable range, and the arc a longer chain held at both ends sags on ([`arc_chain()`](_autosummary/an.kinematics.html.md#an.kinematics.arc_chain)). |
+| [`joints`](_autosummary/an.kinematics.joints.html.md#module-an.kinematics.joints)   | Joints: declared relations between two bodies, or a body and the world.                                                                                                                         |
+| [`solver`](_autosummary/an.kinematics.solver.html.md#module-an.kinematics.solver)   | The solve: bodies joined at points, driven at a few, settled by gravity.                                                                                                                        |
 
 
 # _autosummary/an.kinematics.joints.html.md
@@ -25311,7 +25360,8 @@ method and the measurements behind it are in the package docstring
 ([`an.kinematics`](_autosummary/an.kinematics.html.md#module-an.kinematics)); in one line: extended position-based dynamics on 2D
 rigid bodies [Müller et al. 2020], Gauss–Seidel over the joints, a fixed
 number of substeps and iterations, hinge limits as angular projections, the
-two-link closed form as the initial guess.
+two-link closed form (or, for a longer slack chain, an arc) as the initial
+guess.
 
 **Two modes.** With `dt=None` (`pose`) the bodies are projected onto the
 joints from where they stand, with no inertia and no gravity: the answer is
@@ -25524,13 +25574,14 @@ a joint on the world alone, a body with no extent.
 
 The pose channels, in the order `SolveResult.poses` holds them.
 
-### an.kinematics.solver.SOLVER_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '3'*
+### an.kinematics.solver.SOLVER_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '4'*
 
 Bumped whenever the solve can give a different answer for the same inputs
 (a changed projection, order, or default): part of every cache key built
 on this module.
 2: a slow retry keeps going while it converges (an#568); 3: a conflict gives up
-the first candidate that halves the failure (an#641).
+the first candidate that halves the failure (an#641); 4: a slack chain of more
+than two links held at both ends is seeded on an arc (an#646).
 
 ### *class* an.kinematics.solver.SolveResult(bodies, poses, residuals, unsatisfied, limit_violations, dropped=())
 
@@ -47526,7 +47577,7 @@ scene: the scene file to read, inside the project (default scene.md; for example
 
 # About this build
 
-This documentation was built on **2026-10-27 18:04 UTC** from commit <a href="https://github.com/reeleehq/an/commit/016595f54531ed026ece477bff2b44a3a6c54aca"><code>016595f</code></a> on branch <code>main</code>, for **an 0.1.328** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-27 18:18 UTC** from commit <a href="https://github.com/reeleehq/an/commit/33a1d3cca97c4685cf2cd82960e627b208dfe008"><code>33a1d3c</code></a> on branch <code>main</code>, for **an 0.1.329** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -47535,9 +47586,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                    |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/an/commit/016595f54531ed026ece477bff2b44a3a6c54aca"><code>016595f54531ed026ece477bff2b44a3a6c54aca</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/an/commit/33a1d3cca97c4685cf2cd82960e627b208dfe008"><code>33a1d3cca97c4685cf2cd82960e627b208dfe008</code></a> |
 | Branch              | <code>main</code>                                                                                                                                  |
-| Tags at this commit | none                                                                                                                                               |
+| Tags at this commit | <code>0.1.329</code>                                                                                                                               |
 | Working tree        | clean                                                                                                                                              |
 | Remote              | <code>https://github.com/reeleehq/an</code>                                                                                                        |
 
@@ -47546,9 +47597,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/an</code>                                                                   |
-| Run          | <a href="https://github.com/reeleehq/an/actions/runs/40553597234">40553597234</a>          |
+| Run          | <a href="https://github.com/reeleehq/an/actions/runs/40556033837">40556033837</a>          |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>8193524cda4f770c66fb48e25a1269a8f6e35ab5</code> (in the history of the built commit) |
+| Event commit | <code>016595f54531ed026ece477bff2b44a3a6c54aca</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -47573,13 +47624,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.328/">0.1.328</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.329/">0.1.329</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/an && cd an
-git checkout 016595f54531ed026ece477bff2b44a3a6c54aca
+git checkout 33a1d3cca97c4685cf2cd82960e627b208dfe008
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

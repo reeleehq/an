@@ -8,7 +8,8 @@ method and the measurements behind it are in the package docstring
 ([`an.kinematics`](an.kinematics.html.md#module-an.kinematics)); in one line: extended position-based dynamics on 2D
 rigid bodies [Müller et al. 2020], Gauss–Seidel over the joints, a fixed
 number of substeps and iterations, hinge limits as angular projections, the
-two-link closed form as the initial guess.
+two-link closed form (or, for a longer slack chain, an arc) as the initial
+guess.
 
 **Two modes.** With `dt=None` (`pose`) the bodies are projected onto the
 joints from where they stand, with no inertia and no gravity: the answer is
@@ -221,13 +222,14 @@ a joint on the world alone, a body with no extent.
 
 The pose channels, in the order `SolveResult.poses` holds them.
 
-### an.kinematics.solver.SOLVER_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '3'*
+### an.kinematics.solver.SOLVER_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '4'*
 
 Bumped whenever the solve can give a different answer for the same inputs
 (a changed projection, order, or default): part of every cache key built
 on this module.
 2: a slow retry keeps going while it converges (an#568); 3: a conflict gives up
-the first candidate that halves the failure (an#641).
+the first candidate that halves the failure (an#641); 4: a slack chain of more
+than two links held at both ends is seeded on an arc (an#646).
 
 ### *class* an.kinematics.solver.SolveResult(bodies, poses, residuals, unsatisfied, limit_violations, dropped=())
 

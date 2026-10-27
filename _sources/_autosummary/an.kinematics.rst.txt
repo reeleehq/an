@@ -13,6 +13,7 @@ an.kinematics
       point_world
       reach
       two_bone
+      arc_chain
       solve
       solve_frames
       resolve_rests

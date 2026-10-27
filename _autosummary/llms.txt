@@ -107,7 +107,7 @@
 - [an.iterate](an.iterate.html.md): Iterative edit loop — free-text instruction → IR patch via Claude → re-render.
 - [an.kinematics](an.kinematics.html.md): A deterministic 2D constraint solver: bodies joined at points, driven at a
 - [an.kinematics.bodies](an.kinematics.bodies.html.md): Bodies and the points on them: the things a joint joins and a driver moves.
-- [an.kinematics.chains](an.kinematics.chains.html.md): Closed-form pieces for chains: the two-link reach and its reachable range.
+- [an.kinematics.chains](an.kinematics.chains.html.md): Closed-form pieces for chains: the two-link reach and its reachable range,
 - [an.kinematics.joints](an.kinematics.joints.html.md): Joints: declared relations between two bodies, or a body and the world.
 - [an.kinematics.solver](an.kinematics.solver.html.md): The solve: bodies joined at points, driven at a few, settled by gravity.
 - [an.library](an.library.html.md): The asset library: reusable assets that outlive their videos (ADR 0005).

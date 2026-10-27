@@ -8,6 +8,7 @@ an.kinematics.chains
 
    .. autosummary::
    
+      arc_chain
       reach
       two_bone
    

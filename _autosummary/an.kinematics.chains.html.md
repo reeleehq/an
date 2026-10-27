@@ -1,6 +1,7 @@
 # an.kinematics.chains
 
-Closed-form pieces for chains: the two-link reach and its reachable range.
+Closed-form pieces for chains: the two-link reach and its reachable range,
+and the arc a longer chain held at both ends sags on ([`arc_chain()`](#an.kinematics.chains.arc_chain)).
 
 A two-link chain (an upper arm and a forearm, a thigh and a shin) with its
 root held and its tip asked for is the common case of every puppet, and it
@@ -20,9 +21,33 @@ True
 
 ### Functions
 
-| [`reach`](#an.kinematics.chains.reach)(l1, l2)                               | The `(nearest, farthest)` distance from the root a two-link chain of lengths `l1` and `l2` can put its tip.                                                                                                         |
-|----------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`two_bone`](#an.kinematics.chains.two_bone)(root, target, lengths, \*[, bend]) | Absolute angles `(theta1, theta2)` of two links of `lengths` `(l1, l2)` hinged at `root` so that the tip meets `target`; `None` when the target is out of [`reach()`](#an.kinematics.chains.reach). |
+| [`arc_chain`](#an.kinematics.chains.arc_chain)(root, target, lengths, \*[, bend])   | Absolute angles of links of `lengths`, end to end from `root`, laid on one circular arc whose ends are `root` and `target`: the slack pose of a chain held at both ends nearer than its length (an#646), which no two-link form gives a long chain.   |
+|-------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`reach`](#an.kinematics.chains.reach)(l1, l2)                                  | The `(nearest, farthest)` distance from the root a two-link chain of lengths `l1` and `l2` can put its tip.                                                                                                                                           |
+| [`two_bone`](#an.kinematics.chains.two_bone)(root, target, lengths, \*[, bend])    | Absolute angles `(theta1, theta2)` of two links of `lengths` `(l1, l2)` hinged at `root` so that the tip meets `target`; `None` when the target is out of [`reach()`](#an.kinematics.chains.reach).                                   |
+
+### an.kinematics.chains.arc_chain(root, target, lengths, , bend=1)
+
+Absolute angles of links of `lengths`, end to end from `root`, laid
+on one circular arc whose ends are `root` and `target`: the slack pose
+of a chain held at both ends nearer than its length (an#646), which no
+two-link form gives a long chain. `None` when the chain cannot sag
+(`target` at or past its length, or on the root) or no arc fits.
+
+`bend` is the side, as for [`two_bone()`](#an.kinematics.chains.two_bone): `+1` sags
+counter-clockwise of the root-to-target line.
+
+```pycon
+>>> angles = arc_chain((0.0, 0.0), (35.0, 0.0), [1.0] * 50)
+>>> tip = (sum(math.cos(a) for a in angles), sum(math.sin(a) for a in angles))
+>>> math.isclose(tip[0], 35.0, abs_tol=1e-9), math.isclose(tip[1], 0.0, abs_tol=1e-9)
+(True, True)
+>>> arc_chain((0.0, 0.0), (60.0, 0.0), [1.0] * 50) is None
+True
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.kinematics.chains.reach(l1, l2)
 

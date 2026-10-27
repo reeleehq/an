@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=54fb851a"></script>
+    <script src="../../../_static/documentation_options.js?v=f0830103"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.328" />
+  <meta name="docsearch:version" content="0.1.329" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -712,7 +712,8 @@ window.runMermaid = runMermaid;</script>
                 <article class="bd-article">
                   
   <h1>Source code for an.kinematics.chains</h1><div class="highlight"><pre>
-<span></span><span class="sd">"""Closed-form pieces for chains: the two-link reach and its reachable range.</span>
+<span></span><span class="sd">"""Closed-form pieces for chains: the two-link reach and its reachable range,</span>
+<span class="sd">and the arc a longer chain held at both ends sags on (:func:`arc_chain`).</span>
 
 <span class="sd">A two-link chain (an upper arm and a forearm, a thigh and a shin) with its</span>
 <span class="sd">root held and its tip asked for is the common case of every puppet, and it</span>
@@ -732,6 +733,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
 
 <span class="c1">#: Below this distance a target coincides with the root and the chain's</span>
 <span class="c1">#: direction is undefined: reported as unreachable rather than guessed.</span>
@@ -789,6 +791,67 @@ window.runMermaid = runMermaid;</script>
     <span class="n">theta1</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">atan2</span><span class="p">(</span><span class="n">dy</span><span class="p">,</span> <span class="n">dx</span><span class="p">)</span> <span class="o">+</span> <span class="n">bend</span> <span class="o">*</span> <span class="n">a</span>
     <span class="n">theta2</span> <span class="o">=</span> <span class="n">theta1</span> <span class="o">-</span> <span class="n">bend</span> <span class="o">*</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">-</span> <span class="n">b</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">theta1</span><span class="p">,</span> <span class="n">theta2</span></div>
+
+
+
+<span class="c1">#: Bisection steps for :func:`arc_chain`'s radius: far past float precision.</span>
+<span class="n">_ARC_STEPS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">80</span>
+
+
+<div class="viewcode-block" id="arc_chain">
+<a class="viewcode-back" href="../../../_autosummary/an.kinematics.chains.html#an.kinematics.arc_chain">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">arc_chain</span><span class="p">(</span>
+    <span class="n">root</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+    <span class="n">target</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+    <span class="n">lengths</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">bend</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Absolute angles of links of ``lengths``, end to end from ``root``, laid</span>
+<span class="sd">    on one circular arc whose ends are ``root`` and ``target``: the slack pose</span>
+<span class="sd">    of a chain held at both ends nearer than its length (an#646), which no</span>
+<span class="sd">    two-link form gives a long chain. ``None`` when the chain cannot sag</span>
+<span class="sd">    (``target`` at or past its length, or on the root) or no arc fits.</span>
+
+<span class="sd">    ``bend`` is the side, as for :func:`two_bone`: ``+1`` sags</span>
+<span class="sd">    counter-clockwise of the root-to-target line.</span>
+
+<span class="sd">    &gt;&gt;&gt; angles = arc_chain((0.0, 0.0), (35.0, 0.0), [1.0] * 50)</span>
+<span class="sd">    &gt;&gt;&gt; tip = (sum(math.cos(a) for a in angles), sum(math.sin(a) for a in angles))</span>
+<span class="sd">    &gt;&gt;&gt; math.isclose(tip[0], 35.0, abs_tol=1e-9), math.isclose(tip[1], 0.0, abs_tol=1e-9)</span>
+<span class="sd">    (True, True)</span>
+<span class="sd">    &gt;&gt;&gt; arc_chain((0.0, 0.0), (60.0, 0.0), [1.0] * 50) is None</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">target</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">root</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">target</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">root</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">lengths</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">d</span> <span class="o">&lt;</span> <span class="n">_COINCIDENT</span> <span class="ow">or</span> <span class="n">d</span> <span class="o">&gt;=</span> <span class="n">total</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">lengths</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">turned</span><span class="p">(</span><span class="n">radius</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>  <span class="c1"># the arc's central angle</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">asin</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">l</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">radius</span><span class="p">)))</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">lengths</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">chord</span><span class="p">(</span><span class="n">radius</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">phi</span> <span class="o">=</span> <span class="n">turned</span><span class="p">(</span><span class="n">radius</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">radius</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span> <span class="k">if</span> <span class="n">phi</span> <span class="o">&lt;=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="k">else</span> <span class="o">-</span><span class="mf">1.0</span>
+
+    <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">total</span>  <span class="c1"># chord(lo) &lt;= d &lt; chord(hi)</span>
+    <span class="k">while</span> <span class="n">chord</span><span class="p">(</span><span class="n">hi</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">d</span><span class="p">:</span>
+        <span class="n">hi</span> <span class="o">*=</span> <span class="mf">2.0</span>
+    <span class="k">if</span> <span class="n">chord</span><span class="p">(</span><span class="n">lo</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">d</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">_ARC_STEPS</span><span class="p">):</span>
+        <span class="n">mid</span> <span class="o">=</span> <span class="p">(</span><span class="n">lo</span> <span class="o">+</span> <span class="n">hi</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>
+        <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="p">(</span><span class="n">mid</span><span class="p">,</span> <span class="n">hi</span><span class="p">)</span> <span class="k">if</span> <span class="n">chord</span><span class="p">(</span><span class="n">mid</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">d</span> <span class="k">else</span> <span class="p">(</span><span class="n">lo</span><span class="p">,</span> <span class="n">mid</span><span class="p">)</span>
+    <span class="n">radius</span> <span class="o">=</span> <span class="n">hi</span>
+    <span class="n">deltas</span> <span class="o">=</span> <span class="p">[</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">asin</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">l</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">radius</span><span class="p">)))</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">lengths</span><span class="p">]</span>
+    <span class="n">phi</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">deltas</span><span class="p">)</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">atan2</span><span class="p">(</span><span class="n">target</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">root</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">target</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">root</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">out</span><span class="p">,</span> <span class="n">swept</span> <span class="o">=</span> <span class="p">[],</span> <span class="mf">0.0</span>
+    <span class="k">for</span> <span class="n">delta</span> <span class="ow">in</span> <span class="n">deltas</span><span class="p">:</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">start</span> <span class="o">+</span> <span class="n">bend</span> <span class="o">*</span> <span class="p">(</span><span class="n">phi</span> <span class="o">/</span> <span class="mf">2.0</span> <span class="o">-</span> <span class="n">swept</span> <span class="o">-</span> <span class="n">delta</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">))</span>
+        <span class="n">swept</span> <span class="o">+=</span> <span class="n">delta</span>
+    <span class="k">return</span> <span class="n">out</span></div>
 
 </pre></div>
 
