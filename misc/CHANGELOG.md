@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-10-27
+- `continue: <shot>` / `continue: <scene file>#<shot>` on a shot block: the shot opens at that shot's evaluated end state for every shared entity (transform, channels, alpha, swap keys, holder and aim), resolved before compile (an#542).
 - The voice-effect chain is built by `mixing.filtergraph.resample_pitch_filter` (mixing is now a core dependency); `CHAIN_VERSION` 3: an integer `asetrate` and an exact `atempo`, so effected lines re-process once from their cached raw takes (an#611).
 - `an music add-library` / `an.music_library.acquire`: download a licensed music library (incompetech built in; paid libraries as wishlist rows), verified with ffprobe, with a tracks table of `AssetSource` provenance and the attribution blocks (an#470).
 - `dolly_in` / `dolly_out` and `CameraKey.dolly`: the camera travels into a scene of planes, each growing by its depth (a pinhole camera), sampled per frame; the `multiplane` view space; contract 1.16.0 (an#478).
