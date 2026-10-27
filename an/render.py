@@ -416,10 +416,14 @@ def render(
     scene = project.scene
     if not scene.timeline:
         raise RenderError("scene has no shots to render")
+    from an.audio.shared_mixing import warn_if_mixing_too_old
+
     caught: list = []
     ok = False
     try:
         with _recording_warnings(caught):
+            # before anything is synthesized, and in the render's findings (an#644)
+            warn_if_mixing_too_old()
             output_path, report_scene, findings, fps_used = _render_film(
                 project,
                 output_name=output_name,

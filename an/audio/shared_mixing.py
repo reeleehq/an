@@ -17,8 +17,10 @@ RuntimeError: testing needs mixing.no_such_part, which the installed mixing is t
 from __future__ import annotations
 
 import re
+import warnings
 from collections.abc import Iterator
 from contextlib import contextmanager
+from functools import lru_cache
 
 #: The package, and what the user runs when theirs predates a part ``an`` needs.
 MIXING: str = "mixing"
@@ -27,6 +29,10 @@ UPGRADE_HINT: str = "pip install -U mixing"
 INSTALL_HINT: str = "pip install mixing"
 #: How Python words ``from mixing import part`` failing on ``part``.
 _CANNOT_IMPORT = re.compile(r"cannot import name '(\w+)'")
+
+
+class MixingTooOldWarning(UserWarning):
+    """The installed ``mixing`` lacks a part ``an`` uses (or is absent)."""
 
 
 def _missing_part(e: ImportError) -> str | None:
@@ -65,3 +71,30 @@ def mixing_too_old(*, needed_for: str, error: type[Exception]) -> Iterator[None]
             f"{needed_for} needs {part}, which the installed {MIXING} is too old "
             f"to have: `{UPGRADE_HINT}`"
         ) from e
+
+
+def mixing_problem() -> str | None:
+    """Why the installed ``mixing`` cannot serve ``an``: a part it uses is
+    missing (``mixing.loudness``, ``mixing.filtergraph``), or it is absent;
+    ``None`` when it can. Asked of the code, not of a version number: an
+    editable install's metadata keeps the version it was installed at (an#644).
+    """
+    try:
+        with mixing_too_old(needed_for="an", error=RuntimeError):
+            from mixing import loudness  # noqa: F401
+            from mixing.filtergraph import resample_pitch_filter  # noqa: F401
+    except RuntimeError as e:
+        return str(e)
+    return None
+
+
+@lru_cache(maxsize=None)
+def warn_if_mixing_too_old() -> None:
+    """Say once per process, before anything is billed, that the installed
+    ``mixing`` cannot serve ``an`` (:func:`mixing_problem`): the entry points
+    that may bill (a render, ``an voices design``, ``audition`` and
+    ``reroll``) call it, so an old ``mixing`` is not found after synthesis
+    (an#644). :func:`mixing_too_old` stays the backstop at each import."""
+    problem = mixing_problem()
+    if problem:
+        warnings.warn(problem, MixingTooOldWarning, stacklevel=3)

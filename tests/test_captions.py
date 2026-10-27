@@ -594,6 +594,13 @@ def test_the_subrip_mirror_matches_mixing_field_for_field_and_byte_for_byte():
 #: import it inside ``an.audio.shared_mixing.mixing_too_old``, which only
 #: words the failure: the import stays written out here, for this scan (an#621).
 MIXING_IMPORT_ALLOWED = {
+    # an#644: the check, before anything is billed, that both parts are there
+    "audio/shared_mixing.py": {
+        "mixing.loudness",
+        "mixing",
+        "mixing.filtergraph",
+        "mixing.filtergraph.resample_pitch_filter",
+    },
     "audio/loudness.py": {"mixing.loudness", "mixing"},
     "audio/effects.py": {
         "mixing.filtergraph",
