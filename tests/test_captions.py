@@ -590,7 +590,9 @@ def test_the_subrip_mirror_matches_mixing_field_for_field_and_byte_for_byte():
 
 #: The modules that may import ``mixing``, and what they may import: the
 #: shared loudness component (an#578) and the pure filter builder the voice
-#: effects use (an#611). Both lazily, and neither loads a media stack.
+#: effects use (an#611). Both lazily, and neither loads a media stack. They
+#: import it inside ``an.audio.shared_mixing.mixing_too_old``, which only
+#: words the failure: the import stays written out here, for this scan (an#621).
 MIXING_IMPORT_ALLOWED = {
     "audio/loudness.py": {"mixing.loudness", "mixing"},
     "audio/effects.py": {
@@ -641,18 +643,10 @@ def test_the_loudness_component_loads_no_media_stack():
     """The reason `an/audio/loudness.py` may import `mixing.loudness` (an#578):
     importing `an.audio.loudness` and using the component pulls in neither the
     GPL-built ffmpeg binary's carriers nor scipy."""
-    import importlib.util
-
-    try:
-        if importlib.util.find_spec("mixing.loudness") is None:
-            pytest.skip("the `loudness` extra (mixing) is not installed")
-    except ImportError:
-        pytest.skip("the `loudness` extra (mixing) is not installed")
     if shutil.which("ffmpeg") is None:  # the measurement runs ffmpeg's ebur128
         pytest.skip("needs the ffmpeg binary on PATH")
     code = (
         "import sys, an.audio.loudness as m\n"
-        "m.component_available()\n"
         "m._component().limit_peaks\n"
         "import numpy as np\n"
         "m.integrated_loudness(m._Pcm(np.zeros((22050, 1)) + 0.1, 22050))\n"  # a measurement, not just an import

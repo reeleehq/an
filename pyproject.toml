@@ -169,10 +169,8 @@ recorded = [
 # package). Its base install is light (config2py, dol, xdol); `an` uses its
 # ffmpeg `ebur128` meter, so it takes the bare package, not `mixing[loudness]`,
 # whose scipy only the numpy meter needs. A core dependency since an#611; the
-# extra stays so `an[loudness]` keeps resolving.
-loudness = [
-    "mixing",
-]
+# extra stays, empty, so `an[loudness]` keeps resolving (an#621).
+loudness = []
 manim = [
     # Manim opaque-source shots (an#279): `an.adapters.manim_adapter` renders
     # through manimkit's `render_check` (child-process render, layout probe,
