@@ -170,18 +170,33 @@ def test_the_core_corpus_reports_no_continuity_finding(name, tmp_path):
 # -- solidity (an#509) ------------------------------------------------------
 
 
-def _two_lamps(tmp_path: Path, *, second: dict | None = None, at=(0.0, 90.0)):
+def _two_lamps(
+    tmp_path: Path,
+    *,
+    second: dict | None = None,
+    at=(0.0, 90.0),
+    actions=None,
+    first_overrides: dict | None = None,
+):
     root = Path(shutil.copytree(LAMP, tmp_path / "p"))
     project = load(root)
     first = project.scene.timeline[0]
     lamp = first.entities[0].model_dump()
+    if first_overrides is not None:
+        lamp["overrides"] = first_overrides
     twin = {
         **lamp,
         "id": "twin",
         "stage": {"at": list(at), "scale": 0.55},
         **(second or {}),
     }
-    shot = Shot.model_validate({**first.model_dump(), "entities": [lamp, twin]})
+    shot = Shot.model_validate(
+        {
+            **first.model_dump(),
+            "entities": [lamp, twin],
+            **({"actions": actions} if actions is not None else {}),
+        }
+    )
     scene = project.scene.model_copy(update={"timeline": [shot]})
     return validate_semantic(
         scene,
@@ -211,6 +226,54 @@ def test_an_after_on_either_makes_the_overlap_occlusion(tmp_path):
 
 def test_a_solid_false_override_opts_out(tmp_path):
     assert _msgs(_two_lamps(tmp_path, second={"overrides": {"solid": False}})) == []
+
+
+def test_an_entity_unseen_at_an_instant_overlaps_nothing_then(tmp_path):
+    """an#632: the twin faded out (alpha 0) is not drawn through the lamp."""
+    hidden = [
+        {"kind": "set", "target": "twin", "property": "alpha", "value": 0.0, "at": 0.0}
+    ]
+    assert _msgs(_two_lamps(tmp_path, actions=hidden)) == []
+
+
+def test_an_entity_fading_in_overlaps_once_it_is_seen(tmp_path):
+    """The skip is per instant: hidden until 0.25 s, then seen and overlapping."""
+    fade = [
+        {"kind": "set", "target": "twin", "property": "alpha", "value": 0.0, "at": 0.0},
+        {
+            "kind": "set",
+            "target": "twin",
+            "property": "alpha",
+            "value": 1.0,
+            "at": 0.25,
+        },
+    ]
+    (msg,) = _msgs(_two_lamps(tmp_path, actions=fade))
+    assert "from 0.25 s" in msg
+
+
+SLOT = {"stream": "pole"}
+
+
+def test_two_slots_of_one_stream_are_occlusion_when_the_nearer_is_in_front(tmp_path):
+    """an#632: the twin, painted later and larger (nearer), covers the lamp."""
+    near = {"overrides": SLOT, "stage": {"at": [0.0, 90.0], "scale": 0.8}}
+    assert _msgs(_two_lamps(tmp_path, second=near, first_overrides=SLOT)) == []
+
+
+def test_a_farther_slot_painted_over_a_nearer_one_is_an_inversion(tmp_path):
+    """an#632/an#634: painted later but smaller (farther): reported as such."""
+    far = {"overrides": SLOT, "stage": {"at": [0.0, 90.0], "scale": 0.3}}
+    (msg,) = _msgs(_two_lamps(tmp_path, second=far, first_overrides=SLOT))
+    assert (
+        "'twin' is painted over 'lamp'" in msg and "farther" in msg and "an#634" in msg
+    )
+
+
+def test_a_slot_and_an_authored_solid_still_overlap(tmp_path):
+    """The world paints a non-member on top whatever its depth: not occlusion."""
+    authored = {"overrides": None}
+    assert _msgs(_two_lamps(tmp_path, first_overrides=SLOT, second=authored))
 
 
 # -- draw order (an#510) ----------------------------------------------------
@@ -527,7 +590,11 @@ def test_motion_style_is_registered_under_the_core_owner():
 
 
 def test_a_linear_move_is_over_the_smoothness_target(tmp_path):
-    (msg,) = _msgs(_styled(tmp_path, [_tween(duration=1.0, easing="linear", from_value=0.0)], SMOOTH))
+    (msg,) = _msgs(
+        _styled(
+            tmp_path, [_tween(duration=1.0, easing="linear", from_value=0.0)], SMOOTH
+        )
+    )
     assert "lamp:x" in msg and "corners" in msg
 
 
@@ -625,11 +692,23 @@ def _sounded(tmp_path: Path, at: float, *, reaches=None, offset=0.0):
     cue = {
         "sound": "thud",
         "at": at,
-        "cause": {"when": "lamp", "reaches": reaches or {"y": _HALFWAY_Y}, "offset": offset},
+        "cause": {
+            "when": "lamp",
+            "reaches": reaches or {"y": _HALFWAY_Y},
+            "offset": offset,
+        },
     }
     return _lint(
         tmp_path,
-        [_tween(property="y", from_value=0.0, to_value=300.0, duration=1.0, easing="linear")],
+        [
+            _tween(
+                property="y",
+                from_value=0.0,
+                to_value=300.0,
+                duration=1.0,
+                easing="linear",
+            )
+        ],
         duration=1.0,
         extra={"sounds": [cue]},
     )
@@ -637,7 +716,11 @@ def _sounded(tmp_path: Path, at: float, *, reaches=None, offset=0.0):
 
 def _halfway_y() -> float:
     """The lamp's screen y at 0.5 s of the fall (the fixture's lamp, read from the stage)."""
-    from an.stage.timeline import evaluate_timeline, screen_position, timeline_from_scene
+    from an.stage.timeline import (
+        evaluate_timeline,
+        screen_position,
+        timeline_from_scene,
+    )
 
     class _Ctx:  # just enough of a check context to compile the shot
         index = 0
@@ -654,12 +737,27 @@ def _halfway_y() -> float:
         {
             **project.scene.timeline[0].model_dump(),
             "duration": 1.0,
-            "actions": [_tween(property="y", from_value=0.0, to_value=300.0, duration=1.0, easing="linear")],
+            "actions": [
+                _tween(
+                    property="y",
+                    from_value=0.0,
+                    to_value=300.0,
+                    duration=1.0,
+                    easing="linear",
+                )
+            ],
         }
     )
     ctx = _Ctx()
-    ctx.shot, ctx.scene, ctx.memo = shot, project.scene.model_copy(update={"timeline": [shot]}), {}
-    ctx.stores = {"props": project.mall["props"], "environments": project.mall["environments"]}
+    ctx.shot, ctx.scene, ctx.memo = (
+        shot,
+        project.scene.model_copy(update={"timeline": [shot]}),
+        {},
+    )
+    ctx.stores = {
+        "props": project.mall["props"],
+        "environments": project.mall["environments"],
+    }
     doc = constraints.compiled_shot(ctx)
     pose = evaluate_timeline(timeline_from_scene(doc), 0.5)
     return screen_position(doc, "lamp", pose=pose)[1]

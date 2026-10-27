@@ -21,7 +21,7 @@ from typing import Any, Callable, Collection, Literal, Mapping
 
 from pydantic import ValidationError
 
-from an.base import AUTHORABLE_PROPERTIES, TRANSFORM_PROPERTIES
+from an.base import AUTHORABLE_PROPERTIES, TRANSFORM_PROPERTIES, UNSEEN_ALPHA
 from an.audio.effects import TRIM_SILENCE, VoiceEffectError, voice_effects
 from an.audio.voices import speaker_voice_ref
 from an.stores._common import art_exists_for
@@ -2544,6 +2544,7 @@ def _placements(
         from an.stage.timeline import (
             _node_chain,
             _pose_for,
+            entity_alpha,
             evaluate_timeline,
             timeline_from_scene,
             transform_of,
@@ -2565,16 +2566,14 @@ def _placements(
             continue
         states = []
         for pose in poses:
-            mine = _pose_for(pose, path)
-            t = transform_of(node, mine, frame_height=res.height)
-            alpha = (mine or {}).get((path.rsplit("/", 1)[-1], "alpha"))
+            t = transform_of(node, _pose_for(pose, path), frame_height=res.height)
             states.append(
                 {
                     "x": t.x,
                     "y": t.y,
                     "scale_x": abs(t.scale_x),
                     "scale_y": abs(t.scale_y),
-                    "alpha": float(node.transform.alpha if alpha is None else alpha),
+                    "alpha": entity_alpha(doc, pose, entity.id),
                 }
             )
         out[entity.id] = (states[0], states[1])
@@ -2602,11 +2601,6 @@ def _opened(shot: Any, entity_id: str, *, fps: float) -> set[str]:
         if float(when or 0.0) < first_frame:
             out.add(action.property)
     return out
-
-
-#: At or under this alpha an entity is not seen at a cut (a stream slot between
-#: its passes, a fade's end): it cannot jump or swap sides (an#516).
-UNSEEN_ALPHA: float = 1e-3
 
 
 def _seen(state: Mapping[str, float]) -> bool:

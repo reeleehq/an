@@ -103,6 +103,7 @@ def end_states(doc: Any, entity_ids: list[str], *, at: float) -> dict[str, Entit
     from an.stage.timeline import (
         _node_chain,
         _pose_for,
+        entity_alpha,
         evaluate_timeline,
         timeline_from_scene,
         transform_of,
@@ -130,7 +131,7 @@ def end_states(doc: Any, entity_ids: list[str], *, at: float) -> dict[str, Entit
         channels: dict[tuple[str, str], Any] = {
             (eid, prop): float(getattr(t, prop)) for prop in ROOT_TRANSFORM
         }
-        channels[(eid, "alpha")] = float(own.get((name, "alpha"), node.transform.alpha))
+        channels[(eid, "alpha")] = entity_alpha(doc, pose, eid)
         groups = {(eid, write_group(p)) for _, p in channels}
         for (target, prop), value in pose.items():
             if prop in UNCARRIED_PROPERTIES:
