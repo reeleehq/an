@@ -39,7 +39,7 @@ import warnings
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable, Protocol, Sequence
+from typing import Any, Callable, Protocol
 
 from an.base import (
     DEFAULT_RESOLUTION,
@@ -1064,7 +1064,10 @@ def camera_follow_keys(state: CompileState) -> list[CameraKey]:
         ) from e
     x0, y0 = positions[0]
     if follow.lag:
-        positions = lagged_positions(positions, lag=follow.lag, dt=1.0 / state.fps)
+        dt = 1.0 / state.fps
+        xs = lag_filter([x for x, _ in positions], lag=follow.lag, dt=dt)
+        ys = lag_filter([y for _, y in positions], lag=follow.lag, dt=dt)
+        positions = list(zip(xs, ys))
     return [
         CameraKey(
             at=min(duration, k / state.fps),
@@ -1074,28 +1077,6 @@ def camera_follow_keys(state: CompileState) -> list[CameraKey]:
         )
         for k, (x, y) in enumerate(positions)
     ]
-
-
-def lagged_positions(
-    positions: Sequence[tuple[float, float]], *, lag: float, dt: float
-) -> list[tuple[float, float]]:
-    """``positions`` seen through a first-order filter of time constant ``lag``
-    (s), sampled every ``dt``: the camera starts on the target and closes
-    ``1 - exp(-dt/lag)`` of the gap each frame. ``lag <= 0`` returns them as
-    they are.
-
-    >>> step = [(0.0, 0.0)] + [(100.0, 0.0)] * 30
-    >>> out = lagged_positions(step, lag=0.5, dt=0.1)
-    >>> round(out[5][0], 1)               # 0.5 s after the step: 1 - 1/e of it
-    63.2
-    >>> lagged_positions(step, lag=0.0, dt=0.1) == step
-    True
-    """
-    if lag <= 0:
-        return list(positions)
-    xs = lag_filter([p[0] for p in positions], lag=lag, dt=dt)
-    ys = lag_filter([p[1] for p in positions], lag=lag, dt=dt)
-    return list(zip(xs, ys))
 
 
 def _parallax_pass(state: CompileState) -> None:

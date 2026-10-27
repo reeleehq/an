@@ -134,3 +134,129 @@ def test_gravity_is_the_frames_to_set():
     a = lower_world(_braking(FrameSway()), extents=EXTENTS).scene.timeline[0]
     b = lower_world(_braking(FrameSway(gravity=19.62)), extents=EXTENTS).scene.timeline[0]
     assert abs(_rotation_at(b, "right", 0.5)) < abs(_rotation_at(a, "right", 0.5))
+
+
+# --- review fixes (an#504 PR) ---------------------------------------------------
+
+
+def _lean_of_braking(*, gain=1.0, gravity=DFLT_WORLD_GRAVITY):
+    return -gain * math.atan(20.0 / gravity)
+
+
+def test_a_member_in_a_braking_sub_frame_of_a_swaying_car_leans():
+    """The car is at rest and declares the sway; the cart in it brakes: the
+    member in the cart leans with the cart's acceleration, by the car's sway."""
+    scene = _braking(FrameSway())
+    scene.world.frames["cart"] = Frame(parent="car")
+    scene.world.members[1].frame = "cart"
+    scene.timeline[0].actions[-1] = tween(
+        "cart", "at_z", to=10.0, duration=1.0, from_=0.0, easing="ease_out"
+    )
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    assert _rotation_at(shot, "right", 0.5) == pytest.approx(_lean_of_braking(), abs=0.02)
+
+
+def test_the_lean_at_the_shots_first_instant_is_not_read_as_an_impulse():
+    """The stencil stays inside the shot: braking that starts with the shot
+    reads its real deceleration at t=0, not the cap of a jump from rest."""
+    shot = lower_world(_braking(FrameSway()), extents=EXTENTS).scene.timeline[0]
+    assert _rotation_at(shot, "right", 0.0) == pytest.approx(_lean_of_braking(), abs=0.02)
+
+
+@pytest.mark.parametrize("duration", [0.01, 0.03])
+def test_a_very_short_braking_shot_leans_the_right_way(duration):
+    scene = _braking(FrameSway())
+    scene.timeline[0].duration = duration
+    scene.timeline[0].actions[-1] = tween(
+        "car", "at_z", to=0.05, duration=duration, from_=0.0, easing="ease_out"
+    )
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    lean = _rotation_at(shot, "right", duration / 2)
+    assert lean is not None and lean < 0  # forward, as the long braking leans
+    assert lean >= -math.radians(FrameSway().limit) - 1e-9
+
+
+def test_a_member_that_reframes_into_a_swaying_frame_starts_leaning():
+    from an.ir.reframe import reframe
+
+    scene = _braking(FrameSway())
+    scene.world.members[1].frame = None
+    scene.timeline[0].actions.append(reframe("right", to="car", at=0.5))
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    assert abs(_rotation_at(shot, "right", 0.25)) < 0.01
+    assert _rotation_at(shot, "right", 0.75) == pytest.approx(_lean_of_braking(), abs=0.02)
+
+
+def test_a_member_that_goes_out_and_back_resumes_leaning():
+    from an.ir.reframe import reframe
+
+    scene = _braking(FrameSway())
+    scene.timeline[0].actions += [
+        reframe("right", to="world", at=0.2),
+        reframe("right", to="car", at=0.5),
+    ]
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    assert _rotation_at(shot, "right", 0.1) == pytest.approx(_lean_of_braking(), abs=0.02)
+    assert abs(_rotation_at(shot, "right", 0.35)) < 0.01
+    assert _rotation_at(shot, "right", 0.75) == pytest.approx(_lean_of_braking(), abs=0.02)
+
+
+def test_members_riding_together_cost_one_lean(monkeypatch):
+    import an.ir.world as world
+
+    calls = {"lean": 0, "fit": 0}
+    lean, fit = world._sway_lean, world._fit_lean
+
+    def counted_lean(*a, **k):
+        calls["lean"] += 1
+        return lean(*a, **k)
+
+    def counted_fit(*a, **k):
+        calls["fit"] += 1
+        return fit(*a, **k)
+
+    monkeypatch.setattr(world, "_sway_lean", counted_lean)
+    monkeypatch.setattr(world, "_fit_lean", counted_fit)
+    scene = _braking(FrameSway())
+    scene.world.members[0].frame = "car"  # both lamps ride the car
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    assert _rotation_at(shot, "left", 0.5) == _rotation_at(shot, "right", 0.5)
+    assert calls == {"lean": 1, "fit": 1}
+
+
+def test_sway_attached_is_said_only_of_a_member_in_the_shot():
+    from an.ir.schema import Attachment
+
+    scene = _braking(FrameSway())
+    scene.world.members.append(_lamp("hat", attached=Attachment(to="right")))
+    scene.world.viewpoints["side"].hide = ["hat"]
+    notes = lower_world(scene, extents=EXTENTS).notes
+    assert not [n for n in notes if n.kind == "sway_attached"]
+
+
+def test_the_lean_is_gain_times_atan_of_a_over_gravity():
+    sway = FrameSway(gain=0.5, gravity=2 * DFLT_WORLD_GRAVITY)
+    shot = lower_world(_braking(sway), extents=EXTENTS).scene.timeline[0]
+    want = _lean_of_braking(gain=sway.gain, gravity=sway.gravity)
+    for t in (0.25, 0.5, 0.75):
+        assert _rotation_at(shot, "right", t) == pytest.approx(want, abs=0.005)
+
+
+def test_animating_the_rotation_of_a_swaying_member_warns():
+    scene = _braking(FrameSway())
+    scene.timeline[0].actions.append(tween("right", "rotation", to=0.3, duration=1.0))
+    notes = lower_world(scene, extents=EXTENTS).notes
+    assert [n.entity for n in notes if n.kind == "sway_rotation"] == ["right"]
+
+
+def test_a_sway_dumps_only_what_differs_from_its_defaults_and_round_trips():
+    assert FrameSway().model_dump() == {}
+    assert FrameSway(gain=2.0, limit=30.0).model_dump() == {"gain": 2.0, "limit": 30.0}
+    frame = Frame(sway=FrameSway(settle=0.2))
+    assert Frame.model_validate(frame.model_dump()) == frame
+    assert Frame.model_validate(Frame(sway=FrameSway()).model_dump()).sway == FrameSway()
+
+
+def test_lag_filter_refuses_a_step_that_is_not_positive():
+    with pytest.raises(ValueError, match="dt"):
+        lag_filter([0.0, 1.0], lag=0.3, dt=0.0)

@@ -1213,32 +1213,46 @@ class FrameMoving(_IRModel):
         return data
 
 
+#: Gravity, world units per second² along +y (down; the world's units are
+#: metres): Earth's. A ``motion: ballistic`` reframe falls with it
+#: (:mod:`an.ir.reframe`, which re-exports it) and a ``FrameSway`` leans by it.
+DFLT_WORLD_GRAVITY: float = 9.81
+#: The most a member of a swaying frame leans by default, degrees.
+DFLT_SWAY_LIMIT_DEG: float = 75.0
+
+
 class FrameSway(_IRModel):
     """Opt-in sway of an accelerating frame (an#504): what rides in it leans
-    away from the acceleration by ``gain × atan(a / g)`` (the pseudo-force of a
-    non-inertial frame; follow-through and drag, in animation terms), settling
-    with the time constant ``settle`` seconds (``0``: at once).
+    away from the acceleration by ``gain × atan(a / gravity)`` (the pseudo-force
+    of a non-inertial frame; follow-through and drag, in animation terms),
+    settling with the time constant ``settle`` seconds (``0``: at once).
+    Fields at their default are left out of a dump.
 
     >>> FrameSway().gain
     1.0
+    >>> FrameSway().model_dump(), FrameSway(gain=0.5, settle=0.2).model_dump()
+    ({}, {'gain': 0.5, 'settle': 0.2})
     """
 
     gain: float = Field(default=1.0, allow_inf_nan=False)
     settle: float = Field(default=0.0, ge=0, allow_inf_nan=False)
-    #: Gravity in the frame's units per second² (the world is in metres): the
-    #: lean is ``atan(a / gravity)``.
-    gravity: float = Field(default=9.81, gt=0, allow_inf_nan=False)
+    #: Gravity in the frame's units per second² (the world is in metres; a
+    #: frame drawn at another scale says its own): the lean is
+    #: ``atan(a / gravity)``.
+    gravity: float = Field(default=DFLT_WORLD_GRAVITY, gt=0, allow_inf_nan=False)
     #: The most a member leans, degrees: a stop with no easing is an impulse,
     #: and an impulse would flip it over for a frame.
-    limit: float = Field(default=75.0, gt=0, le=90, allow_inf_nan=False)
+    limit: float = Field(
+        default=DFLT_SWAY_LIMIT_DEG, gt=0, le=90, allow_inf_nan=False
+    )
 
     @model_serializer(mode="wrap")
     def _omit_defaults(self, handler):
         data = handler(self)
         if isinstance(data, dict):
-            for name, default in (("settle", 0.0), ("gravity", 9.81), ("limit", 75.0)):
-                if data.get(name) == default:
-                    data.pop(name, None)
+            for name, info in type(self).model_fields.items():
+                if name in data and data[name] == info.default:
+                    del data[name]
         return data
 
 

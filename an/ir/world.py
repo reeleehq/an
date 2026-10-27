@@ -61,7 +61,6 @@ from an.ir.frames import (
     Pose,
     Track,
     TrackEvent,
-    lag_filter,
 )
 from an.ir.frames import look_basis as _basis
 from an.ir.schema import (
@@ -71,6 +70,7 @@ from an.ir.schema import (
     DFLT_TRAVEL_TOLERANCE_PX,
     SHOT_SIZES,
     AssetRef,
+    FrameSway,
     SceneIR,
     Shot,
     StagePlacement,
@@ -1530,78 +1530,152 @@ def _reframe_notes(
 #: Rotation (radians) a sway channel's fit may stray from the lean (about
 #: 0.05 degrees); a lean below it all shot long is none.
 SWAY_TOLERANCE_RAD: float = 0.0009
-#: How far inside the shot a sway's acceleration is read at its ends (s).
-_SWAY_EDGE: float = 0.02
 
 
-def _sway_actions(
-    entity_id: str,
-    sway: Any,
+def _sway_lean(
     accel: Callable[[float], Point3],
-    ctx: _FrameCtx,
+    right: Sequence[Point3],
+    times: Sequence[float],
     *,
-    shot: Shot,
-    until: float | None = None,
-    tol: float,
-    min_step: float,
-    fps: float,
-    note: Callable[[str, str, str, str], None],
-) -> list[Any]:
-    """The lean of a member riding an accelerating frame (an#504): its
-    ``rotation`` (radians, the runtime's; clockwise is positive) follows
-    ``-gain × atan(a / g)`` up to ``limit``, ``a`` being the frame's
-    acceleration along the camera's right axis, so a frame braking toward the
-    picture's left (acceleration right) tips what rides in it to the left.
-    Constant speed is no lean. ``settle`` smooths it (a first-order lag that
-    starts on the lean the shot opens with: the frame was already moving);
-    the channel is fitted by :func:`fit_channel`. ``until``: the lean ends
-    there (the member left the frame). No actions when the lean stays under
-    ``tol`` all shot long."""
-    duration = ctx.duration
-    n = max(1, int(math.ceil(duration * fps)))
-    times = [duration * i / n for i in range(n + 1)]
+    sway: FrameSway,
+) -> list[float]:
+    """The lean (radians, the runtime's; clockwise is positive) of what rides
+    a frame accelerating by ``accel(t)``, at each of ``times``, unsettled:
+    ``-gain × atan(a / gravity)`` capped at ``limit`` degrees, ``a`` being the
+    acceleration along the camera's right axis ``right[i]`` (an#504). So a
+    frame braking toward the picture's left (acceleration right) tips what
+    rides in it to the left; constant speed is no lean.
+
+    >>> from an.ir.schema import FrameSway
+    >>> lean = _sway_lean(lambda t: (9.81, 0.0, 0.0), [(1.0, 0.0, 0.0)], [0.0], sway=FrameSway(gain=0.5))
+    >>> round(lean[0], 4) == round(-0.5 * math.atan(1.0), 4)
+    True
+    """
     limit = math.radians(float(sway.limit))
-
-    def raw(t: float) -> float:
-        if until is not None and t >= until:
-            return 0.0
-        right = ctx.eye_at(t).right
-        # Read inside the shot: at its very edges the second difference would
-        # straddle the instant the motion starts, and see an impulse.
-        a = sum(
-            x * y
-            for x, y in zip(accel(min(max(t, _SWAY_EDGE), duration - _SWAY_EDGE)), right)
-        )
+    out = []
+    for t, r in zip(times, right):
+        a = sum(x * y for x, y in zip(accel(t), r))
         lean = -float(sway.gain) * math.atan2(a, float(sway.gravity))
-        return max(-limit, min(limit, lean))
+        out.append(max(-limit, min(limit, lean)))
+    return out
 
-    lean = lag_filter([raw(t) for t in times], lag=float(sway.settle), dt=duration / n)
+
+def _fit_lean(
+    lean: Sequence[float], *, duration: float, tol: float, min_step: float
+) -> tuple[float, list[tuple[float, float, float, float, Any]]] | None:
+    """A lean sampled at ``len(lean)`` even steps over ``[0, duration]``,
+    fitted by :func:`fit_channel`: ``(value at 0, [(ta, tb, va, vb, easing)])``
+    with the flat segments dropped, or ``None`` when it stays under ``tol``
+    all shot long."""
     if max(abs(v) for v in lean) <= tol:
-        return []
+        return None
+    n = len(lean) - 1
 
     def g(t: float) -> float:
         x = min(max(t / duration * n, 0.0), float(n))
         i = min(int(x), n - 1)
         return lean[i] + (lean[i + 1] - lean[i]) * (x - i)
 
-    if any(
-        getattr(a, "target", None) == entity_id and getattr(a, "property", None) == "rotation"
-        for top in shot.actions
-        for a in iter_actions(top)
-    ):
-        note(
-            "warning",
-            "sway_rotation",
-            entity_id,
-            "its frame sways (it leans with the frame's acceleration) and the shot "
-            "also animates its `rotation`: the two fight. Drop one.",
-        )
-    out: list[Any] = [set_(entity_id, "rotation", g(0.0), at=0.0)]
-    for ta, tb, va, vb, easing in fit_channel(g, 0.0, duration, tolerance=tol, min_step=min_step):
-        if abs(va - vb) <= _FLAT_CHANNEL_EPS:
-            continue
+    segments = [
+        seg
+        for seg in fit_channel(g, 0.0, duration, tolerance=tol, min_step=min_step)
+        if abs(seg[2] - seg[3]) > _FLAT_CHANNEL_EPS
+    ]
+    return g(0.0), segments
+
+
+def _lean_actions(
+    entity_id: str,
+    fitted: tuple[float, list[tuple[float, float, float, float, Any]]],
+) -> list[Any]:
+    """The ``rotation`` channel of ``entity_id`` from :func:`_fit_lean`."""
+    v0, segments = fitted
+    out: list[Any] = [set_(entity_id, "rotation", v0, at=0.0)]
+    for ta, tb, va, vb, easing in segments:
         tw = tween(entity_id, "rotation", to=vb, duration=tb - ta, from_=va, easing=easing)
         out.append(sequence(delay(ta), tw) if ta > 0 else tw)
+    return out
+
+
+def _sway_members(
+    mids: Sequence[str],
+    ctx: _FrameCtx,
+    *,
+    legs: Mapping[str, Sequence[tuple[float, str, bool]]],
+    frame_of: Mapping[str, str],
+    fps: float,
+    min_step: float,
+    tol: float = SWAY_TOLERANCE_RAD,
+) -> dict[str, list[Any]]:
+    """``{member: its rotation actions}`` for the members of ``mids`` that lean
+    with an accelerating frame (an#504), the others left out.
+
+    A member's course is a list of legs ``(start, frame, flying)`` (one leg
+    from ``-inf`` in ``frame_of[mid]`` when it never reframes): on each leg it
+    leans with the acceleration of the frame it stands in (whose world
+    acceleration includes its parents'), by the ``sway`` of the nearest frame
+    up that frame's chain that declares one; in a frame with none, or in
+    flight, it does not lean. So a member that reframes into a swaying frame
+    starts leaning, and one that goes out and back resumes. The lean settles
+    by that sway's ``settle`` (a first-order lag starting on the lean the shot
+    opens with: the frame was already moving); out of a swaying frame it is
+    upright at once. The unsettled lean is computed once per frame and the
+    fit once per distinct course, so members riding together cost one."""
+    duration, tree = ctx.duration, ctx.tree
+    if duration <= 0:
+        return {}
+    n = max(1, int(math.ceil(duration * fps)))
+    dt = duration / n
+    times = [duration * i / n for i in range(n + 1)]
+    rights: list[Point3] = []
+    raw: dict[str, list[float] | None] = {}
+    fits: dict[tuple, Any] = {}
+
+    def raw_of(frame: str) -> list[float] | None:
+        if frame not in raw:
+            governing = tree.sway_frame(frame)
+            if governing is None:
+                raw[frame] = None
+            else:
+                if not rights:
+                    rights.extend(ctx.eye_at(t).right for t in times)
+                raw[frame] = _sway_lean(
+                    lambda t: tree.acceleration(
+                        frame,
+                        t,
+                        film_start=ctx.film_start,
+                        dt=1.0 / fps,
+                        within=(0.0, duration),
+                    ),
+                    rights,
+                    times,
+                    sway=tree.frames[governing].sway,
+                )
+        return raw[frame]
+
+    def lean_of(course: tuple[tuple[float, str, bool], ...]) -> Any:
+        target, settle = [0.0] * len(times), [0.0] * len(times)
+        for i, t in enumerate(times):
+            _, frame, flying = [leg for leg in course if leg[0] <= t][-1]
+            series = None if flying else raw_of(frame)
+            if series is not None:
+                target[i] = series[i]
+                settle[i] = float(tree.frames[tree.sway_frame(frame)].sway.settle)
+        lean = [target[0]]
+        for v, lag in zip(target[1:], settle[1:]):
+            k = 1.0 - math.exp(-dt / lag) if lag > 0 else 1.0
+            lean.append(lean[-1] + k * (v - lean[-1]))
+        return _fit_lean(lean, duration=duration, tol=tol, min_step=min_step)
+
+    out: dict[str, list[Any]] = {}
+    for mid in mids:
+        course = tuple(legs.get(mid) or [(-math.inf, frame_of[mid], False)])
+        if not any(tree.sway_frame(frame) for _, frame, _ in course):
+            continue
+        if course not in fits:
+            fits[course] = lean_of(course)
+        if fits[course] is not None:
+            out[mid] = _lean_actions(mid, fits[course])
     return out
 
 
@@ -2059,32 +2133,43 @@ def _lower_shot(
             actions.extend(
                 _pass_actions(mid, [p for p, _ in passes[mid]], duration=duration)
             )
-    swayed: set[str] = set()
-    for mid in sorted(emitted & frame_of.keys()):
-        if members[mid].kind == "environment" or mid in vp.hide:
-            continue
-        sway = tree.sway_frame(frame_of[mid])
-        if sway is None:
-            continue
-        swayed.add(mid)
-        actions.extend(
-            _sway_actions(
+    swayed = _sway_members(
+        sorted(
+            mid
+            for mid in emitted & frame_of.keys()
+            if members[mid].kind != "environment" and mid not in vp.hide
+        ),
+        ctx,
+        legs={
+            mid: [(leg.start, leg.frame, leg.flight is not None) for leg in c.legs]
+            for mid, c in courses.items()
+        },
+        frame_of=frame_of,
+        fps=fps,
+        min_step=min_step,
+    )
+    rotated = {
+        getattr(a, "target", None)
+        for top in shot.actions
+        for a in iter_actions(top)
+        if getattr(a, "property", None) == "rotation"
+    }
+    for mid, lean in swayed.items():
+        actions.extend(lean)
+        if mid in rotated:
+            note(
+                "warning",
+                "sway_rotation",
                 mid,
-                tree.frames[sway].sway,
-                lambda t, sway=sway: tree.acceleration(
-                    sway, t, film_start=film_start, dt=1.0 / fps
-                ),
-                ctx,
-                shot=shot,
-                until=courses[mid].changes[0].at if mid in courses and courses[mid].changes else None,
-                tol=SWAY_TOLERANCE_RAD,
-                min_step=min_step,
-                fps=fps,
-                note=note,
+                "its frame sways (it leans with the frame's acceleration) and the "
+                "shot also animates its `rotation`: the two fight. Drop one.",
             )
-        )
     for member in world.members:
-        if member.attached is not None and member.attached.to in swayed:
+        if (
+            member.id in emitted
+            and member.attached is not None
+            and member.attached.to in swayed
+        ):
             note(
                 "info",
                 "sway_attached",

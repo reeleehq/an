@@ -236,7 +236,13 @@ def lag_filter(values: Sequence[float], *, lag: float, dt: float) -> list[float]
     >>> out = lag_filter([0.0] + [100.0] * 30, lag=0.5, dt=0.1)
     >>> round(out[5], 1)                  # 0.5 s after the step: 1 - 1/e of it
     63.2
+    >>> lag_filter([0.0, 1.0], lag=0.5, dt=0.0)
+    Traceback (most recent call last):
+      ...
+    ValueError: lag_filter: the sample step `dt` must be positive (got 0.0).
     """
+    if not dt > 0:
+        raise ValueError(f"lag_filter: the sample step `dt` must be positive (got {dt!r}).")
     if lag <= 0 or not values:
         return list(values)
     k = 1.0 - math.exp(-dt / lag)
@@ -463,11 +469,22 @@ class FrameTree:
         )
 
     def acceleration(
-        self, name: str, t: float, *, film_start: float = 0.0, dt: float = _ACCEL_DT
+        self,
+        name: str,
+        t: float,
+        *,
+        film_start: float = 0.0,
+        dt: float = _ACCEL_DT,
+        within: tuple[float, float] | None = None,
     ) -> Vec3:
         """The world acceleration of ``name``'s origin at shot time ``t``
-        (central second difference, units/s²): zero for a frame at rest or at a
-        constant speed.
+        (second difference of step ``dt``, units/s²): zero for a frame at rest
+        or at a constant speed.
+
+        ``within=(lo, hi)`` keeps the three samples inside that window (a
+        shot): near an end the stencil slides inward (a one-sided difference),
+        and a window narrower than ``2·dt`` shrinks the step to half of it, so
+        a motion that starts at the window's edge is not read as an impulse.
 
         >>> from an.ir.schema import Frame, FrameMoving
         >>> tree = FrameTree({"car": Frame(moving=FrameMoving(speed=20.0))})
@@ -477,8 +494,16 @@ class FrameTree:
         >>> braking = FrameTree({"car": Frame()}, tracks={"car": {"at_z": track}})
         >>> [round(v, 1) + 0.0 for v in braking.acceleration("car", 0.5)]   # 20 m/s to 0 in a second
         [0.0, 0.0, -20.0]
+        >>> [round(v, 1) + 0.0 for v in braking.acceleration("car", 0.0, dt=0.04, within=(0.0, 1.0))]
+        [0.0, 0.0, -20.0]
         """
         h = dt
+        if within is not None:
+            lo, hi = within
+            h = min(h, max(0.0, (hi - lo) / 2.0))
+            if h <= 0:
+                return _ZERO
+            t = min(max(t, lo + h), hi - h)
         a, b, c = (
             self.world_pose(name, t + k * h, film_start=film_start).at
             for k in (-1, 0, 1)
