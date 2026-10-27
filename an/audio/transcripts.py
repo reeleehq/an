@@ -46,6 +46,7 @@ __all__ = [
     "AlignedWords",
     "detect_format",
     "parse_transcript",
+    "parse_transcript_text",
     "parse_srt",
     "parse_vtt",
     "parse_plain",
@@ -182,7 +183,19 @@ def parse_transcript(
         suffix = path.suffix
     else:
         text = str(source)
-    fmt = (fmt or detect_format(text, suffix=suffix)).lower()
+    return parse_transcript_text(text, fmt=fmt or detect_format(text, suffix=suffix))
+
+
+def parse_transcript_text(
+    text: str, *, fmt: str | None = None
+) -> list[TranscriptSegment]:
+    """The transcript ``text`` (never a path: what a store hands back, an#493)
+    into segments; ``fmt`` (one of :data:`FORMATS`) overrides detection.
+
+    >>> parse_transcript_text("note", fmt="plain")[0].text
+    'note'
+    """
+    fmt = (fmt or detect_format(text)).lower()
     if fmt == "srt":
         return parse_srt(text)
     if fmt == "vtt":

@@ -122,6 +122,7 @@ def test_mall_keys_match_spec():
             "sources",
             "styles",
             "takes",
+            "transcripts",
             "visemes",
             "voices",
         ]
