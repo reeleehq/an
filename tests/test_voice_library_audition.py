@@ -597,3 +597,22 @@ def test_a_voice_found_under_another_label_is_auditioned_again(tmp_path):
     design_project_voices(root, designer=FakeDesigner(n=1), library=_Reversed(n=2))
     audition_project_voices(root, ["jerry"], tts=tts, options=["L1", "L2"], announce=None)
     assert len(tts.requests) == billed + 2
+
+
+def test_a_reel_recorded_while_a_design_runs_is_kept(tmp_path):
+    """an#587 review: an audition records a reel while a re-design is billing;
+    the design's write carries it from the manifest as stored then."""
+    root = _two_scene_project(tmp_path)
+    tts = FakeTTS(seconds=0.25)
+
+    class Busy(_Redesigner):
+        def design_voice_previews(self, description, *, text=None, model_id=None):
+            audition_project_voices(root, ["jerry"], tts=tts, options=["L1"],
+                                    announce=None, scene_file="scene.b.md")
+            return super().design_voice_previews(description, text=text, model_id=model_id)
+
+    design_project_voices(root, designer=Busy(n=1), library=FakeLibrary(n=1))
+    manifest = json.loads((Path(root) / "artifacts" / "voice_options" / "jerry.json")
+                          .read_text(encoding="utf-8"))
+    (l1,) = [o for o in manifest["options"] if o["option"] == "L1"]
+    assert "scene.b.md" in l1.get("auditions", {})
