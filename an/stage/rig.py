@@ -1593,7 +1593,9 @@ class RestWorldTransform:
         """
         return (self.a * x + self.c * y + self.tx, self.b * x + self.d * y + self.ty)
 
-    def then(self, x: float, y: float, rotation: float, scale_x: float, scale_y: float) -> "RestWorldTransform":
+    def then(
+        self, x: float, y: float, rotation: float, scale_x: float, scale_y: float
+    ) -> "RestWorldTransform":
         """This transform under a child node at ``(x, y)``, ``rotation`` (radians),
         scaled by ``scale_x``, ``scale_y``: the child's world transform."""
         cos, sin = math.cos(rotation), math.sin(rotation)
@@ -1706,7 +1708,9 @@ def rest_world_transforms(
         )
     )
     if apply_rest_pose is None:
-        apply_rest_pose = _field_of(view, "rest_rotation") is not False and not legacy_pose
+        apply_rest_pose = (
+            _field_of(view, "rest_rotation") is not False and not legacy_pose
+        )
     geometry = _RigGeometry(view, apply_rest_pose=apply_rest_pose)
     out: dict[str, RestWorldTransform] = {}
 
@@ -1808,7 +1812,9 @@ def build_rig_subtree(
     # face_overlay — and differs only in what it seeds when they are empty, so
     # the code below never asks which kind it has (an#108).
     raw = dict(desc_data)
-    migrated, legacy_pose = _migrate_for_rest_pose(raw, document_kind)  # raw stays as stored
+    migrated, legacy_pose = _migrate_for_rest_pose(
+        raw, document_kind
+    )  # raw stays as stored
     desc = descriptor_model.model_validate(migrated)
     if legacy_pose:
         warnings.warn(
