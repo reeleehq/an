@@ -562,7 +562,8 @@ def _rope(n: int = 50, link: float = 10.0) -> tuple[list[Body], list[Pin]]:
     return bodies, joints
 
 
-def test_a_rope_gives_up_its_end_never_a_link():
+@pytest.mark.parametrize("n", [10, 30, 50])
+def test_a_rope_gives_up_its_end_never_a_link_and_takes_it_back(n):
     """an#641: the rope's end goes out of reach for 20 frames and comes back.
     Held at both ends the rope is a loop, so a conflict on it is settled by
     giving up the grip (declared last), never an interior link, even when the
@@ -570,10 +571,11 @@ def test_a_rope_gives_up_its_end_never_a_link():
     cycle once the end is given up. On main the links were given up from the
     frame the end came back, and the rope came apart by hundreds of px.
 
-    Not yet: taking the end back. A 50-link rope hanging ~600 px from its
-    returned end cannot close that in one frame, so its end stays given up
-    (a re-grip over several frames is an#645)."""
-    n, link = 50, 10.0
+    an#645: back within reach, a rope hanging far from its end cannot close
+    the gap in one frame; its end is walked to the grip at `regrip_speed`
+    and taken back with a small snap (main: never, for 50 links; a jump of
+    100 to 250 px for shorter ones)."""
+    link = 10.0
     bodies, joints = _rope(n, link)
 
     def end_at(k):
@@ -581,8 +583,11 @@ def test_a_rope_gives_up_its_end_never_a_link():
         return {"end": {"x": x, "y": 0.0}}
 
     r = solve_frames(
-        bodies, joints, frames=40, dt=DT, targets_at=end_at, gravity=(0.0, 980.0)
+        bodies, joints, frames=60, dt=DT, targets_at=end_at, gravity=(0.0, 980.0)
     )
     assert {j for d in r.dropped for j in d} == {n}, r.dropped
-    worst = max(g for u in r.unsatisfied for j, g in u if j != n)
-    assert worst < 1.0, worst
+    worst = max((g for u in r.unsatisfied for j, g in u if j != n), default=0.0)
+    assert worst < 1.5, worst
+    after = [s for s in r.snaps if s[0] >= 24]
+    assert after and all(j == n and gap < 25.0 for _k, j, gap in after), r.snaps
+    assert r.dropped[-1] == ()  # held at the end

@@ -66,7 +66,7 @@ from __future__ import annotations
 import hashlib
 import json
 import math
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Collection, Mapping, Sequence
 from dataclasses import dataclass, fields, replace
 from typing import Any
 
@@ -120,6 +120,9 @@ DFLT_CONFLICT_PROGRESS: float = 0.5
 #: one frame cannot close the gap (an#645): a 50-link rope 600 units away
 #: takes it back in about a second, at 24 fps.
 DFLT_REGRIP_SPEED: float = 600.0
+#: The walking point holds the chain's end with this compliance: stiff enough
+#: to lead it, never a failure that a conflict would settle by giving up a link.
+DFLT_REGRIP_COMPLIANCE: float = 1e-6
 #: The most trial solves :func:`solve` spends looking for the joint to give
 #: up in a conflict (each is a full solve of the frame).
 DFLT_MAX_DROP_TRIALS: int = 12
@@ -138,8 +141,9 @@ DFLT_SEGMENT_MARGIN: float = 0.5
 #: (a changed projection, order, or default): part of every cache key built
 #: on this module.
 #: 2: a slow retry keeps going while it converges (an#568); 3: a conflict gives up
-#: the first candidate that halves the failure (an#641).
-SOLVER_VERSION: str = "3"
+#: the first candidate that halves the failure (an#641); 4: a lost grip back in
+#: reach is walked to, and a compliant joint closes no conflict loop (an#645).
+SOLVER_VERSION: str = "4"
 #: The most passes a frame whose first retry made progress is given, as a
 #: multiple of ``iterations``: its retry is repeated with ``retry`` times the
 #: passes while each round still makes progress (an#568). On 300 random
@@ -1235,7 +1239,9 @@ def _loop_mates(st: _State, rows: list[_Row], failing: set[int]) -> set[int]:
 
     edges: dict[int, tuple[int, int]] = {}
     for kind, j, p in rows:
-        if j >= 0 and j not in edges:
+        # A compliant joint stretches rather than fails, so it closes no loop
+        # a conflict could be in (a chain led by a walking point, an#645).
+        if j >= 0 and j not in edges and not p[-1] > 0.0:
             edges[j] = (node(p[0]), node(p[1] if kind == "ang" else p[3]))
     adjacency: dict[int, list[tuple[int, int]]] = {}
     blocks: list[list[int]] = []
@@ -1526,6 +1532,7 @@ def solve_frames(
     enforced_before = [j.joined for j in base]
     poses, unsat, lims, snaps, drops = [], [], [], [], []
     regripping: set[int] = set()  # the joints given up on the frame before
+    tried: set[int] = set()  # ... of them, the ones tried within reach and refused
     for k in range(frames):
         frame_joints = base
         if joints_at is not None:
@@ -1546,42 +1553,40 @@ def solve_frames(
             targets = targets_at(k)
         else:
             targets = targets_at[k]
+        # A grip given up on the frame before and back within reach now: its
+        # free end is pinned to a point that walks toward the grip at
+        # `regrip_speed`, until the gap is one step and the grip itself is
+        # tried. A long chain hanging far from it closes the gap over a few
+        # frames instead of in one, which no frame can, so it is neither given
+        # up again nor a link given up in its place (an#645).
+        step = (regrip_speed or 0.0) * (dt if dt is not None else 1.0)
+        walking = (
+            _walking_anchors(
+                current,
+                frame_joints,
+                targets,
+                regripping & tried,
+                step=step,
+                tolerance=options.get("tolerance", DFLT_TOLERANCE),
+            )
+            if regripping & tried and step > 0.0
+            else {}
+        )
         r = solve(
             current,
-            frame_joints,
+            [walking.get(j, fj) for j, fj in enumerate(frame_joints)],
             targets=targets,
             forces=forces,
             gravity=gravity,
             dt=dt,
             **options,
         )
-        # A grip given up on the frame before and again now, though within
-        # reach, that one frame cannot close (a long chain hanging far from
-        # it): its free end is pinned to a point that walks toward the grip at
-        # `regrip_speed`, until the gap is one step; then the grip itself
-        # holds. Never a jump across the gap, nor given up for good (an#645).
-        step = (regrip_speed or 0.0) * (dt if dt is not None else 1.0)
-        walking = {
-            j: anchor
-            for j in r.dropped
-            if j in regripping
-            and j not in r.out_of_reach
-            and step > 0.0
-            and (anchor := _regrip_anchor(r.bodies, frame_joints[j], targets, step))
-            is not None
-        }
-        regripping = set(r.dropped)
-        if walking:
-            r = solve(
-                current,
-                [walking.get(j, fj) for j, fj in enumerate(frame_joints)],
-                targets=targets,
-                forces=forces,
-                gravity=gravity,
-                dt=dt,
-                **options,
-            )
+        if walking:  # not the grip yet: reported as given up, and still walking
             r = replace(r, dropped=tuple(sorted({*r.dropped, *walking})))
+        # The grip itself is tried first on the frame it is back within reach
+        # (a short chain closes the gap at once); it walks from the next.
+        tried = {j for j in r.dropped if j not in r.out_of_reach}
+        regripping = set(r.dropped)
         snaps += [(k, j, gap) for j, gap in reengaged if j not in r.dropped]
         enforced_before = [
             joint.joined and j not in r.dropped for j, joint in enumerate(frame_joints)
@@ -1611,29 +1616,62 @@ def _with_rest(frame_joint: Joint, base_joint: Joint) -> Joint:
     return frame_joint
 
 
+def _walking_anchors(
+    bodies: Sequence[Body],
+    joints: Sequence[Joint],
+    targets: Targets | None,
+    given_up: Collection[int],
+    *,
+    step: float,
+    tolerance: float,
+) -> dict[int, Pin]:
+    """The joints in ``given_up`` (given up on the frame before) that are back
+    within reach, each as a pin of its free point to a point ``step`` toward
+    its held one (:func:`_regrip_anchor`), while it is farther than a step."""
+    st = _State(bodies)
+    st.drive(targets)
+    st.restore_held()
+    far = set(_out_of_reach(st, _rows(st, joints, ()), tolerance))
+    out = {}
+    for j in sorted(given_up):
+        if j < len(joints) and joints[j].joined and j not in far:
+            anchor = _regrip_anchor(bodies, joints[j], targets, step)
+            if anchor is not None:
+                out[j] = anchor
+    return out
+
+
 def _regrip_anchor(
-    bodies: Sequence[Body], joint: Joint, targets: Targets | None, step: float
+    bodies: Sequence[Body],
+    joint: Joint,
+    targets: Targets | None,
+    step: float,
 ) -> Pin | None:
     """``joint`` (a pin between a free point and a held one) with its free
-    point pinned instead to a world point ``step`` from where it is, toward
-    the held point (an#645); ``None`` for another joint, or a pin both or
-    neither of whose sides are held."""
+    point pinned instead, compliantly, to a world point ``step`` from where it
+    is, toward the held point (an#645); ``None`` when it is within a step, for
+    another joint, or a pin both or neither of whose sides are held."""
     if not isinstance(joint, Pin):
         return None
     st = _State(bodies)
     st.drive(targets)
     sides = [(point, *st.offset(point)) for point in (joint.a, joint.b)]
-    held = [
-        i == 0 or bodies[i - 1].fixed or i in st.held for _, i, _lx, _ly in sides
-    ]
+    held = [i == 0 or bodies[i - 1].fixed or i in st.held for _, i, _lx, _ly in sides]
     if held[0] == held[1]:
         return None
     (free, fi, fx, fy), (_, hi, hx, hy) = sides if held[1] else sides[::-1]
     ax, ay = st.world(fi, fx, fy)
     bx, by = st.world(hi, hx, hy)
     gap = math.hypot(bx - ax, by - ay)
-    f = min(1.0, step / gap) if gap > 0.0 else 1.0
-    return replace(joint, a=free, b=Point(WORLD, ax + f * (bx - ax), ay + f * (by - ay)))
+    if gap <= step:
+        return None  # one step from the grip: the grip itself is tried
+    f = step / gap
+    return replace(
+        joint,
+        a=free,
+        b=Point(WORLD, ax + f * (bx - ax), ay + f * (by - ay)),
+        compliance=max(joint.compliance, DFLT_REGRIP_COMPLIANCE),
+    )
 
 
 def _gap(bodies: Sequence[Body], joint: Joint) -> float:

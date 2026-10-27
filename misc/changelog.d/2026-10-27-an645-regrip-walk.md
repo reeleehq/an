@@ -1,0 +1,1 @@
+- A grip given up and back within reach that one frame cannot close (a long rope hanging far from its end) is walked to over a few frames and taken back with a small snap, never a link given up in its place; a compliant joint closes no conflict loop; `solve_frames(regrip_speed=)`; `SOLVER_VERSION` 4 (an#645).
