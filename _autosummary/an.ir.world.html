@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=2649dc7e"></script>
+    <script src="../_static/documentation_options.js?v=82315867"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.314" />
+  <meta name="docsearch:version" content="0.1.315" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -727,7 +727,7 @@ move, and a close-up is the same world seen from nearer.</p>
 <td><p>The instances of <code class="docutils literal notranslate"><span class="pre">stream</span></code> whose position along the travel lies in <code class="docutils literal notranslate"><span class="pre">[s_min,</span> <span class="pre">s_max]</span></code>: <code class="docutils literal notranslate"><span class="pre">[(k,</span> <span class="pre">world</span> <span class="pre">position)]</span></code>, <code class="docutils literal notranslate"><span class="pre">k</span></code> the instance index.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.ir.world.stream_slots" title="an.ir.world.stream_slots"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stream_slots</span></code></a>(stream, travel)</p></td>
-<td><p>How many entities a stream needs: one per instance that can be between <code class="docutils literal notranslate"><span class="pre">near</span></code> and <code class="docutils literal notranslate"><span class="pre">far</span></code> at once, plus one.</p></td>
+<td><p>How many entities a stream needs by its depth range: one per instance that can be between <code class="docutils literal notranslate"><span class="pre">near</span></code> and <code class="docutils literal notranslate"><span class="pre">far</span></code> at once, plus one.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.viewpoint_of" title="an.ir.world.viewpoint_of"><code class="xref py py-obj docutils literal notranslate"><span class="pre">viewpoint_of</span></code></a>(world, viewpoint)</p></td>
 <td><p>The shot's viewpoint as a model: a name is looked up in the world.</p></td>
@@ -1216,11 +1216,13 @@ of the direction of travel, at height <code class="docutils literal notranslate"
 <dl class="py function">
 <dt class="sig sig-object py" id="an.ir.world.stream_slots">
 <span class="sig-prename descclassname"><span class="pre">an.ir.world.</span></span><span class="sig-name descname"><span class="pre">stream_slots</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stream</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">travel</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/world.html#stream_slots"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.world.stream_slots" title="Link to this definition">#</a></dt>
-<dd><p>How many entities a stream needs: one per instance that can be between
-<code class="docutils literal notranslate"><span class="pre">near</span></code> and <code class="docutils literal notranslate"><span class="pre">far</span></code> at once, plus one. Instance <code class="docutils literal notranslate"><span class="pre">k</span></code> is drawn by slot
-<code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">mod</span> <span class="pre">slots</span></code>, so an entity is reused for the next instance once this
-one has passed the camera — and the SAME world instance lands in the same
-slot in every shot, which is what keeps a cut continuous.</p>
+<dd><p>How many entities a stream needs by its depth range: one per instance
+that can be between <code class="docutils literal notranslate"><span class="pre">near</span></code> and <code class="docutils literal notranslate"><span class="pre">far</span></code> at once, plus one. Instance <code class="docutils literal notranslate"><span class="pre">k</span></code>
+is drawn by slot <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">mod</span> <span class="pre">slots</span></code>, so an entity is reused for the next
+instance once this one has passed the camera. A shot takes the larger of
+this and what its viewpoint shows (<code class="xref py py-func docutils literal notranslate"><span class="pre">_span_slots()</span></code>, an#516), so the
+count, and the slot an instance takes, can differ between two shots;
+nothing relies on it, since each shot compiles alone.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">stream_slots</span><span class="p">(</span><span class="n">Stream</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">"pole"</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="s2">"pole"</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">6.0</span><span class="p">,</span> <span class="n">every</span><span class="o">=</span><span class="mf">12.0</span><span class="p">),</span> <span class="n">Travel</span><span class="p">(</span><span class="n">speed</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">near</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">far</span><span class="o">=</span><span class="mf">60.0</span><span class="p">))</span>
 <span class="go">6</span>
 </pre></div>

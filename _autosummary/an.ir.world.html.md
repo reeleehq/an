@@ -61,7 +61,7 @@ move, and a close-up is the same world seen from nearer.
 | [`pose_look`](#an.ir.world.pose_look)(pose)                                    | The `(yaw, pitch)` in degrees a pose faces.                                                                                                                                                                                                                                                                                                                                     |
 | [`resolve_viewpoint`](#an.ir.world.resolve_viewpoint)(world, viewpoint, \*, ...)       | The camera a viewpoint is, as a [`Projection`](#an.ir.world.Projection), in its own frame's units.                                                                                                                                                                                                                                                          |
 | [`stream_instances`](#an.ir.world.stream_instances)(stream, travel, \*, s_min, s_max) | The instances of `stream` whose position along the travel lies in `[s_min, s_max]`: `[(k, world position)]`, `k` the instance index.                                                                                                                                                                                                                                            |
-| [`stream_slots`](#an.ir.world.stream_slots)(stream, travel)                       | How many entities a stream needs: one per instance that can be between `near` and `far` at once, plus one.                                                                                                                                                                                                                                                                      |
+| [`stream_slots`](#an.ir.world.stream_slots)(stream, travel)                       | How many entities a stream needs by its depth range: one per instance that can be between `near` and `far` at once, plus one.                                                                                                                                                                                                                                                   |
 | [`viewpoint_of`](#an.ir.world.viewpoint_of)(world, viewpoint)                     | The shot's viewpoint as a model: a name is looked up in the world.                                                                                                                                                                                                                                                                                                              |
 
 ### Classes
@@ -452,11 +452,13 @@ of the direction of travel, at height `y`.
 
 ### an.ir.world.stream_slots(stream, travel)
 
-How many entities a stream needs: one per instance that can be between
-`near` and `far` at once, plus one. Instance `k` is drawn by slot
-`k mod slots`, so an entity is reused for the next instance once this
-one has passed the camera — and the SAME world instance lands in the same
-slot in every shot, which is what keeps a cut continuous.
+How many entities a stream needs by its depth range: one per instance
+that can be between `near` and `far` at once, plus one. Instance `k`
+is drawn by slot `k mod slots`, so an entity is reused for the next
+instance once this one has passed the camera. A shot takes the larger of
+this and what its viewpoint shows (`_span_slots()`, an#516), so the
+count, and the slot an instance takes, can differ between two shots;
+nothing relies on it, since each shot compiles alone.
 
 ```pycon
 >>> stream_slots(Stream(id="pole", ref="pole", height=6.0, every=12.0), Travel(speed=10.0, near=0.5, far=60.0))
