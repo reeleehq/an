@@ -581,13 +581,15 @@ def test_a_rope_gives_up_its_end_never_a_link_and_takes_it_back(n):
         return {"end": {"x": x, "y": 0.0}}
 
     r = solve_frames(
-        bodies, joints, frames=60, dt=DT, targets_at=end_at, gravity=(0.0, 980.0)
+        bodies, joints, frames=100, dt=DT, targets_at=end_at, gravity=(0.0, 980.0)
     )
     assert {j for d in r.dropped for j in d} == {n}, r.dropped
+    worst = max((g for u in r.unsatisfied for j, g in u if j != n), default=0.0)
+    assert worst < 3.5, worst  # links a little stretched while the end is led
     after = [s for s in r.snaps if s[0] >= 24]
     assert after and all(j == n and gap < 1.0 for _k, j, gap in after), r.snaps
     assert r.dropped[-1] == ()  # held at the end
-    led = [k for k in range(24, 60) if r.dropped[k]]
+    led = [k for k in range(24, 100) if r.dropped[k]]
     assert led and n in dict(r.unsatisfied[led[0]])  # its gap, reported while led
 
 

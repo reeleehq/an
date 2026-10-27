@@ -1618,6 +1618,9 @@ def solve_frames(
             # back again.
             leads.update(lead(regained, {}, step=0.0, snap=-1.0)[0])
             r = frame(leads)
+        # A grip taken back and given up again in a conflict (a long rope
+        # swinging under its own weight) is led back like one lost out of reach.
+        relost = regained & set(r.dropped)
         regained = (
             (regained | (within - set(r.dropped))) - leads.keys() - set(r.dropped)
         )
@@ -1636,7 +1639,7 @@ def solve_frames(
                     )
                 ),
             )
-        lost = set(r.out_of_reach)
+        lost = set(r.out_of_reach) | (relost - leads.keys())
         snaps += [(k, j, gap) for j, gap in reengaged if j not in r.dropped]
         enforced_before = [
             joint.joined and j not in r.dropped for j, joint in enumerate(frame_joints)
