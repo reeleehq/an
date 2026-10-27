@@ -505,3 +505,104 @@ def test_a_depth_on_a_plane_the_travel_lists_far_is_an_error(tmp_path):
         if e.kind == "environment"
     ]
     assert PLANE_FACTORS_OVERRIDE not in (env.overrides or {})
+
+
+# --- an#599: a plate turns with a frame that rolls ---------------------------------------
+
+
+def _screen(project, scene, path, t, point=(0.0, 0.0)):
+    from an.stage.timeline import screen_position, timeline_from_scene
+    from an.timing import evaluate_timeline
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        shot = lower_scene(scene, project.mall).scene.timeline[0]
+        doc = compile_shot(shot, project.mall, fps=24, width=320, height=240)
+    pose = evaluate_timeline(timeline_from_scene(doc), t)
+    return screen_position(doc, path, pose=pose, point=point)
+
+
+def test_a_rolled_plate_turns_with_the_roll_clockwise_on_screen(tmp_path):
+    """The camera's vehicle rolls 20 degrees, linearly, over the shot: at t =
+    0.25 the plate's right edge has turned 5 degrees, clockwise on screen (y
+    down: a positive angle), as a roll turns the picture (an#599)."""
+    import math
+
+    from an.ir.compose import tween
+
+    project = _env_project(tmp_path)
+    scene = _moving_scene(
+        actions=[
+            tween("vehicle", "roll", to=20.0, duration=1.0, from_=0.0, easing="linear")
+        ]
+    )
+    a = _screen(project, scene, "set/hill", 0.25)
+    b = _screen(project, scene, "set/hill", 0.25, (100.0, 0.0))
+    assert math.atan2(b[1] - a[1], b[0] - a[0]) == pytest.approx(
+        math.radians(5.0), abs=0.005
+    )
+
+
+def test_a_yaw_turns_no_plate_and_a_long_roll_keeps_turning():
+    import math
+
+    from an.ir.compose import tween
+
+    yawed = lower_world(
+        _moving_scene(
+            actions=[tween("vehicle", "yaw", to=30.0, duration=1.0, from_=0.0)]
+        ),
+        extents=EXTENTS,
+    ).scene.timeline[0]
+    assert not [a for _, a in _hill_keys(yawed) if a.property == "rotation"]
+    rolled = lower_world(
+        _moving_scene(
+            actions=[tween("vehicle", "roll", to=300.0, duration=1.0, from_=0.0)]
+        ),
+        extents=EXTENTS,
+    ).scene.timeline[0]
+    ends = [
+        getattr(a, "to_value", None)
+        if getattr(a, "to_value", None) is not None
+        else a.value
+        for _, a in _hill_keys(rolled)
+        if a.property == "rotation"
+    ]
+    assert abs(ends[-1]) == pytest.approx(math.radians(300.0), abs=0.02)
+
+
+def test_a_hand_rotation_on_a_plate_keeps_its_depth_keys():
+    from an.ir.compose import tween
+
+    scene = _moving_scene(
+        actions=[
+            tween("vehicle", "roll", to=20.0, duration=1.0, from_=0.0),
+            tween("set/hill", "rotation", to=0.5, duration=1.0, from_=0.0),
+        ]
+    )
+    lowered = lower_world(scene, extents=EXTENTS)
+    props = [a.property for _, a in _hill_keys(lowered.scene.timeline[0])]
+    assert "x" in props and props.count("rotation") == 1, "the author's, and the keys"
+    assert any("does not turn with its frame" in n.message for n in lowered.notes)
+
+
+def test_a_plate_rotates_as_the_camera_rolls_and_a_pan_adds_no_rotation():
+    """The vehicle carrying the camera rolls 20 degrees over the shot: the plate
+    in the world turns by the roll on screen (the other way), exactly at the
+    shot's end. Without a roll, no rotation key."""
+    import math
+
+    from an.ir.compose import tween
+
+    still = lower_world(_moving_scene(), extents=EXTENTS).scene.timeline[0]
+    assert not [a for _, a in _hill_keys(still) if a.property == "rotation"]
+    scene = _moving_scene(
+        actions=[tween("vehicle", "roll", to=20.0, duration=1.0, from_=0.0)]
+    )
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    turns = [(t, a) for t, a in _hill_keys(shot) if a.property == "rotation"]
+    assert turns, "the plate is keyed with a rotation"
+    last = turns[-1][1]
+    final = getattr(last, "to_value", None)
+    final = last.value if final is None else final
+    assert abs(abs(final) - math.radians(20.0)) <= 0.01
