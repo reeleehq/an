@@ -37,7 +37,7 @@ from an.stage.rig import (
     rig_problems,
     rig_rest_problems,
 )
-from an.stores._common import ASSET_REF_RULE, asset_ref_problem, inside_folder
+from an.stores import asset_ref_problems
 from an.verify._base import VerificationReport
 
 #: The descriptor file a prop folder holds (the props store's sidecar name).
@@ -46,6 +46,11 @@ PROP_META_NAME: str = "prop.json"
 #: Finding severities, the ones ``an character validate`` uses.
 BLOCKING: str = "error"
 ADVISORY: str = "warning"
+
+
+def _missing_file_problems(file: Path) -> list[str]:
+    """The ``file_problems`` hook of :func:`asset_ref_problems`: an art file the folder lacks."""
+    return [] if file.is_file() else ["is not in the folder"]
 
 
 def validate_prop(
@@ -67,7 +72,8 @@ def validate_prop(
         raw = json.loads(meta.read_text(encoding="utf-8"))
         if raw.get("kind") != PROP_DOCUMENT_KIND.name:
             raise ValueError("not a PropDescriptor")
-        desc = PropDescriptor.model_validate(migrate(raw, kind=PROP_DOCUMENT_KIND.name))
+        document = migrate(raw, kind=PROP_DOCUMENT_KIND.name)
+        desc = PropDescriptor.model_validate(document)
     except (OSError, ValueError) as e:
         missing = isinstance(e, OSError) or str(e) == "not a PropDescriptor"
         report.add(
@@ -103,27 +109,13 @@ def validate_prop(
         report.add(ADVISORY, f"{PROP_META_NAME}#rig", f"{who}: {problem}")
 
     skin = desc.skins.get("default") or next(iter(desc.skins.values()), None)
+    # The one asset-reference rule (an#483, an#552), over every skin's art; a
+    # file the rule lets through must also be in the folder.
+    for label, message in asset_ref_problems(
+        document, directory, file_problems=_missing_file_problems
+    ):
+        report.add(BLOCKING, label, f"{who}: {message}")
     drawn_any = False
-    for slot_name, attachments in (skin.slots if skin is not None else {}).items():
-        for att_name, att in attachments.items():
-            problem = asset_ref_problem(att.path)
-            file = inside_folder(directory, att.path) if problem is None else None
-            if problem is not None or file is None:
-                # Outside the folder (by name, or through a link): never read (an#483).
-                report.add(
-                    BLOCKING,
-                    att.path,
-                    f"{who}: slot {slot_name!r} attachment {att_name!r} names "
-                    f"{att.path!r}, which {problem or 'resolves outside the folder (a link)'}: "
-                    f"{ASSET_REF_RULE}",
-                )
-            elif not file.is_file():
-                report.add(
-                    BLOCKING,
-                    att.path,
-                    f"{who}: slot {slot_name!r} attachment {att_name!r} names "
-                    f"{att.path!r}, which is not in the folder",
-                )
     for slot in desc.slots:
         if skin is not None and drawn_attachment(desc, skin, slot) is not None:
             drawn_any = True

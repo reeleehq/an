@@ -214,6 +214,22 @@ def test_an_props_validate_refuses_an_outside_part_by_name(tmp_path):
     assert "is not in the folder" in f.description  # missing stays missing
 
 
+def test_an_props_validate_checks_every_skin_with_the_shared_rule(tmp_path):
+    """an#567: props walk all skins (not just the default), through asset_ref_problems."""
+    from an.stage.prop_validate import validate_prop
+
+    store = _prop_store(tmp_path, "parts/ok.png")
+    folder = tmp_path / "props" / "thing"
+    (folder / "parts").mkdir(parents=True, exist_ok=True)
+    (folder / "parts" / "ok.png").write_bytes(b"x")
+    doc = store["thing"]
+    store["thing"] = {**doc, "skins": {**doc["skins"], "winter": {"slots": {"body": {"body": {"path": "../../x.png"}}}}}}
+    findings = validate_prop(folder).findings
+    (f,) = [f for f in findings if "an asset reference must be" in f.description]
+    assert "'../../x.png', which leaves the asset folder" in f.description
+    assert f.description.startswith("thing: ")
+
+
 # -----------------------------------------------------------------------------
 # `an validate` says so, before any read
 # -----------------------------------------------------------------------------
