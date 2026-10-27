@@ -26,10 +26,15 @@ from an.ir.schema import Camera, CameraKey, Shot
 
 __all__ = [
     "CAMERA_MOVES",
+    "DOLLY_IN",
+    "DOLLY_OUT",
+    "DOLLY_MOVES",
     "PAN_FRACTION",
     "CameraError",
     "camera_keys",
     "camera_shake_offsets",
+    "dolly_frames",
+    "dolly_growth",
 ]
 
 #: How far a pan travels, as a fraction of the canvas width (a tilt uses the
@@ -37,6 +42,14 @@ __all__ = [
 #: resolution and is the one number a named pan has to choose; an author who
 #: wants a different distance writes `keys` and says so.
 PAN_FRACTION: float = 1.0 / 3.0
+
+
+#: How far the named dollies travel (an#478), as :attr:`CameraKey.dolly`. Chosen
+#: so the character plane grows as under ``push_in`` (×1.25) and ``pull_out``
+#: (×0.8): ``dolly_in`` is ``push_in`` with depth, a foreground plane at depth
+#: 1.4 growing ×1.39 and a moon at 0.08 ×1.02 (the design of record's numbers).
+DOLLY_IN: float = 0.2
+DOLLY_OUT: float = -0.25
 
 
 class CameraError(ValueError):
@@ -53,6 +66,14 @@ def _zoom_keys(duration: float, start: float, end: float) -> list[CameraKey]:
     return [
         CameraKey(at=0.0, zoom=start, easing="ease_in_out"),
         CameraKey(at=duration, zoom=end),
+    ]
+
+
+def _dolly_keys(duration: float, end: float) -> list[CameraKey]:
+    """Two keys that vary only ``dolly`` (an#478), eased as a push-in is."""
+    return [
+        CameraKey(at=0.0, easing="ease_in_out"),
+        CameraKey(at=duration, dolly=end),
     ]
 
 
@@ -91,7 +112,15 @@ CAMERA_MOVES: dict[str, Callable[[float], list[CameraKey]]] = {
     "pan_right": lambda d: _move_keys(d, "x", 1.0),
     "tilt_up": lambda d: _move_keys(d, "y", -1.0),
     "tilt_down": lambda d: _move_keys(d, "y", 1.0),
+    # an#478: the camera travels toward (away from) the scene, so each plane
+    # grows by its depth; a flat zoom grows them all alike.
+    "dolly_in": lambda d: _dolly_keys(d, DOLLY_IN),
+    "dolly_out": lambda d: _dolly_keys(d, DOLLY_OUT),
 }
+
+#: The moves that travel in depth: an engine lowers them through the
+#: ``multiplane`` view space, not ``framing2d`` (:mod:`an.semantic.views`).
+DOLLY_MOVES: frozenset[str] = frozenset({"dolly_in", "dolly_out"})
 
 #: Moves a pan/tilt scales by the canvas HEIGHT rather than the width. A frame
 #: is wider than it is tall, so one span for both axes makes a tilt travel
@@ -261,4 +290,62 @@ def camera_shake_offsets(
             env = 1.0 - j / steps if k.decay else 1.0
             dx, dy = (amp * env * rng.uniform(-1.0, 1.0) for _ in range(2))
             out.append((t, dx, dy))
+    return out
+
+
+def dolly_growth(factor: float, dolly: float) -> float:
+    """How much a plane of parallax ``factor`` grows when the camera has
+    travelled ``dolly`` (an#478): a pinhole camera, the plane at distance
+    ``1 / factor`` in units of the character plane's.
+
+    >>> dolly_growth(1.0, 0.2), round(dolly_growth(1.4, 0.2), 3), dolly_growth(0.0, 0.2)
+    (1.25, 1.389, 1.0)
+    """
+    return 1.0 / (1.0 - factor * dolly)
+
+
+def dolly_frames(
+    keys: list[CameraKey], *, duration: float, fps: float
+) -> list[CameraKey]:
+    """``keys`` as one linear key per frame when any of them dollies (an#478),
+    else ``keys`` unchanged.
+
+    A dolly's growth is not linear in its travel, so a key list that eases
+    ``dolly`` cannot be eased in ``zoom`` too: each frame's key is the camera
+    evaluated there (every field by the keys' own easings), its ``zoom``
+    multiplied by the character plane's growth. Exact at every frame drawn, as
+    a follow is (an#445).
+
+    >>> frames = dolly_frames(CAMERA_MOVES["dolly_in"](1.0), duration=1.0, fps=4)
+    >>> [(k.at, round(k.zoom, 3), round(k.dolly, 3)) for k in frames][::2]
+    [(0.0, 1.0, 0.0), (0.5, 1.111, 0.1), (1.0, 1.25, 0.2)]
+    """
+    if not any(k.dolly for k in keys):
+        return keys
+    from an.timing.channel import Channel, Keyframe, evaluate
+
+    def channel(field: str) -> Channel:
+        return Channel(
+            "camera",
+            field,
+            [Keyframe(float(k.at), float(getattr(k, field)), k.easing) for k in keys],
+        )
+
+    fields = {f: channel(f) for f in ("x", "y", "zoom", "rotation", "dolly")}
+    frames = max(1, round(duration * fps))
+    out = []
+    for n in range(frames + 1):
+        t = min(duration, n / fps)
+        at = {f: evaluate(ch, t) for f, ch in fields.items()}
+        out.append(
+            CameraKey(
+                at=t,
+                x=at["x"],
+                y=at["y"],
+                zoom=at["zoom"] * dolly_growth(1.0, at["dolly"]),
+                rotation=at["rotation"],
+                dolly=at["dolly"],
+                easing="linear",
+            )
+        )
     return out
