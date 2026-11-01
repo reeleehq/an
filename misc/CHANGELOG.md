@@ -4,6 +4,8 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-11-01
+- **The voice-effect tempo cut is decided from the effects** (an#622): `_ffmpeg_wav` cuts to `input / tempo` when the normalised effects pitch or retime (`_retimes`, shared with `filter_chain`), not when `"atempo="` appears in the chain `mixing` builds; same bytes.
+- **The `draw_order` check looks paint keys up once per sample** (an#685): `depth_order_problems` bisects each keyed member's keys onto the scan grid once instead of rescanning them for every pair at every sample; the same notes, at about the pre-an#681 cost.
 - **`an cache gc` deletes interrupted writes** (an#674): the `.<name>.<hex>.tmp` files a process killed inside `dol.atomic_write` left in the mall's file stores (`interrupted_writes()` on `_BlobStore` and `JsonDirStore`), once untouched for an hour (`interrupted_write_min_age=`) and since the protection horizon; reported as `GcReport.deleted_temps`. Not yet: lacing's shot-cache spools (reeleehq/lacing#104).
 - **Shimmed names survive pytest 9.2's monkeypatch undo** (an#690): a name `an._shims` forwards (`forward_module_attributes`, `alias_module`, through a chain of shims) is a data descriptor on its module's own class, so `MonkeyPatch.undo` puts the target's global back instead of deleting it; CI was red on every PR.
 
