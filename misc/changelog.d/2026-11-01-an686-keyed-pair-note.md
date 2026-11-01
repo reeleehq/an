@@ -1,0 +1,1 @@
+- **A keyed pair's `draw_order` note says what it means** (an#686): a pair both carrying paint keys is ordered by keys cut from the depths the check samples, so a report there is a lowering bug, and the note says so (and to report it) instead of the first-depth rule that explains an unkeyed pair.

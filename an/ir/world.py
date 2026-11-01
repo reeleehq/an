@@ -3672,15 +3672,25 @@ def depth_order_problems(
                         db[k],
                         df[k],
                     )
+                why = (
+                    # A keyed pair (an#686) is ordered by its keys, which are cut
+                    # from the depths this check samples: they cannot disagree
+                    # unless the keying is wrong (a tie it missed was an#684).
+                    "their paint keys put it behind there too, against the depths "
+                    "they are cut from, which is a bug in the world's lowering: "
+                    "report it with the scene"
+                    if kb is not None and kf is not None
+                    else "the world orders each member by its depth where it first "
+                    "shows, so it stays on the wrong side"
+                )
                 out.append(
                     (
                         behind_id,
                         f"painted behind {front_id!r} but nearer the camera from "
                         f"{times[k]:.2f} s, where they overlap on screen (depth "
-                        f"{d_near:.3g} against {d_far:.3g}): the world orders each "
-                        "member by its depth where it first shows, so it stays on "
-                        "the wrong side. Cut the shot where they pass, or say which "
-                        "is in front with `stage.after`.",
+                        f"{d_near:.3g} against {d_far:.3g}): {why}. Cut the shot "
+                        "where they pass, or say which is in front with "
+                        "`stage.after`.",
                     )
                 )
     return out
