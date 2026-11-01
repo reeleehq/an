@@ -3537,20 +3537,24 @@ def depth_order_problems(
             return True
         return p[0] <= q[2] and q[0] <= p[2] and p[1] <= q[3] and q[1] <= p[3]
 
-    def keys_on_grid(keys: Sequence[Any]) -> list[list[Any]]:
-        """The paint key in force at each of ``times`` (keys sort farther
+    def keys_on_grid(mid: str, keys: Sequence[Any]) -> list[list[Any]]:
+        """``mid``'s paint key in force at each of ``times`` (keys sort farther
         first), looked up once per sample, not once per pair (an#685)."""
-        starts = [s for s, _ in keys]  # ascending, the first at 0
+        # Ascending, the first at 0, as `_with_paint_keys` records them.
+        starts = [s for s, _ in keys]
         found = [bisect.bisect_right(starts, t + _WINDOW_EPS) - 1 for t in times]
         if any(i < 0 for i in found):
-            raise ValueError(f"paint keys {keys!r} start after a sampled time")
+            raise ValueError(
+                f"{mid!r}'s paint keys start at {starts[0] if starts else None}, "
+                f"after the shot's first sampled time {times[0]}"
+            )
         each = [list(k) for _, k in keys]
         return [each[i] for i in found]
 
     members = [e for e in painted if e.id in depths]
     sampled = {e.id: series(e.id) for e in members}
     paint_keys = {
-        e.id: keys_on_grid((e.overrides or {})[PAINT_KEYS_OVERRIDE])
+        e.id: keys_on_grid(e.id, (e.overrides or {})[PAINT_KEYS_OVERRIDE])
         for e in members
         if PAINT_KEYS_OVERRIDE in (e.overrides or {})
     }

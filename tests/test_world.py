@@ -2082,7 +2082,14 @@ def test_a_walker_passes_behind_a_standing_member_with_no_travel(tmp_path):
 
 @pytest.mark.parametrize(
     "switch, reported",
-    [(2.0, True), (1.5 + 1e-3, True), (1.5, False), (1.5 - 1e-3, False), (1.5 + 1e-12, False)],
+    [
+        (2.0, True),
+        (1.5 + 1e-3, True),
+        (1.5, False),
+        (1.5 - 1e-3, False),
+        (1.5 + 1e-12, False),  # within the window epsilon
+        (1.5 + 1e-9, False),  # exactly at it: in force (bisect_right, not left)
+    ],
 )
 def test_the_draw_order_check_reads_the_key_in_force_at_each_sample(switch, reported):
     """an#685: each member's paint key is looked up once per sample (bisect),
