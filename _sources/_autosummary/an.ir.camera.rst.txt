@@ -11,6 +11,7 @@ an.ir.camera
       PAN_FRACTION
       DOLLY_IN
       CAMERA_MOVES
+      FOLLOW_OVERLAY_FIELDS
    
    .. rubric:: Functions
 
@@ -20,6 +21,8 @@ an.ir.camera
       camera_shake_offsets
       dolly_frames
       dolly_growth
+      follow_overlay
+      frame_times
       plane_dolly_scale
    
    .. rubric:: Exceptions

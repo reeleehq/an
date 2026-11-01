@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=d52a62c3"></script>
+    <script src="../_static/documentation_options.js?v=7152e6da"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.348" />
+  <meta name="docsearch:version" content="0.1.349" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -664,6 +664,9 @@ container as <code class="docutils literal notranslate"><span class="pre">root</
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.camera.CAMERA_MOVES" title="an.ir.camera.CAMERA_MOVES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CAMERA_MOVES</span></code></a></p></td>
 <td><p>The named moves, as KEY LISTS.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.camera.FOLLOW_OVERLAY_FIELDS" title="an.ir.camera.FOLLOW_OVERLAY_FIELDS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FOLLOW_OVERLAY_FIELDS</span></code></a></p></td>
+<td><p>how far the camera travels in and its zoom.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -681,6 +684,12 @@ container as <code class="docutils literal notranslate"><span class="pre">root</
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.ir.camera.dolly_growth" title="an.ir.camera.dolly_growth"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dolly_growth</span></code></a>(factor, dolly)</p></td>
 <td><p>How much a plane of parallax <code class="docutils literal notranslate"><span class="pre">factor</span></code> grows when the camera has travelled <code class="docutils literal notranslate"><span class="pre">dolly</span></code> (an#478): a pinhole camera, the plane at distance <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">factor</span></code> in units of the character plane's.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.camera.follow_overlay" title="an.ir.camera.follow_overlay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">follow_overlay</span></code></a>(keys, times)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(zoom,</span> <span class="pre">dolly)</span></code> of a follow's key overlay at each of <code class="docutils literal notranslate"><span class="pre">times</span></code> (an#625), each field by the keys' own easings; <code class="docutils literal notranslate"><span class="pre">(1.0,</span> <span class="pre">0.0)</span></code> with no overlay.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.camera.frame_times" title="an.ir.camera.frame_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">frame_times</span></code></a>(*, duration, fps)</p></td>
+<td><p>The time of every frame the render draws, the shot's end included.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.camera.plane_dolly_scale" title="an.ir.camera.plane_dolly_scale"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plane_dolly_scale</span></code></a>(factor, dolly, *[, plane])</p></td>
 <td><p>The scale a plane of parallax <code class="docutils literal notranslate"><span class="pre">factor</span></code> takes ON TOP of the root's zoom when the camera has travelled <code class="docutils literal notranslate"><span class="pre">dolly</span></code> (an#478): its growth over the character plane's, <code class="docutils literal notranslate"><span class="pre">(1</span> <span class="pre">−</span> <span class="pre">dolly)</span> <span class="pre">/</span> <span class="pre">(1</span> <span class="pre">−</span> <span class="pre">factor</span> <span class="pre">·</span> <span class="pre">dolly)</span></code>.</p></td>
@@ -729,6 +738,19 @@ about any renderer; the cutout compiler re-raises it as a
 so the character plane grows as under <code class="docutils literal notranslate"><span class="pre">push_in</span></code> (×1.25) and <code class="docutils literal notranslate"><span class="pre">pull_out</span></code>
 (×0.8): <code class="docutils literal notranslate"><span class="pre">dolly_in</span></code> is <code class="docutils literal notranslate"><span class="pre">push_in</span></code> with depth, a foreground plane at depth
 1.4 growing ×1.39 and a moon at 0.08 ×1.02 (the design of record’s numbers).</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.ir.camera.FOLLOW_OVERLAY_FIELDS">
+<span class="sig-prename descclassname"><span class="pre">an.ir.camera.</span></span><span class="sig-name descname"><span class="pre">FOLLOW_OVERLAY_FIELDS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.15)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'at',</span> <span class="pre">'dolly',</span> <span class="pre">'easing',</span> <span class="pre">'zoom'})</span></span><a class="headerlink" href="#an.ir.camera.FOLLOW_OVERLAY_FIELDS" title="Link to this definition">#</a></dt>
+<dd><p>how far the camera travels in
+and its zoom. Its position is the follow’s, and a roll would turn the frame
+the follow holds the target in.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>What a follow’s key overlay may set (an#625)</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py data">
@@ -830,6 +852,39 @@ travelled <code class="docutils literal notranslate"><span class="pre">dolly</sp
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.ir.camera.follow_overlay">
+<span class="sig-prename descclassname"><span class="pre">an.ir.camera.</span></span><span class="sig-name descname"><span class="pre">follow_overlay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/camera.html#follow_overlay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.camera.follow_overlay" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">(zoom,</span> <span class="pre">dolly)</span></code> of a follow’s key overlay at each of <code class="docutils literal notranslate"><span class="pre">times</span></code> (an#625),
+each field by the keys’ own easings; <code class="docutils literal notranslate"><span class="pre">(1.0,</span> <span class="pre">0.0)</span></code> with no overlay.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">follow_overlay</span><span class="p">([</span><span class="n">CameraKey</span><span class="p">(</span><span class="n">at</span><span class="o">=</span><span class="mf">0.0</span><span class="p">),</span> <span class="n">CameraKey</span><span class="p">(</span><span class="n">at</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">dolly</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)],</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
+<span class="go">[(1.0, 0.0), (1.0, 0.2)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">follow_overlay</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">])</span>
+<span class="go">[(1.0, 0.0), (1.0, 0.0)]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.ir.camera.frame_times">
+<span class="sig-prename descclassname"><span class="pre">an.ir.camera.</span></span><span class="sig-name descname"><span class="pre">frame_times</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/camera.html#frame_times"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.camera.frame_times" title="Link to this definition">#</a></dt>
+<dd><p>The time of every frame the render draws, the shot’s end included.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">frame_times</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="go">[0.0, 0.25, 0.5]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.ir.camera.plane_dolly_scale">
 <span class="sig-prename descclassname"><span class="pre">an.ir.camera.</span></span><span class="sig-name descname"><span class="pre">plane_dolly_scale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">factor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dolly</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">plane</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/camera.html#plane_dolly_scale"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.camera.plane_dolly_scale" title="Link to this definition">#</a></dt>
 <dd><p>The scale a plane of parallax <code class="docutils literal notranslate"><span class="pre">factor</span></code> takes ON TOP of the root’s zoom
@@ -900,11 +955,14 @@ camera at or past it) is a <a class="reference internal" href="#an.ir.camera.Cam
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.camera.CAMERA_MOVES"><code class="docutils literal notranslate"><span class="pre">CAMERA_MOVES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.camera.CameraError"><code class="docutils literal notranslate"><span class="pre">CameraError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.camera.DOLLY_IN"><code class="docutils literal notranslate"><span class="pre">DOLLY_IN</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.camera.FOLLOW_OVERLAY_FIELDS"><code class="docutils literal notranslate"><span class="pre">FOLLOW_OVERLAY_FIELDS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.camera.PAN_FRACTION"><code class="docutils literal notranslate"><span class="pre">PAN_FRACTION</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.camera.camera_keys"><code class="docutils literal notranslate"><span class="pre">camera_keys()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.camera.camera_shake_offsets"><code class="docutils literal notranslate"><span class="pre">camera_shake_offsets()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.camera.dolly_frames"><code class="docutils literal notranslate"><span class="pre">dolly_frames()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.camera.dolly_growth"><code class="docutils literal notranslate"><span class="pre">dolly_growth()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.camera.follow_overlay"><code class="docutils literal notranslate"><span class="pre">follow_overlay()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.camera.frame_times"><code class="docutils literal notranslate"><span class="pre">frame_times()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.camera.plane_dolly_scale"><code class="docutils literal notranslate"><span class="pre">plane_dolly_scale()</span></code></a></li>
 </ul>
   </nav></div>

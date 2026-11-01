@@ -20,10 +20,11 @@ container as `root`. `+x` moves the CAMERA right, which moves content left.
 
 ### Module Attributes
 
-| [`PAN_FRACTION`](#an.ir.camera.PAN_FRACTION)   | How far a pan travels, as a fraction of the canvas width (a tilt uses the same fraction of the height).   |
-|-----------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
-| [`DOLLY_IN`](#an.ir.camera.DOLLY_IN)       | How far the named dollies travel (an#478), as `CameraKey.dolly`.                                          |
-| [`CAMERA_MOVES`](#an.ir.camera.CAMERA_MOVES)   | The named moves, as KEY LISTS.                                                                            |
+| [`PAN_FRACTION`](#an.ir.camera.PAN_FRACTION)          | How far a pan travels, as a fraction of the canvas width (a tilt uses the same fraction of the height).   |
+|------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| [`DOLLY_IN`](#an.ir.camera.DOLLY_IN)              | How far the named dollies travel (an#478), as `CameraKey.dolly`.                                          |
+| [`CAMERA_MOVES`](#an.ir.camera.CAMERA_MOVES)          | The named moves, as KEY LISTS.                                                                            |
+| [`FOLLOW_OVERLAY_FIELDS`](#an.ir.camera.FOLLOW_OVERLAY_FIELDS) | how far the camera travels in and its zoom.                                                               |
 
 ### Functions
 
@@ -32,6 +33,8 @@ container as `root`. `+x` moves the CAMERA right, which moves content left.
 | [`camera_shake_offsets`](#an.ir.camera.camera_shake_offsets)(shot, \*, width, height) | The shot's camera shakes as `(time, dx, dy)` screen offsets — the ONE resolver (an#429).                                                                                                            |
 | [`dolly_frames`](#an.ir.camera.dolly_frames)(keys, \*, duration, fps)         | `keys` as one linear key per frame when any of them dollies (an#478), else `keys` unchanged (and a single key, which is no move, as a single `zoom` key is not).                                    |
 | [`dolly_growth`](#an.ir.camera.dolly_growth)(factor, dolly)                   | How much a plane of parallax `factor` grows when the camera has travelled `dolly` (an#478): a pinhole camera, the plane at distance `1 / factor` in units of the character plane's.                 |
+| [`follow_overlay`](#an.ir.camera.follow_overlay)(keys, times)                   | `(zoom, dolly)` of a follow's key overlay at each of `times` (an#625), each field by the keys' own easings; `(1.0, 0.0)` with no overlay.                                                           |
+| [`frame_times`](#an.ir.camera.frame_times)(\*, duration, fps)                | The time of every frame the render draws, the shot's end included.                                                                                                                                  |
 | [`plane_dolly_scale`](#an.ir.camera.plane_dolly_scale)(factor, dolly, \*[, plane]) | The scale a plane of parallax `factor` takes ON TOP of the root's zoom when the camera has travelled `dolly` (an#478): its growth over the character plane's, `(1 − dolly) / (1 − factor · dolly)`. |
 
 ### Exceptions
@@ -69,6 +72,15 @@ How far the named dollies travel (an#478), as `CameraKey.dolly`. Chosen
 so the character plane grows as under `push_in` (×1.25) and `pull_out`
 (×0.8): `dolly_in` is `push_in` with depth, a foreground plane at depth
 1.4 growing ×1.39 and a moon at 0.08 ×1.02 (the design of record’s numbers).
+
+### an.ir.camera.FOLLOW_OVERLAY_FIELDS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'at', 'dolly', 'easing', 'zoom'})*
+
+how far the camera travels in
+and its zoom. Its position is the follow’s, and a roll would turn the frame
+the follow holds the target in.
+
+* **Type:**
+  What a follow’s key overlay may set (an#625)
 
 ### an.ir.camera.PAN_FRACTION *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.3333333333333333*
 
@@ -156,6 +168,33 @@ travelled `dolly` (an#478): a pinhole camera, the plane at distance
 
 * **Return type:**
   [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+### an.ir.camera.follow_overlay(keys, times)
+
+`(zoom, dolly)` of a follow’s key overlay at each of `times` (an#625),
+each field by the keys’ own easings; `(1.0, 0.0)` with no overlay.
+
+```pycon
+>>> follow_overlay([CameraKey(at=0.0), CameraKey(at=1.0, dolly=0.2)], [0.0, 1.0])
+[(1.0, 0.0), (1.0, 0.2)]
+>>> follow_overlay(None, [0.0, 0.5])
+[(1.0, 0.0), (1.0, 0.0)]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
+
+### an.ir.camera.frame_times(, duration, fps)
+
+The time of every frame the render draws, the shot’s end included.
+
+```pycon
+>>> frame_times(duration=0.5, fps=4)
+[0.0, 0.25, 0.5]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.ir.camera.plane_dolly_scale(factor, dolly, , plane='')
 

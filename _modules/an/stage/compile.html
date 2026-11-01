@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=d52a62c3"></script>
+    <script src="../../../_static/documentation_options.js?v=7152e6da"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.348" />
+  <meta name="docsearch:version" content="0.1.349" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -832,7 +832,13 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.raster</span><span class="w"> </span><span class="kn">import</span> <span class="n">art_size</span><span class="p">,</span> <span class="n">is_raster</span><span class="p">,</span> <span class="n">short_digest</span><span class="p">,</span> <span class="n">versioned_src</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.camera</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAMERA_MOVES</span><span class="p">,</span> <span class="n">PAN_FRACTION</span><span class="p">,</span> <span class="n">CameraError</span>  <span class="c1"># noqa: F401  (re-exported)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.camera</span><span class="w"> </span><span class="kn">import</span> <span class="n">camera_keys</span> <span class="k">as</span> <span class="n">_camera_keys</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.camera</span><span class="w"> </span><span class="kn">import</span> <span class="n">camera_shake_offsets</span><span class="p">,</span> <span class="n">dolly_frames</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.camera</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">camera_shake_offsets</span><span class="p">,</span>
+    <span class="n">dolly_frames</span><span class="p">,</span>
+    <span class="n">dolly_growth</span><span class="p">,</span>
+    <span class="n">follow_overlay</span><span class="p">,</span>
+    <span class="n">frame_times</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.migrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentKind</span><span class="p">,</span> <span class="n">migrate</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.environments</span><span class="w"> </span><span class="kn">import</span> <span class="n">PLANE_FILL_SPAN</span> <span class="k">as</span> <span class="n">_PLANE_FILL_SPAN</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.environments</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -1811,16 +1817,13 @@ window.runMermaid = runMermaid;</script>
     <span class="n">doc</span> <span class="o">=</span> <span class="n">_assemble_document</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">background</span><span class="o">=</span><span class="s2">"#000000"</span><span class="p">)</span>
     <span class="n">timeline</span> <span class="o">=</span> <span class="n">timeline_from_scene</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
     <span class="n">duration</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.001</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">))</span>
-    <span class="n">frames</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">duration</span> <span class="o">*</span> <span class="n">state</span><span class="o">.</span><span class="n">fps</span><span class="p">))</span>
+    <span class="c1"># One grid with the dolly pass's (`dolly_frames`): the keys stay exact.</span>
+    <span class="n">times</span> <span class="o">=</span> <span class="n">frame_times</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">fps</span><span class="p">)</span>
     <span class="n">centre</span> <span class="o">=</span> <span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">width</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">height</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">positions</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">screen_position</span><span class="p">(</span>
-                <span class="n">doc</span><span class="p">,</span>
-                <span class="n">follow</span><span class="o">.</span><span class="n">target</span><span class="p">,</span>
-                <span class="n">pose</span><span class="o">=</span><span class="n">evaluate_timeline</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="n">k</span> <span class="o">/</span> <span class="n">state</span><span class="o">.</span><span class="n">fps</span><span class="p">)),</span>
-            <span class="p">)</span>
-            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">frames</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">screen_position</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">follow</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">pose</span><span class="o">=</span><span class="n">evaluate_timeline</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="n">t</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">times</span>
         <span class="p">]</span>
     <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span>
@@ -1828,20 +1831,45 @@ window.runMermaid = runMermaid;</script>
             <span class="sa">f</span><span class="s2">"is not a node of this shot (</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">). Follow an entity id or one of its "</span>
             <span class="s2">"nodes."</span>
         <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
-    <span class="n">x0</span><span class="p">,</span> <span class="n">y0</span> <span class="o">=</span> <span class="n">positions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">follow</span><span class="o">.</span><span class="n">lag</span><span class="p">:</span>
         <span class="n">dt</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">state</span><span class="o">.</span><span class="n">fps</span>
         <span class="n">xs</span> <span class="o">=</span> <span class="n">lag_filter</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">positions</span><span class="p">],</span> <span class="n">lag</span><span class="o">=</span><span class="n">follow</span><span class="o">.</span><span class="n">lag</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">)</span>
         <span class="n">ys</span> <span class="o">=</span> <span class="n">lag_filter</span><span class="p">([</span><span class="n">y</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">positions</span><span class="p">],</span> <span class="n">lag</span><span class="o">=</span><span class="n">follow</span><span class="o">.</span><span class="n">lag</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">)</span>
         <span class="n">positions</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">))</span>
+    <span class="c1"># The target relative to the root's origin (the canvas centre), where the</span>
+    <span class="c1"># zoom is about: on screen it is `centre + g · (d − cam)`, so holding it</span>
+    <span class="c1"># where it stood as the shot opened (`g0 · d0`) while the root zooms by `g`</span>
+    <span class="c1"># (an overlay's zoom times the dolly's growth, an#625) needs</span>
+    <span class="c1"># `cam = d − d0 · g0 / g`; with no overlay, `g = 1` and `cam = d − d0`.</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">keys</span><span class="p">:</span>  <span class="c1"># the follow as it always was, to the bit</span>
+        <span class="n">x0</span><span class="p">,</span> <span class="n">y0</span> <span class="o">=</span> <span class="n">positions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">CameraKey</span><span class="p">(</span>
+                <span class="n">at</span><span class="o">=</span><span class="n">t</span><span class="p">,</span>
+                <span class="n">x</span><span class="o">=</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">x0</span><span class="p">)</span> <span class="k">if</span> <span class="s2">"x"</span> <span class="ow">in</span> <span class="n">follow</span><span class="o">.</span><span class="n">axes</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="n">y</span><span class="o">=</span><span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="n">y0</span><span class="p">)</span> <span class="k">if</span> <span class="s2">"y"</span> <span class="ow">in</span> <span class="n">follow</span><span class="o">.</span><span class="n">axes</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="n">easing</span><span class="o">=</span><span class="s2">"linear"</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">positions</span><span class="p">)</span>
+        <span class="p">]</span>
+    <span class="n">overlay</span> <span class="o">=</span> <span class="n">follow_overlay</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">keys</span><span class="p">,</span> <span class="n">times</span><span class="p">)</span>
+    <span class="n">gains</span> <span class="o">=</span> <span class="p">[</span><span class="n">zoom</span> <span class="o">*</span> <span class="n">dolly_growth</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">dolly</span><span class="p">)</span> <span class="k">for</span> <span class="n">zoom</span><span class="p">,</span> <span class="n">dolly</span> <span class="ow">in</span> <span class="n">overlay</span><span class="p">]</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="p">[(</span><span class="n">x</span> <span class="o">-</span> <span class="n">centre</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">y</span> <span class="o">-</span> <span class="n">centre</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">positions</span><span class="p">]</span>
+    <span class="n">held</span> <span class="o">=</span> <span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">gains</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">gains</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="c1"># An axis the follow does not track zooms about where the target started</span>
+    <span class="c1"># on it (`d0 · (1 − g0/g)`, still 0 while g is 1), not about the centre,</span>
+    <span class="c1"># so the target does not slide off it as the camera closes in.</span>
+    <span class="n">still</span> <span class="o">=</span> <span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
     <span class="k">return</span> <span class="p">[</span>
         <span class="n">CameraKey</span><span class="p">(</span>
-            <span class="n">at</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="n">k</span> <span class="o">/</span> <span class="n">state</span><span class="o">.</span><span class="n">fps</span><span class="p">),</span>
-            <span class="n">x</span><span class="o">=</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">x0</span><span class="p">)</span> <span class="k">if</span> <span class="s2">"x"</span> <span class="ow">in</span> <span class="n">follow</span><span class="o">.</span><span class="n">axes</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
-            <span class="n">y</span><span class="o">=</span><span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="n">y0</span><span class="p">)</span> <span class="k">if</span> <span class="s2">"y"</span> <span class="ow">in</span> <span class="n">follow</span><span class="o">.</span><span class="n">axes</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="n">at</span><span class="o">=</span><span class="n">t</span><span class="p">,</span>
+            <span class="n">x</span><span class="o">=</span><span class="p">(</span><span class="n">dx</span> <span class="o">-</span> <span class="n">held</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">g</span><span class="p">)</span> <span class="k">if</span> <span class="s2">"x"</span> <span class="ow">in</span> <span class="n">follow</span><span class="o">.</span><span class="n">axes</span> <span class="k">else</span> <span class="n">still</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">held</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">g</span><span class="p">,</span>
+            <span class="n">y</span><span class="o">=</span><span class="p">(</span><span class="n">dy</span> <span class="o">-</span> <span class="n">held</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">g</span><span class="p">)</span> <span class="k">if</span> <span class="s2">"y"</span> <span class="ow">in</span> <span class="n">follow</span><span class="o">.</span><span class="n">axes</span> <span class="k">else</span> <span class="n">still</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">held</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">g</span><span class="p">,</span>
+            <span class="n">zoom</span><span class="o">=</span><span class="n">zoom</span><span class="p">,</span>
+            <span class="n">dolly</span><span class="o">=</span><span class="n">dolly</span><span class="p">,</span>
             <span class="n">easing</span><span class="o">=</span><span class="s2">"linear"</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">),</span> <span class="n">g</span><span class="p">,</span> <span class="p">(</span><span class="n">zoom</span><span class="p">,</span> <span class="n">dolly</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">gains</span><span class="p">,</span> <span class="n">overlay</span><span class="p">)</span>
     <span class="p">]</span></div>
 
 
