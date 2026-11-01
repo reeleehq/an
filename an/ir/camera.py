@@ -235,6 +235,8 @@ def follow_overlay(keys: list[CameraKey] | None, times: list[float]) -> list[tup
     if not keys:
         rest = CameraKey()
         return [(rest.zoom, rest.dolly)] * len(times)
+    from an.timing import evaluate_channel
+
     ch = _key_channels(keys, ("zoom", "dolly"))
     return [
         (evaluate_channel(ch["zoom"], t), evaluate_channel(ch["dolly"], t))
@@ -396,13 +398,6 @@ def _key_channels(keys: list[CameraKey], fields) -> dict:
     }
 
 
-def evaluate_channel(channel, t: float) -> float:
-    """A camera channel's value at ``t``."""
-    from an.timing.channel import evaluate
-
-    return evaluate(channel, t)
-
-
 def dolly_frames(
     keys: list[CameraKey], *, duration: float, fps: float
 ) -> list[CameraKey]:
@@ -424,6 +419,8 @@ def dolly_frames(
     """
     if len(keys) < 2 or not any(k.dolly for k in keys):
         return keys
+    from an.timing import evaluate_channel
+
     fields = _key_channels(keys, ("x", "y", "zoom", "rotation", "dolly"))
     out = []
     for t in frame_times(duration=duration, fps=fps):

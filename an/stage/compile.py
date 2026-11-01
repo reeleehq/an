@@ -118,7 +118,13 @@ from an.stage.serialize import (
 from an.stage.raster import art_size, is_raster, short_digest, versioned_src
 from an.ir.camera import CAMERA_MOVES, PAN_FRACTION, CameraError  # noqa: F401  (re-exported)
 from an.ir.camera import camera_keys as _camera_keys
-from an.ir.camera import camera_shake_offsets, dolly_frames, dolly_growth, follow_overlay
+from an.ir.camera import (
+    camera_shake_offsets,
+    dolly_frames,
+    dolly_growth,
+    follow_overlay,
+    frame_times,
+)
 from an.ir.migrate import DocumentKind, migrate
 from an.stage.environments import PLANE_FILL_SPAN as _PLANE_FILL_SPAN
 from an.stage.environments import (
@@ -1068,16 +1074,13 @@ def camera_follow_keys(state: CompileState) -> list[CameraKey]:
     doc = _assemble_document(state, background="#000000")
     timeline = timeline_from_scene(doc)
     duration = max(0.001, float(state.shot.duration))
-    frames = max(1, round(duration * state.fps))
+    # One grid with the dolly pass's (`dolly_frames`): the keys stay exact.
+    times = frame_times(duration=duration, fps=state.fps)
     centre = (state.width / 2.0, state.height / 2.0)
     try:
         positions = [
-            screen_position(
-                doc,
-                follow.target,
-                pose=evaluate_timeline(timeline, min(duration, k / state.fps)),
-            )
-            for k in range(frames + 1)
+            screen_position(doc, follow.target, pose=evaluate_timeline(timeline, t))
+            for t in times
         ]
     except (KeyError, ValueError) as e:
         raise CutoutCompileError(
@@ -1095,7 +1098,6 @@ def camera_follow_keys(state: CompileState) -> list[CameraKey]:
     # where it stood as the shot opened (`g0 · d0`) while the root zooms by `g`
     # (an overlay's zoom times the dolly's growth, an#625) needs
     # `cam = d − d0 · g0 / g`; with no overlay, `g = 1` and `cam = d − d0`.
-    times = [min(duration, k / state.fps) for k in range(len(positions))]
     if not state.shot.camera.keys:  # the follow as it always was, to the bit
         x0, y0 = positions[0]
         return [

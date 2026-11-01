@@ -1385,8 +1385,9 @@ def frame_times(duration: float, *, fps: float, step_hz: float | None) -> list[f
         from an.stage.compile import step_times
 
         return step_times(0.0, duration, step_hz)
-    frames = max(1, round(duration * fps))
-    return [min(duration, k / fps) for k in range(frames + 1)]
+    from an.ir.camera import frame_times as every_frame  # the one frame grid
+
+    return every_frame(duration=duration, fps=fps)
 
 
 @dataclass
