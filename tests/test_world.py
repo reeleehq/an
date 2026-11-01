@@ -1523,6 +1523,7 @@ def _compiled_road(
     right_after: str | None = None,
     stream_after: str | None = "set/hill",
     hill_depth: float = 1.0,
+    extra: tuple = (),
 ):
     """The road at lane 0.2 under an environment with a foreground band
     (``set/rail`` over everything), its poles after ``stream_after``;
@@ -1531,6 +1532,18 @@ def _compiled_road(
     wrapper). The compiled document."""
     from an.stage.compile import compile_shot
 
+    project, scene = _road(
+        tmp_path, member_after=member_after, right_after=right_after,
+        stream_after=stream_after, hill_depth=hill_depth, extra=extra,
+    )  # fmt: skip
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        return compile_shot(shot, project.mall)
+
+
+def _road(tmp_path, *, member_after, right_after, stream_after, hill_depth, extra):
+    """The project and scene :func:`_compiled_road` compiles."""
     root = Path(shutil.copytree(LAMP, tmp_path / "p"))
     env_dir = root / "assets/environments/stage"
     shutil.copytree(PLANES / "assets/environments/stage", env_dir)
@@ -1556,11 +1569,9 @@ def _compiled_road(
     scene.world.members = [
         left.model_copy(update={"after": member_after}) if member_after else left,
         right.model_copy(update={"after": right_after}) if right_after else right,
+        *extra,
     ]
-    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        return compile_shot(shot, project.mall)
+    return project, scene
 
 
 def _painted(doc, t: float) -> list[str]:
@@ -2115,3 +2126,76 @@ def test_the_draw_order_check_reads_the_key_in_force_at_each_sample(switch, repo
     assert bool(found) is reported
     if reported:
         assert "from 1.50 s" in found[0][1]
+
+
+def _beside(doc, rider: str, host: str, *, side: int, duration: float = 3.0):
+    """The places ``host`` takes over the shot, asserting at each of 60
+    sampled frames that ``rider`` is painted right beside it, on ``side``
+    (``-1`` just behind, ``1`` just in front)."""
+    places = set()
+    for i in range(60):
+        t = duration * i / 60 + 0.013  # between the key times
+        order = _painted(doc, t)
+        assert order.index(rider) == order.index(host) + side, (t, order)
+        places.add(order.index(host))
+    return places
+
+
+def test_a_member_attached_to_a_walker_is_painted_with_it(tmp_path):
+    """an#678: a hat attached to ``right``, which walks away down the car
+    (``at_z`` from 2 to 14) while the poles pass it, rides its host's paint
+    keys: at every sampled frame it is painted right after ``right``, with no
+    pole between them, though the poles' places around the pair change."""
+    from an.ir.compose import tween
+    from an.stage.compile import compile_shot
+
+    walk = tween("right", "at_z", to=14.0, duration=3.0, from_=2.0, easing="linear")
+    scene = _lane(
+        _travel_scene(Shot(id="s1", duration=3.0, viewpoint="road", actions=[walk])), 0.2
+    )
+    scene.world.members.append(_lamp("hat", attached=Attachment(to="right")))
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        doc = compile_shot(shot, _project(tmp_path).mall)
+    assert len(_beside(doc, "hat", "right", side=1)) > 1  # the poles did pass
+
+
+def test_an_attachment_built_behind_its_host_stays_behind_it(tmp_path):
+    """an#678 review, regression 1: no travel, ``hat`` attached to ``right``
+    and listed BEFORE it, so the still shot paints it behind ``right``. With
+    ``left`` walking past them (``at_z`` 1 to 5), the hat must stay just
+    behind ``right`` at every frame, not flip in front once anything moves."""
+    from an.ir.compose import tween
+    from an.stage.compile import compile_shot
+
+    walk = tween("left", "at_z", to=5.0, duration=3.0, from_=1.0, easing="linear")
+    scene = _two_lamps_scene(
+        timeline=[Shot(id="s1", duration=3.0, viewpoint="two", actions=[walk])]
+    )
+    left, right = scene.world.members
+    scene.world.members = [left, _lamp("hat", attached=Attachment(to="right")), right]
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        doc = compile_shot(shot, _project(tmp_path).mall)
+    assert len(_beside(doc, "hat", "right", side=-1)) > 1  # `left` did pass the pair
+
+
+def test_an_attachment_after_a_plane_still_rides_its_host(tmp_path):
+    """an#678 review, regression 2: an attachment whose ``after`` names no
+    entity (``set/hill``, a plane) still rides its host's keys, rather than
+    falling back to a static key at the host's opening depth."""
+    from an.base import PAINT_KEYS_OVERRIDE, RIDER_IN_FRONT
+
+    hat = _lamp("hat", attached=Attachment(to="right"), after="set/hill")
+    _, scene = _road(
+        tmp_path, member_after=None, right_after=None, stream_after="set/hill",
+        hill_depth=1.0, extra=(hat,),
+    )  # fmt: skip
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    keys = {e.id: (e.overrides or {}).get(PAINT_KEYS_OVERRIDE) for e in shot.entities}
+    right, rides = keys["right"], keys["hat"]
+    assert len(right) > 1, "the poles key `right` as they pass it"
+    assert [t for t, _ in rides] == [t for t, _ in right]
+    assert all(k[:-2] == r and k[-2] == RIDER_IN_FRONT for (_, k), (_, r) in zip(rides, right))

@@ -44,6 +44,7 @@ from typing import Any, Callable, Protocol
 from an.base import (
     DEFAULT_RESOLUTION,
     PAINT_KEYS_OVERRIDE,
+    paint_key_rank,
     PLANE_REST_VALUES,
     TRANSFORM_PROPERTIES,
     TRIM_PROPERTIES,
@@ -1246,7 +1247,7 @@ def paint_orders(
     changes: dict[float, list[tuple[str, Any]]] = {}
     for n, ks in keys.items():
         for t, k in ks:
-            changes.setdefault(float(t), []).append((n, _sort_key(k)))
+            changes.setdefault(float(t), []).append((n, paint_key_rank(k)))
     now: dict[str, Any] = {}
     out = []
     for t in sorted(changes):  # each key read once: linear in the keys (an#648)
@@ -1271,7 +1272,7 @@ def _keyed_runs(names: Sequence[str], opening: Mapping[str, Any]) -> list[list[i
         if name not in opening:
             continue
         prev = runs[-1][-1] if runs else None
-        if prev == i - 1 and _sort_key(opening[names[prev]]) <= _sort_key(
+        if prev == i - 1 and paint_key_rank(opening[names[prev]]) <= paint_key_rank(
             opening[name]
         ):
             runs[-1].append(i)

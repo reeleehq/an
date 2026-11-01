@@ -235,6 +235,11 @@ STREAM_OVERRIDE: str = "stream"
 #: drop behind nearer ones; the stage compiler orders each run of keyed
 #: siblings by them with ``z_index`` keys.
 PAINT_KEYS_OVERRIDE: str = "paint_keys"
+#: The side of its host a rider's paint key puts it on: a rider's key is its
+#: host's plus ``[side, n]`` (an#648), in front with ``1``, just behind with
+#: ``-1`` (an#678: an attachment the built order put behind its host).
+RIDER_IN_FRONT: int = 1
+RIDER_BEHIND: int = -1
 #: The core's mark on an entity the world leans with its frame's acceleration
 #: (an#504): its ``rotation`` channel is that lean, which the hold layer takes
 #: out of the angle an item it carries comes to rest at (an#659).
@@ -261,6 +266,23 @@ CORE_OVERRIDE_KEYS: frozenset[str] = frozenset(
         SWAY_OVERRIDE,
     }
 )
+
+
+def paint_key_rank(key: Any) -> tuple:
+    """A paint key (``PAINT_KEYS_OVERRIDE``) as it sorts, a smaller one painted
+    first: a rider's key (its host's plus ``[side, n]``) sorts just behind
+    its host for :data:`RIDER_BEHIND`, just in front for :data:`RIDER_IN_FRONT`,
+    so every rider stays next to its host however the host moves (an#678).
+    A JSON list read back is a tuple; a plain number is a one-item key.
+
+    >>> host, other = [1.0, -2.0, 3], [1.0, -2.0, 2]
+    >>> ranked = sorted([[*host, RIDER_IN_FRONT, 0], host, [*host, RIDER_BEHIND, 0], other],
+    ...                 key=paint_key_rank)
+    >>> [k[3:] for k in ranked]
+    [[], [-1, 0], [], [1, 0]]
+    """
+    items = tuple(key) if isinstance(key, (list, tuple)) else (key,)
+    return (*items, 0)  # a host's end sorts between its riders' sides
 
 
 def asset_overrides(overrides: Mapping[str, Any] | None) -> dict[str, Any]:
