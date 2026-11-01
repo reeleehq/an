@@ -1,0 +1,1 @@
+- **Phones from MFA's and Gentle's JSON** (an#715): a JSON transcript gives `TranscriptSegment.phones` as a TextGrid does: MFA's `--output_format json` (`tiers.<name>.entries`, `parse_mfa_json`, read by the TextGrid's own tier rules, now `segments_from_tiers`) and Gentle's per-word `phones` (durations from the word's start, `hh_B`-style position suffixes stripped).
