@@ -96,9 +96,9 @@ def add_library(
 
 def use(
     project_dir: str,
+    key: str,
     out: str,
     title: str,
-    key: str,
     start: float = 0.0,
     duration: float = 0.0,
     fade_out: float = 0.0,
@@ -108,22 +108,26 @@ def use(
 
     Reads OUT/tracks.csv (what `an music add-library` wrote), checks TITLE's file
     against its recorded sha256, cuts it with ffmpeg and stores it as WAV under
-    KEY, with the row as its provenance (library, licence, attribution, the URL
-    the bytes came from) and the cut, so `an credits` lists the music.
+    KEY, with its provenance (library, the licence the library's registry gives,
+    attribution, the URL the bytes came from) and the cut, so `an credits` lists
+    the music.
 
     project_dir: the an project
+    key: the sound's key in the project's sounds store (what a cue names)
     out: the library folder `an music add-library --out` wrote
     title: the track's title, as its tracks.csv row names it
-    key: the sound's key in the project's sounds store (what a cue names)
     start: seconds into the track where the cut begins
     duration: seconds kept (default: to the end)
     fade_out: seconds of fade at the end of the cut
     description: what the sound is, for the store
     """
-    import csv
-    import io
-
-    from an.music_library import MusicLibraryError, add_track_to_sounds, files_store
+    from an.music_library import (
+        MusicLibraryError,
+        add_track_to_sounds,
+        files_store,
+        track_row,
+    )
+    from an.sounds import SoundError
     from an.stores import build_project_mall
 
     files = files_store(out)
@@ -131,21 +135,15 @@ def use(
         raise SystemExit(
             f"an music use: no {TRACKS_TABLE} in {out}; run `an music add-library` first"
         )
-    rows = list(csv.DictReader(io.StringIO(files[TRACKS_TABLE].decode("utf-8"))))
-    row = next((r for r in rows if r.get("title") == title), None)
-    if row is None:
-        raise SystemExit(
-            f"an music use: no track {title!r} in {out}/{TRACKS_TABLE}; it lists "
-            f"{sorted(r.get('title', '') for r in rows)}"
-        )
-    mall = build_project_mall(project_dir, ensure=True)
     try:
+        row = track_row(files[TRACKS_TABLE].decode("utf-8"), title)
+        mall = build_project_mall(project_dir, ensure=True)
         asset = add_track_to_sounds(
             mall["sounds"], key, row, files,
             start=start or None, duration=duration or None,
             fade_out=fade_out or None, description=description,
         )  # fmt: skip
-    except MusicLibraryError as e:
+    except (MusicLibraryError, SoundError) as e:
         raise SystemExit(f"an music use: {e}") from e
     src = asset.source
     return f"sounds/{key}: {asset.duration:.2f} s of {title!r} ({src.provider}) [{src.license or 'unknown'}]"

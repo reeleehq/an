@@ -372,12 +372,16 @@ def test_an_acquired_track_goes_into_the_sounds_store_without_a_fetch(tmp_path):
     assert asset.duration == pytest.approx(0.5, abs=0.02)
     src = asset.source
     assert (src.provider, src.id, src.license) == ("incompetech", "Sneaky Snitch", "cc-by-4.0")
-    assert src.sha256 == hashlib.sha256(audio).hexdigest()  # the file the licence covers
+    # the library file the licence covers; `sha256` would be the stored bytes'
+    assert src.model_extra["file_sha256"] == hashlib.sha256(audio).hexdigest()
+    assert src.sha256 is None and src.cacheable is True  # from the registry
     assert src.model_extra["cut"] == {"start": 0.2, "end": 0.7, "fade_out": 0.1}
     assert "theme" in sounds
 
     with pytest.raises(MusicLibraryError, match="holds no file"):
         add_track_to_sounds(sounds, "x", {**row, "status": WISHLIST}, files)
+    with pytest.raises(MusicLibraryError, match="holds no file"):
+        add_track_to_sounds(sounds, "x", {**row, "file": ""}, files)
     with pytest.raises(MusicLibraryError, match="not in the library folder"):
         add_track_to_sounds(sounds, "x", row, {})
     with pytest.raises(MusicLibraryError, match="does not match the sha256"):
@@ -399,10 +403,33 @@ def test_the_use_command_reads_the_tracks_table_and_names_what_it_lists(tmp_path
         (out / name).write_bytes(data)
     (out / TRACKS_TABLE).write_text(tracks_table(rows), encoding="utf-8")
     project = init(tmp_path / "film")
-    said = use(str(project), str(out), "Sneaky Snitch", "theme", duration=0.5)
+    said = use(str(project), "theme", str(out), "Sneaky Snitch", duration=0.5)
     assert said.startswith("sounds/theme: 0.50 s of 'Sneaky Snitch' (incompetech) [cc-by-4.0]")
     assert "theme" in load(project).mall["sounds"]
     with pytest.raises(SystemExit, match="no track 'Gone'.*Sneaky Snitch"):
-        use(str(project), str(out), "Gone", "x")
+        use(str(project), "x", str(out), "Gone")
     with pytest.raises(SystemExit, match="no tracks.csv"):
-        use(str(project), str(tmp_path / "empty"), "Sneaky Snitch", "x")
+        use(str(project), "x", str(tmp_path / "empty"), "Sneaky Snitch")
+    with pytest.raises(SystemExit, match="an music use: .*"):  # a cut past the end
+        use(str(project), "x", str(out), "Sneaky Snitch", start=60.0)
+
+
+def test_a_tracks_table_row_cannot_grant_rights_and_reads_with_a_bom():
+    """an#623 review: a row's licence is rebuilt from the library's registry,
+    whatever its `license` cell says, and a column named like a source field
+    (`cost_usd`, `cacheable`, `id`) never sets that field. A table an editor
+    saved with a byte-order mark reads the same."""
+    from an.music_library import track_from_row, track_row
+
+    (track,) = _acquire(["Sneaky Snitch"], Fetcher({_url("Sneaky Snitch"): b"x"}))
+    row = {**track.row(), "license": "CC0-1.0", "cost_usd": "0", "cacheable": "False",
+           "id": "spoofed", "feel": "sneaky"}  # fmt: skip
+    src = asset_source(track_from_row(row))
+    assert (src.id, src.license, src.cost_usd, src.cacheable) == (
+        "Sneaky Snitch", "cc-by-4.0", None, True,
+    )  # fmt: skip
+    assert src.model_extra["feel"] == "sneaky"
+    text = "\ufeff" + tracks_table([track]).replace("\n", "\r\n")
+    assert track_row(text, "Sneaky Snitch")["file"] == track.file
+    with pytest.raises(MusicLibraryError, match="no library 'audionautix'"):
+        track_from_row({**row, "library": "audionautix"})

@@ -68,6 +68,9 @@ __all__ = [
     "acquire",
     "add_track_to_sounds",
     "asset_source",
+    "read_tracks_table",
+    "track_from_row",
+    "track_row",
     "attribution_text",
     "files_store",
     "kept_digests",
@@ -177,7 +180,9 @@ def asset_source(
     columns (:data:`ROW_ONLY`) stay in the table; every other column
     (``rights_verified``, ``commercial_ok``, ``mirror``, ``credited_by``, a titles
     file's metadata) rides as an extra; a licence flag read back from CSV
-    (:data:`FLAG_COLUMNS`) is a boolean again. Empty cells are dropped. A track also
+    (:data:`FLAG_COLUMNS`) is a boolean again; a column named like one of the
+    source's own fields (``cost_usd``, ``cacheable``, ``id``, ...) is dropped,
+    never trusted. Empty cells are dropped. A track also
     gives its licence's ``creator_url`` as ``author_url`` and whether its terms let
     the bytes be kept as ``cacheable``.
     """
@@ -188,10 +193,13 @@ def asset_source(
     if not isinstance(track, Mapping):
         fields["author_url"] = track.license.creator_url
         fields["cacheable"] = track.license.cache_bytes_ok
+    # A titles file's metadata rides as extras, never as one of the source's own
+    # fields: a `cost_usd` or `cacheable` column must not claim rights (an#623).
     rest = {
         k: v
         for k, v in row.items()
         if k not in {"title", "library", "license", *SAME_NAME, *ROW_ONLY}
+        and k not in AssetSource.model_fields
     }
     fields.update({k: row.get(k) for k in SAME_NAME}, **rest)
     return AssetSource(
@@ -234,64 +242,148 @@ def acquire(
     return foley_acquire(library, titles, out=out, config=config, **kwargs)
 
 
+#: How a tracks table joins a list in one cell (foley's ``AcquiredTrack.row``).
+LIST_SEPARATOR: str = "; "
+#: Where ``add_track_to_sounds`` keeps the digest of the library file a cut was
+#: made from: ``sha256`` is the stored bytes' own (the cut WAV, :class:`SoundAsset`).
+FILE_SHA256_FIELD: str = "file_sha256"
+
+
+def read_tracks_table(text: str) -> list[dict[str, str]]:
+    r"""The rows of a tracks table (``tracks.csv``, :func:`tracks_table`'s text),
+    as written; a byte-order mark an editor added is not part of the first column.
+
+    >>> read_tracks_table("\ufefftitle,library\r\nA,incompetech\r\n")
+    [{'title': 'A', 'library': 'incompetech'}]
+    """
+    import csv
+    import io
+
+    return list(csv.DictReader(io.StringIO(text.removeprefix("\ufeff"))))
+
+
+def track_row(text: str, title: str) -> dict[str, str]:
+    """``title``'s row in the tracks table ``text``.
+
+    Raises:
+        MusicLibraryError: When no row has that title, naming the ones there are.
+    """
+    from foley.sources.music_library import MusicLibraryError
+
+    rows = read_tracks_table(text)
+    row = next((r for r in rows if r.get("title") == title), None)
+    if row is None:
+        raise MusicLibraryError(
+            f"no track {title!r} in the tracks table; it lists "
+            f"{sorted(r.get('title', '') for r in rows)}"
+        )
+    return row
+
+
+def track_from_row(row: Mapping[str, Any]) -> AcquiredTrack:
+    """foley's :class:`AcquiredTrack` for a tracks-table ``row``, its licence
+    rebuilt from the library's registry (``track_license``), never read from
+    the row: a cell someone edited cannot grant rights (an#623). The row's
+    other columns are its metadata.
+
+    Raises:
+        MusicLibraryError: For a library foley does not know.
+    """
+    from foley.sources.music_library import (
+        MUSIC_LIBRARIES,
+        TRACK_COLUMNS,
+        AcquiredTrack,
+        MusicLibraryError,
+        track_license,
+    )
+
+    library = MUSIC_LIBRARIES.get(row.get("library", ""))
+    if library is None:
+        raise MusicLibraryError(
+            f"track {row.get('title')!r}: no library {row.get('library')!r}; "
+            f"registered: {sorted(MUSIC_LIBRARIES)}"
+        )
+    cell = {k: (v if v not in ("", None) else None) for k, v in row.items()}
+    duration = cell.get("duration_s")
+    return AcquiredTrack(
+        title=row["title"],
+        library=library.name,
+        status=row.get("status", ""),
+        license=track_license(
+            library, row["title"], page_url=cell.get("source_page_url"),
+            sha256=cell.get("sha256"),
+        ),  # fmt: skip
+        file=cell.get("file"),
+        sha256=cell.get("sha256"),
+        duration_s=float(duration) if duration is not None else None,
+        url=cell.get("url"),
+        mirror=cell.get("mirror"),
+        page_url=cell.get("source_page_url"),
+        credited_by=tuple((cell.get("credited_by") or "").split(LIST_SEPARATOR))
+        if cell.get("credited_by")
+        else (),
+        metadata={
+            k: v for k, v in cell.items() if k not in TRACK_COLUMNS and v is not None
+        },
+    )
+
+
 def add_track_to_sounds(
     store: Any,
     key: str,
-    row: Mapping[str, Any],
+    track: AcquiredTrack | Mapping[str, Any],
     files: Mapping[str, bytes],
     *,
     start: float | None = None,
     duration: float | None = None,
     fade_out: float | None = None,
     description: str = "",
+    codes: Mapping[str, str | None] = FOLEY_LICENSE_CODES,
 ) -> Any:
     """Put one acquired track in the sounds ``store`` under ``key`` (an#623).
 
-    ``row`` is the track's tracks-table row (foley's ``AcquiredTrack.row()``, or
-    a ``tracks.csv`` line read back) and ``files`` the library folder as
-    ``{file name: bytes}`` (``files_store(out)``). The file it names is checked
-    against the row's ``sha256``, cut with :func:`an.sound_fetch.cut_to_wav`
-    (``start``, ``duration``, ``fade_out``, as ``an sounds add`` takes them)
-    and stored with the row as its :class:`~an.ir.assets.AssetSource`
-    (:func:`asset_source`) plus the cut, so ``an credits`` lists the music with
-    its licence. Nothing is fetched again: the site may be the one that refused
-    scripts.
+    ``track`` is foley's ``AcquiredTrack``, or its tracks-table row (a
+    ``tracks.csv`` line, :func:`track_row`: its licence is rebuilt from the
+    library's registry, :func:`track_from_row`), and ``files`` the library
+    folder as ``{file name: bytes}`` (``files_store(out)``). The file it names
+    is checked against its ``sha256``, cut with :func:`an.sound_fetch.cut_to_wav`
+    (``start``, ``duration``, ``fade_out``, as ``an sounds add`` takes them) and
+    stored with the track as its :class:`~an.ir.assets.AssetSource`
+    (:func:`asset_source`, ``codes``) plus the cut, the file's digest as
+    ``file_sha256``, so ``an credits`` lists the music with its licence. Nothing
+    is fetched again: the site may be the one that refused scripts.
 
     Raises:
-        MusicLibraryError: For a row that holds no file (not acquired or kept,
-            or no ``file``/``sha256``), a file missing from ``files``, or one
-            whose bytes do not match the row's digest.
+        MusicLibraryError: For a track that holds no file (not acquired or kept,
+            or no ``file``/``sha256``), a file missing from ``files``, one whose
+            bytes do not match the recorded digest, or an unknown library.
     """
     import hashlib
 
     from an.sound_fetch import CUT_FIELD, cut_record, cut_to_wav
     from an.sounds import add_sound
-    from foley.sources.music_library import (
-        ACQUIRED,
-        KEPT,
-        MusicLibraryError,
-    )
+    from foley.sources.music_library import HELD, MusicLibraryError
 
-    title = row.get("title", "?")
-    name, digest = row.get("file"), row.get("sha256")
-    if row.get("status") not in (ACQUIRED, KEPT) or not name or not digest:
+    if isinstance(track, Mapping):
+        track = track_from_row(track)
+    if track.status not in HELD or not track.file or not track.sha256:
         raise MusicLibraryError(
-            f"track {title!r} holds no file (status {row.get('status')!r}); "
+            f"track {track.title!r} holds no file (status {track.status!r}); "
             "only an acquired or kept row of the tracks table can be used"
         )
-    if name not in files:
+    if track.file not in files:
         raise MusicLibraryError(
-            f"track {title!r}: its file {name!r} is not in the library folder; "
-            "rerun `an music add-library` to fetch it again"
+            f"track {track.title!r}: its file {track.file!r} is not in the library "
+            "folder; rerun `an music add-library` to fetch it again"
         )
-    audio = bytes(files[name])
-    if hashlib.sha256(audio).hexdigest() != digest:
+    audio = bytes(files[track.file])
+    if hashlib.sha256(audio).hexdigest() != track.sha256:
         raise MusicLibraryError(
-            f"track {title!r}: {name!r} does not match the sha256 its row recorded "
-            "(changed since it was acquired); rerun `an music add-library`"
+            f"track {track.title!r}: {track.file!r} does not match the sha256 its "
+            "row recorded (changed since it was acquired); rerun `an music add-library`"
         )
     wav = cut_to_wav(audio, start=start, duration=duration, fade_out=fade_out)
-    cut = cut_record(wav, start=start, fade_out=fade_out)
-    source = asset_source(row)
-    source = AssetSource(**{**source.model_dump(exclude_none=True), CUT_FIELD: cut})
-    return add_sound(store, key, wav, source=source, description=description)
+    fields = asset_source(track, codes=codes).model_dump(exclude_none=True)
+    fields[FILE_SHA256_FIELD] = fields.pop("sha256")
+    fields[CUT_FIELD] = cut_record(wav, start=start, fade_out=fade_out)
+    return add_sound(store, key, wav, source=AssetSource(**fields), description=description)
