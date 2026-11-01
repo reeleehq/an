@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import time
 
+import pytest
+
 from an.ir.compose import parallel, tween
 from an.ir.schema import (
     AssetRef,
@@ -57,7 +59,24 @@ def _passing(to_z: float, *, right_at=OVERLAPPING, **shot_kw):
     return scene
 
 
-def test_a_member_that_passes_a_nearer_one_is_reported_once():
+@pytest.fixture
+def unkeyed(monkeypatch):
+    """The world without crossing keys (as before an#679): the check is the
+    safety net for an order the keys do not fix, and this is how a test still
+    reaches it. Keyed, ``_passing`` is painted right and reports nothing
+    (an#684, :func:`test_a_walker_keyed_from_a_tie_is_not_reported`)."""
+    import an.ir.world as world
+
+    monkeypatch.setattr(world, "_crossing_paint_keys", lambda *a, **k: {})
+
+
+def test_a_walker_keyed_from_a_tie_is_not_reported():
+    """an#684: `left` sets off from `right`'s depth; keyed from the tie, it is
+    painted over `right` once nearer, so there is nothing to report."""
+    assert _notes(_passing(0.8)) == []
+
+
+def test_a_member_that_passes_a_nearer_one_is_reported_once(unkeyed):
     (note,) = _notes(_passing(0.8))
     assert (note.severity, note.entity, note.shot) == ("warning", "left", "s")
     assert note.message.startswith("painted behind 'right' but nearer the camera")
@@ -122,7 +141,7 @@ def test_an_after_on_either_member_is_the_authors_word():
     assert _notes(scene) == []
 
 
-def test_an_validate_reports_it_with_the_shot(tmp_path):
+def test_an_validate_reports_it_with_the_shot(tmp_path, unkeyed):
     import warnings
 
     from an.ir.validate import validate_semantic
@@ -197,7 +216,7 @@ def test_an_attached_member_on_a_moving_host_is_not_checked_against_the_others()
     assert all("hat" not in n.message for n in notes)
 
 
-def test_a_crowd_is_summarised_after_the_cap(monkeypatch):
+def test_a_crowd_is_summarised_after_the_cap(monkeypatch, unkeyed):
     import an.ir.world as world
 
     monkeypatch.setattr(world, "MAX_DEPTH_ORDER_NOTES", 0)
