@@ -501,8 +501,10 @@ def _check_trim_targets(
                 )
 
 
-def _rig_scope(shot, stores: Mapping[str, Any]) -> tuple[dict[str, Any], set[str]]:
-    """``(rigged entities by id, ids whose rig store was not supplied)``.
+def rig_scope(shot, stores: Mapping[str, Any]) -> tuple[dict[str, Any], set[str]]:
+    """``(rigged entities by id, ids whose rig store was not supplied)``: which
+    of ``shot``'s entities a rig check can read, public for a genre's own
+    checks (reeleehq/cutan#148, ``an.genres.API_LEVEL`` 13).
 
     PER-KIND, not per-call. an#108's first pass changed the gate from
     "characters store absent → skip" to "no stores at all → skip", which made
@@ -518,6 +520,10 @@ def _rig_scope(shot, stores: Mapping[str, Any]) -> tuple[dict[str, Any], set[str
         eid for eid, e in rigs.items() if stores.get(rig_stores()[e.kind][0]) is None
     }
     return rigs, unchecked
+
+
+#: The name genre packages imported before it was public (API level < 13).
+_rig_scope = rig_scope
 
 
 def _declared_swap_sets(entity, stores: Mapping[str, Any], *, cache: dict) -> Any:
@@ -597,7 +603,7 @@ def _check_swap_references(
     """
     if not stores:
         return
-    rigs, unchecked = _rig_scope(shot, stores)
+    rigs, unchecked = rig_scope(shot, stores)
     declarations: dict[str, Any] = {}
     # Flattened, like the compiler: the documented `start:` idiom wraps every
     # leaf in a `sequence`, so walking only top-level actions would miss the

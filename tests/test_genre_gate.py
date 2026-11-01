@@ -126,3 +126,18 @@ def test_every_api_level_is_documented():
     source = (ROOT / "an" / "genres" / "__init__.py").read_text(encoding="utf-8")
     documented = {int(n) for n in re.findall(r"#:\s+(\d+) = ", source)}
     assert documented == set(range(1, API_LEVEL + 1)), documented
+
+
+def test_api_level_13_names_are_public_and_the_old_ones_still_resolve():
+    """reeleehq/cutan#148: the four names cutan read privately are public at
+    API level 13; the private spellings stay as aliases, so a cutan built
+    before the switch still runs against this `an`."""
+    from an.audio import loudness
+    from an.ir import validate
+    from an.semantic import matcher
+
+    assert validate._rig_scope is validate.rig_scope
+    assert matcher._method is matcher.resolve_method
+    assert matcher._as_choice is matcher.as_choice
+    assert loudness._offset is loudness.voice_loudness_offset
+    assert {"resolve_method", "as_choice"} <= set(matcher.__all__)
