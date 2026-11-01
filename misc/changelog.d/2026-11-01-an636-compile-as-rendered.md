@@ -1,1 +1,0 @@
-- **The validate compile lives in the compiler** (an#636, item 3): `an.stage.compile.compile_as_rendered(shot, scene, mall, *, fps)` compiles a shot as `an render` does (style pack, step grid, default easing, resolution); `an.verify.constraints.compile_outcome` is its memoising wrapper, and its duplicate renderer list is gone (`an.stage.STAGE_RENDERER_NAMES`).
