@@ -1111,11 +1111,15 @@ def camera_follow_keys(state: CompileState) -> list[CameraKey]:
     gains = [zoom * dolly_growth(1.0, dolly) for zoom, dolly in overlay]
     d = [(x - centre[0], y - centre[1]) for x, y in positions]
     held = (d[0][0] * gains[0], d[0][1] * gains[0])
+    # An axis the follow does not track zooms about where the target started
+    # on it (`d0 · (1 − g0/g)`, still 0 while g is 1), not about the centre,
+    # so the target does not slide off it as the camera closes in.
+    still = (d[0][0], d[0][1])
     return [
         CameraKey(
             at=t,
-            x=(dx - held[0] / g) if "x" in follow.axes else 0.0,
-            y=(dy - held[1] / g) if "y" in follow.axes else 0.0,
+            x=(dx - held[0] / g) if "x" in follow.axes else still[0] - held[0] / g,
+            y=(dy - held[1] / g) if "y" in follow.axes else still[1] - held[1] / g,
             zoom=zoom,
             dolly=dolly,
             easing="linear",

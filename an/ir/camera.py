@@ -28,12 +28,15 @@ __all__ = [
     "CAMERA_MOVES",
     "DOLLY_IN",
     "DOLLY_OUT",
+    "FOLLOW_OVERLAY_FIELDS",
     "PAN_FRACTION",
     "CameraError",
     "camera_keys",
     "camera_shake_offsets",
     "dolly_frames",
     "dolly_growth",
+    "follow_overlay",
+    "frame_times",
     "plane_dolly_scale",
 ]
 
@@ -161,8 +164,8 @@ def camera_keys(shot: Shot, *, width: int, height: int) -> list[CameraKey]:
                 "`camera.keys` that set only `dolly` and `zoom`, an#625)."
             )
         if camera.keys is not None:
-            _refuse_a_follow_overlay_that_moves(shot, camera.keys)
             _refuse_unknown_key_fields(shot, list(camera.keys))
+            _refuse_a_follow_overlay_that_moves(shot, camera.keys)
             _refuse_keys_that_cannot_play(
                 shot, list(camera.keys), max(0.001, float(shot.duration))
             )
@@ -230,18 +233,13 @@ def follow_overlay(keys: list[CameraKey] | None, times: list[float]) -> list[tup
     [(1.0, 0.0), (1.0, 0.0)]
     """
     if not keys:
-        return [(1.0, 0.0)] * len(times)
-    from an.timing.channel import Channel, Keyframe, evaluate
-
-    def channel(field: str) -> Channel:
-        return Channel(
-            "camera",
-            field,
-            [Keyframe(float(k.at), float(getattr(k, field)), k.easing) for k in keys],
-        )
-
-    zoom, dolly = channel("zoom"), channel("dolly")
-    return [(evaluate(zoom, t), evaluate(dolly, t)) for t in times]
+        rest = CameraKey()
+        return [(rest.zoom, rest.dolly)] * len(times)
+    ch = _key_channels(keys, ("zoom", "dolly"))
+    return [
+        (evaluate_channel(ch["zoom"], t), evaluate_channel(ch["dolly"], t))
+        for t in times
+    ]
 
 
 def _refuse_unknown_key_fields(shot: Shot, keys: list[CameraKey]) -> None:
@@ -374,6 +372,37 @@ def plane_dolly_scale(factor: float, dolly: float, *, plane: str = "") -> float:
     return dolly_growth(factor, dolly) / dolly_growth(1.0, dolly)
 
 
+def frame_times(*, duration: float, fps: float) -> list[float]:
+    """The time of every frame the render draws, the shot's end included.
+
+    >>> frame_times(duration=0.5, fps=4)
+    [0.0, 0.25, 0.5]
+    """
+    frames = max(1, round(duration * fps))
+    return [min(duration, n / fps) for n in range(frames + 1)]
+
+
+def _key_channels(keys: list[CameraKey], fields) -> dict:
+    """``{field: Channel}`` of ``keys``, each field by the keys' own easings."""
+    from an.timing.channel import Channel, Keyframe
+
+    return {
+        f: Channel(
+            "camera",
+            f,
+            [Keyframe(float(k.at), float(getattr(k, f)), k.easing) for k in keys],
+        )
+        for f in fields
+    }
+
+
+def evaluate_channel(channel, t: float) -> float:
+    """A camera channel's value at ``t``."""
+    from an.timing.channel import evaluate
+
+    return evaluate(channel, t)
+
+
 def dolly_frames(
     keys: list[CameraKey], *, duration: float, fps: float
 ) -> list[CameraKey]:
@@ -395,21 +424,10 @@ def dolly_frames(
     """
     if len(keys) < 2 or not any(k.dolly for k in keys):
         return keys
-    from an.timing.channel import Channel, Keyframe, evaluate
-
-    def channel(field: str) -> Channel:
-        return Channel(
-            "camera",
-            field,
-            [Keyframe(float(k.at), float(getattr(k, field)), k.easing) for k in keys],
-        )
-
-    fields = {f: channel(f) for f in ("x", "y", "zoom", "rotation", "dolly")}
-    frames = max(1, round(duration * fps))
+    fields = _key_channels(keys, ("x", "y", "zoom", "rotation", "dolly"))
     out = []
-    for n in range(frames + 1):
-        t = min(duration, n / fps)
-        at = {f: evaluate(ch, t) for f, ch in fields.items()}
+    for t in frame_times(duration=duration, fps=fps):
+        at = {f: evaluate_channel(ch, t) for f, ch in fields.items()}
         out.append(
             CameraKey(
                 at=t,
