@@ -67,3 +67,28 @@ def test_two_aliases_do_not_share_their_declared_names(modules):
     _, old, whole = modules
     assert type(old) is not type(whole)
     assert "KNOB" not in vars(type(old)) and "OLD_KNOB" not in vars(type(whole))
+
+
+def test_a_name_the_target_gains_after_aliasing_is_restored_too(modules):
+    """Declared at its first read, which a monkeypatch makes before it
+    decides how to restore (an#690 review)."""
+    new, _, whole = modules
+    new.LATE = "late"
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(whole, "LATE", "patched")
+        assert new.LATE == "patched"
+    assert new.LATE == "late"
+
+
+def test_a_target_global_spelled_like_a_shim_helper_does_not_break_the_alias():
+    """A target defining ``_route`` once hid the forwarding method (an#690 review)."""
+    new = types.ModuleType("_shim_route_new")
+    new._route, new.K = "a global", 1
+    old = types.ModuleType("_shim_route_old")
+    sys.modules.update({"_shim_route_new": new, "_shim_route_old": old})
+    try:
+        alias_module("_shim_route_old", "_shim_route_new")
+        old.K = 2
+        assert new.K == 2 and old._route == "a global"
+    finally:
+        del sys.modules["_shim_route_new"], sys.modules["_shim_route_old"]

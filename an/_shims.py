@@ -101,39 +101,45 @@ def _declare(module: types.ModuleType, forwards: Mapping[str, tuple[str, str]]) 
         setattr(cls, old, _Forwarded(target, new))
 
 
+def _route(module: types.ModuleType, name: str) -> tuple[str, str] | None:
+    """Where ``name`` lives, if not on ``module``: a named forward, or the
+    whole-module alias. A function, not a method: a method would be a class
+    attribute a declared name of the same spelling could hide (an#690)."""
+    own = types.ModuleType.__getattribute__(module, "__dict__")
+    forwards = own.get(_FORWARDS_ATTR, {})
+    if name in forwards:
+        return forwards[name]
+    alias = own.get(_ALIAS_ATTR)
+    if alias is not None and not (name.startswith("__") and name.endswith("__")):
+        return alias, name
+    if alias is not None and name == "__all__":
+        return alias, name
+    return None
+
+
 class _ForwardingModule(types.ModuleType):
     """A module whose forwarded names live in another module."""
 
-    def _route(self, name: str) -> tuple[str, str] | None:
-        """Where ``name`` lives, if not here: a named forward, or the whole-module alias."""
-        own = types.ModuleType.__getattribute__(self, "__dict__")
-        forwards = own.get(_FORWARDS_ATTR, {})
-        if name in forwards:
-            return forwards[name]
-        alias = own.get(_ALIAS_ATTR)
-        if alias is not None and not (name.startswith("__") and name.endswith("__")):
-            return alias, name
-        if alias is not None and name == "__all__":
-            return alias, name
-        return None
-
     def __getattr__(self, name: str):
-        # Only reached for names NOT in the module's own namespace, which is
-        # why `forward_module_attributes` deletes each forwarded name first.
-        route = self._route(name)
-        if route is not None:
-            return getattr(importlib.import_module(route[0]), route[1])
-        raise AttributeError(f"module {self.__name__!r} has no attribute {name!r}")
+        # Only reached for names NOT in the module's own namespace, and not
+        # declared: a name an aliased target gained after `alias_module`.
+        route = _route(self, name)
+        if route is None:
+            raise AttributeError(f"module {self.__name__!r} has no attribute {name!r}")
+        value = getattr(importlib.import_module(route[0]), route[1])
+        if not name.startswith("__"):  # declared now, so a restore sees it (an#690)
+            _declare(self, {name: route})
+        return value
 
     def __setattr__(self, name: str, value) -> None:
-        route = self._route(name)
+        route = _route(self, name)
         if route is not None and name not in self.__dict__:
             setattr(importlib.import_module(route[0]), route[1], value)
             return
         super().__setattr__(name, value)
 
     def __delattr__(self, name: str) -> None:
-        route = self._route(name)
+        route = _route(self, name)
         if route is not None and name not in self.__dict__:
             delattr(importlib.import_module(route[0]), route[1])
             return
