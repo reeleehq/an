@@ -68,18 +68,18 @@ __all__ = [
     "acquire",
     "add_track_to_sounds",
     "asset_source",
-    "read_tracks_table",
-    "track_from_row",
-    "track_row",
     "attribution_text",
     "files_store",
     "kept_digests",
     "kept_sources",
     "license_code",
     "probe_verify",
+    "read_tracks_table",
     "register_music_library",
     "titles_by_library",
     "titles_from_json",
+    "track_from_row",
+    "track_row",
     "tracks_table",
     "wayback",
 ]
@@ -305,6 +305,12 @@ def track_from_row(row: Mapping[str, Any]) -> AcquiredTrack:
         )
     cell = {k: (v if v not in ("", None) else None) for k, v in row.items()}
     duration = cell.get("duration_s")
+    try:
+        duration = float(duration) if duration is not None else None
+    except (TypeError, ValueError) as e:
+        raise MusicLibraryError(
+            f"track {row.get('title')!r}: duration_s {duration!r} is not a number"
+        ) from e
     return AcquiredTrack(
         title=row["title"],
         library=library.name,
@@ -315,7 +321,7 @@ def track_from_row(row: Mapping[str, Any]) -> AcquiredTrack:
         ),  # fmt: skip
         file=cell.get("file"),
         sha256=cell.get("sha256"),
-        duration_s=float(duration) if duration is not None else None,
+        duration_s=duration,
         url=cell.get("url"),
         mirror=cell.get("mirror"),
         page_url=cell.get("source_page_url"),
