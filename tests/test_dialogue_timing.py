@@ -296,8 +296,9 @@ def test_the_mux_and_the_ducking_follow_the_shifted_line(tmp_path):
     a, b = scene.timeline[0].dialogue
     plan = mix_plan(scene, film_timeline(scene.timeline, fps=24), mall, tmp_path)
     assert [p.at for p in plan.placements] == pytest.approx([0.0, b.start])
-    assert plan.dialogue_spans == pytest.approx(
-        [(0.0, a.duration), (b.start, b.start + b.duration)]
+    # flat: pytest 9.2's approx refuses a list of tuples (an#690)
+    assert [x for span in plan.dialogue_spans for x in span] == pytest.approx(
+        [0.0, a.duration, b.start, b.start + b.duration]
     )
     # Ducked under each line, and back up in the pause between them.
     spans = plan.dialogue_spans

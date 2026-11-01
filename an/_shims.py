@@ -58,39 +58,88 @@ _FORWARDS_ATTR: str = "__an_forwards__"
 _ALIAS_ATTR: str = "__an_alias_of__"
 
 
+class _Forwarded:
+    """A forwarded name as a data descriptor on its shimmed module's class:
+    read, rebound and deleted on the target module.
+
+    A data descriptor is what the name IS -- the alias holds no value of its
+    own -- and it is what a tool that restores an attribute needs to see:
+    pytest's ``monkeypatch`` (9.2+) reads the value to put back from the
+    instance ``__dict__`` unless the type has a data descriptor for the name,
+    so without one its ``undo`` DELETES the target's real global (an#690).
+    """
+
+    def __init__(self, target: str, name: str) -> None:
+        self.target, self.name = target, name
+
+    def __get__(self, module, owner=None):
+        if module is None:
+            return self
+        return getattr(importlib.import_module(self.target), self.name)
+
+    def __set__(self, module, value) -> None:
+        setattr(importlib.import_module(self.target), self.name, value)
+
+    def __delete__(self, module) -> None:
+        delattr(importlib.import_module(self.target), self.name)
+
+
+def _forwarding_class(module: types.ModuleType) -> type:
+    """``module``'s own subclass of :class:`_ForwardingModule` (swapped in on
+    first use), where its forwarded names are declared as descriptors."""
+    cls = type(module)
+    if cls is _ForwardingModule or not issubclass(cls, _ForwardingModule):
+        cls = type(f"_ForwardingModule[{module.__name__}]", (_ForwardingModule,), {})
+        module.__class__ = cls
+    return cls
+
+
+def _declare(module: types.ModuleType, forwards: Mapping[str, tuple[str, str]]) -> None:
+    """Declare ``{old name: (target, new name)}`` as descriptors on ``module``'s class."""
+    cls = _forwarding_class(module)
+    for old, (target, new) in forwards.items():
+        setattr(cls, old, _Forwarded(target, new))
+
+
+def _route(module: types.ModuleType, name: str) -> tuple[str, str] | None:
+    """Where ``name`` lives, if not on ``module``: a named forward, or the
+    whole-module alias. A function, not a method: a method would be a class
+    attribute a declared name of the same spelling could hide (an#690)."""
+    own = types.ModuleType.__getattribute__(module, "__dict__")
+    forwards = own.get(_FORWARDS_ATTR, {})
+    if name in forwards:
+        return forwards[name]
+    alias = own.get(_ALIAS_ATTR)
+    if alias is not None and not (name.startswith("__") and name.endswith("__")):
+        return alias, name
+    if alias is not None and name == "__all__":
+        return alias, name
+    return None
+
+
 class _ForwardingModule(types.ModuleType):
     """A module whose forwarded names live in another module."""
 
-    def _route(self, name: str) -> tuple[str, str] | None:
-        """Where ``name`` lives, if not here: a named forward, or the whole-module alias."""
-        own = types.ModuleType.__getattribute__(self, "__dict__")
-        forwards = own.get(_FORWARDS_ATTR, {})
-        if name in forwards:
-            return forwards[name]
-        alias = own.get(_ALIAS_ATTR)
-        if alias is not None and not (name.startswith("__") and name.endswith("__")):
-            return alias, name
-        if alias is not None and name == "__all__":
-            return alias, name
-        return None
-
     def __getattr__(self, name: str):
-        # Only reached for names NOT in the module's own namespace, which is
-        # why `forward_module_attributes` deletes each forwarded name first.
-        route = self._route(name)
-        if route is not None:
-            return getattr(importlib.import_module(route[0]), route[1])
-        raise AttributeError(f"module {self.__name__!r} has no attribute {name!r}")
+        # Only reached for names NOT in the module's own namespace, and not
+        # declared: a name an aliased target gained after `alias_module`.
+        route = _route(self, name)
+        if route is None:
+            raise AttributeError(f"module {self.__name__!r} has no attribute {name!r}")
+        value = getattr(importlib.import_module(route[0]), route[1])
+        if not name.startswith("__"):  # declared now, so a restore sees it (an#690)
+            _declare(self, {name: route})
+        return value
 
     def __setattr__(self, name: str, value) -> None:
-        route = self._route(name)
+        route = _route(self, name)
         if route is not None and name not in self.__dict__:
             setattr(importlib.import_module(route[0]), route[1], value)
             return
         super().__setattr__(name, value)
 
     def __delattr__(self, name: str) -> None:
-        route = self._route(name)
+        route = _route(self, name)
         if route is not None and name not in self.__dict__:
             delattr(importlib.import_module(route[0]), route[1])
             return
@@ -121,12 +170,11 @@ def forward_module_attributes(
     module = sys.modules[module_name]
     mapping = dict(names) if isinstance(names, Mapping) else {n: n for n in names}
     importlib.import_module(target)  # fail now, not at first access
-    if not isinstance(module, _ForwardingModule):
-        module.__class__ = _ForwardingModule
     forwards = dict(module.__dict__.get(_FORWARDS_ATTR, {}))
     for old, new in mapping.items():
         module.__dict__.pop(old, None)
         forwards[old] = (target, new)
+    _declare(module, forwards)
     types.ModuleType.__setattr__(module, _FORWARDS_ATTR, forwards)
 
 
@@ -164,8 +212,17 @@ def alias_module(module_name: str, target: str) -> None:
     """
     module = sys.modules[module_name]
     real = importlib.import_module(target)  # fail now, not at first access
-    if not isinstance(module, _ForwardingModule):
-        module.__class__ = _ForwardingModule
+    # Every name the target has now is declared (an#690); one it gains later
+    # is still forwarded, through `__getattr__`.
+    own = module.__dict__
+    _declare(
+        module,
+        {
+            name: (target, name)
+            for name in {*vars(real), *forwarded_names(real)}  # a chain of shims
+            if name not in own and not (name.startswith("__") and name.endswith("__"))
+        },
+    )
     types.ModuleType.__setattr__(module, _ALIAS_ATTR, target)
     # The SOURCE of the old name is the new module's: `inspect.getsource(old)`
     # and anything reading `old.__file__` must see the code that runs, not
