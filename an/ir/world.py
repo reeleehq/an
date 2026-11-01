@@ -3575,11 +3575,7 @@ def depth_order_problems(
             kb, kf = paint_keys.get(behind.id), paint_keys.get(front.id)
 
             def swapped(k: int) -> bool:  # the keys paint `front` first at k
-                return (
-                    kb is not None
-                    and kf is not None
-                    and kf[k] < kb[k]
-                )
+                return kb is not None and kf is not None and kf[k] < kb[k]
 
             def wrong(k: int) -> bool:
                 if swapped(k):
