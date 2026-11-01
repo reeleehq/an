@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import tempfile
+
+import pytest
 from pathlib import Path
 
 from an.ir.schema import SceneIR
@@ -176,3 +178,18 @@ def test_an_unset_duration_round_trips_unset_between_md_and_json():
     scene = markdown_to_ir(stored)
     assert scene.meta.duration == 2.0
     assert ir_to_markdown(scene) == stored
+
+
+def test_the_scene_light_round_trips_through_scene_md():
+    """Catalogue D1 (an#519): `meta.light` is written to scene.md's front matter
+    when set (a key, or a direction with an elevation) and read back; unset,
+    it leaves no trace."""
+    from an.ir.schema import Meta, SceneIR, SceneLight
+    from an.ir.sync import ir_to_markdown, markdown_to_ir
+
+    for light in (SceneLight(key="upper_left"), SceneLight(direction=(1.0, -0.5), elevation=30)):
+        scene = SceneIR(meta=Meta(light=light))
+        assert markdown_to_ir(ir_to_markdown(scene)).meta.light == light
+    assert "light" not in ir_to_markdown(SceneIR())
+    with pytest.raises(ValueError, match="exactly one"):
+        SceneLight(key="left", direction=(1.0, 0.0))

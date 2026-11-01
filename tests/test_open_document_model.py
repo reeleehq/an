@@ -735,6 +735,7 @@ def test_the_report_order_is_pinned():
         "motion_style",  # catalogue B2, B5: the style pack's motion targets
         "gravity",  # catalogue B4: a declared flight is a parabola and does not hover
         "causality",  # catalogue B7: a sound is not ahead of its named cause
+        "light",  # catalogue D1: art is shaded away from the scene's one light
         # ADR 0008 (an#512): the joint checks, after the catalogue's lints (order 250)
         "unknown_body",
         "unreachable_pin",

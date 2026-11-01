@@ -888,6 +888,8 @@ def _md_meta_body(scene: SceneIR) -> str:
         meta_dict["closing_transition"] = scene.meta.closing_transition.model_dump(
             exclude_defaults=True
         )
+    if scene.meta.light is not None:  # catalogue D1, same rule
+        meta_dict["light"] = scene.meta.light.model_dump(mode="json", exclude_none=True)
     return yaml.safe_dump(meta_dict, sort_keys=False).rstrip()
 
 
