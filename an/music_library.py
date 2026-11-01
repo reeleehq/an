@@ -316,7 +316,9 @@ def track_from_row(row: Mapping[str, Any]) -> AcquiredTrack:
         library=library.name,
         status=row.get("status", ""),
         license=track_license(
-            library, row["title"], page_url=cell.get("source_page_url"),
+            library,
+            row["title"],
+            page_url=cell.get("source_page_url"),
             sha256=cell.get("sha256"),
         ),  # fmt: skip
         file=cell.get("file"),
@@ -392,4 +394,6 @@ def add_track_to_sounds(
     fields = asset_source(track, codes=codes).model_dump(exclude_none=True)
     fields[FILE_SHA256_FIELD] = fields.pop("sha256")
     fields[CUT_FIELD] = cut_record(wav, start=start, fade_out=fade_out)
-    return add_sound(store, key, wav, source=AssetSource(**fields), description=description)
+    return add_sound(
+        store, key, wav, source=AssetSource(**fields), description=description
+    )
