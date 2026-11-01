@@ -141,3 +141,51 @@ def test_scenes_store_is_a_scenes_store():
     with tempfile.TemporaryDirectory() as d:
         mall = build_project_mall(d, ensure=True)
         assert isinstance(mall["scenes"], ScenesStore)
+
+
+def test_a_blob_store_never_lists_a_killed_writes_temp_and_leaves_none(tmp_path):
+    """An atomic write stages ``.<name>.<hex>.tmp``: a write leaves none behind,
+    and one a killed process left is never a key, only an interrupted write
+    (an#674)."""
+    from an.stores.artifacts import ShotArtifactStore
+
+    store = ShotArtifactStore(tmp_path)
+    store["k"] = b"film"
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["k.mp4"]
+    planted = tmp_path / ".k.mp4.ab12cd34.tmp"
+    planted.write_bytes(b"half a film")
+    assert list(store) == ["k"] and len(store) == 1
+    assert store.interrupted_writes() == [planted]
+    assert VoicesStore(tmp_path / "v").interrupted_writes() == []
+
+
+def test_a_write_killed_mid_way_leaves_a_temp_interrupted_writes_finds(tmp_path):
+    """The temp a REAL killed ``dol.atomic_write`` leaves is what
+    ``interrupted_writes`` lists, so a change to dol's temp naming fails here
+    rather than silently stopping ``an cache gc`` collecting them (an#674)."""
+    import subprocess
+    import sys
+    import time
+
+    from an.stores.artifacts import ShotArtifactStore
+
+    store = ShotArtifactStore(tmp_path)
+    writer = (
+        "import sys, time\n"
+        "from dol import atomic_write\n"
+        "def chunks():\n"
+        "    yield b'half a film'\n"
+        "    time.sleep(60)\n"
+        "    yield b'never'\n"
+        "atomic_write(sys.argv[1], chunks())\n"
+    )
+    proc = subprocess.Popen([sys.executable, "-c", writer, str(store.path_of("k"))])
+    try:
+        deadline = time.monotonic() + 30
+        while not store.interrupted_writes() and time.monotonic() < deadline:
+            time.sleep(0.05)
+    finally:
+        proc.kill()
+        proc.wait()
+    (temp,) = store.interrupted_writes()
+    assert temp.name.startswith(".k.mp4.") and list(store) == []

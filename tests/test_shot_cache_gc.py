@@ -1337,3 +1337,49 @@ def test_reuse_is_not_at_the_mercy_of_a_source_edit_between_the_two_renders(
     extra.write_text("X = 2\n", encoding="utf-8")
     warm, rendered, _, _ = _render_film(root, solid)
     assert warm.reused == ["chart", "c"] and rendered == [], warm.summary()
+
+
+def test_gc_deletes_the_temps_killed_writes_left_and_spares_a_fresh_one(tmp_path):
+    """A process killed inside ``dol.atomic_write`` leaves its temp (possibly a
+    whole film) beside the target, where no listing sees it: the collection
+    deletes it once untouched for ``INTERRUPTED_WRITE_MIN_AGE_S``, and keeps
+    one that is younger (a write that may still be going), even past the
+    protection horizon (an#674)."""
+    from an.build.gc import INTERRUPTED_WRITE_MIN_AGE_S
+
+    root = _project(tmp_path)
+    now = time.time()
+    stale_at = now - INTERRUPTED_WRITE_MIN_AGE_S - 60
+    stale = root / "output" / ".main.mp4.ab12cd34.tmp"  # output AND captions' folder
+    stale.write_bytes(b"x" * 1000)
+    os.utime(stale, (stale_at, stale_at))
+    voice = root / "assets" / "voices" / ".maya.json.0011aabb.tmp"
+    voice.write_bytes(b"{")
+    os.utime(voice, (stale_at, stale_at))
+    fresh = root / "artifacts" / "audio" / ".line.wav.ffee0011.tmp"
+    fresh.write_bytes(b"y")
+    # past the protection horizon, but untouched for less than the gate
+    recent_at = now - INTERRUPTED_WRITE_MIN_AGE_S / 6
+    recent = root / "artifacts" / "audio" / ".take.wav.0123abcd.tmp"
+    recent.write_bytes(b"z")
+    os.utime(recent, (recent_at, recent_at))
+    keep = root / "output" / "main.mp4"
+    keep.write_bytes(b"film")
+    os.utime(keep, (stale_at, stale_at))
+
+    dry = collect_garbage(root, dry_run=True, now=now, force=True)
+    assert dry.deleted_temps == {
+        "output/.main.mp4.ab12cd34.tmp": 1000,
+        "voices/.maya.json.0011aabb.tmp": 1,
+    }
+    assert "interrupted writes: would delete 2 temp file(s)" in dry.summary()
+    assert stale.exists() and voice.exists()
+
+    report = collect_garbage(root, now=now, force=True)
+    assert set(report.deleted_temps) == set(dry.deleted_temps)
+    assert not stale.exists() and not voice.exists()
+    assert fresh.exists() and recent.exists() and keep.exists()
+    # the gate is a keyword: with none, the recent one goes too
+    gone = collect_garbage(root, now=now, force=True, interrupted_write_min_age=0.0)
+    assert set(gone.deleted_temps) == {"audio/.take.wav.0123abcd.tmp"}
+    assert fresh.exists() and not recent.exists()

@@ -54,6 +54,13 @@ renders again. Never a wrong picture: every blob is checked against its id
 (its sha256) when read, and a reused shot's bytes are copied into the render's
 own run directory at lookup, before anything can remove them.
 
+**Interrupted writes** (an#674). Every file store writes through
+``dol.atomic_write``, which stages a hidden sibling ``.<name>.<hex>.tmp``; a
+process killed mid-write leaves it (possibly a whole film) where no listing
+sees it. A collection deletes those a store reports (``interrupted_writes()``)
+once untouched since the protection horizon and for
+:data:`INTERRUPTED_WRITE_MIN_AGE_S`.
+
 **Deletion is permanent.** ``dol.Files`` would move each file to the OS trash,
 which frees nothing (and on macOS asks Finder once per file), so on a
 filesystem store the catalog record and the blob are unlinked directly, in the
@@ -76,6 +83,7 @@ from typing import Any
 
 from an.audio.pipeline import VOICE_TTS, AudioNotCachedError
 from an.base import DEFAULT_SUPERSAMPLE
+from an.stores._common import ListsInterruptedWrites
 from an.build.shot_cache import (
     FRAMES_SUFFIX,
     PARTS_INFIX,
@@ -89,6 +97,7 @@ __all__ = [
     "CLOCK_SLACK_S",
     "DEFAULT_PROFILE",
     "HYPOTHETICAL_PROFILES",
+    "INTERRUPTED_WRITE_MIN_AGE_S",
     "CacheEntry",
     "CacheGcError",
     "CacheInfo",
@@ -106,6 +115,13 @@ __all__ = [
 #: system's timestamp granularity, and the gap between a record's provenance
 #: time and the moment it lands.
 CLOCK_SLACK_S: float = 2.0
+
+#: Seconds an atomic write's temp file must have gone untouched before a
+#: collection deletes it (an#674). A live write keeps its temp's mtime fresh,
+#: but a writer outside any render (a synthesis, a voice design) is not a live
+#: run the protection horizon knows about, so an hour of silence is the proof
+#: that its process is gone.
+INTERRUPTED_WRITE_MIN_AGE_S: float = 3600.0
 
 #: The render knobs of a plain ``an render`` (and of ``render_project``'s
 #: defaults), as :meth:`ShotCache.record_root` records them: ``tts`` is each
@@ -471,6 +487,9 @@ class GcReport:
     deleted_derived: dict[str, list[str]] = field(default_factory=dict)
     derived_freed: int = 0
     kept_derived: int = 0
+    #: Temp files of atomic writes a killed process left in the mall's stores
+    #: (an#674), as ``"<store>/<file>"`` -> bytes.
+    deleted_temps: dict[str, int] = field(default_factory=dict)
 
     @property
     def freed_bytes(self) -> int:
@@ -510,6 +529,11 @@ class GcReport:
             lines.append(
                 f"derived stores: {verb} {n} entries ({what}), "
                 f"{human_bytes(self.derived_freed)}; kept {self.kept_derived}"
+            )
+        if self.deleted_temps:
+            lines.append(
+                f"interrupted writes: {verb} {len(self.deleted_temps)} temp file(s), "
+                f"{human_bytes(sum(self.deleted_temps.values()))}"
             )
         if self.reach is not None and self.reach.skipped:
             lines.append(_skipped_line(self.reach.skipped))
@@ -598,6 +622,59 @@ def _collect_transcripts(mall: Any, report: GcReport, *, horizon: float) -> None
         report.derived_freed += size
 
 
+def _collect_interrupted_writes(
+    mall: Any,
+    report: GcReport,
+    *,
+    horizon: float,
+    now: float,
+    min_age: float = INTERRUPTED_WRITE_MIN_AGE_S,
+) -> None:
+    """Delete the temp files killed atomic writes left in the mall's stores
+    (an#674): a store that can list them
+    (:class:`an.stores._common.ListsInterruptedWrites`, as
+    :class:`an.stores.artifacts._BlobStore` is) and a temp untouched since
+    both ``horizon`` and ``min_age`` seconds ago. Its mtime is
+    re-read just before the unlink, so a write that resumed is kept."""
+    before = min(horizon, now - min_age)
+    seen: set[Path] = set()
+    for name, store in mall.items():
+        if not isinstance(store, ListsInterruptedWrites):
+            continue
+        try:
+            temps = store.interrupted_writes()
+        except OSError:
+            continue  # an unreadable folder: nothing known, nothing deleted
+        for path in temps:
+            real = Path(path).resolve()
+            if real in seen:
+                continue  # two stores over one folder: counted once
+            seen.add(real)
+            try:
+                st = Path(path).stat()
+                if st.st_mtime >= before:
+                    continue
+                if not report.dry_run:
+                    Path(path).unlink()
+            except FileNotFoundError:
+                continue  # its writer finished, or someone else removed it
+            except OSError:
+                report.failed.append(f"{name}/{Path(path).name}")
+                continue
+            report.deleted_temps[f"{name}/{Path(path).name}"] = st.st_size
+
+
+def _collect_orphans(
+    mall: Any, report: GcReport, *, horizon: float, now: float, min_age: float
+) -> None:
+    """What no record names at all, collected last, after every refusal: the
+    transcripts no take names (an#607) and interrupted writes' temps (an#674)."""
+    _collect_transcripts(mall, report, horizon=horizon)
+    _collect_interrupted_writes(
+        mall, report, horizon=horizon, now=now, min_age=min_age
+    )
+
+
 def _protection_horizon(project_root: Path, now: float) -> float:
     """Anything written at or after this time is left alone: the earlier of
     this collection's start and every live render's start, less the slack."""
@@ -639,6 +716,7 @@ def collect_garbage(
     engine: ShotCache | None = None,
     now: float | None = None,
     force: bool = False,
+    interrupted_write_min_age: float = INTERRUPTED_WRITE_MIN_AGE_S,
 ) -> GcReport:
     """Delete the shot-cache entries of ``project_dir`` that nothing reaches.
 
@@ -650,6 +728,8 @@ def collect_garbage(
     removes a reachable entry, so the cache can stay above ``max_size``.
     ``dry_run`` reports and deletes nothing. ``force`` collects a cache no
     render of this project has recorded a root in (see :func:`reachable_entries`).
+    ``interrupted_write_min_age`` (seconds) is how long a killed atomic write's
+    temp must have gone untouched before it is deleted (an#674).
 
     See the module docstring for the reachability and concurrency argument.
     """
@@ -661,7 +741,10 @@ def collect_garbage(
     now = time.time() if now is None else now
     horizon = _protection_horizon(project.root, now)
     if store is None:
-        _collect_transcripts(project.mall, report, horizon=horizon)
+        _collect_orphans(
+        project.mall, report, horizon=horizon, now=now,
+        min_age=interrupted_write_min_age,
+    )  # fmt: skip
         return report
     others = other_scenes(project_dir)
     entries = inventory(store)
@@ -734,7 +817,10 @@ def collect_garbage(
             shot_cache_kept_bytes=report.bytes_before - sum(doomed_blobs.values()),
             dry_run=True, report=report,
         )  # fmt: skip
-        _collect_transcripts(project.mall, report, horizon=horizon)
+        _collect_orphans(
+        project.mall, report, horizon=horizon, now=now,
+        min_age=interrupted_write_min_age,
+    )  # fmt: skip
         return report
     layout = _fs_layout(store)
     # Records first, then blobs: a record must never name a blob that is gone.
@@ -774,7 +860,10 @@ def collect_garbage(
         dry_run=False, report=report,
     )  # fmt: skip
     # Last, after every refusal: a collection that refuses deletes nothing.
-    _collect_transcripts(project.mall, report, horizon=horizon)
+    _collect_orphans(
+        project.mall, report, horizon=horizon, now=now,
+        min_age=interrupted_write_min_age,
+    )  # fmt: skip
     return report
 
 
