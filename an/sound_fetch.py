@@ -165,6 +165,19 @@ def _fade_out(wav: bytes, seconds: float) -> bytes:
     return out.getvalue()
 
 
+def cut_record(
+    wav: bytes, *, start: float | None = None, fade_out: float | None = None
+) -> dict[str, float]:
+    """The ``cut`` a source records for ``wav``, cut from ``start`` (seconds of
+    the media) with ``fade_out``: what ``an credits`` shows as "0:07.9–0:08.8".
+    Shared by every path that stores a cut (a URL, an acquired track, an#623)."""
+    begin = float(start or 0.0)
+    cut = {"start": round(begin, 3), "end": round(begin + wav_duration(wav), 3)}
+    if fade_out:
+        cut["fade_out"] = float(fade_out)
+    return cut
+
+
 def add_sound_from_url(
     store: MutableMapping,
     key: str,
@@ -189,10 +202,7 @@ def add_sound_from_url(
     """
     fetched = (fetcher or yb_fetcher)(url)
     wav = cut_to_wav(fetched.audio, start=start, duration=duration, fade_out=fade_out)
-    begin = float(start or 0.0)
-    cut = {"start": round(begin, 3), "end": round(begin + wav_duration(wav), 3)}
-    if fade_out:
-        cut["fade_out"] = float(fade_out)
+    cut = cut_record(wav, start=start, fade_out=fade_out)
     code = None if license in (None, "", "unknown") else license
     source = AssetSource(
         provider=provider or fetched.provider,

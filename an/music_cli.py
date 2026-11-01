@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from an.music_library import DFLT_PAUSE_S
 
-__all__ = ["add_library"]
+__all__ = ["add_library", "use"]
 
 #: What ``add_library`` writes beside the files.
 TRACKS_TABLE: str = "tracks.csv"
@@ -94,4 +94,59 @@ def add_library(
     return failed(report) if counts[FAILED] or counts[REFUSED] else report
 
 
-_dispatch_funcs = [add_library]
+def use(
+    project_dir: str,
+    key: str,
+    out: str,
+    title: str,
+    start: float = 0.0,
+    duration: float = 0.0,
+    fade_out: float = 0.0,
+    description: str = "",
+) -> str:
+    """Put an acquired track in the project's sounds store, from its file: nothing is downloaded again.
+
+    Reads OUT/tracks.csv (what `an music add-library` wrote), checks TITLE's file
+    against its recorded sha256, cuts it with ffmpeg and stores it as WAV under
+    KEY, with its provenance (library, the licence the library's registry gives,
+    attribution, the URL the bytes came from) and the cut, so `an credits` lists
+    the music.
+
+    project_dir: the an project
+    key: the sound's key in the project's sounds store (what a cue names)
+    out: the library folder `an music add-library --out` wrote
+    title: the track's title, as its tracks.csv row names it
+    start: seconds into the track where the cut begins
+    duration: seconds kept (default: to the end)
+    fade_out: seconds of fade at the end of the cut
+    description: what the sound is, for the store
+    """
+    from an.music_library import (
+        MusicLibraryError,
+        add_track_to_sounds,
+        files_store,
+        track_row,
+    )
+    from an.sounds import SoundError
+    from an.stores import build_project_mall
+
+    files = files_store(out)
+    if TRACKS_TABLE not in files:
+        raise SystemExit(
+            f"an music use: no {TRACKS_TABLE} in {out}; run `an music add-library` first"
+        )
+    try:
+        row = track_row(files[TRACKS_TABLE].decode("utf-8"), title)
+        mall = build_project_mall(project_dir, ensure=True)
+        asset = add_track_to_sounds(
+            mall["sounds"], key, row, files,
+            start=start or None, duration=duration or None,
+            fade_out=fade_out or None, description=description,
+        )  # fmt: skip
+    except (MusicLibraryError, SoundError) as e:
+        raise SystemExit(f"an music use: {e}") from e
+    src = asset.source
+    return f"sounds/{key}: {asset.duration:.2f} s of {title!r} ({src.provider}) [{src.license or 'unknown'}]"
+
+
+_dispatch_funcs = [add_library, use]
