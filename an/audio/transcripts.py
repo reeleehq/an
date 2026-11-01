@@ -375,9 +375,7 @@ def parse_json(obj: Any) -> list[TranscriptSegment]:
         if not isinstance(item, Mapping):
             raise ValueError(f"a transcript segment must be an object, got {item!r}")
         words = tuple(w for w in (_word_from(x) for x in item.get("words") or ()) if w)
-        phones = tuple(
-            p for x in item.get("words") or () for p in _gentle_phones(x)
-        )
+        phones = tuple(p for x in item.get("words") or () for p in _gentle_phones(x))
         text = item.get("text")
         if text is None:
             text = " ".join(w[0] for w in words)
@@ -455,7 +453,10 @@ def _is_mfa_json(obj: Any) -> bool:
     return (
         isinstance(tiers, Mapping)
         and bool(tiers)
-        and all(isinstance(t, Mapping) and isinstance(t.get("entries"), list) for t in tiers.values())
+        and all(
+            isinstance(t, Mapping) and isinstance(t.get("entries"), list)
+            for t in tiers.values()
+        )
     )
 
 
