@@ -132,9 +132,7 @@ def compact_keys(
     if last < 1:
         return list(range(len(values)))
     if stepped:
-        return [0] + [
-            k for k in range(1, last) if values[k] != values[k - 1]
-        ] + [last]
+        return [0] + [k for k in range(1, last) if values[k] != values[k - 1]] + [last]
     keep = {0, last}
     spans = [(0, last)]
     while spans:
@@ -1977,7 +1975,9 @@ def _emit(
     clips: dict[str, list[Any]] = {}
     emitted: set[tuple[str, str]] = set()
     index = {prop: i for i, prop in enumerate(SOLVED_CHANNELS)}
-    reach = max(1.0, sum(math.hypot(b.box[2], b.box[3]) for b in puppet.bodies.values()))
+    reach = max(
+        1.0, sum(math.hypot(b.box[2], b.box[3]) for b in puppet.bodies.values())
+    )
     tolerance = {
         "x": SOLVED_KEY_TOLERANCE_PX,
         "y": SOLVED_KEY_TOLERANCE_PX,
@@ -1992,6 +1992,7 @@ def _emit(
             KeyframeJSON(time=_q(run.times[k], 1e-9), value=vs[k], easing=easing)
             for k in kept
         ]
+
     for (path, prop), vs in values.items():
         quantum = ANGLE_QUANTUM if prop == "rotation" else POSITION_QUANTUM
         qs = [_q(v, quantum) for v in vs]
