@@ -16,6 +16,8 @@ from typing import Iterator
 
 from dol import atomic_write
 
+from an.stores._common import interrupted_writes
+
 
 class _BlobStore(MutableMapping):
     """Generic file-as-bytes store with a fixed extension.
@@ -62,6 +64,11 @@ class _BlobStore(MutableMapping):
 
     def __len__(self) -> int:
         return sum(1 for _ in self)
+
+    def interrupted_writes(self) -> list[Path]:
+        """The temp files killed writes left in this store's folder (an#674):
+        ``an cache gc`` deletes them."""
+        return interrupted_writes(self._root)
 
     def path_of(self, key: str) -> Path:
         """Return the on-disk path for a key (whether it exists or not)."""

@@ -141,3 +141,19 @@ def test_scenes_store_is_a_scenes_store():
     with tempfile.TemporaryDirectory() as d:
         mall = build_project_mall(d, ensure=True)
         assert isinstance(mall["scenes"], ScenesStore)
+
+
+def test_a_blob_store_never_lists_a_killed_writes_temp_and_leaves_none(tmp_path):
+    """An atomic write stages ``.<name>.<hex>.tmp``: a write leaves none behind,
+    and one a killed process left is never a key, only an interrupted write
+    (an#674)."""
+    from an.stores.artifacts import ShotArtifactStore
+
+    store = ShotArtifactStore(tmp_path)
+    store["k"] = b"film"
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["k.mp4"]
+    planted = tmp_path / ".k.mp4.ab12cd34.tmp"
+    planted.write_bytes(b"half a film")
+    assert list(store) == ["k"] and len(store) == 1
+    assert store.interrupted_writes() == [planted]
+    assert VoicesStore(tmp_path / "v").interrupted_writes() == []

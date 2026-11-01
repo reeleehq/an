@@ -241,6 +241,32 @@ def asset_ref_problems(
     return out
 
 
+#: The name ``dol.atomic_write`` stages a write under, beside its target:
+#: ``.<name>.<8 hex>.tmp``. A process killed mid-write leaves it behind.
+ATOMIC_WRITE_TEMP = re.compile(r"\..+\.[0-9a-f]{8}\.tmp")
+
+
+def interrupted_writes(folder: str | Path) -> list[Path]:
+    """The temp files an atomic write killed mid-way left directly in ``folder``
+    (an#674): never a key, so nothing lists or deletes them but ``an cache gc``.
+
+    >>> import tempfile
+    >>> with tempfile.TemporaryDirectory() as d:
+    ...     for name in ("k.mp4", ".k.mp4.ab12cd34.tmp", ".DS_Store", "x.tmp"):
+    ...         _ = (Path(d) / name).write_bytes(b"")
+    ...     [p.name for p in interrupted_writes(d)]
+    ['.k.mp4.ab12cd34.tmp']
+    """
+    root = Path(folder)
+    if not root.is_dir():
+        return []
+    return sorted(
+        child
+        for child in root.iterdir()
+        if ATOMIC_WRITE_TEMP.fullmatch(child.name) and child.is_file()
+    )
+
+
 class JsonDirStore(MutableMapping):
     """`MutableMapping` of name -> JSON document, stored as ``<name>.json`` files.
 
@@ -301,6 +327,10 @@ class JsonDirStore(MutableMapping):
 
     def __len__(self) -> int:
         return sum(1 for _ in self)
+
+    def interrupted_writes(self) -> list[Path]:
+        """The temp files killed writes left in this store's folder (an#674)."""
+        return interrupted_writes(self._root)
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}({str(self._root)!r})"

@@ -1,0 +1,1 @@
+- **`an cache gc` deletes interrupted writes** (an#674): the `.<name>.<hex>.tmp` files a process killed inside `dol.atomic_write` left in the mall's file stores (`interrupted_writes()` on `_BlobStore` and `JsonDirStore`), once untouched for an hour and since the protection horizon; reported as `GcReport.deleted_temps`.
