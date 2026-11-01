@@ -698,3 +698,46 @@ def test_a_pin_the_shot_ends_on_while_it_is_led_back_is_reported_as_led(
     assert [s["until"] for s in spans if s.get("led")] == ([duration] if led else []), spans
     messages = [m for _, m in _lint(project, shot) if "cannot be held" in m]
     assert any("being led back a step a frame" in m for m in messages) == led, messages
+
+
+def test_solved_keys_are_compacted_where_the_solve_is_already_straight(
+    tmp_path, monkeypatch
+):
+    """an#636 (item 2): a dynamic shot's solved channels drop the keys that
+    linear interpolation already reproduces within `SOLVED_KEY_TOLERANCE_PX`
+    (a still or evenly moving stretch), and the drawn hand is where the
+    uncompacted document puts it at every frame, within that tolerance summed
+    down the arm's chain (√2 for the root's x and y, one per rotating body)."""
+    import an.stage.solve as solve
+    from an.stage.solve import SOLVE_CLIP_PREFIX, SOLVED_KEY_TOLERANCE_PX
+
+    project = _project(tmp_path)
+    shot = _shot(
+        project,
+        duration=2.0,
+        solve={"gravity": "down", "mode": "dynamic"},
+        actions=[
+            {"kind": "tween", "target": "puppet/torso", "property": "x",
+             "from_value": -100.0, "to_value": -400.0, "duration": 0.5, "start": 0.0},
+            {"kind": "pin", "point": "puppet/fore@hand", "to": "world@-378,-38"},
+        ],
+    )  # fmt: skip
+
+    def keys(doc):
+        return sum(
+            len(ch.keyframes)
+            for aid, anim in doc.animations.items()
+            if aid.startswith(SOLVE_CLIP_PREFIX)
+            for ch in anim.channels
+        )
+
+    compact = _compile(project, shot)
+    monkeypatch.setattr(
+        solve, "compact_keys", lambda times, values, **kw: list(range(len(values)))
+    )
+    full = _compile(project, shot)
+    assert keys(compact) < keys(full) / 2, (keys(compact), keys(full))
+    for t in _times(2.0):
+        a, b = _hand_and_grip(compact, t)[0], _hand_and_grip(full, t)[0]
+        chain = math.sqrt(2.0) + 3  # torso, upper arm, forearm
+        assert math.dist(a, b) <= chain * SOLVED_KEY_TOLERANCE_PX, (t, a, b)
