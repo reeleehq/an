@@ -35,6 +35,7 @@ an.kinematics.solver
       digest
       inputs_digest
       quantize
+      regrip_strength_by_mass
       resolve_rests
       solve
       solve_frames

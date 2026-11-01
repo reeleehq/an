@@ -30,6 +30,7 @@ an.audio.loudness
       leveled_key
       limit_peaks
       loudness_report
+      voice_loudness_offset
       voice_loudness_spread
       voiced_lines
       voiced_sources

@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=7152e6da"></script>
+    <script src="../_static/documentation_options.js?v=92768188"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.349" />
+  <meta name="docsearch:version" content="0.1.350" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -823,7 +823,7 @@ genre defined in the same process).</p>
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.genres.API_LEVEL">
-<span class="sig-prename descclassname"><span class="pre">an.genres.</span></span><span class="sig-name descname"><span class="pre">API_LEVEL</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">12</span></span><a class="headerlink" href="#an.genres.API_LEVEL" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.genres.</span></span><span class="sig-name descname"><span class="pre">API_LEVEL</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">13</span></span><a class="headerlink" href="#an.genres.API_LEVEL" title="Link to this definition">#</a></dt>
 <dd><p>every hook, registry
 field a genre package may rely on. Bumped by each change a
 genre needs (the P8 seam PRs and each move to <code class="docutils literal notranslate"><span class="pre">cutan</span></code>, an#225), never
@@ -863,6 +863,9 @@ it reads <code class="docutils literal notranslate"><span class="pre">getattr(an
 <dt>11 = a slot’s rest world transform (an#579): <code class="docutils literal notranslate"><span class="pre">an.stage.rig.rest_world_transforms</span></code> and</dt><dd><p><code class="docutils literal notranslate"><span class="pre">RestTransform</span></code>, the builder’s own rule, for a genre’s placement maths.</p>
 </dd>
 <dt>12 = the P8 import shims are gone (an#321): no <code class="docutils literal notranslate"><span class="pre">an</span></code> path serves a module or name that</dt><dd><p>moved to <code class="docutils literal notranslate"><span class="pre">cutan</span></code>, so a genre package imports its own code from <code class="docutils literal notranslate"><span class="pre">cutan</span></code> only.</p>
+</dd>
+<dt>13 = names a genre’s checks and pack read, public (reeleehq/cutan#148):</dt><dd><p><code class="docutils literal notranslate"><span class="pre">an.ir.validate.rig_scope</span></code>, <code class="docutils literal notranslate"><span class="pre">an.semantic.matcher.lookup_method</span></code> and
+<code class="docutils literal notranslate"><span class="pre">as_choice</span></code>, <code class="docutils literal notranslate"><span class="pre">an.audio.loudness.voice_loudness_offset</span></code>.</p>
 </dd>
 </dl>
 <dl class="field-list simple">

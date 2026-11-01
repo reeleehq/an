@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=7152e6da"></script>
+    <script src="../_static/documentation_options.js?v=92768188"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.349" />
+  <meta name="docsearch:version" content="0.1.350" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -743,13 +743,16 @@ upgrade it (<a class="reference internal" href="an.audio.shared_mixing.html#an.a
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.loudness.loudness_report" title="an.audio.loudness.loudness_report"><code class="xref py py-obj docutils literal notranslate"><span class="pre">loudness_report</span></code></a>(scene, mall)</p></td>
 <td><p>Every voice's integrated loudness over its lines, as heard now (a leveled line's leveled audio).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.loudness.voice_loudness_spread" title="an.audio.loudness.voice_loudness_spread"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voice_loudness_spread</span></code></a>(levels)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.loudness.voice_loudness_offset" title="an.audio.loudness.voice_loudness_offset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voice_loudness_offset</span></code></a>(mall, voice)</p></td>
+<td><p>The <code class="docutils literal notranslate"><span class="pre">loudness_offset_db</span></code> <code class="docutils literal notranslate"><span class="pre">voice</span></code>'s document asks for (0 when unset), checked against <a class="reference internal" href="#an.audio.loudness.OFFSET_LIMITS_DB" title="an.audio.loudness.OFFSET_LIMITS_DB"><code class="xref py py-data docutils literal notranslate"><span class="pre">OFFSET_LIMITS_DB</span></code></a>; public for a genre's pack (reeleehq/cutan#148).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.loudness.voice_loudness_spread" title="an.audio.loudness.voice_loudness_spread"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voice_loudness_spread</span></code></a>(levels)</p></td>
 <td><p>What to say when the audible voices differ by more than <a class="reference internal" href="#an.audio.loudness.SPREAD_WARNING_DB" title="an.audio.loudness.SPREAD_WARNING_DB"><code class="xref py py-data docutils literal notranslate"><span class="pre">SPREAD_WARNING_DB</span></code></a>; <code class="docutils literal notranslate"><span class="pre">None</span></code> otherwise.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.loudness.voiced_lines" title="an.audio.loudness.voiced_lines"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voiced_lines</span></code></a>(scene, mall)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.loudness.voiced_lines" title="an.audio.loudness.voiced_lines"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voiced_lines</span></code></a>(scene, mall)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{voice</span> <span class="pre">id:</span> <span class="pre">[line,</span> <span class="pre">...]}</span></code> for every line with audio in the store.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.loudness.voiced_sources" title="an.audio.loudness.voiced_sources"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voiced_sources</span></code></a>(scene, mall)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.loudness.voiced_sources" title="an.audio.loudness.voiced_sources"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voiced_sources</span></code></a>(scene, mall)</p></td>
 <td><p><a class="reference internal" href="#an.audio.loudness.voiced_lines" title="an.audio.loudness.voiced_lines"><code class="xref py py-func docutils literal notranslate"><span class="pre">voiced_lines()</span></code></a>, by each line's SOURCE audio (a leveled line's own).</p></td>
 </tr>
 </tbody>
@@ -981,6 +984,26 @@ leveled line’s leveled audio).</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.audio.loudness.voice_loudness_offset">
+<span class="sig-prename descclassname"><span class="pre">an.audio.loudness.</span></span><span class="sig-name descname"><span class="pre">voice_loudness_offset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mall</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/loudness.html#voice_loudness_offset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.loudness.voice_loudness_offset" title="Link to this definition">#</a></dt>
+<dd><p>The <code class="docutils literal notranslate"><span class="pre">loudness_offset_db</span></code> <code class="docutils literal notranslate"><span class="pre">voice</span></code>’s document asks for (0 when
+unset), checked against <a class="reference internal" href="#an.audio.loudness.OFFSET_LIMITS_DB" title="an.audio.loudness.OFFSET_LIMITS_DB"><code class="xref py py-data docutils literal notranslate"><span class="pre">OFFSET_LIMITS_DB</span></code></a>; public for a genre’s
+pack (reeleehq/cutan#148).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">voice_loudness_offset</span><span class="p">({</span><span class="s2">"voices"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"kid"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"loudness_offset_db"</span><span class="p">:</span> <span class="mi">3</span><span class="p">}}},</span> <span class="s2">"kid"</span><span class="p">)</span>
+<span class="go">3.0</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#an.audio.loudness.VoiceLoudnessError" title="an.audio.loudness.VoiceLoudnessError"><strong>VoiceLoudnessError</strong></a> – For an offset that is not a number within the limits.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.audio.loudness.voice_loudness_spread">
 <span class="sig-prename descclassname"><span class="pre">an.audio.loudness.</span></span><span class="sig-name descname"><span class="pre">voice_loudness_spread</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">levels</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/loudness.html#voice_loudness_spread"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.loudness.voice_loudness_spread" title="Link to this definition">#</a></dt>
 <dd><p>What to say when the audible voices differ by more than
@@ -1083,6 +1106,7 @@ leveled line’s leveled audio).</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.loudness.leveled_key"><code class="docutils literal notranslate"><span class="pre">leveled_key()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.loudness.limit_peaks"><code class="docutils literal notranslate"><span class="pre">limit_peaks()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.loudness.loudness_report"><code class="docutils literal notranslate"><span class="pre">loudness_report()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.loudness.voice_loudness_offset"><code class="docutils literal notranslate"><span class="pre">voice_loudness_offset()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.loudness.voice_loudness_spread"><code class="docutils literal notranslate"><span class="pre">voice_loudness_spread()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.loudness.voiced_lines"><code class="docutils literal notranslate"><span class="pre">voiced_lines()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.loudness.voiced_sources"><code class="docutils literal notranslate"><span class="pre">voiced_sources()</span></code></a></li>

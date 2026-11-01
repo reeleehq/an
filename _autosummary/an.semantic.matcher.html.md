@@ -42,10 +42,12 @@ the methods the vocabulary registry holds for an aspect.
 
 ### Functions
 
-| [`applicable`](#an.semantic.matcher.applicable)(aspect_name, subjects)                | The methods of `aspect_name` that apply to `subjects`, the default chain's order first.   |
-|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
-| [`resolve`](#an.semantic.matcher.resolve)(aspect_name, subjects[, requested, ...]) | Choose the method that realises `aspect_name` on `subjects`.                              |
-| [`why_not`](#an.semantic.matcher.why_not)(method, subjects)                        | What `method` is missing on `subjects`, each with its remedy (empty: it applies).         |
+| [`applicable`](#an.semantic.matcher.applicable)(aspect_name, subjects)                | The methods of `aspect_name` that apply to `subjects`, the default chain's order first.                                                       |
+|---------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+| [`as_choice`](#an.semantic.matcher.as_choice)(x, aspect_name)                        | `x` (a `Method`, a `Choice` or its spelling) as a `Choice` within `aspect_name`, `None` for nothing (public for a genre, reeleehq/cutan#148). |
+| [`resolve`](#an.semantic.matcher.resolve)(aspect_name, subjects[, requested, ...]) | Choose the method that realises `aspect_name` on `subjects`.                                                                                  |
+| [`lookup_method`](#an.semantic.matcher.lookup_method)(x[, aspect_name])                  | The method `x` names — by spelling within `aspect_name`, else by id (public for a genre's own method tables, reeleehq/cutan#148).             |
+| [`why_not`](#an.semantic.matcher.why_not)(method, subjects)                        | What `method` is missing on `subjects`, each with its remedy (empty: it applies).                                                             |
 
 ### Classes
 
@@ -91,6 +93,52 @@ The methods of `aspect_name` that apply to `subjects`, the default chain’s ord
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Method`](an.semantic.html.md#an.semantic.Method), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+### an.semantic.matcher.as_choice(x, aspect_name)
+
+`x` (a `Method`, a `Choice` or its spelling) as a
+`Choice` within `aspect_name`, `None` for nothing (public for a
+genre, reeleehq/cutan#148).
+
+```pycon
+>>> as_choice(None, "any") is None, as_choice("", "any") is None
+(True, True)
+>>> as_choice(Method("ac.trot", aspect="ac_move"), "ac_move").method
+'ac.trot'
+```
+
+* **Raises:**
+  [**VocabularyError**](an.semantic.html.md#an.semantic.VocabularyError) – For a pinned version the registry does not have, or a
+      pinned method [`lookup_method()`](#an.semantic.matcher.lookup_method) refuses.
+* **Return type:**
+  [`Choice`](an.semantic.html.md#an.semantic.Choice) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.semantic.matcher.lookup_method(x, aspect_name=None)
+
+The method `x` names — by spelling within `aspect_name`, else by id
+(public for a genre’s own method tables, reeleehq/cutan#148). A lookup
+only: unlike [`resolve()`](#an.semantic.matcher.resolve), it checks no applicability.
+
+```pycon
+>>> from an.semantic.registry import register_entry, drop_owner
+>>> _ = register_entry(Method("lk.walk", aspect="lk_move"), owner="lk")
+>>> lookup_method("lk.walk").aspect, lookup_method(Choice("lk.walk"), "lk_move").id
+('lk_move', 'lk.walk')
+>>> lookup_method("lk.walk", "lk_other")
+Traceback (most recent call last):
+...
+an.semantic.registry.VocabularyError: ...
+>>> drop_owner("lk")
+```
+
+* **Raises:**
+  [**VocabularyError**](an.semantic.html.md#an.semantic.VocabularyError) – For a name no method has, or (with `aspect_name`) a
+      method of another aspect.
+* **Return type:**
+  [`Method`](an.semantic.html.md#an.semantic.Method)
+
+With `aspect_name`, a method of ANOTHER aspect is refused: a typo in a
+style’s `policy:` block must not realise one aspect with another’s method.
 
 ### an.semantic.matcher.resolve(aspect_name, subjects, requested=None, , declared=None, policy=None, entity='', entity_kind=None)
 

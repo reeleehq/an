@@ -15,7 +15,9 @@ an.semantic.matcher
    .. autosummary::
    
       applicable
+      as_choice
       resolve
+      lookup_method
       why_not
    
    .. rubric:: Classes

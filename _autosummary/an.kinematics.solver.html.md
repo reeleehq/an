@@ -67,26 +67,26 @@ built on a solve is built on its INPUTS ([`inputs_digest()`](#an.kinematics.solv
 
 ### Module Attributes
 
-| [`DFLT_ITERATIONS`](#an.kinematics.solver.DFLT_ITERATIONS)        | Gauss–Seidel passes over the joints per substep (dynamic) or per solve (pose).                                                                                                                                                                                                                        |
-|-------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`DFLT_SUBSTEPS`](#an.kinematics.solver.DFLT_SUBSTEPS)          | "smaller time steps are more effective than more iterations" (Catto 2024), and four keeps a 24 fps frame under a quarter of its period of free fall at 980 px/s².                                                                                                                                     |
-| [`DFLT_DAMPING`](#an.kinematics.solver.DFLT_DAMPING)           | the one style knob a puppet has for how long it swings.                                                                                                                                                                                                                                               |
-| [`DFLT_TOLERANCE`](#an.kinematics.solver.DFLT_TOLERANCE)         | A joined joint whose points are further apart than this after the solve is reported as unsatisfied (scene units; a quarter pixel is below what a render shows).                                                                                                                                       |
-| [`DFLT_ANGLE_TOLERANCE`](#an.kinematics.solver.DFLT_ANGLE_TOLERANCE)   | A hinge or weld whose angle is outside its range by more than this is reported (radians; 1e-3 rad is 0.06 degrees).                                                                                                                                                                                   |
-| [`DFLT_CONFLICT_RETRY`](#an.kinematics.solver.DFLT_CONFLICT_RETRY)    | A solve that leaves a joint failing is run again with this many times the iterations before anything is given up: what more passes fix was slow convergence (a hard swing), what they do not is a conflict.                                                                                           |
-| [`DFLT_CONFLICT_PROGRESS`](#an.kinematics.solver.DFLT_CONFLICT_PROGRESS) | A failing joint is in conflict when the retry left more than this fraction of its failure (residual over tolerance, or range broken over angle tolerance): a conflict is what more passes do not fix.                                                                                                 |
-| [`DFLT_REGRIP_SPEED`](#an.kinematics.solver.DFLT_REGRIP_SPEED)      | How fast (scene units per second of film) the free end of a chain is led back to a grip it lost out of reach and that is back within reach, when one frame cannot close the gap (an#645): a 50-link rope 600 units from its end takes it back in about a second.                                      |
-| [`DFLT_REGRIP_SNAP`](#an.kinematics.solver.DFLT_REGRIP_SNAP)       | A led grip is taken (its pin enforced again) once its gap is this small (scene units): the rejoin the stage's own check calls a snap is over 2.                                                                                                                                                       |
-| [`DFLT_REGRIP_STRENGTH`](#an.kinematics.solver.DFLT_REGRIP_STRENGTH)   | The strength of that lead (a `Force` pull toward the walking point, which closes no loop a conflict could settle by giving up a link), for bodies of the kinematics' own scale (a link of 10 by 2 units); a caller whose bodies weigh more scales it (the stage: `an.stage.solve.REGRIP_MASS_SCALE`). |
-| [`DFLT_MAX_DROP_TRIALS`](#an.kinematics.solver.DFLT_MAX_DROP_TRIALS)   | The most trial solves [`solve()`](#an.kinematics.solver.solve) spends looking for the joint to give up in a conflict (each is a full solve of the frame).                                                                                                                             |
-| [`DFLT_NUDGE`](#an.kinematics.solver.DFLT_NUDGE)             | Radians each free body is turned by on a retry, alternating in sign (see `_nudge`): far below what a frame shows, enough to buckle a straight chain pushed along its length.                                                                                                                          |
-| [`DFLT_POSITION_QUANTUM`](#an.kinematics.solver.DFLT_POSITION_QUANTUM)  | finer than any render shows.                                                                                                                                                                                                                                                                          |
-| [`DFLT_SEGMENT_MARGIN`](#an.kinematics.solver.DFLT_SEGMENT_MARGIN)    | A contact or slide looks this far past a segment's ends (scene units) before letting the point go: a foot half a unit past the edge still stands.                                                                                                                                                     |
-| [`SOLVER_VERSION`](#an.kinematics.solver.SOLVER_VERSION)         | Bumped whenever the solve can give a different answer for the same inputs (a changed projection, order, or default): part of every cache key built on this module.                                                                                                                                    |
-| [`DFLT_CONVERGE_CAP`](#an.kinematics.solver.DFLT_CONVERGE_CAP)      | The most passes a frame whose first retry made progress is given, as a multiple of `iterations`: its retry is repeated with `retry` times the passes while each round still makes progress (an#568).                                                                                                  |
-| [`DFLT_STALL_PROGRESS`](#an.kinematics.solver.DFLT_STALL_PROGRESS)    | A later round STALLS when what is left is more than this fraction of the round before (it cut less than 10%): a conflict, given up.                                                                                                                                                                   |
-| [`POSE_CHANNELS`](#an.kinematics.solver.POSE_CHANNELS)          | The pose channels, in the order `SolveResult.poses` holds them.                                                                                                                                                                                                                                       |
-| [`Targets`](#an.kinematics.solver.Targets)                | `{body name: {channel: value}}`; a channel given is held at its value for the frame (a nail), the others move.                                                                                                                                                                                        |
+| [`DFLT_ITERATIONS`](#an.kinematics.solver.DFLT_ITERATIONS)        | Gauss–Seidel passes over the joints per substep (dynamic) or per solve (pose).                                                                                                                                                                                                                                                                                         |
+|-------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`DFLT_SUBSTEPS`](#an.kinematics.solver.DFLT_SUBSTEPS)          | "smaller time steps are more effective than more iterations" (Catto 2024), and four keeps a 24 fps frame under a quarter of its period of free fall at 980 px/s².                                                                                                                                                                                                      |
+| [`DFLT_DAMPING`](#an.kinematics.solver.DFLT_DAMPING)           | the one style knob a puppet has for how long it swings.                                                                                                                                                                                                                                                                                                                |
+| [`DFLT_TOLERANCE`](#an.kinematics.solver.DFLT_TOLERANCE)         | A joined joint whose points are further apart than this after the solve is reported as unsatisfied (scene units; a quarter pixel is below what a render shows).                                                                                                                                                                                                        |
+| [`DFLT_ANGLE_TOLERANCE`](#an.kinematics.solver.DFLT_ANGLE_TOLERANCE)   | A hinge or weld whose angle is outside its range by more than this is reported (radians; 1e-3 rad is 0.06 degrees).                                                                                                                                                                                                                                                    |
+| [`DFLT_CONFLICT_RETRY`](#an.kinematics.solver.DFLT_CONFLICT_RETRY)    | A solve that leaves a joint failing is run again with this many times the iterations before anything is given up: what more passes fix was slow convergence (a hard swing), what they do not is a conflict.                                                                                                                                                            |
+| [`DFLT_CONFLICT_PROGRESS`](#an.kinematics.solver.DFLT_CONFLICT_PROGRESS) | A failing joint is in conflict when the retry left more than this fraction of its failure (residual over tolerance, or range broken over angle tolerance): a conflict is what more passes do not fix.                                                                                                                                                                  |
+| [`DFLT_REGRIP_SPEED`](#an.kinematics.solver.DFLT_REGRIP_SPEED)      | How fast (scene units per second of film) the free end of a chain is led back to a grip it lost out of reach and that is back within reach, when one frame cannot close the gap (an#645): a 50-link rope 600 units from its end takes it back in about a second.                                                                                                       |
+| [`DFLT_REGRIP_SNAP`](#an.kinematics.solver.DFLT_REGRIP_SNAP)       | A led grip is taken (its pin enforced again) once its gap is this small (scene units): the rejoin the stage's own check calls a snap is over 2.                                                                                                                                                                                                                        |
+| [`DFLT_REGRIP_STRENGTH`](#an.kinematics.solver.DFLT_REGRIP_STRENGTH)   | The strength of that lead (a `Force` pull toward the walking point, which closes no loop a conflict could settle by giving up a link), for bodies of the kinematics' own scale (a link of 10 by 2 units); a caller whose bodies weigh more scales it (the stage: by the led chain's mass, [`regrip_strength_by_mass()`](#an.kinematics.solver.regrip_strength_by_mass)). |
+| [`DFLT_MAX_DROP_TRIALS`](#an.kinematics.solver.DFLT_MAX_DROP_TRIALS)   | The most trial solves [`solve()`](#an.kinematics.solver.solve) spends looking for the joint to give up in a conflict (each is a full solve of the frame).                                                                                                                                                                                              |
+| [`DFLT_NUDGE`](#an.kinematics.solver.DFLT_NUDGE)             | Radians each free body is turned by on a retry, alternating in sign (see `_nudge`): far below what a frame shows, enough to buckle a straight chain pushed along its length.                                                                                                                                                                                           |
+| [`DFLT_POSITION_QUANTUM`](#an.kinematics.solver.DFLT_POSITION_QUANTUM)  | finer than any render shows.                                                                                                                                                                                                                                                                                                                                           |
+| [`DFLT_SEGMENT_MARGIN`](#an.kinematics.solver.DFLT_SEGMENT_MARGIN)    | A contact or slide looks this far past a segment's ends (scene units) before letting the point go: a foot half a unit past the edge still stands.                                                                                                                                                                                                                      |
+| [`SOLVER_VERSION`](#an.kinematics.solver.SOLVER_VERSION)         | Bumped whenever the solve can give a different answer for the same inputs (a changed projection, order, or default): part of every cache key built on this module.                                                                                                                                                                                                     |
+| [`DFLT_CONVERGE_CAP`](#an.kinematics.solver.DFLT_CONVERGE_CAP)      | The most passes a frame whose first retry made progress is given, as a multiple of `iterations`: its retry is repeated with `retry` times the passes while each round still makes progress (an#568).                                                                                                                                                                   |
+| [`DFLT_STALL_PROGRESS`](#an.kinematics.solver.DFLT_STALL_PROGRESS)    | A later round STALLS when what is left is more than this fraction of the round before (it cut less than 10%): a conflict, given up.                                                                                                                                                                                                                                    |
+| [`POSE_CHANNELS`](#an.kinematics.solver.POSE_CHANNELS)          | The pose channels, in the order `SolveResult.poses` holds them.                                                                                                                                                                                                                                                                                                        |
+| [`Targets`](#an.kinematics.solver.Targets)                | `{body name: {channel: value}}`; a channel given is held at its value for the frame (a nail), the others move.                                                                                                                                                                                                                                                         |
 
 ### Functions
 
@@ -94,6 +94,7 @@ built on a solve is built on its INPUTS ([`inputs_digest()`](#an.kinematics.solv
 |----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`inputs_digest`](#an.kinematics.solver.inputs_digest)(bodies, joints, \*[, targets, ...]) | A hex digest of everything a solve reads, with [`SOLVER_VERSION`](#an.kinematics.solver.SOLVER_VERSION): the cache key for a solve (or a run of them: pass the per-frame targets as a list, and `frames`, `dt` and the rest as `options`). |
 | [`quantize`](#an.kinematics.solver.quantize)(poses, \*[, position_quantum, ...])      | `poses` (any shape whose last axis is [`POSE_CHANNELS`](#an.kinematics.solver.POSE_CHANNELS)) rounded to the quanta a document stores: positions and scale to `position_quantum`, rotation to `angle_quantum`.                            |
+| [`regrip_strength_by_mass`](#an.kinematics.solver.regrip_strength_by_mass)(chain_mass, \*, per_mass) | The lead's strength for a led chain of `chain_mass` (an#672): a pull of `per_mass` for each unit of mass it drags.                                                                                                                                |
 | [`resolve_rests`](#an.kinematics.solver.resolve_rests)(bodies, joints)                     | `joints` with every `rest=None` hinge and weld given the relative angle the bodies have now, so a run of frames measures its limits from one pose rather than from each frame's.                                                                  |
 | [`solve`](#an.kinematics.solver.solve)(bodies, joints, \*[, targets, forces, ...]) | One frame: the poses of all `bodies` that satisfy the joined `joints` with the `targets` held, forces and `gravity` acting.                                                                                                                       |
 | [`solve_frames`](#an.kinematics.solver.solve_frames)(bodies, joints, \*, frames, dt)      | `frames` solves in a row, each starting from the last: the caller's time dimension.                                                                                                                                                               |
@@ -194,7 +195,7 @@ takes it back in about a second.
 The strength of that lead (a `Force` pull toward the walking point,
 which closes no loop a conflict could settle by giving up a link), for
 bodies of the kinematics’ own scale (a link of 10 by 2 units); a caller whose
-bodies weigh more scales it (the stage: `an.stage.solve.REGRIP_MASS_SCALE`).
+bodies weigh more scales it (the stage: by the led chain’s mass, [`regrip_strength_by_mass()`](#an.kinematics.solver.regrip_strength_by_mass)).
 Too stiff, it drags a chain past a range it cannot keep (an#568’s elbow).
 
 ### an.kinematics.solver.DFLT_SEGMENT_MARGIN *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
@@ -256,7 +257,7 @@ grips back (an#645): the grips the geometry ruled out (or a conflict took
 from a grip the lead had taken back) on the frame before, those being led
 with their gap, those the lead took back, and the frame before’s drops.
 
-### an.kinematics.solver.SOLVER_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '6'*
+### an.kinematics.solver.SOLVER_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '7'*
 
 Bumped whenever the solve can give a different answer for the same inputs
 (a changed projection, order, or default): part of every cache key built
@@ -265,7 +266,8 @@ on this module.
 the first candidate that halves the failure (an#641); 4: a slack chain of more
 than two links held at both ends is seeded on an arc (an#646); 5: a grip lost
 out of reach is led back over several frames (an#645); 6: the stage’s per-frame
-solve leads lost grips back too (an#668).
+solve leads lost grips back too (an#668); 7: it pulls each lead by the led
+chain’s own mass (an#672).
 
 ### *class* an.kinematics.solver.SolveResult(bodies, poses, residuals, unsatisfied, limit_violations, dropped=(), out_of_reach=())
 
@@ -362,6 +364,24 @@ to the quanta a document stores: positions and scale to
 
 * **Return type:**
   `ndarray`
+
+### an.kinematics.solver.regrip_strength_by_mass(chain_mass, , per_mass)
+
+The lead’s strength for a led chain of `chain_mass` (an#672): a pull
+of `per_mass` for each unit of mass it drags. Force over mass is what
+the chain feels, so one `per_mass` gives a light arm and a heavy limb
+the same lead; one fixed strength leaves the heavy one hovering short of
+its grip (an#668) or, stiffened for it, drags the light one past its
+elbow’s range (an#568). The caller calibrates `per_mass` on a chain of
+its own scale (the stage: `an.stage.solve.REGRIP_STRENGTH_PER_MASS`).
+
+```pycon
+>>> regrip_strength_by_mass(2.0, per_mass=5.0)
+10.0
+```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.kinematics.solver.resolve_rests(bodies, joints)
 
@@ -469,6 +489,12 @@ straight at it instead. A link given up while a grip the lead took back
 holds gives up that grip instead (an#641). `step` 0 (pose mode, no
 time to walk in) leads nothing. The [`solve_frames()`](#an.kinematics.solver.solve_frames) loop and the
 stage’s per-frame solve both run their frames through it (an#668).
+
+`strength` is the lead’s pull, or a function of the led chain’s mass
+(the free bodies the grip’s free point drags, up to a fixed or held one)
+to it: the stage’s bodies weigh what their area is, so one number does not
+suit them all ([`regrip_strength_by_mass()`](#an.kinematics.solver.regrip_strength_by_mass), an#672). The grips led
+this frame are `state.walking`’s keys after the call.
 
 * **Return type:**
   [`SolveResult`](#an.kinematics.solver.SolveResult)

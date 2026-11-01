@@ -106,7 +106,7 @@ genre defined in the same process).
 | [`RegistryError`](#an.genres.RegistryError)                                | A registration is malformed or collides with one already made.         |
 | [`UnregisteredKindError`](#an.genres.UnregisteredKindError)(what, name, \*[, ...]) | A document names a kind no loaded genre registered.                    |
 
-### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 12*
+### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 13*
 
 every hook, registry
 field a genre package may rely on. Bumped by each change a
@@ -155,6 +155,10 @@ Levels (one line each; `tests/test_genre_gate.py` holds the list complete):
 
 12 = the P8 import shims are gone (an#321): no `an` path serves a module or name that
 : moved to `cutan`, so a genre package imports its own code from `cutan` only.
+
+13 = names a genre’s checks and pack read, public (reeleehq/cutan#148):
+: `an.ir.validate.rig_scope`, `an.semantic.matcher.lookup_method` and
+  `as_choice`, `an.audio.loudness.voice_loudness_offset`.
 
 * **Type:**
   The level of the genre-facing API this `an` provides

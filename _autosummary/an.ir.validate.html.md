@@ -31,6 +31,7 @@ Layout-overlap checks (boxes off-screen, text behind sprites) live in
 | [`post_synthesis_findings`](#an.ir.validate.post_synthesis_findings)(scene, \*[, fps, checks]) | `(check, finding)` for each finding the synthesized timing gives.                                                                                                                                             |
 | [`registered_kind_problems`](#an.ir.validate.registered_kind_problems)(scene)                   | The findings of the three registry checks alone — every action kind, entity kind and renderer the scene names must be registered — without the rest of `validate_semantic` (no stores, no rig builds; cheap). |
 | [`require_registered_kinds`](#an.ir.validate.require_registered_kinds)(scene, \*[, where])      | `scene`, or [`UnregisteredInSceneError`](#an.ir.validate.UnregisteredInSceneError) naming every action kind, entity kind and renderer it uses that is not registered.                                      |
+| [`rig_scope`](#an.ir.validate.rig_scope)(shot, stores)                           | `(rigged entities by id, ids whose rig store was not supplied)`: which of `shot`'s entities a rig check can read, public for a genre's own checks (reeleehq/cutan#148, `an.genres.API_LEVEL` 13).             |
 | [`rig_stores`](#an.ir.validate.rig_stores)()                                      | `{entity kind: (mall store, descriptor kind)}` for every kind that has a rig.                                                                                                                                 |
 | [`shot_dialogue_overruns`](#an.ir.validate.shot_dialogue_overruns)(shot, \*[, ...])           | `(k, message)` for each line of `shot` that ends past the shot's end.                                                                                                                                         |
 | [`validate_schema`](#an.ir.validate.validate_schema)(doc)                              | Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema.                                                                                                                                   |
@@ -237,6 +238,26 @@ kind, entity kind and renderer it uses that is not registered.
 
 * **Return type:**
   [`SceneIR`](an.ir.schema.html.md#an.ir.schema.SceneIR)
+
+### an.ir.validate.rig_scope(shot, stores)
+
+`(rigged entities by id, ids whose rig store was not supplied)`: which
+of `shot`’s entities a rig check can read, public for a genre’s own
+checks (reeleehq/cutan#148, `an.genres.API_LEVEL` 13). An entity is
+rigged when its kind has a rig store (`rig_stores()`); `stores` is read
+per kind, a missing store meaning that kind’s checks are SKIPPED.
+
+PER-KIND, not per-call. an#108’s first pass changed the gate from
+“characters store absent → skip” to “no stores at all → skip”, which made
+`validate_semantic(scene, available_characters=X)` — the signature every
+caller outside this repo has — report EVERY prop swap as “has no
+descriptor declaring asset sets” on a scene that compiles fine. A store
+that was not supplied means the check did not run for that kind; it never
+means the descriptor is missing: those entities’ checks are SKIPPED, not
+failed.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)], [`set`](https://docs.python.org/3/builtins/stdtypes.html#set)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 ### an.ir.validate.rig_stores()
 

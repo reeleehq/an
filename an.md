@@ -1,4 +1,4 @@
-> built 2026-11-01 20:06 UTC from 914089d (main) · an 0.1.349. Details: build_info.json
+> built 2026-11-01 20:24 UTC from 816bca3 (main) · an 0.1.350. Details: build_info.json
 
 # index.html.md
 
@@ -3554,6 +3554,7 @@ upgrade it ([`an.audio.shared_mixing.mixing_too_old()`](_autosummary/an.audio.sh
 | [`leveled_key`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.leveled_key)(source, \*, gain_db, peak_db)   | The content key of a leveled line: the sha256 of its source audio's BYTES (not the request that made them: a take re-synthesised under the same request is other audio, an#315 review), the gain, the ceiling, the rate a non-WAV source is decoded at, and [`LEVEL_VERSION`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.LEVEL_VERSION). |
 | [`limit_peaks`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.limit_peaks)(samples, \*, ceiling[, window]) | `samples` with no sample above `ceiling` (absolute, full scale 1.0): `mixing.loudness.limit_peaks()` (sample peak), the lookahead limiter that moved there unchanged from here (an#563).                                                                                                                                    |
 | [`loudness_report`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.loudness_report)(scene, mall)                | Every voice's integrated loudness over its lines, as heard now (a leveled line's leveled audio).                                                                                                                                                                                                                            |
+| [`voice_loudness_offset`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.voice_loudness_offset)(mall, voice)          | The `loudness_offset_db` `voice`'s document asks for (0 when unset), checked against [`OFFSET_LIMITS_DB`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.OFFSET_LIMITS_DB); public for a genre's pack (reeleehq/cutan#148).                                                                                                                     |
 | [`voice_loudness_spread`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.voice_loudness_spread)(levels)               | What to say when the audible voices differ by more than [`SPREAD_WARNING_DB`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.SPREAD_WARNING_DB); `None` otherwise.                                                                                                                                                                               |
 | [`voiced_lines`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.voiced_lines)(scene, mall)                   | `{voice id: [line, ...]}` for every line with audio in the store.                                                                                                                                                                                                                                                           |
 | [`voiced_sources`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.voiced_sources)(scene, mall)                 | [`voiced_lines()`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.voiced_lines), by each line's SOURCE audio (a leveled line's own).                                                                                                                                                                                                        |
@@ -3714,6 +3715,22 @@ leveled line’s leveled audio).
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`VoiceLevel`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.VoiceLevel)]
+
+### an.audio.loudness.voice_loudness_offset(mall, voice)
+
+The `loudness_offset_db` `voice`’s document asks for (0 when
+unset), checked against [`OFFSET_LIMITS_DB`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.OFFSET_LIMITS_DB); public for a genre’s
+pack (reeleehq/cutan#148).
+
+```pycon
+>>> voice_loudness_offset({"voices": {"kid": {"loudness_offset_db": 3}}}, "kid")
+3.0
+```
+
+* **Raises:**
+  [**VoiceLoudnessError**](_autosummary/an.audio.loudness.html.md#an.audio.loudness.VoiceLoudnessError) – For an offset that is not a number within the limits.
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.audio.loudness.voice_loudness_spread(levels)
 
@@ -16536,7 +16553,7 @@ genre defined in the same process).
 | [`RegistryError`](_autosummary/an.genres.html.md#an.genres.RegistryError)                                | A registration is malformed or collides with one already made.         |
 | [`UnregisteredKindError`](_autosummary/an.genres.html.md#an.genres.UnregisteredKindError)(what, name, \*[, ...]) | A document names a kind no loaded genre registered.                    |
 
-### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 12*
+### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 13*
 
 every hook, registry
 field a genre package may rely on. Bumped by each change a
@@ -16585,6 +16602,10 @@ Levels (one line each; `tests/test_genre_gate.py` holds the list complete):
 
 12 = the P8 import shims are gone (an#321): no `an` path serves a module or name that
 : moved to `cutan`, so a genre package imports its own code from `cutan` only.
+
+13 = names a genre’s checks and pack read, public (reeleehq/cutan#148):
+: `an.ir.validate.rig_scope`, `an.semantic.matcher.lookup_method` and
+  `as_choice`, `an.audio.loudness.voice_loudness_offset`.
 
 * **Type:**
   The level of the genre-facing API this `an` provides
@@ -23477,6 +23498,7 @@ Layout-overlap checks (boxes off-screen, text behind sprites) live in
 | [`post_synthesis_findings`](_autosummary/an.ir.validate.html.md#an.ir.validate.post_synthesis_findings)(scene, \*[, fps, checks]) | `(check, finding)` for each finding the synthesized timing gives.                                                                                                                                             |
 | [`registered_kind_problems`](_autosummary/an.ir.validate.html.md#an.ir.validate.registered_kind_problems)(scene)                   | The findings of the three registry checks alone — every action kind, entity kind and renderer the scene names must be registered — without the rest of `validate_semantic` (no stores, no rig builds; cheap). |
 | [`require_registered_kinds`](_autosummary/an.ir.validate.html.md#an.ir.validate.require_registered_kinds)(scene, \*[, where])      | `scene`, or [`UnregisteredInSceneError`](_autosummary/an.ir.validate.html.md#an.ir.validate.UnregisteredInSceneError) naming every action kind, entity kind and renderer it uses that is not registered.                                      |
+| [`rig_scope`](_autosummary/an.ir.validate.html.md#an.ir.validate.rig_scope)(shot, stores)                           | `(rigged entities by id, ids whose rig store was not supplied)`: which of `shot`'s entities a rig check can read, public for a genre's own checks (reeleehq/cutan#148, `an.genres.API_LEVEL` 13).             |
 | [`rig_stores`](_autosummary/an.ir.validate.html.md#an.ir.validate.rig_stores)()                                      | `{entity kind: (mall store, descriptor kind)}` for every kind that has a rig.                                                                                                                                 |
 | [`shot_dialogue_overruns`](_autosummary/an.ir.validate.html.md#an.ir.validate.shot_dialogue_overruns)(shot, \*[, ...])           | `(k, message)` for each line of `shot` that ends past the shot's end.                                                                                                                                         |
 | [`validate_schema`](_autosummary/an.ir.validate.html.md#an.ir.validate.validate_schema)(doc)                              | Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema.                                                                                                                                   |
@@ -23683,6 +23705,26 @@ kind, entity kind and renderer it uses that is not registered.
 
 * **Return type:**
   [`SceneIR`](_autosummary/an.ir.schema.html.md#an.ir.schema.SceneIR)
+
+### an.ir.validate.rig_scope(shot, stores)
+
+`(rigged entities by id, ids whose rig store was not supplied)`: which
+of `shot`’s entities a rig check can read, public for a genre’s own
+checks (reeleehq/cutan#148, `an.genres.API_LEVEL` 13). An entity is
+rigged when its kind has a rig store (`rig_stores()`); `stores` is read
+per kind, a missing store meaning that kind’s checks are SKIPPED.
+
+PER-KIND, not per-call. an#108’s first pass changed the gate from
+“characters store absent → skip” to “no stores at all → skip”, which made
+`validate_semantic(scene, available_characters=X)` — the signature every
+caller outside this repo has — report EVERY prop swap as “has no
+descriptor declaring asset sets” on a scene that compiles fine. A store
+that was not supplied means the check did not run for that kind; it never
+means the descriptor is missing: those entities’ checks are SKIPPED, not
+failed.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)], [`set`](https://docs.python.org/3/builtins/stdtypes.html#set)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 ### an.ir.validate.rig_stores()
 
@@ -25585,26 +25627,26 @@ built on a solve is built on its INPUTS ([`inputs_digest()`](_autosummary/an.kin
 
 ### Module Attributes
 
-| [`DFLT_ITERATIONS`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_ITERATIONS)        | Gauss–Seidel passes over the joints per substep (dynamic) or per solve (pose).                                                                                                                                                                                                                        |
-|-------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`DFLT_SUBSTEPS`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_SUBSTEPS)          | "smaller time steps are more effective than more iterations" (Catto 2024), and four keeps a 24 fps frame under a quarter of its period of free fall at 980 px/s².                                                                                                                                     |
-| [`DFLT_DAMPING`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_DAMPING)           | the one style knob a puppet has for how long it swings.                                                                                                                                                                                                                                               |
-| [`DFLT_TOLERANCE`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_TOLERANCE)         | A joined joint whose points are further apart than this after the solve is reported as unsatisfied (scene units; a quarter pixel is below what a render shows).                                                                                                                                       |
-| [`DFLT_ANGLE_TOLERANCE`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_ANGLE_TOLERANCE)   | A hinge or weld whose angle is outside its range by more than this is reported (radians; 1e-3 rad is 0.06 degrees).                                                                                                                                                                                   |
-| [`DFLT_CONFLICT_RETRY`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_CONFLICT_RETRY)    | A solve that leaves a joint failing is run again with this many times the iterations before anything is given up: what more passes fix was slow convergence (a hard swing), what they do not is a conflict.                                                                                           |
-| [`DFLT_CONFLICT_PROGRESS`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_CONFLICT_PROGRESS) | A failing joint is in conflict when the retry left more than this fraction of its failure (residual over tolerance, or range broken over angle tolerance): a conflict is what more passes do not fix.                                                                                                 |
-| [`DFLT_REGRIP_SPEED`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_REGRIP_SPEED)      | How fast (scene units per second of film) the free end of a chain is led back to a grip it lost out of reach and that is back within reach, when one frame cannot close the gap (an#645): a 50-link rope 600 units from its end takes it back in about a second.                                      |
-| [`DFLT_REGRIP_SNAP`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_REGRIP_SNAP)       | A led grip is taken (its pin enforced again) once its gap is this small (scene units): the rejoin the stage's own check calls a snap is over 2.                                                                                                                                                       |
-| [`DFLT_REGRIP_STRENGTH`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_REGRIP_STRENGTH)   | The strength of that lead (a `Force` pull toward the walking point, which closes no loop a conflict could settle by giving up a link), for bodies of the kinematics' own scale (a link of 10 by 2 units); a caller whose bodies weigh more scales it (the stage: `an.stage.solve.REGRIP_MASS_SCALE`). |
-| [`DFLT_MAX_DROP_TRIALS`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_MAX_DROP_TRIALS)   | The most trial solves [`solve()`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.solve) spends looking for the joint to give up in a conflict (each is a full solve of the frame).                                                                                                                             |
-| [`DFLT_NUDGE`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_NUDGE)             | Radians each free body is turned by on a retry, alternating in sign (see `_nudge`): far below what a frame shows, enough to buckle a straight chain pushed along its length.                                                                                                                          |
-| [`DFLT_POSITION_QUANTUM`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_POSITION_QUANTUM)  | finer than any render shows.                                                                                                                                                                                                                                                                          |
-| [`DFLT_SEGMENT_MARGIN`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_SEGMENT_MARGIN)    | A contact or slide looks this far past a segment's ends (scene units) before letting the point go: a foot half a unit past the edge still stands.                                                                                                                                                     |
-| [`SOLVER_VERSION`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.SOLVER_VERSION)         | Bumped whenever the solve can give a different answer for the same inputs (a changed projection, order, or default): part of every cache key built on this module.                                                                                                                                    |
-| [`DFLT_CONVERGE_CAP`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_CONVERGE_CAP)      | The most passes a frame whose first retry made progress is given, as a multiple of `iterations`: its retry is repeated with `retry` times the passes while each round still makes progress (an#568).                                                                                                  |
-| [`DFLT_STALL_PROGRESS`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_STALL_PROGRESS)    | A later round STALLS when what is left is more than this fraction of the round before (it cut less than 10%): a conflict, given up.                                                                                                                                                                   |
-| [`POSE_CHANNELS`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.POSE_CHANNELS)          | The pose channels, in the order `SolveResult.poses` holds them.                                                                                                                                                                                                                                       |
-| [`Targets`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.Targets)                | `{body name: {channel: value}}`; a channel given is held at its value for the frame (a nail), the others move.                                                                                                                                                                                        |
+| [`DFLT_ITERATIONS`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_ITERATIONS)        | Gauss–Seidel passes over the joints per substep (dynamic) or per solve (pose).                                                                                                                                                                                                                                                                                         |
+|-------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`DFLT_SUBSTEPS`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_SUBSTEPS)          | "smaller time steps are more effective than more iterations" (Catto 2024), and four keeps a 24 fps frame under a quarter of its period of free fall at 980 px/s².                                                                                                                                                                                                      |
+| [`DFLT_DAMPING`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_DAMPING)           | the one style knob a puppet has for how long it swings.                                                                                                                                                                                                                                                                                                                |
+| [`DFLT_TOLERANCE`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_TOLERANCE)         | A joined joint whose points are further apart than this after the solve is reported as unsatisfied (scene units; a quarter pixel is below what a render shows).                                                                                                                                                                                                        |
+| [`DFLT_ANGLE_TOLERANCE`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_ANGLE_TOLERANCE)   | A hinge or weld whose angle is outside its range by more than this is reported (radians; 1e-3 rad is 0.06 degrees).                                                                                                                                                                                                                                                    |
+| [`DFLT_CONFLICT_RETRY`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_CONFLICT_RETRY)    | A solve that leaves a joint failing is run again with this many times the iterations before anything is given up: what more passes fix was slow convergence (a hard swing), what they do not is a conflict.                                                                                                                                                            |
+| [`DFLT_CONFLICT_PROGRESS`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_CONFLICT_PROGRESS) | A failing joint is in conflict when the retry left more than this fraction of its failure (residual over tolerance, or range broken over angle tolerance): a conflict is what more passes do not fix.                                                                                                                                                                  |
+| [`DFLT_REGRIP_SPEED`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_REGRIP_SPEED)      | How fast (scene units per second of film) the free end of a chain is led back to a grip it lost out of reach and that is back within reach, when one frame cannot close the gap (an#645): a 50-link rope 600 units from its end takes it back in about a second.                                                                                                       |
+| [`DFLT_REGRIP_SNAP`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_REGRIP_SNAP)       | A led grip is taken (its pin enforced again) once its gap is this small (scene units): the rejoin the stage's own check calls a snap is over 2.                                                                                                                                                                                                                        |
+| [`DFLT_REGRIP_STRENGTH`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_REGRIP_STRENGTH)   | The strength of that lead (a `Force` pull toward the walking point, which closes no loop a conflict could settle by giving up a link), for bodies of the kinematics' own scale (a link of 10 by 2 units); a caller whose bodies weigh more scales it (the stage: by the led chain's mass, [`regrip_strength_by_mass()`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.regrip_strength_by_mass)). |
+| [`DFLT_MAX_DROP_TRIALS`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_MAX_DROP_TRIALS)   | The most trial solves [`solve()`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.solve) spends looking for the joint to give up in a conflict (each is a full solve of the frame).                                                                                                                                                                                              |
+| [`DFLT_NUDGE`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_NUDGE)             | Radians each free body is turned by on a retry, alternating in sign (see `_nudge`): far below what a frame shows, enough to buckle a straight chain pushed along its length.                                                                                                                                                                                           |
+| [`DFLT_POSITION_QUANTUM`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_POSITION_QUANTUM)  | finer than any render shows.                                                                                                                                                                                                                                                                                                                                           |
+| [`DFLT_SEGMENT_MARGIN`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_SEGMENT_MARGIN)    | A contact or slide looks this far past a segment's ends (scene units) before letting the point go: a foot half a unit past the edge still stands.                                                                                                                                                                                                                      |
+| [`SOLVER_VERSION`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.SOLVER_VERSION)         | Bumped whenever the solve can give a different answer for the same inputs (a changed projection, order, or default): part of every cache key built on this module.                                                                                                                                                                                                     |
+| [`DFLT_CONVERGE_CAP`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_CONVERGE_CAP)      | The most passes a frame whose first retry made progress is given, as a multiple of `iterations`: its retry is repeated with `retry` times the passes while each round still makes progress (an#568).                                                                                                                                                                   |
+| [`DFLT_STALL_PROGRESS`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_STALL_PROGRESS)    | A later round STALLS when what is left is more than this fraction of the round before (it cut less than 10%): a conflict, given up.                                                                                                                                                                                                                                    |
+| [`POSE_CHANNELS`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.POSE_CHANNELS)          | The pose channels, in the order `SolveResult.poses` holds them.                                                                                                                                                                                                                                                                                                        |
+| [`Targets`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.Targets)                | `{body name: {channel: value}}`; a channel given is held at its value for the frame (a nail), the others move.                                                                                                                                                                                                                                                         |
 
 ### Functions
 
@@ -25612,6 +25654,7 @@ built on a solve is built on its INPUTS ([`inputs_digest()`](_autosummary/an.kin
 |----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`inputs_digest`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.inputs_digest)(bodies, joints, \*[, targets, ...]) | A hex digest of everything a solve reads, with [`SOLVER_VERSION`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.SOLVER_VERSION): the cache key for a solve (or a run of them: pass the per-frame targets as a list, and `frames`, `dt` and the rest as `options`). |
 | [`quantize`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.quantize)(poses, \*[, position_quantum, ...])      | `poses` (any shape whose last axis is [`POSE_CHANNELS`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.POSE_CHANNELS)) rounded to the quanta a document stores: positions and scale to `position_quantum`, rotation to `angle_quantum`.                            |
+| [`regrip_strength_by_mass`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.regrip_strength_by_mass)(chain_mass, \*, per_mass) | The lead's strength for a led chain of `chain_mass` (an#672): a pull of `per_mass` for each unit of mass it drags.                                                                                                                                |
 | [`resolve_rests`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.resolve_rests)(bodies, joints)                     | `joints` with every `rest=None` hinge and weld given the relative angle the bodies have now, so a run of frames measures its limits from one pose rather than from each frame's.                                                                  |
 | [`solve`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.solve)(bodies, joints, \*[, targets, forces, ...]) | One frame: the poses of all `bodies` that satisfy the joined `joints` with the `targets` held, forces and `gravity` acting.                                                                                                                       |
 | [`solve_frames`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.solve_frames)(bodies, joints, \*, frames, dt)      | `frames` solves in a row, each starting from the last: the caller's time dimension.                                                                                                                                                               |
@@ -25712,7 +25755,7 @@ takes it back in about a second.
 The strength of that lead (a `Force` pull toward the walking point,
 which closes no loop a conflict could settle by giving up a link), for
 bodies of the kinematics’ own scale (a link of 10 by 2 units); a caller whose
-bodies weigh more scales it (the stage: `an.stage.solve.REGRIP_MASS_SCALE`).
+bodies weigh more scales it (the stage: by the led chain’s mass, [`regrip_strength_by_mass()`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.regrip_strength_by_mass)).
 Too stiff, it drags a chain past a range it cannot keep (an#568’s elbow).
 
 ### an.kinematics.solver.DFLT_SEGMENT_MARGIN *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
@@ -25774,7 +25817,7 @@ grips back (an#645): the grips the geometry ruled out (or a conflict took
 from a grip the lead had taken back) on the frame before, those being led
 with their gap, those the lead took back, and the frame before’s drops.
 
-### an.kinematics.solver.SOLVER_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '6'*
+### an.kinematics.solver.SOLVER_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '7'*
 
 Bumped whenever the solve can give a different answer for the same inputs
 (a changed projection, order, or default): part of every cache key built
@@ -25783,7 +25826,8 @@ on this module.
 the first candidate that halves the failure (an#641); 4: a slack chain of more
 than two links held at both ends is seeded on an arc (an#646); 5: a grip lost
 out of reach is led back over several frames (an#645); 6: the stage’s per-frame
-solve leads lost grips back too (an#668).
+solve leads lost grips back too (an#668); 7: it pulls each lead by the led
+chain’s own mass (an#672).
 
 ### *class* an.kinematics.solver.SolveResult(bodies, poses, residuals, unsatisfied, limit_violations, dropped=(), out_of_reach=())
 
@@ -25880,6 +25924,24 @@ to the quanta a document stores: positions and scale to
 
 * **Return type:**
   `ndarray`
+
+### an.kinematics.solver.regrip_strength_by_mass(chain_mass, , per_mass)
+
+The lead’s strength for a led chain of `chain_mass` (an#672): a pull
+of `per_mass` for each unit of mass it drags. Force over mass is what
+the chain feels, so one `per_mass` gives a light arm and a heavy limb
+the same lead; one fixed strength leaves the heavy one hovering short of
+its grip (an#668) or, stiffened for it, drags the light one past its
+elbow’s range (an#568). The caller calibrates `per_mass` on a chain of
+its own scale (the stage: `an.stage.solve.REGRIP_STRENGTH_PER_MASS`).
+
+```pycon
+>>> regrip_strength_by_mass(2.0, per_mass=5.0)
+10.0
+```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.kinematics.solver.resolve_rests(bodies, joints)
 
@@ -25987,6 +26049,12 @@ straight at it instead. A link given up while a grip the lead took back
 holds gives up that grip instead (an#641). `step` 0 (pose mode, no
 time to walk in) leads nothing. The [`solve_frames()`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.solve_frames) loop and the
 stage’s per-frame solve both run their frames through it (an#668).
+
+`strength` is the lead’s pull, or a function of the led chain’s mass
+(the free bodies the grip’s free point drags, up to a fixed or held one)
+to it: the stage’s bodies weigh what their area is, so one number does not
+suit them all ([`regrip_strength_by_mass()`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.regrip_strength_by_mass), an#672). The grips led
+this frame are `state.walking`’s keys after the call.
 
 * **Return type:**
   [`SolveResult`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.SolveResult)
@@ -33757,10 +33825,12 @@ the methods the vocabulary registry holds for an aspect.
 
 ### Functions
 
-| [`applicable`](_autosummary/an.semantic.matcher.html.md#an.semantic.matcher.applicable)(aspect_name, subjects)                | The methods of `aspect_name` that apply to `subjects`, the default chain's order first.   |
-|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
-| [`resolve`](_autosummary/an.semantic.matcher.html.md#an.semantic.matcher.resolve)(aspect_name, subjects[, requested, ...]) | Choose the method that realises `aspect_name` on `subjects`.                              |
-| [`why_not`](_autosummary/an.semantic.matcher.html.md#an.semantic.matcher.why_not)(method, subjects)                        | What `method` is missing on `subjects`, each with its remedy (empty: it applies).         |
+| [`applicable`](_autosummary/an.semantic.matcher.html.md#an.semantic.matcher.applicable)(aspect_name, subjects)                | The methods of `aspect_name` that apply to `subjects`, the default chain's order first.                                                       |
+|---------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+| [`as_choice`](_autosummary/an.semantic.matcher.html.md#an.semantic.matcher.as_choice)(x, aspect_name)                        | `x` (a `Method`, a `Choice` or its spelling) as a `Choice` within `aspect_name`, `None` for nothing (public for a genre, reeleehq/cutan#148). |
+| [`resolve`](_autosummary/an.semantic.matcher.html.md#an.semantic.matcher.resolve)(aspect_name, subjects[, requested, ...]) | Choose the method that realises `aspect_name` on `subjects`.                                                                                  |
+| [`lookup_method`](_autosummary/an.semantic.matcher.html.md#an.semantic.matcher.lookup_method)(x[, aspect_name])                  | The method `x` names — by spelling within `aspect_name`, else by id (public for a genre's own method tables, reeleehq/cutan#148).             |
+| [`why_not`](_autosummary/an.semantic.matcher.html.md#an.semantic.matcher.why_not)(method, subjects)                        | What `method` is missing on `subjects`, each with its remedy (empty: it applies).                                                             |
 
 ### Classes
 
@@ -33806,6 +33876,52 @@ The methods of `aspect_name` that apply to `subjects`, the default chain’s ord
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Method`](_autosummary/an.semantic.html.md#an.semantic.Method), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+### an.semantic.matcher.as_choice(x, aspect_name)
+
+`x` (a `Method`, a `Choice` or its spelling) as a
+`Choice` within `aspect_name`, `None` for nothing (public for a
+genre, reeleehq/cutan#148).
+
+```pycon
+>>> as_choice(None, "any") is None, as_choice("", "any") is None
+(True, True)
+>>> as_choice(Method("ac.trot", aspect="ac_move"), "ac_move").method
+'ac.trot'
+```
+
+* **Raises:**
+  [**VocabularyError**](_autosummary/an.semantic.html.md#an.semantic.VocabularyError) – For a pinned version the registry does not have, or a
+      pinned method [`lookup_method()`](_autosummary/an.semantic.matcher.html.md#an.semantic.matcher.lookup_method) refuses.
+* **Return type:**
+  [`Choice`](_autosummary/an.semantic.html.md#an.semantic.Choice) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.semantic.matcher.lookup_method(x, aspect_name=None)
+
+The method `x` names — by spelling within `aspect_name`, else by id
+(public for a genre’s own method tables, reeleehq/cutan#148). A lookup
+only: unlike [`resolve()`](_autosummary/an.semantic.matcher.html.md#an.semantic.matcher.resolve), it checks no applicability.
+
+```pycon
+>>> from an.semantic.registry import register_entry, drop_owner
+>>> _ = register_entry(Method("lk.walk", aspect="lk_move"), owner="lk")
+>>> lookup_method("lk.walk").aspect, lookup_method(Choice("lk.walk"), "lk_move").id
+('lk_move', 'lk.walk')
+>>> lookup_method("lk.walk", "lk_other")
+Traceback (most recent call last):
+...
+an.semantic.registry.VocabularyError: ...
+>>> drop_owner("lk")
+```
+
+* **Raises:**
+  [**VocabularyError**](_autosummary/an.semantic.html.md#an.semantic.VocabularyError) – For a name no method has, or (with `aspect_name`) a
+      method of another aspect.
+* **Return type:**
+  [`Method`](_autosummary/an.semantic.html.md#an.semantic.Method)
+
+With `aspect_name`, a method of ANOTHER aspect is refused: a typo in a
+style’s `policy:` block must not realise one aspect with another’s method.
 
 ### an.semantic.matcher.resolve(aspect_name, subjects, requested=None, , declared=None, policy=None, entity='', entity_kind=None)
 
@@ -48036,20 +48152,20 @@ scene: the scene file to read, inside the project (default scene.md; for example
 
 # About this build
 
-This documentation was built on **2026-11-01 20:06 UTC** from commit <a href="https://github.com/reeleehq/an/commit/914089dd7a54f66b22b06b0855508706f76024b1"><code>914089d</code></a> on branch <code>main</code>, for **an 0.1.349** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-01 20:24 UTC** from commit <a href="https://github.com/reeleehq/an/commit/816bca349d71fcb84bff3c86d06e65c0c218c7ce"><code>816bca3</code></a> on branch <code>main</code>, for **an 0.1.350** (from <code>pyproject.toml</code>).
 
 #### WARNING
 The documentation and the package may be misaligned:
 
-- The documented version (0.1.349) is ahead of the latest release on PyPI (0.1.348): these docs describe unreleased code.
+- The documented version (0.1.350) is ahead of the latest release on PyPI (0.1.349): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                    |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/an/commit/914089dd7a54f66b22b06b0855508706f76024b1"><code>914089dd7a54f66b22b06b0855508706f76024b1</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/an/commit/816bca349d71fcb84bff3c86d06e65c0c218c7ce"><code>816bca349d71fcb84bff3c86d06e65c0c218c7ce</code></a> |
 | Branch              | <code>main</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.349</code>                                                                                                                               |
+| Tags at this commit | <code>0.1.350</code>                                                                                                                               |
 | Working tree        | clean                                                                                                                                              |
 | Remote              | <code>https://github.com/reeleehq/an</code>                                                                                                        |
 
@@ -48058,9 +48174,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/an</code>                                                                   |
-| Run          | <a href="https://github.com/reeleehq/an/actions/runs/41343494066">41343494066</a>          |
+| Run          | <a href="https://github.com/reeleehq/an/actions/runs/41345943021">41345943021</a>          |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>e7329351712c3cc1bdb9a35454b7ce32c732e0de</code> (in the history of the built commit) |
+| Event commit | <code>bb52cec3b159c02ea232a36548cee01bcbc5a300</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -48085,13 +48201,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.348/">0.1.348</a>, older than the documented version (0.1.349).
+Latest release: <a href="https://pypi.org/project/an/0.1.349/">0.1.349</a>, older than the documented version (0.1.350).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/an && cd an
-git checkout 914089dd7a54f66b22b06b0855508706f76024b1
+git checkout 816bca349d71fcb84bff3c86d06e65c0c218c7ce
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

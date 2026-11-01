@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=7152e6da"></script>
+    <script src="../_static/documentation_options.js?v=92768188"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.349" />
+  <meta name="docsearch:version" content="0.1.350" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -689,8 +689,14 @@ recorded as a <code class="docutils literal notranslate"><span class="pre">missi
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.semantic.matcher.applicable" title="an.semantic.matcher.applicable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">applicable</span></code></a>(aspect_name, subjects)</p></td>
 <td><p>The methods of <code class="docutils literal notranslate"><span class="pre">aspect_name</span></code> that apply to <code class="docutils literal notranslate"><span class="pre">subjects</span></code>, the default chain's order first.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.semantic.matcher.resolve" title="an.semantic.matcher.resolve"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve</span></code></a>(aspect_name, subjects[, requested, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.semantic.matcher.as_choice" title="an.semantic.matcher.as_choice"><code class="xref py py-obj docutils literal notranslate"><span class="pre">as_choice</span></code></a>(x, aspect_name)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">x</span></code> (a <code class="xref py py-class docutils literal notranslate"><span class="pre">Method</span></code>, a <code class="xref py py-class docutils literal notranslate"><span class="pre">Choice</span></code> or its spelling) as a <code class="xref py py-class docutils literal notranslate"><span class="pre">Choice</span></code> within <code class="docutils literal notranslate"><span class="pre">aspect_name</span></code>, <code class="docutils literal notranslate"><span class="pre">None</span></code> for nothing (public for a genre, reeleehq/cutan#148).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.semantic.matcher.resolve" title="an.semantic.matcher.resolve"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve</span></code></a>(aspect_name, subjects[, requested, ...])</p></td>
 <td><p>Choose the method that realises <code class="docutils literal notranslate"><span class="pre">aspect_name</span></code> on <code class="docutils literal notranslate"><span class="pre">subjects</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.semantic.matcher.lookup_method" title="an.semantic.matcher.lookup_method"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lookup_method</span></code></a>(x[, aspect_name])</p></td>
+<td><p>The method <code class="docutils literal notranslate"><span class="pre">x</span></code> names — by spelling within <code class="docutils literal notranslate"><span class="pre">aspect_name</span></code>, else by id (public for a genre's own method tables, reeleehq/cutan#148).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.semantic.matcher.why_not" title="an.semantic.matcher.why_not"><code class="xref py py-obj docutils literal notranslate"><span class="pre">why_not</span></code></a>(method, subjects)</p></td>
 <td><p>What <code class="docutils literal notranslate"><span class="pre">method</span></code> is missing on <code class="docutils literal notranslate"><span class="pre">subjects</span></code>, each with its remedy (empty: it applies).</p></td>
@@ -758,6 +764,59 @@ over, information for whoever records the choice, never a substitution);
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference internal" href="an.semantic.html#an.semantic.Method" title="an.semantic.entries.Method"><code class="xref py py-class docutils literal notranslate"><span class="pre">Method</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#Ellipsis" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code></a>]</span></p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.semantic.matcher.as_choice">
+<span class="sig-prename descclassname"><span class="pre">an.semantic.matcher.</span></span><span class="sig-name descname"><span class="pre">as_choice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aspect_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/semantic/matcher.html#as_choice"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.semantic.matcher.as_choice" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">x</span></code> (a <code class="xref py py-class docutils literal notranslate"><span class="pre">Method</span></code>, a <code class="xref py py-class docutils literal notranslate"><span class="pre">Choice</span></code> or its spelling) as a
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Choice</span></code> within <code class="docutils literal notranslate"><span class="pre">aspect_name</span></code>, <code class="docutils literal notranslate"><span class="pre">None</span></code> for nothing (public for a
+genre, reeleehq/cutan#148).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">as_choice</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">"any"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span> <span class="n">as_choice</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="s2">"any"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="go">(True, True)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">as_choice</span><span class="p">(</span><span class="n">Method</span><span class="p">(</span><span class="s2">"ac.trot"</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="s2">"ac_move"</span><span class="p">),</span> <span class="s2">"ac_move"</span><span class="p">)</span><span class="o">.</span><span class="n">method</span>
+<span class="go">'ac.trot'</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="an.semantic.html#an.semantic.VocabularyError" title="an.semantic.VocabularyError"><strong>VocabularyError</strong></a> – For a pinned version the registry does not have, or a
+    pinned method <a class="reference internal" href="#an.semantic.matcher.lookup_method" title="an.semantic.matcher.lookup_method"><code class="xref py py-func docutils literal notranslate"><span class="pre">lookup_method()</span></code></a> refuses.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.semantic.html#an.semantic.Choice" title="an.semantic.entries.Choice"><code class="xref py py-class docutils literal notranslate"><span class="pre">Choice</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.semantic.matcher.lookup_method">
+<span class="sig-prename descclassname"><span class="pre">an.semantic.matcher.</span></span><span class="sig-name descname"><span class="pre">lookup_method</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aspect_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/semantic/matcher.html#lookup_method"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.semantic.matcher.lookup_method" title="Link to this definition">#</a></dt>
+<dd><p>The method <code class="docutils literal notranslate"><span class="pre">x</span></code> names — by spelling within <code class="docutils literal notranslate"><span class="pre">aspect_name</span></code>, else by id
+(public for a genre’s own method tables, reeleehq/cutan#148). A lookup
+only: unlike <a class="reference internal" href="#an.semantic.matcher.resolve" title="an.semantic.matcher.resolve"><code class="xref py py-func docutils literal notranslate"><span class="pre">resolve()</span></code></a>, it checks no applicability.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.semantic.registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_entry</span><span class="p">,</span> <span class="n">drop_owner</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">register_entry</span><span class="p">(</span><span class="n">Method</span><span class="p">(</span><span class="s2">"lk.walk"</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="s2">"lk_move"</span><span class="p">),</span> <span class="n">owner</span><span class="o">=</span><span class="s2">"lk"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lookup_method</span><span class="p">(</span><span class="s2">"lk.walk"</span><span class="p">)</span><span class="o">.</span><span class="n">aspect</span><span class="p">,</span> <span class="n">lookup_method</span><span class="p">(</span><span class="n">Choice</span><span class="p">(</span><span class="s2">"lk.walk"</span><span class="p">),</span> <span class="s2">"lk_move"</span><span class="p">)</span><span class="o">.</span><span class="n">id</span>
+<span class="go">('lk_move', 'lk.walk')</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lookup_method</span><span class="p">(</span><span class="s2">"lk.walk"</span><span class="p">,</span> <span class="s2">"lk_other"</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">an.semantic.registry.VocabularyError</span>: <span class="n">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">drop_owner</span><span class="p">(</span><span class="s2">"lk"</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="an.semantic.html#an.semantic.VocabularyError" title="an.semantic.VocabularyError"><strong>VocabularyError</strong></a> – For a name no method has, or (with <code class="docutils literal notranslate"><span class="pre">aspect_name</span></code>) a
+    method of another aspect.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.semantic.html#an.semantic.Method" title="an.semantic.entries.Method"><code class="xref py py-class docutils literal notranslate"><span class="pre">Method</span></code></a></span></p>
+</dd>
+</dl>
+<p>With <code class="docutils literal notranslate"><span class="pre">aspect_name</span></code>, a method of ANOTHER aspect is refused: a typo in a
+style’s <code class="docutils literal notranslate"><span class="pre">policy:</span></code> block must not realise one aspect with another’s method.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -843,6 +902,8 @@ does not apply: it falls back and records why.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.semantic.matcher.Missing"><code class="docutils literal notranslate"><span class="pre">Missing</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.semantic.matcher.Resolution"><code class="docutils literal notranslate"><span class="pre">Resolution</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.semantic.matcher.applicable"><code class="docutils literal notranslate"><span class="pre">applicable()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.semantic.matcher.as_choice"><code class="docutils literal notranslate"><span class="pre">as_choice()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.semantic.matcher.lookup_method"><code class="docutils literal notranslate"><span class="pre">lookup_method()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.semantic.matcher.resolve"><code class="docutils literal notranslate"><span class="pre">resolve()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.semantic.matcher.why_not"><code class="docutils literal notranslate"><span class="pre">why_not()</span></code></a></li>
 </ul>

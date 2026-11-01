@@ -73,6 +73,7 @@ upgrade it ([`an.audio.shared_mixing.mixing_too_old()`](an.audio.shared_mixing.h
 | [`leveled_key`](#an.audio.loudness.leveled_key)(source, \*, gain_db, peak_db)   | The content key of a leveled line: the sha256 of its source audio's BYTES (not the request that made them: a take re-synthesised under the same request is other audio, an#315 review), the gain, the ceiling, the rate a non-WAV source is decoded at, and [`LEVEL_VERSION`](#an.audio.loudness.LEVEL_VERSION). |
 | [`limit_peaks`](#an.audio.loudness.limit_peaks)(samples, \*, ceiling[, window]) | `samples` with no sample above `ceiling` (absolute, full scale 1.0): `mixing.loudness.limit_peaks()` (sample peak), the lookahead limiter that moved there unchanged from here (an#563).                                                                                                                                    |
 | [`loudness_report`](#an.audio.loudness.loudness_report)(scene, mall)                | Every voice's integrated loudness over its lines, as heard now (a leveled line's leveled audio).                                                                                                                                                                                                                            |
+| [`voice_loudness_offset`](#an.audio.loudness.voice_loudness_offset)(mall, voice)          | The `loudness_offset_db` `voice`'s document asks for (0 when unset), checked against [`OFFSET_LIMITS_DB`](#an.audio.loudness.OFFSET_LIMITS_DB); public for a genre's pack (reeleehq/cutan#148).                                                                                                                     |
 | [`voice_loudness_spread`](#an.audio.loudness.voice_loudness_spread)(levels)               | What to say when the audible voices differ by more than [`SPREAD_WARNING_DB`](#an.audio.loudness.SPREAD_WARNING_DB); `None` otherwise.                                                                                                                                                                               |
 | [`voiced_lines`](#an.audio.loudness.voiced_lines)(scene, mall)                   | `{voice id: [line, ...]}` for every line with audio in the store.                                                                                                                                                                                                                                                           |
 | [`voiced_sources`](#an.audio.loudness.voiced_sources)(scene, mall)                 | [`voiced_lines()`](#an.audio.loudness.voiced_lines), by each line's SOURCE audio (a leveled line's own).                                                                                                                                                                                                        |
@@ -233,6 +234,22 @@ leveled line’s leveled audio).
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`VoiceLevel`](#an.audio.loudness.VoiceLevel)]
+
+### an.audio.loudness.voice_loudness_offset(mall, voice)
+
+The `loudness_offset_db` `voice`’s document asks for (0 when
+unset), checked against [`OFFSET_LIMITS_DB`](#an.audio.loudness.OFFSET_LIMITS_DB); public for a genre’s
+pack (reeleehq/cutan#148).
+
+```pycon
+>>> voice_loudness_offset({"voices": {"kid": {"loudness_offset_db": 3}}}, "kid")
+3.0
+```
+
+* **Raises:**
+  [**VoiceLoudnessError**](#an.audio.loudness.VoiceLoudnessError) – For an offset that is not a number within the limits.
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.audio.loudness.voice_loudness_spread(levels)
 

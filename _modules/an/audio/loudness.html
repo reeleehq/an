@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=7152e6da"></script>
+    <script src="../../../_static/documentation_options.js?v=92768188"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.349" />
+  <meta name="docsearch:version" content="0.1.350" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1081,7 +1081,19 @@ window.runMermaid = runMermaid;</script>
 
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_offset</span><span class="p">(</span><span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">voice</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="voice_loudness_offset">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.loudness.html#an.audio.loudness.voice_loudness_offset">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">voice_loudness_offset</span><span class="p">(</span><span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">voice</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The ``loudness_offset_db`` ``voice``'s document asks for (0 when</span>
+<span class="sd">    unset), checked against :data:`OFFSET_LIMITS_DB`; public for a genre's</span>
+<span class="sd">    pack (reeleehq/cutan#148).</span>
+
+<span class="sd">    &gt;&gt;&gt; voice_loudness_offset({"voices": {"kid": {"loudness_offset_db": 3}}}, "kid")</span>
+<span class="sd">    3.0</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        VoiceLoudnessError: For an offset that is not a number within the limits.</span>
+<span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.voices</span><span class="w"> </span><span class="kn">import</span> <span class="n">voice_document</span>
 
     <span class="n">raw</span> <span class="o">=</span> <span class="n">voice_document</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">voice</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"loudness_offset_db"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
@@ -1095,7 +1107,12 @@ window.runMermaid = runMermaid;</script>
             <span class="sa">f</span><span class="s2">"voice </span><span class="si">{</span><span class="n">voice</span><span class="si">!r}</span><span class="s2">: loudness_offset_db must be a number in [</span><span class="si">{</span><span class="n">lo</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">hi</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">] "</span>
             <span class="sa">f</span><span class="s2">"dB, got </span><span class="si">{</span><span class="n">raw</span><span class="si">!r}</span><span class="s2">"</span>
         <span class="p">)</span>
-    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span></div>
+
+
+
+<span class="c1">#: The name genre packages imported before it was public (API level &lt; 13); removed by an#709.</span>
+<span class="n">_offset</span> <span class="o">=</span> <span class="n">voice_loudness_offset</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_source</span><span class="p">(</span><span class="n">line</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -1135,7 +1152,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">store</span> <span class="o">=</span> <span class="n">mall</span><span class="p">[</span><span class="s2">"audio"</span><span class="p">]</span>
     <span class="n">levels</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">voice</span><span class="p">,</span> <span class="n">lines</span> <span class="ow">in</span> <span class="n">voiced_sources</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">mall</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">target</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">target_lufs</span> <span class="o">+</span> <span class="n">_offset</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">voice</span><span class="p">)</span>
+        <span class="n">target</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">target_lufs</span> <span class="o">+</span> <span class="n">voice_loudness_offset</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">voice</span><span class="p">)</span>
         <span class="n">sources</span> <span class="o">=</span> <span class="p">[</span><span class="n">store</span><span class="p">[</span><span class="n">_source</span><span class="p">(</span><span class="n">line</span><span class="p">)]</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">]</span>
         <span class="n">recorded</span> <span class="o">=</span> <span class="p">{(</span><span class="n">line</span><span class="o">.</span><span class="n">leveled</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"gain_db"</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">}</span>
         <span class="n">previous</span> <span class="o">=</span> <span class="n">recorded</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">recorded</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="kc">None</span>
