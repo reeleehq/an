@@ -1248,7 +1248,9 @@ def test_mfa_and_gentle_json_give_the_phones_their_textgrid_gives(tmp_path):
         inside = [p for p in phones if a <= p[0] < b]
         gentle_words.append({
             "word": t, "alignedWord": t.lower(), "case": "success", "start": a, "end": b,
-            "phones": [{"phone": f"{ph.lower()}_I", "duration": round(e - s, 6)}
+            # Gentle's phones are CMU's without stress (`ah_I`), and an
+            # unknown word's is `oov`: dropped, as MFA's `spn` is
+            "phones": [{"phone": f"{ph.rstrip('012').lower()}_I", "duration": round(e - s, 6)}
                        for s, e, ph in inside],
         })  # fmt: skip
     gentle = tmp_path / "gentle.json"
@@ -1264,4 +1266,21 @@ def test_mfa_and_gentle_json_give_the_phones_their_textgrid_gives(tmp_path):
     by_grid = phones_of(grid, "g")
     assert by_grid and by_grid[0][0] == "HH"
     assert phones_of(mfa, "m") == by_grid
-    assert phones_of(gentle, "j") == by_grid
+    unstressed = [[p.rstrip("012"), a, b] for p, a, b in by_grid]
+    assert phones_of(gentle, "j") == unstressed
+
+
+def test_json_that_is_not_mfa_s_keeps_its_segments_and_oov_is_not_a_phone():
+    """an#715 review: a JSON with its own `segments` and an unrelated `tiers`
+    key is read as segments, not as MFA's; a malformed MFA entry is said; and
+    Gentle's `oov` (an unknown word) is not a phone."""
+    from an.audio.transcripts import _gentle_phones, parse_json
+
+    both = {"segments": [{"text": "carl: hi", "start": 0.0, "end": 1.0}],
+            "tiers": {"meta": {"note": "x"}}}  # fmt: skip
+    assert [s.text for s in parse_json(both)] == ["hi"]
+    with pytest.raises(ValueError, match=r"\[start, end, label\]"):
+        parse_json({"tiers": {"words": {"entries": [[0.5, "hi"]]}}})
+    unknown = {"alignedWord": "<unk>", "start": 0.5, "end": 0.8,
+               "phones": [{"phone": "oov_S", "duration": 0.3}]}  # fmt: skip
+    assert _gentle_phones(unknown) == []

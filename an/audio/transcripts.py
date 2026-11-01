@@ -355,7 +355,7 @@ def parse_json(obj: Any) -> list[TranscriptSegment]:
     >>> segs[0].text, segs[0].start, segs[0].end, segs[0].words
     ('Hello there', 0.5, 1.2, (('Hello', 0.5, 0.9), ('there', 0.9, 1.2)))
     """
-    if isinstance(obj, Mapping) and isinstance(obj.get("tiers"), Mapping):
+    if _is_mfa_json(obj):
         return parse_mfa_json(obj)  # the Montreal Forced Aligner's JSON (an#715)
     if isinstance(obj, Mapping):
         items = obj.get("segments")
@@ -446,6 +446,19 @@ def _gentle_phones(word: Any) -> list[WordTiming]:
     return out
 
 
+def _is_mfa_json(obj: Any) -> bool:
+    """Whether ``obj`` is MFA's JSON: ``tiers`` of ``{"entries": [...]}``, and
+    no ``segments``/``words`` of its own (which another writer's would be)."""
+    if not isinstance(obj, Mapping) or "segments" in obj or "words" in obj:
+        return False
+    tiers = obj.get("tiers")
+    return (
+        isinstance(tiers, Mapping)
+        and bool(tiers)
+        and all(isinstance(t, Mapping) and isinstance(t.get("entries"), list) for t in tiers.values())
+    )
+
+
 def parse_mfa_json(obj: Mapping[str, Any]) -> list[TranscriptSegment]:
     """The Montreal Forced Aligner's JSON (``--output_format json``):
     ``{"tiers": {name: {"entries": [[start, end, label], ...]}}}`` read as its
@@ -455,14 +468,19 @@ def parse_mfa_json(obj: Mapping[str, Any]) -> list[TranscriptSegment]:
     ...                           "take - phones": {"entries": [[0.5, 0.6, "HH"], [0.6, 0.9, "AH0"]]}}})[0].phones
     (('HH', 0.5, 0.6), ('AH0', 0.6, 0.9))
     """
-    tiers = {
-        str(name): [
-            (float(a), float(b), str(label))
-            for a, b, label in (tier.get("entries") or [])
-        ]
-        for name, tier in (obj.get("tiers") or {}).items()
-        if isinstance(tier, Mapping)
-    }
+    tiers: dict[str, list[tuple[float, float, str]]] = {}
+    for name, tier in (obj.get("tiers") or {}).items():
+        if not isinstance(tier, Mapping):
+            continue
+        entries = []
+        for entry in tier.get("entries") or []:
+            if not isinstance(entry, (list, tuple)) or len(entry) != 3:
+                raise ValueError(
+                    f"MFA JSON tier {name!r}: an entry is [start, end, label], got {entry!r}"
+                )
+            a, b, label = entry
+            entries.append((float(a), float(b), str(label)))
+        tiers[str(name)] = sorted(entries)  # MFA's JSON writer does not sort
     return segments_from_tiers(tiers)
 
 
@@ -493,8 +511,9 @@ _TG_WORD_TIERS: tuple[str, ...] = ("words", "word", "ortho", "orthography")
 _TG_PHONE_TIERS: tuple[str, ...] = ("phones", "phone", "phonemes", "phoneme", "mau")
 #: Interval labels that are silence, not speech (compared lower-case): dropped
 #: from words and phones, as is any label in ``<…>``, ``[…]`` or ``+…+``
-#: (WebMAUS's ``<p:>``, a ``+breath+``, a ``[noise]``).
-_TG_SILENCE: frozenset[str] = frozenset({"sil", "sp", "spn", ""})
+#: (WebMAUS's ``<p:>``, a ``+breath+``, a ``[noise]``). ``spn`` is MFA's
+#: unknown word, ``oov`` Gentle's (an#715).
+_TG_SILENCE: frozenset[str] = frozenset({"sil", "sp", "spn", "oov", ""})
 _TG_BRACKETS: tuple[tuple[str, str], ...] = (("<", ">"), ("[", "]"), ("+", "+"))
 
 
@@ -579,7 +598,8 @@ def segments_from_tiers(
     as a TextGrid or MFA's JSON carries them) → segments: the words from a
     tier named ``words`` (else the first that is neither phones nor lines),
     the phones from a ``phones`` tier, one segment per interval of a lines
-    tier when there is one (MFA's ``"<speaker> - words"`` names included).
+    tier when there is one. MFA's ``"<speaker> - words"`` names are read for
+    ONE speaker: with several, the first speaker's tiers are.
 
     >>> segments_from_tiers({"words": [(0.5, 0.9, "hello")], "phones": [(0.5, 0.6, "HH"), (0.6, 0.9, "AH0")]})[0].phones
     (('HH', 0.5, 0.6), ('AH0', 0.6, 0.9))
