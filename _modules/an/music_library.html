@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../_static/documentation_options.js?v=3d30c101"></script>
+    <script src="../../_static/documentation_options.js?v=d52a62c3"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.347" />
+  <meta name="docsearch:version" content="0.1.348" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1047,7 +1047,9 @@ window.runMermaid = runMermaid;</script>
         <span class="n">library</span><span class="o">=</span><span class="n">library</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
         <span class="n">status</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"status"</span><span class="p">,</span> <span class="s2">""</span><span class="p">),</span>
         <span class="n">license</span><span class="o">=</span><span class="n">track_license</span><span class="p">(</span>
-            <span class="n">library</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s2">"title"</span><span class="p">],</span> <span class="n">page_url</span><span class="o">=</span><span class="n">cell</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source_page_url"</span><span class="p">),</span>
+            <span class="n">library</span><span class="p">,</span>
+            <span class="n">row</span><span class="p">[</span><span class="s2">"title"</span><span class="p">],</span>
+            <span class="n">page_url</span><span class="o">=</span><span class="n">cell</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source_page_url"</span><span class="p">),</span>
             <span class="n">sha256</span><span class="o">=</span><span class="n">cell</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"sha256"</span><span class="p">),</span>
         <span class="p">),</span>  <span class="c1"># fmt: skip</span>
         <span class="n">file</span><span class="o">=</span><span class="n">cell</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"file"</span><span class="p">),</span>
@@ -1126,7 +1128,9 @@ window.runMermaid = runMermaid;</script>
     <span class="n">fields</span> <span class="o">=</span> <span class="n">asset_source</span><span class="p">(</span><span class="n">track</span><span class="p">,</span> <span class="n">codes</span><span class="o">=</span><span class="n">codes</span><span class="p">)</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">exclude_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">fields</span><span class="p">[</span><span class="n">FILE_SHA256_FIELD</span><span class="p">]</span> <span class="o">=</span> <span class="n">fields</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"sha256"</span><span class="p">)</span>
     <span class="n">fields</span><span class="p">[</span><span class="n">CUT_FIELD</span><span class="p">]</span> <span class="o">=</span> <span class="n">cut_record</span><span class="p">(</span><span class="n">wav</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">fade_out</span><span class="o">=</span><span class="n">fade_out</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">add_sound</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">wav</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">AssetSource</span><span class="p">(</span><span class="o">**</span><span class="n">fields</span><span class="p">),</span> <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">add_sound</span><span class="p">(</span>
+        <span class="n">store</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">wav</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">AssetSource</span><span class="p">(</span><span class="o">**</span><span class="n">fields</span><span class="p">),</span> <span class="n">description</span><span class="o">=</span><span class="n">description</span>
+    <span class="p">)</span></div>
 
 </pre></div>
 
