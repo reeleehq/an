@@ -682,14 +682,10 @@ def test_a_chain_that_can_bend_one_way_only_keeps_its_end_frame_to_frame(limits)
 
 def test_the_lead_pulls_in_proportion_to_the_chain_it_drags():
     """an#672: the mass a lead drags is the free chain behind the grip's free
-    point, up to a fixed or held body, and the stage pulls in proportion."""
-    from an.kinematics.solver import (
-        DFLT_REGRIP_STRENGTH,
-        REGRIP_REFERENCE_MASS,
-        _led_chain_mass,
-        _State,
-        regrip_strength_by_mass,
-    )
+    point, up to a fixed body or one a target holds in place (x or y); one
+    held only in its turn is still dragged. The stage pulls per unit of it."""
+    from an.kinematics.bodies import mass
+    from an.kinematics.solver import _led_chain_mass, _State, regrip_strength_by_mass
 
     anchor = Body("anchor", fixed=True)
     links = [Body(f"l{i}", x=10.0 * i, width=10.0, height=2.0) for i in range(3)]
@@ -699,9 +695,12 @@ def test_the_lead_pulls_in_proportion_to_the_chain_it_drags():
         Hinge(Point("l1", 1.0, 0.5), Point("l2", 0.0, 0.5)),
         Pin(Point("l2", 1.0, 0.5), Point("world", 100.0, 0.0)),
     ]
+    link = mass(links[0])
     st = _State([anchor, *links])
-    start = st.body_index("l2")
-    assert _led_chain_mass(st, joints, 3, start) == pytest.approx(3 * REGRIP_REFERENCE_MASS)
-    st.held[st.body_index("l1")] = []  # a target holds l1: the lead drags l2 only
-    assert _led_chain_mass(st, joints, 3, start) == pytest.approx(REGRIP_REFERENCE_MASS)
-    assert regrip_strength_by_mass(2 * REGRIP_REFERENCE_MASS) == 2 * DFLT_REGRIP_STRENGTH
+    start, l1 = st.body_index("l2"), st.body_index("l1")
+    assert _led_chain_mass(st, joints, 3, start) == pytest.approx(3 * link)
+    st.held[l1] = [("rotation", 0.0, 0.0)]  # turned by its target, still dragged
+    assert _led_chain_mass(st, joints, 3, start) == pytest.approx(3 * link)
+    st.held[l1] = [("x", 0.0, 0.0)]  # held in place: the lead drags l2 only
+    assert _led_chain_mass(st, joints, 3, start) == pytest.approx(link)
+    assert regrip_strength_by_mass(2.0, per_mass=3.0) == 6.0

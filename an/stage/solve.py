@@ -1442,6 +1442,16 @@ def _along(path: Sequence[tuple[float, float]], f: float) -> tuple[float, float]
     return path[-1]
 
 
+#: Where the stage's lead was tuned (an#668): the ``joint_pin`` arm (forearm
+#: and upper arm, 2023.4 px² of chain) is held again at a pull of 1e8, 100
+#: times the kinematics' own strength, which left it hovering short.
+REGRIP_TUNED_STRENGTH: float = 1e8
+REGRIP_TUNED_CHAIN_PX2: float = 2023.4
+#: The lead's pull per px² of the chain it drags (an#672): constant per unit
+#: mass, so a heavier chain is led as that arm is, a lighter one no harder.
+REGRIP_STRENGTH_PER_MASS: float = REGRIP_TUNED_STRENGTH / REGRIP_TUNED_CHAIN_PX2
+
+
 def run_solve(
     doc: Any,
     puppet: Puppet,
@@ -1455,6 +1465,7 @@ def run_solve(
     ``extra_paths`` are nodes that are not bodies whose authored transforms the
     run records too (``evaluated``, ``extra``): the items the hold layer moves."""
     from dataclasses import replace
+    from functools import partial
 
     from an.kinematics import Body, Point, Weld, WORLD, inputs_digest, solve
     from an.kinematics.solver import (
@@ -1684,7 +1695,7 @@ def run_solve(
             # strength a stage arm hovered short of its pin (an#668), and a much
             # heavier chain would again, while a stiffer pull for all drags a
             # light arm past its elbow's range (an#568, an#672).
-            strength=regrip_strength_by_mass,
+            strength=partial(regrip_strength_by_mass, per_mass=REGRIP_STRENGTH_PER_MASS),
         )
         run.led.append(tuple(sorted(regrip.walking)))
         frames_inputs.append([joints, targets])
@@ -2064,9 +2075,12 @@ def _report(
                 default=0.0,
             )
             entry = {"joint": j, "from": r2(a), "until": r2(b), "gap": r2(worst)}
-            last = run.times.index(b)
-            if last < len(run.led) and j in run.led[last]:
-                entry["led"] = True  # still being walked back as it ends (an#672)
+            last = len(run.times) - 1
+            if b == run.times[last] and last < len(run.led) and j in run.led[last]:
+                # The shot ends while the grip is walked back (an#672): not the
+                # joints holding the chain away. A span the lead closes before
+                # the shot ends keeps its reach, which says why it was lost.
+                entry["led"] = True
             if puppet.rows[j].source == "pin":
                 reach = _reach(puppet, run, j, run.times.index(a))
                 if reach is not None:

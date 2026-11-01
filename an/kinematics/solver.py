@@ -69,7 +69,7 @@ import json
 import math
 from collections.abc import Callable, Collection, Mapping, Sequence
 from dataclasses import dataclass, field, fields, replace
-from typing import Any
+from typing import Any, NamedTuple
 
 import numpy as np
 
@@ -130,10 +130,6 @@ DFLT_REGRIP_SNAP: float = 1.0
 #: bodies weigh more scales it (the stage: by the led chain's mass, :func:`regrip_strength_by_mass`).
 #: Too stiff, it drags a chain past a range it cannot keep (an#568's elbow).
 DFLT_REGRIP_STRENGTH: float = 1e6
-#: The mass :data:`DFLT_REGRIP_STRENGTH` suits: one link of 10 by 2 units at the
-#: default density. A caller whose bodies weigh more scales the lead by the led
-#: chain's own mass over this (:func:`regrip_strength_by_mass`, the stage's).
-REGRIP_REFERENCE_MASS: float = mass(Body("reference link", width=10.0, height=2.0))
 #: The most trial solves :func:`solve` spends looking for the joint to give
 #: up in a conflict (each is a full solve of the frame).
 DFLT_MAX_DROP_TRIALS: int = 12
@@ -155,8 +151,9 @@ DFLT_SEGMENT_MARGIN: float = 0.5
 #: the first candidate that halves the failure (an#641); 4: a slack chain of more
 #: than two links held at both ends is seeded on an arc (an#646); 5: a grip lost
 #: out of reach is led back over several frames (an#645); 6: the stage's per-frame
-#: solve leads lost grips back too (an#668).
-SOLVER_VERSION: str = "6"
+#: solve leads lost grips back too (an#668); 7: it pulls each lead by the led
+#: chain's own mass (an#672).
+SOLVER_VERSION: str = "7"
 #: The most passes a frame whose first retry made progress is given, as a
 #: multiple of ``iterations``: its retry is repeated with ``retry`` times the
 #: passes while each round still makes progress (an#568). On 300 random
@@ -1570,7 +1567,7 @@ def solve_frames(
     forces: Sequence[Force] = (),
     gravity: Gravity | None = None,
     regrip_speed: float | None = DFLT_REGRIP_SPEED,
-    regrip_strength: float = DFLT_REGRIP_STRENGTH,
+    regrip_strength: float | Callable[[float], float] = DFLT_REGRIP_STRENGTH,
     **options: Any,
 ) -> FramesResult:
     """``frames`` solves in a row, each starting from the last: the caller's
@@ -1692,19 +1689,29 @@ class Regrip:
     dropped: set[int] = field(default_factory=set)
 
 
-def regrip_strength_by_mass(
-    chain_mass: float, *, strength: float = DFLT_REGRIP_STRENGTH
-) -> float:
-    """The lead's strength for a led chain of ``chain_mass`` (an#672): the
-    kinematics' own ``strength`` for its reference link, in proportion for a
-    heavier chain, so a heavy limb is pulled as firmly as a light one is.
+def regrip_strength_by_mass(chain_mass: float, *, per_mass: float) -> float:
+    """The lead's strength for a led chain of ``chain_mass`` (an#672): a pull
+    of ``per_mass`` for each unit of mass it drags. Force over mass is what
+    the chain feels, so one ``per_mass`` gives a light arm and a heavy limb
+    the same lead; one fixed strength leaves the heavy one hovering short of
+    its grip (an#668) or, stiffened for it, drags the light one past its
+    elbow's range (an#568). The caller calibrates ``per_mass`` on a chain of
+    its own scale (the stage: :data:`an.stage.solve.REGRIP_STRENGTH_PER_MASS`).
 
-    >>> regrip_strength_by_mass(REGRIP_REFERENCE_MASS) == DFLT_REGRIP_STRENGTH
-    True
-    >>> regrip_strength_by_mass(100 * REGRIP_REFERENCE_MASS) / DFLT_REGRIP_STRENGTH
-    100.0
+    >>> regrip_strength_by_mass(2.0, per_mass=5.0)
+    10.0
     """
-    return strength * chain_mass / REGRIP_REFERENCE_MASS
+    return per_mass * chain_mass
+
+
+class _Lead(NamedTuple):
+    """One grip being led back (an#645): its free point, the point it is
+    pulled toward, its gap, and the mass the pull drags (an#672)."""
+
+    free: Point
+    toward: Any
+    gap: float
+    chain_mass: float
 
 
 def solve_regripping(
@@ -1743,12 +1750,12 @@ def solve_regripping(
 
     pull = strength if callable(strength) else (lambda _mass: strength)
 
-    def frame(led: Mapping[int, tuple[Point, Any, float, float]]) -> SolveResult:
+    def frame(led: Mapping[int, _Lead]) -> SolveResult:
         return solve_with(
             [replace(j, joined=False) if i in led else j for i, j in enumerate(joints)],
             [
-                Force(free, toward=toward, strength=pull(chain))
-                for free, toward, _g, chain in led.values()
+                Force(lead.free, toward=lead.toward, strength=pull(lead.chain_mass))
+                for lead in led.values()
             ],
         )
 
@@ -1824,10 +1831,9 @@ def _regrip_leads(
     step: float,
     tolerance: float,
     snap: float = DFLT_REGRIP_SNAP,
-) -> tuple[dict[int, tuple[Point, Any, float, float]], set[int]]:
+) -> tuple[dict[int, _Lead], set[int]]:
     """The grips (pins with one held side) in ``grips`` that are within reach,
-    as ``({joint: (free point, where to pull it, gap, led chain's mass)},
-    {joint})``: the first
+    as ``({joint: _Lead}, {joint})``: the first
     those farther than ``step``, pulled toward a point ``step`` along the gap
     (``step`` 0: toward the held point itself), the second those within a
     step, to be tried themselves. A grip whose gap grew since it was last led
@@ -1838,7 +1844,7 @@ def _regrip_leads(
     st.drive(targets)
     st.restore_held()
     far = set(_out_of_reach(st, _rows(st, joints, ()), tolerance))
-    leads: dict[int, tuple[Point, Any, float]] = {}
+    leads: dict[int, _Lead] = {}
     within: set[int] = set()
     for j in sorted(grips):
         joint = joints[j]
@@ -1858,20 +1864,20 @@ def _regrip_leads(
             continue  # not closing: no longer led
         if gap <= snap:
             within.add(j)
-        elif step <= 0.0 or gap <= step:
-            chain = _led_chain_mass(st, joints, j, fi)
-            leads[j] = (free, fixed, gap, chain)  # the last step: straight at the grip
+        elif step <= 0.0 or gap <= step:  # the last step: straight at the grip
+            leads[j] = _Lead(free, fixed, gap, _led_chain_mass(st, joints, j, fi))
         else:
             f = step / gap
             toward = (ax + f * (bx - ax), ay + f * (by - ay))
-            leads[j] = (free, toward, gap, _led_chain_mass(st, joints, j, fi))
+            leads[j] = _Lead(free, toward, gap, _led_chain_mass(st, joints, j, fi))
     return leads, within
 
 
 def _led_chain_mass(st: _State, joints: Sequence[Joint], skip: int, start: int) -> float:
     """The mass a lead drags (an#672): the free bodies joined to ``start`` (the
     led point's body) through any joined joint but ``skip`` (the grip), up to
-    and without a fixed body or one the frame's targets hold."""
+    and without a fixed body or one the frame's targets hold in place (x or
+    y: a body held only in its turn is still dragged)."""
     edges: dict[int, set[int]] = {}
     for j, joint in enumerate(joints):
         a, b = getattr(joint, "a", None), getattr(joint, "b", None)
@@ -1880,10 +1886,13 @@ def _led_chain_mass(st: _State, joints: Sequence[Joint], skip: int, start: int) 
         ia, ib = st.body_index(a.body), st.body_index(b.body)
         edges.setdefault(ia, set()).add(ib)
         edges.setdefault(ib, set()).add(ia)
+    placed = {
+        i for i, held in st.held.items() if any(ch in ("x", "y") for ch, *_ in held)
+    }
     seen, todo = {start}, [start]
     while todo:
         for nxt in edges.get(todo.pop(), ()):
-            if nxt in seen or nxt == 0 or nxt in st.held or not st.inv_m[nxt]:
+            if nxt in seen or nxt == 0 or nxt in placed or not st.inv_m[nxt]:
                 continue
             seen.add(nxt)
             todo.append(nxt)
