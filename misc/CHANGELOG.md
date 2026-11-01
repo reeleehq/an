@@ -3,6 +3,9 @@
 AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
+## 2026-11-01
+- **Shimmed names survive pytest 9.2's monkeypatch undo** (an#690): a name `an._shims` forwards (`forward_module_attributes`, `alias_module`, through a chain of shims) is a data descriptor on its module's own class, so `MonkeyPatch.undo` puts the target's global back instead of deleting it; CI was red on every PR.
+
 ## 2026-10-27
 - **World crossings are keyed without a travel** (an#679): the lowering computes the depth-ordered paint keys (`_crossing_paint_keys`) in any world, not only one with a travel, so a member walking behind a standing one is painted behind it while it is behind.
 - **The world's `draw_order` note reads the paint keys** (an#681): `depth_order_problems` orders a pair whose entities both carry paint keys by the keys in force at each instant, so a crossing the keys paint right is no longer reported; `sharp_edges.md` notes that scanned crossings are only as exact as the scan grid.
