@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=c141dba6"></script>
+    <script src="../_static/documentation_options.js?v=0ac84b6b"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.343" />
+  <meta name="docsearch:version" content="0.1.344" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -681,6 +681,12 @@ fraction of a second so the CLI is snappy.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.base.PAINT_KEYS_OVERRIDE" title="an.base.PAINT_KEYS_OVERRIDE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PAINT_KEYS_OVERRIDE</span></code></a></p></td>
 <td><p>The core's record, on each entity a world paints by depth, of its paint key from each time on (<code class="docutils literal notranslate"><span class="pre">[[time,</span> <span class="pre">key]]</span></code>, a key sorting farther first, an#634): set when a stream slot is reused, so a slot drawing a farther instance can drop behind nearer ones; the stage compiler orders each run of keyed siblings by them with <code class="docutils literal notranslate"><span class="pre">z_index</span></code> keys.</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.RIDER_IN_FRONT" title="an.base.RIDER_IN_FRONT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RIDER_IN_FRONT</span></code></a></p></td>
+<td><p>a rider's key is its host's plus <code class="docutils literal notranslate"><span class="pre">[side,</span> <span class="pre">n]</span></code> (an#648), in front with <code class="docutils literal notranslate"><span class="pre">1</span></code>, just behind with <code class="docutils literal notranslate"><span class="pre">-1</span></code> (an#678: an attachment the built order put behind its host).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.base.BASE_PAINT_KEY_LEN" title="an.base.BASE_PAINT_KEY_LEN"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BASE_PAINT_KEY_LEN</span></code></a></p></td>
+<td><p>Items in a world entity's own paint key (layer, depth, tiebreak), and in the suffix a rider adds to its host's (side, n).</p></td>
+</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.base.SWAY_OVERRIDE" title="an.base.SWAY_OVERRIDE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SWAY_OVERRIDE</span></code></a></p></td>
 <td><p>The core's mark on an entity the world leans with its frame's acceleration (an#504): its <code class="docutils literal notranslate"><span class="pre">rotation</span></code> channel is that lean, which the hold layer takes out of the angle an item it carries comes to rest at (an#659).</p></td>
 </tr>
@@ -747,6 +753,18 @@ fraction of a second so the CLI is snappy.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.base.asset_overrides" title="an.base.asset_overrides"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asset_overrides</span></code></a>(overrides)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">overrides</span></code> without the core's own keys (<a class="reference internal" href="#an.base.CORE_OVERRIDE_KEYS" title="an.base.CORE_OVERRIDE_KEYS"><code class="xref py py-data docutils literal notranslate"><span class="pre">CORE_OVERRIDE_KEYS</span></code></a>): what an entity asks of its asset document.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.base.paint_key_items" title="an.base.paint_key_items"><code class="xref py py-obj docutils literal notranslate"><span class="pre">paint_key_items</span></code></a>(key)</p></td>
+<td><p>A paint key as a tuple (a JSON list read back is a tuple; a plain number is a one-item key).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.paint_key_rank" title="an.base.paint_key_rank"><code class="xref py py-obj docutils literal notranslate"><span class="pre">paint_key_rank</span></code></a>(key)</p></td>
+<td><p>A paint key (<code class="docutils literal notranslate"><span class="pre">PAINT_KEYS_OVERRIDE</span></code>) as it sorts, a smaller one painted first: a rider's key (its host's plus <code class="docutils literal notranslate"><span class="pre">[side,</span> <span class="pre">n]</span></code>) sorts just behind its host for <code class="xref py py-data docutils literal notranslate"><span class="pre">RIDER_BEHIND</span></code>, just in front for <a class="reference internal" href="#an.base.RIDER_IN_FRONT" title="an.base.RIDER_IN_FRONT"><code class="xref py py-data docutils literal notranslate"><span class="pre">RIDER_IN_FRONT</span></code></a>, so every rider stays next to its host however the host moves (an#678).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.base.rider_host_key" title="an.base.rider_host_key"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rider_host_key</span></code></a>(key)</p></td>
+<td><p>The key of the host a rider's <code class="docutils literal notranslate"><span class="pre">key</span></code> rides (<a class="reference internal" href="#an.base.rider_key" title="an.base.rider_key"><code class="xref py py-func docutils literal notranslate"><span class="pre">rider_key()</span></code></a>), as it sorts; <code class="docutils literal notranslate"><span class="pre">None</span></code> for an entity's own key.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.rider_key" title="an.base.rider_key"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rider_key</span></code></a>(host_key, *, side, n)</p></td>
+<td><p>The paint key of a rider of <code class="docutils literal notranslate"><span class="pre">host_key</span></code> (an#648, an#678): the host's plus <code class="docutils literal notranslate"><span class="pre">[side,</span> <span class="pre">n]</span></code>, <code class="docutils literal notranslate"><span class="pre">n</span></code> ordering riders on one side.</p></td>
+</tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.base.swap_set_name_problem" title="an.base.swap_set_name_problem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">swap_set_name_problem</span></code></a>(name)</p></td>
 <td><p>Why <code class="docutils literal notranslate"><span class="pre">name</span></code> cannot be a swap-set name, or <code class="docutils literal notranslate"><span class="pre">None</span></code> if it can.</p></td>
 </tr>
@@ -765,6 +783,13 @@ the two sets is exactly <code class="code docutils literal notranslate"><span cl
 <dd class="field-odd"><p>What a set/tween may name</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.base.BASE_PAINT_KEY_LEN">
+<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">BASE_PAINT_KEY_LEN</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></span><a class="headerlink" href="#an.base.BASE_PAINT_KEY_LEN" title="Link to this definition">#</a></dt>
+<dd><p>Items in a world entity’s own paint key (layer, depth, tiebreak), and in
+the suffix a rider adds to its host’s (side, n).</p>
 </dd></dl>
 
 <dl class="py data">
@@ -1028,6 +1053,21 @@ the torso, not children of it.</p>
 </dd></dl>
 
 <dl class="py data">
+<dt class="sig sig-object py" id="an.base.RIDER_IN_FRONT">
+<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">RIDER_IN_FRONT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#an.base.RIDER_IN_FRONT" title="Link to this definition">#</a></dt>
+<dd><p>a rider’s key is its
+host’s plus <code class="docutils literal notranslate"><span class="pre">[side,</span> <span class="pre">n]</span></code> (an#648), in front with <code class="docutils literal notranslate"><span class="pre">1</span></code>, just behind with
+<code class="docutils literal notranslate"><span class="pre">-1</span></code> (an#678: an attachment the built order put behind its host).
+<a class="reference internal" href="#an.base.paint_key_rank" title="an.base.paint_key_rank"><code class="xref py py-func docutils literal notranslate"><span class="pre">paint_key_rank()</span></code></a> relies on the side being <code class="docutils literal notranslate"><span class="pre">±1</span></code> and FIRST in the
+suffix: it compares against the <code class="docutils literal notranslate"><span class="pre">0</span></code> it appends to every key.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The side of its host a rider’s paint key puts it on</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
 <dt class="sig sig-object py" id="an.base.RendererName">
 <span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">RendererName</span></span><a class="headerlink" href="#an.base.RendererName" title="Link to this definition">#</a></dt>
 <dd><p>Which renderer draws a shot. The orchestrator uses this to pick an adapter.</p>
@@ -1148,6 +1188,76 @@ what an entity asks of its asset document.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.base.paint_key_items">
+<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">paint_key_items</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/base.html#paint_key_items"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.base.paint_key_items" title="Link to this definition">#</a></dt>
+<dd><p>A paint key as a tuple (a JSON list read back is a tuple; a plain
+number is a one-item key).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">paint_key_items</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.0</span><span class="p">,</span> <span class="mi">3</span><span class="p">]),</span> <span class="n">paint_key_items</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="go">((1.0, -2.0, 3), (2,))</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.base.paint_key_rank">
+<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">paint_key_rank</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/base.html#paint_key_rank"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.base.paint_key_rank" title="Link to this definition">#</a></dt>
+<dd><p>A paint key (<code class="docutils literal notranslate"><span class="pre">PAINT_KEYS_OVERRIDE</span></code>) as it sorts, a smaller one painted
+first: a rider’s key (its host’s plus <code class="docutils literal notranslate"><span class="pre">[side,</span> <span class="pre">n]</span></code>) sorts just behind
+its host for <code class="xref py py-data docutils literal notranslate"><span class="pre">RIDER_BEHIND</span></code>, just in front for <a class="reference internal" href="#an.base.RIDER_IN_FRONT" title="an.base.RIDER_IN_FRONT"><code class="xref py py-data docutils literal notranslate"><span class="pre">RIDER_IN_FRONT</span></code></a>,
+so every rider stays next to its host however the host moves (an#678).
+A JSON list read back is a tuple; a plain number is a one-item key.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">host</span><span class="p">,</span> <span class="n">other</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.0</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ranked</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([[</span><span class="o">*</span><span class="n">host</span><span class="p">,</span> <span class="n">RIDER_IN_FRONT</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">host</span><span class="p">,</span> <span class="p">[</span><span class="o">*</span><span class="n">host</span><span class="p">,</span> <span class="n">RIDER_BEHIND</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">other</span><span class="p">],</span>
+<span class="gp">... </span>                <span class="n">key</span><span class="o">=</span><span class="n">paint_key_rank</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">k</span><span class="p">[</span><span class="mi">3</span><span class="p">:]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">ranked</span><span class="p">]</span>
+<span class="go">[[], [-1, 0], [], [1, 0]]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.base.rider_host_key">
+<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">rider_host_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/base.html#rider_host_key"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.base.rider_host_key" title="Link to this definition">#</a></dt>
+<dd><p>The key of the host a rider’s <code class="docutils literal notranslate"><span class="pre">key</span></code> rides (<a class="reference internal" href="#an.base.rider_key" title="an.base.rider_key"><code class="xref py py-func docutils literal notranslate"><span class="pre">rider_key()</span></code></a>), as it
+sorts; <code class="docutils literal notranslate"><span class="pre">None</span></code> for an entity’s own key.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">rider_host_key</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span> <span class="n">rider_host_key</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.0</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+<span class="go">((1.0, -2.0, 3), None)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.base.rider_key">
+<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">rider_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">host_key</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">side</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/base.html#rider_key"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.base.rider_key" title="Link to this definition">#</a></dt>
+<dd><p>The paint key of a rider of <code class="docutils literal notranslate"><span class="pre">host_key</span></code> (an#648, an#678): the host’s
+plus <code class="docutils literal notranslate"><span class="pre">[side,</span> <span class="pre">n]</span></code>, <code class="docutils literal notranslate"><span class="pre">n</span></code> ordering riders on one side.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">rider_key</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.0</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">side</span><span class="o">=</span><span class="n">RIDER_BEHIND</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="go">[1.0, -2.0, 3, -1, 0]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.base.swap_set_name_problem">
 <span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">swap_set_name_problem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/base.html#swap_set_name_problem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.base.swap_set_name_problem" title="Link to this definition">#</a></dt>
 <dd><p>Why <code class="docutils literal notranslate"><span class="pre">name</span></code> cannot be a swap-set name, or <code class="docutils literal notranslate"><span class="pre">None</span></code> if it can.</p>
@@ -1216,6 +1326,7 @@ what an entity asks of its asset document.</p>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.AUTHORABLE_PROPERTIES"><code class="docutils literal notranslate"><span class="pre">AUTHORABLE_PROPERTIES</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.BASE_PAINT_KEY_LEN"><code class="docutils literal notranslate"><span class="pre">BASE_PAINT_KEY_LEN</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.BT709_SCALE_FILTER"><code class="docutils literal notranslate"><span class="pre">BT709_SCALE_FILTER</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.COLOUR_PROPERTY"><code class="docutils literal notranslate"><span class="pre">COLOUR_PROPERTY</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.COMPATIBLE_VERSION"><code class="docutils literal notranslate"><span class="pre">COMPATIBLE_VERSION</span></code></a></li>
@@ -1234,6 +1345,7 @@ what an entity asks of its asset document.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.PLANE_FACTORS_OVERRIDE"><code class="docutils literal notranslate"><span class="pre">PLANE_FACTORS_OVERRIDE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.PLANE_REST_VALUES"><code class="docutils literal notranslate"><span class="pre">PLANE_REST_VALUES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.PathStr"><code class="docutils literal notranslate"><span class="pre">PathStr</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.RIDER_IN_FRONT"><code class="docutils literal notranslate"><span class="pre">RIDER_IN_FRONT</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.RendererName"><code class="docutils literal notranslate"><span class="pre">RendererName</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.SCHEMA_VERSION"><code class="docutils literal notranslate"><span class="pre">SCHEMA_VERSION</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.STREAM_OVERRIDE"><code class="docutils literal notranslate"><span class="pre">STREAM_OVERRIDE</span></code></a></li>
@@ -1247,6 +1359,10 @@ what an entity asks of its asset document.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.WIPE_DIRECTIONS"><code class="docutils literal notranslate"><span class="pre">WIPE_DIRECTIONS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.Z_INDEX_PROPERTY"><code class="docutils literal notranslate"><span class="pre">Z_INDEX_PROPERTY</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.asset_overrides"><code class="docutils literal notranslate"><span class="pre">asset_overrides()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.paint_key_items"><code class="docutils literal notranslate"><span class="pre">paint_key_items()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.paint_key_rank"><code class="docutils literal notranslate"><span class="pre">paint_key_rank()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.rider_host_key"><code class="docutils literal notranslate"><span class="pre">rider_host_key()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.rider_key"><code class="docutils literal notranslate"><span class="pre">rider_key()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.swap_set_name_problem"><code class="docutils literal notranslate"><span class="pre">swap_set_name_problem()</span></code></a></li>
 </ul>
   </nav></div>

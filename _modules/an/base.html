@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../_static/documentation_options.js?v=c141dba6"></script>
+    <script src="../../_static/documentation_options.js?v=0ac84b6b"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.343" />
+  <meta name="docsearch:version" content="0.1.344" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -949,6 +949,17 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: drop behind nearer ones; the stage compiler orders each run of keyed</span>
 <span class="c1">#: siblings by them with ``z_index`` keys.</span>
 <span class="n">PAINT_KEYS_OVERRIDE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"paint_keys"</span>
+<span class="c1">#: The side of its host a rider's paint key puts it on: a rider's key is its</span>
+<span class="c1">#: host's plus ``[side, n]`` (an#648), in front with ``1``, just behind with</span>
+<span class="c1">#: ``-1`` (an#678: an attachment the built order put behind its host).</span>
+<span class="c1">#: :func:`paint_key_rank` relies on the side being ``±1`` and FIRST in the</span>
+<span class="c1">#: suffix: it compares against the ``0`` it appends to every key.</span>
+<span class="n">RIDER_IN_FRONT</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">RIDER_BEHIND</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+<span class="c1">#: Items in a world entity's own paint key (layer, depth, tiebreak), and in</span>
+<span class="c1">#: the suffix a rider adds to its host's (side, n).</span>
+<span class="n">BASE_PAINT_KEY_LEN</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">RIDER_SUFFIX_LEN</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span>
 <span class="c1">#: The core's mark on an entity the world leans with its frame's acceleration</span>
 <span class="c1">#: (an#504): its ``rotation`` channel is that lean, which the hold layer takes</span>
 <span class="c1">#: out of the angle an item it carries comes to rest at (an#659).</span>
@@ -975,6 +986,65 @@ window.runMermaid = runMermaid;</script>
         <span class="n">SWAY_OVERRIDE</span><span class="p">,</span>
     <span class="p">}</span>
 <span class="p">)</span>
+
+
+<div class="viewcode-block" id="paint_key_items">
+<a class="viewcode-back" href="../../_autosummary/an.base.html#an.base.paint_key_items">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">paint_key_items</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A paint key as a tuple (a JSON list read back is a tuple; a plain</span>
+<span class="sd">    number is a one-item key).</span>
+
+<span class="sd">    &gt;&gt;&gt; paint_key_items([1.0, -2.0, 3]), paint_key_items(2)</span>
+<span class="sd">    ((1.0, -2.0, 3), (2,))</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span> <span class="k">else</span> <span class="p">(</span><span class="n">key</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="paint_key_rank">
+<a class="viewcode-back" href="../../_autosummary/an.base.html#an.base.paint_key_rank">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">paint_key_rank</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A paint key (``PAINT_KEYS_OVERRIDE``) as it sorts, a smaller one painted</span>
+<span class="sd">    first: a rider's key (its host's plus ``[side, n]``) sorts just behind</span>
+<span class="sd">    its host for :data:`RIDER_BEHIND`, just in front for :data:`RIDER_IN_FRONT`,</span>
+<span class="sd">    so every rider stays next to its host however the host moves (an#678).</span>
+<span class="sd">    A JSON list read back is a tuple; a plain number is a one-item key.</span>
+
+<span class="sd">    &gt;&gt;&gt; host, other = [1.0, -2.0, 3], [1.0, -2.0, 2]</span>
+<span class="sd">    &gt;&gt;&gt; ranked = sorted([[*host, RIDER_IN_FRONT, 0], host, [*host, RIDER_BEHIND, 0], other],</span>
+<span class="sd">    ...                 key=paint_key_rank)</span>
+<span class="sd">    &gt;&gt;&gt; [k[3:] for k in ranked]</span>
+<span class="sd">    [[], [-1, 0], [], [1, 0]]</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="p">(</span><span class="o">*</span><span class="n">paint_key_items</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>  <span class="c1"># a host's end sorts between its riders' sides</span></div>
+
+
+
+<div class="viewcode-block" id="rider_key">
+<a class="viewcode-back" href="../../_autosummary/an.base.html#an.base.rider_key">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rider_key</span><span class="p">(</span><span class="n">host_key</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">side</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The paint key of a rider of ``host_key`` (an#648, an#678): the host's</span>
+<span class="sd">    plus ``[side, n]``, ``n`` ordering riders on one side.</span>
+
+<span class="sd">    &gt;&gt;&gt; rider_key([1.0, -2.0, 3], side=RIDER_BEHIND, n=0)</span>
+<span class="sd">    [1.0, -2.0, 3, -1, 0]</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="p">[</span><span class="o">*</span><span class="n">host_key</span><span class="p">,</span> <span class="n">side</span><span class="p">,</span> <span class="n">n</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="rider_host_key">
+<a class="viewcode-back" href="../../_autosummary/an.base.html#an.base.rider_host_key">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rider_host_key</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The key of the host a rider's ``key`` rides (:func:`rider_key`), as it</span>
+<span class="sd">    sorts; ``None`` for an entity's own key.</span>
+
+<span class="sd">    &gt;&gt;&gt; rider_host_key([1.0, -2.0, 3, 1, 0]), rider_host_key([1.0, -2.0, 3])</span>
+<span class="sd">    ((1.0, -2.0, 3), None)</span>
+<span class="sd">    """</span>
+    <span class="n">items</span> <span class="o">=</span> <span class="n">paint_key_items</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">items</span><span class="p">[:</span><span class="o">-</span><span class="n">RIDER_SUFFIX_LEN</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">BASE_PAINT_KEY_LEN</span> <span class="k">else</span> <span class="kc">None</span></div>
+
 
 
 <div class="viewcode-block" id="asset_overrides">

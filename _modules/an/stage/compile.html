@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=c141dba6"></script>
+    <script src="../../../_static/documentation_options.js?v=0ac84b6b"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.343" />
+  <meta name="docsearch:version" content="0.1.344" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -758,6 +758,9 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">DEFAULT_RESOLUTION</span><span class="p">,</span>
     <span class="n">PAINT_KEYS_OVERRIDE</span><span class="p">,</span>
+    <span class="n">paint_key_items</span><span class="p">,</span>
+    <span class="n">paint_key_rank</span><span class="p">,</span>
+    <span class="n">rider_host_key</span><span class="p">,</span>
     <span class="n">PLANE_REST_VALUES</span><span class="p">,</span>
     <span class="n">TRANSFORM_PROPERTIES</span><span class="p">,</span>
     <span class="n">TRIM_PROPERTIES</span><span class="p">,</span>
@@ -1995,7 +1998,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">changes</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">ks</span> <span class="ow">in</span> <span class="n">keys</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">ks</span><span class="p">:</span>
-            <span class="n">changes</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">_sort_key</span><span class="p">(</span><span class="n">k</span><span class="p">)))</span>
+            <span class="n">changes</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">paint_key_rank</span><span class="p">(</span><span class="n">k</span><span class="p">)))</span>
     <span class="n">now</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">changes</span><span class="p">):</span>  <span class="c1"># each key read once: linear in the keys (an#648)</span>
@@ -2021,18 +2024,13 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">opening</span><span class="p">:</span>
             <span class="k">continue</span>
         <span class="n">prev</span> <span class="o">=</span> <span class="n">runs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">runs</span> <span class="k">else</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="n">prev</span> <span class="o">==</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">_sort_key</span><span class="p">(</span><span class="n">opening</span><span class="p">[</span><span class="n">names</span><span class="p">[</span><span class="n">prev</span><span class="p">]])</span> <span class="o">&lt;=</span> <span class="n">_sort_key</span><span class="p">(</span>
+        <span class="k">if</span> <span class="n">prev</span> <span class="o">==</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">paint_key_rank</span><span class="p">(</span><span class="n">opening</span><span class="p">[</span><span class="n">names</span><span class="p">[</span><span class="n">prev</span><span class="p">]])</span> <span class="o">&lt;=</span> <span class="n">paint_key_rank</span><span class="p">(</span>
             <span class="n">opening</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
         <span class="p">):</span>
             <span class="n">runs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">runs</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">i</span><span class="p">])</span>
     <span class="k">return</span> <span class="n">runs</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_sort_key</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""A paint key as it sorts (a JSON list read back is a tuple)."""</span>
-    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="n">key</span>
 
 
 <div class="viewcode-block" id="z_index_keys">
@@ -2077,11 +2075,11 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    """</span>
     <span class="n">mine</span> <span class="o">=</span> <span class="p">{</span><span class="n">n</span><span class="p">:</span> <span class="n">keys</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">names</span> <span class="k">if</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">}</span>
     <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>  <span class="c1"># a rider of a dropped rider has no host here either</span>
-        <span class="n">opening</span> <span class="o">=</span> <span class="p">{</span><span class="n">_sort_key</span><span class="p">(</span><span class="n">ks</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">ks</span> <span class="ow">in</span> <span class="n">mine</span><span class="o">.</span><span class="n">values</span><span class="p">()}</span>
+        <span class="n">opening</span> <span class="o">=</span> <span class="p">{</span><span class="n">paint_key_items</span><span class="p">(</span><span class="n">ks</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">ks</span> <span class="ow">in</span> <span class="n">mine</span><span class="o">.</span><span class="n">values</span><span class="p">()}</span>
         <span class="n">kept</span> <span class="o">=</span> <span class="p">{</span>
             <span class="n">n</span><span class="p">:</span> <span class="n">ks</span>
             <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">ks</span> <span class="ow">in</span> <span class="n">mine</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ks</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="mi">3</span> <span class="ow">or</span> <span class="n">_sort_key</span><span class="p">(</span><span class="n">ks</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="ow">in</span> <span class="n">opening</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">host</span> <span class="o">:=</span> <span class="n">rider_host_key</span><span class="p">(</span><span class="n">ks</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]))</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">host</span> <span class="ow">in</span> <span class="n">opening</span>
         <span class="p">}</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kept</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">mine</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">kept</span>
