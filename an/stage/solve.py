@@ -103,6 +103,51 @@ REACH_SOURCE: str = "reach"
 SAME_VALUE: dict[str, float] = {"x": 1e-5, "y": 1e-5, "rotation": 1e-6}
 #: The same, for a held item's scale (a factor).
 SAME_SCALE: float = 1e-6
+#: How far a solved channel's emitted keys may stray from the solve at any
+#: frame, in px (an#636): far under the joints' own tolerance
+#: (:data:`an.verify.joints.JOINT_TOLERANCE_PX`, 0.25), so dropping keys spends
+#: none of what the solve and the checks share, and only stretches that are
+#: already straight (still, or moving evenly) lose their keys: a dynamic shot
+#: keeps about a third of them. A rotation's is this at the puppet's whole
+#: reach (every body's box end to end, a bound on how far any point is from a
+#: pivot it turns about), so no point of it strays further.
+SOLVED_KEY_TOLERANCE_PX: float = 1e-3
+
+
+def compact_keys(
+    times: Sequence[float], values: Sequence[float], *, tolerance: float, stepped: bool
+) -> list[int]:
+    """The indices of the keys of a sampled channel worth keeping (an#636):
+    the first, the last, and those the keys kept around them do not already
+    reproduce within ``tolerance`` at every sample (linear easing, by
+    Douglas-Peucker), or, for a ``stepped`` channel, each that changes value.
+
+    >>> compact_keys([0, 1, 2, 3, 4], [0.0, 1.0, 2.0, 3.0, 3.0], tolerance=0.1, stepped=False)
+    [0, 3, 4]
+    >>> compact_keys([0, 1, 2, 3], [5.0, 5.0, 6.0, 6.0], tolerance=0.0, stepped=True)
+    [0, 2, 3]
+    """
+    last = len(values) - 1
+    if last < 1:
+        return list(range(len(values)))
+    if stepped:
+        return [0] + [
+            k for k in range(1, last) if values[k] != values[k - 1]
+        ] + [last]
+    keep = {0, last}
+    spans = [(0, last)]
+    while spans:
+        i, j = spans.pop()
+        worst, at = -1.0, None
+        for k in range(i + 1, j):
+            u = (times[k] - times[i]) / (times[j] - times[i])
+            err = abs(values[i] + u * (values[j] - values[i]) - values[k])
+            if err > worst:
+                worst, at = err, k
+        if at is not None and worst > tolerance:
+            keep.add(at)
+            spans += [(i, at), (at, j)]
+    return sorted(keep)
 
 
 class UnknownBodyError(CutoutCompileError):
@@ -1931,6 +1976,21 @@ def _emit(
     clips: dict[str, list[Any]] = {}
     emitted: set[tuple[str, str]] = set()
     index = {prop: i for i, prop in enumerate(SOLVED_CHANNELS)}
+    reach = max(1.0, sum(math.hypot(b.box[2], b.box[3]) for b in puppet.bodies.values()))
+    tolerance = {
+        "x": SOLVED_KEY_TOLERANCE_PX,
+        "y": SOLVED_KEY_TOLERANCE_PX,
+        "rotation": SOLVED_KEY_TOLERANCE_PX / reach,
+    }
+
+    def keyframes(vs: Sequence[float], prop: str) -> list[Any]:
+        kept = compact_keys(
+            run.times, vs, tolerance=tolerance.get(prop, 0.0), stepped=stepped
+        )
+        return [
+            KeyframeJSON(time=_q(run.times[k], 1e-9), value=vs[k], easing=easing)
+            for k in kept
+        ]
     for (path, prop), vs in values.items():
         quantum = ANGLE_QUANTUM if prop == "rotation" else POSITION_QUANTUM
         qs = [_q(v, quantum) for v in vs]
@@ -1939,14 +1999,7 @@ def _emit(
             continue  # the solve leaves it where the document already has it
         root = path.split("/", 1)[0]
         clips.setdefault(root, []).append(
-            ChannelJSON(
-                target=path,
-                property=prop,
-                keyframes=[
-                    KeyframeJSON(time=_q(t, 1e-9), value=v, easing=easing)
-                    for t, v in zip(run.times, qs)
-                ],
-            )
+            ChannelJSON(target=path, property=prop, keyframes=keyframes(qs, prop))
         )
         emitted.add((path, prop))
     for (path, prop), (vs, shown) in sorted((extra or {}).items()):

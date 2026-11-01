@@ -174,53 +174,20 @@ class Constraint:
 
 #: The memo key under which the compiled document of shot ``i`` is kept.
 COMPILED_KEY: str = "constraints.compiled"
-#: Renderers whose shots the stage compiles (the others are opaque here).
-STAGE_RENDERERS: frozenset[str] = frozenset({"stage", "cutout"})
 
 
 def compile_outcome(ctx: Any) -> tuple[Any | None, Exception | None]:
-    """``ctx.shot`` compiled as ``an render`` compiles it, once per validation:
-    ``(document, None)``, ``(None, the compile error)``, or ``(None, None)`` for
-    a shot the stage does not render.
-
-    The stores validate was given stand in for the mall; the scene's frame rate
-    (the render's when ``an validate --fps`` says), resolution, step grid,
-    default easing and **style pack** are the ones the render uses, so what is
-    linted is the document that is drawn: the ``solve`` pass reads the pack's
-    gravity and damping, and a document compiled without them is a different
-    solve (an#534). Every compile-based check reads this one document.
+    """``ctx.shot`` compiled as ``an render`` compiles it
+    (:func:`an.stage.compile.compile_as_rendered`), once per validation: the
+    stores validate was given stand in for the mall and the frame rate is the
+    render's when ``an validate --fps`` says. Every compile-based check reads
+    this one document.
     """
 
     def build():
-        import warnings
+        from an.stage.compile import compile_as_rendered
 
-        shot, scene = ctx.shot, ctx.scene
-        if shot.renderer not in STAGE_RENDERERS:
-            return None, None
-        from an.stage.compile import compile_shot, style_pack_for
-
-        try:
-            pack = style_pack_for(scene.meta, (ctx.stores or {}).get("styles") or {})
-        except Exception:  # noqa: BLE001 - a broken pack is the style check's to report
-            pack = None
-        res = scene.meta.resolution
-        step_hz = shot.step_hz if shot.step_hz is not None else scene.meta.step_hz
-        try:
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")  # the render's warnings, not validate's
-                doc = compile_shot(
-                    shot,
-                    mall=ctx.stores,
-                    fps=int(round(_fps(ctx))),
-                    width=res.width,
-                    height=res.height,
-                    step_hz=step_hz,
-                    default_easing=scene.meta.default_easing,
-                    style_pack=pack,
-                )
-        except Exception as e:  # noqa: BLE001 - reported by the check that owns it
-            return None, e
-        return doc, None
+        return compile_as_rendered(ctx.shot, ctx.scene, ctx.stores, fps=_fps(ctx))
 
     return ctx.cached((COMPILED_KEY, ctx.index), build)
 

@@ -186,6 +186,56 @@ def style_pack_for(scene_meta, styles_store: Mapping) -> "StylePack | None":
     return StylePack.model_validate(migrate(dict(raw), kind=STYLE_DOCUMENT_KIND.name))
 
 
+def compile_as_rendered(
+    shot: Shot,
+    scene: Any,
+    mall: Mapping[str, Mapping] | None,
+    *,
+    fps: float,
+) -> tuple["CutoutSceneJSON | None", Exception | None]:
+    """``shot`` compiled as ``an render`` compiles it: ``(document, None)``,
+    ``(None, the compile error)``, or ``(None, None)`` for a shot the stage
+    does not render (an#636, moved from :mod:`an.verify.constraints`).
+
+    ``scene`` gives the resolution, the step grid (the shot's, else the
+    scene's), the default easing and the **style pack** the render uses
+    (:func:`style_pack_for`; a pack that cannot be read compiles as none, the
+    style check reports it): the ``solve`` pass reads the pack's gravity and
+    damping, so a document compiled without it is a different solve (an#534).
+    The compiler's warnings are the render's, not the caller's, and are
+    silenced. What every compile-based validate check reads, once per shot
+    (:func:`an.verify.constraints.compile_outcome` memoises it).
+    """
+    import warnings
+
+    from an.stage import STAGE_RENDERER_NAMES
+
+    if shot.renderer not in STAGE_RENDERER_NAMES:
+        return None, None
+    try:
+        pack = style_pack_for(scene.meta, (mall or {}).get("styles") or {})
+    except Exception:  # noqa: BLE001 - a broken pack is the style check's to report
+        pack = None
+    res = scene.meta.resolution
+    step_hz = shot.step_hz if shot.step_hz is not None else scene.meta.step_hz
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")  # the render's warnings, not validate's
+            doc = compile_shot(
+                shot,
+                mall=mall,
+                fps=int(round(fps)),
+                width=res.width,
+                height=res.height,
+                step_hz=step_hz,
+                default_easing=scene.meta.default_easing,
+                style_pack=pack,
+            )
+    except Exception as e:  # noqa: BLE001 - reported by the check that owns it
+        return None, e
+    return doc, None
+
+
 def _warn_about_art_a_pack_cannot_reach(
     pack: "StylePack | None", reached: set[str], skipped: set[str]
 ) -> None:
