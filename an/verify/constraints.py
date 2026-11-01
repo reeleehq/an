@@ -1978,8 +1978,8 @@ def check_light(ctx: Any) -> None:
     """The core's ``light`` check (catalogue D1): every drawn member whose art
     says which side it is shaded on agrees with the scene's one light, read
     where that side faces on screen as the shot opens (its own and every
-    parent's mirror and rotation). Declarations only; a shot that does not
-    compile is not judged (``not_compiled`` says so)."""
+    parent's mirror and rotation). Declarations only; a shot the stage does
+    not draw, or that does not compile, is not judged."""
     light = ctx.scene.meta.light
     if light is None:
         return
