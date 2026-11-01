@@ -9,7 +9,12 @@ from typing import Any, Iterable, Protocol, runtime_checkable
 
 @dataclass(slots=True)
 class VoiceMeta:
-    """Metadata for a TTS voice as exposed by a provider."""
+    """Metadata for a TTS voice as exposed by a provider.
+
+    ``extra`` is the provider's own detail. Keys hosts read (a contract):
+    ElevenLabs's ``category``, ``description``, ``labels`` and ``preview_url``
+    (a sample to hear before casting, an#666; ``None`` when it has none).
+    """
 
     voice_id: str
     name: str
