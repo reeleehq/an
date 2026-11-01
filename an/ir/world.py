@@ -49,8 +49,12 @@ from typing import Any, Callable, Collection, Mapping, Sequence
 from an.base import (
     PAINT_KEYS_OVERRIDE,
     PLANE_FACTORS_OVERRIDE,
+    RIDER_BEHIND,
+    RIDER_IN_FRONT,
     STREAM_OVERRIDE,
     SWAY_OVERRIDE,
+    paint_key_rank,
+    rider_key,
 )
 from an.ir.compose import (
     delay,
@@ -1678,12 +1682,51 @@ def _crossing_paint_keys(
     return _depth_paint_keys(curves, duration=duration, near=near)
 
 
+@dataclass(frozen=True)
+class _Rider:
+    """How an attached member rides its host's paint keys (an#678): the host,
+    the side of it the BUILT order gave the member (read before any entity is
+    re-keyed), and its place in that order, which orders riders on one side."""
+
+    host: str
+    side: int
+    place: int
+
+
+def _attachment_riders(
+    ordered: Sequence[tuple[Any, AssetRef, int | None]],
+    world_members: Sequence[WorldMember],
+    *,
+    entity_ids: Collection[str],
+) -> dict[str, _Rider]:
+    """Each member attached to another member built in this shot, unless the
+    author placed it ``after`` an entity (it rides that one, an#648): it rides
+    its host's paint keys (an#678). The ONE set both the keying at rest leaves
+    out and :func:`_with_paint_keys` keys. ``ordered`` is the built order, its
+    keys not yet replaced by paint keys: the side is read from it."""
+    place = {e.id: i for i, (_, e, _) in enumerate(ordered)}
+    key = {e.id: paint_key_rank(k) for k, e, _ in ordered}
+    built = {e.id: e for _, e, _ in ordered}
+    out = {}
+    for m in world_members:
+        if m.attached is None or m.id not in built or m.attached.to not in built:
+            continue
+        stage = built[m.id].stage
+        if stage is not None and stage.after in entity_ids:
+            continue
+        host = m.attached.to
+        side = RIDER_BEHIND if key[m.id] < key[host] else RIDER_IN_FRONT
+        out[m.id] = _Rider(host, side, place[m.id])
+    return out
+
+
 def _with_paint_keys(
     ordered: list[tuple[tuple[float, float, float], AssetRef, int | None]],
     pass_keys: Mapping[str, Sequence[tuple[float, tuple[float, float, float]]]],
     *,
     entity_ids: Collection[str],
     members: Collection[str],
+    attached: Mapping[str, _Rider] | None = None,
 ) -> list[tuple[tuple[float, float, float], AssetRef, int | None]]:
     """``ordered`` with each entity's paint key from each time on recorded
     under :data:`an.base.PAINT_KEYS_OVERRIDE` (``[[time, key]]``, the first at
@@ -1694,13 +1737,24 @@ def _with_paint_keys(
     painted right after it as it moves (an#648), when it is a world member
     (``members``: the only entities a shot reorders); otherwise it carries
     none, and keeps its built place. Its keys are its host's with a suffix,
-    so the compiler can tell whether its host is built beside it."""
+    so the compiler can tell whether its host is built beside it.
+
+    A member attached to another (``attached``: ``{member: host}``, from
+    :func:`_attachment_riders`) rides its host the same way, on the side of
+    it the built order gave it (:data:`an.base.RIDER_BEHIND` when built before
+    it), and is built right beside it: painted with its host at every frame,
+    however the host or anything around it moves (an#678). Not yet when the
+    host itself rides another entity's keys (an#692)."""
     if not any(len(ks) > 1 for ks in pass_keys.values()):
         return ordered
     after = {
         e.id: e.stage.after if e.stage is not None else None for _, e, _ in ordered
     }
     hosts = {eid: a for eid, a in after.items() if a in entity_ids}
+    attached = attached or {}
+    hosts.update((eid, r.host) for eid, r in attached.items())
+    # An attachment's `n` follows the built order, past every `after` rider's.
+    first = len(hosts)
 
     keys = {
         e.id: [[t, list(k)] for t, k in pass_keys.get(e.id) or [(0.0, key)]]
@@ -1712,12 +1766,14 @@ def _with_paint_keys(
         riding = False
         for n, (eid, host) in enumerate(sorted(hosts.items())):
             if host in keys and eid in members:
-                keys[eid] = [[t, [*k, 1, n]] for t, k in keys[host]]
+                r = attached.get(eid)
+                at, m = (r.side, first + r.place) if r else (RIDER_IN_FRONT, n)
+                keys[eid] = [[t, rider_key(k, side=at, n=m)] for t, k in keys[host]]
                 del hosts[eid]
                 riding = True
-    return [
+    built = [
         (
-            key,
+            tuple(keys[e.id][0][1]) if e.id in attached and e.id in keys else key,
             e.model_copy(
                 update={
                     "overrides": {
@@ -1732,6 +1788,8 @@ def _with_paint_keys(
         )
         for key, e, j in ordered
     ]
+    built.sort(key=lambda item: paint_key_rank(item[0]))  # an attachment by its host
+    return built
 
 
 def _pass_cost(p: _Pass, *, duration: float) -> int:
@@ -2946,6 +3004,9 @@ def _lower_shot(
             note("warning", "stream", stream_id, problem)
     # Crossings are keyed in any world, a travel's or not: a member that walks
     # behind one standing is painted behind it while it is behind (an#679).
+    # A member attached to another rides its host's keys instead (an#678).
+    entity_ids = {e.id for _, e, _ in ordered} | {e.id for e, _ in envs}
+    riders = _attachment_riders(ordered, world.members, entity_ids=entity_ids)
     pass_keys.update(
         _crossing_paint_keys(
             {
@@ -2956,12 +3017,13 @@ def _lower_shot(
                 and not _is_slot(e)
                 and placed[e.id].depth is not None
                 and key[0] == 1.0
+                and e.id not in riders
             },
             extra,
             {
                 e.id: (sightings[e.id].depths, key)
                 for key, e, _ in ordered
-                if e.id in sightings and key[0] == 1.0
+                if e.id in sightings and key[0] == 1.0 and e.id not in riders
             },
             duration=duration,
             grid=grid,
@@ -2985,8 +3047,9 @@ def _lower_shot(
     ordered = _with_paint_keys(
         ordered,
         pass_keys,
-        entity_ids={e.id for _, e, _ in ordered} | {e.id for e, _ in envs},
+        entity_ids=entity_ids,
         members=members.keys(),
+        attached=riders,
     )
     if sightings:
         _depth_order_notes(
