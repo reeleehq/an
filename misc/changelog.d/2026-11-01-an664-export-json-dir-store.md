@@ -1,0 +1,1 @@
+- **`JsonDirStore` is exported from `an.stores`** (an#664), with its `locked()` and atomic write as the documented contract for hosts (reelee locks voice manifests through it); `create=False` leaves the folder to the first write or lock, so a read-only scan leaves no empty folder.

@@ -246,12 +246,28 @@ class JsonDirStore(MutableMapping):
 
     Backed by the filesystem under ``root_dir``. Keys are the file stems; values
     are arbitrary JSON-serializable Python objects. ``__contains__``, ``__iter__``,
-    and ``__len__`` are derived from directory listing.
+    and ``__len__`` are derived from directory listing. Exported from
+    :mod:`an.stores` for hosts (an#664): a write is atomic and :meth:`locked`
+    is the contract for a read, change and write shared with other processes.
+
+    ``create=False`` leaves the folder to the first write or lock, so a host
+    can scan many folders through the store without leaving an empty one in
+    each; a missing folder reads as an empty store.
+
+    >>> import tempfile
+    >>> d = Path(tempfile.mkdtemp()) / "voice_options"
+    >>> store = JsonDirStore(d, create=False)
+    >>> list(store), "jerry" in store, d.exists()
+    ([], False, False)
+    >>> store["jerry"] = {"options": []}
+    >>> list(store), d.exists()
+    (['jerry'], True)
     """
 
-    def __init__(self, root_dir: str | Path) -> None:
+    def __init__(self, root_dir: str | Path, *, create: bool = True) -> None:
         self._root = Path(root_dir)
-        self._root.mkdir(parents=True, exist_ok=True)
+        if create:
+            self._root.mkdir(parents=True, exist_ok=True)
 
     def _path(self, key: str) -> Path:
         if "/" in key or key.startswith(".") or not key:
