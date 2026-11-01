@@ -1130,7 +1130,11 @@ def check_jump_cut(ctx: Any) -> None:
                 (
                     subject,
                     resolve_viewpoint(
-                        world, vp, extents=extents, width=width, height=height,
+                        world,
+                        vp,
+                        extents=extents,
+                        width=width,
+                        height=height,
                         bands=bands,
                     ),  # fmt: skip
                 )

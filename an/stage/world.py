@@ -154,9 +154,13 @@ def member_shot_sizes(
                 dropped[str(size)] = f"{size!r}: {band!r} is not (top, bottom)"
                 continue
             if size not in SHOT_SIZES:
-                dropped[str(size)] = f"{size!r} is not a shot size ({sorted(SHOT_SIZES)})"
+                dropped[str(size)] = (
+                    f"{size!r} is not a shot size ({sorted(SHOT_SIZES)})"
+                )
             elif not 0.0 <= top < bottom <= 1.0:
-                dropped[size] = f"{size!r}: ({top:g}, {bottom:g}) is not 0 <= top < bottom <= 1"
+                dropped[size] = (
+                    f"{size!r}: ({top:g}, {bottom:g}) is not 0 <= top < bottom <= 1"
+                )
             else:
                 sane[size] = (top, bottom)
         if sane:
