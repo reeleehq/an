@@ -1,0 +1,1 @@
+- **Shimmed names survive pytest 9.2's monkeypatch undo** (an#690): a name `an._shims` forwards (`forward_module_attributes`, `alias_module`, through a chain of shims) is a data descriptor on its module's own class, so `MonkeyPatch.undo` puts the target's global back instead of deleting it; CI was red on every PR.
