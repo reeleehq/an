@@ -724,16 +724,17 @@ def _layout_string(
 def _refuse_halos(desc: TextDescriptor, runs: Sequence[Any]) -> None:
     """Refuse runs that carry a tituli ``halo`` (a soft glow under the glyphs,
     tituli#19): ``an`` draws a run from its glyph contours alone, so the glow
-    would be silently left off the film (an#682). Named, until ``an`` draws
-    one as an underlay (an#701)."""
+    would be silently left off the film (an#682). ``an`` never asks for one
+    (``block`` sets none), so this guards against tituli changing its
+    defaults, until ``an`` draws a halo as an underlay (an#701)."""
     haloed = [r.text for r in runs if getattr(r, "halo", None) is not None]
     if haloed:
         raise TextLayoutError(
-            f"text {desc.name!r}: {len(haloed)} run(s) carry a tituli `halo` "
-            f"({', '.join(repr(t) for t in haloed[:3])}"
-            f"{', ...' if len(haloed) > 3 else ''}), which `an` cannot draw yet: it "
-            "draws text from glyph outlines, and would leave the glow off. Drop "
-            "the halo, or use `stroke_width` for an outline."
+            f"text {desc.name!r}: `tituli.block` returned {len(haloed)} run(s) "
+            f"carrying a `halo` ({', '.join(repr(t) for t in haloed[:3])}"
+            f"{', ...' if len(haloed) > 3 else ''}), which `an` never asks for and "
+            "cannot draw yet (an#701): it draws text from glyph outlines and "
+            "would leave the glow off. Did tituli change its defaults?"
         )
 
 
