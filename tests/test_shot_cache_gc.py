@@ -1343,7 +1343,8 @@ def test_gc_deletes_the_temps_killed_writes_left_and_spares_a_fresh_one(tmp_path
     """A process killed inside ``dol.atomic_write`` leaves its temp (possibly a
     whole film) beside the target, where no listing sees it: the collection
     deletes it once untouched for ``INTERRUPTED_WRITE_MIN_AGE_S``, and keeps
-    one that is younger (a write that may still be going) (an#674)."""
+    one that is younger (a write that may still be going), even past the
+    protection horizon (an#674)."""
     from an.build.gc import INTERRUPTED_WRITE_MIN_AGE_S
 
     root = _project(tmp_path)
@@ -1357,6 +1358,11 @@ def test_gc_deletes_the_temps_killed_writes_left_and_spares_a_fresh_one(tmp_path
     os.utime(voice, (stale_at, stale_at))
     fresh = root / "artifacts" / "audio" / ".line.wav.ffee0011.tmp"
     fresh.write_bytes(b"y")
+    # past the protection horizon, but untouched for less than the gate
+    recent_at = now - INTERRUPTED_WRITE_MIN_AGE_S / 6
+    recent = root / "artifacts" / "audio" / ".take.wav.0123abcd.tmp"
+    recent.write_bytes(b"z")
+    os.utime(recent, (recent_at, recent_at))
     keep = root / "output" / "main.mp4"
     keep.write_bytes(b"film")
     os.utime(keep, (stale_at, stale_at))
@@ -1372,4 +1378,8 @@ def test_gc_deletes_the_temps_killed_writes_left_and_spares_a_fresh_one(tmp_path
     report = collect_garbage(root, now=now, force=True)
     assert set(report.deleted_temps) == set(dry.deleted_temps)
     assert not stale.exists() and not voice.exists()
-    assert fresh.exists() and keep.exists()
+    assert fresh.exists() and recent.exists() and keep.exists()
+    # the gate is a keyword: with none, the recent one goes too
+    gone = collect_garbage(root, now=now, force=True, interrupted_write_min_age=0.0)
+    assert set(gone.deleted_temps) == {"audio/.take.wav.0123abcd.tmp"}
+    assert fresh.exists() and not recent.exists()

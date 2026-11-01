@@ -83,6 +83,7 @@ from typing import Any
 
 from an.audio.pipeline import VOICE_TTS, AudioNotCachedError
 from an.base import DEFAULT_SUPERSAMPLE
+from an.stores._common import ListsInterruptedWrites
 from an.build.shot_cache import (
     FRAMES_SUFFIX,
     PARTS_INFIX,
@@ -622,21 +623,26 @@ def _collect_transcripts(mall: Any, report: GcReport, *, horizon: float) -> None
 
 
 def _collect_interrupted_writes(
-    mall: Any, report: GcReport, *, horizon: float, now: float
+    mall: Any,
+    report: GcReport,
+    *,
+    horizon: float,
+    now: float,
+    min_age: float = INTERRUPTED_WRITE_MIN_AGE_S,
 ) -> None:
     """Delete the temp files killed atomic writes left in the mall's stores
-    (an#674): a store that can list them (``interrupted_writes()``, as
-    :class:`an.stores.artifacts._BlobStore` does) and a temp untouched since
-    both ``horizon`` and :data:`INTERRUPTED_WRITE_MIN_AGE_S` ago. Its mtime is
+    (an#674): a store that can list them
+    (:class:`an.stores._common.ListsInterruptedWrites`, as
+    :class:`an.stores.artifacts._BlobStore` is) and a temp untouched since
+    both ``horizon`` and ``min_age`` seconds ago. Its mtime is
     re-read just before the unlink, so a write that resumed is kept."""
-    before = min(horizon, now - INTERRUPTED_WRITE_MIN_AGE_S)
+    before = min(horizon, now - min_age)
     seen: set[Path] = set()
     for name, store in mall.items():
-        lister = getattr(store, "interrupted_writes", None)
-        if not callable(lister):
+        if not isinstance(store, ListsInterruptedWrites):
             continue
         try:
-            temps = lister()
+            temps = store.interrupted_writes()
         except OSError:
             continue  # an unreadable folder: nothing known, nothing deleted
         for path in temps:
@@ -659,12 +665,14 @@ def _collect_interrupted_writes(
 
 
 def _collect_orphans(
-    mall: Any, report: GcReport, *, horizon: float, now: float
+    mall: Any, report: GcReport, *, horizon: float, now: float, min_age: float
 ) -> None:
     """What no record names at all, collected last, after every refusal: the
     transcripts no take names (an#607) and interrupted writes' temps (an#674)."""
     _collect_transcripts(mall, report, horizon=horizon)
-    _collect_interrupted_writes(mall, report, horizon=horizon, now=now)
+    _collect_interrupted_writes(
+        mall, report, horizon=horizon, now=now, min_age=min_age
+    )
 
 
 def _protection_horizon(project_root: Path, now: float) -> float:
@@ -708,6 +716,7 @@ def collect_garbage(
     engine: ShotCache | None = None,
     now: float | None = None,
     force: bool = False,
+    interrupted_write_min_age: float = INTERRUPTED_WRITE_MIN_AGE_S,
 ) -> GcReport:
     """Delete the shot-cache entries of ``project_dir`` that nothing reaches.
 
@@ -719,6 +728,8 @@ def collect_garbage(
     removes a reachable entry, so the cache can stay above ``max_size``.
     ``dry_run`` reports and deletes nothing. ``force`` collects a cache no
     render of this project has recorded a root in (see :func:`reachable_entries`).
+    ``interrupted_write_min_age`` (seconds) is how long a killed atomic write's
+    temp must have gone untouched before it is deleted (an#674).
 
     See the module docstring for the reachability and concurrency argument.
     """
@@ -730,7 +741,10 @@ def collect_garbage(
     now = time.time() if now is None else now
     horizon = _protection_horizon(project.root, now)
     if store is None:
-        _collect_orphans(project.mall, report, horizon=horizon, now=now)
+        _collect_orphans(
+        project.mall, report, horizon=horizon, now=now,
+        min_age=interrupted_write_min_age,
+    )  # fmt: skip
         return report
     others = other_scenes(project_dir)
     entries = inventory(store)
@@ -803,7 +817,10 @@ def collect_garbage(
             shot_cache_kept_bytes=report.bytes_before - sum(doomed_blobs.values()),
             dry_run=True, report=report,
         )  # fmt: skip
-        _collect_orphans(project.mall, report, horizon=horizon, now=now)
+        _collect_orphans(
+        project.mall, report, horizon=horizon, now=now,
+        min_age=interrupted_write_min_age,
+    )  # fmt: skip
         return report
     layout = _fs_layout(store)
     # Records first, then blobs: a record must never name a blob that is gone.
@@ -843,7 +860,10 @@ def collect_garbage(
         dry_run=False, report=report,
     )  # fmt: skip
     # Last, after every refusal: a collection that refuses deletes nothing.
-    _collect_orphans(project.mall, report, horizon=horizon, now=now)
+    _collect_orphans(
+        project.mall, report, horizon=horizon, now=now,
+        min_age=interrupted_write_min_age,
+    )  # fmt: skip
     return report
 
 

@@ -19,7 +19,7 @@ import re
 from collections.abc import Callable, Mapping, MutableMapping
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any, Iterator, Protocol, runtime_checkable
 
 from dol import atomic_write, file_lock
 
@@ -244,6 +244,14 @@ def asset_ref_problems(
 #: The name ``dol.atomic_write`` stages a write under, beside its target:
 #: ``.<name>.<8 hex>.tmp``. A process killed mid-write leaves it behind.
 ATOMIC_WRITE_TEMP = re.compile(r"\..+\.[0-9a-f]{8}\.tmp")
+
+
+@runtime_checkable
+class ListsInterruptedWrites(Protocol):
+    """A store that can list the temp files killed writes left in it (an#674):
+    what ``an cache gc`` collects them from."""
+
+    def interrupted_writes(self) -> list[Path]: ...
 
 
 def interrupted_writes(folder: str | Path) -> list[Path]:
