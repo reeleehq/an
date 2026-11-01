@@ -1,1 +1,0 @@
-- **ElevenLabs voice listings keep `preview_url`** (an#666): `ElevenLabsTTS.list_voices` puts the SDK voice's sample link in `VoiceMeta.extra["preview_url"]` (`None` when it has none), for a voice picker to play before casting.
