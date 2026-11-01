@@ -630,7 +630,8 @@ class Aligner(Protocol):
     ``phone_alphabet`` (``"arpabet"``, ``"ipa"``, ``None`` unknown) is stored
     beside the phones on the take's record."""
 
-    phone_alphabet: str | None
+    @property
+    def phone_alphabet(self) -> str | None: ...
 
     def __call__(self, path: Path, text: str) -> Sequence[TranscriptSegment]: ...
 
@@ -723,14 +724,11 @@ class MfaAligner:
             return parse_textgrid(grid.read_text(encoding="utf-8"))
 
 
-def mfa_aligner(**options: Any) -> MfaAligner:
-    """:class:`MfaAligner` with ``options`` (``alphabet``, ``executable``,
-    ``command``, ``run``)."""
-    return MfaAligner(**options)
-
+#: The name the seam's MFA aligner was first given (an#637).
+mfa_aligner = MfaAligner
 
 #: The aligners ``an voices import --aligner NAME[:ALPHABET]`` builds.
-ALIGNERS: Mapping[str, Callable[..., Aligner]] = {"mfa": mfa_aligner}
+ALIGNERS: Mapping[str, Callable[..., Aligner]] = {"mfa": MfaAligner}
 
 
 def aligner_named(spec: str) -> Aligner:
@@ -1079,7 +1077,8 @@ def _timed_segments(
     transcript timed by the forced aligner, words and phones (an#637; ``wav``
     is the take as decoded, which the aligner is given). An aligner with no
     plain transcript is refused: it has no text to align."""
-    if align is not None and (given is None or all(s.timed for s in given[0] if s.text)):
+    lines = [s for s in given[0] if s.text] if given is not None else []
+    if align is not None and (given is None or (lines and all(s.timed for s in lines))):
         raise RecordedVoicesError(
             f"{path.name}: an aligner times a PLAIN transcript (`speaker: text` "
             "lines), and this take has "
