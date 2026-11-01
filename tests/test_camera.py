@@ -737,3 +737,97 @@ def test_a_follow_with_lag_zero_is_the_follow_it_was_and_a_lag_trails_the_target
     for want, got in zip(ideal[1:], [e[1] for e in lagged[1:]]):
         prev = prev + k * (want - prev)
         assert got == pytest.approx(prev, abs=1e-6)
+
+
+@pytest.mark.parametrize(
+    "overlay",
+    [
+        [CameraKey(at=0.0), CameraKey(at=2.0, dolly=0.3, easing="ease_in_out")],
+        [CameraKey(at=0.0, zoom=1.2), CameraKey(at=2.0, zoom=1.6)],
+        [CameraKey(at=0.0), CameraKey(at=1.0, zoom=1.3, dolly=0.1), CameraKey(at=2.0, dolly=0.25)],
+    ],
+)
+def test_a_follow_that_dollies_keeps_its_target_on_screen_as_it_closes_in(tmp_path, overlay):
+    """an#625: a follow with a key overlay of `dolly` and `zoom` closes in on
+    the moving target (the root grows) while the target stays where it stood
+    on screen at the shot's start: the camera is `d − d0·g0/g`."""
+    from an.ir.schema import CameraFollow
+
+    shot = _follow_shot(follow={"target": "dot", "axes": "xy"})
+    shot = shot.model_copy(
+        update={"camera": Camera(follow=CameraFollow(target="dot", axes="xy"), keys=overlay)}
+    )
+    assert _validate(shot).passed
+    doc = compile_shot(shot, mall=_dot_mall(tmp_path), fps=12, width=640, height=360, strict_assets=True)
+    track = _screen_track(doc, "dot", 12, 24)
+    drift = max(abs(p[a] - track[0][a]) for p in track for a in (0, 1))
+    assert drift < 1e-6, drift
+    scale = _channels(doc)["scale_x"]
+    assert scale[-1][1] > scale[0][1] > 0.0  # it closed in
+
+
+def test_a_follow_overlay_that_places_or_rolls_the_camera_is_refused(tmp_path):
+    """an#625: beside a follow, keys set only `dolly` and `zoom`; a key that
+    also moves the camera is a second path, refused where compiling refuses."""
+    from an.ir.schema import CameraFollow
+
+    for bad in ({"x": 40.0}, {"rotation": 0.1}):
+        shot = _follow_shot(follow={"target": "dot"}).model_copy(
+            update={"camera": Camera(
+                follow=CameraFollow(target="dot"),
+                keys=[CameraKey(at=0.0), CameraKey(at=2.0, dolly=0.2, **bad)],
+            )}  # fmt: skip
+        )
+        assert not _validate(shot).passed
+        with pytest.raises(CutoutCompileError, match="may set only"):
+            compile_shot(shot, mall=_dot_mall(tmp_path), fps=12, width=640, height=360)
+
+
+def test_a_follow_on_one_axis_that_zooms_holds_the_target_on_the_other(tmp_path):
+    """an#625 review: with the default `axes: x`, the axis the follow does not
+    track zooms about where the target started on it, so a zoom does not slide
+    the target off that line (the target's own y motion is still seen, scaled)."""
+    from an.ir.schema import CameraFollow, StagePlacement, TweenAction
+
+    shot = _follow_shot(
+        follow={"target": "dot"},
+        actions=[TweenAction(target="dot", property="x", to_value=200.0, duration=2.0)],
+        entities=[AssetRef(kind="prop", id="dot", store="props", ref="dot",
+                           stage=StagePlacement(at=(-100.0, 80.0)))],
+    ).model_copy(update={"camera": Camera(
+        follow=CameraFollow(target="dot"),
+        keys=[CameraKey(at=0.0), CameraKey(at=2.0, zoom=1.5)],
+    )})  # fmt: skip
+    doc = compile_shot(shot, mall=_dot_mall(tmp_path), fps=12, width=640, height=360, strict_assets=True)
+    track = _screen_track(doc, "dot", 12, 24)
+    assert max(abs(p[a] - track[0][a]) for p in track for a in (0, 1)) < 1e-6
+
+
+def test_a_follow_overlay_that_dollies_through_a_plane_fails_validate_as_compile_does(tmp_path):
+    """an#625 review: validate checks a follow's overlay travel against the
+    planes, as it checks a move's, so a shot it passes compiles."""
+    from an.environments import EnvironmentDescriptor, Plane, PlaneArt
+    from an.ir.schema import CameraFollow, StagePlacement
+
+    mall = _dot_mall(tmp_path)
+    mall["environments"]["depths"] = EnvironmentDescriptor(
+        name="depths",
+        planes=[Plane(name="near", art=PlaneArt(kind="fill", color="#336699"), depth=3.0, size=(4000.0, 4000.0))],
+    ).model_dump(mode="json")
+    entities = [
+        AssetRef(kind="environment", id="depths", store="environments", ref="depths"),
+        AssetRef(kind="prop", id="dot", store="props", ref="dot", stage=StagePlacement(at=(-100.0, 50.0))),
+    ]
+    shot = _follow_shot(follow={"target": "dot"}, entities=entities).model_copy(
+        update={"camera": Camera(
+            follow=CameraFollow(target="dot"),
+            keys=[CameraKey(at=0.0), CameraKey(at=2.0, dolly=0.4)],
+        )}  # fmt: skip
+    )
+    report = validate_semantic(
+        SceneIR(meta=Meta(), timeline=[shot]),
+        available_props=mall["props"], available_environments=mall["environments"],
+    )
+    assert any(f.severity == "error" and "near" in f.description for f in report.findings)
+    with pytest.raises(CutoutCompileError, match="near"):
+        compile_shot(shot, mall=mall, fps=12, width=640, height=360)

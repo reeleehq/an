@@ -193,7 +193,9 @@ class CameraFollow(_IRModel):
     ``target`` is an entity id or one of its nodes (``bob/head``); ``axes`` is
     which way the camera tracks it (``x``: a side-scrolling walk, ``xy``: both).
     Resolved at compile time from the compiled motion (the target's position at
-    every frame), so planes parallax with it like any camera move.
+    every frame), so planes parallax with it like any camera move. The
+    camera's ``keys`` may lay ``dolly`` and ``zoom`` over a follow (an#625):
+    it closes in on the target, holding it where it stood on screen.
     """
 
     target: PathStr

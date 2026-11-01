@@ -31,6 +31,8 @@ from an.ir.camera import (
     camera_keys,
     camera_shake_offsets,
     dolly_frames,
+    follow_overlay,
+    frame_times,
 )
 from an.ir.compose import flatten
 from an.ir.migrate import DocumentMigrationError, migrate
@@ -1114,8 +1116,19 @@ def _check_framing(
         keys = [CameraKey()]  # no move: the resting frame
     # A dolly is not affine in its travel, so its frame is checked at every
     # frame the render draws, as the compiler emits it (an#478).
-    keys = dolly_frames(keys, duration=max(0.001, float(shot.duration)), fps=fps)
+    duration = max(0.001, float(shot.duration))
+    keys = dolly_frames(keys, duration=duration, fps=fps)
+    follow = shot.camera.follow if shot.camera is not None else None
     try:
+        if follow is not None and shot.camera.keys:
+            # A follow's overlay dollies through the planes as a move does
+            # (an#625); where it points is only known at compile, so only the
+            # travel is checked here, at every frame.
+            for _, travel in follow_overlay(
+                shot.camera.keys, frame_times(duration=duration, fps=fps)
+            ):
+                for plane, art in planes:
+                    plane_rect(plane, art, camera=(0.0, 0.0), dolly=travel)
         poses = [
             (
                 key,

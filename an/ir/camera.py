@@ -28,12 +28,15 @@ __all__ = [
     "CAMERA_MOVES",
     "DOLLY_IN",
     "DOLLY_OUT",
+    "FOLLOW_OVERLAY_FIELDS",
     "PAN_FRACTION",
     "CameraError",
     "camera_keys",
     "camera_shake_offsets",
     "dolly_frames",
     "dolly_growth",
+    "follow_overlay",
+    "frame_times",
     "plane_dolly_scale",
 ]
 
@@ -152,16 +155,23 @@ def camera_keys(shot: Shot, *, width: int, height: int) -> list[CameraKey]:
             "one you meant."
         )
     if camera.follow is not None:
-        if camera.move not in (None, "", "hold") or camera.keys is not None:
+        if camera.move not in (None, "", "hold"):
             raise CameraError(
                 f"shot {shot.id!r} sets camera.follow (on "
-                f"{camera.follow.target!r}) and also "
-                f"{'camera.keys' if camera.keys is not None else f'camera.move={camera.move!r}'}. "
+                f"{camera.follow.target!r}) and also camera.move={camera.move!r}. "
                 "A follow IS the camera's path, so the two cannot both drive it. "
-                "Keep the follow, or the move."
+                "Keep the follow, or the move (a follow may dolly or zoom with "
+                "`camera.keys` that set only `dolly` and `zoom`, an#625)."
+            )
+        if camera.keys is not None:
+            _refuse_unknown_key_fields(shot, list(camera.keys))
+            _refuse_a_follow_overlay_that_moves(shot, camera.keys)
+            _refuse_keys_that_cannot_play(
+                shot, list(camera.keys), max(0.001, float(shot.duration))
             )
         # A follow's keys come from the COMPILED motion (an#445): the compiler
-        # resolves them (`camera_follow_keys`); at the IR level there are none.
+        # resolves them (`camera_follow_keys`), its `keys` an overlay of dolly
+        # and zoom on that path (an#625); at the IR level there are none.
         return []
     duration = max(0.001, float(shot.duration))
     if camera.keys is not None:
@@ -188,6 +198,50 @@ def camera_keys(shot: Shot, *, width: int, height: int) -> list[CameraKey]:
     # canvas, which only the caller knows.
     span = float(height if move in _VERTICAL_MOVES else width) * PAN_FRACTION
     return [k.model_copy(update={"x": k.x * span, "y": k.y * span}) for k in keys]
+
+
+#: What a follow's key overlay may set (an#625): how far the camera travels in
+#: and its zoom. Its position is the follow's, and a roll would turn the frame
+#: the follow holds the target in.
+FOLLOW_OVERLAY_FIELDS: frozenset[str] = frozenset({"at", "zoom", "dolly", "easing"})
+
+
+def _refuse_a_follow_overlay_that_moves(shot: Shot, keys: list[CameraKey]) -> None:
+    """A follow's ``keys`` are an overlay of ``dolly`` and ``zoom`` on its
+    path (an#625): one that also places or rolls the camera would be a second
+    path, which a follow cannot share."""
+    for i, key in enumerate(keys):
+        moved = sorted(
+            f for f in key.model_fields_set - FOLLOW_OVERLAY_FIELDS if getattr(key, f)
+        )
+        if moved:
+            raise CameraError(
+                f"shot {shot.id!r} follows {shot.camera.follow.target!r} and its "
+                f"camera.keys[{i}] sets {', '.join(moved)}: beside a follow, keys "
+                f"may set only {sorted(FOLLOW_OVERLAY_FIELDS - {'at', 'easing'})} "
+                "(the follow is the camera's position). Drop them, or drop the follow."
+            )
+
+
+def follow_overlay(keys: list[CameraKey] | None, times: list[float]) -> list[tuple[float, float]]:
+    """``(zoom, dolly)`` of a follow's key overlay at each of ``times`` (an#625),
+    each field by the keys' own easings; ``(1.0, 0.0)`` with no overlay.
+
+    >>> follow_overlay([CameraKey(at=0.0), CameraKey(at=1.0, dolly=0.2)], [0.0, 1.0])
+    [(1.0, 0.0), (1.0, 0.2)]
+    >>> follow_overlay(None, [0.0, 0.5])
+    [(1.0, 0.0), (1.0, 0.0)]
+    """
+    if not keys:
+        rest = CameraKey()
+        return [(rest.zoom, rest.dolly)] * len(times)
+    from an.timing import evaluate_channel
+
+    ch = _key_channels(keys, ("zoom", "dolly"))
+    return [
+        (evaluate_channel(ch["zoom"], t), evaluate_channel(ch["dolly"], t))
+        for t in times
+    ]
 
 
 def _refuse_unknown_key_fields(shot: Shot, keys: list[CameraKey]) -> None:
@@ -320,6 +374,30 @@ def plane_dolly_scale(factor: float, dolly: float, *, plane: str = "") -> float:
     return dolly_growth(factor, dolly) / dolly_growth(1.0, dolly)
 
 
+def frame_times(*, duration: float, fps: float) -> list[float]:
+    """The time of every frame the render draws, the shot's end included.
+
+    >>> frame_times(duration=0.5, fps=4)
+    [0.0, 0.25, 0.5]
+    """
+    frames = max(1, round(duration * fps))
+    return [min(duration, n / fps) for n in range(frames + 1)]
+
+
+def _key_channels(keys: list[CameraKey], fields) -> dict:
+    """``{field: Channel}`` of ``keys``, each field by the keys' own easings."""
+    from an.timing.channel import Channel, Keyframe
+
+    return {
+        f: Channel(
+            "camera",
+            f,
+            [Keyframe(float(k.at), float(getattr(k, f)), k.easing) for k in keys],
+        )
+        for f in fields
+    }
+
+
 def dolly_frames(
     keys: list[CameraKey], *, duration: float, fps: float
 ) -> list[CameraKey]:
@@ -341,21 +419,12 @@ def dolly_frames(
     """
     if len(keys) < 2 or not any(k.dolly for k in keys):
         return keys
-    from an.timing.channel import Channel, Keyframe, evaluate
+    from an.timing import evaluate_channel
 
-    def channel(field: str) -> Channel:
-        return Channel(
-            "camera",
-            field,
-            [Keyframe(float(k.at), float(getattr(k, field)), k.easing) for k in keys],
-        )
-
-    fields = {f: channel(f) for f in ("x", "y", "zoom", "rotation", "dolly")}
-    frames = max(1, round(duration * fps))
+    fields = _key_channels(keys, ("x", "y", "zoom", "rotation", "dolly"))
     out = []
-    for n in range(frames + 1):
-        t = min(duration, n / fps)
-        at = {f: evaluate(ch, t) for f, ch in fields.items()}
+    for t in frame_times(duration=duration, fps=fps):
+        at = {f: evaluate_channel(ch, t) for f, ch in fields.items()}
         out.append(
             CameraKey(
                 at=t,
