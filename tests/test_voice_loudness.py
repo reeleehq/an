@@ -428,11 +428,11 @@ def test_room_tone_is_not_raised_past_the_gain_cap():
 
 
 def test_a_bad_offset_is_refused_with_its_bounds():
-    from an.audio.loudness import VoiceLoudnessError, _offset
+    from an.audio.loudness import VoiceLoudnessError, voice_loudness_offset
 
     for bad in ("loud", float("nan"), 200, True):
         with pytest.raises(VoiceLoudnessError, match="loudness_offset_db"):
-            _offset({"voices": {"v": {"loudness_offset_db": bad}}}, "v")
+            voice_loudness_offset({"voices": {"v": {"loudness_offset_db": bad}}}, "v")
 
 
 @pytest.mark.ffmpeg

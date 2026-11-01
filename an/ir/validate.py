@@ -501,10 +501,14 @@ def _check_trim_targets(
                 )
 
 
-def rig_scope(shot, stores: Mapping[str, Any]) -> tuple[dict[str, Any], set[str]]:
+def rig_scope(
+    shot: Any, stores: Mapping[str, Any]
+) -> tuple[dict[str, Any], set[str]]:
     """``(rigged entities by id, ids whose rig store was not supplied)``: which
     of ``shot``'s entities a rig check can read, public for a genre's own
-    checks (reeleehq/cutan#148, ``an.genres.API_LEVEL`` 13).
+    checks (reeleehq/cutan#148, ``an.genres.API_LEVEL`` 13). An entity is
+    rigged when its kind has a rig store (``rig_stores()``); ``stores`` is read
+    per kind, a missing store meaning that kind's checks are SKIPPED.
 
     PER-KIND, not per-call. an#108's first pass changed the gate from
     "characters store absent → skip" to "no stores at all → skip", which made
@@ -522,7 +526,7 @@ def rig_scope(shot, stores: Mapping[str, Any]) -> tuple[dict[str, Any], set[str]
     return rigs, unchecked
 
 
-#: The name genre packages imported before it was public (API level < 13).
+#: The name genre packages imported before it was public (API level < 13); removed by an#709.
 _rig_scope = rig_scope
 
 

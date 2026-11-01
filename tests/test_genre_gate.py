@@ -137,7 +137,7 @@ def test_api_level_13_names_are_public_and_the_old_ones_still_resolve():
     from an.semantic import matcher
 
     assert validate._rig_scope is validate.rig_scope
-    assert matcher._method is matcher.resolve_method
+    assert matcher._method is matcher.lookup_method
     assert matcher._as_choice is matcher.as_choice
     assert loudness._offset is loudness.voice_loudness_offset
-    assert {"resolve_method", "as_choice"} <= set(matcher.__all__)
+    assert {"lookup_method", "as_choice"} <= set(matcher.__all__)

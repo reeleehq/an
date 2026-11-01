@@ -142,7 +142,7 @@ class GenreError(RegistryError):
 #: 12 = the P8 import shims are gone (an#321): no ``an`` path serves a module or name that
 #:     moved to ``cutan``, so a genre package imports its own code from ``cutan`` only.
 #: 13 = names a genre's checks and pack read, public (reeleehq/cutan#148):
-#:     ``an.ir.validate.rig_scope``, ``an.semantic.matcher.resolve_method`` and
+#:     ``an.ir.validate.rig_scope``, ``an.semantic.matcher.lookup_method`` and
 #:     ``as_choice``, ``an.audio.loudness.voice_loudness_offset``.
 API_LEVEL: int = 13
 

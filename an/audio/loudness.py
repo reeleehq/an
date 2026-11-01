@@ -337,7 +337,14 @@ def voice_loudness_spread(levels: list[VoiceLevel]) -> str | None:
 def voice_loudness_offset(mall: Mapping[str, Any], voice: str) -> float:
     """The ``loudness_offset_db`` ``voice``'s document asks for (0 when
     unset), checked against :data:`OFFSET_LIMITS_DB`; public for a genre's
-    pack (reeleehq/cutan#148)."""
+    pack (reeleehq/cutan#148).
+
+    >>> voice_loudness_offset({"voices": {"kid": {"loudness_offset_db": 3}}}, "kid")
+    3.0
+
+    Raises:
+        VoiceLoudnessError: For an offset that is not a number within the limits.
+    """
     from an.audio.voices import voice_document
 
     raw = voice_document(mall, voice).get("loudness_offset_db", 0.0)
@@ -354,7 +361,7 @@ def voice_loudness_offset(mall: Mapping[str, Any], voice: str) -> float:
     return float(raw)
 
 
-#: The name genre packages imported before it was public (API level < 13).
+#: The name genre packages imported before it was public (API level < 13); removed by an#709.
 _offset = voice_loudness_offset
 
 
