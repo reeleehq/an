@@ -223,7 +223,9 @@ def _refuse_a_follow_overlay_that_moves(shot: Shot, keys: list[CameraKey]) -> No
             )
 
 
-def follow_overlay(keys: list[CameraKey] | None, times: list[float]) -> list[tuple[float, float]]:
+def follow_overlay(
+    keys: list[CameraKey] | None, times: list[float]
+) -> list[tuple[float, float]]:
     """``(zoom, dolly)`` of a follow's key overlay at each of ``times`` (an#625),
     each field by the keys' own easings; ``(1.0, 0.0)`` with no overlay.
 
