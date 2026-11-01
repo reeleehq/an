@@ -1,0 +1,1 @@
+- **A tituli `halo` is refused by name, not dropped** (an#682): `an` draws text from glyph outlines, so a run carrying tituli's `Run.halo` (tituli#19) raises a `TextLayoutError` naming it rather than reaching the film without its glow. Drawing one is an#701.

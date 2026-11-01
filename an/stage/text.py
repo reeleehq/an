@@ -56,7 +56,7 @@ import math
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Literal, Mapping
+from typing import Any, Literal, Mapping, Sequence
 
 from pydantic import (
     BaseModel,
@@ -645,6 +645,7 @@ def _layout_string(
     runs = [r for r in lay.runs if r.text.strip()]
     if not runs:
         raise TextLayoutError(f"text {desc.name!r} lays out to nothing drawable")
+    _refuse_halos(desc, runs)
     face = runs[0].face
     if desc.font is not None and face.path != request[0]:
         raise TextFontError(
@@ -718,6 +719,22 @@ def _layout_string(
         font=identity,
         bounds=(bb.x0 + dx, bb.y0 + dy, bb.x1 + dx, bb.y1 + dy),
     )
+
+
+def _refuse_halos(desc: TextDescriptor, runs: Sequence[Any]) -> None:
+    """Refuse runs that carry a tituli ``halo`` (a soft glow under the glyphs,
+    tituli#19): ``an`` draws a run from its glyph contours alone, so the glow
+    would be silently left off the film (an#682). Named, until ``an`` draws
+    one as an underlay (an#701)."""
+    haloed = [r.text for r in runs if getattr(r, "halo", None) is not None]
+    if haloed:
+        raise TextLayoutError(
+            f"text {desc.name!r}: {len(haloed)} run(s) carry a tituli `halo` "
+            f"({', '.join(repr(t) for t in haloed[:3])}"
+            f"{', ...' if len(haloed) > 3 else ''}), which `an` cannot draw yet: it "
+            "draws text from glyph outlines, and would leave the glow off. Drop "
+            "the halo, or use `stroke_width` for an outline."
+        )
 
 
 class TextOutlineWarning(UserWarning):

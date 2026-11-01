@@ -504,3 +504,27 @@ def test_in_pixels_a_title_card_holds_still_through_a_push_in(hermetic_browser, 
     # the title sits in the top of the title-safe area, the label right of centre
     assert t0[1] < 360 * 0.25 and l0[0] > 320
     assert hermetic_browser["blocked"] == [], hermetic_browser["blocked"]
+
+
+def test_a_run_carrying_a_tituli_halo_is_refused_by_name(monkeypatch):
+    """an#682: tituli runs can carry a `halo` (a glow under the glyphs,
+    tituli#19), which `an` cannot draw from outlines. A run that carries one is
+    refused, naming it, rather than drawn without its glow."""
+    import tituli
+
+    class _Haloed:  # a run as tituli sets it, with a halo
+        def __init__(self, run):
+            self._run, self.halo = run, object()
+
+        def __getattr__(self, name):
+            return getattr(self._run, name)
+
+    real_block = tituli.block
+
+    def haloed_block(*args, **kwargs):
+        lay = real_block(*args, **kwargs)
+        return type("Lay", (), {"runs": [_Haloed(r) for r in lay.runs]})()
+
+    monkeypatch.setattr(tituli, "block", haloed_block)
+    with pytest.raises(TextLayoutError, match=r"carry a tituli `halo` \('to', 'be'"):
+        layout_text(TextDescriptor(name="t", text="to be"), width=W, height=H)
