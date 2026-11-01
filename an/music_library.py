@@ -21,6 +21,9 @@ What stays here is what is an's:
   and a titles file's metadata ride as extras.
 - :func:`acquire`, foley's with an's ``pause`` knob (seconds before a second
   request to one host), which becomes foley's per-host ``rate``.
+- :func:`add_track_to_sounds` (an#623): one acquired row's verified file, cut,
+  into the project's sounds store with the row as its provenance, so a film
+  uses the track without fetching it again (``an music use``).
 
 The rest of foley's surface the command and its tests use (:data:`MUSIC_LIBRARIES`,
 :func:`tracks_table`, :func:`attribution_text`, :func:`titles_by_library`, ...) is
@@ -63,6 +66,7 @@ __all__ = [
     "MusicLibraryError",
     "MusicToolMissing",
     "acquire",
+    "add_track_to_sounds",
     "asset_source",
     "attribution_text",
     "files_store",
@@ -228,3 +232,66 @@ def acquire(
     if "rate" not in config:
         config["rate"] = {"per_min": SECONDS_PER_MINUTE / pause} if pause else {}
     return foley_acquire(library, titles, out=out, config=config, **kwargs)
+
+
+def add_track_to_sounds(
+    store: Any,
+    key: str,
+    row: Mapping[str, Any],
+    files: Mapping[str, bytes],
+    *,
+    start: float | None = None,
+    duration: float | None = None,
+    fade_out: float | None = None,
+    description: str = "",
+) -> Any:
+    """Put one acquired track in the sounds ``store`` under ``key`` (an#623).
+
+    ``row`` is the track's tracks-table row (foley's ``AcquiredTrack.row()``, or
+    a ``tracks.csv`` line read back) and ``files`` the library folder as
+    ``{file name: bytes}`` (``files_store(out)``). The file it names is checked
+    against the row's ``sha256``, cut with :func:`an.sound_fetch.cut_to_wav`
+    (``start``, ``duration``, ``fade_out``, as ``an sounds add`` takes them)
+    and stored with the row as its :class:`~an.ir.assets.AssetSource`
+    (:func:`asset_source`) plus the cut, so ``an credits`` lists the music with
+    its licence. Nothing is fetched again: the site may be the one that refused
+    scripts.
+
+    Raises:
+        MusicLibraryError: For a row that holds no file (not acquired or kept,
+            or no ``file``/``sha256``), a file missing from ``files``, or one
+            whose bytes do not match the row's digest.
+    """
+    import hashlib
+
+    from an.sound_fetch import CUT_FIELD, cut_record, cut_to_wav
+    from an.sounds import add_sound
+    from foley.sources.music_library import (
+        ACQUIRED,
+        KEPT,
+        MusicLibraryError,
+    )
+
+    title = row.get("title", "?")
+    name, digest = row.get("file"), row.get("sha256")
+    if row.get("status") not in (ACQUIRED, KEPT) or not name or not digest:
+        raise MusicLibraryError(
+            f"track {title!r} holds no file (status {row.get('status')!r}); "
+            "only an acquired or kept row of the tracks table can be used"
+        )
+    if name not in files:
+        raise MusicLibraryError(
+            f"track {title!r}: its file {name!r} is not in the library folder; "
+            "rerun `an music add-library` to fetch it again"
+        )
+    audio = bytes(files[name])
+    if hashlib.sha256(audio).hexdigest() != digest:
+        raise MusicLibraryError(
+            f"track {title!r}: {name!r} does not match the sha256 its row recorded "
+            "(changed since it was acquired); rerun `an music add-library`"
+        )
+    wav = cut_to_wav(audio, start=start, duration=duration, fade_out=fade_out)
+    cut = cut_record(wav, start=start, fade_out=fade_out)
+    source = asset_source(row)
+    source = AssetSource(**{**source.model_dump(exclude_none=True), CUT_FIELD: cut})
+    return add_sound(store, key, wav, source=source, description=description)

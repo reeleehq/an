@@ -348,3 +348,61 @@ def test_a_title_its_licence_refuses_makes_the_command_exit_1(tmp_path, monkeypa
     assert exit_code_of(said) == 1
     assert "1 refused" in said and "Sneaky Snitch: refused for the intended use" in said
     assert "refused" in (tmp_path / "o" / "tracks.csv").read_text(encoding="utf-8")
+
+
+@pytest.mark.ffmpeg
+def test_an_acquired_track_goes_into_the_sounds_store_without_a_fetch(tmp_path):
+    """an#623: the verified file a row names is cut into the project's sounds
+    store with the row as its provenance (library, licence, attribution) and
+    the cut; nothing is fetched. A wishlist row, a missing file and bytes that
+    no longer match the row's digest are refused."""
+    from an.music_library import add_track_to_sounds
+    from an.stores.sounds import SoundsStore
+
+    audio = _mp3(tmp_path)
+    files: dict = {}
+    # as `an music use` reads it: a tracks.csv line
+    (row,) = csv.DictReader(io.StringIO(tracks_table(_acquire(
+        ["Sneaky Snitch"], Fetcher({_url("Sneaky Snitch"): audio}), out=files
+    ))))  # fmt: skip
+    sounds = SoundsStore(tmp_path / "sounds")
+    asset = add_track_to_sounds(
+        sounds, "theme", row, files, start=0.2, duration=0.5, fade_out=0.1
+    )
+    assert asset.duration == pytest.approx(0.5, abs=0.02)
+    src = asset.source
+    assert (src.provider, src.id, src.license) == ("incompetech", "Sneaky Snitch", "cc-by-4.0")
+    assert src.sha256 == hashlib.sha256(audio).hexdigest()  # the file the licence covers
+    assert src.model_extra["cut"] == {"start": 0.2, "end": 0.7, "fade_out": 0.1}
+    assert "theme" in sounds
+
+    with pytest.raises(MusicLibraryError, match="holds no file"):
+        add_track_to_sounds(sounds, "x", {**row, "status": WISHLIST}, files)
+    with pytest.raises(MusicLibraryError, match="not in the library folder"):
+        add_track_to_sounds(sounds, "x", row, {})
+    with pytest.raises(MusicLibraryError, match="does not match the sha256"):
+        add_track_to_sounds(sounds, "x", row, {row["file"]: audio + b"x"})
+
+
+@pytest.mark.ffmpeg
+def test_the_use_command_reads_the_tracks_table_and_names_what_it_lists(tmp_path):
+    """`an music use <project> <out> <title> <key>` (an#623)."""
+    from an.music_cli import TRACKS_TABLE, use
+    from an.project import init, load
+
+    audio = _mp3(tmp_path)
+    out = tmp_path / "macleod"
+    files = {}
+    rows = _acquire(["Sneaky Snitch"], Fetcher({_url("Sneaky Snitch"): audio}), out=files)
+    out.mkdir()
+    for name, data in files.items():
+        (out / name).write_bytes(data)
+    (out / TRACKS_TABLE).write_text(tracks_table(rows), encoding="utf-8")
+    project = init(tmp_path / "film")
+    said = use(str(project), str(out), "Sneaky Snitch", "theme", duration=0.5)
+    assert said.startswith("sounds/theme: 0.50 s of 'Sneaky Snitch' (incompetech) [cc-by-4.0]")
+    assert "theme" in load(project).mall["sounds"]
+    with pytest.raises(SystemExit, match="no track 'Gone'.*Sneaky Snitch"):
+        use(str(project), str(out), "Gone", "x")
+    with pytest.raises(SystemExit, match="no tracks.csv"):
+        use(str(project), str(tmp_path / "empty"), "Sneaky Snitch", "x")
