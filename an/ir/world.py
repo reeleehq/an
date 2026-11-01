@@ -130,6 +130,10 @@ Box = tuple[float, float, float, float]
 #: ``{member or stream id: Box | None}``, measured by the stage
 #: (:func:`an.stage.world.member_extents`); the IR layer only reads it.
 Extents = Mapping[str, "Box | None"]
+#: ``{member id: {shot size: (top, bottom)}}``: where a member's own rig puts
+#: each shot size's band, as fractions of its box's height from the top
+#: (reeleehq/cutan#106); a size it does not give is :data:`SHOT_SIZES`'.
+Bands = Mapping[str, Mapping[str, tuple[float, float]]]
 Point3 = tuple[float, float, float]
 
 #: A hand ``stage.at`` this far from the world's placement is "the same"
@@ -416,10 +420,13 @@ def resolve_viewpoint(
     width: float,
     height: float,
     member_at: Mapping[str, Point3] | None = None,
+    bands: Bands | None = None,
 ) -> Projection:
     """The camera a viewpoint is, as a :class:`Projection`, in its own frame's
     units. ``member_at`` overrides a subject's ``at`` with where it stands in
     the VIEWPOINT's frame (a subject in another frame, at the shot's start).
+    ``bands`` gives a subject's own band for a size (its rig's landmarks,
+    :attr:`an.genres.EntityKind.shot_sizes`); otherwise :data:`SHOT_SIZES`'.
 
     A viewpoint with ``at`` is that camera. One with a ``subject`` is computed:
     on the look direction, at the distance that fills ``fill`` of the frame
@@ -450,8 +457,10 @@ def resolve_viewpoint(
 
     subjects = [vp.subject] if isinstance(vp.subject, str) else list(vp.subject)
     forward, right, down = _basis(yaw, pitch, roll)
-    top, bottom, fill = SHOT_SIZES[vp.size or "full"]
+    size = vp.size or "full"
+    top, bottom, fill = SHOT_SIZES[size]
     boxes: list[tuple[float, float, float, float]] = []
+    cuts: list[tuple[float, float]] = []
     positions: list[Point3] = []
     for sid in subjects:
         member = _member(world, sid, where="viewpoint `subject`")
@@ -473,10 +482,14 @@ def resolve_viewpoint(
         )
         boxes.append(_world_box(position, box, m))
         positions.append(position)
+        cuts.append(((bands or {}).get(sid) or {}).get(size, (top, bottom)))
     x0 = min(b[0] for b in boxes)
     x1 = max(b[2] for b in boxes)
-    bands = [(b[1] + top * (b[3] - b[1]), b[1] + bottom * (b[3] - b[1])) for b in boxes]
-    y0, y1 = min(b[0] for b in bands), max(b[1] for b in bands)
+    spans = [
+        (b[1] + t * (b[3] - b[1]), b[1] + u * (b[3] - b[1]))
+        for b, (t, u) in zip(boxes, cuts)
+    ]
+    y0, y1 = min(b[0] for b in spans), max(b[1] for b in spans)
     n = float(len(positions))
     centre: Point3 = (
         (x0 + x1) / 2.0,
@@ -2516,6 +2529,8 @@ def _lower_shot(
     fps: float,
     plane_geometry: Mapping[str, Mapping[str, tuple[tuple[float, float], Box | None]]],
     plane_anchors: dict[tuple[str, str], _PlaneAnchor],
+    bands: Bands | None = None,
+    band_problems: Mapping[str, Mapping[str, str]] | None = None,
 ) -> tuple[Shot, list[WorldNote], list[int | None]]:
     shot = scene.timeline[index]
     world = scene.world
@@ -2532,6 +2547,17 @@ def _lower_shot(
         )
     for hid in vp.hide:
         _member(world, hid, where=f"shot {shot.id!r} viewpoint `hide`")
+    if vp.subject is not None:
+        subjects = [vp.subject] if isinstance(vp.subject, str) else list(vp.subject)
+        size = vp.size or "full"
+        for sid in subjects:
+            why = (band_problems or {}).get(sid, {})
+            if (size in why or "*" in why) and size not in (bands or {}).get(sid, {}):
+                note(
+                    "warning", "shot_size", sid,
+                    f"framed {size} by human proportions, not its rig's own: "
+                    f"{why.get(size) or why['*']}",
+                )  # fmt: skip
     listed = {e.id: j for j, e in enumerate(shot.entities)}
     if any(STREAM_OVERRIDE in (e.overrides or {}) for e in shot.entities):
         # The shot holds slot entities the lowering made: it IS a lowered shot
@@ -2606,8 +2632,9 @@ def _lower_shot(
             moving.add(mid)
         member_at[mid] = p0
     projection = resolve_viewpoint(
-        world, vp, extents=extents, width=width, height=height, member_at=member_at
-    )
+        world, vp, extents=extents, width=width, height=height,
+        member_at=member_at, bands=bands,
+    )  # fmt: skip
     ctx = _FrameCtx(tree, film_start, duration, vp_frame, projection)
     common = dict(
         extents=extents,
@@ -3836,6 +3863,8 @@ def lower_world(
     extent_problems: Mapping[str, str] | None = None,
     plane_geometry: Mapping[str, Mapping[str, tuple[tuple[float, float], Box | None]]]
     | None = None,
+    bands: Bands | None = None,
+    band_problems: Mapping[str, Mapping[str, str]] | None = None,
 ) -> Lowered:
     """The scene with every framed shot's placements derived from the world.
 
@@ -3858,7 +3887,10 @@ def lower_world(
     drawn box around it (``None``: unknown), read by the stage
     (:func:`an.stage.world.plane_geometry`): where a plane at a world depth is
     anchored and when it is on screen (an#503; the origin and no box for one
-    it does not name).
+    it does not name); ``bands`` is where a subject's own rig puts each shot
+    size (:data:`Bands`, measured by :func:`an.stage.world.member_shot_sizes`),
+    and ``band_problems`` why a subject's could not be (a ``shot_size`` note on
+    each shot that frames it).
 
     Raises :class:`WorldError` for a viewpoint the world cannot resolve.
 
@@ -3894,6 +3926,8 @@ def lower_world(
             fps=rate,
             plane_geometry=plane_geometry or {},
             plane_anchors=plane_anchors,
+            bands=bands,
+            band_problems=band_problems,
         )
         shots.append(lowered)
         notes.extend(shot_notes)

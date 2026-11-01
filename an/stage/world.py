@@ -105,6 +105,67 @@ def native_box(
     )
 
 
+def member_shot_sizes(
+    world: World | None,
+    mall: Mapping[str, Mapping] | None,
+    *,
+    extents: Mapping[str, Box | None],
+    problems: dict[str, dict[str, str]] | None = None,
+) -> dict[str, dict[str, tuple[float, float]]]:
+    """``{member id: {shot size: (top, bottom)}}`` for every positioned member
+    whose kind gives its own (:attr:`an.genres.EntityKind.shot_sizes`,
+    reeleehq/cutan#106): what :func:`an.ir.world.resolve_viewpoint` frames a
+    size by instead of :data:`an.ir.schema.SHOT_SIZES`. The hook is handed the
+    member's measured box (``extents``, :func:`member_extents`), the one its
+    fractions are of. A hook that raises, a band not ``0 <= top < bottom <=
+    1``, or a size :data:`SHOT_SIZES` does not name is not used (the table's
+    applies) and ``problems`` (an out-parameter, ``{member id: {size: why}}``,
+    ``"*"`` for every size when the hook itself failed) records why, which the
+    lowering reports on each shot that frames the member at that size.
+
+    >>> member_shot_sizes(None, {}, extents={})
+    {}
+    """
+    from an.genres.registry import entity_kind
+    from an.ir.schema import SHOT_SIZES
+
+    out: dict[str, dict[str, tuple[float, float]]] = {}
+    if world is None:
+        return out
+    for member in world.members:
+        kind = entity_kind(member.kind)
+        hook = getattr(kind, "shot_sizes", None) if kind is not None else None
+        box = extents.get(member.id)
+        if hook is None or member.at is None or box is None:
+            continue
+        sane: dict[str, tuple[float, float]] = {}
+        dropped: dict[str, str] = {}
+        try:
+            given = dict(hook(member, mall, box) or {})
+        except Exception as e:  # noqa: BLE001 - a genre that cannot say gives no band
+            dropped["*"] = f"its kind's `shot_sizes` raised {type(e).__name__}: {e}"
+            given = {}
+        for size, band in given.items():
+            try:
+                if isinstance(band, (str, bytes)) or len(band) != 2:
+                    raise TypeError(band)
+                top, bottom = (float(v) for v in band)
+            except (TypeError, ValueError):
+                dropped[str(size)] = f"{size!r}: {band!r} is not (top, bottom)"
+                continue
+            if size not in SHOT_SIZES:
+                dropped[str(size)] = f"{size!r} is not a shot size ({sorted(SHOT_SIZES)})"
+            elif not 0.0 <= top < bottom <= 1.0:
+                dropped[size] = f"{size!r}: ({top:g}, {bottom:g}) is not 0 <= top < bottom <= 1"
+            else:
+                sane[size] = (top, bottom)
+        if sane:
+            out[member.id] = sane
+        if dropped and problems is not None:
+            problems[member.id] = dropped
+    return out
+
+
 def member_extents(
     world: World | None,
     mall: Mapping[str, Mapping] | None,
@@ -339,6 +400,7 @@ def _lower_world(
     width = int(scene.meta.resolution.width)
     height = int(scene.meta.resolution.height)
     problems: dict[str, str] = {}
+    band_problems: dict[str, dict[str, str]] = {}
     extents = member_extents(
         scene.world, mall, width=width, height=height, problems=problems
     )
@@ -351,6 +413,10 @@ def _lower_world(
         fps=fps,
         extent_problems=problems,
         plane_geometry=plane_geometry(scene.world, mall),
+        bands=member_shot_sizes(
+            scene.world, mall, extents=extents, problems=band_problems
+        ),
+        band_problems=band_problems,
     )
 
 

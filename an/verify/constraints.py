@@ -1098,7 +1098,7 @@ def check_jump_cut(ctx: Any) -> None:
     if world is None:
         return
     from an.ir.world import resolve_viewpoint, viewpoint_of
-    from an.stage.world import member_extents
+    from an.stage.world import member_extents, member_shot_sizes
 
     res = ctx.scene.meta.resolution
     width, height = int(res.width), int(res.height)
@@ -1107,6 +1107,10 @@ def check_jump_cut(ctx: Any) -> None:
         lambda: member_extents(
             world, ctx.stores, width=width, height=height, problems={}
         ),
+    )
+    bands = ctx.cached(
+        "constraints.bands",
+        lambda: member_shot_sizes(world, ctx.stores, extents=extents),
     )
     at = {m.id: m.at for m in world.members if m.at is not None}
     views: list[tuple[frozenset[str], Any] | None] = []
@@ -1126,8 +1130,9 @@ def check_jump_cut(ctx: Any) -> None:
                 (
                     subject,
                     resolve_viewpoint(
-                        world, vp, extents=extents, width=width, height=height
-                    ),
+                        world, vp, extents=extents, width=width, height=height,
+                        bands=bands,
+                    ),  # fmt: skip
                 )
             )
         except Exception:  # noqa: BLE001 - an unresolvable viewpoint is reported by the world check

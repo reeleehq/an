@@ -2311,3 +2311,125 @@ def test_a_keyed_pair_out_of_order_is_explained_by_its_keys():
     assert "where it first shows" not in keyed
     ((_, plain),) = depth_order_problems([ref("a"), ref("b")], times, depths, whole)
     assert "the world orders each member by its depth where it first shows" in plain
+
+
+def test_a_kind_s_own_shot_size_band_frames_its_close_up():
+    """reeleehq/cutan#106: a subject whose rig puts the close-up band lower
+    (a big-headed build: the chin at 0.6 of its height, not 0.35) is framed
+    from farther, so the band still fills the frame; a subject with no band of
+    its own, or a size the band does not give, keeps `SHOT_SIZES`'."""
+    from an.ir.world import resolve_viewpoint
+
+    scene = _two_lamps_scene(timeline=[Shot(id="s", duration=1.0, viewpoint="right_cu")])
+    world = scene.world
+
+    def distance(**kw):
+        eye = resolve_viewpoint(world, "right_cu", extents=EXTENTS, width=W, height=H, **kw)
+        return 2.0 - eye.at[2]  # `right` stands 2 deep, the camera in front of it
+
+    table = distance()  # here the lamp's WIDTH binds: 0.4 units at 0.9 of 320 px
+    # the band binds: 0.6 of the lamp's 0.8 units filling 0.9 of 240 px at focal 300
+    own = distance(bands={"right": {"close_up": (0.0, 0.6)}})
+    assert own == pytest.approx(300.0 * 0.6 * 0.8 / (0.9 * 240.0)) and own > table
+    assert distance(bands={"left": {"close_up": (0.0, 0.6)}}) == table  # not the subject
+    assert distance(bands={"right": {"medium": (0.0, 0.7)}}) == table  # not this size
+
+
+def _prop_kind_with(monkeypatch, hook):
+    """The `prop` entity kind, as the registry gives it, with `shot_sizes`."""
+    import dataclasses
+
+    import an.genres.registry as registry
+
+    real = registry.entity_kind
+
+    def kind(name):
+        found = real(name)
+        if name == "prop" and found is not None:
+            return dataclasses.replace(found, shot_sizes=hook)
+        return found
+
+    monkeypatch.setattr(registry, "entity_kind", kind)
+
+
+def test_member_shot_sizes_read_a_kind_s_hook_and_say_what_cannot_be_used(monkeypatch):
+    """reeleehq/cutan#106: `member_shot_sizes` hands each member's kind hook
+    (`EntityKind.shot_sizes`) its measured box; a hook that raises, a value
+    that is not (top, bottom), a band outside 0 <= top < bottom <= 1 or a size
+    the table does not name gives nothing, and `problems` says why."""
+    from an.stage.world import member_shot_sizes
+
+    scene = _two_lamps_scene()
+    seen = {}
+
+    def bands(member, mall, box):
+        seen[member.id] = box
+        if member.id == "left":
+            raise KeyError("no head bone")
+        return {"close_up": (0.0, 0.6), "medium": (0.7, 0.2), "wide": None,
+                "full": (0, 0.6, 0.9), "closeup": (0.0, 0.5)}  # fmt: skip
+
+    _prop_kind_with(monkeypatch, bands)
+    problems = {}
+    got = member_shot_sizes(scene.world, {}, extents=EXTENTS, problems=problems)
+    assert got == {"right": {"close_up": (0.0, 0.6)}}
+    assert seen["right"] == EXTENTS["right"]
+    assert "raised KeyError" in problems["left"]["*"]
+    assert sorted(problems["right"]) == ["closeup", "full", "medium", "wide"]
+    assert "'closeup' is not a shot size" in problems["right"]["closeup"]
+
+
+def test_a_rig_s_own_close_up_reaches_the_lowered_shot_and_a_dropped_one_is_noted(
+    monkeypatch,
+):
+    """reeleehq/cutan#106: through `lower_scene` (render, preview and validate
+    all lower this way), a kind's own close-up band moves the framed shot's
+    placement; one it cannot give is a `shot_size` note on the shot."""
+    from an.stage.world import lower_scene
+
+    def lamp_scene():
+        scene = _two_lamps_scene(timeline=[Shot(id="cu", duration=1.0, viewpoint="right_cu")])
+        return scene
+
+    def placed(lowered):
+        (shot,) = lowered.scene.timeline
+        right = next(e for e in shot.entities if e.id == "right")
+        return right.stage.scale
+
+    import an.stage.world as stage_world
+
+    monkeypatch.setattr(stage_world, "member_extents", lambda *a, **k: dict(EXTENTS))
+    table = placed(lower_scene(lamp_scene(), {}, continues=False))
+    _prop_kind_with(monkeypatch, lambda m, mall, box: {"close_up": (0.0, 0.6)})
+    own = lower_scene(lamp_scene(), {}, continues=False)
+    assert placed(own) < table  # framed from farther: the lamp is drawn smaller
+    _prop_kind_with(monkeypatch, lambda m, mall, box: {"close_up": (0.9, 0.1)})
+    noted = lower_scene(lamp_scene(), {}, continues=False)
+    assert [n.entity for n in noted.notes if n.kind == "shot_size"] == ["right"]
+    assert placed(noted) == table
+    # a bad band for ANOTHER size says nothing about this close-up
+    _prop_kind_with(
+        monkeypatch, lambda m, mall, box: {"close_up": (0.0, 0.6), "medium": (0.9, 0.1)}
+    )
+    other = lower_scene(lamp_scene(), {}, continues=False)
+    assert not [n for n in other.notes if n.kind == "shot_size"]
+
+
+def test_the_shot_size_hook_is_genre_code_the_shot_cache_digests():
+    """reeleehq/cutan#106: a genre's `shot_sizes` places the camera, so its
+    module is part of the code a shot's cache key digests (`hook_modules`)."""
+    from an.genres.registry import (
+        EntityKind,
+        hook_modules,
+        register_entity_kind,
+        unregister_owner,
+    )
+
+    def bands(member, mall, box):
+        return {"close_up": (0.0, 0.5)}
+
+    register_entity_kind(EntityKind(name="demo_rig", shot_sizes=bands), owner="demo_shot_sizes")
+    try:
+        assert __name__ in hook_modules()
+    finally:
+        unregister_owner("demo_shot_sizes")

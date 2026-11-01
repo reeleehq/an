@@ -191,6 +191,17 @@ class EntityKind:
     landmarks: (
         Callable[[Any], Mapping[str, tuple[str, tuple[float, float] | None]]] | None
     ) = None
+    #: ``(entity, mall, box) -> {shot size: (top, bottom)}``: where this kind's
+    #: rig puts each shot size's band (reeleehq/cutan#106), as fractions of
+    #: ``box``'s height from its top, ``box`` being the entity's measured
+    #: ``(x0, y0, x1, y1)`` (:func:`an.stage.world.member_extents`): a close-up
+    #: from the top of the head to the chin of THIS build rather than of a
+    #: human. A size it does not give, or ``None`` here, is
+    #: :data:`an.ir.schema.SHOT_SIZES`'; the frame's ``fill`` is always the
+    #: table's (composition, not anatomy). Since ``an.genres.API_LEVEL`` 14.
+    shot_sizes: (
+        Callable[[Any, Any, Any], Mapping[str, tuple[float, float]] | None] | None
+    ) = None
 
 
 #: When a check runs: once before the shots, once per shot, once after them.
@@ -679,6 +690,7 @@ def hook_modules(*, exclude_owner: str = CORE_OWNER) -> tuple[str, ...]:
         add(kind.swap_declaration)
         add(kind.swap_checks)
         add(kind.landmarks)  # read by the solve pass: a hand's point moves pixels
+        add(kind.shot_sizes)  # read by the world's framing: it places the camera
     for check in owned(_CHECKS):
         add(check.run)
     for compile_pass in owned(_COMPILE_PASSES):
