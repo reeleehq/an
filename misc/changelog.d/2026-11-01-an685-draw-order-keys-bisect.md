@@ -1,0 +1,1 @@
+- **The `draw_order` check looks paint keys up once per sample** (an#685): `depth_order_problems` bisects each keyed member's keys onto the scan grid once instead of rescanning them for every pair at every sample; the same notes, at about the pre-an#681 cost.

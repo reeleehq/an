@@ -2078,3 +2078,33 @@ def test_a_walker_passes_behind_a_standing_member_with_no_travel(tmp_path):
         assert (order.index("left") > order.index("right")) == nearer, (t, order)
         seen.add(nearer)
     assert seen == {True, False}
+
+
+@pytest.mark.parametrize(
+    "switch, reported",
+    [(2.0, True), (1.5 + 1e-3, True), (1.5, False), (1.5 - 1e-3, False), (1.5 + 1e-12, False)],
+)
+def test_the_draw_order_check_reads_the_key_in_force_at_each_sample(switch, reported):
+    """an#685: each member's paint key is looked up once per sample (bisect),
+    in force from its start (within the window epsilon) on. ``a`` walks past
+    ``b`` at 1.5 s; its key moves it in front of ``b`` at ``switch``. Keyed in
+    front by the sample at 1.5 s, nothing is wrong; keyed later, it is."""
+    from an.base import PAINT_KEYS_OVERRIDE
+    from an.ir.world import depth_order_problems
+
+    a = AssetRef(
+        kind="prop", id="a", store="props", ref="a",
+        overrides={PAINT_KEYS_OVERRIDE: [[0.0, [0]], [switch, [2]]]},
+    )  # fmt: skip
+    b = AssetRef(
+        kind="prop", id="b", store="props", ref="b",
+        overrides={PAINT_KEYS_OVERRIDE: [[0.0, [1]]]},
+    )  # fmt: skip
+    times = [0.0, 0.5, 1.0, 1.5, 2.0]
+    whole = {"a": [(0.0, 2.0)], "b": [(0.0, 2.0)]}
+    found = depth_order_problems(
+        [a, b], times, {"a": [10.0, 8.0, 6.0, 4.0, 2.0], "b": 5.0}, whole
+    )
+    assert bool(found) is reported
+    if reported:
+        assert "from 1.50 s" in found[0][1]
