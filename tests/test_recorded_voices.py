@@ -19,6 +19,7 @@ import math
 import shutil
 import struct
 import wave
+from pathlib import Path
 
 import pytest
 
@@ -1102,3 +1103,127 @@ def test_new_phones_on_the_same_audio_reach_the_lip_sync(tmp_path):
     lipsync = _Listening()
     produce_audio_for_scene(proj.scene, proj.mall, lipsync=lipsync, announce=None)
     assert any(p and p[0][0] == "HH" for p in lipsync.heard), lipsync.heard
+
+
+def _plain(tmp_path):
+    path = tmp_path / "take.txt"
+    path.write_text(f"carl: {HELLO}\ncarl: {FINE}\n", encoding="utf-8")
+    return path
+
+
+#: What MFA writes for the take (speaker-prefixed tiers, no utterances tier,
+#: lowercase words, `sil` between lines): what the aligner hands back.
+MFA_GRID = _textgrid(
+    {
+        "take - words": [(a, b, w.lower()) for a, b, w in _TG_TIERS["words"]],
+        "take - phones": _TG_TIERS["phones"] + [(1.5, 2.5, "sil")],
+    }
+)
+
+
+class _Aligner:
+    """A fake forced aligner: MFA's TextGrid for any WAV it is handed."""
+
+    phone_alphabet = "arpabet"
+
+    def __init__(self):
+        self.heard = []
+
+    def __call__(self, path, text):
+        from an.audio.transcripts import parse_textgrid
+
+        self.heard.append((Path(path).suffix, wave.open(str(path)).getnframes(), text))
+        return parse_textgrid(MFA_GRID)
+
+
+def test_a_plain_transcript_timed_by_an_aligner_gets_the_phones_a_textgrid_gives(
+    tmp_path,
+):
+    """an#637: a take imported with a plain transcript and a forced aligner
+    (the `align=` seam: it times the KNOWN text, words and phones; here MFA's
+    own TextGrid shape) is stored with the same phones as the same take
+    imported with a TextGrid, the alphabet beside them, and the aligner is
+    handed the take as decoded (a WAV), never the transcriber."""
+    grid = tmp_path / "take.TextGrid"
+    grid.write_text(ALIGNED, encoding="utf-8")
+    by_grid = _project(tmp_path / "g")
+    import_recordings(by_grid, _take(tmp_path), transcript=grid, license=LICENSE)
+    by_aligner = _project(tmp_path / "a")
+    align = _Aligner()
+    report = import_recordings(
+        by_aligner, _take(tmp_path), transcript=_plain(tmp_path), license=LICENSE,
+        align=align,
+        transcribe=lambda path: pytest.fail("an aligned take is not transcribed"),
+    )  # fmt: skip
+    assert align.heard == [(".wav", 4 * RATE, f"{HELLO} {FINE}")]
+    want = {r["text"]: r["phones"] for r in _records(by_grid).values()}
+    got = {r["text"]: r for r in _records(by_aligner).values()}
+    assert {t: r["phones"] for t, r in got.items()} == want
+    assert all(r["phone_alphabet"] == "arpabet" for r in got.values())
+    assert len(report.takes) == 2
+
+
+def test_an_aligner_needs_a_plain_transcript(tmp_path):
+    """an#637 review: an aligner has no text to align without a plain
+    transcript, and a timed one keeps its own times: both are refused rather
+    than the aligner going silently unused."""
+    root = _project(tmp_path)
+    with pytest.raises(RecordedVoicesError, match="has none"):
+        import_recordings(root, _take(tmp_path), license=LICENSE, align=_Aligner())
+    with pytest.raises(RecordedVoicesError, match="a timed one"):
+        import_recordings(
+            root, _take(tmp_path), transcript=_srt(tmp_path), license=LICENSE,
+            align=_Aligner(),
+        )  # fmt: skip
+
+
+@pytest.mark.ffmpeg
+def test_a_take_in_any_format_reaches_the_aligner_as_a_wav(tmp_path):
+    """an#637 review: MFA reads few formats; the aligner is handed the take as
+    decoded, so an .m4a take aligns too."""
+    if shutil.which("ffmpeg") is None:
+        pytest.skip("ffmpeg not on PATH")
+    import subprocess
+
+    m4a = tmp_path / "take.m4a"
+    subprocess.run(["ffmpeg", "-v", "error", "-i", str(_take(tmp_path)), str(m4a)], check=True)
+    align = _Aligner()
+    import_recordings(
+        _project(tmp_path), m4a, transcript=_plain(tmp_path), license=LICENSE, align=align
+    )
+    assert align.heard[0][0] == ".wav"
+def test_the_mfa_aligner_runs_mfa_on_a_one_file_corpus_and_reads_its_textgrid(tmp_path):
+    """an#637: `mfa_aligner` writes the take and its text as a corpus, runs
+    `mfa align` with the alphabet's English model, and reads the TextGrid back;
+    without `mfa` it refuses, saying how to install it and its model."""
+    from an.audio.recorded import TranscriberUnavailableError, mfa_aligner
+
+    from an.audio.recorded import AlignmentError, aligner_named
+
+    calls = []
+
+    def run(argv, **kw):
+        calls.append(argv)
+        corpus, out = Path(argv[2]), Path(argv[5])
+        assert sorted(f.name for f in corpus.iterdir()) == ["take.lab", "take.wav"]
+        assert (corpus / "take.lab").read_text(encoding="utf-8") == "Hello there, Ned."
+        out.mkdir()
+        (out / "take.TextGrid").write_text(MFA_GRID, encoding="utf-8")
+        return type("Done", (), {"returncode": 0, "stderr": b""})()
+
+    align = mfa_aligner(run=run)
+    (said,) = align(_take(tmp_path), "Hello there, Ned.")
+    assert calls[0][:2] == ["mfa", "align"] and calls[0][3:5] == ["english_us_arpa"] * 2
+    assert said.phones[0][0] == "HH" and align.phone_alphabet == "arpabet"
+    align(_take(tmp_path), "Hello there, Ned.")
+    assert Path(calls[0][2]).name != Path(calls[1][2]).name  # MFA's workspace name
+    assert aligner_named("mfa:ipa").phone_alphabet == "ipa"
+    with pytest.raises(RecordedVoicesError, match="no aligner 'gentle'"):
+        aligner_named("gentle")
+    with pytest.raises(TranscriberUnavailableError, match="conda install"):
+        mfa_aligner(executable="no-such-mfa-here")(_take(tmp_path), "x")
+    with pytest.raises(RecordedVoicesError, match="no MFA model"):
+        mfa_aligner(alphabet="klingon")
+    failed = mfa_aligner(run=lambda argv, **kw: type("F", (), {"returncode": 1, "stdout": b"beam too narrow", "stderr": b""})())
+    with pytest.raises(AlignmentError, match="beam too narrow"):
+        failed(_take(tmp_path), "x")

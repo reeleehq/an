@@ -66,7 +66,7 @@ import wave
 from collections.abc import Callable, Iterable, Mapping, MutableMapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, NamedTuple
+from typing import Any, NamedTuple, Protocol
 
 from an.audio.transcripts import (
     TranscriptSegment,
@@ -187,6 +187,10 @@ class TranscriberUnavailableError(RecordedVoicesError):
     """A take needs transcribing and no transcriber can run here."""
 
 
+class AlignmentError(RecordedVoicesError):
+    """A forced aligner ran and could not align a take with its text (an#637)."""
+
+
 # --- the store's front door -----------------------------------------------------
 
 
@@ -291,6 +295,7 @@ def add_recording(
     words: Iterable[WordTiming] | None = None,
     imported_at: str | None = None,
     phones: Iterable[WordTiming] | None = None,
+    phone_alphabet: str | None = None,
 ) -> tuple[str, dict]:
     """Put a take (WAV ``audio`` of ``speaker`` saying ``text``, spoken for
     ``voice``) in ``store`` with its provenance; ``(key, record)``.
@@ -318,6 +323,8 @@ def add_recording(
         "sha256": digest,
         "words": _timings(words),
         **({"phones": _timings(phones)} if phones else {}),  # an#491
+        # the alphabet the phones are in, when the aligner said (an#637)
+        **({"phone_alphabet": phone_alphabet} if phones and phone_alphabet else {}),
         "source": source.model_dump(exclude_none=True),
         "imported_at": imported_at
         or _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="microseconds"),
@@ -616,6 +623,127 @@ def load_wav(path: Path, *, denoise: str | None = None) -> bytes:
 
 #: ``path -> segments``: what the ``transcribe`` seam takes.
 Transcriber = Callable[[Path], Sequence[TranscriptSegment]]
+class Aligner(Protocol):
+    """What the ``align`` seam takes (an#637): a forced aligner, which times a
+    KNOWN ``text`` against the audio at ``path`` (a WAV) and gives each
+    segment's words and phones, as a TextGrid with a ``phones`` tier would.
+    ``phone_alphabet`` (``"arpabet"``, ``"ipa"``, ``None`` unknown) is stored
+    beside the phones on the take's record."""
+
+    @property
+    def phone_alphabet(self) -> str | None: ...
+
+    def __call__(self, path: Path, text: str) -> Sequence[TranscriptSegment]: ...
+
+
+#: The Montreal Forced Aligner's English models (an#637): one pronouncing
+#: dictionary and acoustic model per phone alphabet, both named the same.
+MFA_MODELS: Mapping[str, str] = {"arpabet": "english_us_arpa", "ipa": "english_mfa"}
+DFLT_MFA_ALPHABET: str = "arpabet"
+#: MFA 3's alignment subcommand (4.0 renames it ``align_legacy``): a keyword
+#: of :func:`mfa_aligner`, so a newer MFA is a keyword away.
+DFLT_MFA_COMMAND: str = "align"
+#: The file stem the take and its text get in MFA's one-file corpus.
+MFA_TAKE_STEM: str = "take"
+#: How MFA is installed, and its models fetched: said when it is not found.
+MFA_INSTALL_HINT: str = (
+    "install the Montreal Forced Aligner (`conda install -c conda-forge "
+    "montreal-forced-aligner`, https://montreal-forced-aligner.readthedocs.io) and "
+    "its English model (`mfa model download acoustic {model}` and `mfa model "
+    "download dictionary {model}`), or give a TextGrid with a phones tier"
+)
+
+
+@dataclass(frozen=True)
+class MfaAligner:
+    """An :class:`Aligner` that runs the Montreal Forced Aligner as a tool
+    (an#637): the take (a WAV) and its text as a one-file corpus in a folder of
+    its own name (MFA names its working directory after the corpus folder, so
+    two imports never share one), ``mfa align`` with the English model of
+    ``alphabet`` (:data:`MFA_MODELS`), and the TextGrid it writes read back
+    (:func:`an.audio.transcripts.parse_textgrid`), words and phones. It runs
+    where the recordings are (the user's machine): nothing is downloaded here.
+    ``run`` is the subprocess seam (``subprocess.run``'s signature).
+
+    >>> MfaAligner(alphabet="ipa").phone_alphabet
+    'ipa'
+    """
+
+    alphabet: str = DFLT_MFA_ALPHABET
+    executable: str = "mfa"
+    command: str = DFLT_MFA_COMMAND
+    run: Callable[..., Any] | None = None
+
+    def __post_init__(self) -> None:
+        if self.alphabet not in MFA_MODELS:
+            raise RecordedVoicesError(
+                f"no MFA model for the phone alphabet {self.alphabet!r}; "
+                f"known: {sorted(MFA_MODELS)}"
+            )
+
+    @property
+    def phone_alphabet(self) -> str:
+        return self.alphabet
+
+    def __call__(self, path: Path, text: str) -> list[TranscriptSegment]:
+        import shutil
+        import subprocess
+        import tempfile
+
+        from an.audio.transcripts import parse_textgrid
+
+        model = MFA_MODELS[self.alphabet]
+        if self.run is None and shutil.which(self.executable) is None:
+            raise TranscriberUnavailableError(
+                f"aligning {Path(path).name} needs `{self.executable}` on PATH: "
+                + MFA_INSTALL_HINT.format(model=model)
+            )
+        with tempfile.TemporaryDirectory(prefix="an-mfa-") as tmp:
+            corpus = Path(tmp) / Path(tmp).name  # unique: MFA's workspace name
+            out = Path(tmp) / "aligned"
+            corpus.mkdir()
+            shutil.copyfile(path, corpus / f"{MFA_TAKE_STEM}.wav")
+            (corpus / f"{MFA_TAKE_STEM}.lab").write_text(text, encoding="utf-8")
+            argv = [self.executable, self.command, str(corpus), model, model,
+                    str(out), "--clean", "--single_speaker"]  # fmt: skip
+            proc = (self.run or subprocess.run)(argv, capture_output=True, check=False)
+            grid = out / f"{MFA_TAKE_STEM}.TextGrid"
+            if getattr(proc, "returncode", 1) != 0 or not grid.exists():
+                said = b"".join(
+                    x if isinstance(x, bytes) else str(x).encode()
+                    for x in (getattr(proc, "stdout", b""), getattr(proc, "stderr", b""))
+                    if x
+                ).decode(errors="replace")
+                raise AlignmentError(
+                    f"`{self.executable} {self.command}` could not align "
+                    f"{Path(path).name} with its transcript: "
+                    f"{said.strip()[-400:] or 'no TextGrid written'}. Check the "
+                    "transcript is what is said; a long take aligns better cut "
+                    "into one file per line"
+                )
+            return parse_textgrid(grid.read_text(encoding="utf-8"))
+
+
+#: The name the seam's MFA aligner was first given (an#637).
+mfa_aligner = MfaAligner
+
+#: The aligners ``an voices import --aligner NAME[:ALPHABET]`` builds.
+ALIGNERS: Mapping[str, Callable[..., Aligner]] = {"mfa": MfaAligner}
+
+
+def aligner_named(spec: str) -> Aligner:
+    """The aligner ``spec`` names: ``NAME`` or ``NAME:ALPHABET`` (``mfa:ipa``).
+
+    >>> aligner_named("mfa:ipa").phone_alphabet
+    'ipa'
+    """
+    name, _, alphabet = spec.partition(":")
+    if name not in ALIGNERS:
+        raise RecordedVoicesError(
+            f"no aligner {name!r}; known: {sorted(ALIGNERS)} "
+            f"(with an alphabet: {', '.join(f'{name}:{a}' for a in MFA_MODELS)})"
+        )
+    return ALIGNERS[name](**({"alphabet": alphabet} if alphabet else {}))
 
 
 def scribed_transcriber(
@@ -740,6 +868,8 @@ class _Take:
     transcript_kind: str
     #: the take's phone timings, clip-relative, when the transcript had them (an#491)
     phones: tuple[WordTiming, ...] | None = None
+    #: the alphabet those phones are in, when the aligner said (an#637)
+    phone_alphabet: str | None = None
     #: silence heard between the previous take of the same file and this one
     gap_before: float | None = None
     #: the linked transcript artifact it was cut by (``<store>/<key>``, an#493)
@@ -937,9 +1067,24 @@ def _timed_segments(
     *,
     transcribe: Transcriber | None,
     make_transcriber: Callable[[], Transcriber],
+    align: Aligner | None = None,
+    wav: bytes | None = None,
 ) -> tuple[list[TranscriptSegment], str]:
     """The lines of the take at ``path``, each with its span in the file, and
-    how the words were obtained (``'srt'``, ``'asr'``, ``'plain+asr'``, ``'file'``)."""
+    how the words were obtained: the transcript's kind (``'srt'``, ``'txt'``,
+    ...), ``'asr'``, ``'<kind>+asr'`` for a plain transcript timed by the
+    transcriber, ``'file'`` for one line, or ``'<kind>+align'`` for a plain
+    transcript timed by the forced aligner, words and phones (an#637; ``wav``
+    is the take as decoded, which the aligner is given). An aligner with no
+    plain transcript is refused: it has no text to align."""
+    lines = [s for s in given[0] if s.text] if given is not None else []
+    if align is not None and (given is None or (lines and all(s.timed for s in lines))):
+        raise RecordedVoicesError(
+            f"{path.name}: an aligner times a PLAIN transcript (`speaker: text` "
+            "lines), and this take has "
+            + ("none" if given is None else "a timed one, whose times are kept")
+            + "; give its plain transcript with --transcript, or drop --aligner"
+        )
     if given is None:
         segments = list((transcribe or make_transcriber())(path))
         timed = sorted(
@@ -969,6 +1114,11 @@ def _timed_segments(
         raise RecordedVoicesError(
             f"the transcript for {path.name} times some lines and not others; time all or none"
         )
+    if align is not None:
+        return (
+            _aligned_lines(path, segments, total=total, align=align, wav=wav),
+            f"{kind}+align",
+        )
     if len(segments) == 1:
         seg = segments[0]
         return [
@@ -988,6 +1138,59 @@ def _timed_segments(
             "cannot be timed by it — pick a backend with word timestamps, or give an SRT/VTT"
         )
     return segment_lines(segments, words, bounds=(0.0, total)), f"{kind}+asr"
+
+
+def _aligned_lines(
+    path: Path,
+    lines: Sequence[TranscriptSegment],
+    *,
+    total: float,
+    align: Aligner,
+    wav: bytes | None,
+) -> list[TranscriptSegment]:
+    """A plain transcript's ``lines`` timed by a forced aligner (an#637): its
+    words time the lines as a transcriber's would (:func:`segment_lines`), and
+    each line keeps the phones that fall in its span. One line spans the file.
+    The aligner is given ``wav`` (the take as decoded, denoised included: the
+    samples that are cut) as a WAV file, any format the import read."""
+    import tempfile
+
+    text = " ".join(line.text for line in lines)
+    if wav is None:
+        aligned = list(align(path, text))
+    else:
+        with tempfile.TemporaryDirectory(prefix="an-align-") as tmp:
+            decoded = Path(tmp) / f"{path.stem}.wav"
+            decoded.write_bytes(wav)
+            aligned = list(align(decoded, text))
+    words = [w for s in aligned for w in (s.words or ())]
+    phones = [p for s in aligned for p in (s.phones or ())]
+    if not words:
+        raise RecordedVoicesError(
+            f"the aligner returned no word timings for {path.name}; check the transcript "
+            "is what is said, or give a TextGrid"
+        )
+    timed = (
+        [TranscriptSegment(text=lines[0].text, start=0.0, end=total,
+                           speaker=lines[0].speaker, words=tuple(words))]  # fmt: skip
+        if len(lines) == 1
+        else segment_lines(lines, words, bounds=(0.0, total))
+    )
+    eps = 1e-6
+    return [
+        TranscriptSegment(
+            text=seg.text,
+            start=seg.start,
+            end=seg.end,
+            speaker=seg.speaker,
+            words=seg.words,
+            phones=tuple(
+                p for p in phones if seg.start - eps <= p[1] and p[2] <= seg.end + eps
+            )
+            or None,
+        )
+        for seg in timed
+    ]
 
 
 def _speaker_of(
@@ -1324,6 +1527,7 @@ def import_recordings(
     transcribe: Transcriber | None = None,
     transcriber: str | None = None,
     diarize: bool = False,
+    align: Aligner | None = None,
     match_threshold: float = DFLT_MATCH_THRESHOLD,
     write: bool = True,
     scene_file: Any = DEFAULT_SCENE_FILE,
@@ -1349,6 +1553,9 @@ def import_recordings(
     ffmpeg. ``transcribe`` is the transcriber seam (``path -> segments``); its
     default is :func:`scribed_transcriber` with ``transcriber`` as the backend
     and ``diarize`` for speaker labels, built only when a take needs it.
+    ``align`` is the forced-aligner seam (``(path, text) -> segments``, e.g.
+    :func:`mfa_aligner`, an#637): with a plain transcript it times the lines
+    instead of a transcriber, and gives their phones, as a TextGrid would.
     ``write=False`` runs everything but writes nothing (a dry run).
     ``scene_file`` imports into another scene of the project
     (``scene.studio.md``, an#554).
@@ -1383,6 +1590,8 @@ def import_recordings(
             given.get(path),
             transcribe=transcribe,
             make_transcriber=make_transcriber,
+            align=align,
+            wav=wav,
         )
         spans = cut_spans(segments, total=total)
         previous_end: float | None = None
@@ -1401,6 +1610,9 @@ def import_recordings(
                 wav=clip,
                 words=rebase_words(segment.words, a),
                 phones=rebase_words(segment.phones, a),
+                phone_alphabet=getattr(align, "phone_alphabet", None)
+                if align is not None and segment.phones
+                else None,
                 speaker=None,
                 transcript_kind=kind,
                 transcript_ref=given[path].ref if path in given else None,
@@ -1467,6 +1679,7 @@ def import_recordings(
                 source=source,
                 words=take.words,
                 phones=take.phones,
+                phone_alphabet=take.phone_alphabet,
                 imported_at=stamp,
             )
             duration = float(record["duration"])
