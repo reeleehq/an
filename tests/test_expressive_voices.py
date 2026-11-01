@@ -280,6 +280,7 @@ class _Voice:
     def __init__(self, voice_id, name, **labels):
         self.voice_id, self.name, self.labels = voice_id, name, labels
         self.category, self.description = "premade", None
+        self.preview_url = f"https://example.com/{voice_id}.mp3"
 
 
 class _Page:
@@ -303,6 +304,16 @@ def test_list_voices_pages_and_formats():
     assert [v.voice_id for v in voices] == ["a1", "b2"]
     assert client.searches[0]["search"] == "x" and client.searches[1]["next_page_token"] == "t"
     assert format_voices(voices).splitlines() == ["a1  Ada  (accent=british)", "b2  Bob"]
+    # a voice picker plays the sample before casting (an#666)
+    assert voices[0].extra["preview_url"] == "https://example.com/a1.mp3"
+
+
+def test_a_voice_without_a_preview_url_lists_none():
+    bare = _Voice("c3", "Cy")
+    del bare.preview_url  # an SDK voice object that has no such attribute
+    tts, _ = _tts(_FakeClient(pages=[_Page([bare])]))
+    (voice,) = tts.list_voices()
+    assert voice.extra["preview_url"] is None
 
 
 def test_the_cli_mounts_voices_list():

@@ -342,6 +342,8 @@ class ElevenLabsTTS:
                             "category": getattr(v, "category", None),
                             "description": getattr(v, "description", None),
                             "labels": labels,
+                            # a sample to hear before casting the voice (an#666)
+                            "preview_url": getattr(v, "preview_url", None),
                         },
                     )
                 )
