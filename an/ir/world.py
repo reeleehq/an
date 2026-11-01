@@ -1705,6 +1705,7 @@ def _attachment_riders(
     out and :func:`_with_paint_keys` keys. ``ordered`` is the built order, its
     keys not yet replaced by paint keys: the side is read from it."""
     place = {e.id: i for i, (_, e, _) in enumerate(ordered)}
+    key = {e.id: paint_key_rank(k) for k, e, _ in ordered}
     built = {e.id: e for _, e, _ in ordered}
     out = {}
     for m in world_members:
@@ -1714,7 +1715,7 @@ def _attachment_riders(
         if stage is not None and stage.after in entity_ids:
             continue
         host = m.attached.to
-        side = RIDER_BEHIND if place[m.id] < place[host] else RIDER_IN_FRONT
+        side = RIDER_BEHIND if key[m.id] < key[host] else RIDER_IN_FRONT
         out[m.id] = _Rider(host, side, place[m.id])
     return out
 
