@@ -296,7 +296,7 @@ an/
 │
 ├── stores/                  dol-backed project mall (MutableMapping facades)
 │   ├── __init__.py          build_project_mall(project_dir) factory
-│   ├── _common.py           JsonDirStore, JsonSidecarStore, _BlobStore base classes
+│   ├── _common.py           JsonDirStore (exported from an.stores for hosts, an#664; create=False), JsonSidecarStore, _BlobStore base classes
 │   ├── characters.py        sidecar-folder store (character.json + per-part art)
 │   ├── props.py             sidecar-folder store (prop.json + per-part art) — the
 │   │                        same shape, a different store, because the rig builder

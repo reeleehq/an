@@ -35,6 +35,7 @@ from an.stores._common import (
     asset_ref_problems,
     asset_references,
     inside_folder,
+    JsonDirStore,
 )
 from an.stores.characters import CharactersStore
 from an.stores.decisions import DecisionLogStore
@@ -69,6 +70,7 @@ __all__ = [
     "asset_ref_problems",
     "asset_references",
     "inside_folder",
+    "JsonDirStore",
     "CharactersStore",
     "EnvironmentsStore",
     "VoicesStore",
