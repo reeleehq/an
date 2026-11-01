@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=6e079b2f"></script>
+    <script src="../_static/documentation_options.js?v=ca7f1f36"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.354" />
+  <meta name="docsearch:version" content="0.1.355" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -754,13 +754,16 @@ refuse by name. The union is never rebuilt at registration.</p></li>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.DEFAULT_CAPTION_SIZE" title="an.ir.schema.DEFAULT_CAPTION_SIZE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_CAPTION_SIZE</span></code></a></p></td>
 <td><p>Caption type size as a fraction of frame height — a little under the title default, as captions are read while something else is watched.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.STAGE_NODE_SPACE" title="an.ir.schema.STAGE_NODE_SPACE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">STAGE_NODE_SPACE</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.LIGHT_KEYS" title="an.ir.schema.LIGHT_KEYS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LIGHT_KEYS</span></code></a></p></td>
+<td><p>the scene's <code class="docutils literal notranslate"><span class="pre">light:</span> <span class="pre">{key:</span> <span class="pre">upper_left}</span></code> (catalogue D1).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.STAGE_NODE_SPACE" title="an.ir.schema.STAGE_NODE_SPACE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">STAGE_NODE_SPACE</span></code></a></p></td>
 <td><p>The property space a 2D stage engine's node lives in (<a class="reference internal" href="an.timing.spaces.html#module-an.timing.spaces" title="an.timing.spaces"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.timing.spaces</span></code></a>).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.SPECIMEN_DURATION" title="an.ir.schema.SPECIMEN_DURATION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SPECIMEN_DURATION</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.SPECIMEN_DURATION" title="an.ir.schema.SPECIMEN_DURATION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SPECIMEN_DURATION</span></code></a></p></td>
 <td><p>How long a specimen shot runs (<code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">library</span> <span class="pre">sheet</span></code> draws its first frame).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.SPECIMEN_SHOT_ID" title="an.ir.schema.SPECIMEN_SHOT_ID"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SPECIMEN_SHOT_ID</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.SPECIMEN_SHOT_ID" title="an.ir.schema.SPECIMEN_SHOT_ID"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SPECIMEN_SHOT_ID</span></code></a></p></td>
 <td><p>The id of a specimen shot.</p></td>
 </tr>
 </tbody>
@@ -853,58 +856,61 @@ refuse by name. The union is never rebuilt at registration.</p></li>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.SceneIR" title="an.ir.schema.SceneIR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SceneIR</span></code></a>(*[, version, compatible_version, ...])</p></td>
 <td><p>Top-level Scene IR document.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.SequenceAction" title="an.ir.schema.SequenceAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SequenceAction</span></code></a>(*[, name, kind, children])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.SceneLight" title="an.ir.schema.SceneLight"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SceneLight</span></code></a>(*[, direction, key, elevation])</p></td>
+<td><p>The scene's one light (catalogue D1, an#519): where it comes FROM on screen, a <code class="docutils literal notranslate"><span class="pre">direction</span></code> <code class="docutils literal notranslate"><span class="pre">[dx,</span> <span class="pre">dy]</span></code> (x right, y down) or a named <code class="docutils literal notranslate"><span class="pre">key</span></code> (<a class="reference internal" href="#an.ir.schema.LIGHT_KEYS" title="an.ir.schema.LIGHT_KEYS"><code class="xref py py-data docutils literal notranslate"><span class="pre">LIGHT_KEYS</span></code></a>), and its <code class="docutils literal notranslate"><span class="pre">elevation</span></code> in degrees when it matters.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.SequenceAction" title="an.ir.schema.SequenceAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SequenceAction</span></code></a>(*[, name, kind, children])</p></td>
 <td><p>Composition: run children one after the other.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.SetAction" title="an.ir.schema.SetAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SetAction</span></code></a>(*[, name, kind, at])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.SetAction" title="an.ir.schema.SetAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SetAction</span></code></a>(*[, name, kind, at])</p></td>
 <td><p>Set a property to a value at a specific time.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.Shot" title="an.ir.schema.Shot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Shot</span></code></a>(*, id[, renderer, duration, camera, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.Shot" title="an.ir.schema.Shot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Shot</span></code></a>(*, id[, renderer, duration, camera, ...])</p></td>
 <td><p>A single rendered unit.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.SolveSettings" title="an.ir.schema.SolveSettings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SolveSettings</span></code></a>(*[, mode, gravity, damping, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.SolveSettings" title="an.ir.schema.SolveSettings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SolveSettings</span></code></a>(*[, mode, gravity, damping, ...])</p></td>
 <td><p>How a shot's joints are solved: a per-shot override of the style pack's <code class="docutils literal notranslate"><span class="pre">gravity</span></code> and <code class="docutils literal notranslate"><span class="pre">damping</span></code>, and the solve's mode and effort (ADR 0008 decision 4).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.SoundCue" title="an.ir.schema.SoundCue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SoundCue</span></code></a>(*, sound[, at, until, cause, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.SoundCue" title="an.ir.schema.SoundCue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SoundCue</span></code></a>(*, sound[, at, until, cause, ...])</p></td>
 <td><p>One sound placed on the timeline: an SFX hit, an ambience, a music bed.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.StagePlacement" title="an.ir.schema.StagePlacement"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StagePlacement</span></code></a>(*[, at, scale, after])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.StagePlacement" title="an.ir.schema.StagePlacement"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StagePlacement</span></code></a>(*[, at, scale, after])</p></td>
 <td><p>Where an entity stands on the stage, and how big it is.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.Stream" title="an.ir.schema.Stream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Stream</span></code></a>(*, id, ref[, kind, store, height, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.Stream" title="an.ir.schema.Stream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Stream</span></code></a>(*, id, ref[, kind, store, height, ...])</p></td>
 <td><p>A row of one prop along a travel's direction (ADR 0009 decision 4).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.Transition" title="an.ir.schema.Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transition</span></code></a>(*[, kind, duration, color, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.Transition" title="an.ir.schema.Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transition</span></code></a>(*[, kind, duration, color, ...])</p></td>
 <td><p>How a shot is ENTERED — from the previous shot, or (for the first shot) from nothing.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.Travel" title="an.ir.schema.Travel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Travel</span></code></a>(*[, direction, speed, near, far, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.Travel" title="an.ir.schema.Travel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Travel</span></code></a>(*[, direction, speed, near, far, ...])</p></td>
 <td><p>The viewpoints moving through the world in film time (ADR 0009 decision 4).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.TweenAction" title="an.ir.schema.TweenAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TweenAction</span></code></a>(*[, name, kind, from_value, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.TweenAction" title="an.ir.schema.TweenAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TweenAction</span></code></a>(*[, name, kind, from_value, ...])</p></td>
 <td><p>Animate a property from a start value to an end value over a duration.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.Viewpoint" title="an.ir.schema.Viewpoint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Viewpoint</span></code></a>(*[, at, look, look_at, vanish, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.Viewpoint" title="an.ir.schema.Viewpoint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Viewpoint</span></code></a>(*[, at, look, look_at, vanish, ...])</p></td>
 <td><p>A pinhole camera onto the world, or a composition that resolves to one (ADR 0009 decision 2).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.VisemeKeyframe" title="an.ir.schema.VisemeKeyframe"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VisemeKeyframe</span></code></a>(*, time, viseme, **extra_data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.VisemeKeyframe" title="an.ir.schema.VisemeKeyframe"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VisemeKeyframe</span></code></a>(*, time, viseme, **extra_data)</p></td>
 <td><p>A single mouth-shape keyframe in a viseme track.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.VisemeTrack" title="an.ir.schema.VisemeTrack"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VisemeTrack</span></code></a>(*[, fps_hint, keyframes])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.VisemeTrack" title="an.ir.schema.VisemeTrack"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VisemeTrack</span></code></a>(*[, fps_hint, keyframes])</p></td>
 <td><p>Aligned viseme track produced by the lip-sync stage.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.VoiceLoudness" title="an.ir.schema.VoiceLoudness"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VoiceLoudness</span></code></a>(*[, target_lufs, peak_db])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.VoiceLoudness" title="an.ir.schema.VoiceLoudness"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VoiceLoudness</span></code></a>(*[, target_lufs, peak_db])</p></td>
 <td><p>One loudness for every voice of the film (an#315).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.Weld" title="an.ir.schema.Weld"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Weld</span></code></a>(*, item, by[, start, until, offset])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.Weld" title="an.ir.schema.Weld"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Weld</span></code></a>(*, item, by[, start, until, offset])</p></td>
 <td><p>A held item: <code class="docutils literal notranslate"><span class="pre">item</span></code> stays at <code class="docutils literal notranslate"><span class="pre">offset</span></code> from <code class="docutils literal notranslate"><span class="pre">by</span></code> between <code class="docutils literal notranslate"><span class="pre">start</span></code> and <code class="docutils literal notranslate"><span class="pre">until</span></code> (catalogue A4).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.WordTimingIR" title="an.ir.schema.WordTimingIR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WordTimingIR</span></code></a>(*, text, start, end, **extra_data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.WordTimingIR" title="an.ir.schema.WordTimingIR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WordTimingIR</span></code></a>(*, text, start, end, **extra_data)</p></td>
 <td><p>One word of a line and when it was spoken, in seconds from the line's start (like <a class="reference internal" href="#an.ir.schema.VisemeKeyframe" title="an.ir.schema.VisemeKeyframe"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisemeKeyframe</span></code></a>, never absolute).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.World" title="an.ir.schema.World"><code class="xref py py-obj docutils literal notranslate"><span class="pre">World</span></code></a>(*[, members, viewpoints, travel, frames])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.World" title="an.ir.schema.World"><code class="xref py py-obj docutils literal notranslate"><span class="pre">World</span></code></a>(*[, members, viewpoints, travel, frames])</p></td>
 <td><p>A scene's world: members at positions, the named viewpoints that are its coverage, and its travel (ADR 0009).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.WorldMember" title="an.ir.schema.WorldMember"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WorldMember</span></code></a>(*, kind, id, store, ref[, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.WorldMember" title="an.ir.schema.WorldMember"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WorldMember</span></code></a>(*, kind, id, store, ref[, ...])</p></td>
 <td><p>An entity of the scene's world: the same reference a shot's entity carries, at a world position with a size (ADR 0009 decision 1).</p></td>
 </tr>
 </tbody>
@@ -1859,6 +1865,18 @@ On an entity (<code class="docutils literal notranslate"><span class="pre">Asset
 
 </dd></dl>
 
+<dl class="py data">
+<dt class="sig sig-object py" id="an.ir.schema.LIGHT_KEYS">
+<span class="sig-prename descclassname"><span class="pre">an.ir.schema.</span></span><span class="sig-name descname"><span class="pre">LIGHT_KEYS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'bottom':</span> <span class="pre">(0.0,</span> <span class="pre">1.0),</span> <span class="pre">'left':</span> <span class="pre">(-1.0,</span> <span class="pre">0.0),</span> <span class="pre">'lower_left':</span> <span class="pre">(-1.0,</span> <span class="pre">1.0),</span> <span class="pre">'lower_right':</span> <span class="pre">(1.0,</span> <span class="pre">1.0),</span> <span class="pre">'right':</span> <span class="pre">(1.0,</span> <span class="pre">0.0),</span> <span class="pre">'top':</span> <span class="pre">(0.0,</span> <span class="pre">-1.0),</span> <span class="pre">'upper_left':</span> <span class="pre">(-1.0,</span> <span class="pre">-1.0),</span> <span class="pre">'upper_right':</span> <span class="pre">(1.0,</span> <span class="pre">-1.0)}</span></span><a class="headerlink" href="#an.ir.schema.LIGHT_KEYS" title="Link to this definition">#</a></dt>
+<dd><p>the scene’s
+<code class="docutils literal notranslate"><span class="pre">light:</span> <span class="pre">{key:</span> <span class="pre">upper_left}</span></code> (catalogue D1).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Where a named light comes FROM, on screen (x right, y down)</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="an.ir.schema.LoopAction">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.schema.</span></span><span class="sig-name descname"><span class="pre">LoopAction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'loop'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">child</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">count</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">extra_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/schema.html#LoopAction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.schema.LoopAction" title="Link to this definition">#</a></dt>
@@ -1876,7 +1894,7 @@ On an entity (<code class="docutils literal notranslate"><span class="pre">Asset
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.ir.schema.Meta">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.schema.</span></span><span class="sig-name descname"><span class="pre">Meta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">author</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_renderer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cutout'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">notes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_hz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style_pack</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_easing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">captions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closing_transition</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice_loudness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**extra_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/schema.html#Meta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.schema.Meta" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.schema.</span></span><span class="sig-name descname"><span class="pre">Meta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">author</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_renderer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cutout'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">notes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_hz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style_pack</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_easing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">captions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closing_transition</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice_loudness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">light</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**extra_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/schema.html#Meta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.schema.Meta" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_IRModel</span></code></p>
 <p>Scene metadata.</p>
 <dl class="field-list simple">
@@ -1927,6 +1945,13 @@ inherit. There is no per-shot override yet — style is a scene’s.</p>
 <dd class="field-odd"><p>Like <a class="reference internal" href="#an.ir.schema.Shot.renderer" title="an.ir.schema.Shot.renderer"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Shot.renderer</span></code></a></p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.schema.Meta.light">
+<span class="sig-name descname"><span class="pre">light</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#an.ir.schema.SceneLight" title="an.ir.schema.SceneLight"><span class="pre">SceneLight</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.ir.schema.Meta.light" title="Link to this definition">#</a></dt>
+<dd><p>The scene’s one light (<a class="reference internal" href="#an.ir.schema.SceneLight" title="an.ir.schema.SceneLight"><code class="xref py py-class docutils literal notranslate"><span class="pre">SceneLight</span></code></a>, catalogue D1); <code class="docutils literal notranslate"><span class="pre">None</span></code> —
+the default — declares none, checks nothing, and is omitted from JSON.</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -2133,6 +2158,37 @@ stored scene and no schema version moves.</p>
 <dd class="field-odd"><p>The scene’s <strong>world</strong> (ADR 0009)</p>
 </dd>
 </dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.ir.schema.SceneLight">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.schema.</span></span><span class="sig-name descname"><span class="pre">SceneLight</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elevation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">extra_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/schema.html#SceneLight"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.schema.SceneLight" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_IRModel</span></code></p>
+<p>The scene’s one light (catalogue D1, an#519): where it comes FROM on
+screen, a <code class="docutils literal notranslate"><span class="pre">direction</span></code> <code class="docutils literal notranslate"><span class="pre">[dx,</span> <span class="pre">dy]</span></code> (x right, y down) or a named <code class="docutils literal notranslate"><span class="pre">key</span></code>
+(<a class="reference internal" href="#an.ir.schema.LIGHT_KEYS" title="an.ir.schema.LIGHT_KEYS"><code class="xref py py-data docutils literal notranslate"><span class="pre">LIGHT_KEYS</span></code></a>), and its <code class="docutils literal notranslate"><span class="pre">elevation</span></code> in degrees when it matters.
+Art says which side it is shaded on (<code class="docutils literal notranslate"><span class="pre">shaded_side</span></code>), and the <code class="docutils literal notranslate"><span class="pre">light</span></code>
+check holds every member to this one light.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">SceneLight</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s2">"upper_left"</span><span class="p">)</span><span class="o">.</span><span class="n">vector</span>
+<span class="go">(-1.0, -1.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">SceneLight</span><span class="p">(</span><span class="n">direction</span><span class="o">=</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span><span class="o">.</span><span class="n">vector</span>
+<span class="go">(2.0, 0.0)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.schema.SceneLight.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.15)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow',</span> <span class="pre">'populate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#an.ir.schema.SceneLight.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="an.ir.schema.SceneLight.vector">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">vector</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.ir.schema.SceneLight.vector" title="Link to this definition">#</a></dt>
+<dd><p>Where the light comes from, on screen.</p>
 </dd></dl>
 
 </dd></dl>
@@ -3210,6 +3266,7 @@ without loading them (<a class="reference internal" href="an.genres.html#an.genr
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.JointSpec.model_config"><code class="docutils literal notranslate"><span class="pre">JointSpec.model_config</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.LIGHT_KEYS"><code class="docutils literal notranslate"><span class="pre">LIGHT_KEYS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.LoopAction"><code class="docutils literal notranslate"><span class="pre">LoopAction</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.LoopAction.model_config"><code class="docutils literal notranslate"><span class="pre">LoopAction.model_config</span></code></a></li>
 </ul>
@@ -3219,6 +3276,7 @@ without loading them (<a class="reference internal" href="an.genres.html#an.genr
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Meta.closing_transition"><code class="docutils literal notranslate"><span class="pre">Meta.closing_transition</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Meta.default_easing"><code class="docutils literal notranslate"><span class="pre">Meta.default_easing</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Meta.default_renderer"><code class="docutils literal notranslate"><span class="pre">Meta.default_renderer</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Meta.light"><code class="docutils literal notranslate"><span class="pre">Meta.light</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Meta.model_config"><code class="docutils literal notranslate"><span class="pre">Meta.model_config</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Meta.sounds"><code class="docutils literal notranslate"><span class="pre">Meta.sounds</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Meta.step_hz"><code class="docutils literal notranslate"><span class="pre">Meta.step_hz</span></code></a></li>
@@ -3249,6 +3307,11 @@ without loading them (<a class="reference internal" href="an.genres.html#an.genr
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.SceneIR"><code class="docutils literal notranslate"><span class="pre">SceneIR</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.SceneIR.model_config"><code class="docutils literal notranslate"><span class="pre">SceneIR.model_config</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.SceneIR.world"><code class="docutils literal notranslate"><span class="pre">SceneIR.world</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.SceneLight"><code class="docutils literal notranslate"><span class="pre">SceneLight</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.SceneLight.model_config"><code class="docutils literal notranslate"><span class="pre">SceneLight.model_config</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.SceneLight.vector"><code class="docutils literal notranslate"><span class="pre">SceneLight.vector</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.SequenceAction"><code class="docutils literal notranslate"><span class="pre">SequenceAction</span></code></a><ul class="nav section-nav flex-column">

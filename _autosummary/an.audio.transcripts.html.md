@@ -195,6 +195,9 @@ A word-timed JSON → segments. Accepted: `{"segments": [...]}` or a list
 of segments, each `{"text", "start", "end", "speaker", "words": [{"text"|"word",
 "start", "end"}, ...]}` (`start_ms`/`end_ms` are read too, and a word may
 be a `[text, start, end]` list); or a bare list of words, read as one segment.
+A word’s `phones` as Gentle writes them (durations from its start) become
+the segment’s phones, and MFA’s JSON (`tiers`) is read by
+`parse_mfa_json()` (an#715).
 
 ```pycon
 >>> segs = parse_json({"segments": [{"speaker": "carl", "words": [

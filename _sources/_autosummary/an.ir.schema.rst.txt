@@ -34,6 +34,7 @@ an.ir.schema
       Action
       DEFAULT_CAPTION_MAX_CHARS
       DEFAULT_CAPTION_SIZE
+      LIGHT_KEYS
       STAGE_NODE_SPACE
       SPECIMEN_DURATION
       SPECIMEN_SHOT_ID
@@ -73,6 +74,7 @@ an.ir.schema
       ParallelAction
       Resolution
       SceneIR
+      SceneLight
       SequenceAction
       SetAction
       Shot

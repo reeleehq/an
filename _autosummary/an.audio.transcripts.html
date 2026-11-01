@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=6e079b2f"></script>
+    <script src="../_static/documentation_options.js?v=ca7f1f36"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.354" />
+  <meta name="docsearch:version" content="0.1.355" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -905,7 +905,10 @@ an apostrophe inside a word kept.</p>
 <dd><p>A word-timed JSON → segments. Accepted: <code class="docutils literal notranslate"><span class="pre">{&quot;segments&quot;:</span> <span class="pre">[...]}</span></code> or a list
 of segments, each <code class="docutils literal notranslate"><span class="pre">{&quot;text&quot;,</span> <span class="pre">&quot;start&quot;,</span> <span class="pre">&quot;end&quot;,</span> <span class="pre">&quot;speaker&quot;,</span> <span class="pre">&quot;words&quot;:</span> <span class="pre">[{&quot;text&quot;|&quot;word&quot;,</span>
 <span class="pre">&quot;start&quot;,</span> <span class="pre">&quot;end&quot;},</span> <span class="pre">...]}</span></code> (<code class="docutils literal notranslate"><span class="pre">start_ms</span></code>/<code class="docutils literal notranslate"><span class="pre">end_ms</span></code> are read too, and a word may
-be a <code class="docutils literal notranslate"><span class="pre">[text,</span> <span class="pre">start,</span> <span class="pre">end]</span></code> list); or a bare list of words, read as one segment.</p>
+be a <code class="docutils literal notranslate"><span class="pre">[text,</span> <span class="pre">start,</span> <span class="pre">end]</span></code> list); or a bare list of words, read as one segment.
+A word’s <code class="docutils literal notranslate"><span class="pre">phones</span></code> as Gentle writes them (durations from its start) become
+the segment’s phones, and MFA’s JSON (<code class="docutils literal notranslate"><span class="pre">tiers</span></code>) is read by
+<code class="xref py py-func docutils literal notranslate"><span class="pre">parse_mfa_json()</span></code> (an#715).</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">segs</span> <span class="o">=</span> <span class="n">parse_json</span><span class="p">({</span><span class="s2">"segments"</span><span class="p">:</span> <span class="p">[{</span><span class="s2">"speaker"</span><span class="p">:</span> <span class="s2">"carl"</span><span class="p">,</span> <span class="s2">"words"</span><span class="p">:</span> <span class="p">[</span>
 <span class="gp">... </span>    <span class="p">{</span><span class="s2">"word"</span><span class="p">:</span> <span class="s2">"Hello"</span><span class="p">,</span> <span class="s2">"start"</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s2">"end"</span><span class="p">:</span> <span class="mf">0.9</span><span class="p">},</span> <span class="p">[</span><span class="s2">"there"</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">]]}]})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">segs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">segs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">segs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">end</span><span class="p">,</span> <span class="n">segs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">words</span>

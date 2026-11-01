@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=6e079b2f"></script>
+    <script src="../../../_static/documentation_options.js?v=ca7f1f36"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.354" />
+  <meta name="docsearch:version" content="0.1.355" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -791,6 +791,11 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">  :data:`CAUSE_TOLERANCE`) and sits within the audio-visual sync window</span>
 <span class="sd">  (warning). :func:`av_offset_fault` is the pure function under it. Dialogue and</span>
 <span class="sd">  lip-sync consistency are not built.</span>
+<span class="sd">- ``light`` (catalogue D1): under the scene's one ``meta.light``, a member whose</span>
+<span class="sd">  art declares ``metadata.shaded_side`` (or ``overrides.shaded_side``) is shaded</span>
+<span class="sd">  on the side facing away from it, read where that side faces on screen as the</span>
+<span class="sd">  shot opens (mirrors and rotations above the art included). :func:`shading_disagrees`</span>
+<span class="sd">  is the pure function under it. ``flat`` art is exempt; a flip mid-shot is not read.</span>
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
@@ -2683,6 +2688,160 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span>
 
 
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># light (catalogue D1, an#519 rank 7): one light per scene; shading agrees</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+<span class="c1">#: Where art says which side it is shaded on: ``metadata.shaded_side`` in its</span>
+<span class="c1">#: store document, next to ``body_attachment`` (catalogue D1), or the entity's</span>
+<span class="c1">#: own ``overrides.shaded_side``; and the sides it may name, as directions in</span>
+<span class="c1">#: the art's own frame (x right, y down).</span>
+<span class="n">SHADED_SIDE_KEY</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"shaded_side"</span>
+<span class="n">ART_METADATA_KEY</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"metadata"</span>
+<span class="n">SHADED_SIDES</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"left"</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+    <span class="s2">"right"</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+    <span class="s2">"top"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">),</span>
+    <span class="s2">"bottom"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+<span class="p">}</span>
+<span class="c1">#: Unlit-by-design art: exempt.</span>
+<span class="n">FLAT_SHADING</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"flat"</span>
+<span class="c1">#: A side agrees when it lies in the quadrant facing away from the light: within</span>
+<span class="c1">#: this angle of the direction away from it (an exact diagonal light agrees</span>
+<span class="c1">#: with both sides beside it).</span>
+<span class="n">LIGHT_HALF_ANGLE_DEG</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">45.0</span>
+<span class="c1">#: The length (px of the art's frame) of the probe that finds where a side faces on screen.</span>
+<span class="n">_SIDE_PROBE</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">shading_disagrees</span><span class="p">(</span>
+    <span class="n">side</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">light</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The sides the light implies, when art whose shaded side faces ``side``</span>
+<span class="sd">    ON SCREEN does not face away from ``light`` (where the light comes from)</span>
+<span class="sd">    within the quadrant centred on that direction; ``()`` when it agrees.</span>
+
+<span class="sd">    &gt;&gt;&gt; shading_disagrees((1.0, 0.0), (-1.0, -1.0)), shading_disagrees((-1.0, 0.0), (-1.0, -1.0))</span>
+<span class="sd">    ((), ('bottom', 'right'))</span>
+<span class="sd">    &gt;&gt;&gt; shading_disagrees((-1.0, 0.0), (1.0, 0.0))</span>
+<span class="sd">    ()</span>
+<span class="sd">    """</span>
+    <span class="n">away</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">light</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="n">light</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">norm</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="o">*</span><span class="n">away</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="o">*</span><span class="n">side</span><span class="p">)</span> <span class="ow">or</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">limit</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">LIGHT_HALF_ANGLE_DEG</span><span class="p">))</span> <span class="o">-</span> <span class="mf">1e-9</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">side</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">away</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">side</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">away</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="n">norm</span> <span class="o">&gt;=</span> <span class="n">limit</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">()</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span>
+        <span class="nb">sorted</span><span class="p">(</span>
+            <span class="n">n</span>
+            <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="n">SHADED_SIDES</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">away</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">y</span> <span class="o">*</span> <span class="n">away</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="o">*</span><span class="n">away</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">limit</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_shaded_side</span><span class="p">(</span><span class="n">entity</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">stores</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What ``entity``'s art declares (``metadata.shaded_side`` in its store</span>
+<span class="sd">    document), an override of the entity's own winning; ``None`` for nothing."""</span>
+    <span class="n">side</span> <span class="o">=</span> <span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">overrides</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">SHADED_SIDE_KEY</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">side</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">doc</span> <span class="o">=</span> <span class="p">((</span><span class="n">stores</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">store</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">ref</span><span class="p">)</span>
+        <span class="n">meta</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ART_METADATA_KEY</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">side</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">SHADED_SIDE_KEY</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">meta</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">side</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">check_light</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The core's ``light`` check (catalogue D1): every drawn member whose art</span>
+<span class="sd">    says which side it is shaded on agrees with the scene's one light, read</span>
+<span class="sd">    where that side faces on screen as the shot opens (its own and every</span>
+<span class="sd">    parent's mirror and rotation). Declarations only; a shot the stage does</span>
+<span class="sd">    not draw, or that does not compile, is not judged."""</span>
+    <span class="n">light</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">light</span>
+    <span class="k">if</span> <span class="n">light</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">declared</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">side</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">entities</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">side</span> <span class="o">:=</span> <span class="n">_shaded_side</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">stores</span><span class="p">))</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">declared</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">judged</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">side</span> <span class="ow">in</span> <span class="n">declared</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">side</span> <span class="o">==</span> <span class="n">FLAT_SHADING</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">side</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="n">side</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">SHADED_SIDES</span><span class="p">:</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                <span class="s2">"warning"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">/entities"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> says its art is shaded on </span><span class="si">{</span><span class="n">side</span><span class="si">!r}</span><span class="s2">; the sides are "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">SHADED_SIDES</span><span class="p">)</span><span class="si">}</span><span class="s2"> or </span><span class="si">{</span><span class="n">FLAT_SHADING</span><span class="si">!r}</span><span class="s2">"</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="n">judged</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">e</span><span class="p">,</span> <span class="n">side</span><span class="p">))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">judged</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">facing</span> <span class="o">=</span> <span class="n">_sides_on_screen</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">judged</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">facing</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">side</span> <span class="ow">in</span> <span class="n">judged</span><span class="p">:</span>
+        <span class="n">on_screen</span> <span class="o">=</span> <span class="n">facing</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">on_screen</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">implied</span> <span class="o">=</span> <span class="n">shading_disagrees</span><span class="p">(</span><span class="n">on_screen</span><span class="p">,</span> <span class="n">light</span><span class="o">.</span><span class="n">vector</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">implied</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+            <span class="s2">"warning"</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">/entities"</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> is shaded on its </span><span class="si">{</span><span class="n">side</span><span class="si">}</span><span class="s2">, which faces the light as it is "</span>
+            <span class="sa">f</span><span class="s2">"drawn (light from </span><span class="si">{</span><span class="n">light</span><span class="o">.</span><span class="n">key</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="nb">list</span><span class="p">(</span><span class="n">light</span><span class="o">.</span><span class="n">vector</span><span class="p">)</span><span class="si">}</span><span class="s2">; it shades the "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">' or '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">implied</span><span class="p">)</span><span class="si">}</span><span class="s2">): regenerate or flip the art, or say "</span>
+            <span class="s2">"`shaded_side: flat` for art drawn without a light."</span><span class="p">,</span>
+        <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_sides_on_screen</span><span class="p">(</span>
+    <span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">judged</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``{entity id: where its shaded side faces on screen as the shot opens}``,</span>
+<span class="sd">    from the compiled shot, through every transform above the art; ``None``</span>
+<span class="sd">    when the shot does not compile."""</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="n">compiled_shot</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+        <span class="n">_node_chain</span><span class="p">,</span>
+        <span class="n">evaluate_timeline</span><span class="p">,</span>
+        <span class="n">screen_position</span><span class="p">,</span>
+        <span class="n">timeline_from_scene</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">pose</span> <span class="o">=</span> <span class="n">evaluate_timeline</span><span class="p">(</span><span class="n">timeline_from_scene</span><span class="p">(</span><span class="n">doc</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">side</span> <span class="ow">in</span> <span class="n">judged</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">_node</span><span class="p">,</span> <span class="n">path</span> <span class="o">=</span> <span class="n">_node_chain</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">scene</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span> <span class="o">=</span> <span class="n">SHADED_SIDES</span><span class="p">[</span><span class="n">side</span><span class="p">]</span>
+            <span class="n">x0</span><span class="p">,</span> <span class="n">y0</span> <span class="o">=</span> <span class="n">screen_position</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">pose</span><span class="o">=</span><span class="n">pose</span><span class="p">)</span>
+            <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span> <span class="o">=</span> <span class="n">screen_position</span><span class="p">(</span>
+                <span class="n">doc</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">pose</span><span class="o">=</span><span class="n">pose</span><span class="p">,</span> <span class="n">point</span><span class="o">=</span><span class="p">(</span><span class="n">_SIDE_PROBE</span> <span class="o">*</span> <span class="n">sx</span><span class="p">,</span> <span class="n">_SIDE_PROBE</span> <span class="o">*</span> <span class="n">sy</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 - not drawn on the stage</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">math</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">x1</span> <span class="o">-</span> <span class="n">x0</span><span class="p">,</span> <span class="n">y1</span> <span class="o">-</span> <span class="n">y0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-9</span><span class="p">:</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">x1</span> <span class="o">-</span> <span class="n">x0</span><span class="p">,</span> <span class="n">y1</span> <span class="o">-</span> <span class="n">y0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="n">LIGHT</span> <span class="o">=</span> <span class="n">Constraint</span><span class="p">(</span>
+    <span class="s2">"light"</span><span class="p">,</span>
+    <span class="n">check_light</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"every member's art is shaded on the side the scene's one light implies (catalogue D1)"</span><span class="p">,</span>
+<span class="p">)</span>
+
+
 <span class="c1">#: The core's constraints, in the order their checks run within a stage.</span>
 <span class="n">CONSTRAINTS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Constraint</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">CONTINUITY</span><span class="p">,</span>
@@ -2695,6 +2854,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">MOTION_STYLE</span><span class="p">,</span>
     <span class="n">GRAVITY</span><span class="p">,</span>
     <span class="n">CAUSALITY</span><span class="p">,</span>
+    <span class="n">LIGHT</span><span class="p">,</span>
 <span class="p">)</span>
 
 

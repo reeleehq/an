@@ -270,7 +270,7 @@ The flat-form list is the canonical representation passed to renderers
 and verifiers. Composition nodes (sequence/parallel/delay/loop) do not
 appear in the flat form — they’re collapsed into time offsets.
 
-### *class* an.Meta(\*, title='', author='', duration=0.0, fps=30, resolution=<factory>, default_renderer='cutout', notes='', step_hz=None, style_pack=None, default_easing=None, sounds=<factory>, captions=None, closing_transition=None, voice_loudness=None, \*\*extra_data)
+### *class* an.Meta(\*, title='', author='', duration=0.0, fps=30, resolution=<factory>, default_renderer='cutout', notes='', step_hz=None, style_pack=None, default_easing=None, sounds=<factory>, captions=None, closing_transition=None, voice_loudness=None, light=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -311,6 +311,11 @@ a registered renderer’s name.
 
 * **Type:**
   Like [`Shot.renderer`](#an.Shot.renderer)
+
+#### light *: [SceneLight](an.ir.schema.html.md#an.ir.schema.SceneLight) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The scene’s one light (`SceneLight`, catalogue D1); `None` —
+the default — declares none, checks nothing, and is omitted from JSON.
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 

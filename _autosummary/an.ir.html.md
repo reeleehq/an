@@ -385,7 +385,7 @@ A frame translating at a constant velocity: sugar for a frame whose
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.Meta(\*, title='', author='', duration=0.0, fps=30, resolution=<factory>, default_renderer='cutout', notes='', step_hz=None, style_pack=None, default_easing=None, sounds=<factory>, captions=None, closing_transition=None, voice_loudness=None, \*\*extra_data)
+### *class* an.ir.Meta(\*, title='', author='', duration=0.0, fps=30, resolution=<factory>, default_renderer='cutout', notes='', step_hz=None, style_pack=None, default_easing=None, sounds=<factory>, captions=None, closing_transition=None, voice_loudness=None, light=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -426,6 +426,11 @@ a registered renderer’s name.
 
 * **Type:**
   Like [`Shot.renderer`](#an.ir.Shot.renderer)
+
+#### light *: [SceneLight](an.ir.schema.html.md#an.ir.schema.SceneLight) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The scene’s one light (`SceneLight`, catalogue D1); `None` —
+the default — declares none, checks nothing, and is omitted from JSON.
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 

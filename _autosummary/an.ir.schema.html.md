@@ -67,6 +67,7 @@ True
 | [`Action`](#an.ir.schema.Action)                    | the core kinds plus [`ExtensionAction`](#an.ir.schema.ExtensionAction) for any other `kind` (a registered genre kind validates to its own model through it).                                                                                                |
 | [`DEFAULT_CAPTION_MAX_CHARS`](#an.ir.schema.DEFAULT_CAPTION_MAX_CHARS) | the broadcast convention (BBC / Netflix timed-text guidance: 42 characters, two lines).                                                                                                                                                                                   |
 | [`DEFAULT_CAPTION_SIZE`](#an.ir.schema.DEFAULT_CAPTION_SIZE)      | Caption type size as a fraction of frame height — a little under the title default, as captions are read while something else is watched.                                                                                                                                 |
+| [`LIGHT_KEYS`](#an.ir.schema.LIGHT_KEYS)                | the scene's `light: {key: upper_left}` (catalogue D1).                                                                                                                                                                                                                    |
 | [`STAGE_NODE_SPACE`](#an.ir.schema.STAGE_NODE_SPACE)          | The property space a 2D stage engine's node lives in ([`an.timing.spaces`](an.timing.spaces.html.md#module-an.timing.spaces)).                                                                                                                         |
 | [`SPECIMEN_DURATION`](#an.ir.schema.SPECIMEN_DURATION)         | How long a specimen shot runs (`an library sheet` draws its first frame).                                                                                                                                                                                                 |
 | [`SPECIMEN_SHOT_ID`](#an.ir.schema.SPECIMEN_SHOT_ID)          | The id of a specimen shot.                                                                                                                                                                                                                                                |
@@ -104,6 +105,7 @@ True
 | [`ParallelAction`](#an.ir.schema.ParallelAction)(\*[, name, kind, children])         | Composition: run all children simultaneously starting at the same time.                                                                                                                                                                                                                  |
 | [`Resolution`](#an.ir.schema.Resolution)(\*[, width, height])                    | Pixel dimensions of the rendered output.                                                                                                                                                                                                                                                 |
 | [`SceneIR`](#an.ir.schema.SceneIR)(\*[, version, compatible_version, ...])    | Top-level Scene IR document.                                                                                                                                                                                                                                                             |
+| [`SceneLight`](#an.ir.schema.SceneLight)(\*[, direction, key, elevation])        | The scene's one light (catalogue D1, an#519): where it comes FROM on screen, a `direction` `[dx, dy]` (x right, y down) or a named `key` ([`LIGHT_KEYS`](#an.ir.schema.LIGHT_KEYS)), and its `elevation` in degrees when it matters.                                  |
 | [`SequenceAction`](#an.ir.schema.SequenceAction)(\*[, name, kind, children])         | Composition: run children one after the other.                                                                                                                                                                                                                                           |
 | [`SetAction`](#an.ir.schema.SetAction)(\*[, name, kind, at])                    | Set a property to a value at a specific time.                                                                                                                                                                                                                                            |
 | [`Shot`](#an.ir.schema.Shot)(\*, id[, renderer, duration, camera, ...])    | A single rendered unit.                                                                                                                                                                                                                                                                  |
@@ -885,6 +887,14 @@ What `join` and `unjoin` call this joint.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+### an.ir.schema.LIGHT_KEYS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]]* *= {'bottom': (0.0, 1.0), 'left': (-1.0, 0.0), 'lower_left': (-1.0, 1.0), 'lower_right': (1.0, 1.0), 'right': (1.0, 0.0), 'top': (0.0, -1.0), 'upper_left': (-1.0, -1.0), 'upper_right': (1.0, -1.0)}*
+
+the scene’s
+`light: {key: upper_left}` (catalogue D1).
+
+* **Type:**
+  Where a named light comes FROM, on screen (x right, y down)
+
 ### *class* an.ir.schema.LoopAction(, name=None, kind='loop', child, count=1, \*\*extra_data)
 
 Bases: `_ActionBase`
@@ -895,7 +905,7 @@ Composition: repeat `child` `count` times.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.Meta(\*, title='', author='', duration=0.0, fps=30, resolution=<factory>, default_renderer='cutout', notes='', step_hz=None, style_pack=None, default_easing=None, sounds=<factory>, captions=None, closing_transition=None, voice_loudness=None, \*\*extra_data)
+### *class* an.ir.schema.Meta(\*, title='', author='', duration=0.0, fps=30, resolution=<factory>, default_renderer='cutout', notes='', step_hz=None, style_pack=None, default_easing=None, sounds=<factory>, captions=None, closing_transition=None, voice_loudness=None, light=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -936,6 +946,11 @@ a registered renderer’s name.
 
 * **Type:**
   Like [`Shot.renderer`](#an.ir.schema.Shot.renderer)
+
+#### light *: [SceneLight](#an.ir.schema.SceneLight) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The scene’s one light ([`SceneLight`](#an.ir.schema.SceneLight), catalogue D1); `None` —
+the default — declares none, checks nothing, and is omitted from JSON.
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 
@@ -1092,6 +1107,31 @@ stored scene and no schema version moves.
 
 * **Type:**
   The scene’s **world** (ADR 0009)
+
+### *class* an.ir.schema.SceneLight(, direction=None, key=None, elevation=None, \*\*extra_data)
+
+Bases: `_IRModel`
+
+The scene’s one light (catalogue D1, an#519): where it comes FROM on
+screen, a `direction` `[dx, dy]` (x right, y down) or a named `key`
+([`LIGHT_KEYS`](#an.ir.schema.LIGHT_KEYS)), and its `elevation` in degrees when it matters.
+Art says which side it is shaded on (`shaded_side`), and the `light`
+check holds every member to this one light.
+
+```pycon
+>>> SceneLight(key="upper_left").vector
+(-1.0, -1.0)
+>>> SceneLight(direction=(2.0, 0.0)).vector
+(2.0, 0.0)
+```
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### *property* vector *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]*
+
+Where the light comes from, on screen.
 
 ### *class* an.ir.schema.SequenceAction(\*, name=None, kind='sequence', children=<factory>, \*\*extra_data)
 
