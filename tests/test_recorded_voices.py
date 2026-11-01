@@ -1227,3 +1227,41 @@ def test_the_mfa_aligner_runs_mfa_on_a_one_file_corpus_and_reads_its_textgrid(tm
     failed = mfa_aligner(run=lambda argv, **kw: type("F", (), {"returncode": 1, "stdout": b"beam too narrow", "stderr": b""})())
     with pytest.raises(AlignmentError, match="beam too narrow"):
         failed(_take(tmp_path), "x")
+
+
+def test_mfa_and_gentle_json_give_the_phones_their_textgrid_gives(tmp_path):
+    """an#715: a take imported with the Montreal Forced Aligner's JSON
+    (`tiers.<name>.entries`) or Gentle's (each word's `phones`, durations from
+    its start, `hh_B` position suffixes) is stored with the same phones as with
+    the matching TextGrid."""
+    words = [w for w in _TG_TIERS["words"] if w[1] <= 1.5]
+    phones = [p for p in _TG_TIERS["phones"] if p[2] != "sil" and p[1] <= 1.5]
+    grid = tmp_path / "take.TextGrid"
+    grid.write_text(_textgrid({"words": words, "phones": phones}), encoding="utf-8")
+    mfa = tmp_path / "mfa.json"
+    mfa.write_text(json.dumps({"tiers": {
+        "take - words": {"type": "interval", "entries": [[a, b, t.lower()] for a, b, t in words]},
+        "take - phones": {"type": "interval", "entries": [[a, b, t] for a, b, t in phones]},
+    }}), encoding="utf-8")  # fmt: skip
+    gentle_words = []
+    for a, b, t in words:
+        inside = [p for p in phones if a <= p[0] < b]
+        gentle_words.append({
+            "word": t, "alignedWord": t.lower(), "case": "success", "start": a, "end": b,
+            "phones": [{"phone": f"{ph.lower()}_I", "duration": round(e - s, 6)}
+                       for s, e, ph in inside],
+        })  # fmt: skip
+    gentle = tmp_path / "gentle.json"
+    gentle.write_text(json.dumps({"transcript": HELLO, "words": gentle_words}), encoding="utf-8")
+
+    def phones_of(transcript, name):
+        root = _project(tmp_path / name, lines=(HELLO,))
+        take = _take(tmp_path / name, bursts=((0.5, 1.5),), seconds=2.0)
+        import_recordings(root, take, transcript=transcript, license=LICENSE)
+        (record,) = _records(root).values()
+        return record["phones"]
+
+    by_grid = phones_of(grid, "g")
+    assert by_grid and by_grid[0][0] == "HH"
+    assert phones_of(mfa, "m") == by_grid
+    assert phones_of(gentle, "j") == by_grid

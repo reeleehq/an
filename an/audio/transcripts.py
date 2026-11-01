@@ -346,12 +346,17 @@ def parse_json(obj: Any) -> list[TranscriptSegment]:
     of segments, each ``{"text", "start", "end", "speaker", "words": [{"text"|"word",
     "start", "end"}, ...]}`` (``start_ms``/``end_ms`` are read too, and a word may
     be a ``[text, start, end]`` list); or a bare list of words, read as one segment.
+    A word's ``phones`` as Gentle writes them (durations from its start) become
+    the segment's phones, and MFA's JSON (``tiers``) is read by
+    :func:`parse_mfa_json` (an#715).
 
     >>> segs = parse_json({"segments": [{"speaker": "carl", "words": [
     ...     {"word": "Hello", "start": 0.5, "end": 0.9}, ["there", 0.9, 1.2]]}]})
     >>> segs[0].text, segs[0].start, segs[0].end, segs[0].words
     ('Hello there', 0.5, 1.2, (('Hello', 0.5, 0.9), ('there', 0.9, 1.2)))
     """
+    if isinstance(obj, Mapping) and isinstance(obj.get("tiers"), Mapping):
+        return parse_mfa_json(obj)  # the Montreal Forced Aligner's JSON (an#715)
     if isinstance(obj, Mapping):
         items = obj.get("segments")
         if items is None:
@@ -370,6 +375,9 @@ def parse_json(obj: Any) -> list[TranscriptSegment]:
         if not isinstance(item, Mapping):
             raise ValueError(f"a transcript segment must be an object, got {item!r}")
         words = tuple(w for w in (_word_from(x) for x in item.get("words") or ()) if w)
+        phones = tuple(
+            p for x in item.get("words") or () for p in _gentle_phones(x)
+        )
         text = item.get("text")
         if text is None:
             text = " ".join(w[0] for w in words)
@@ -403,9 +411,59 @@ def parse_json(obj: Any) -> list[TranscriptSegment]:
                     end=end,
                     speaker=str(speaker_) if speaker_ else None,
                     words=words or None,
+                    phones=phones or None,
                 )
             )
     return out
+
+
+#: Gentle's phones carry their place in the word (``hh_B``: begin, ``_I``
+#: inside, ``_E`` end, ``_S`` a one-phone word); the phone is what precedes it.
+_GENTLE_POSITION = re.compile(r"_[BIES]$")
+
+
+def _gentle_phones(word: Any) -> list[WordTiming]:
+    """A Gentle word's phones (``{"phones": [{"phone", "duration"}], "start"}``),
+    timed from the word's start one after another; ``[]`` for any other shape.
+
+    >>> _gentle_phones({"word": "hi", "start": 1.0, "end": 1.3, "phones": [
+    ...     {"phone": "hh_B", "duration": 0.1}, {"phone": "ay_E", "duration": 0.2}]})
+    [('HH', 1.0, 1.1), ('AY', 1.1, 1.3)]
+    """
+    phones = word.get("phones") if isinstance(word, Mapping) else None
+    start = _number(word, "start", "start_ms") if isinstance(word, Mapping) else None
+    if not isinstance(phones, list) or start is None:
+        return []
+    out, t = [], float(start)
+    for p in phones:
+        if not isinstance(p, Mapping) or p.get("duration") is None:
+            return []
+        label = _GENTLE_POSITION.sub("", str(p.get("phone", ""))).upper()
+        end = t + float(p["duration"])
+        if label and _is_speech(label):
+            out.append((label, round(t, 6), round(end, 6)))
+        t = end
+    return out
+
+
+def parse_mfa_json(obj: Mapping[str, Any]) -> list[TranscriptSegment]:
+    """The Montreal Forced Aligner's JSON (``--output_format json``):
+    ``{"tiers": {name: {"entries": [[start, end, label], ...]}}}`` read as its
+    TextGrid is (:func:`segments_from_tiers`), words and phones.
+
+    >>> parse_mfa_json({"tiers": {"take - words": {"entries": [[0.5, 0.9, "hello"]]},
+    ...                           "take - phones": {"entries": [[0.5, 0.6, "HH"], [0.6, 0.9, "AH0"]]}}})[0].phones
+    (('HH', 0.5, 0.6), ('AH0', 0.6, 0.9))
+    """
+    tiers = {
+        str(name): [
+            (float(a), float(b), str(label))
+            for a, b, label in (tier.get("entries") or [])
+        ]
+        for name, tier in (obj.get("tiers") or {}).items()
+        if isinstance(tier, Mapping)
+    }
+    return segments_from_tiers(tiers)
 
 
 _TG_TIER_RE = re.compile(
@@ -511,6 +569,23 @@ def parse_textgrid(text: str) -> list[TranscriptSegment]:
     tiers = _textgrid_tiers(text)
     if not tiers:
         raise ValueError("no IntervalTier found in the TextGrid")
+    return segments_from_tiers(tiers)
+
+
+def segments_from_tiers(
+    tiers: Mapping[str, Sequence[tuple[float, float, str]]],
+) -> list[TranscriptSegment]:
+    """An aligner's interval tiers (``{name: [(start, end, label), ...]}``,
+    as a TextGrid or MFA's JSON carries them) → segments: the words from a
+    tier named ``words`` (else the first that is neither phones nor lines),
+    the phones from a ``phones`` tier, one segment per interval of a lines
+    tier when there is one (MFA's ``"<speaker> - words"`` names included).
+
+    >>> segments_from_tiers({"words": [(0.5, 0.9, "hello")], "phones": [(0.5, 0.6, "HH"), (0.6, 0.9, "AH0")]})[0].phones
+    (('HH', 0.5, 0.6), ('AH0', 0.6, 0.9))
+    """
+    if not tiers:
+        return []
     phone_tier = _tier_named(tiers, _TG_PHONE_TIERS)
     line_tier = _tier_named(tiers, _TG_LINE_TIERS)
     # Without a tier named for words, the first tier that is neither the
