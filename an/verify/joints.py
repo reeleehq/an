@@ -102,7 +102,14 @@ def check_unreachable_pin(ctx: Any) -> None:
         if row.get("source") != "pin":
             continue
         reach = entry.get("reach")
-        if reach and reach.get("within"):
+        if entry.get("led"):
+            how = (
+                "it was lost out of reach and is being led back a step a frame "
+                "(an#645), and had not been taken back by then. Give it time (a "
+                "longer shot, or the target sooner back within reach), or keep the "
+                "target within reach."
+            )
+        elif reach and reach.get("within"):
             how = (
                 f"it is within reach ({reach['distance']:.0f} px from {reach['from']!r}, the "
                 f"chain reaches {reach['reach']:.0f} px), but the joints or an authored "

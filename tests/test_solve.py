@@ -646,7 +646,7 @@ def test_the_stage_leads_a_lost_pin_back_and_holds_it_again(tmp_path):
     """an#668: a dynamic shot, the torso carried away (the hand's pin out of
     reach) and back. The stage solves frame by frame through the same lead as
     `solve_frames` (an#645): the pin is held again within a few frames of
-    coming back in reach (at the stage's mass scale; at the kinematics' own
+    coming back in reach (pulled by the led chain's mass, an#672; at the kinematics' own
     strength the hand hovered 8 to 20 px short for the rest of the shot)."""
     from an.bench.core_corpus import stage_copy as corpus_copy
     from an.stage.solve import solve_report
@@ -668,3 +668,33 @@ def test_the_stage_leads_a_lost_pin_back_and_holds_it_again(tmp_path):
     doc = _compile(project, Shot.model_validate(data))
     spans = solve_report(doc)["dropped"]
     assert spans and max(s["until"] for s in spans) <= 0.6, spans
+
+
+@pytest.mark.parametrize("duration, led", [(0.4, True), (1.0, False)])
+def test_a_pin_the_shot_ends_on_while_it_is_led_back_is_reported_as_led(
+    tmp_path, duration, led
+):
+    """an#672: a pin lost out of reach and walked back a step a frame (an#645)
+    is marked `led` in the solve report when the shot ends while it is still
+    led, and `unreachable_pin` says it is being led back rather than that the
+    joints or a channel hold the chain away. One the lead takes back before
+    the shot ends (at 0.54 s) keeps the reach that says why it was lost."""
+    from an.stage.solve import solve_report
+
+    project = _project(tmp_path)
+    shot = _shot(
+        project,
+        duration=duration,
+        solve={"gravity": "down", "mode": "dynamic"},
+        actions=[
+            {"kind": "tween", "target": "puppet/torso", "property": "x",
+             "from_value": -100.0, "to_value": -400.0, "duration": 0.5, "start": 0.0},
+            {"kind": "tween", "target": "puppet/torso", "property": "x",
+             "from_value": -400.0, "to_value": -100.0, "duration": 0.25, "start": 0.75},
+            {"kind": "pin", "point": "puppet/fore@hand", "to": "world@-378,-38"},
+        ],
+    )  # fmt: skip
+    spans = solve_report(_compile(project, shot))["dropped"]
+    assert [s["until"] for s in spans if s.get("led")] == ([duration] if led else []), spans
+    messages = [m for _, m in _lint(project, shot) if "cannot be held" in m]
+    assert any("being led back a step a frame" in m for m in messages) == led, messages
