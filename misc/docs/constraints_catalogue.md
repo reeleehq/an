@@ -357,7 +357,7 @@ Tolerances below are named, never literal: `SUPPORT_TOLERANCE`, `SKATE_TOLERANCE
 
 **Subsumes.** Nothing as a check; `cutan.art_brief` (cutan#93) is where the declaration reaches the generator.
 
-**Status.** The declaration and the check are built in `an` (an#519 rank 7): `meta.light` (`SceneLight`: a `direction` or a named `key`, an optional `elevation`), `shaded_side` in the art's store document or the entity's overrides, and the core's `light` constraint (`an.verify.constraints.check_light`: a warning when a member's side, mirrored when it is drawn mirrored as the shot opens, does not face away from the light within half a quadrant). Missing: the art-brief hook (cutan) and the measured second tier.
+**Status.** The declaration and the check are built in `an` (an#519 rank 7): `meta.light` (`SceneLight`: a `direction` or a named `key`, an optional `elevation`), `metadata.shaded_side` in the art's store document (next to `body_attachment`) or the entity's `overrides.shaded_side`, and the core's `light` constraint (`an.verify.constraints.check_light`: a warning when a member's side, read where it faces on screen as the shot opens through every mirror and rotation above the art, is not in the quadrant facing away from the light). Missing: the art-brief hook (cutan), a flip partway through a shot, and the measured second tier.
 
 #### D2. Cast shadows anchored at contact and consistent with the light
 

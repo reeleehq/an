@@ -4,6 +4,7 @@ a loop seam, and the core corpus staying clean."""
 
 from __future__ import annotations
 
+import math
 import shutil
 from pathlib import Path
 
@@ -877,7 +878,8 @@ def test_missing_stores_are_not_a_shot_that_does_not_compile(tmp_path):
 
 def _lit(tmp_path: Path, *, light=None, side=None, override=None, actions=()):
     """The lamp shot under ``light``, its art declaring ``side`` (in the prop's
-    document) and the entity ``override`` (its own ``shaded_side``)."""
+    document, ``metadata.shaded_side``) and the entity ``override`` (its own
+    ``shaded_side``)."""
     import json
 
     from an.ir.schema import SceneLight
@@ -886,7 +888,7 @@ def _lit(tmp_path: Path, *, light=None, side=None, override=None, actions=()):
     if side is not None:
         for doc_path in (root / "assets" / "props").glob("*/prop.json"):
             doc = json.loads(doc_path.read_text(encoding="utf-8"))
-            doc["shaded_side"] = side
+            doc.setdefault("metadata", {})["shaded_side"] = side
             doc_path.write_text(json.dumps(doc), encoding="utf-8")
     project = load(root)
     first = project.scene.timeline[0]
@@ -916,7 +918,7 @@ def test_light_is_registered_under_the_core_owner():
 
 def test_art_shaded_toward_the_light_is_one_warning_naming_the_side_it_implies(tmp_path):
     (msg,) = _lit(tmp_path, light={"key": "upper_left"}, side="left")
-    assert "'lamp'" in msg and "shades the right" in msg
+    assert "'lamp'" in msg and "shades the bottom or right" in msg
 
 
 def test_art_shaded_away_from_the_light_or_flat_or_unlit_says_nothing(tmp_path):
@@ -927,12 +929,31 @@ def test_art_shaded_away_from_the_light_or_flat_or_unlit_says_nothing(tmp_path):
     assert _lit(tmp_path / "e", light={"key": "upper_left"}) == []  # no side declared
 
 
-def test_an_entity_override_wins_and_mirroring_flips_the_side(tmp_path):
-    assert _lit(tmp_path / "a", light={"direction": [-1, 0]}, side="right", override="left")
-    mirrored = [{"kind": "set", "target": "lamp", "property": "scale_x", "value": -1.0}]
-    assert _lit(tmp_path / "b", light={"direction": [-1, 0]}, side="left", actions=mirrored) == []
+def _set(prop, value):
+    return {"kind": "set", "target": "lamp", "property": prop, "value": value}
 
 
-def test_a_side_that_is_not_a_side_is_said(tmp_path):
-    (msg,) = _lit(tmp_path, light={"key": "left"}, side="sideways")
-    assert "'sideways'" in msg and "'flat'" in msg
+def test_an_entity_override_wins_and_the_side_is_read_as_drawn(tmp_path):
+    """The side faces where the art is drawn: mirrored on x, flipped on y, or
+    turned half round, it faces the other way (catalogue D1 review)."""
+    left = {"direction": [-1, 0]}
+    assert _lit(tmp_path / "a", light=left, side="right", override="left")
+    assert _lit(tmp_path / "b", light=left, side="left", actions=[_set("scale_x", -1.0)]) == []
+    assert _lit(tmp_path / "c", light={"key": "top"}, side="bottom", actions=[_set("scale_y", -1.0)])
+    assert _lit(tmp_path / "d", light=left, side="right", actions=[_set("rotation", math.pi)])
+    assert _lit(tmp_path / "e", light=left, side="left", actions=[_set("rotation", math.pi)]) == []
+
+
+def test_a_side_that_is_not_a_side_is_said_never_raised(tmp_path):
+    for i, bad in enumerate(("sideways", ["left"], {"x": 1})):
+        (msg,) = _lit(tmp_path / str(i), light={"key": "left"}, override=bad)
+        assert "'flat'" in msg, msg
+
+
+def test_a_light_must_be_a_finite_direction():
+    from pydantic import ValidationError
+
+    from an.ir.schema import SceneLight
+
+    with pytest.raises(ValidationError):
+        SceneLight(direction=(float("nan"), 0.0))

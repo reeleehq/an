@@ -2090,7 +2090,13 @@ class SceneLight(_IRModel):
     (2.0, 0.0)
     """
 
-    direction: tuple[float, float] | None = None
+    direction: (
+        tuple[
+            Annotated[float, Field(allow_inf_nan=False)],
+            Annotated[float, Field(allow_inf_nan=False)],
+        ]
+        | None
+    ) = None
     key: Literal[tuple(LIGHT_KEYS)] | None = None  # type: ignore[valid-type]
     elevation: float | None = Field(default=None, ge=0.0, le=90.0)
 
