@@ -1,0 +1,1 @@
+- **A keyed pair's `draw_order` note names its keys** (an#686): when both members carry paint keys, the note says the keys still put it behind (a crossing keyed on the scan grid lands up to a sample late, or is missed), not the first-depth rule that orders an unkeyed pair.

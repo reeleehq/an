@@ -2285,3 +2285,25 @@ def test_a_member_level_with_another_as_a_travel_opens_is_keyed_apart():
         if e.id in ("left", "right")
     }
     assert keys["right"][0][1] < keys["left"][0][1]  # right farther: painted first
+
+
+def test_a_keyed_pair_out_of_order_is_explained_by_its_keys():
+    """an#686: a pair both keyed is painted in its keys' order, so its note
+    names the keys (a crossing keyed late, between samples), not the first-
+    depth rule that orders an unkeyed pair, whose note keeps that text."""
+    from an.base import PAINT_KEYS_OVERRIDE
+    from an.ir.world import depth_order_problems
+
+    def ref(id, keys=None):
+        over = {PAINT_KEYS_OVERRIDE: keys} if keys else None
+        return AssetRef(kind="prop", id=id, store="props", ref=id, overrides=over)
+
+    times = [0.0, 0.5, 1.0, 1.5, 2.0]
+    depths = {"a": [10.0, 8.0, 6.0, 4.0, 2.0], "b": 5.0}  # `a` passes `b` at 1.5 s
+    whole = {"a": [(0.0, 2.0)], "b": [(0.0, 2.0)]}
+    late = [ref("a", [[0.0, [0]], [2.0, [2]]]), ref("b", [[0.0, [1]]])]
+    ((_, keyed),) = depth_order_problems(late, times, depths, whole)
+    assert "from 1.50 s" in keyed and "paint keys still put it behind there" in keyed
+    assert "where it first shows" not in keyed
+    ((_, plain),) = depth_order_problems([ref("a"), ref("b")], times, depths, whole)
+    assert "the world orders each member by its depth where it first shows" in plain
