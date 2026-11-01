@@ -1409,6 +1409,9 @@ class Run:
     #: per frame: a non-body path (``extra_paths``) -> its node's channels
     #: ``(x, y, rotation, scale_x, scale_y)`` as the document shows them
     extra: list[dict[str, tuple[float, ...]]] = field(default_factory=list)
+    #: per frame: the grips being led back (lost out of reach, walked back a
+    #: step a frame, an#645); the report marks a dropped span that was (an#672)
+    led: list[tuple[int, ...]] = field(default_factory=list)
     digest: str = ""
 
 
@@ -1439,13 +1442,6 @@ def _along(path: Sequence[tuple[float, float]], f: float) -> tuple[float, float]
     return path[-1]
 
 
-#: How much more the stage's bodies weigh than the kinematics' own (a body's
-#: mass is its area: a stage forearm is thousands of px², a test rope's link 20
-#: units²), so the lead that walks a lost grip back pulls as firmly here: at the
-#: kinematics' strength a stage arm hovered short of its pin (an#668).
-REGRIP_MASS_SCALE: float = 100.0
-
-
 def run_solve(
     doc: Any,
     puppet: Puppet,
@@ -1463,8 +1459,8 @@ def run_solve(
     from an.kinematics import Body, Point, Weld, WORLD, inputs_digest, solve
     from an.kinematics.solver import (
         DFLT_REGRIP_SPEED,
-        DFLT_REGRIP_STRENGTH,
         Regrip,
+        regrip_strength_by_mass,
         solve_regripping,
     )
     from an.stage.timeline import (
@@ -1654,7 +1650,11 @@ def run_solve(
         if directed:
             # A verb holds ITS point where the other body is: that body is solved
             # without it first, and the verb then pins to where it went (a cup goes
-            # to the hand; the hand is not pulled toward the cup).
+            # to the hand; the hand is not pulled toward the cup). This pre-solve
+            # runs with every other joint as authored, a grip the frame's lead
+            # unjoins included, so a verb whose other body is on a led chain pins
+            # to where the hand is held, not to where the lead will pull it: a
+            # frame later than it could (an#672; the lead itself is the frame's).
             first = solve(
                 current,
                 [
@@ -1679,8 +1679,14 @@ def run_solve(
                 cur, js, forces=more, **options
             ),
             step=DFLT_REGRIP_SPEED * dt if dt is not None else 0.0,
-            strength=DFLT_REGRIP_STRENGTH * REGRIP_MASS_SCALE,
+            # By the led chain's own mass (a body's mass is its area, so a
+            # stage arm weighs about a hundred kinematics links): at one fixed
+            # strength a stage arm hovered short of its pin (an#668), and a much
+            # heavier chain would again, while a stiffer pull for all drags a
+            # light arm past its elbow's range (an#568, an#672).
+            strength=regrip_strength_by_mass,
         )
+        run.led.append(tuple(sorted(regrip.walking)))
         frames_inputs.append([joints, targets])
         current = list(r.bodies)
         joined_before = joined_now
@@ -2058,6 +2064,9 @@ def _report(
                 default=0.0,
             )
             entry = {"joint": j, "from": r2(a), "until": r2(b), "gap": r2(worst)}
+            last = run.times.index(b)
+            if last < len(run.led) and j in run.led[last]:
+                entry["led"] = True  # still being walked back as it ends (an#672)
             if puppet.rows[j].source == "pin":
                 reach = _reach(puppet, run, j, run.times.index(a))
                 if reach is not None:

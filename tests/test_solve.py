@@ -646,7 +646,7 @@ def test_the_stage_leads_a_lost_pin_back_and_holds_it_again(tmp_path):
     """an#668: a dynamic shot, the torso carried away (the hand's pin out of
     reach) and back. The stage solves frame by frame through the same lead as
     `solve_frames` (an#645): the pin is held again within a few frames of
-    coming back in reach (at the stage's mass scale; at the kinematics' own
+    coming back in reach (pulled by the led chain's mass, an#672; at the kinematics' own
     strength the hand hovered 8 to 20 px short for the rest of the shot)."""
     from an.bench.core_corpus import stage_copy as corpus_copy
     from an.stage.solve import solve_report
@@ -668,3 +668,30 @@ def test_the_stage_leads_a_lost_pin_back_and_holds_it_again(tmp_path):
     doc = _compile(project, Shot.model_validate(data))
     spans = solve_report(doc)["dropped"]
     assert spans and max(s["until"] for s in spans) <= 0.6, spans
+
+
+def test_a_pin_still_being_led_back_is_reported_as_led(tmp_path):
+    """an#672: a pin lost out of reach and walked back a step a frame (an#645)
+    is marked `led` in the solve report where the dropped span ends in a lead,
+    and `unreachable_pin` says it is being led back rather than that the
+    joints or a channel hold the chain away."""
+    from an.stage.solve import solve_report
+
+    project = _project(tmp_path)
+    shot = _shot(
+        project,
+        duration=1.0,
+        solve={"gravity": "down", "mode": "dynamic"},
+        actions=[
+            {"kind": "tween", "target": "puppet/torso", "property": "x",
+             "from_value": -100.0, "to_value": -400.0, "duration": 0.5, "start": 0.0},
+            {"kind": "tween", "target": "puppet/torso", "property": "x",
+             "from_value": -400.0, "to_value": -100.0, "duration": 0.25, "start": 0.75},
+            {"kind": "pin", "point": "puppet/fore@hand", "to": "world@-378,-38"},
+        ],
+    )  # fmt: skip
+    spans = solve_report(_compile(project, shot))["dropped"]
+    led = [s for s in spans if s.get("led")]
+    assert led and all("led" not in s for s in spans if s not in led), spans
+    messages = [m for _, m in _lint(project, shot) if "cannot be held" in m]
+    assert any("being led back a step a frame" in m for m in messages), messages
