@@ -1421,7 +1421,8 @@ def _rest_paint_keys(
     (an#648). The slots keep their depth as the shot opens; a member at depth
     ``d`` is then, in those terms, at ``d - rate * t``, so it is keyed again
     at each time a closed-form pass crosses its depth, for each stretch at its
-    middle (never on a crossing). Anything moving like the streams (a member
+    middle (never on a crossing; a tie as a pass starts counts, an#684).
+    Anything moving like the streams (a member
     standing in the world) keeps its opening key and stays right. Only when
     every pass shares one nonzero rate; otherwise ``{}`` (the general form is
     :func:`_crossing_paint_keys`'s, an#658).
@@ -1445,8 +1446,11 @@ def _rest_paint_keys(
             end = slot[i + 1][0] if i + 1 < len(slot) else duration
             for _, minus_depth, _ in rest.values():
                 t = (-minus_depth - depth0) / rate
-                if r and start < t < end:
-                    crossings.add(t)
+                # A tie where the pass starts (a walker setting off beside one
+                # standing, an#684) is a crossing too: the stretch after it is
+                # keyed at its middle, where the two already differ.
+                if r and start - _BREAKPOINT_TOLERANCE <= t < end:
+                    crossings.add(max(t, start))
     if not crossings:
         return {}
     times = sorted({0.0} | crossings)

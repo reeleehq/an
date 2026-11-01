@@ -2236,3 +2236,52 @@ def test_an_attachment_after_a_plane_still_rides_its_host(tmp_path):
         rider_host_key(k) == tuple(r) and k[-2] == RIDER_IN_FRONT
         for (_, k), (_, r) in zip(rides, right)
     )
+
+
+def test_a_walker_setting_off_beside_one_standing_is_keyed(tmp_path):
+    """an#684: ``left`` starts at ``right``'s depth (2) and walks nearer
+    (``at_z`` 2 to 1), overlapping it on screen. The tie as the shot opens is
+    a crossing, so from the first frame on ``left`` is painted over ``right``
+    (it fell back to the entity index, behind, for the whole shot)."""
+    from an.ir.compose import tween
+    from an.stage.compile import compile_shot
+
+    walk = tween("left", "at_z", to=1.0, duration=3.0, from_=2.0, easing="linear")
+    scene = _two_lamps_scene(
+        timeline=[Shot(id="s1", duration=3.0, viewpoint="two", actions=[walk])]
+    )
+    left = scene.world.members[0]
+    scene.world.members[0] = left.model_copy(update={"at": (0.45, 0.4, 2.0)})
+    lowered = lower_world(scene, extents=EXTENTS)
+    assert not [n for n in lowered.notes if n.kind == "draw_order"]
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        doc = compile_shot(lowered.scene.timeline[0], _project(tmp_path).mall)
+    for i in range(60):
+        t = 3.0 * i / 60 + 0.013
+        order = _painted(doc, t)
+        assert order.index("left") > order.index("right"), (t, order)
+
+
+def test_a_member_level_with_another_as_a_travel_opens_is_keyed_apart():
+    """an#684 review: under a travel, ``left`` stands in the world at
+    ``right``'s depth (40) as the shot opens and the car leaves it behind. The
+    tie at 0 is their only crossing; keyed from it, ``left`` is painted over
+    ``right`` (nearer from the first sample) and nothing is reported. It used
+    to keep the listing order and be reported as a keyed pair (an#686)."""
+    from an.base import PAINT_KEYS_OVERRIDE
+
+    scene = _lane(_travel_scene(Shot(id="s1", duration=3.0, viewpoint="road")), 1.2)
+    left, right = scene.world.members
+    scene.world.members = [
+        left.model_copy(update={"frame": "world", "at": (0.45, 0.4, 40.0)}),
+        right.model_copy(update={"at": (0.5, 0.4, 40.0)}),
+    ]
+    lowered = lower_world(scene, extents=EXTENTS)
+    assert not [n for n in lowered.notes if n.kind == "draw_order"]
+    keys = {
+        e.id: (e.overrides or {})[PAINT_KEYS_OVERRIDE]
+        for e in lowered.scene.timeline[0].entities
+        if e.id in ("left", "right")
+    }
+    assert keys["right"][0][1] < keys["left"][0][1]  # right farther: painted first

@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import time
 
+import pytest
+
 from an.ir.compose import parallel, tween
 from an.ir.schema import (
     AssetRef,
@@ -57,7 +59,27 @@ def _passing(to_z: float, *, right_at=OVERLAPPING, **shot_kw):
     return scene
 
 
-def test_a_member_that_passes_a_nearer_one_is_reported_once():
+@pytest.fixture
+def unkeyed(monkeypatch):
+    """A FAULT INJECTION: the world without crossing keys (as before an#679).
+    Since an#679, an#681 and an#684 the keys and the check read the same depth
+    series, so no natural scene is known to reach the check: it is a
+    regression net for a keying bug, and this is how its plumbing (note,
+    validate finding, the summary past the cap) is still tested. Keyed,
+    ``_passing`` is painted right and reports nothing
+    (:func:`test_a_walker_keyed_from_a_tie_is_not_reported`)."""
+    import an.ir.world as world
+
+    monkeypatch.setattr(world, "_crossing_paint_keys", lambda *a, **k: {})
+
+
+def test_a_walker_keyed_from_a_tie_is_not_reported():
+    """an#684: `left` sets off from `right`'s depth; keyed from the tie, it is
+    painted over `right` once nearer, so there is nothing to report."""
+    assert _notes(_passing(0.8)) == []
+
+
+def test_a_member_that_passes_a_nearer_one_is_reported_once(unkeyed):
     (note,) = _notes(_passing(0.8))
     assert (note.severity, note.entity, note.shot) == ("warning", "left", "s")
     assert note.message.startswith("painted behind 'right' but nearer the camera")
@@ -122,7 +144,7 @@ def test_an_after_on_either_member_is_the_authors_word():
     assert _notes(scene) == []
 
 
-def test_an_validate_reports_it_with_the_shot(tmp_path):
+def test_an_validate_reports_it_with_the_shot(tmp_path, unkeyed):
     import warnings
 
     from an.ir.validate import validate_semantic
@@ -197,9 +219,31 @@ def test_an_attached_member_on_a_moving_host_is_not_checked_against_the_others()
     assert all("hat" not in n.message for n in notes)
 
 
-def test_a_crowd_is_summarised_after_the_cap(monkeypatch):
+def test_a_crowd_is_summarised_after_the_cap(monkeypatch, unkeyed):
     import an.ir.world as world
 
     monkeypatch.setattr(world, "MAX_DEPTH_ORDER_NOTES", 0)
     (note,) = _notes(_passing(0.8))
     assert "1 more pairs are painted on the wrong side" in note.message
+
+
+def test_an_attachment_of_a_walker_setting_off_stays_in_front_of_it(tmp_path):
+    """an#684 review: an attached member is level with its host as the shot
+    opens, so the tie-at-start crossing would re-key it as a member at rest,
+    behind its walking host. It rides its host's keys instead (an#678), and
+    stays painted in front of it all shot."""
+    import warnings
+
+    from an.stage.compile import compile_shot
+    from tests.test_world import _painted
+    from tests.test_world_frames import _env_project
+
+    scene = _passing(0.8, right_at=(5.0, 0.4, 2.0))
+    scene.world.members.append(_lamp("hat", attached=Attachment(to="left")))
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        doc = compile_shot(shot, _env_project(tmp_path).mall)
+    for t in (0.01, 0.5, 1.0, 1.5, 1.99):
+        order = _painted(doc, t)
+        assert order.index("hat") == order.index("left") + 1, (t, order)
