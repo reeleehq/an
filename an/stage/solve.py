@@ -1696,7 +1696,9 @@ def run_solve(
             # strength a stage arm hovered short of its pin (an#668), and a much
             # heavier chain would again, while a stiffer pull for all drags a
             # light arm past its elbow's range (an#568, an#672).
-            strength=partial(regrip_strength_by_mass, per_mass=REGRIP_STRENGTH_PER_MASS),
+            strength=partial(
+                regrip_strength_by_mass, per_mass=REGRIP_STRENGTH_PER_MASS
+            ),
         )
         run.led.append(tuple(sorted(regrip.walking)))
         frames_inputs.append([joints, targets])

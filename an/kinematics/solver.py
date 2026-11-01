@@ -1873,7 +1873,9 @@ def _regrip_leads(
     return leads, within
 
 
-def _led_chain_mass(st: _State, joints: Sequence[Joint], skip: int, start: int) -> float:
+def _led_chain_mass(
+    st: _State, joints: Sequence[Joint], skip: int, start: int
+) -> float:
     """The mass a lead drags (an#672): the free bodies joined to ``start`` (the
     led point's body) through any joined joint but ``skip`` (the grip), up to
     and without a fixed body or one the frame's targets hold in place (x or
