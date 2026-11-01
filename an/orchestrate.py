@@ -262,7 +262,7 @@ def _strict_asset_findings(
     from an.library.checkout import check_pins_before_render
     from an.stage import STAGE_RENDERER_NAMES
     from an.ir.schema import resolve_step_hz
-    from an.stage.compile import CutoutCompileError, compile_shot, style_pack_for
+    from an.stage.compile import CutoutCompileError, compile_shot, rendered_compile_args
 
     try:
         with warnings.catch_warnings():
@@ -311,17 +311,11 @@ def _strict_asset_findings(
                 )  # non-strict findings are validate's own
                 compile_shot(
                     shot,
-                    mall=project.mall,
-                    fps=rate,
-                    width=width,
-                    height=height,
-                    strict_assets=True,
-                    step_hz=resolve_step_hz(shot, scene.meta.step_hz),
-                    style_pack=style_pack_for(
-                        scene.meta, project.mall.get("styles") or {}
+                    **rendered_compile_args(
+                        shot, scene.meta, project.mall, fps=rate,
+                        width=width, height=height, strict_assets=True,
                     ),
-                    default_easing=scene.meta.default_easing,
-                )
+                )  # fmt: skip
         except CutoutCompileError as e:
             report.add(
                 "error",

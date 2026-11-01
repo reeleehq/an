@@ -269,7 +269,7 @@ def continue_shots(
     from an.ir.sync import read_scene as _read
     from an.ir.world import viewpoint_key
     from an.stage.compile import compile_shot as _compile
-    from an.stage.compile import style_pack_for
+    from an.stage.compile import rendered_compile_args
     from an.stage.world import lower_scene_world
 
     read_scene = read_scene or _read
@@ -341,18 +341,10 @@ def continue_shots(
             try:
                 with warnings.catch_warnings():
                     warnings.simplefilter("ignore")  # the source's compile reports them
+                    # as the render compiles it, so the end is its last frame
                     compiled[(src_file, j)] = compile_shot(
                         source,
-                        mall=mall,
-                        fps=rate,
-                        width=int(owner.meta.resolution.width),
-                        height=int(owner.meta.resolution.height),
-                        default_easing=owner.meta.default_easing,
-                        # as the render compiles it, so the end is its last frame
-                        step_hz=resolve_step_hz(source, owner.meta.step_hz),
-                        style_pack=style_pack_for(
-                            owner.meta, (mall or {}).get("styles") or {}
-                        ),
+                        **rendered_compile_args(source, owner.meta, mall, fps=rate),
                     )
             except Exception as e:  # noqa: BLE001 — the source's own error, named here
                 raise ContinuityError(

@@ -479,8 +479,12 @@ def test_the_preview_path_carries_it_too():
 
     import an.preview as preview_mod
 
-    src = inspect.getsource(preview_mod)
-    assert "style_pack=style_pack_for(" in src
+    from an.stage import compile as compile_mod
+
+    # the preview compiles with the render's own arguments (an#713), and those
+    # resolve the scene's pack, raising on a missing one (an#33)
+    assert "rendered_compile_args(" in inspect.getsource(preview_mod)
+    assert "style_pack_for(meta" in inspect.getsource(compile_mod.rendered_compile_args)
 
 
 @pytest.mark.genre("cutout_animation")
