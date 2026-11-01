@@ -1,1 +1,0 @@
-- **A walker setting off beside one standing is keyed** (an#684): `_rest_paint_keys` counts a tie as a pass starts as a crossing, so the stretch after it is keyed at its middle; `left` stepping forward from `right`'s depth is painted over it from the first frame (it stayed behind, by entity index, all shot).

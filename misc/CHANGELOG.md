@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-11-01
+- **A walker setting off beside one standing is keyed** (an#684): `_rest_paint_keys` counts a tie as a pass starts as a crossing, so the stretch after it is keyed at its middle; `left` stepping forward from `right`'s depth is painted over it from the first frame (it stayed behind, by entity index, all shot).
 - **An attachment is painted with its host at every frame** (an#678): a member attached to another rides its host's paint keys (`_attachment_riders`, one set for keying and for leaving it out of the keys at rest, `after` a plane included) on the side the built order gave it (`RIDER_BEHIND`/`RIDER_IN_FRONT`, ordered by `an.base.paint_key_rank` in the world and the compiler), so poles never pass between a walker and its hat, and a hat behind its host stays behind when something else moves.
 - **`JsonDirStore` is exported from `an.stores`** (an#664), with its `locked()` and atomic write as the documented contract for hosts (reelee locks voice manifests through it); `create=False` leaves the folder to the first write or lock, so a read-only scan leaves no empty folder.
 - **ElevenLabs voice listings keep `preview_url`** (an#666): `ElevenLabsTTS.list_voices` puts the SDK voice's sample link in `VoiceMeta.extra["preview_url"]` (`None` when it has none), for a voice picker to play before casting.
