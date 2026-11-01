@@ -870,3 +870,69 @@ def test_missing_stores_are_not_a_shot_that_does_not_compile(tmp_path):
     for stores in ({}, {"available_characters": {}}):
         report = validate_semantic(project.scene, **stores)
         assert not [m for m in _msgs(report) if "did NOT run" in m]
+
+
+# -- light: one light per scene, shading agrees (catalogue D1, an#519 rank 7) ---
+
+
+def _lit(tmp_path: Path, *, light=None, side=None, override=None, actions=()):
+    """The lamp shot under ``light``, its art declaring ``side`` (in the prop's
+    document) and the entity ``override`` (its own ``shaded_side``)."""
+    import json
+
+    from an.ir.schema import SceneLight
+
+    root = Path(shutil.copytree(LAMP, tmp_path / "p"))
+    if side is not None:
+        for doc_path in (root / "assets" / "props").glob("*/prop.json"):
+            doc = json.loads(doc_path.read_text(encoding="utf-8"))
+            doc["shaded_side"] = side
+            doc_path.write_text(json.dumps(doc), encoding="utf-8")
+    project = load(root)
+    first = project.scene.timeline[0]
+    data = first.model_dump()
+    data["actions"] = list(actions)
+    if override is not None:
+        for e in data["entities"]:
+            if e["id"] == "lamp":
+                e["overrides"] = {**(e.get("overrides") or {}), "shaded_side": override}
+    shot = Shot.model_validate(data)
+    meta = project.scene.meta.model_copy(
+        update={"light": SceneLight(**light) if light else None}
+    )
+    scene = project.scene.model_copy(update={"timeline": [shot], "meta": meta})
+    report = validate_semantic(
+        scene,
+        available_props=project.mall["props"],
+        available_environments=project.mall["environments"],
+        only={"light"},
+    )
+    return [m for m in _msgs(report) if "shaded" in m]
+
+
+def test_light_is_registered_under_the_core_owner():
+    assert "light" in check_names(owner=CORE_OWNER)
+
+
+def test_art_shaded_toward_the_light_is_one_warning_naming_the_side_it_implies(tmp_path):
+    (msg,) = _lit(tmp_path, light={"key": "upper_left"}, side="left")
+    assert "'lamp'" in msg and "shades the right" in msg
+
+
+def test_art_shaded_away_from_the_light_or_flat_or_unlit_says_nothing(tmp_path):
+    assert _lit(tmp_path / "a", light={"key": "upper_left"}, side="right") == []
+    assert _lit(tmp_path / "b", light={"key": "upper_left"}, side="bottom") == []
+    assert _lit(tmp_path / "c", light={"key": "upper_left"}, side="flat") == []
+    assert _lit(tmp_path / "d", light=None, side="left") == []  # no light declared
+    assert _lit(tmp_path / "e", light={"key": "upper_left"}) == []  # no side declared
+
+
+def test_an_entity_override_wins_and_mirroring_flips_the_side(tmp_path):
+    assert _lit(tmp_path / "a", light={"direction": [-1, 0]}, side="right", override="left")
+    mirrored = [{"kind": "set", "target": "lamp", "property": "scale_x", "value": -1.0}]
+    assert _lit(tmp_path / "b", light={"direction": [-1, 0]}, side="left", actions=mirrored) == []
+
+
+def test_a_side_that_is_not_a_side_is_said(tmp_path):
+    (msg,) = _lit(tmp_path, light={"key": "left"}, side="sideways")
+    assert "'sideways'" in msg and "'flat'" in msg

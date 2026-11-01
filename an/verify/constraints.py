@@ -1907,6 +1907,131 @@ CAUSALITY = Constraint(
 
 
 #: The core's constraints, in the order their checks run within a stage.
+# -----------------------------------------------------------------------------
+# light (catalogue D1, an#519 rank 7): one light per scene; shading agrees
+# -----------------------------------------------------------------------------
+
+#: The art key (and entity override) that says which side a drawing is shaded
+#: on, and the sides it may name, as on-screen directions (x right, y down).
+SHADED_SIDE_KEY: str = "shaded_side"
+SHADED_SIDES: dict[str, tuple[float, float]] = {
+    "left": (-1.0, 0.0),
+    "right": (1.0, 0.0),
+    "top": (0.0, -1.0),
+    "bottom": (0.0, 1.0),
+}
+#: Unlit-by-design art: exempt.
+FLAT_SHADING: str = "flat"
+#: Half a quadrant: a side agrees when it faces away from the light within it.
+LIGHT_QUADRANT_DEG: float = 45.0
+
+
+def shading_disagrees(
+    side: str, light: tuple[float, float], *, mirrored: bool = False
+) -> str | None:
+    """The side the light implies when art shaded on ``side`` (mirrored when
+    the member is drawn mirrored) does not face away from ``light`` (where the
+    light comes from) within half a quadrant; ``None`` when it agrees, or the
+    art is ``flat``.
+
+    >>> shading_disagrees("right", (-1.0, -1.0)), shading_disagrees("left", (-1.0, -1.0))
+    (None, 'right')
+    >>> shading_disagrees("left", (-1.0, 0.0), mirrored=True) is None
+    True
+    """
+    if side == FLAT_SHADING:
+        return None
+    sx, sy = SHADED_SIDES[side]
+    if mirrored:
+        sx = -sx
+    away = (-light[0], -light[1])
+    norm = math.hypot(*away)
+    cos = (sx * away[0] + sy * away[1]) / norm
+    if cos >= math.cos(math.radians(LIGHT_QUADRANT_DEG)) - 1e-9:
+        return None
+    return max(SHADED_SIDES, key=lambda n: (SHADED_SIDES[n][0] * away[0] + SHADED_SIDES[n][1] * away[1]))
+
+
+def _shaded_side(entity: Any, stores: Any) -> str | None:
+    """What ``entity``'s art declares (``shaded_side`` in its store document),
+    an override of the entity's own winning."""
+    side = (entity.overrides or {}).get(SHADED_SIDE_KEY)
+    if side is None:
+        doc = ((stores or {}).get(entity.store) or {}).get(entity.ref)
+        side = doc.get(SHADED_SIDE_KEY) if isinstance(doc, Mapping) else None
+    return side
+
+
+def check_light(ctx: Any) -> None:
+    """The core's ``light`` check (catalogue D1): every drawn member whose art
+    says which side it is shaded on agrees with the scene's one light.
+    Declarations only; a member's mirroring is read from the compiled shot."""
+    light = ctx.scene.meta.light
+    if light is None:
+        return
+    declared = [
+        (e, side) for e in ctx.shot.entities if (side := _shaded_side(e, ctx.stores))
+    ]
+    if not declared:
+        return
+    unknown = [(e, side) for e, side in declared if side != FLAT_SHADING and side not in SHADED_SIDES]
+    for e, side in unknown:
+        ctx.report.add(
+            "warning",
+            f"{ctx.path}/entities",
+            f"{e.id!r} says its art is shaded on {side!r}; the sides are "
+            f"{sorted(SHADED_SIDES)} or {FLAT_SHADING!r}",
+        )
+    declared = [(e, side) for e, side in declared if (e, side) not in unknown]
+    mirrored = _mirrored_at_start(ctx, [e for e, _ in declared])
+    for e, side in declared:
+        implied = shading_disagrees(side, light.vector, mirrored=mirrored.get(e.id, False))
+        if implied is None:
+            continue
+        drawn = f"{side} (drawn mirrored)" if mirrored.get(e.id) else side
+        ctx.report.add(
+            "warning",
+            f"{ctx.path}/entities",
+            f"{e.id!r} is shaded on its {drawn}, but the scene's light "
+            f"(from {light.key or list(light.vector)}) shades the {implied}: "
+            "regenerate or flip the art, or say `shaded_side: flat` for art "
+            "drawn without a light.",
+        )
+
+
+def _mirrored_at_start(ctx: Any, entities: list[Any]) -> dict[str, bool]:
+    """``{entity id: drawn mirrored as the shot opens}``, from the compiled
+    shot (``{}`` when it does not compile: nothing is mirrored then)."""
+    doc = compiled_shot(ctx)
+    if doc is None:
+        return {}
+    from an.stage.timeline import (
+        _node_chain,
+        _pose_for,
+        evaluate_timeline,
+        timeline_from_scene,
+        transform_of,
+    )
+
+    pose = evaluate_timeline(timeline_from_scene(doc), 0.0)
+    height = ctx.scene.meta.resolution.height
+    out = {}
+    for e in entities:
+        try:
+            node, path = _node_chain(doc.scene, e.id)[-1]
+        except Exception:  # noqa: BLE001 - not drawn on the stage
+            continue
+        out[e.id] = transform_of(node, _pose_for(pose, path), frame_height=height).scale_x < 0
+    return out
+
+
+LIGHT = Constraint(
+    "light",
+    check_light,
+    description="every member's art is shaded on the side the scene's one light implies (catalogue D1)",
+)
+
+
 CONSTRAINTS: tuple[Constraint, ...] = (
     CONTINUITY,
     SOLIDITY,
@@ -1918,6 +2043,7 @@ CONSTRAINTS: tuple[Constraint, ...] = (
     MOTION_STYLE,
     GRAVITY,
     CAUSALITY,
+    LIGHT,
 )
 
 

@@ -2063,6 +2063,56 @@ DEFAULT_CAPTION_MAX_LINES: int = 2
 DEFAULT_CAPTION_SIZE: float = 0.05
 
 
+#: Where a named light comes FROM, on screen (x right, y down): the scene's
+#: ``light: {key: upper_left}`` (catalogue D1).
+LIGHT_KEYS: dict[str, tuple[float, float]] = {
+    "left": (-1.0, 0.0),
+    "right": (1.0, 0.0),
+    "top": (0.0, -1.0),
+    "bottom": (0.0, 1.0),
+    "upper_left": (-1.0, -1.0),
+    "upper_right": (1.0, -1.0),
+    "lower_left": (-1.0, 1.0),
+    "lower_right": (1.0, 1.0),
+}
+
+
+class SceneLight(_IRModel):
+    """The scene's one light (catalogue D1, an#519): where it comes FROM on
+    screen, a ``direction`` ``[dx, dy]`` (x right, y down) or a named ``key``
+    (:data:`LIGHT_KEYS`), and its ``elevation`` in degrees when it matters.
+    Art says which side it is shaded on (``shaded_side``), and the ``light``
+    check holds every member to this one light.
+
+    >>> SceneLight(key="upper_left").vector
+    (-1.0, -1.0)
+    >>> SceneLight(direction=(2.0, 0.0)).vector
+    (2.0, 0.0)
+    """
+
+    direction: tuple[float, float] | None = None
+    key: Literal[tuple(LIGHT_KEYS)] | None = None  # type: ignore[valid-type]
+    elevation: float | None = Field(default=None, ge=0.0, le=90.0)
+
+    @model_validator(mode="after")
+    def _one_way_to_say_it(self) -> "SceneLight":
+        if (self.direction is None) == (self.key is None):
+            raise ValueError(
+                "a scene light is a `direction: [dx, dy]` or a `key` "
+                f"({', '.join(LIGHT_KEYS)}), exactly one"
+            )
+        if self.direction is not None and not any(self.direction):
+            raise ValueError("a scene light's direction must not be [0, 0]")
+        return self
+
+    @property
+    def vector(self) -> tuple[float, float]:
+        """Where the light comes from, on screen."""
+        if self.direction is not None:
+            return (float(self.direction[0]), float(self.direction[1]))
+        return LIGHT_KEYS[self.key]  # type: ignore[index]
+
+
 class VoiceLoudness(_IRModel):
     """One loudness for every voice of the film (an#315).
 
@@ -2346,6 +2396,9 @@ class Meta(_IRModel):
     #: One loudness for every voice (:class:`VoiceLoudness`, an#315); ``None``
     #: — the default — levels nothing, and is omitted from JSON.
     voice_loudness: VoiceLoudness | None = None
+    #: The scene's one light (:class:`SceneLight`, catalogue D1); ``None`` —
+    #: the default — declares none, checks nothing, and is omitted from JSON.
+    light: SceneLight | None = None
 
     @model_serializer(mode="wrap")
     def _omit_unset_style_pack(self, handler):
@@ -2380,6 +2433,9 @@ class Meta(_IRModel):
         # `closing_transition` likewise (an#389).
         if isinstance(data, dict) and self.closing_transition is None:
             data.pop("closing_transition", None)
+        # `light` likewise (catalogue D1).
+        if isinstance(data, dict) and self.light is None:
+            data.pop("light", None)
         return data
 
 

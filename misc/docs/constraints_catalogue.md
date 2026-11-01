@@ -357,7 +357,7 @@ Tolerances below are named, never literal: `SUPPORT_TOLERANCE`, `SKATE_TOLERANCE
 
 **Subsumes.** Nothing as a check; `cutan.art_brief` (cutan#93) is where the declaration reaches the generator.
 
-**Status.** Missing.
+**Status.** The declaration and the check are built in `an` (an#519 rank 7): `meta.light` (`SceneLight`: a `direction` or a named `key`, an optional `elevation`), `shaded_side` in the art's store document or the entity's overrides, and the core's `light` constraint (`an.verify.constraints.check_light`: a warning when a member's side, mirrored when it is drawn mirrored as the shot opens, does not face away from the light within half a quadrant). Missing: the art-brief hook (cutan) and the measured second tier.
 
 #### D2. Cast shadows anchored at contact and consistent with the light
 
@@ -389,7 +389,7 @@ Ranked by (a) how often the error class reached a viewer in the two plot-car rou
 | 4 | draw order monotone in depth and stable across shots | A3 | no (with scene space) | compiled tree, `z` | `an` | small | an#510 (i), (ii) |
 | 5 | pre-render cadence lint from the IR against the style (tween durations, holds, easing list) | B6 | no (style specs carry it) | flat timeline, style spec | `cutan` | small |  |
 | 6 | causality and audio-visual tolerance for sound cues and dialogue | B7 | `cause` on timed cues | cues, anchors, word timings | `an` | small |  |
-| 7 | the light declaration with `shaded_side` art metadata, plus the art-brief hook | D1 | yes | declarations only | `an` (declaration), `cutan` (art brief) | small |  |
+| 7 | the light declaration with `shaded_side` art metadata, plus the art-brief hook | D1 | yes | declarations only | `an` (declaration), `cutan` (art brief) | small | `an` side built (an#519) |
 | 8 | object permanence: presence across shots, persistent state, uniqueness | C1 | `persistent`, `time_jump` on a transition | scene timeline | `an` | medium |  |
 | 9 | the 30-degree rule over viewpoints | C4 | no (scene space) | viewpoints | `an` | small |  |
 | 10 | held items as welds with pick-up and release, checked through motion (closes cutan#98's shape for props) | A4 | `held` | `screen_position` | `an` (weld), `cutan` (hands) | medium |  |
