@@ -16,6 +16,7 @@ an.music\_library
    .. autosummary::
    
       acquire
+      add_track_to_sounds
       asset_source
       attribution_text
       files_store
@@ -23,9 +24,12 @@ an.music\_library
       kept_sources
       license_code
       probe_verify
+      read_tracks_table
       register_music_library
       titles_by_library
       titles_from_json
+      track_from_row
+      track_row
       tracks_table
       wayback
    

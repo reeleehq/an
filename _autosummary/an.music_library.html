@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=aeb0cf72"></script>
+    <script src="../_static/documentation_options.js?v=99484518"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.345" />
+  <meta name="docsearch:version" content="0.1.346" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -660,6 +660,9 @@ and a titles file’s metadata ride as extras.</p>
 </li>
 <li><p><a class="reference internal" href="#an.music_library.acquire" title="an.music_library.acquire"><code class="xref py py-func docutils literal notranslate"><span class="pre">acquire()</span></code></a>, foley’s with an’s <code class="docutils literal notranslate"><span class="pre">pause</span></code> knob (seconds before a second
 request to one host), which becomes foley’s per-host <code class="docutils literal notranslate"><span class="pre">rate</span></code>.</p></li>
+<li><p><a class="reference internal" href="#an.music_library.add_track_to_sounds" title="an.music_library.add_track_to_sounds"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_track_to_sounds()</span></code></a> (an#623): one acquired row’s verified file, cut,
+into the project’s sounds store with the row as its provenance, so a film
+uses the track without fetching it again (<code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">music</span> <span class="pre">use</span></code>).</p></li>
 </ul>
 <p>The rest of foley’s surface the command and its tests use (<code class="xref py py-data docutils literal notranslate"><span class="pre">MUSIC_LIBRARIES</span></code>,
 <a class="reference internal" href="#an.music_library.tracks_table" title="an.music_library.tracks_table"><code class="xref py py-func docutils literal notranslate"><span class="pre">tracks_table()</span></code></a>, <a class="reference internal" href="#an.music_library.attribution_text" title="an.music_library.attribution_text"><code class="xref py py-func docutils literal notranslate"><span class="pre">attribution_text()</span></code></a>, <a class="reference internal" href="#an.music_library.titles_by_library" title="an.music_library.titles_by_library"><code class="xref py py-func docutils literal notranslate"><span class="pre">titles_by_library()</span></code></a>, …) is
@@ -694,26 +697,32 @@ re-exported by name, and loaded on first use: <code class="docutils literal notr
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.music_library.acquire" title="an.music_library.acquire"><code class="xref py py-obj docutils literal notranslate"><span class="pre">acquire</span></code></a>(library, titles, *, out[, pause, config])</p></td>
 <td><p>foley's <code class="xref py py-func docutils literal notranslate"><span class="pre">acquire()</span></code>, paced by <code class="docutils literal notranslate"><span class="pre">pause</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.music_library.asset_source" title="an.music_library.asset_source"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asset_source</span></code></a>(track, *[, codes])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.music_library.add_track_to_sounds" title="an.music_library.add_track_to_sounds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_track_to_sounds</span></code></a>(store, key, track, files, *)</p></td>
+<td><p>Put one acquired track in the sounds <code class="docutils literal notranslate"><span class="pre">store</span></code> under <code class="docutils literal notranslate"><span class="pre">key</span></code> (an#623).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.music_library.asset_source" title="an.music_library.asset_source"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asset_source</span></code></a>(track, *[, codes])</p></td>
 <td><p>One foley row as an's <a class="reference internal" href="an.ir.assets.html#an.ir.assets.AssetSource" title="an.ir.assets.AssetSource"><code class="xref py py-class docutils literal notranslate"><span class="pre">AssetSource</span></code></a>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.music_library.attribution_text" title="an.music_library.attribution_text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">attribution_text</span></code></a>(rows)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.music_library.attribution_text" title="an.music_library.attribution_text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">attribution_text</span></code></a>(rows)</p></td>
 <td><p>The attribution blocks to paste under a video, one per track that has one (acquired or kept), blank-line separated, each once.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.music_library.files_store" title="an.music_library.files_store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">files_store</span></code></a>(out)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.music_library.files_store" title="an.music_library.files_store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">files_store</span></code></a>(out)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">out</span></code> as a <code class="docutils literal notranslate"><span class="pre">{file</span> <span class="pre">name:</span> <span class="pre">bytes}</span></code> store: a mapping is used as it is; a folder becomes foley's file store over it (<code class="xref py py-func docutils literal notranslate"><span class="pre">foley.stores.make_byte_store()</span></code>, which makes the folder on its first write).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.music_library.kept_digests" title="an.music_library.kept_digests"><code class="xref py py-obj docutils literal notranslate"><span class="pre">kept_digests</span></code></a>(table)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.music_library.kept_digests" title="an.music_library.kept_digests"><code class="xref py py-obj docutils literal notranslate"><span class="pre">kept_digests</span></code></a>(table)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{file:</span> <span class="pre">sha256}</span></code> of the acquired or kept rows of a tracks table: what a rerun may keep.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.music_library.kept_sources" title="an.music_library.kept_sources"><code class="xref py py-obj docutils literal notranslate"><span class="pre">kept_sources</span></code></a>(table)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.music_library.kept_sources" title="an.music_library.kept_sources"><code class="xref py py-obj docutils literal notranslate"><span class="pre">kept_sources</span></code></a>(table)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{file:</span> <span class="pre">{&quot;sha256&quot;,</span> <span class="pre">&quot;url&quot;,</span> <span class="pre">&quot;mirror&quot;}}</span></code> of the acquired or kept rows of a tracks table: <a class="reference internal" href="#an.music_library.kept_digests" title="an.music_library.kept_digests"><code class="xref py py-func docutils literal notranslate"><span class="pre">kept_digests()</span></code></a> with where each file came from, so a kept row still says which URL and mirror served it (<code class="docutils literal notranslate"><span class="pre">acquire(kept=...)</span></code> takes either).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.music_library.license_code" title="an.music_library.license_code"><code class="xref py py-obj docutils literal notranslate"><span class="pre">license_code</span></code></a>(license_id, *[, codes])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.music_library.license_code" title="an.music_library.license_code"><code class="xref py py-obj docutils literal notranslate"><span class="pre">license_code</span></code></a>(license_id, *[, codes])</p></td>
 <td><p>foley's licence id as an's code: <code class="docutils literal notranslate"><span class="pre">codes</span></code> first, else the id in lowercase.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.music_library.probe_verify" title="an.music_library.probe_verify"><code class="xref py py-obj docutils literal notranslate"><span class="pre">probe_verify</span></code></a>(data, *[, probe, has_audio, suffix])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.music_library.probe_verify" title="an.music_library.probe_verify"><code class="xref py py-obj docutils literal notranslate"><span class="pre">probe_verify</span></code></a>(data, *[, probe, has_audio, suffix])</p></td>
 <td><p>The duration of the audio <code class="docutils literal notranslate"><span class="pre">data</span></code>, in seconds.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.music_library.read_tracks_table" title="an.music_library.read_tracks_table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_tracks_table</span></code></a>(text)</p></td>
+<td><p>The rows of a tracks table (<code class="docutils literal notranslate"><span class="pre">tracks.csv</span></code>, <a class="reference internal" href="#an.music_library.tracks_table" title="an.music_library.tracks_table"><code class="xref py py-func docutils literal notranslate"><span class="pre">tracks_table()</span></code></a>'s text), as written; a byte-order mark an editor added is not part of the first column.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.music_library.register_music_library" title="an.music_library.register_music_library"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_music_library</span></code></a>(library, *[, replace])</p></td>
 <td><p>Add <code class="docutils literal notranslate"><span class="pre">library</span></code> to <code class="xref py py-data docutils literal notranslate"><span class="pre">MUSIC_LIBRARIES</span></code> (<code class="docutils literal notranslate"><span class="pre">replace</span></code> to redefine one).</p></td>
@@ -723,6 +732,12 @@ re-exported by name, and loaded on first use: <code class="docutils literal notr
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.music_library.titles_from_json" title="an.music_library.titles_from_json"><code class="xref py py-obj docutils literal notranslate"><span class="pre">titles_from_json</span></code></a>(text)</p></td>
 <td><p>A titles file's JSON: a list of titles, or <code class="docutils literal notranslate"><span class="pre">{title:</span> <span class="pre">{metadata}}</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.music_library.track_from_row" title="an.music_library.track_from_row"><code class="xref py py-obj docutils literal notranslate"><span class="pre">track_from_row</span></code></a>(row)</p></td>
+<td><p>foley's <a class="reference internal" href="#an.music_library.AcquiredTrack" title="an.music_library.AcquiredTrack"><code class="xref py py-class docutils literal notranslate"><span class="pre">AcquiredTrack</span></code></a> for a tracks-table <code class="docutils literal notranslate"><span class="pre">row</span></code>, its licence rebuilt from the library's registry (<code class="docutils literal notranslate"><span class="pre">track_license</span></code>), never read from the row: a cell someone edited cannot grant rights (an#623).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.music_library.track_row" title="an.music_library.track_row"><code class="xref py py-obj docutils literal notranslate"><span class="pre">track_row</span></code></a>(text, title)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">title</span></code>'s row in the tracks table <code class="docutils literal notranslate"><span class="pre">text</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.music_library.tracks_table" title="an.music_library.tracks_table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tracks_table</span></code></a>(rows)</p></td>
 <td><p>The tracks table as CSV text: <code class="xref py py-data docutils literal notranslate"><span class="pre">TRACK_COLUMNS</span></code>, then any metadata the rows carry, in name order.</p></td>
@@ -902,6 +917,32 @@ other keyword (<code class="docutils literal notranslate"><span class="pre">fetc
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.music_library.add_track_to_sounds">
+<span class="sig-prename descclassname"><span class="pre">an.music_library.</span></span><span class="sig-name descname"><span class="pre">add_track_to_sounds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">store</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">track</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">files</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fade_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">codes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'unknown':</span> <span class="pre">None}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/music_library.html#add_track_to_sounds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.music_library.add_track_to_sounds" title="Link to this definition">#</a></dt>
+<dd><p>Put one acquired track in the sounds <code class="docutils literal notranslate"><span class="pre">store</span></code> under <code class="docutils literal notranslate"><span class="pre">key</span></code> (an#623).</p>
+<p><code class="docutils literal notranslate"><span class="pre">track</span></code> is foley’s <code class="docutils literal notranslate"><span class="pre">AcquiredTrack</span></code>, or its tracks-table row (a
+<code class="docutils literal notranslate"><span class="pre">tracks.csv</span></code> line, <a class="reference internal" href="#an.music_library.track_row" title="an.music_library.track_row"><code class="xref py py-func docutils literal notranslate"><span class="pre">track_row()</span></code></a>: its licence is rebuilt from the
+library’s registry, <a class="reference internal" href="#an.music_library.track_from_row" title="an.music_library.track_from_row"><code class="xref py py-func docutils literal notranslate"><span class="pre">track_from_row()</span></code></a>), and <code class="docutils literal notranslate"><span class="pre">files</span></code> the library
+folder as <code class="docutils literal notranslate"><span class="pre">{file</span> <span class="pre">name:</span> <span class="pre">bytes}</span></code> (<code class="docutils literal notranslate"><span class="pre">files_store(out)</span></code>). The file it names
+is checked against its <code class="docutils literal notranslate"><span class="pre">sha256</span></code>, cut with <a class="reference internal" href="an.sound_fetch.html#an.sound_fetch.cut_to_wav" title="an.sound_fetch.cut_to_wav"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.sound_fetch.cut_to_wav()</span></code></a>
+(<code class="docutils literal notranslate"><span class="pre">start</span></code>, <code class="docutils literal notranslate"><span class="pre">duration</span></code>, <code class="docutils literal notranslate"><span class="pre">fade_out</span></code>, as <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">sounds</span> <span class="pre">add</span></code> takes them) and
+stored with the track as its <a class="reference internal" href="an.ir.assets.html#an.ir.assets.AssetSource" title="an.ir.assets.AssetSource"><code class="xref py py-class docutils literal notranslate"><span class="pre">AssetSource</span></code></a>
+(<a class="reference internal" href="#an.music_library.asset_source" title="an.music_library.asset_source"><code class="xref py py-func docutils literal notranslate"><span class="pre">asset_source()</span></code></a>, <code class="docutils literal notranslate"><span class="pre">codes</span></code>) plus the cut, the file’s digest as
+<code class="docutils literal notranslate"><span class="pre">file_sha256</span></code>, so <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">credits</span></code> lists the music with its licence. Nothing
+is fetched again: the site may be the one that refused scripts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#an.music_library.MusicLibraryError" title="an.music_library.MusicLibraryError"><strong>MusicLibraryError</strong></a> – For a track that holds no file (not acquired or kept,
+    or no <code class="docutils literal notranslate"><span class="pre">file</span></code>/<code class="docutils literal notranslate"><span class="pre">sha256</span></code>), a file missing from <code class="docutils literal notranslate"><span class="pre">files</span></code>, one whose
+    bytes do not match the recorded digest, or an unknown library.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.music_library.asset_source">
 <span class="sig-prename descclassname"><span class="pre">an.music_library.</span></span><span class="sig-name descname"><span class="pre">asset_source</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">track</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">codes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'unknown':</span> <span class="pre">None}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/music_library.html#asset_source"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.music_library.asset_source" title="Link to this definition">#</a></dt>
 <dd><p>One foley row as an’s <a class="reference internal" href="an.ir.assets.html#an.ir.assets.AssetSource" title="an.ir.assets.AssetSource"><code class="xref py py-class docutils literal notranslate"><span class="pre">AssetSource</span></code></a>.</p>
@@ -913,7 +954,9 @@ author, attribution and <code class="docutils literal notranslate"><span class="
 columns (<code class="xref py py-data docutils literal notranslate"><span class="pre">ROW_ONLY</span></code>) stay in the table; every other column
 (<code class="docutils literal notranslate"><span class="pre">rights_verified</span></code>, <code class="docutils literal notranslate"><span class="pre">commercial_ok</span></code>, <code class="docutils literal notranslate"><span class="pre">mirror</span></code>, <code class="docutils literal notranslate"><span class="pre">credited_by</span></code>, a titles
 file’s metadata) rides as an extra; a licence flag read back from CSV
-(<code class="xref py py-data docutils literal notranslate"><span class="pre">FLAG_COLUMNS</span></code>) is a boolean again. Empty cells are dropped. A track also
+(<code class="xref py py-data docutils literal notranslate"><span class="pre">FLAG_COLUMNS</span></code>) is a boolean again; a column named like one of the
+source’s own fields (<code class="docutils literal notranslate"><span class="pre">cost_usd</span></code>, <code class="docutils literal notranslate"><span class="pre">cacheable</span></code>, <code class="docutils literal notranslate"><span class="pre">id</span></code>, …) is dropped,
+never trusted. Empty cells are dropped. A track also
 gives its licence’s <code class="docutils literal notranslate"><span class="pre">creator_url</span></code> as <code class="docutils literal notranslate"><span class="pre">author_url</span></code> and whether its terms let
 the bytes be kept as <code class="docutils literal notranslate"><span class="pre">cacheable</span></code>.</p>
 <dl class="field-list simple">
@@ -1034,6 +1077,22 @@ length (default <code class="xref py py-func docutils literal notranslate"><span
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.music_library.read_tracks_table">
+<span class="sig-prename descclassname"><span class="pre">an.music_library.</span></span><span class="sig-name descname"><span class="pre">read_tracks_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/music_library.html#read_tracks_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.music_library.read_tracks_table" title="Link to this definition">#</a></dt>
+<dd><p>The rows of a tracks table (<code class="docutils literal notranslate"><span class="pre">tracks.csv</span></code>, <a class="reference internal" href="#an.music_library.tracks_table" title="an.music_library.tracks_table"><code class="xref py py-func docutils literal notranslate"><span class="pre">tracks_table()</span></code></a>’s text),
+as written; a byte-order mark an editor added is not part of the first column.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">read_tracks_table</span><span class="p">(</span><span class="s2">"</span><span class="se">\ufeff</span><span class="s2">title,library</span><span class="se">\r\n</span><span class="s2">A,incompetech</span><span class="se">\r\n</span><span class="s2">"</span><span class="p">)</span>
+<span class="go">[{'title': 'A', 'library': 'incompetech'}]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.music_library.register_music_library">
 <span class="sig-prename descclassname"><span class="pre">an.music_library.</span></span><span class="sig-name descname"><span class="pre">register_music_library</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">library</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">replace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/foley/sources/music_library/libraries.html#register_music_library"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.music_library.register_music_library" title="Link to this definition">#</a></dt>
 <dd><p>Add <code class="docutils literal notranslate"><span class="pre">library</span></code> to <code class="xref py py-data docutils literal notranslate"><span class="pre">MUSIC_LIBRARIES</span></code> (<code class="docutils literal notranslate"><span class="pre">replace</span></code> to redefine one).</p>
@@ -1104,6 +1163,37 @@ licence lines skipped. The attribution form (<code class="docutils literal notra
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>], <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]]]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.music_library.track_from_row">
+<span class="sig-prename descclassname"><span class="pre">an.music_library.</span></span><span class="sig-name descname"><span class="pre">track_from_row</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">row</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/music_library.html#track_from_row"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.music_library.track_from_row" title="Link to this definition">#</a></dt>
+<dd><p>foley’s <a class="reference internal" href="#an.music_library.AcquiredTrack" title="an.music_library.AcquiredTrack"><code class="xref py py-class docutils literal notranslate"><span class="pre">AcquiredTrack</span></code></a> for a tracks-table <code class="docutils literal notranslate"><span class="pre">row</span></code>, its licence
+rebuilt from the library’s registry (<code class="docutils literal notranslate"><span class="pre">track_license</span></code>), never read from
+the row: a cell someone edited cannot grant rights (an#623). The row’s
+other columns are its metadata.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#an.music_library.MusicLibraryError" title="an.music_library.MusicLibraryError"><strong>MusicLibraryError</strong></a> – For a library foley does not know.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.music_library.AcquiredTrack" title="foley.sources.music_library.acquisition.AcquiredTrack"><code class="xref py py-class docutils literal notranslate"><span class="pre">AcquiredTrack</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.music_library.track_row">
+<span class="sig-prename descclassname"><span class="pre">an.music_library.</span></span><span class="sig-name descname"><span class="pre">track_row</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/music_library.html#track_row"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.music_library.track_row" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">title</span></code>’s row in the tracks table <code class="docutils literal notranslate"><span class="pre">text</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#an.music_library.MusicLibraryError" title="an.music_library.MusicLibraryError"><strong>MusicLibraryError</strong></a> – When no row has that title, naming the ones there are.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1201,6 +1291,7 @@ rows carry, in name order.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.music_library.MusicLibraryError"><code class="docutils literal notranslate"><span class="pre">MusicLibraryError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.music_library.MusicToolMissing"><code class="docutils literal notranslate"><span class="pre">MusicToolMissing</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.music_library.acquire"><code class="docutils literal notranslate"><span class="pre">acquire()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.music_library.add_track_to_sounds"><code class="docutils literal notranslate"><span class="pre">add_track_to_sounds()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.music_library.asset_source"><code class="docutils literal notranslate"><span class="pre">asset_source()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.music_library.attribution_text"><code class="docutils literal notranslate"><span class="pre">attribution_text()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.music_library.files_store"><code class="docutils literal notranslate"><span class="pre">files_store()</span></code></a></li>
@@ -1208,9 +1299,12 @@ rows carry, in name order.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.music_library.kept_sources"><code class="docutils literal notranslate"><span class="pre">kept_sources()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.music_library.license_code"><code class="docutils literal notranslate"><span class="pre">license_code()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.music_library.probe_verify"><code class="docutils literal notranslate"><span class="pre">probe_verify()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.music_library.read_tracks_table"><code class="docutils literal notranslate"><span class="pre">read_tracks_table()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.music_library.register_music_library"><code class="docutils literal notranslate"><span class="pre">register_music_library()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.music_library.titles_by_library"><code class="docutils literal notranslate"><span class="pre">titles_by_library()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.music_library.titles_from_json"><code class="docutils literal notranslate"><span class="pre">titles_from_json()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.music_library.track_from_row"><code class="docutils literal notranslate"><span class="pre">track_from_row()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.music_library.track_row"><code class="docutils literal notranslate"><span class="pre">track_row()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.music_library.tracks_table"><code class="docutils literal notranslate"><span class="pre">tracks_table()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.music_library.wayback"><code class="docutils literal notranslate"><span class="pre">wayback()</span></code></a></li>
 </ul>

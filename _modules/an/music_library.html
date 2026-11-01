@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../_static/documentation_options.js?v=aeb0cf72"></script>
+    <script src="../../_static/documentation_options.js?v=99484518"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.345" />
+  <meta name="docsearch:version" content="0.1.346" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -735,6 +735,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">  and a titles file's metadata ride as extras.</span>
 <span class="sd">- :func:`acquire`, foley's with an's ``pause`` knob (seconds before a second</span>
 <span class="sd">  request to one host), which becomes foley's per-host ``rate``.</span>
+<span class="sd">- :func:`add_track_to_sounds` (an#623): one acquired row's verified file, cut,</span>
+<span class="sd">  into the project's sounds store with the row as its provenance, so a film</span>
+<span class="sd">  uses the track without fetching it again (``an music use``).</span>
 
 <span class="sd">The rest of foley's surface the command and its tests use (:data:`MUSIC_LIBRARIES`,</span>
 <span class="sd">:func:`tracks_table`, :func:`attribution_text`, :func:`titles_by_library`, ...) is</span>
@@ -777,6 +780,7 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"MusicLibraryError"</span><span class="p">,</span>
     <span class="s2">"MusicToolMissing"</span><span class="p">,</span>
     <span class="s2">"acquire"</span><span class="p">,</span>
+    <span class="s2">"add_track_to_sounds"</span><span class="p">,</span>
     <span class="s2">"asset_source"</span><span class="p">,</span>
     <span class="s2">"attribution_text"</span><span class="p">,</span>
     <span class="s2">"files_store"</span><span class="p">,</span>
@@ -784,9 +788,12 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"kept_sources"</span><span class="p">,</span>
     <span class="s2">"license_code"</span><span class="p">,</span>
     <span class="s2">"probe_verify"</span><span class="p">,</span>
+    <span class="s2">"read_tracks_table"</span><span class="p">,</span>
     <span class="s2">"register_music_library"</span><span class="p">,</span>
     <span class="s2">"titles_by_library"</span><span class="p">,</span>
     <span class="s2">"titles_from_json"</span><span class="p">,</span>
+    <span class="s2">"track_from_row"</span><span class="p">,</span>
+    <span class="s2">"track_row"</span><span class="p">,</span>
     <span class="s2">"tracks_table"</span><span class="p">,</span>
     <span class="s2">"wayback"</span><span class="p">,</span>
 <span class="p">]</span>
@@ -892,7 +899,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    columns (:data:`ROW_ONLY`) stay in the table; every other column</span>
 <span class="sd">    (``rights_verified``, ``commercial_ok``, ``mirror``, ``credited_by``, a titles</span>
 <span class="sd">    file's metadata) rides as an extra; a licence flag read back from CSV</span>
-<span class="sd">    (:data:`FLAG_COLUMNS`) is a boolean again. Empty cells are dropped. A track also</span>
+<span class="sd">    (:data:`FLAG_COLUMNS`) is a boolean again; a column named like one of the</span>
+<span class="sd">    source's own fields (``cost_usd``, ``cacheable``, ``id``, ...) is dropped,</span>
+<span class="sd">    never trusted. Empty cells are dropped. A track also</span>
 <span class="sd">    gives its licence's ``creator_url`` as ``author_url`` and whether its terms let</span>
 <span class="sd">    the bytes be kept as ``cacheable``.</span>
 <span class="sd">    """</span>
@@ -903,10 +912,13 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">track</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
         <span class="n">fields</span><span class="p">[</span><span class="s2">"author_url"</span><span class="p">]</span> <span class="o">=</span> <span class="n">track</span><span class="o">.</span><span class="n">license</span><span class="o">.</span><span class="n">creator_url</span>
         <span class="n">fields</span><span class="p">[</span><span class="s2">"cacheable"</span><span class="p">]</span> <span class="o">=</span> <span class="n">track</span><span class="o">.</span><span class="n">license</span><span class="o">.</span><span class="n">cache_bytes_ok</span>
+    <span class="c1"># A titles file's metadata rides as extras, never as one of the source's own</span>
+    <span class="c1"># fields: a `cost_usd` or `cacheable` column must not claim rights (an#623).</span>
     <span class="n">rest</span> <span class="o">=</span> <span class="p">{</span>
         <span class="n">k</span><span class="p">:</span> <span class="n">v</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">row</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">"title"</span><span class="p">,</span> <span class="s2">"library"</span><span class="p">,</span> <span class="s2">"license"</span><span class="p">,</span> <span class="o">*</span><span class="n">SAME_NAME</span><span class="p">,</span> <span class="o">*</span><span class="n">ROW_ONLY</span><span class="p">}</span>
+        <span class="ow">and</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">AssetSource</span><span class="o">.</span><span class="n">model_fields</span>
     <span class="p">}</span>
     <span class="n">fields</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">k</span><span class="p">:</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">SAME_NAME</span><span class="p">},</span> <span class="o">**</span><span class="n">rest</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">AssetSource</span><span class="p">(</span>
@@ -950,6 +962,171 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="s2">"rate"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
         <span class="n">config</span><span class="p">[</span><span class="s2">"rate"</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"per_min"</span><span class="p">:</span> <span class="n">SECONDS_PER_MINUTE</span> <span class="o">/</span> <span class="n">pause</span><span class="p">}</span> <span class="k">if</span> <span class="n">pause</span> <span class="k">else</span> <span class="p">{}</span>
     <span class="k">return</span> <span class="n">foley_acquire</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">titles</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">out</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+
+<span class="c1">#: How a tracks table joins a list in one cell (foley's ``AcquiredTrack.row``).</span>
+<span class="n">LIST_SEPARATOR</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"; "</span>
+<span class="c1">#: Where ``add_track_to_sounds`` keeps the digest of the library file a cut was</span>
+<span class="c1">#: made from: ``sha256`` is the stored bytes' own (the cut WAV, :class:`SoundAsset`).</span>
+<span class="n">FILE_SHA256_FIELD</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"file_sha256"</span>
+
+
+<div class="viewcode-block" id="read_tracks_table">
+<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.read_tracks_table">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_tracks_table</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">"""The rows of a tracks table (``tracks.csv``, :func:`tracks_table`'s text),</span>
+<span class="sd">    as written; a byte-order mark an editor added is not part of the first column.</span>
+
+<span class="sd">    &gt;&gt;&gt; read_tracks_table("\ufefftitle,library\r\nA,incompetech\r\n")</span>
+<span class="sd">    [{'title': 'A', 'library': 'incompetech'}]</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">csv</span><span class="o">.</span><span class="n">DictReader</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">(</span><span class="n">text</span><span class="o">.</span><span class="n">removeprefix</span><span class="p">(</span><span class="s2">"</span><span class="se">\ufeff</span><span class="s2">"</span><span class="p">))))</span></div>
+
+
+
+<div class="viewcode-block" id="track_row">
+<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.track_row">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">track_row</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``title``'s row in the tracks table ``text``.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        MusicLibraryError: When no row has that title, naming the ones there are.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">foley.sources.music_library</span><span class="w"> </span><span class="kn">import</span> <span class="n">MusicLibraryError</span>
+
+    <span class="n">rows</span> <span class="o">=</span> <span class="n">read_tracks_table</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="n">row</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"title"</span><span class="p">)</span> <span class="o">==</span> <span class="n">title</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">row</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"no track </span><span class="si">{</span><span class="n">title</span><span class="si">!r}</span><span class="s2"> in the tracks table; it lists "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'title'</span><span class="p">,</span><span class="w"> </span><span class="s1">''</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">rows</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">row</span></div>
+
+
+
+<div class="viewcode-block" id="track_from_row">
+<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.track_from_row">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">track_from_row</span><span class="p">(</span><span class="n">row</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">AcquiredTrack</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""foley's :class:`AcquiredTrack` for a tracks-table ``row``, its licence</span>
+<span class="sd">    rebuilt from the library's registry (``track_license``), never read from</span>
+<span class="sd">    the row: a cell someone edited cannot grant rights (an#623). The row's</span>
+<span class="sd">    other columns are its metadata.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        MusicLibraryError: For a library foley does not know.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">foley.sources.music_library</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+        <span class="n">MUSIC_LIBRARIES</span><span class="p">,</span>
+        <span class="n">TRACK_COLUMNS</span><span class="p">,</span>
+        <span class="n">AcquiredTrack</span><span class="p">,</span>
+        <span class="n">MusicLibraryError</span><span class="p">,</span>
+        <span class="n">track_license</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">library</span> <span class="o">=</span> <span class="n">MUSIC_LIBRARIES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"library"</span><span class="p">,</span> <span class="s2">""</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">library</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"track </span><span class="si">{</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'title'</span><span class="p">)</span><span class="si">!r}</span><span class="s2">: no library </span><span class="si">{</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'library'</span><span class="p">)</span><span class="si">!r}</span><span class="s2">; "</span>
+            <span class="sa">f</span><span class="s2">"registered: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">MUSIC_LIBRARIES</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+    <span class="n">cell</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="p">(</span><span class="n">v</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">row</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="n">duration</span> <span class="o">=</span> <span class="n">cell</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"duration_s"</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">duration</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">duration</span><span class="p">)</span> <span class="k">if</span> <span class="n">duration</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"track </span><span class="si">{</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'title'</span><span class="p">)</span><span class="si">!r}</span><span class="s2">: duration_s </span><span class="si">{</span><span class="n">duration</span><span class="si">!r}</span><span class="s2"> is not a number"</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+    <span class="k">return</span> <span class="n">AcquiredTrack</span><span class="p">(</span>
+        <span class="n">title</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s2">"title"</span><span class="p">],</span>
+        <span class="n">library</span><span class="o">=</span><span class="n">library</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="n">status</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"status"</span><span class="p">,</span> <span class="s2">""</span><span class="p">),</span>
+        <span class="n">license</span><span class="o">=</span><span class="n">track_license</span><span class="p">(</span>
+            <span class="n">library</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s2">"title"</span><span class="p">],</span> <span class="n">page_url</span><span class="o">=</span><span class="n">cell</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source_page_url"</span><span class="p">),</span>
+            <span class="n">sha256</span><span class="o">=</span><span class="n">cell</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"sha256"</span><span class="p">),</span>
+        <span class="p">),</span>  <span class="c1"># fmt: skip</span>
+        <span class="n">file</span><span class="o">=</span><span class="n">cell</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"file"</span><span class="p">),</span>
+        <span class="n">sha256</span><span class="o">=</span><span class="n">cell</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"sha256"</span><span class="p">),</span>
+        <span class="n">duration_s</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span>
+        <span class="n">url</span><span class="o">=</span><span class="n">cell</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"url"</span><span class="p">),</span>
+        <span class="n">mirror</span><span class="o">=</span><span class="n">cell</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"mirror"</span><span class="p">),</span>
+        <span class="n">page_url</span><span class="o">=</span><span class="n">cell</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source_page_url"</span><span class="p">),</span>
+        <span class="n">credited_by</span><span class="o">=</span><span class="nb">tuple</span><span class="p">((</span><span class="n">cell</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"credited_by"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">LIST_SEPARATOR</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">cell</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"credited_by"</span><span class="p">)</span>
+        <span class="k">else</span> <span class="p">(),</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="p">{</span>
+            <span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">cell</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">TRACK_COLUMNS</span> <span class="ow">and</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="p">},</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="add_track_to_sounds">
+<a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.add_track_to_sounds">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">add_track_to_sounds</span><span class="p">(</span>
+    <span class="n">store</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">track</span><span class="p">:</span> <span class="n">AcquiredTrack</span> <span class="o">|</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">files</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">start</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">fade_out</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">codes</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="n">FOLEY_LICENSE_CODES</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Put one acquired track in the sounds ``store`` under ``key`` (an#623).</span>
+
+<span class="sd">    ``track`` is foley's ``AcquiredTrack``, or its tracks-table row (a</span>
+<span class="sd">    ``tracks.csv`` line, :func:`track_row`: its licence is rebuilt from the</span>
+<span class="sd">    library's registry, :func:`track_from_row`), and ``files`` the library</span>
+<span class="sd">    folder as ``{file name: bytes}`` (``files_store(out)``). The file it names</span>
+<span class="sd">    is checked against its ``sha256``, cut with :func:`an.sound_fetch.cut_to_wav`</span>
+<span class="sd">    (``start``, ``duration``, ``fade_out``, as ``an sounds add`` takes them) and</span>
+<span class="sd">    stored with the track as its :class:`~an.ir.assets.AssetSource`</span>
+<span class="sd">    (:func:`asset_source`, ``codes``) plus the cut, the file's digest as</span>
+<span class="sd">    ``file_sha256``, so ``an credits`` lists the music with its licence. Nothing</span>
+<span class="sd">    is fetched again: the site may be the one that refused scripts.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        MusicLibraryError: For a track that holds no file (not acquired or kept,</span>
+<span class="sd">            or no ``file``/``sha256``), a file missing from ``files``, one whose</span>
+<span class="sd">            bytes do not match the recorded digest, or an unknown library.</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.sound_fetch</span><span class="w"> </span><span class="kn">import</span> <span class="n">CUT_FIELD</span><span class="p">,</span> <span class="n">cut_record</span><span class="p">,</span> <span class="n">cut_to_wav</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.sounds</span><span class="w"> </span><span class="kn">import</span> <span class="n">add_sound</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">foley.sources.music_library</span><span class="w"> </span><span class="kn">import</span> <span class="n">HELD</span><span class="p">,</span> <span class="n">MusicLibraryError</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">track</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="n">track</span> <span class="o">=</span> <span class="n">track_from_row</span><span class="p">(</span><span class="n">track</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">track</span><span class="o">.</span><span class="n">status</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">HELD</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">track</span><span class="o">.</span><span class="n">file</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">track</span><span class="o">.</span><span class="n">sha256</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"track </span><span class="si">{</span><span class="n">track</span><span class="o">.</span><span class="n">title</span><span class="si">!r}</span><span class="s2"> holds no file (status </span><span class="si">{</span><span class="n">track</span><span class="o">.</span><span class="n">status</span><span class="si">!r}</span><span class="s2">); "</span>
+            <span class="s2">"only an acquired or kept row of the tracks table can be used"</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">track</span><span class="o">.</span><span class="n">file</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"track </span><span class="si">{</span><span class="n">track</span><span class="o">.</span><span class="n">title</span><span class="si">!r}</span><span class="s2">: its file </span><span class="si">{</span><span class="n">track</span><span class="o">.</span><span class="n">file</span><span class="si">!r}</span><span class="s2"> is not in the library "</span>
+            <span class="s2">"folder; rerun `an music add-library` to fetch it again"</span>
+        <span class="p">)</span>
+    <span class="n">audio</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">files</span><span class="p">[</span><span class="n">track</span><span class="o">.</span><span class="n">file</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">audio</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span> <span class="o">!=</span> <span class="n">track</span><span class="o">.</span><span class="n">sha256</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">MusicLibraryError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"track </span><span class="si">{</span><span class="n">track</span><span class="o">.</span><span class="n">title</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">track</span><span class="o">.</span><span class="n">file</span><span class="si">!r}</span><span class="s2"> does not match the sha256 its "</span>
+            <span class="s2">"row recorded (changed since it was acquired); rerun `an music add-library`"</span>
+        <span class="p">)</span>
+    <span class="n">wav</span> <span class="o">=</span> <span class="n">cut_to_wav</span><span class="p">(</span><span class="n">audio</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span> <span class="n">fade_out</span><span class="o">=</span><span class="n">fade_out</span><span class="p">)</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="n">asset_source</span><span class="p">(</span><span class="n">track</span><span class="p">,</span> <span class="n">codes</span><span class="o">=</span><span class="n">codes</span><span class="p">)</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">exclude_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">fields</span><span class="p">[</span><span class="n">FILE_SHA256_FIELD</span><span class="p">]</span> <span class="o">=</span> <span class="n">fields</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"sha256"</span><span class="p">)</span>
+    <span class="n">fields</span><span class="p">[</span><span class="n">CUT_FIELD</span><span class="p">]</span> <span class="o">=</span> <span class="n">cut_record</span><span class="p">(</span><span class="n">wav</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">fade_out</span><span class="o">=</span><span class="n">fade_out</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">add_sound</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">wav</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">AssetSource</span><span class="p">(</span><span class="o">**</span><span class="n">fields</span><span class="p">),</span> <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">)</span></div>
 
 </pre></div>
 

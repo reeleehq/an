@@ -9,4 +9,5 @@ an.music\_cli
    .. autosummary::
    
       add_library
+      use
    

@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=aeb0cf72"></script>
+    <script src="../../../_static/documentation_options.js?v=99484518"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.345" />
+  <meta name="docsearch:version" content="0.1.346" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -4440,15 +4440,25 @@ window.runMermaid = runMermaid;</script>
                         <span class="n">db</span><span class="p">[</span><span class="n">k</span><span class="p">],</span>
                         <span class="n">df</span><span class="p">[</span><span class="n">k</span><span class="p">],</span>
                     <span class="p">)</span>
+                <span class="n">why</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="c1"># A keyed pair (an#686) is ordered by its keys, which are cut</span>
+                    <span class="c1"># from the depths this check samples: they cannot disagree</span>
+                    <span class="c1"># unless the keying is wrong (a tie it missed was an#684).</span>
+                    <span class="s2">"their paint keys put it behind there too, against the depths "</span>
+                    <span class="s2">"they are cut from, which is a bug in the world's lowering: "</span>
+                    <span class="s2">"report it with the scene"</span>
+                    <span class="k">if</span> <span class="n">kb</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">kf</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                    <span class="k">else</span> <span class="s2">"the world orders each member by its depth where it first "</span>
+                    <span class="s2">"shows, so it stays on the wrong side"</span>
+                <span class="p">)</span>
                 <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                     <span class="p">(</span>
                         <span class="n">behind_id</span><span class="p">,</span>
                         <span class="sa">f</span><span class="s2">"painted behind </span><span class="si">{</span><span class="n">front_id</span><span class="si">!r}</span><span class="s2"> but nearer the camera from "</span>
                         <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">times</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s, where they overlap on screen (depth "</span>
-                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">d_near</span><span class="si">:</span><span class="s2">.3g</span><span class="si">}</span><span class="s2"> against </span><span class="si">{</span><span class="n">d_far</span><span class="si">:</span><span class="s2">.3g</span><span class="si">}</span><span class="s2">): the world orders each "</span>
-                        <span class="s2">"member by its depth where it first shows, so it stays on "</span>
-                        <span class="s2">"the wrong side. Cut the shot where they pass, or say which "</span>
-                        <span class="s2">"is in front with `stage.after`."</span><span class="p">,</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">d_near</span><span class="si">:</span><span class="s2">.3g</span><span class="si">}</span><span class="s2"> against </span><span class="si">{</span><span class="n">d_far</span><span class="si">:</span><span class="s2">.3g</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="n">why</span><span class="si">}</span><span class="s2">. Cut the shot "</span>
+                        <span class="s2">"where they pass, or say which is in front with "</span>
+                        <span class="s2">"`stage.after`."</span><span class="p">,</span>
                     <span class="p">)</span>
                 <span class="p">)</span>
     <span class="k">return</span> <span class="n">out</span>

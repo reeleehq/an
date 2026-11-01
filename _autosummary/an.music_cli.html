@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=aeb0cf72"></script>
+    <script src="../_static/documentation_options.js?v=99484518"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.345" />
+  <meta name="docsearch:version" content="0.1.346" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -644,6 +644,9 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.music_cli.add_library" title="an.music_cli.add_library"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_library</span></code></a>(library[, titles_from, out, pause])</p></td>
 <td><p>Download a library's tracks, verified, with a tracks table and the attribution blocks.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.music_cli.use" title="an.music_cli.use"><code class="xref py py-obj docutils literal notranslate"><span class="pre">use</span></code></a>(project_dir, key, out, title[, start, ...])</p></td>
+<td><p>Put an acquired track in the project's sounds store, from its file: nothing is downloaded again.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -663,6 +666,30 @@ epidemic_sound) downloads nothing: its rows are a wishlist.</p>
 titles_from: a JSON list of titles, a JSON object {title: {metadata}}, or a text file (a video description) whose credits name LIBRARY
 out: the folder the files, tracks.csv and ATTRIBUTION.md go in
 pause: seconds before a second request to the same host</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.music_cli.use">
+<span class="sig-prename descclassname"><span class="pre">an.music_cli.</span></span><span class="sig-name descname"><span class="pre">use</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fade_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/music_cli.html#use"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.music_cli.use" title="Link to this definition">#</a></dt>
+<dd><p>Put an acquired track in the project’s sounds store, from its file: nothing is downloaded again.</p>
+<p>Reads OUT/tracks.csv (what <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">music</span> <span class="pre">add-library</span></code> wrote), checks TITLE’s file
+against its recorded sha256, cuts it with ffmpeg and stores it as WAV under
+KEY, with its provenance (library, the licence the library’s registry gives,
+attribution, the URL the bytes came from) and the cut, so <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">credits</span></code> lists
+the music.</p>
+<p>project_dir: the an project
+key: the sound’s key in the project’s sounds store (what a cue names)
+out: the library folder <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">music</span> <span class="pre">add-library</span> <span class="pre">--out</span></code> wrote
+title: the track’s title, as its tracks.csv row names it
+start: seconds into the track where the cut begins
+duration: seconds kept (default: to the end)
+fade_out: seconds of fade at the end of the cut
+description: what the sound is, for the store</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
@@ -720,6 +747,7 @@ pause: seconds before a second request to the same host</p>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.music_cli.add_library"><code class="docutils literal notranslate"><span class="pre">add_library()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.music_cli.use"><code class="docutils literal notranslate"><span class="pre">use()</span></code></a></li>
 </ul>
   </nav></div>
 
