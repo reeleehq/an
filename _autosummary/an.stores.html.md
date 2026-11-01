@@ -37,11 +37,12 @@ True
 
 ### Classes
 
-| [`CharactersStore`](#an.stores.CharactersStore)(root_dir)              | Per-character directory store.                                                                                                                                                                                    |
+| [`JsonDirStore`](#an.stores.JsonDirStore)(root_dir, \*[, create])   | `MutableMapping` of name -> JSON document, stored as `<name>.json` files.                                                                                                                                         |
 |-----------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`CharactersStore`](#an.stores.CharactersStore)(root_dir)              | Per-character directory store.                                                                                                                                                                                    |
 | [`EnvironmentsStore`](#an.stores.EnvironmentsStore)(root_dir)            | Per-environment directory store (meta + sidecar art).                                                                                                                                                             |
-| [`VoicesStore`](#an.stores.VoicesStore)(root_dir)                  | JSON-only voice descriptors.                                                                                                                                                                                      |
-| [`StylesStore`](#an.stores.StylesStore)(root_dir)                  | Pure-JSON style descriptors.                                                                                                                                                                                      |
+| [`VoicesStore`](#an.stores.VoicesStore)(root_dir, \*[, create])    | JSON-only voice descriptors.                                                                                                                                                                                      |
+| [`StylesStore`](#an.stores.StylesStore)(root_dir, \*[, create])    | Pure-JSON style descriptors.                                                                                                                                                                                      |
 | [`PropsStore`](#an.stores.PropsStore)(root_dir)                   | Per-prop directory store.                                                                                                                                                                                         |
 | [`ScenesStore`](#an.stores.ScenesStore)(project_dir[, scene_file]) | `MutableMapping` exposing the scene file pair under a project root.                                                                                                                                               |
 | [`SoundsStore`](#an.stores.SoundsStore)(root_dir)                  | Per-sound directory store.                                                                                                                                                                                        |
@@ -124,6 +125,59 @@ Append one decision; returns its ordinal index.
 Bases: `JsonSidecarStore`
 
 Per-environment directory store (meta + sidecar art).
+
+### *class* an.stores.JsonDirStore(root_dir, , create=True)
+
+Bases: [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)
+
+`MutableMapping` of name -> JSON document, stored as `<name>.json` files.
+
+Backed by the filesystem under `root_dir`. Keys are the file stems; values
+are arbitrary JSON-serializable Python objects. `__contains__`, `__iter__`,
+and `__len__` are derived from directory listing. Exported from
+[`an.stores`](#module-an.stores) for hosts (an#664): a write is atomic and [`locked()`](#an.stores.JsonDirStore.locked)
+is the contract for a read, change and write shared with other processes.
+
+`create=False` leaves the folder to the first write or lock, so a host
+can scan many folders through the store without leaving an empty one in
+each; a missing folder reads as an empty store.
+
+```pycon
+>>> import tempfile
+>>> d = Path(tempfile.mkdtemp()) / "voice_options"
+>>> store = JsonDirStore(d, create=False)
+>>> list(store), "jerry" in store, d.exists()
+([], False, False)
+>>> store["jerry"] = {"options": []}
+>>> list(store), d.exists()
+(['jerry'], True)
+```
+
+#### interrupted_writes()
+
+The temp files killed writes left in this store’s folder (an#674).
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]
+
+#### locked(key)
+
+Hold `key`’s file lock (`<key>.json.lock`): a read, change and
+write of `key` inside it is one step for every process that takes it
+too (an#587). The lock file and the atomic write’s temp file are never
+keys.
+
+```pycon
+>>> import tempfile
+>>> store = JsonDirStore(tempfile.mkdtemp())
+>>> with store.locked("jerry"):
+...     store["jerry"] = {"options": []}
+>>> list(store), store["jerry"]
+(['jerry'], {'options': []})
+```
+
+* **Return type:**
+  [`Iterator`](https://docs.python.org/3/library/typing.html#typing.Iterator)[[`None`](https://docs.python.org/3/builtins/constants.html#None)]
 
 ### *class* an.stores.MeasurementStore(root_dir)
 
@@ -277,9 +331,9 @@ Bases: `_BlobStore`
 
 Python scene sources (`.py` bytes) — a Manim scene file per key.
 
-### *class* an.stores.StylesStore(root_dir)
+### *class* an.stores.StylesStore(root_dir, , create=True)
 
-Bases: `JsonDirStore`
+Bases: [`JsonDirStore`](#an.stores.JsonDirStore)
 
 Pure-JSON style descriptors.
 
@@ -296,9 +350,9 @@ Bases: `_BlobStore`
 
 Lip-sync viseme tracks (.json) — stored as bytes for cache uniformity.
 
-### *class* an.stores.VoicesStore(root_dir)
+### *class* an.stores.VoicesStore(root_dir, , create=True)
 
-Bases: `JsonDirStore`
+Bases: [`JsonDirStore`](#an.stores.JsonDirStore)
 
 JSON-only voice descriptors.
 

@@ -9,6 +9,7 @@ an.build.gc
    .. autosummary::
    
       CLOCK_SLACK_S
+      INTERRUPTED_WRITE_MIN_AGE_S
       DEFAULT_PROFILE
       HYPOTHETICAL_PROFILES
    

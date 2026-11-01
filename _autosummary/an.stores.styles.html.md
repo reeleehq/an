@@ -4,11 +4,11 @@ Styles store — visual style presets (color palette, line weight, fonts).
 
 ### Classes
 
-| [`StylesStore`](#an.stores.styles.StylesStore)(root_dir)   | Pure-JSON style descriptors.   |
-|--------------------------------------------------------------------------|--------------------------------|
+| [`StylesStore`](#an.stores.styles.StylesStore)(root_dir, \*[, create])   | Pure-JSON style descriptors.   |
+|----------------------------------------------------------------------------------------|--------------------------------|
 
-### *class* an.stores.styles.StylesStore(root_dir)
+### *class* an.stores.styles.StylesStore(root_dir, , create=True)
 
-Bases: `JsonDirStore`
+Bases: [`JsonDirStore`](an.stores.html.md#an.stores.JsonDirStore)
 
 Pure-JSON style descriptors.

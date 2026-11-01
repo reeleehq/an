@@ -293,7 +293,7 @@ The hex sha256 of `canonical_json()` of `obj`.
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.build.collect_garbage(project_dir, , dry_run=False, max_size=None, max_age=None, engine=None, now=None, force=False)
+### an.build.collect_garbage(project_dir, , dry_run=False, max_size=None, max_age=None, engine=None, now=None, force=False, interrupted_write_min_age=3600.0)
 
 Delete the shot-cache entries of `project_dir` that nothing reaches.
 
@@ -305,6 +305,8 @@ recorded render older than that stop protecting its entries); `max_size`
 removes a reachable entry, so the cache can stay above `max_size`.
 `dry_run` reports and deletes nothing. `force` collects a cache no
 render of this project has recorded a root in (see `reachable_entries()`).
+`interrupted_write_min_age` (seconds) is how long a killed atomic write’s
+temp must have gone untouched before it is deleted (an#674).
 
 See the module docstring for the reachability and concurrency argument.
 

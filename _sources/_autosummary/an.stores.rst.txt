@@ -18,6 +18,7 @@ an.stores
 
    .. autosummary::
    
+      JsonDirStore
       CharactersStore
       EnvironmentsStore
       VoicesStore

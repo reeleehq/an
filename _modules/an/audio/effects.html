@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=944cd147"></script>
+    <script src="../../../_static/documentation_options.js?v=52c1d5d5"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.339" />
+  <meta name="docsearch:version" content="0.1.341" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -997,16 +997,27 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_retimes</span><span class="p">(</span><span class="n">effects</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether normalised ``effects`` pitch or retime the line: its chain then</span>
+<span class="sd">    has ``atempo`` stages, and its output is cut to ``input / tempo`` (an#350).</span>
+<span class="sd">    Decided from the effects, not from the chain another package builds (an#622).</span>
+
+<span class="sd">    &gt;&gt;&gt; _retimes({"tempo": 1.1}), _retimes({"pitch_semitones": -2}), _retimes({})</span>
+<span class="sd">    (True, True, False)</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">effects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"pitch_semitones"</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span><span class="n">effects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tempo"</span><span class="p">)</span> <span class="ow">or</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">!=</span> <span class="mf">1.0</span>
+
+
 <div class="viewcode-block" id="filter_chain">
 <a class="viewcode-back" href="../../../_autosummary/an.audio.effects.html#an.audio.effects.filter_chain">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">filter_chain</span><span class="p">(</span><span class="n">effects</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""The ffmpeg ``-af`` chain for normalised ``effects`` (``""`` for none):</span>
 <span class="sd">    the input resampled to :data:`EFFECT_SAMPLE_RATE`, then the shared pitch</span>
 <span class="sd">    and tempo chain (:func:`mixing.filtergraph.resample_pitch_filter`)."""</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">_retimes</span><span class="p">(</span><span class="n">effects</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">""</span>  <span class="c1"># a trim alone needs no chain, and no mixing</span>
     <span class="n">semitones</span> <span class="o">=</span> <span class="n">effects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"pitch_semitones"</span><span class="p">)</span> <span class="ow">or</span> <span class="mf">0.0</span>
     <span class="n">tempo</span> <span class="o">=</span> <span class="n">effects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tempo"</span><span class="p">)</span> <span class="ow">or</span> <span class="mf">1.0</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">semitones</span> <span class="ow">and</span> <span class="n">tempo</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">""</span>  <span class="c1"># a trim alone needs no chain, and no mixing</span>
     <span class="k">with</span> <span class="n">mixing_too_old</span><span class="p">(</span><span class="n">needed_for</span><span class="o">=</span><span class="s2">"the voice-effect chain"</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="n">VoiceEffectError</span><span class="p">):</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">mixing.filtergraph</span><span class="w"> </span><span class="kn">import</span> <span class="n">resample_pitch_filter</span>
     <span class="n">shift</span> <span class="o">=</span> <span class="n">resample_pitch_filter</span><span class="p">(</span>
@@ -1040,11 +1051,12 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">chain</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">trim</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">audio</span>
     <span class="k">if</span> <span class="n">chain</span><span class="p">:</span>
-        <span class="n">wav</span> <span class="o">=</span> <span class="n">_ffmpeg_wav</span><span class="p">(</span><span class="n">audio</span><span class="p">,</span> <span class="n">chain</span><span class="p">,</span> <span class="n">effects</span><span class="p">)</span>
+        <span class="n">tempo</span> <span class="o">=</span> <span class="n">effects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tempo"</span><span class="p">)</span> <span class="ow">or</span> <span class="mf">1.0</span>
+        <span class="n">wav</span> <span class="o">=</span> <span class="n">_ffmpeg_wav</span><span class="p">(</span><span class="n">audio</span><span class="p">,</span> <span class="n">chain</span><span class="p">,</span> <span class="n">cut_to_tempo</span><span class="o">=</span><span class="n">tempo</span><span class="p">)</span>  <span class="c1"># `chain` retimes</span>
     <span class="k">elif</span> <span class="n">_pcm16_wav</span><span class="p">(</span><span class="n">audio</span><span class="p">):</span>
         <span class="n">wav</span> <span class="o">=</span> <span class="n">audio</span>
     <span class="k">else</span><span class="p">:</span>  <span class="c1"># MP3 (ElevenLabs) and other containers: decoded, then trimmed</span>
-        <span class="n">wav</span> <span class="o">=</span> <span class="n">_ffmpeg_wav</span><span class="p">(</span><span class="n">audio</span><span class="p">,</span> <span class="n">decode_chain</span><span class="p">(),</span> <span class="n">effects</span><span class="p">)</span>
+        <span class="n">wav</span> <span class="o">=</span> <span class="n">_ffmpeg_wav</span><span class="p">(</span><span class="n">audio</span><span class="p">,</span> <span class="n">decode_chain</span><span class="p">())</span>
     <span class="k">if</span> <span class="n">trim</span><span class="p">:</span>
         <span class="n">wav</span> <span class="o">=</span> <span class="n">trim_silence</span><span class="p">(</span>
             <span class="n">wav</span><span class="p">,</span>
@@ -1101,11 +1113,19 @@ window.runMermaid = runMermaid;</script>
 
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_ffmpeg_wav</span><span class="p">(</span><span class="n">audio</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">chain</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">effects</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""``audio`` through the ffmpeg ``chain``, as bit-exact 16-bit PCM WAV."""</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_ffmpeg_wav</span><span class="p">(</span>
+    <span class="n">audio</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">chain</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">cut_to_tempo</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``audio`` through the ffmpeg ``chain``, as bit-exact 16-bit PCM WAV.</span>
+
+<span class="sd">    ``cut_to_tempo``: the chain retimes by that factor (its ``atempo`` stages),</span>
+<span class="sd">    so the output is cut to exactly ``input / cut_to_tempo`` (an#350). The</span>
+<span class="sd">    caller, who knows the effects, says so (an#622); the chain string, built by</span>
+<span class="sd">    ``mixing``, is never searched for it."""</span>
     <span class="k">if</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">"ffmpeg"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">VoiceEffectError</span><span class="p">(</span>
-            <span class="s2">"this voice declares `effects`, which need the ffmpeg binary on PATH "</span>
+            <span class="s2">"this audio step (a voice's `effects`, a decode or a resample) needs "</span>
+            <span class="s2">"the ffmpeg binary on PATH "</span>
             <span class="s2">"(macOS: `brew install ffmpeg`; Debian/Ubuntu: `apt install ffmpeg`)"</span>
         <span class="p">)</span>
     <span class="c1"># Output goes to a real file, not a pipe: ffmpeg cannot seek a pipe to patch</span>
@@ -1115,7 +1135,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">out_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span> <span class="o">/</span> <span class="s2">"shifted.wav"</span>
         <span class="c1"># A tempo chain also writes the decoded input: its length is what the</span>
         <span class="c1"># output is cut to (an#350; `atempo` drops the tail of its window).</span>
-        <span class="n">source_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span> <span class="o">/</span> <span class="s2">"source.wav"</span> <span class="k">if</span> <span class="s2">"atempo="</span> <span class="ow">in</span> <span class="n">chain</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">source_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span> <span class="o">/</span> <span class="s2">"source.wav"</span> <span class="k">if</span> <span class="n">cut_to_tempo</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="n">proc</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
             <span class="n">ffmpeg_argv</span><span class="p">(</span><span class="n">chain</span><span class="p">,</span> <span class="n">out_path</span><span class="p">,</span> <span class="n">source_path</span><span class="o">=</span><span class="n">source_path</span><span class="p">),</span>
             <span class="nb">input</span><span class="o">=</span><span class="n">audio</span><span class="p">,</span>
@@ -1124,12 +1144,12 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">proc</span><span class="o">.</span><span class="n">returncode</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">out_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
             <span class="k">raise</span> <span class="n">VoiceEffectError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"ffmpeg failed applying </span><span class="si">{</span><span class="nb">dict</span><span class="p">(</span><span class="n">effects</span><span class="p">)</span><span class="si">}</span><span class="s2">: "</span>
+                <span class="sa">f</span><span class="s2">"ffmpeg failed running the chain </span><span class="si">{</span><span class="n">chain</span><span class="si">!r}</span><span class="s2">: "</span>
                 <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">proc</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">errors</span><span class="o">=</span><span class="s1">'replace'</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="n">source_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">out_path</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span>
-        <span class="n">seconds</span> <span class="o">=</span> <span class="n">_seconds</span><span class="p">(</span><span class="n">source_path</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">())</span> <span class="o">/</span> <span class="p">(</span><span class="n">effects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tempo"</span><span class="p">)</span> <span class="ow">or</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="n">seconds</span> <span class="o">=</span> <span class="n">_seconds</span><span class="p">(</span><span class="n">source_path</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">())</span> <span class="o">/</span> <span class="n">cut_to_tempo</span>
         <span class="k">return</span> <span class="n">_exact_frames</span><span class="p">(</span><span class="n">out_path</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">(),</span> <span class="nb">round</span><span class="p">(</span><span class="n">seconds</span> <span class="o">*</span> <span class="n">EFFECT_SAMPLE_RATE</span><span class="p">))</span>
 
 
@@ -1228,7 +1248,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">"ffmpeg"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">wav</span> <span class="o">=</span> <span class="n">_ffmpeg_wav</span><span class="p">(</span><span class="n">audio</span><span class="p">,</span> <span class="n">decode_chain</span><span class="p">(),</span> <span class="p">{})</span>
+            <span class="n">wav</span> <span class="o">=</span> <span class="n">_ffmpeg_wav</span><span class="p">(</span><span class="n">audio</span><span class="p">,</span> <span class="n">decode_chain</span><span class="p">())</span>
         <span class="k">except</span> <span class="n">VoiceEffectError</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
     <span class="k">try</span><span class="p">:</span>

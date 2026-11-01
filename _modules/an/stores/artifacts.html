@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=944cd147"></script>
+    <script src="../../../_static/documentation_options.js?v=52c1d5d5"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.339" />
+  <meta name="docsearch:version" content="0.1.341" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -733,6 +733,8 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">dol</span><span class="w"> </span><span class="kn">import</span> <span class="n">atomic_write</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.stores._common</span><span class="w"> </span><span class="kn">import</span> <span class="n">interrupted_writes</span>
+
 
 <span class="k">class</span><span class="w"> </span><span class="nc">_BlobStore</span><span class="p">(</span><span class="n">MutableMapping</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Generic file-as-bytes store with a fixed extension.</span>
@@ -779,6 +781,11 @@ window.runMermaid = runMermaid;</script>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">interrupted_writes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Path</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""The temp files killed writes left in this store's folder (an#674):</span>
+<span class="sd">        ``an cache gc`` deletes them."""</span>
+        <span class="k">return</span> <span class="n">interrupted_writes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">path_of</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Return the on-disk path for a key (whether it exists or not)."""</span>

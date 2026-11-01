@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=944cd147"></script>
+    <script src="../_static/documentation_options.js?v=52c1d5d5"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.339" />
+  <meta name="docsearch:version" content="0.1.341" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -644,7 +644,7 @@ display name, optional cloning source ref, and emotion presets.</p>
 <p class="rubric">Classes</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.voices.VoicesStore" title="an.stores.voices.VoicesStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VoicesStore</span></code></a>(root_dir)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.voices.VoicesStore" title="an.stores.voices.VoicesStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VoicesStore</span></code></a>(root_dir, *[, create])</p></td>
 <td><p>JSON-only voice descriptors.</p></td>
 </tr>
 </tbody>
@@ -652,8 +652,8 @@ display name, optional cloning source ref, and emotion presets.</p>
 </div>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.stores.voices.VoicesStore">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stores.voices.</span></span><span class="sig-name descname"><span class="pre">VoicesStore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores/voices.html#VoicesStore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.voices.VoicesStore" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">JsonDirStore</span></code></p>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stores.voices.</span></span><span class="sig-name descname"><span class="pre">VoicesStore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">create</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores/voices.html#VoicesStore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.voices.VoicesStore" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="an.stores.html#an.stores.JsonDirStore" title="an.stores._common.JsonDirStore"><code class="xref py py-class docutils literal notranslate"><span class="pre">JsonDirStore</span></code></a></p>
 <p>JSON-only voice descriptors.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">d</span><span class="p">:</span>

@@ -56,6 +56,13 @@ renders again. Never a wrong picture: every blob is checked against its id
 (its sha256) when read, and a reused shot’s bytes are copied into the render’s
 own run directory at lookup, before anything can remove them.
 
+**Interrupted writes** (an#674). Every file store writes through
+`dol.atomic_write`, which stages a hidden sibling `.<name>.<hex>.tmp`; a
+process killed mid-write leaves it (possibly a whole film) where no listing
+sees it. A collection deletes those a store reports (`interrupted_writes()`)
+once untouched since the protection horizon and for
+[`INTERRUPTED_WRITE_MIN_AGE_S`](#an.build.gc.INTERRUPTED_WRITE_MIN_AGE_S).
+
 **Deletion is permanent.** `dol.Files` would move each file to the OS trash,
 which frees nothing (and on macOS asks Finder once per file), so on a
 filesystem store the catalog record and the blob are unlinked directly, in the
@@ -68,10 +75,11 @@ layout `lacing.ArtifactStore.from_directory` documents.
 
 ### Module Attributes
 
-| [`CLOCK_SLACK_S`](#an.build.gc.CLOCK_SLACK_S)         | a file system's timestamp granularity, and the gap between a record's provenance time and the moment it lands.                                                                                      |
-|------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`DEFAULT_PROFILE`](#an.build.gc.DEFAULT_PROFILE)       | The render knobs of a plain `an render` (and of `render_project`'s defaults), as `ShotCache.record_root()` records them: `tts` is each voice's own provider (an#305).                               |
-| [`HYPOTHETICAL_PROFILES`](#an.build.gc.HYPOTHETICAL_PROFILES) | today's ([`DEFAULT_PROFILE`](#an.build.gc.DEFAULT_PROFILE)) and the one before an#305, which spoke every line offline — what a cache written before roots existed was rendered with. |
+| [`CLOCK_SLACK_S`](#an.build.gc.CLOCK_SLACK_S)               | a file system's timestamp granularity, and the gap between a record's provenance time and the moment it lands.                                                                                      |
+|------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`INTERRUPTED_WRITE_MIN_AGE_S`](#an.build.gc.INTERRUPTED_WRITE_MIN_AGE_S) | Seconds an atomic write's temp file must have gone untouched before a collection deletes it (an#674).                                                                                               |
+| [`DEFAULT_PROFILE`](#an.build.gc.DEFAULT_PROFILE)             | The render knobs of a plain `an render` (and of `render_project`'s defaults), as `ShotCache.record_root()` records them: `tts` is each voice's own provider (an#305).                               |
+| [`HYPOTHETICAL_PROFILES`](#an.build.gc.HYPOTHETICAL_PROFILES)       | today's ([`DEFAULT_PROFILE`](#an.build.gc.DEFAULT_PROFILE)) and the one before an#305, which spoke every line offline — what a cache written before roots existed was rendered with. |
 
 ### Functions
 
@@ -135,7 +143,7 @@ voice’s own provider (an#305). Always among the profiles the current scene
 is keyed under, so a cache written before roots existed keeps what a plain
 render of the current scene reads.
 
-### *class* an.build.gc.GcReport(dry_run, deleted=list(), deleted_blobs=dict(), kept_reachable=0, kept_protected=list(), kept_retained=0, failed=list(), bytes_before=0, reach=None, deleted_derived=dict(), derived_freed=0, kept_derived=0)
+### *class* an.build.gc.GcReport(dry_run, deleted=list(), deleted_blobs=dict(), kept_reachable=0, kept_protected=list(), kept_retained=0, failed=list(), bytes_before=0, reach=None, deleted_derived=dict(), derived_freed=0, kept_derived=0, deleted_temps=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -150,6 +158,11 @@ by store, and the bytes that frees.
 * **Type:**
   The renderers’ derived stores (an#299)
 
+#### deleted_temps *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [int](https://docs.python.org/3/builtins/functions.html#int)]*
+
+Temp files of atomic writes a killed process left in the mall’s stores
+(an#674), as `"<store>/<file>"` -> bytes.
+
 ### an.build.gc.HYPOTHETICAL_PROFILES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)], ...]* *= ({'capture': None, 'fps': None, 'language': 'en', 'lipsync': 'offline', 'pix_fmt': None, 'resolution': None, 'step_hz': None, 'strict_assets': False, 'supersample': 1, 'tts': 'voice'}, {'capture': None, 'fps': None, 'language': 'en', 'lipsync': 'offline', 'pix_fmt': None, 'resolution': None, 'step_hz': None, 'strict_assets': False, 'supersample': 1, 'tts': 'offline'})*
 
 today’s
@@ -158,6 +171,14 @@ offline — what a cache written before roots existed was rendered with.
 
 * **Type:**
   The knob sets a plain render used or uses, recorded by a root or not
+
+### an.build.gc.INTERRUPTED_WRITE_MIN_AGE_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 3600.0*
+
+Seconds an atomic write’s temp file must have gone untouched before a
+collection deletes it (an#674). A live write keeps its temp’s mtime fresh,
+but a writer outside any render (a synthesis, a voice design) is not a live
+run the protection horizon knows about, so an hour of silence is the proof
+that its process is gone.
 
 ### *class* an.build.gc.Reachability(from_scene=set(), from_roots=set(), profiles=list(), roots=list(), skipped=list(), derived=dict())
 
@@ -182,7 +203,7 @@ What `project_dir`’s shot cache holds; never fails on reachability
 * **Return type:**
   [`CacheInfo`](#an.build.gc.CacheInfo)
 
-### an.build.gc.collect_garbage(project_dir, , dry_run=False, max_size=None, max_age=None, engine=None, now=None, force=False)
+### an.build.gc.collect_garbage(project_dir, , dry_run=False, max_size=None, max_age=None, engine=None, now=None, force=False, interrupted_write_min_age=3600.0)
 
 Delete the shot-cache entries of `project_dir` that nothing reaches.
 
@@ -194,6 +215,8 @@ recorded render older than that stop protecting its entries); `max_size`
 removes a reachable entry, so the cache can stay above `max_size`.
 `dry_run` reports and deletes nothing. `force` collects a cache no
 render of this project has recorded a root in (see [`reachable_entries()`](#an.build.gc.reachable_entries)).
+`interrupted_write_min_age` (seconds) is how long a killed atomic write’s
+temp must have gone untouched before it is deleted (an#674).
 
 See the module docstring for the reachability and concurrency argument.
 

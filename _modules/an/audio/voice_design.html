@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=944cd147"></script>
+    <script src="../../../_static/documentation_options.js?v=52c1d5d5"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.339" />
+  <meta name="docsearch:version" content="0.1.341" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1648,7 +1648,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">wav</span> <span class="o">=</span> <span class="n">apply_voice_effects</span><span class="p">(</span><span class="n">audio</span><span class="p">,</span> <span class="n">effects</span><span class="p">)</span> <span class="k">if</span> <span class="n">effects</span> <span class="k">else</span> <span class="n">audio</span>
         <span class="k">if</span> <span class="n">_is_reel_wav</span><span class="p">(</span><span class="n">wav</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">wav</span>
-        <span class="k">return</span> <span class="n">_ffmpeg_wav</span><span class="p">(</span><span class="n">wav</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">decode_chain</span><span class="p">()</span><span class="si">}</span><span class="s2">,aformat=channel_layouts=mono"</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="k">return</span> <span class="n">_ffmpeg_wav</span><span class="p">(</span><span class="n">wav</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">decode_chain</span><span class="p">()</span><span class="si">}</span><span class="s2">,aformat=channel_layouts=mono"</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">VoiceEffectError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">VoiceDesignError</span><span class="p">(</span>
             <span class="s2">"an audition reel decodes the provider's audio with ffmpeg (and "</span>
@@ -2107,7 +2107,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_project_stores</span><span class="p">(</span><span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">):</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stores._common</span><span class="w"> </span><span class="kn">import</span> <span class="n">JsonDirStore</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stores</span><span class="w"> </span><span class="kn">import</span> <span class="n">JsonDirStore</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.stores.artifacts</span><span class="w"> </span><span class="kn">import</span> <span class="n">_BlobStore</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.stores.voices</span><span class="w"> </span><span class="kn">import</span> <span class="n">VoicesStore</span>
 
@@ -2117,7 +2117,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">(</span>
         <span class="n">VoicesStore</span><span class="p">(</span><span class="n">root</span> <span class="o">/</span> <span class="s2">"assets"</span> <span class="o">/</span> <span class="s2">"voices"</span><span class="p">),</span>
-        <span class="n">JsonDirStore</span><span class="p">(</span><span class="n">root</span> <span class="o">/</span> <span class="n">OPTIONS_DIR</span><span class="p">),</span>
+        <span class="n">JsonDirStore</span><span class="p">(</span><span class="n">root</span> <span class="o">/</span> <span class="n">OPTIONS_DIR</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>  <span class="c1"># no empty folder on a read</span>
         <span class="n">_Mp3Store</span><span class="p">(</span><span class="n">root</span> <span class="o">/</span> <span class="n">SAMPLES_DIR</span><span class="p">),</span>
     <span class="p">)</span>
 

@@ -366,6 +366,10 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Metadata for a TTS voice as exposed by a provider.
 
+`extra` is the provider’s own detail. Keys hosts read (a contract):
+ElevenLabs’s `category`, `description`, `labels` and `preview_url`
+(a sample to hear before casting, an#666; `None` when it has none).
+
 ### *class* an.audio.WordTimingProvider(\*args, \*\*kwargs)
 
 Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)

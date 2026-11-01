@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=944cd147"></script>
+    <script src="../_static/documentation_options.js?v=52c1d5d5"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.339" />
+  <meta name="docsearch:version" content="0.1.341" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -687,6 +687,12 @@ collected between reading its record and its blob — a miss, so that shot
 renders again. Never a wrong picture: every blob is checked against its id
 (its sha256) when read, and a reused shot’s bytes are copied into the render’s
 own run directory at lookup, before anything can remove them.</p>
+<p><strong>Interrupted writes</strong> (an#674). Every file store writes through
+<code class="docutils literal notranslate"><span class="pre">dol.atomic_write</span></code>, which stages a hidden sibling <code class="docutils literal notranslate"><span class="pre">.&lt;name&gt;.&lt;hex&gt;.tmp</span></code>; a
+process killed mid-write leaves it (possibly a whole film) where no listing
+sees it. A collection deletes those a store reports (<code class="docutils literal notranslate"><span class="pre">interrupted_writes()</span></code>)
+once untouched since the protection horizon and for
+<a class="reference internal" href="#an.build.gc.INTERRUPTED_WRITE_MIN_AGE_S" title="an.build.gc.INTERRUPTED_WRITE_MIN_AGE_S"><code class="xref py py-data docutils literal notranslate"><span class="pre">INTERRUPTED_WRITE_MIN_AGE_S</span></code></a>.</p>
 <p><strong>Deletion is permanent.</strong> <code class="docutils literal notranslate"><span class="pre">dol.Files</span></code> would move each file to the OS trash,
 which frees nothing (and on macOS asks Finder once per file), so on a
 filesystem store the catalog record and the blob are unlinked directly, in the
@@ -701,10 +707,13 @@ layout <code class="docutils literal notranslate"><span class="pre">lacing.Artif
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.build.gc.CLOCK_SLACK_S" title="an.build.gc.CLOCK_SLACK_S"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CLOCK_SLACK_S</span></code></a></p></td>
 <td><p>a file system's timestamp granularity, and the gap between a record's provenance time and the moment it lands.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.build.gc.DEFAULT_PROFILE" title="an.build.gc.DEFAULT_PROFILE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_PROFILE</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.build.gc.INTERRUPTED_WRITE_MIN_AGE_S" title="an.build.gc.INTERRUPTED_WRITE_MIN_AGE_S"><code class="xref py py-obj docutils literal notranslate"><span class="pre">INTERRUPTED_WRITE_MIN_AGE_S</span></code></a></p></td>
+<td><p>Seconds an atomic write's temp file must have gone untouched before a collection deletes it (an#674).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.build.gc.DEFAULT_PROFILE" title="an.build.gc.DEFAULT_PROFILE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_PROFILE</span></code></a></p></td>
 <td><p>The render knobs of a plain <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span></code> (and of <code class="docutils literal notranslate"><span class="pre">render_project</span></code>'s defaults), as <code class="xref py py-meth docutils literal notranslate"><span class="pre">ShotCache.record_root()</span></code> records them: <code class="docutils literal notranslate"><span class="pre">tts</span></code> is each voice's own provider (an#305).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.build.gc.HYPOTHETICAL_PROFILES" title="an.build.gc.HYPOTHETICAL_PROFILES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HYPOTHETICAL_PROFILES</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.build.gc.HYPOTHETICAL_PROFILES" title="an.build.gc.HYPOTHETICAL_PROFILES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HYPOTHETICAL_PROFILES</span></code></a></p></td>
 <td><p>today's (<a class="reference internal" href="#an.build.gc.DEFAULT_PROFILE" title="an.build.gc.DEFAULT_PROFILE"><code class="xref py py-data docutils literal notranslate"><span class="pre">DEFAULT_PROFILE</span></code></a>) and the one before an#305, which spoke every line offline — what a cache written before roots existed was rendered with.</p></td>
 </tr>
 </tbody>
@@ -817,7 +826,7 @@ render of the current scene reads.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.build.gc.GcReport">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.build.gc.</span></span><span class="sig-name descname"><span class="pre">GcReport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dry_run</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deleted</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">list()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deleted_blobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">dict()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kept_reachable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kept_protected</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">list()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kept_retained</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">failed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">list()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bytes_before</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reach</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deleted_derived</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">dict()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">derived_freed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kept_derived</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/gc.html#GcReport"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.gc.GcReport" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.build.gc.</span></span><span class="sig-name descname"><span class="pre">GcReport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dry_run</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deleted</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">list()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deleted_blobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">dict()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kept_reachable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kept_protected</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">list()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kept_retained</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">failed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">list()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bytes_before</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reach</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deleted_derived</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">dict()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">derived_freed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kept_derived</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deleted_temps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">dict()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/gc.html#GcReport"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.gc.GcReport" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>What a collection deleted (or, with <code class="docutils literal notranslate"><span class="pre">dry_run</span></code>, would delete), and why
 the rest was kept.</p>
@@ -835,6 +844,13 @@ by store, and the bytes that frees.</p>
 </dl>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.build.gc.GcReport.deleted_temps">
+<span class="sig-name descname"><span class="pre">deleted_temps</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.build.gc.GcReport.deleted_temps" title="Link to this definition">#</a></dt>
+<dd><p>Temp files of atomic writes a killed process left in the mall’s stores
+(an#674), as <code class="docutils literal notranslate"><span class="pre">&quot;&lt;store&gt;/&lt;file&gt;&quot;</span></code> -&gt; bytes.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py data">
@@ -848,6 +864,16 @@ offline — what a cache written before roots existed was rendered with.</p>
 <dd class="field-odd"><p>The knob sets a plain render used or uses, recorded by a root or not</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.build.gc.INTERRUPTED_WRITE_MIN_AGE_S">
+<span class="sig-prename descclassname"><span class="pre">an.build.gc.</span></span><span class="sig-name descname"><span class="pre">INTERRUPTED_WRITE_MIN_AGE_S</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3600.0</span></span><a class="headerlink" href="#an.build.gc.INTERRUPTED_WRITE_MIN_AGE_S" title="Link to this definition">#</a></dt>
+<dd><p>Seconds an atomic write’s temp file must have gone untouched before a
+collection deletes it (an#674). A live write keeps its temp’s mtime fresh,
+but a writer outside any render (a synthesis, a voice design) is not a live
+run the protection horizon knows about, so an hour of silence is the proof
+that its process is gone.</p>
 </dd></dl>
 
 <dl class="py class">
@@ -883,7 +909,7 @@ is not cached under it — an#306), whose roots keep what they recorded.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.build.gc.collect_garbage">
-<span class="sig-prename descclassname"><span class="pre">an.build.gc.</span></span><span class="sig-name descname"><span class="pre">collect_garbage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">dry_run</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_age</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">now</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/gc.html#collect_garbage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.gc.collect_garbage" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.build.gc.</span></span><span class="sig-name descname"><span class="pre">collect_garbage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">dry_run</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_age</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">now</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interrupted_write_min_age</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3600.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/gc.html#collect_garbage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.gc.collect_garbage" title="Link to this definition">#</a></dt>
 <dd><p>Delete the shot-cache entries of <code class="docutils literal notranslate"><span class="pre">project_dir</span></code> that nothing reaches.</p>
 <p>With no cap, every unreachable entry goes. With caps, unreachable history
 is kept within them, newest first, and both bind: <code class="docutils literal notranslate"><span class="pre">max_age</span></code> (seconds)
@@ -892,7 +918,9 @@ recorded render older than that stop protecting its entries); <code class="docut
 (bytes) keeps only those that fit in a cache of that size. Neither ever
 removes a reachable entry, so the cache can stay above <code class="docutils literal notranslate"><span class="pre">max_size</span></code>.
 <code class="docutils literal notranslate"><span class="pre">dry_run</span></code> reports and deletes nothing. <code class="docutils literal notranslate"><span class="pre">force</span></code> collects a cache no
-render of this project has recorded a root in (see <a class="reference internal" href="#an.build.gc.reachable_entries" title="an.build.gc.reachable_entries"><code class="xref py py-func docutils literal notranslate"><span class="pre">reachable_entries()</span></code></a>).</p>
+render of this project has recorded a root in (see <a class="reference internal" href="#an.build.gc.reachable_entries" title="an.build.gc.reachable_entries"><code class="xref py py-func docutils literal notranslate"><span class="pre">reachable_entries()</span></code></a>).
+<code class="docutils literal notranslate"><span class="pre">interrupted_write_min_age</span></code> (seconds) is how long a killed atomic write’s
+temp must have gone untouched before it is deleted (an#674).</p>
 <p>See the module docstring for the reachability and concurrency argument.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -1033,9 +1061,11 @@ unless <code class="docutils literal notranslate"><span class="pre">force</span>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.gc.DEFAULT_PROFILE"><code class="docutils literal notranslate"><span class="pre">DEFAULT_PROFILE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.gc.GcReport"><code class="docutils literal notranslate"><span class="pre">GcReport</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.gc.GcReport.deleted_derived"><code class="docutils literal notranslate"><span class="pre">GcReport.deleted_derived</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.gc.GcReport.deleted_temps"><code class="docutils literal notranslate"><span class="pre">GcReport.deleted_temps</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.gc.HYPOTHETICAL_PROFILES"><code class="docutils literal notranslate"><span class="pre">HYPOTHETICAL_PROFILES</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.gc.INTERRUPTED_WRITE_MIN_AGE_S"><code class="docutils literal notranslate"><span class="pre">INTERRUPTED_WRITE_MIN_AGE_S</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.gc.Reachability"><code class="docutils literal notranslate"><span class="pre">Reachability</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.gc.Reachability.derived"><code class="docutils literal notranslate"><span class="pre">Reachability.derived</span></code></a></li>
 </ul>

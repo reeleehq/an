@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=944cd147"></script>
+    <script src="../../../_static/documentation_options.js?v=52c1d5d5"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.339" />
+  <meta name="docsearch:version" content="0.1.341" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -768,6 +768,13 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">(its sha256) when read, and a reused shot's bytes are copied into the render's</span>
 <span class="sd">own run directory at lookup, before anything can remove them.</span>
 
+<span class="sd">**Interrupted writes** (an#674). Every file store writes through</span>
+<span class="sd">``dol.atomic_write``, which stages a hidden sibling ``.&lt;name&gt;.&lt;hex&gt;.tmp``; a</span>
+<span class="sd">process killed mid-write leaves it (possibly a whole film) where no listing</span>
+<span class="sd">sees it. A collection deletes those a store reports (``interrupted_writes()``)</span>
+<span class="sd">once untouched since the protection horizon and for</span>
+<span class="sd">:data:`INTERRUPTED_WRITE_MIN_AGE_S`.</span>
+
 <span class="sd">**Deletion is permanent.** ``dol.Files`` would move each file to the OS trash,</span>
 <span class="sd">which frees nothing (and on macOS asks Finder once per file), so on a</span>
 <span class="sd">filesystem store the catalog record and the blob are unlinked directly, in the</span>
@@ -790,6 +797,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">VOICE_TTS</span><span class="p">,</span> <span class="n">AudioNotCachedError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEFAULT_SUPERSAMPLE</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.stores._common</span><span class="w"> </span><span class="kn">import</span> <span class="n">ListsInterruptedWrites</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.build.shot_cache</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">FRAMES_SUFFIX</span><span class="p">,</span>
     <span class="n">PARTS_INFIX</span><span class="p">,</span>
@@ -803,6 +811,7 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"CLOCK_SLACK_S"</span><span class="p">,</span>
     <span class="s2">"DEFAULT_PROFILE"</span><span class="p">,</span>
     <span class="s2">"HYPOTHETICAL_PROFILES"</span><span class="p">,</span>
+    <span class="s2">"INTERRUPTED_WRITE_MIN_AGE_S"</span><span class="p">,</span>
     <span class="s2">"CacheEntry"</span><span class="p">,</span>
     <span class="s2">"CacheGcError"</span><span class="p">,</span>
     <span class="s2">"CacheInfo"</span><span class="p">,</span>
@@ -820,6 +829,13 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: system's timestamp granularity, and the gap between a record's provenance</span>
 <span class="c1">#: time and the moment it lands.</span>
 <span class="n">CLOCK_SLACK_S</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span>
+
+<span class="c1">#: Seconds an atomic write's temp file must have gone untouched before a</span>
+<span class="c1">#: collection deletes it (an#674). A live write keeps its temp's mtime fresh,</span>
+<span class="c1">#: but a writer outside any render (a synthesis, a voice design) is not a live</span>
+<span class="c1">#: run the protection horizon knows about, so an hour of silence is the proof</span>
+<span class="c1">#: that its process is gone.</span>
+<span class="n">INTERRUPTED_WRITE_MIN_AGE_S</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3600.0</span>
 
 <span class="c1">#: The render knobs of a plain ``an render`` (and of ``render_project``'s</span>
 <span class="c1">#: defaults), as :meth:`ShotCache.record_root` records them: ``tts`` is each</span>
@@ -1208,6 +1224,9 @@ window.runMermaid = runMermaid;</script>
     <span class="n">deleted_derived</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
     <span class="n">derived_freed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">kept_derived</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c1">#: Temp files of atomic writes a killed process left in the mall's stores</span>
+    <span class="c1">#: (an#674), as ``"&lt;store&gt;/&lt;file&gt;"`` -&gt; bytes.</span>
+    <span class="n">deleted_temps</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">freed_bytes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
@@ -1247,6 +1266,11 @@ window.runMermaid = runMermaid;</script>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"derived stores: </span><span class="si">{</span><span class="n">verb</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> entries (</span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2">), "</span>
                 <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">human_bytes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">derived_freed</span><span class="p">)</span><span class="si">}</span><span class="s2">; kept </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">kept_derived</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">deleted_temps</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"interrupted writes: </span><span class="si">{</span><span class="n">verb</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">deleted_temps</span><span class="p">)</span><span class="si">}</span><span class="s2"> temp file(s), "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">human_bytes</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">deleted_temps</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span><span class="si">}</span><span class="s2">"</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">reach</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">reach</span><span class="o">.</span><span class="n">skipped</span><span class="p">:</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_skipped_line</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reach</span><span class="o">.</span><span class="n">skipped</span><span class="p">))</span>
@@ -1336,6 +1360,59 @@ window.runMermaid = runMermaid;</script>
         <span class="n">report</span><span class="o">.</span><span class="n">derived_freed</span> <span class="o">+=</span> <span class="n">size</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_collect_interrupted_writes</span><span class="p">(</span>
+    <span class="n">mall</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">report</span><span class="p">:</span> <span class="n">GcReport</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">horizon</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">now</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">min_age</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">INTERRUPTED_WRITE_MIN_AGE_S</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Delete the temp files killed atomic writes left in the mall's stores</span>
+<span class="sd">    (an#674): a store that can list them</span>
+<span class="sd">    (:class:`an.stores._common.ListsInterruptedWrites`, as</span>
+<span class="sd">    :class:`an.stores.artifacts._BlobStore` is) and a temp untouched since</span>
+<span class="sd">    both ``horizon`` and ``min_age`` seconds ago. Its mtime is</span>
+<span class="sd">    re-read just before the unlink, so a write that resumed is kept."""</span>
+    <span class="n">before</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">horizon</span><span class="p">,</span> <span class="n">now</span> <span class="o">-</span> <span class="n">min_age</span><span class="p">)</span>
+    <span class="n">seen</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">store</span> <span class="ow">in</span> <span class="n">mall</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">ListsInterruptedWrites</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">temps</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">interrupted_writes</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+            <span class="k">continue</span>  <span class="c1"># an unreadable folder: nothing known, nothing deleted</span>
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">temps</span><span class="p">:</span>
+            <span class="n">real</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">real</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+                <span class="k">continue</span>  <span class="c1"># two stores over one folder: counted once</span>
+            <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">real</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">st</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">st</span><span class="o">.</span><span class="n">st_mtime</span> <span class="o">&gt;=</span> <span class="n">before</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">report</span><span class="o">.</span><span class="n">dry_run</span><span class="p">:</span>
+                    <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+                <span class="k">continue</span>  <span class="c1"># its writer finished, or someone else removed it</span>
+            <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+                <span class="n">report</span><span class="o">.</span><span class="n">failed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">deleted_temps</span><span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span><span class="p">]</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">st_size</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_collect_orphans</span><span class="p">(</span>
+    <span class="n">mall</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="n">GcReport</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">horizon</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">now</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">min_age</span><span class="p">:</span> <span class="nb">float</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What no record names at all, collected last, after every refusal: the</span>
+<span class="sd">    transcripts no take names (an#607) and interrupted writes' temps (an#674)."""</span>
+    <span class="n">_collect_transcripts</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">horizon</span><span class="o">=</span><span class="n">horizon</span><span class="p">)</span>
+    <span class="n">_collect_interrupted_writes</span><span class="p">(</span>
+        <span class="n">mall</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">horizon</span><span class="o">=</span><span class="n">horizon</span><span class="p">,</span> <span class="n">now</span><span class="o">=</span><span class="n">now</span><span class="p">,</span> <span class="n">min_age</span><span class="o">=</span><span class="n">min_age</span>
+    <span class="p">)</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_protection_horizon</span><span class="p">(</span><span class="n">project_root</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">now</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Anything written at or after this time is left alone: the earlier of</span>
 <span class="sd">    this collection's start and every live render's start, less the slack."""</span>
@@ -1379,6 +1456,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">engine</span><span class="p">:</span> <span class="n">ShotCache</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">now</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">interrupted_write_min_age</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">INTERRUPTED_WRITE_MIN_AGE_S</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GcReport</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Delete the shot-cache entries of ``project_dir`` that nothing reaches.</span>
 
@@ -1390,6 +1468,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    removes a reachable entry, so the cache can stay above ``max_size``.</span>
 <span class="sd">    ``dry_run`` reports and deletes nothing. ``force`` collects a cache no</span>
 <span class="sd">    render of this project has recorded a root in (see :func:`reachable_entries`).</span>
+<span class="sd">    ``interrupted_write_min_age`` (seconds) is how long a killed atomic write's</span>
+<span class="sd">    temp must have gone untouched before it is deleted (an#674).</span>
 
 <span class="sd">    See the module docstring for the reachability and concurrency argument.</span>
 <span class="sd">    """</span>
@@ -1401,7 +1481,10 @@ window.runMermaid = runMermaid;</script>
     <span class="n">now</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="k">if</span> <span class="n">now</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">now</span>
     <span class="n">horizon</span> <span class="o">=</span> <span class="n">_protection_horizon</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">now</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">store</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">_collect_transcripts</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">horizon</span><span class="o">=</span><span class="n">horizon</span><span class="p">)</span>
+        <span class="n">_collect_orphans</span><span class="p">(</span>
+        <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">horizon</span><span class="o">=</span><span class="n">horizon</span><span class="p">,</span> <span class="n">now</span><span class="o">=</span><span class="n">now</span><span class="p">,</span>
+        <span class="n">min_age</span><span class="o">=</span><span class="n">interrupted_write_min_age</span><span class="p">,</span>
+    <span class="p">)</span>  <span class="c1"># fmt: skip</span>
         <span class="k">return</span> <span class="n">report</span>
     <span class="n">others</span> <span class="o">=</span> <span class="n">other_scenes</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
     <span class="n">entries</span> <span class="o">=</span> <span class="n">inventory</span><span class="p">(</span><span class="n">store</span><span class="p">)</span>
@@ -1474,7 +1557,10 @@ window.runMermaid = runMermaid;</script>
             <span class="n">shot_cache_kept_bytes</span><span class="o">=</span><span class="n">report</span><span class="o">.</span><span class="n">bytes_before</span> <span class="o">-</span> <span class="nb">sum</span><span class="p">(</span><span class="n">doomed_blobs</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span>
             <span class="n">dry_run</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="n">report</span><span class="p">,</span>
         <span class="p">)</span>  <span class="c1"># fmt: skip</span>
-        <span class="n">_collect_transcripts</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">horizon</span><span class="o">=</span><span class="n">horizon</span><span class="p">)</span>
+        <span class="n">_collect_orphans</span><span class="p">(</span>
+        <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">horizon</span><span class="o">=</span><span class="n">horizon</span><span class="p">,</span> <span class="n">now</span><span class="o">=</span><span class="n">now</span><span class="p">,</span>
+        <span class="n">min_age</span><span class="o">=</span><span class="n">interrupted_write_min_age</span><span class="p">,</span>
+    <span class="p">)</span>  <span class="c1"># fmt: skip</span>
         <span class="k">return</span> <span class="n">report</span>
     <span class="n">layout</span> <span class="o">=</span> <span class="n">_fs_layout</span><span class="p">(</span><span class="n">store</span><span class="p">)</span>
     <span class="c1"># Records first, then blobs: a record must never name a blob that is gone.</span>
@@ -1514,7 +1600,10 @@ window.runMermaid = runMermaid;</script>
         <span class="n">dry_run</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="n">report</span><span class="p">,</span>
     <span class="p">)</span>  <span class="c1"># fmt: skip</span>
     <span class="c1"># Last, after every refusal: a collection that refuses deletes nothing.</span>
-    <span class="n">_collect_transcripts</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">horizon</span><span class="o">=</span><span class="n">horizon</span><span class="p">)</span>
+    <span class="n">_collect_orphans</span><span class="p">(</span>
+        <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">horizon</span><span class="o">=</span><span class="n">horizon</span><span class="p">,</span> <span class="n">now</span><span class="o">=</span><span class="n">now</span><span class="p">,</span>
+        <span class="n">min_age</span><span class="o">=</span><span class="n">interrupted_write_min_age</span><span class="p">,</span>
+    <span class="p">)</span>  <span class="c1"># fmt: skip</span>
     <span class="k">return</span> <span class="n">report</span></div>
 
 
