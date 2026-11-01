@@ -1,0 +1,1 @@
+- **The voice-effect tempo cut is decided from the effects** (an#622): `_ffmpeg_wav` cuts to `input / tempo` when the normalised effects pitch or retime (`_retimes`, shared with `filter_chain`), not when `"atempo="` appears in the chain `mixing` builds; same bytes.

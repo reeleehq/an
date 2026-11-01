@@ -274,14 +274,25 @@ def voice_effects(mall: Mapping | None, voice_id: str) -> dict[str, Any]:
     return normalize_effects(doc.get("effects") if isinstance(doc, Mapping) else None)
 
 
+def _retimes(effects: Mapping[str, Any]) -> bool:
+    """Whether normalised ``effects`` pitch or retime the line: its chain then
+    has ``atempo`` stages, and its output is cut to ``input / tempo`` (an#350).
+    Decided from the effects, not from the chain another package builds (an#622).
+
+    >>> _retimes({"tempo": 1.1}), _retimes({"pitch_semitones": -2}), _retimes({})
+    (True, True, False)
+    """
+    return bool(effects.get("pitch_semitones")) or (effects.get("tempo") or 1.0) != 1.0
+
+
 def filter_chain(effects: Mapping[str, Any]) -> str:
     """The ffmpeg ``-af`` chain for normalised ``effects`` (``""`` for none):
     the input resampled to :data:`EFFECT_SAMPLE_RATE`, then the shared pitch
     and tempo chain (:func:`mixing.filtergraph.resample_pitch_filter`)."""
+    if not _retimes(effects):
+        return ""  # a trim alone needs no chain, and no mixing
     semitones = effects.get("pitch_semitones") or 0.0
     tempo = effects.get("tempo") or 1.0
-    if not semitones and tempo == 1.0:
-        return ""  # a trim alone needs no chain, and no mixing
     with mixing_too_old(needed_for="the voice-effect chain", error=VoiceEffectError):
         from mixing.filtergraph import resample_pitch_filter
     shift = resample_pitch_filter(
@@ -380,7 +391,7 @@ def _ffmpeg_wav(audio: bytes, chain: str, effects: Mapping[str, Any]) -> bytes:
         out_path = Path(tmp) / "shifted.wav"
         # A tempo chain also writes the decoded input: its length is what the
         # output is cut to (an#350; `atempo` drops the tail of its window).
-        source_path = Path(tmp) / "source.wav" if "atempo=" in chain else None
+        source_path = Path(tmp) / "source.wav" if _retimes(effects) else None
         proc = subprocess.run(
             ffmpeg_argv(chain, out_path, source_path=source_path),
             input=audio,

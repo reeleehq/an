@@ -166,6 +166,21 @@ def test_the_chain_is_stock_ffmpeg_and_duration_neutral():
     assert filter_chain({}) == ""
 
 
+@pytest.mark.parametrize(
+    "effects",
+    [{}, {"tempo": 1.25}, {"tempo": 0.5}, {"pitch_semitones": 0.01},
+     {"pitch_semitones": -12}, {"pitch_semitones": 4, "tempo": 2.0}],
+)  # fmt: skip
+def test_the_tempo_cut_is_decided_from_the_effects_and_agrees_with_the_chain(effects):
+    """an#622: whether the output is cut to ``input / tempo`` (an#350) is read
+    from the effects, not from a substring of the chain mixing builds; the two
+    still agree, so no line's bytes change."""
+    from an.audio.effects import _retimes
+
+    e = normalize_effects(effects)
+    assert _retimes(e) == ("atempo=" in filter_chain(e))
+
+
 def test_validate_flags_an_invalid_effect_on_a_used_voice():
     good = validate_semantic(_scene(), available_voices=_mall({"pitch_semitones": 4})["voices"])
     assert not [f for f in good.findings if "kid" in f.description]
