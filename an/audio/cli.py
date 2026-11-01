@@ -351,14 +351,9 @@ def import_recorded(
     aligner: time a plain transcript with a forced aligner, words and phones (for lip-sync): `mfa` (Montreal Forced Aligner, ARPAbet) or `mfa:ipa`
     scene: the scene file whose lines the takes voice (default scene.md; for example scene.studio.md)
     """
-    from an.audio.recorded import DFLT_DENOISE, import_recordings, mfa_aligner
+    from an.audio.recorded import DFLT_DENOISE, aligner_named, import_recordings
 
-    align = None
-    if aligner:
-        name, _, alphabet = aligner.partition(":")
-        if name != "mfa":
-            raise SystemExit(f"an voices import: no aligner {name!r}; known: mfa (mfa:ipa)")
-        align = mfa_aligner(**({"alphabet": alphabet} if alphabet else {}))
+    align = aligner_named(aligner) if aligner else None
 
     report = import_recordings(
         project,

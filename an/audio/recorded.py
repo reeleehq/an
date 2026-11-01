@@ -66,7 +66,7 @@ import wave
 from collections.abc import Callable, Iterable, Mapping, MutableMapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, NamedTuple
+from typing import Any, NamedTuple, Protocol
 
 from an.audio.transcripts import (
     TranscriptSegment,
@@ -185,6 +185,10 @@ class RecordingMissingError(RecordedVoicesError):
 
 class TranscriberUnavailableError(RecordedVoicesError):
     """A take needs transcribing and no transcriber can run here."""
+
+
+class AlignmentError(RecordedVoicesError):
+    """A forced aligner ran and could not align a take with its text (an#637)."""
 
 
 # --- the store's front door -----------------------------------------------------
@@ -619,17 +623,27 @@ def load_wav(path: Path, *, denoise: str | None = None) -> bytes:
 
 #: ``path -> segments``: what the ``transcribe`` seam takes.
 Transcriber = Callable[[Path], Sequence[TranscriptSegment]]
-#: ``(path, text) -> segments``: what the ``align`` seam takes (an#637): a
-#: forced aligner, which times a KNOWN text against the audio and gives each
-#: segment's words and phones, as a TextGrid with a ``phones`` tier would. Its
-#: ``phone_alphabet`` attribute (``"arpabet"``, ``"ipa"``), when it has one,
-#: is stored beside the phones on the take's record.
-Aligner = Callable[[Path, str], Sequence[TranscriptSegment]]
+class Aligner(Protocol):
+    """What the ``align`` seam takes (an#637): a forced aligner, which times a
+    KNOWN ``text`` against the audio at ``path`` (a WAV) and gives each
+    segment's words and phones, as a TextGrid with a ``phones`` tier would.
+    ``phone_alphabet`` (``"arpabet"``, ``"ipa"``, ``None`` unknown) is stored
+    beside the phones on the take's record."""
+
+    phone_alphabet: str | None
+
+    def __call__(self, path: Path, text: str) -> Sequence[TranscriptSegment]: ...
+
 
 #: The Montreal Forced Aligner's English models (an#637): one pronouncing
 #: dictionary and acoustic model per phone alphabet, both named the same.
 MFA_MODELS: Mapping[str, str] = {"arpabet": "english_us_arpa", "ipa": "english_mfa"}
 DFLT_MFA_ALPHABET: str = "arpabet"
+#: MFA 3's alignment subcommand (4.0 renames it ``align_legacy``): a keyword
+#: of :func:`mfa_aligner`, so a newer MFA is a keyword away.
+DFLT_MFA_COMMAND: str = "align"
+#: The file stem the take and its text get in MFA's one-file corpus.
+MFA_TAKE_STEM: str = "take"
 #: How MFA is installed, and its models fetched: said when it is not found.
 MFA_INSTALL_HINT: str = (
     "install the Montreal Forced Aligner (`conda install -c conda-forge "
@@ -639,64 +653,99 @@ MFA_INSTALL_HINT: str = (
 )
 
 
-def mfa_aligner(
-    *,
-    alphabet: str = DFLT_MFA_ALPHABET,
-    executable: str = "mfa",
-    run: Callable[..., Any] | None = None,
-) -> Aligner:
-    """An :data:`Aligner` that runs the Montreal Forced Aligner as a tool
-    (an#637): the take and its text as a one-file corpus, ``mfa align`` with the
-    English model of ``alphabet`` (:data:`MFA_MODELS`), and the TextGrid it
-    writes read back (:func:`an.audio.transcripts.parse_textgrid`), words and
-    phones. It runs where the recordings are (the user's machine): nothing is
-    downloaded here. ``run`` is the subprocess seam (``subprocess.run``'s
-    signature).
+@dataclass(frozen=True)
+class MfaAligner:
+    """An :class:`Aligner` that runs the Montreal Forced Aligner as a tool
+    (an#637): the take (a WAV) and its text as a one-file corpus in a folder of
+    its own name (MFA names its working directory after the corpus folder, so
+    two imports never share one), ``mfa align`` with the English model of
+    ``alphabet`` (:data:`MFA_MODELS`), and the TextGrid it writes read back
+    (:func:`an.audio.transcripts.parse_textgrid`), words and phones. It runs
+    where the recordings are (the user's machine): nothing is downloaded here.
+    ``run`` is the subprocess seam (``subprocess.run``'s signature).
 
-    >>> mfa_aligner(alphabet="ipa").phone_alphabet
+    >>> MfaAligner(alphabet="ipa").phone_alphabet
     'ipa'
     """
-    import shutil
-    import subprocess
-    import tempfile
 
-    from an.audio.transcripts import parse_textgrid
+    alphabet: str = DFLT_MFA_ALPHABET
+    executable: str = "mfa"
+    command: str = DFLT_MFA_COMMAND
+    run: Callable[..., Any] | None = None
 
-    if alphabet not in MFA_MODELS:
-        raise RecordedVoicesError(
-            f"no MFA model for the phone alphabet {alphabet!r}; known: {sorted(MFA_MODELS)}"
-        )
-    model = MFA_MODELS[alphabet]
-    runner = run or subprocess.run
+    def __post_init__(self) -> None:
+        if self.alphabet not in MFA_MODELS:
+            raise RecordedVoicesError(
+                f"no MFA model for the phone alphabet {self.alphabet!r}; "
+                f"known: {sorted(MFA_MODELS)}"
+            )
 
-    def align(path: Path, text: str) -> list[TranscriptSegment]:
-        if run is None and shutil.which(executable) is None:
+    @property
+    def phone_alphabet(self) -> str:
+        return self.alphabet
+
+    def __call__(self, path: Path, text: str) -> list[TranscriptSegment]:
+        import shutil
+        import subprocess
+        import tempfile
+
+        from an.audio.transcripts import parse_textgrid
+
+        model = MFA_MODELS[self.alphabet]
+        if self.run is None and shutil.which(self.executable) is None:
             raise TranscriberUnavailableError(
-                f"aligning {Path(path).name} needs `{executable}` on PATH: "
+                f"aligning {Path(path).name} needs `{self.executable}` on PATH: "
                 + MFA_INSTALL_HINT.format(model=model)
             )
         with tempfile.TemporaryDirectory(prefix="an-mfa-") as tmp:
-            corpus, out = Path(tmp) / "corpus", Path(tmp) / "aligned"
+            corpus = Path(tmp) / Path(tmp).name  # unique: MFA's workspace name
+            out = Path(tmp) / "aligned"
             corpus.mkdir()
-            stem = "take"
-            shutil.copyfile(path, corpus / f"{stem}{Path(path).suffix or '.wav'}")
-            (corpus / f"{stem}.lab").write_text(text, encoding="utf-8")
-            argv = [executable, "align", str(corpus), model, model, str(out),
-                    "--clean", "--single_speaker"]  # fmt: skip
-            proc = runner(argv, capture_output=True, check=False)
-            grid = out / f"{stem}.TextGrid"
+            shutil.copyfile(path, corpus / f"{MFA_TAKE_STEM}.wav")
+            (corpus / f"{MFA_TAKE_STEM}.lab").write_text(text, encoding="utf-8")
+            argv = [self.executable, self.command, str(corpus), model, model,
+                    str(out), "--clean", "--single_speaker"]  # fmt: skip
+            proc = (self.run or subprocess.run)(argv, capture_output=True, check=False)
+            grid = out / f"{MFA_TAKE_STEM}.TextGrid"
             if getattr(proc, "returncode", 1) != 0 or not grid.exists():
-                said = getattr(proc, "stderr", b"") or b""
-                said = said.decode(errors="replace") if isinstance(said, bytes) else str(said)
-                raise TranscriberUnavailableError(
-                    f"`{executable} align` could not align {Path(path).name}: "
-                    f"{said.strip()[-400:] or 'no TextGrid written'}. "
-                    + MFA_INSTALL_HINT.format(model=model)
+                said = b"".join(
+                    x if isinstance(x, bytes) else str(x).encode()
+                    for x in (getattr(proc, "stdout", b""), getattr(proc, "stderr", b""))
+                    if x
+                ).decode(errors="replace")
+                raise AlignmentError(
+                    f"`{self.executable} {self.command}` could not align "
+                    f"{Path(path).name} with its transcript: "
+                    f"{said.strip()[-400:] or 'no TextGrid written'}. Check the "
+                    "transcript is what is said; a long take aligns better cut "
+                    "into one file per line"
                 )
             return parse_textgrid(grid.read_text(encoding="utf-8"))
 
-    align.phone_alphabet = alphabet  # type: ignore[attr-defined]
-    return align
+
+def mfa_aligner(**options: Any) -> MfaAligner:
+    """:class:`MfaAligner` with ``options`` (``alphabet``, ``executable``,
+    ``command``, ``run``)."""
+    return MfaAligner(**options)
+
+
+#: The aligners ``an voices import --aligner NAME[:ALPHABET]`` builds.
+ALIGNERS: Mapping[str, Callable[..., Aligner]] = {"mfa": mfa_aligner}
+
+
+def aligner_named(spec: str) -> Aligner:
+    """The aligner ``spec`` names: ``NAME`` or ``NAME:ALPHABET`` (``mfa:ipa``).
+
+    >>> aligner_named("mfa:ipa").phone_alphabet
+    'ipa'
+    """
+    name, _, alphabet = spec.partition(":")
+    if name not in ALIGNERS:
+        raise RecordedVoicesError(
+            f"no aligner {name!r}; known: {sorted(ALIGNERS)} "
+            f"(with an alphabet: {', '.join(f'{name}:{a}' for a in MFA_MODELS)})"
+        )
+    return ALIGNERS[name](**({"alphabet": alphabet} if alphabet else {}))
 
 
 def scribed_transcriber(
@@ -1021,11 +1070,22 @@ def _timed_segments(
     transcribe: Transcriber | None,
     make_transcriber: Callable[[], Transcriber],
     align: Aligner | None = None,
+    wav: bytes | None = None,
 ) -> tuple[list[TranscriptSegment], str]:
     """The lines of the take at ``path``, each with its span in the file, and
-    how the words were obtained (``'srt'``, ``'asr'``, ``'plain+asr'``, ``'file'``,
-    and with an aligner ``'plain+align'``/``'file+align'``: a plain transcript
-    timed by the aligner, words and phones, an#637)."""
+    how the words were obtained: the transcript's kind (``'srt'``, ``'txt'``,
+    ...), ``'asr'``, ``'<kind>+asr'`` for a plain transcript timed by the
+    transcriber, ``'file'`` for one line, or ``'<kind>+align'`` for a plain
+    transcript timed by the forced aligner, words and phones (an#637; ``wav``
+    is the take as decoded, which the aligner is given). An aligner with no
+    plain transcript is refused: it has no text to align."""
+    if align is not None and (given is None or all(s.timed for s in given[0] if s.text)):
+        raise RecordedVoicesError(
+            f"{path.name}: an aligner times a PLAIN transcript (`speaker: text` "
+            "lines), and this take has "
+            + ("none" if given is None else "a timed one, whose times are kept")
+            + "; give its plain transcript with --transcript, or drop --aligner"
+        )
     if given is None:
         segments = list((transcribe or make_transcriber())(path))
         timed = sorted(
@@ -1056,7 +1116,10 @@ def _timed_segments(
             f"the transcript for {path.name} times some lines and not others; time all or none"
         )
     if align is not None:
-        return _aligned_lines(path, segments, total, align), f"{kind}+align"
+        return (
+            _aligned_lines(path, segments, total=total, align=align, wav=wav),
+            f"{kind}+align",
+        )
     if len(segments) == 1:
         seg = segments[0]
         return [
@@ -1079,12 +1142,28 @@ def _timed_segments(
 
 
 def _aligned_lines(
-    path: Path, lines: Sequence[TranscriptSegment], total: float, align: Aligner
+    path: Path,
+    lines: Sequence[TranscriptSegment],
+    *,
+    total: float,
+    align: Aligner,
+    wav: bytes | None,
 ) -> list[TranscriptSegment]:
     """A plain transcript's ``lines`` timed by a forced aligner (an#637): its
     words time the lines as a transcriber's would (:func:`segment_lines`), and
-    each line keeps the phones that fall in its span. One line spans the file."""
-    aligned = list(align(path, " ".join(line.text for line in lines)))
+    each line keeps the phones that fall in its span. One line spans the file.
+    The aligner is given ``wav`` (the take as decoded, denoised included: the
+    samples that are cut) as a WAV file, any format the import read."""
+    import tempfile
+
+    text = " ".join(line.text for line in lines)
+    if wav is None:
+        aligned = list(align(path, text))
+    else:
+        with tempfile.TemporaryDirectory(prefix="an-align-") as tmp:
+            decoded = Path(tmp) / f"{path.stem}.wav"
+            decoded.write_bytes(wav)
+            aligned = list(align(decoded, text))
     words = [w for s in aligned for w in (s.words or ())]
     phones = [p for s in aligned for p in (s.phones or ())]
     if not words:
@@ -1513,6 +1592,7 @@ def import_recordings(
             transcribe=transcribe,
             make_transcriber=make_transcriber,
             align=align,
+            wav=wav,
         )
         spans = cut_spans(segments, total=total)
         previous_end: float | None = None
