@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=01f68ffb"></script>
+    <script src="../_static/documentation_options.js?v=a58e0be2"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.352" />
+  <meta name="docsearch:version" content="0.1.353" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -738,58 +738,61 @@ mall). It reads only.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.camera_keys" title="an.stage.compile.camera_keys"><code class="xref py py-obj docutils literal notranslate"><span class="pre">camera_keys</span></code></a>(shot, *, width, height)</p></td>
 <td><p><a class="reference internal" href="an.ir.camera.html#an.ir.camera.camera_keys" title="an.ir.camera.camera_keys"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.ir.camera.camera_keys()</span></code></a>, with its refusal typed for this adapter.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.compile_passes_for_stage" title="an.stage.compile.compile_passes_for_stage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compile_passes_for_stage</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.compile_as_rendered" title="an.stage.compile.compile_as_rendered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compile_as_rendered</span></code></a>(shot, scene, mall, *, fps)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">shot</span></code> compiled as <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span></code> compiles it: <code class="docutils literal notranslate"><span class="pre">(document,</span> <span class="pre">None)</span></code>, <code class="docutils literal notranslate"><span class="pre">(None,</span> <span class="pre">the</span> <span class="pre">compile</span> <span class="pre">error)</span></code>, or <code class="docutils literal notranslate"><span class="pre">(None,</span> <span class="pre">None)</span></code> for a shot the stage does not render (an#636, moved from <a class="reference internal" href="an.verify.constraints.html#module-an.verify.constraints" title="an.verify.constraints"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.verify.constraints</span></code></a>).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.compile_passes_for_stage" title="an.stage.compile.compile_passes_for_stage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compile_passes_for_stage</span></code></a>()</p></td>
 <td><p>The stage's passes and every registered one, in run order (stable by name).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.compile_shot" title="an.stage.compile.compile_shot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compile_shot</span></code></a>(shot[, mall, fps, width, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.compile_shot" title="an.stage.compile.compile_shot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compile_shot</span></code></a>(shot[, mall, fps, width, ...])</p></td>
 <td><p>Compile a single cutout-style <code class="code docutils literal notranslate"><span class="pre">Shot</span></code> to its JS-runtime JSON form.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.duplicate_paths" title="an.stage.compile.duplicate_paths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">duplicate_paths</span></code></a>(root[, overlay])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.duplicate_paths" title="an.stage.compile.duplicate_paths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">duplicate_paths</span></code></a>(root[, overlay])</p></td>
 <td><p>Paths the runtime would index twice (its <code class="docutils literal notranslate"><span class="pre">nodeIndex</span></code> is later-wins, so the first node would silently stop answering).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.entity_spaces_of" title="an.stage.compile.entity_spaces_of"><code class="xref py py-obj docutils literal notranslate"><span class="pre">entity_spaces_of</span></code></a>(shot)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.entity_spaces_of" title="an.stage.compile.entity_spaces_of"><code class="xref py py-obj docutils literal notranslate"><span class="pre">entity_spaces_of</span></code></a>(shot)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{entity</span> <span class="pre">id:</span> <span class="pre">space}</span></code> for each entity whose kind declares a space other than the kernel default -- what the compiled document records so the default evaluator agrees with validate and compile (an#245).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.foreground_node_name" title="an.stage.compile.foreground_node_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">foreground_node_name</span></code></a>(entity_id)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.foreground_node_name" title="an.stage.compile.foreground_node_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">foreground_node_name</span></code></a>(entity_id)</p></td>
 <td><p>The node name an environment's foreground planes live under.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.node_path_suggestions" title="an.stage.compile.node_path_suggestions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">node_path_suggestions</span></code></a>(target, paths, *[, n])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.node_path_suggestions" title="an.stage.compile.node_path_suggestions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">node_path_suggestions</span></code></a>(target, paths, *[, n])</p></td>
 <td><p>The built node paths a mistyped <code class="docutils literal notranslate"><span class="pre">target</span></code> most plausibly meant.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.note_raster_rig" title="an.stage.compile.note_raster_rig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">note_raster_rig</span></code></a>(entity, desc_data, pack, raster)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.note_raster_rig" title="an.stage.compile.note_raster_rig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">note_raster_rig</span></code></a>(entity, desc_data, pack, raster)</p></td>
 <td><p>Record a rig with raster parts that a colour-setting pack is applied to.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.paint_orders" title="an.stage.compile.paint_orders"><code class="xref py py-obj docutils literal notranslate"><span class="pre">paint_orders</span></code></a>(keys)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.paint_orders" title="an.stage.compile.paint_orders"><code class="xref py py-obj docutils literal notranslate"><span class="pre">paint_orders</span></code></a>(keys)</p></td>
 <td><p>The order (back to front) of the entities in <code class="docutils literal notranslate"><span class="pre">keys</span></code> (<code class="docutils literal notranslate"><span class="pre">{id:</span> <span class="pre">[(time,</span> <span class="pre">key)]}</span></code>, each key in force from its time on, a smaller key painted first) at each time any key changes.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.parse_tint" title="an.stage.compile.parse_tint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_tint</span></code></a>(value, *, where)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.parse_tint" title="an.stage.compile.parse_tint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_tint</span></code></a>(value, *, where)</p></td>
 <td><p>A <code class="code docutils literal notranslate"><span class="pre">#rrggbb</span></code> string to three multipliers in 0..1.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.plane_parents" title="an.stage.compile.plane_parents"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plane_parents</span></code></a>(env, entity_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.plane_parents" title="an.stage.compile.plane_parents"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plane_parents</span></code></a>(env, entity_id)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{plane</span> <span class="pre">name:</span> <span class="pre">the</span> <span class="pre">node</span> <span class="pre">path</span> <span class="pre">its</span> <span class="pre">channels</span> <span class="pre">must</span> <span class="pre">target}</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.retire_front_spelling" title="an.stage.compile.retire_front_spelling"><code class="xref py py-obj docutils literal notranslate"><span class="pre">retire_front_spelling</span></code></a>(shot)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.retire_front_spelling" title="an.stage.compile.retire_front_spelling"><code class="xref py py-obj docutils literal notranslate"><span class="pre">retire_front_spelling</span></code></a>(shot)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">shot</span></code> with every <code class="docutils literal notranslate"><span class="pre">&lt;env&gt;__front/&lt;plane&gt;</span></code> target spelled <code class="docutils literal notranslate"><span class="pre">&lt;env&gt;/&lt;plane&gt;</span></code>, and the <code class="docutils literal notranslate"><span class="pre">(old,</span> <span class="pre">new)</span></code> pairs rewritten.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.scene_builders" title="an.stage.compile.scene_builders"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scene_builders</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.scene_builders" title="an.stage.compile.scene_builders"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scene_builders</span></code></a>()</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{entity</span> <span class="pre">kind:</span> <span class="pre">builder}</span></code>: the stage's, and every registered one.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.space_definitions" title="an.stage.compile.space_definitions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">space_definitions</span></code></a>(entity_spaces)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.space_definitions" title="an.stage.compile.space_definitions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">space_definitions</span></code></a>(entity_spaces)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{space</span> <span class="pre">name:</span> <span class="pre">definition}</span></code> for every space <code class="docutils literal notranslate"><span class="pre">entity_spaces</span></code> names -- what the compiled document embeds as <code class="docutils literal notranslate"><span class="pre">meta.spaces</span></code> so <code class="docutils literal notranslate"><span class="pre">runtime.js</span></code> evaluates each declared entity in its space (an#287).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.stage_replacements" title="an.stage.compile.stage_replacements"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stage_replacements</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.stage_replacements" title="an.stage.compile.stage_replacements"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stage_replacements</span></code></a>()</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{stage</span> <span class="pre">pass</span> <span class="pre">or</span> <span class="pre">builder:</span> <span class="pre">the</span> <span class="pre">genre</span> <span class="pre">replacing</span> <span class="pre">it}</span></code> -- recorded in the compiled document's <code class="docutils literal notranslate"><span class="pre">meta.extensions</span></code> when non-empty.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.step_times" title="an.stage.compile.step_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">step_times</span></code></a>(start, duration, step_hz)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.step_times" title="an.stage.compile.step_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">step_times</span></code></a>(start, duration, step_hz)</p></td>
 <td><p>Clip-local times at which a stepped tween updates its pose (an#89).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.style_pack_for" title="an.stage.compile.style_pack_for"><code class="xref py py-obj docutils literal notranslate"><span class="pre">style_pack_for</span></code></a>(scene_meta, styles_store)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.style_pack_for" title="an.stage.compile.style_pack_for"><code class="xref py py-obj docutils literal notranslate"><span class="pre">style_pack_for</span></code></a>(scene_meta, styles_store)</p></td>
 <td><p>The <code class="code docutils literal notranslate"><span class="pre">StylePack</span></code> a scene declares, or <code class="docutils literal notranslate"><span class="pre">None</span></code> (an#112).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.unknown_target_message" title="an.stage.compile.unknown_target_message"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unknown_target_message</span></code></a>(target, paths)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.unknown_target_message" title="an.stage.compile.unknown_target_message"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unknown_target_message</span></code></a>(target, paths)</p></td>
 <td><p>One sentence saying <code class="docutils literal notranslate"><span class="pre">target</span></code> is not a built node, with suggestions.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.z_index_keys" title="an.stage.compile.z_index_keys"><code class="xref py py-obj docutils literal notranslate"><span class="pre">z_index_keys</span></code></a>(names, keys)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.z_index_keys" title="an.stage.compile.z_index_keys"><code class="xref py py-obj docutils literal notranslate"><span class="pre">z_index_keys</span></code></a>(names, keys)</p></td>
 <td><p>Each keyed child's <code class="docutils literal notranslate"><span class="pre">z_index</span></code> from each time it changes (an#634), in one container whose children are <code class="docutils literal notranslate"><span class="pre">names</span></code>: within each run of keyed children (<code class="xref py py-func docutils literal notranslate"><span class="pre">_keyed_runs()</span></code>), at every time a key changes, they take the run's places in key order (<a class="reference internal" href="#an.stage.compile.paint_orders" title="an.stage.compile.paint_orders"><code class="xref py py-func docutils literal notranslate"><span class="pre">paint_orders()</span></code></a>); every other child keeps its own place.</p></td>
 </tr>
 </tbody>
@@ -1171,6 +1174,27 @@ own boundary contract: every failure out of <code class="code docutils literal n
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="an.ir.schema.html#an.ir.schema.CameraKey" title="an.ir.schema.CameraKey"><code class="xref py py-class docutils literal notranslate"><span class="pre">CameraKey</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.compile.compile_as_rendered">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">compile_as_rendered</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scene</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/compile.html#compile_as_rendered"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.compile.compile_as_rendered" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">shot</span></code> compiled as <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span></code> compiles it: <code class="docutils literal notranslate"><span class="pre">(document,</span> <span class="pre">None)</span></code>,
+<code class="docutils literal notranslate"><span class="pre">(None,</span> <span class="pre">the</span> <span class="pre">compile</span> <span class="pre">error)</span></code>, or <code class="docutils literal notranslate"><span class="pre">(None,</span> <span class="pre">None)</span></code> for a shot the stage
+does not render (an#636, moved from <a class="reference internal" href="an.verify.constraints.html#module-an.verify.constraints" title="an.verify.constraints"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.verify.constraints</span></code></a>).</p>
+<p><code class="docutils literal notranslate"><span class="pre">scene</span></code> gives the resolution, the step grid (the shot’s, else the
+scene’s), the default easing and the <strong>style pack</strong> the render uses
+(<a class="reference internal" href="#an.stage.compile.style_pack_for" title="an.stage.compile.style_pack_for"><code class="xref py py-func docutils literal notranslate"><span class="pre">style_pack_for()</span></code></a>; a pack that cannot be read compiles as none, the
+style check reports it): the <code class="docutils literal notranslate"><span class="pre">solve</span></code> pass reads the pack’s gravity and
+damping, so a document compiled without it is a different solve (an#534).
+The compiler’s warnings are the render’s, not the caller’s, and are
+silenced. What every compile-based validate check reads, once per shot
+(<a class="reference internal" href="an.verify.constraints.html#an.verify.constraints.compile_outcome" title="an.verify.constraints.compile_outcome"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.verify.constraints.compile_outcome()</span></code></a> memoises it).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference internal" href="an.stage.serialize.html#an.stage.serialize.CutoutSceneJSON" title="an.stage.serialize.CutoutSceneJSON"><code class="xref py py-class docutils literal notranslate"><span class="pre">CutoutSceneJSON</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span>, <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#Exception" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span>]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1609,6 +1633,7 @@ its own place. Only a child whose place changes gets keys.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.boil_keys"><code class="docutils literal notranslate"><span class="pre">boil_keys()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.camera_follow_keys"><code class="docutils literal notranslate"><span class="pre">camera_follow_keys()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.camera_keys"><code class="docutils literal notranslate"><span class="pre">camera_keys()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.compile_as_rendered"><code class="docutils literal notranslate"><span class="pre">compile_as_rendered()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.compile_passes_for_stage"><code class="docutils literal notranslate"><span class="pre">compile_passes_for_stage()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.compile_shot"><code class="docutils literal notranslate"><span class="pre">compile_shot()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.duplicate_paths"><code class="docutils literal notranslate"><span class="pre">duplicate_paths()</span></code></a></li>

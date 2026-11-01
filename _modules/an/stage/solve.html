@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=01f68ffb"></script>
+    <script src="../../../_static/documentation_options.js?v=a58e0be2"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.352" />
+  <meta name="docsearch:version" content="0.1.353" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -817,6 +817,50 @@ window.runMermaid = runMermaid;</script>
 <span class="n">SAME_VALUE</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"x"</span><span class="p">:</span> <span class="mf">1e-5</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">:</span> <span class="mf">1e-5</span><span class="p">,</span> <span class="s2">"rotation"</span><span class="p">:</span> <span class="mf">1e-6</span><span class="p">}</span>
 <span class="c1">#: The same, for a held item's scale (a factor).</span>
 <span class="n">SAME_SCALE</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-6</span>
+<span class="c1">#: How far each solved channel's emitted keys may stray from the solve at any</span>
+<span class="c1">#: frame, in px (an#636); a rotation's is this at the puppet's whole reach</span>
+<span class="c1">#: (every body's box end to end). The errors add along a chain: a point moves</span>
+<span class="c1">#: at most this × (√2 for the root's x and y + one per rotating body above</span>
+<span class="c1">#: it) × its scale, a few thousandths of a px, far under the joints' own</span>
+<span class="c1">#: tolerance (:data:`an.verify.joints.JOINT_TOLERANCE_PX`, 0.25). At this</span>
+<span class="c1">#: tolerance only stretches that are already straight (still, or moving</span>
+<span class="c1">#: evenly) lose their keys; curved motion keeps them (compacting it within the</span>
+<span class="c1">#: joint budget is the rest of an#636).</span>
+<span class="n">SOLVED_KEY_TOLERANCE_PX</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-3</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">compact_keys</span><span class="p">(</span>
+    <span class="n">times</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">values</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">tolerance</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">stepped</span><span class="p">:</span> <span class="nb">bool</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The indices of the keys of a sampled channel worth keeping (an#636):</span>
+<span class="sd">    the first, the last, and those the keys kept around them do not already</span>
+<span class="sd">    reproduce within ``tolerance`` at every sample (linear easing, by</span>
+<span class="sd">    Douglas-Peucker), or, for a ``stepped`` channel, each that changes value.</span>
+
+<span class="sd">    &gt;&gt;&gt; compact_keys([0, 1, 2, 3, 4], [0.0, 1.0, 2.0, 3.0, 3.0], tolerance=0.1, stepped=False)</span>
+<span class="sd">    [0, 3, 4]</span>
+<span class="sd">    &gt;&gt;&gt; compact_keys([0, 1, 2, 3], [5.0, 5.0, 6.0, 6.0], tolerance=0.0, stepped=True)</span>
+<span class="sd">    [0, 2, 3]</span>
+<span class="sd">    """</span>
+    <span class="n">last</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">last</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)))</span>
+    <span class="k">if</span> <span class="n">stepped</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">last</span><span class="p">)</span> <span class="k">if</span> <span class="n">values</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">!=</span> <span class="n">values</span><span class="p">[</span><span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]]</span> <span class="o">+</span> <span class="p">[</span><span class="n">last</span><span class="p">]</span>
+    <span class="n">keep</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">,</span> <span class="n">last</span><span class="p">}</span>
+    <span class="n">spans</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="n">last</span><span class="p">)]</span>
+    <span class="k">while</span> <span class="n">spans</span><span class="p">:</span>
+        <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">spans</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+        <span class="n">worst</span><span class="p">,</span> <span class="n">at</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
+            <span class="n">u</span> <span class="o">=</span> <span class="p">(</span><span class="n">times</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">-</span> <span class="n">times</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">times</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">-</span> <span class="n">times</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">err</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">u</span> <span class="o">*</span> <span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">-</span> <span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">-</span> <span class="n">values</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">err</span> <span class="o">&gt;</span> <span class="n">worst</span><span class="p">:</span>
+                <span class="n">worst</span><span class="p">,</span> <span class="n">at</span> <span class="o">=</span> <span class="n">err</span><span class="p">,</span> <span class="n">k</span>
+        <span class="k">if</span> <span class="n">at</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">worst</span> <span class="o">&gt;</span> <span class="n">tolerance</span><span class="p">:</span>
+            <span class="n">keep</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">at</span><span class="p">)</span>
+            <span class="n">spans</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="n">at</span><span class="p">),</span> <span class="p">(</span><span class="n">at</span><span class="p">,</span> <span class="n">j</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">keep</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="UnknownBodyError">
@@ -2672,6 +2716,24 @@ window.runMermaid = runMermaid;</script>
     <span class="n">clips</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">emitted</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
     <span class="n">index</span> <span class="o">=</span> <span class="p">{</span><span class="n">prop</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">prop</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">SOLVED_CHANNELS</span><span class="p">)}</span>
+    <span class="n">reach</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+        <span class="mf">1.0</span><span class="p">,</span> <span class="nb">sum</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">b</span><span class="o">.</span><span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">puppet</span><span class="o">.</span><span class="n">bodies</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="p">)</span>
+    <span class="n">tolerance</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">"x"</span><span class="p">:</span> <span class="n">SOLVED_KEY_TOLERANCE_PX</span><span class="p">,</span>
+        <span class="s2">"y"</span><span class="p">:</span> <span class="n">SOLVED_KEY_TOLERANCE_PX</span><span class="p">,</span>
+        <span class="s2">"rotation"</span><span class="p">:</span> <span class="n">SOLVED_KEY_TOLERANCE_PX</span> <span class="o">/</span> <span class="n">reach</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">keyframes</span><span class="p">(</span><span class="n">vs</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">prop</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+        <span class="n">kept</span> <span class="o">=</span> <span class="n">compact_keys</span><span class="p">(</span>
+            <span class="n">run</span><span class="o">.</span><span class="n">times</span><span class="p">,</span> <span class="n">vs</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="n">tolerance</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">stepped</span><span class="o">=</span><span class="n">stepped</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">KeyframeJSON</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="n">_q</span><span class="p">(</span><span class="n">run</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="mf">1e-9</span><span class="p">),</span> <span class="n">value</span><span class="o">=</span><span class="n">vs</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">easing</span><span class="o">=</span><span class="n">easing</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">kept</span>
+        <span class="p">]</span>
+
     <span class="k">for</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">prop</span><span class="p">),</span> <span class="n">vs</span> <span class="ow">in</span> <span class="n">values</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">quantum</span> <span class="o">=</span> <span class="n">ANGLE_QUANTUM</span> <span class="k">if</span> <span class="n">prop</span> <span class="o">==</span> <span class="s2">"rotation"</span> <span class="k">else</span> <span class="n">POSITION_QUANTUM</span>
         <span class="n">qs</span> <span class="o">=</span> <span class="p">[</span><span class="n">_q</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">quantum</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">vs</span><span class="p">]</span>
@@ -2680,14 +2742,7 @@ window.runMermaid = runMermaid;</script>
             <span class="k">continue</span>  <span class="c1"># the solve leaves it where the document already has it</span>
         <span class="n">root</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">clips</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-            <span class="n">ChannelJSON</span><span class="p">(</span>
-                <span class="n">target</span><span class="o">=</span><span class="n">path</span><span class="p">,</span>
-                <span class="nb">property</span><span class="o">=</span><span class="n">prop</span><span class="p">,</span>
-                <span class="n">keyframes</span><span class="o">=</span><span class="p">[</span>
-                    <span class="n">KeyframeJSON</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="n">_q</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mf">1e-9</span><span class="p">),</span> <span class="n">value</span><span class="o">=</span><span class="n">v</span><span class="p">,</span> <span class="n">easing</span><span class="o">=</span><span class="n">easing</span><span class="p">)</span>
-                    <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">run</span><span class="o">.</span><span class="n">times</span><span class="p">,</span> <span class="n">qs</span><span class="p">)</span>
-                <span class="p">],</span>
-            <span class="p">)</span>
+            <span class="n">ChannelJSON</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="nb">property</span><span class="o">=</span><span class="n">prop</span><span class="p">,</span> <span class="n">keyframes</span><span class="o">=</span><span class="n">keyframes</span><span class="p">(</span><span class="n">qs</span><span class="p">,</span> <span class="n">prop</span><span class="p">))</span>
         <span class="p">)</span>
         <span class="n">emitted</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="n">path</span><span class="p">,</span> <span class="n">prop</span><span class="p">))</span>
     <span class="k">for</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">prop</span><span class="p">),</span> <span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="n">shown</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">((</span><span class="n">extra</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>

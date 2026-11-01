@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=01f68ffb"></script>
+    <script src="../../../_static/documentation_options.js?v=a58e0be2"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.352" />
+  <meta name="docsearch:version" content="0.1.353" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1054,6 +1054,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">recorded_by</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
     <span class="n">transcriber</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
     <span class="n">diarize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">aligner</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
     <span class="n">scene</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_SCENE_FILE</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Import a performer's recording as the voice of its lines: each line is cut out,</span>
@@ -1072,9 +1073,12 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    recorded_by: who recorded the take (the performer), for the credits</span>
 <span class="sd">    transcriber: the scribed backend when a take must be transcribed (default: scribed's default)</span>
 <span class="sd">    diarize: ask the transcriber for speaker labels (map them with --speakers)</span>
+<span class="sd">    aligner: time a plain transcript with a forced aligner, words and phones (for lip-sync): `mfa` (Montreal Forced Aligner, ARPAbet) or `mfa:ipa`</span>
 <span class="sd">    scene: the scene file whose lines the takes voice (default scene.md; for example scene.studio.md)</span>
 <span class="sd">    """</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.recorded</span><span class="w"> </span><span class="kn">import</span> <span class="n">DFLT_DENOISE</span><span class="p">,</span> <span class="n">import_recordings</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.recorded</span><span class="w"> </span><span class="kn">import</span> <span class="n">DFLT_DENOISE</span><span class="p">,</span> <span class="n">aligner_named</span><span class="p">,</span> <span class="n">import_recordings</span>
+
+    <span class="n">align</span> <span class="o">=</span> <span class="n">aligner_named</span><span class="p">(</span><span class="n">aligner</span><span class="p">)</span> <span class="k">if</span> <span class="n">aligner</span> <span class="k">else</span> <span class="kc">None</span>
 
     <span class="n">report</span> <span class="o">=</span> <span class="n">import_recordings</span><span class="p">(</span>
         <span class="n">project</span><span class="p">,</span>
@@ -1089,6 +1093,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">recorded_by</span><span class="o">=</span><span class="n">recorded_by</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">transcriber</span><span class="o">=</span><span class="n">transcriber</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">diarize</span><span class="o">=</span><span class="n">diarize</span><span class="p">,</span>
+        <span class="n">align</span><span class="o">=</span><span class="n">align</span><span class="p">,</span>
         <span class="n">scene_file</span><span class="o">=</span><span class="n">scene</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">report</span><span class="p">)</span></div>

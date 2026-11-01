@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=01f68ffb"></script>
+    <script src="../_static/documentation_options.js?v=a58e0be2"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.352" />
+  <meta name="docsearch:version" content="0.1.353" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -759,7 +759,7 @@ lip-sync consistency are not built.</p>
 <td><p>The entities that vanish and return with nothing to explain it.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.verify.constraints.compile_outcome" title="an.verify.constraints.compile_outcome"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compile_outcome</span></code></a>(ctx)</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">ctx.shot</span></code> compiled as <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span></code> compiles it, once per validation: <code class="docutils literal notranslate"><span class="pre">(document,</span> <span class="pre">None)</span></code>, <code class="docutils literal notranslate"><span class="pre">(None,</span> <span class="pre">the</span> <span class="pre">compile</span> <span class="pre">error)</span></code>, or <code class="docutils literal notranslate"><span class="pre">(None,</span> <span class="pre">None)</span></code> for a shot the stage does not render.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ctx.shot</span></code> compiled as <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span></code> compiles it (<a class="reference internal" href="an.stage.compile.html#an.stage.compile.compile_as_rendered" title="an.stage.compile.compile_as_rendered"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.stage.compile.compile_as_rendered()</span></code></a>), once per validation: the stores validate was given stand in for the mall and the frame rate is the render's when <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span> <span class="pre">--fps</span></code> says.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.verify.constraints.compiled_shot" title="an.verify.constraints.compiled_shot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compiled_shot</span></code></a>(ctx)</p></td>
 <td><p>The document of <a class="reference internal" href="#an.verify.constraints.compile_outcome" title="an.verify.constraints.compile_outcome"><code class="xref py py-func docutils literal notranslate"><span class="pre">compile_outcome()</span></code></a>, <code class="docutils literal notranslate"><span class="pre">None</span></code> for a shot the stage does not render or that does not compile.</p></td>
@@ -1013,15 +1013,11 @@ a finding on the shot already says it (<code class="xref py py-func docutils lit
 <dl class="py function">
 <dt class="sig sig-object py" id="an.verify.constraints.compile_outcome">
 <span class="sig-prename descclassname"><span class="pre">an.verify.constraints.</span></span><span class="sig-name descname"><span class="pre">compile_outcome</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/verify/constraints.html#compile_outcome"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.verify.constraints.compile_outcome" title="Link to this definition">#</a></dt>
-<dd><p><code class="docutils literal notranslate"><span class="pre">ctx.shot</span></code> compiled as <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span></code> compiles it, once per validation:
-<code class="docutils literal notranslate"><span class="pre">(document,</span> <span class="pre">None)</span></code>, <code class="docutils literal notranslate"><span class="pre">(None,</span> <span class="pre">the</span> <span class="pre">compile</span> <span class="pre">error)</span></code>, or <code class="docutils literal notranslate"><span class="pre">(None,</span> <span class="pre">None)</span></code> for
-a shot the stage does not render.</p>
-<p>The stores validate was given stand in for the mall; the scene’s frame rate
-(the render’s when <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span> <span class="pre">--fps</span></code> says), resolution, step grid,
-default easing and <strong>style pack</strong> are the ones the render uses, so what is
-linted is the document that is drawn: the <code class="docutils literal notranslate"><span class="pre">solve</span></code> pass reads the pack’s
-gravity and damping, and a document compiled without them is a different
-solve (an#534). Every compile-based check reads this one document.</p>
+<dd><p><code class="docutils literal notranslate"><span class="pre">ctx.shot</span></code> compiled as <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span></code> compiles it
+(<a class="reference internal" href="an.stage.compile.html#an.stage.compile.compile_as_rendered" title="an.stage.compile.compile_as_rendered"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.stage.compile.compile_as_rendered()</span></code></a>), once per validation: the
+stores validate was given stand in for the mall and the frame rate is the
+render’s when <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span> <span class="pre">--fps</span></code> says. Every compile-based check reads
+this one document.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span>, <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#Exception" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span>]</span></p>

@@ -409,7 +409,7 @@ The default TTS provider: `OfflineTTS`.
 * **Return type:**
   [`TTSProvider`](an.audio.tts.html.md#an.audio.tts.TTSProvider)
 
-### an.audio.import_recordings(project, audio, , transcript=None, speaker=None, speakers=None, shot=None, voice=None, denoise=None, license=None, recorded_by=None, transcribe=None, transcriber=None, diarize=False, match_threshold=0.75, write=True, scene_file='scene.md')
+### an.audio.import_recordings(project, audio, , transcript=None, speaker=None, speakers=None, shot=None, voice=None, denoise=None, license=None, recorded_by=None, transcribe=None, transcriber=None, diarize=False, align=None, match_threshold=0.75, write=True, scene_file='scene.md')
 
 Import a performer’s recording(s) as the voice of their lines (an#490).
 
@@ -432,6 +432,9 @@ gap heard between two lines of one file becomes the later line’s `pause`.
 ffmpeg. `transcribe` is the transcriber seam (`path -> segments`); its
 default is `scribed_transcriber()` with `transcriber` as the backend
 and `diarize` for speaker labels, built only when a take needs it.
+`align` is the forced-aligner seam (`(path, text) -> segments`, e.g.
+`mfa_aligner()`, an#637): with a plain transcript it times the lines
+instead of a transcriber, and gives their phones, as a TextGrid would.
 `write=False` runs everything but writes nothing (a dry run).
 `scene_file` imports into another scene of the project
 (`scene.studio.md`, an#554).

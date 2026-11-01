@@ -67,7 +67,7 @@ abc  Ada  (accent=british)
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.audio.cli.import_recorded(project, audio, transcript='', speaker='', speakers='', shot='', voice='', denoise=False, license='', recorded_by='', transcriber='', diarize=False, scene='scene.md')
+### an.audio.cli.import_recorded(project, audio, transcript='', speaker='', speakers='', shot='', voice='', denoise=False, license='', recorded_by='', transcriber='', diarize=False, aligner='', scene='scene.md')
 
 Import a performer’s recording as the voice of its lines: each line is cut out,
 matched to the scene’s dialogue (or added to –shot), stored with its provenance,
@@ -85,6 +85,7 @@ license: REQUIRED — the licence or permission code you vouch for (cc0-1.0, cc-
 recorded_by: who recorded the take (the performer), for the credits
 transcriber: the scribed backend when a take must be transcribed (default: scribed’s default)
 diarize: ask the transcriber for speaker labels (map them with –speakers)
+aligner: time a plain transcript with a forced aligner, words and phones (for lip-sync): `mfa` (Montreal Forced Aligner, ARPAbet) or `mfa:ipa`
 scene: the scene file whose lines the takes voice (default scene.md; for example scene.studio.md)
 
 * **Return type:**

@@ -66,6 +66,7 @@ mall). It reads only.
 | [`boil_keys`](#an.stage.compile.boil_keys)(hz, drawings, duration)                | `(time, drawing)` of a boil: drawing `k mod drawings` from `k / hz`, every step of the shot (an#443).                                                                                                                                                                                                                                             |
 | [`camera_follow_keys`](#an.stage.compile.camera_follow_keys)(state)                        | The keys of `state.shot`'s follow camera, one per frame (an#445).                                                                                                                                                                                                                                                                                 |
 | [`camera_keys`](#an.stage.compile.camera_keys)(shot, \*, width, height)             | [`an.ir.camera.camera_keys()`](an.ir.camera.html.md#an.ir.camera.camera_keys), with its refusal typed for this adapter.                                                                                                                                                                                                    |
+| [`compile_as_rendered`](#an.stage.compile.compile_as_rendered)(shot, scene, mall, \*, fps)  | `shot` compiled as `an render` compiles it: `(document, None)`, `(None, the compile error)`, or `(None, None)` for a shot the stage does not render (an#636, moved from [`an.verify.constraints`](an.verify.constraints.html.md#module-an.verify.constraints)).                                                                     |
 | [`compile_passes_for_stage`](#an.stage.compile.compile_passes_for_stage)()                       | The stage's passes and every registered one, in run order (stable by name).                                                                                                                                                                                                                                                                       |
 | [`compile_shot`](#an.stage.compile.compile_shot)(shot[, mall, fps, width, ...])      | Compile a single cutout-style `Shot` to its JS-runtime JSON form.                                                                                                                                                                                                                                                                                 |
 | [`duplicate_paths`](#an.stage.compile.duplicate_paths)(root[, overlay])                 | Paths the runtime would index twice (its `nodeIndex` is later-wins, so the first node would silently stop answering).                                                                                                                                                                                                                             |
@@ -374,6 +375,24 @@ own boundary contract: every failure out of `compile_shot` is one type.
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`CameraKey`](an.ir.schema.html.md#an.ir.schema.CameraKey)]
+
+### an.stage.compile.compile_as_rendered(shot, scene, mall, , fps)
+
+`shot` compiled as `an render` compiles it: `(document, None)`,
+`(None, the compile error)`, or `(None, None)` for a shot the stage
+does not render (an#636, moved from [`an.verify.constraints`](an.verify.constraints.html.md#module-an.verify.constraints)).
+
+`scene` gives the resolution, the step grid (the shot’s, else the
+scene’s), the default easing and the **style pack** the render uses
+([`style_pack_for()`](#an.stage.compile.style_pack_for); a pack that cannot be read compiles as none, the
+style check reports it): the `solve` pass reads the pack’s gravity and
+damping, so a document compiled without it is a different solve (an#534).
+The compiler’s warnings are the render’s, not the caller’s, and are
+silenced. What every compile-based validate check reads, once per shot
+([`an.verify.constraints.compile_outcome()`](an.verify.constraints.html.md#an.verify.constraints.compile_outcome) memoises it).
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`CutoutSceneJSON`](an.stage.serialize.html.md#an.stage.serialize.CutoutSceneJSON) | [`None`](https://docs.python.org/3/builtins/constants.html#None), [`Exception`](https://docs.python.org/3/builtins/exceptions.html#Exception) | [`None`](https://docs.python.org/3/builtins/constants.html#None)]
 
 ### an.stage.compile.compile_passes_for_stage()
 

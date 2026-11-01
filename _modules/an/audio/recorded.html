@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=01f68ffb"></script>
+    <script src="../../../_static/documentation_options.js?v=a58e0be2"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.352" />
+  <meta name="docsearch:version" content="0.1.353" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -780,7 +780,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">MutableMapping</span><span class="p">,</span> <span class="n">Sequence</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">NamedTuple</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">NamedTuple</span><span class="p">,</span> <span class="n">Protocol</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.transcripts</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">TranscriptSegment</span><span class="p">,</span>
@@ -910,6 +910,10 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<span class="k">class</span><span class="w"> </span><span class="nc">AlignmentError</span><span class="p">(</span><span class="n">RecordedVoicesError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A forced aligner ran and could not align a take with its text (an#637)."""</span>
+
+
 <span class="c1"># --- the store's front door -----------------------------------------------------</span>
 
 
@@ -1031,6 +1035,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">words</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">WordTiming</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">imported_at</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">phones</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">WordTiming</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">phone_alphabet</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Put a take (WAV ``audio`` of ``speaker`` saying ``text``, spoken for</span>
 <span class="sd">    ``voice``) in ``store`` with its provenance; ``(key, record)``.</span>
@@ -1058,6 +1063,8 @@ window.runMermaid = runMermaid;</script>
         <span class="s2">"sha256"</span><span class="p">:</span> <span class="n">digest</span><span class="p">,</span>
         <span class="s2">"words"</span><span class="p">:</span> <span class="n">_timings</span><span class="p">(</span><span class="n">words</span><span class="p">),</span>
         <span class="o">**</span><span class="p">({</span><span class="s2">"phones"</span><span class="p">:</span> <span class="n">_timings</span><span class="p">(</span><span class="n">phones</span><span class="p">)}</span> <span class="k">if</span> <span class="n">phones</span> <span class="k">else</span> <span class="p">{}),</span>  <span class="c1"># an#491</span>
+        <span class="c1"># the alphabet the phones are in, when the aligner said (an#637)</span>
+        <span class="o">**</span><span class="p">({</span><span class="s2">"phone_alphabet"</span><span class="p">:</span> <span class="n">phone_alphabet</span><span class="p">}</span> <span class="k">if</span> <span class="n">phones</span> <span class="ow">and</span> <span class="n">phone_alphabet</span> <span class="k">else</span> <span class="p">{}),</span>
         <span class="s2">"source"</span><span class="p">:</span> <span class="n">source</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">exclude_none</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
         <span class="s2">"imported_at"</span><span class="p">:</span> <span class="n">imported_at</span>
         <span class="ow">or</span> <span class="n">_dt</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">_dt</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(</span><span class="n">timespec</span><span class="o">=</span><span class="s2">"microseconds"</span><span class="p">),</span>
@@ -1387,6 +1394,127 @@ window.runMermaid = runMermaid;</script>
 
 <span class="c1">#: ``path -&gt; segments``: what the ``transcribe`` seam takes.</span>
 <span class="n">Transcriber</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Path</span><span class="p">],</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">TranscriptSegment</span><span class="p">]]</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Aligner</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""What the ``align`` seam takes (an#637): a forced aligner, which times a</span>
+<span class="sd">    KNOWN ``text`` against the audio at ``path`` (a WAV) and gives each</span>
+<span class="sd">    segment's words and phones, as a TextGrid with a ``phones`` tier would.</span>
+<span class="sd">    ``phone_alphabet`` (``"arpabet"``, ``"ipa"``, ``None`` unknown) is stored</span>
+<span class="sd">    beside the phones on the take's record."""</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">phone_alphabet</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">TranscriptSegment</span><span class="p">]:</span> <span class="o">...</span>
+
+
+<span class="c1">#: The Montreal Forced Aligner's English models (an#637): one pronouncing</span>
+<span class="c1">#: dictionary and acoustic model per phone alphabet, both named the same.</span>
+<span class="n">MFA_MODELS</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"arpabet"</span><span class="p">:</span> <span class="s2">"english_us_arpa"</span><span class="p">,</span> <span class="s2">"ipa"</span><span class="p">:</span> <span class="s2">"english_mfa"</span><span class="p">}</span>
+<span class="n">DFLT_MFA_ALPHABET</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"arpabet"</span>
+<span class="c1">#: MFA 3's alignment subcommand (4.0 renames it ``align_legacy``): a keyword</span>
+<span class="c1">#: of :func:`mfa_aligner`, so a newer MFA is a keyword away.</span>
+<span class="n">DFLT_MFA_COMMAND</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"align"</span>
+<span class="c1">#: The file stem the take and its text get in MFA's one-file corpus.</span>
+<span class="n">MFA_TAKE_STEM</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"take"</span>
+<span class="c1">#: How MFA is installed, and its models fetched: said when it is not found.</span>
+<span class="n">MFA_INSTALL_HINT</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"install the Montreal Forced Aligner (`conda install -c conda-forge "</span>
+    <span class="s2">"montreal-forced-aligner`, https://montreal-forced-aligner.readthedocs.io) and "</span>
+    <span class="s2">"its English model (`mfa model download acoustic </span><span class="si">{model}</span><span class="s2">` and `mfa model "</span>
+    <span class="s2">"download dictionary </span><span class="si">{model}</span><span class="s2">`), or give a TextGrid with a phones tier"</span>
+<span class="p">)</span>
+
+
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MfaAligner</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""An :class:`Aligner` that runs the Montreal Forced Aligner as a tool</span>
+<span class="sd">    (an#637): the take (a WAV) and its text as a one-file corpus in a folder of</span>
+<span class="sd">    its own name (MFA names its working directory after the corpus folder, so</span>
+<span class="sd">    two imports never share one), ``mfa align`` with the English model of</span>
+<span class="sd">    ``alphabet`` (:data:`MFA_MODELS`), and the TextGrid it writes read back</span>
+<span class="sd">    (:func:`an.audio.transcripts.parse_textgrid`), words and phones. It runs</span>
+<span class="sd">    where the recordings are (the user's machine): nothing is downloaded here.</span>
+<span class="sd">    ``run`` is the subprocess seam (``subprocess.run``'s signature).</span>
+
+<span class="sd">    &gt;&gt;&gt; MfaAligner(alphabet="ipa").phone_alphabet</span>
+<span class="sd">    'ipa'</span>
+<span class="sd">    """</span>
+
+    <span class="n">alphabet</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_MFA_ALPHABET</span>
+    <span class="n">executable</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"mfa"</span>
+    <span class="n">command</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_MFA_COMMAND</span>
+    <span class="n">run</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">MFA_MODELS</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">RecordedVoicesError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"no MFA model for the phone alphabet </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="si">!r}</span><span class="s2">; "</span>
+                <span class="sa">f</span><span class="s2">"known: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">MFA_MODELS</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">phone_alphabet</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">TranscriptSegment</span><span class="p">]:</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.transcripts</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_textgrid</span>
+
+        <span class="n">model</span> <span class="o">=</span> <span class="n">MFA_MODELS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">run</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">executable</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">TranscriberUnavailableError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"aligning </span><span class="si">{</span><span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> needs `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">executable</span><span class="si">}</span><span class="s2">` on PATH: "</span>
+                <span class="o">+</span> <span class="n">MFA_INSTALL_HINT</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">"an-mfa-"</span><span class="p">)</span> <span class="k">as</span> <span class="n">tmp</span><span class="p">:</span>
+            <span class="n">corpus</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span> <span class="o">/</span> <span class="n">Path</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span><span class="o">.</span><span class="n">name</span>  <span class="c1"># unique: MFA's workspace name</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span> <span class="o">/</span> <span class="s2">"aligned"</span>
+            <span class="n">corpus</span><span class="o">.</span><span class="n">mkdir</span><span class="p">()</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">copyfile</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">corpus</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">MFA_TAKE_STEM</span><span class="si">}</span><span class="s2">.wav"</span><span class="p">)</span>
+            <span class="p">(</span><span class="n">corpus</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">MFA_TAKE_STEM</span><span class="si">}</span><span class="s2">.lab"</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+            <span class="n">argv</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">executable</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">corpus</span><span class="p">),</span> <span class="n">model</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span>
+                    <span class="nb">str</span><span class="p">(</span><span class="n">out</span><span class="p">),</span> <span class="s2">"--clean"</span><span class="p">,</span> <span class="s2">"--single_speaker"</span><span class="p">]</span>  <span class="c1"># fmt: skip</span>
+            <span class="n">proc</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">run</span> <span class="ow">or</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">)(</span><span class="n">argv</span><span class="p">,</span> <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">grid</span> <span class="o">=</span> <span class="n">out</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">MFA_TAKE_STEM</span><span class="si">}</span><span class="s2">.TextGrid"</span>
+            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">proc</span><span class="p">,</span> <span class="s2">"returncode"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">grid</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="n">said</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="n">x</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
+                    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">proc</span><span class="p">,</span> <span class="s2">"stdout"</span><span class="p">,</span> <span class="sa">b</span><span class="s2">""</span><span class="p">),</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">proc</span><span class="p">,</span> <span class="s2">"stderr"</span><span class="p">,</span> <span class="sa">b</span><span class="s2">""</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">x</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">errors</span><span class="o">=</span><span class="s2">"replace"</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">AlignmentError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"`</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">executable</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="si">}</span><span class="s2">` could not align "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> with its transcript: "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">said</span><span class="o">.</span><span class="n">strip</span><span class="p">()[</span><span class="o">-</span><span class="mi">400</span><span class="p">:]</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'no TextGrid written'</span><span class="si">}</span><span class="s2">. Check the "</span>
+                    <span class="s2">"transcript is what is said; a long take aligns better cut "</span>
+                    <span class="s2">"into one file per line"</span>
+                <span class="p">)</span>
+            <span class="k">return</span> <span class="n">parse_textgrid</span><span class="p">(</span><span class="n">grid</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">))</span>
+
+
+<span class="c1">#: The name the seam's MFA aligner was first given (an#637).</span>
+<span class="n">mfa_aligner</span> <span class="o">=</span> <span class="n">MfaAligner</span>
+
+<span class="c1">#: The aligners ``an voices import --aligner NAME[:ALPHABET]`` builds.</span>
+<span class="n">ALIGNERS</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Aligner</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"mfa"</span><span class="p">:</span> <span class="n">MfaAligner</span><span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">aligner_named</span><span class="p">(</span><span class="n">spec</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Aligner</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The aligner ``spec`` names: ``NAME`` or ``NAME:ALPHABET`` (``mfa:ipa``).</span>
+
+<span class="sd">    &gt;&gt;&gt; aligner_named("mfa:ipa").phone_alphabet</span>
+<span class="sd">    'ipa'</span>
+<span class="sd">    """</span>
+    <span class="n">name</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">alphabet</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">":"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ALIGNERS</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">RecordedVoicesError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"no aligner </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">; known: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">ALIGNERS</span><span class="p">)</span><span class="si">}</span><span class="s2"> "</span>
+            <span class="sa">f</span><span class="s2">"(with an alphabet: </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">:</span><span class="si">{</span><span class="n">a</span><span class="si">}</span><span class="s1">'</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">MFA_MODELS</span><span class="p">)</span><span class="si">}</span><span class="s2">)"</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">ALIGNERS</span><span class="p">[</span><span class="n">name</span><span class="p">](</span><span class="o">**</span><span class="p">({</span><span class="s2">"alphabet"</span><span class="p">:</span> <span class="n">alphabet</span><span class="p">}</span> <span class="k">if</span> <span class="n">alphabet</span> <span class="k">else</span> <span class="p">{}))</span>
 
 
 <div class="viewcode-block" id="scribed_transcriber">
@@ -1520,6 +1648,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">transcript_kind</span><span class="p">:</span> <span class="nb">str</span>
     <span class="c1">#: the take's phone timings, clip-relative, when the transcript had them (an#491)</span>
     <span class="n">phones</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">WordTiming</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: the alphabet those phones are in, when the aligner said (an#637)</span>
+    <span class="n">phone_alphabet</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="c1">#: silence heard between the previous take of the same file and this one</span>
     <span class="n">gap_before</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="c1">#: the linked transcript artifact it was cut by (``&lt;store&gt;/&lt;key&gt;``, an#493)</span>
@@ -1717,9 +1847,24 @@ window.runMermaid = runMermaid;</script>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">transcribe</span><span class="p">:</span> <span class="n">Transcriber</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">make_transcriber</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="n">Transcriber</span><span class="p">],</span>
+    <span class="n">align</span><span class="p">:</span> <span class="n">Aligner</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">wav</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">TranscriptSegment</span><span class="p">],</span> <span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""The lines of the take at ``path``, each with its span in the file, and</span>
-<span class="sd">    how the words were obtained (``'srt'``, ``'asr'``, ``'plain+asr'``, ``'file'``)."""</span>
+<span class="sd">    how the words were obtained: the transcript's kind (``'srt'``, ``'txt'``,</span>
+<span class="sd">    ...), ``'asr'``, ``'&lt;kind&gt;+asr'`` for a plain transcript timed by the</span>
+<span class="sd">    transcriber, ``'file'`` for one line, or ``'&lt;kind&gt;+align'`` for a plain</span>
+<span class="sd">    transcript timed by the forced aligner, words and phones (an#637; ``wav``</span>
+<span class="sd">    is the take as decoded, which the aligner is given). An aligner with no</span>
+<span class="sd">    plain transcript is refused: it has no text to align."""</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">given</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">text</span><span class="p">]</span> <span class="k">if</span> <span class="n">given</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">align</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">given</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="n">lines</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">timed</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">))):</span>
+        <span class="k">raise</span> <span class="n">RecordedVoicesError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: an aligner times a PLAIN transcript (`speaker: text` "</span>
+            <span class="s2">"lines), and this take has "</span>
+            <span class="o">+</span> <span class="p">(</span><span class="s2">"none"</span> <span class="k">if</span> <span class="n">given</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">"a timed one, whose times are kept"</span><span class="p">)</span>
+            <span class="o">+</span> <span class="s2">"; give its plain transcript with --transcript, or drop --aligner"</span>
+        <span class="p">)</span>
     <span class="k">if</span> <span class="n">given</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">segments</span> <span class="o">=</span> <span class="nb">list</span><span class="p">((</span><span class="n">transcribe</span> <span class="ow">or</span> <span class="n">make_transcriber</span><span class="p">())(</span><span class="n">path</span><span class="p">))</span>
         <span class="n">timed</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
@@ -1749,6 +1894,11 @@ window.runMermaid = runMermaid;</script>
         <span class="k">raise</span> <span class="n">RecordedVoicesError</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"the transcript for </span><span class="si">{</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> times some lines and not others; time all or none"</span>
         <span class="p">)</span>
+    <span class="k">if</span> <span class="n">align</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">_aligned_lines</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">segments</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="n">total</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="n">align</span><span class="p">,</span> <span class="n">wav</span><span class="o">=</span><span class="n">wav</span><span class="p">),</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s2">+align"</span><span class="p">,</span>
+        <span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">segments</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">seg</span> <span class="o">=</span> <span class="n">segments</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">return</span> <span class="p">[</span>
@@ -1768,6 +1918,59 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"cannot be timed by it — pick a backend with word timestamps, or give an SRT/VTT"</span>
         <span class="p">)</span>
     <span class="k">return</span> <span class="n">segment_lines</span><span class="p">(</span><span class="n">segments</span><span class="p">,</span> <span class="n">words</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">total</span><span class="p">)),</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s2">+asr"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_aligned_lines</span><span class="p">(</span>
+    <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">lines</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">TranscriptSegment</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">total</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">align</span><span class="p">:</span> <span class="n">Aligner</span><span class="p">,</span>
+    <span class="n">wav</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">TranscriptSegment</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""A plain transcript's ``lines`` timed by a forced aligner (an#637): its</span>
+<span class="sd">    words time the lines as a transcriber's would (:func:`segment_lines`), and</span>
+<span class="sd">    each line keeps the phones that fall in its span. One line spans the file.</span>
+<span class="sd">    The aligner is given ``wav`` (the take as decoded, denoised included: the</span>
+<span class="sd">    samples that are cut) as a WAV file, any format the import read."""</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+
+    <span class="n">text</span> <span class="o">=</span> <span class="s2">" "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">text</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">wav</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">aligned</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">align</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">text</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">"an-align-"</span><span class="p">)</span> <span class="k">as</span> <span class="n">tmp</span><span class="p">:</span>
+            <span class="n">decoded</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="o">.</span><span class="n">stem</span><span class="si">}</span><span class="s2">.wav"</span>
+            <span class="n">decoded</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">wav</span><span class="p">)</span>
+            <span class="n">aligned</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">align</span><span class="p">(</span><span class="n">decoded</span><span class="p">,</span> <span class="n">text</span><span class="p">))</span>
+    <span class="n">words</span> <span class="o">=</span> <span class="p">[</span><span class="n">w</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">aligned</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">words</span> <span class="ow">or</span> <span class="p">())]</span>
+    <span class="n">phones</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">aligned</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">phones</span> <span class="ow">or</span> <span class="p">())]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">words</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">RecordedVoicesError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"the aligner returned no word timings for </span><span class="si">{</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">; check the transcript "</span>
+            <span class="s2">"is what is said, or give a TextGrid"</span>
+        <span class="p">)</span>
+    <span class="n">timed</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">[</span><span class="n">TranscriptSegment</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">total</span><span class="p">,</span>
+                           <span class="n">speaker</span><span class="o">=</span><span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">speaker</span><span class="p">,</span> <span class="n">words</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">words</span><span class="p">))]</span>  <span class="c1"># fmt: skip</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="k">else</span> <span class="n">segment_lines</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="n">words</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">total</span><span class="p">))</span>
+    <span class="p">)</span>
+    <span class="n">eps</span> <span class="o">=</span> <span class="mf">1e-6</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="n">TranscriptSegment</span><span class="p">(</span>
+            <span class="n">text</span><span class="o">=</span><span class="n">seg</span><span class="o">.</span><span class="n">text</span><span class="p">,</span>
+            <span class="n">start</span><span class="o">=</span><span class="n">seg</span><span class="o">.</span><span class="n">start</span><span class="p">,</span>
+            <span class="n">end</span><span class="o">=</span><span class="n">seg</span><span class="o">.</span><span class="n">end</span><span class="p">,</span>
+            <span class="n">speaker</span><span class="o">=</span><span class="n">seg</span><span class="o">.</span><span class="n">speaker</span><span class="p">,</span>
+            <span class="n">words</span><span class="o">=</span><span class="n">seg</span><span class="o">.</span><span class="n">words</span><span class="p">,</span>
+            <span class="n">phones</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span>
+                <span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">phones</span> <span class="k">if</span> <span class="n">seg</span><span class="o">.</span><span class="n">start</span> <span class="o">-</span> <span class="n">eps</span> <span class="o">&lt;=</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">and</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">seg</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">eps</span>
+            <span class="p">)</span>
+            <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">seg</span> <span class="ow">in</span> <span class="n">timed</span>
+    <span class="p">]</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_speaker_of</span><span class="p">(</span>
@@ -2106,6 +2309,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">transcribe</span><span class="p">:</span> <span class="n">Transcriber</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">transcriber</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">diarize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">align</span><span class="p">:</span> <span class="n">Aligner</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">match_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_MATCH_THRESHOLD</span><span class="p">,</span>
     <span class="n">write</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">scene_file</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">DEFAULT_SCENE_FILE</span><span class="p">,</span>
@@ -2131,6 +2335,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    ffmpeg. ``transcribe`` is the transcriber seam (``path -&gt; segments``); its</span>
 <span class="sd">    default is :func:`scribed_transcriber` with ``transcriber`` as the backend</span>
 <span class="sd">    and ``diarize`` for speaker labels, built only when a take needs it.</span>
+<span class="sd">    ``align`` is the forced-aligner seam (``(path, text) -&gt; segments``, e.g.</span>
+<span class="sd">    :func:`mfa_aligner`, an#637): with a plain transcript it times the lines</span>
+<span class="sd">    instead of a transcriber, and gives their phones, as a TextGrid would.</span>
 <span class="sd">    ``write=False`` runs everything but writes nothing (a dry run).</span>
 <span class="sd">    ``scene_file`` imports into another scene of the project</span>
 <span class="sd">    (``scene.studio.md``, an#554).</span>
@@ -2165,6 +2372,8 @@ window.runMermaid = runMermaid;</script>
             <span class="n">given</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">path</span><span class="p">),</span>
             <span class="n">transcribe</span><span class="o">=</span><span class="n">transcribe</span><span class="p">,</span>
             <span class="n">make_transcriber</span><span class="o">=</span><span class="n">make_transcriber</span><span class="p">,</span>
+            <span class="n">align</span><span class="o">=</span><span class="n">align</span><span class="p">,</span>
+            <span class="n">wav</span><span class="o">=</span><span class="n">wav</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">spans</span> <span class="o">=</span> <span class="n">cut_spans</span><span class="p">(</span><span class="n">segments</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="n">total</span><span class="p">)</span>
         <span class="n">previous_end</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
@@ -2183,6 +2392,9 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">wav</span><span class="o">=</span><span class="n">clip</span><span class="p">,</span>
                 <span class="n">words</span><span class="o">=</span><span class="n">rebase_words</span><span class="p">(</span><span class="n">segment</span><span class="o">.</span><span class="n">words</span><span class="p">,</span> <span class="n">a</span><span class="p">),</span>
                 <span class="n">phones</span><span class="o">=</span><span class="n">rebase_words</span><span class="p">(</span><span class="n">segment</span><span class="o">.</span><span class="n">phones</span><span class="p">,</span> <span class="n">a</span><span class="p">),</span>
+                <span class="n">phone_alphabet</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">align</span><span class="p">,</span> <span class="s2">"phone_alphabet"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">align</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">segment</span><span class="o">.</span><span class="n">phones</span>
+                <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
                 <span class="n">speaker</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                 <span class="n">transcript_kind</span><span class="o">=</span><span class="n">kind</span><span class="p">,</span>
                 <span class="n">transcript_ref</span><span class="o">=</span><span class="n">given</span><span class="p">[</span><span class="n">path</span><span class="p">]</span><span class="o">.</span><span class="n">ref</span> <span class="k">if</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">given</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
@@ -2249,6 +2461,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span>
                 <span class="n">words</span><span class="o">=</span><span class="n">take</span><span class="o">.</span><span class="n">words</span><span class="p">,</span>
                 <span class="n">phones</span><span class="o">=</span><span class="n">take</span><span class="o">.</span><span class="n">phones</span><span class="p">,</span>
+                <span class="n">phone_alphabet</span><span class="o">=</span><span class="n">take</span><span class="o">.</span><span class="n">phone_alphabet</span><span class="p">,</span>
                 <span class="n">imported_at</span><span class="o">=</span><span class="n">stamp</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="n">duration</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s2">"duration"</span><span class="p">])</span>
