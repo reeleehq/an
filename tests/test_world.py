@@ -2374,9 +2374,9 @@ def test_member_shot_sizes_read_a_kind_s_hook_and_say_what_cannot_be_used(monkey
     got = member_shot_sizes(scene.world, {}, extents=EXTENTS, problems=problems)
     assert got == {"right": {"close_up": (0.0, 0.6)}}
     assert seen["right"] == EXTENTS["right"]
-    assert "raised KeyError" in problems["left"]
-    for said in ("'medium'", "'wide'", "'full'", "'closeup' is not a shot size"):
-        assert said in problems["right"], problems["right"]
+    assert "raised KeyError" in problems["left"]["*"]
+    assert sorted(problems["right"]) == ["closeup", "full", "medium", "wide"]
+    assert "'closeup' is not a shot size" in problems["right"]["closeup"]
 
 
 def test_a_rig_s_own_close_up_reaches_the_lowered_shot_and_a_dropped_one_is_noted(
@@ -2407,6 +2407,12 @@ def test_a_rig_s_own_close_up_reaches_the_lowered_shot_and_a_dropped_one_is_note
     noted = lower_scene(lamp_scene(), {}, continues=False)
     assert [n.entity for n in noted.notes if n.kind == "shot_size"] == ["right"]
     assert placed(noted) == table
+    # a bad band for ANOTHER size says nothing about this close-up
+    _prop_kind_with(
+        monkeypatch, lambda m, mall, box: {"close_up": (0.0, 0.6), "medium": (0.9, 0.1)}
+    )
+    other = lower_scene(lamp_scene(), {}, continues=False)
+    assert not [n for n in other.notes if n.kind == "shot_size"]
 
 
 def test_the_shot_size_hook_is_genre_code_the_shot_cache_digests():
