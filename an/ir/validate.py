@@ -501,9 +501,7 @@ def _check_trim_targets(
                 )
 
 
-def rig_scope(
-    shot: Any, stores: Mapping[str, Any]
-) -> tuple[dict[str, Any], set[str]]:
+def rig_scope(shot: Any, stores: Mapping[str, Any]) -> tuple[dict[str, Any], set[str]]:
     """``(rigged entities by id, ids whose rig store was not supplied)``: which
     of ``shot``'s entities a rig check can read, public for a genre's own
     checks (reeleehq/cutan#148, ``an.genres.API_LEVEL`` 13). An entity is
