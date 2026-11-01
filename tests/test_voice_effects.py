@@ -171,14 +171,35 @@ def test_the_chain_is_stock_ffmpeg_and_duration_neutral():
     [{}, {"tempo": 1.25}, {"tempo": 0.5}, {"pitch_semitones": 0.01},
      {"pitch_semitones": -12}, {"pitch_semitones": 4, "tempo": 2.0}],
 )  # fmt: skip
-def test_the_tempo_cut_is_decided_from_the_effects_and_agrees_with_the_chain(effects):
-    """an#622: whether the output is cut to ``input / tempo`` (an#350) is read
-    from the effects, not from a substring of the chain mixing builds; the two
-    still agree, so no line's bytes change."""
+def test_the_chain_mixing_builds_retimes_exactly_when_the_effects_do(effects):
+    """an#622: the tempo cut (an#350) is decided from the effects; this guards
+    mixing's side, so the decision and the chain's ``atempo`` stages agree and
+    no line's bytes change."""
     from an.audio.effects import _retimes
 
     e = normalize_effects(effects)
     assert _retimes(e) == ("atempo=" in filter_chain(e))
+
+
+@pytest.mark.parametrize(
+    "effects, cut",
+    [({"tempo": 1.25}, 1.25), ({"pitch_semitones": 3}, 1.0),
+     ({"pitch_semitones": -2, "tempo": 0.8}, 0.8), ({"trim_silence": True}, None)],
+)  # fmt: skip
+def test_the_caller_states_the_tempo_cut_from_the_effects(monkeypatch, effects, cut):
+    """an#622: ``apply_voice_effects`` hands ``_ffmpeg_wav`` the cut it decided
+    from the effects (``None``: a decode, never cut), whatever the chain says."""
+    from an.audio import effects as fx
+
+    seen = []
+
+    def fake(audio, chain, *, cut_to_tempo=None):
+        seen.append(cut_to_tempo)
+        return _sine_wav()
+
+    monkeypatch.setattr(fx, "_ffmpeg_wav", fake)
+    fx.apply_voice_effects(b"ID3 not a wav", normalize_effects(effects))
+    assert seen == [cut]
 
 
 def test_validate_flags_an_invalid_effect_on_a_used_voice():

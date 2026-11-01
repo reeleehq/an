@@ -197,7 +197,7 @@ def test_the_trim_runs_after_a_pitch_or_tempo_chain(monkeypatch, effect, filt):
     source = b"ID3 an mp3 from a provider"
     chains = []
 
-    def fake_chain(audio, chain, fx):  # ffmpeg, played by a padded tone
+    def fake_chain(audio, chain, *, cut_to_tempo=None):  # ffmpeg, a padded tone
         assert audio == source  # the chain gets the provider's bytes
         chains.append(chain)
         return _padded_tone()
