@@ -217,7 +217,9 @@ def compile_as_rendered(
     except Exception:  # noqa: BLE001 - a broken pack is the style check's to report
         pack = None
     res = scene.meta.resolution
-    step_hz = shot.step_hz if shot.step_hz is not None else scene.meta.step_hz
+    from an.ir.schema import resolve_step_hz
+
+    step_hz = resolve_step_hz(shot, scene.meta.step_hz)
     try:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")  # the render's warnings, not validate's

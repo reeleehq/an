@@ -103,14 +103,15 @@ REACH_SOURCE: str = "reach"
 SAME_VALUE: dict[str, float] = {"x": 1e-5, "y": 1e-5, "rotation": 1e-6}
 #: The same, for a held item's scale (a factor).
 SAME_SCALE: float = 1e-6
-#: How far a solved channel's emitted keys may stray from the solve at any
-#: frame, in px (an#636): far under the joints' own tolerance
-#: (:data:`an.verify.joints.JOINT_TOLERANCE_PX`, 0.25), so dropping keys spends
-#: none of what the solve and the checks share, and only stretches that are
-#: already straight (still, or moving evenly) lose their keys: a dynamic shot
-#: keeps about a third of them. A rotation's is this at the puppet's whole
-#: reach (every body's box end to end, a bound on how far any point is from a
-#: pivot it turns about), so no point of it strays further.
+#: How far each solved channel's emitted keys may stray from the solve at any
+#: frame, in px (an#636); a rotation's is this at the puppet's whole reach
+#: (every body's box end to end). The errors add along a chain: a point moves
+#: at most this × (√2 for the root's x and y + one per rotating body above
+#: it) × its scale, a few thousandths of a px, far under the joints' own
+#: tolerance (:data:`an.verify.joints.JOINT_TOLERANCE_PX`, 0.25). At this
+#: tolerance only stretches that are already straight (still, or moving
+#: evenly) lose their keys; curved motion keeps them (compacting it within the
+#: joint budget is the rest of an#636).
 SOLVED_KEY_TOLERANCE_PX: float = 1e-3
 
 

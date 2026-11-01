@@ -706,7 +706,8 @@ def test_solved_keys_are_compacted_where_the_solve_is_already_straight(
     """an#636 (item 2): a dynamic shot's solved channels drop the keys that
     linear interpolation already reproduces within `SOLVED_KEY_TOLERANCE_PX`
     (a still or evenly moving stretch), and the drawn hand is where the
-    uncompacted document puts it at every frame, within that tolerance."""
+    uncompacted document puts it at every frame, within that tolerance summed
+    down the arm's chain (√2 for the root's x and y, one per rotating body)."""
     import an.stage.solve as solve
     from an.stage.solve import SOLVE_CLIP_PREFIX, SOLVED_KEY_TOLERANCE_PX
 
@@ -738,4 +739,5 @@ def test_solved_keys_are_compacted_where_the_solve_is_already_straight(
     assert keys(compact) < keys(full) / 2, (keys(compact), keys(full))
     for t in _times(2.0):
         a, b = _hand_and_grip(compact, t)[0], _hand_and_grip(full, t)[0]
-        assert math.dist(a, b) <= 3 * SOLVED_KEY_TOLERANCE_PX, (t, a, b)
+        chain = math.sqrt(2.0) + 3  # torso, upper arm, forearm
+        assert math.dist(a, b) <= chain * SOLVED_KEY_TOLERANCE_PX, (t, a, b)
