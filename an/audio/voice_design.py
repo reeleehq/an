@@ -1297,7 +1297,7 @@ def voice_casting(
 
 
 def _project_stores(project_dir: str | Path):
-    from an.stores._common import JsonDirStore
+    from an.stores import JsonDirStore
     from an.stores.artifacts import _BlobStore
     from an.stores.voices import VoicesStore
 
@@ -1307,7 +1307,7 @@ def _project_stores(project_dir: str | Path):
     root = Path(project_dir)
     return (
         VoicesStore(root / "assets" / "voices"),
-        JsonDirStore(root / OPTIONS_DIR),
+        JsonDirStore(root / OPTIONS_DIR, create=False),  # no empty folder on a read
         _Mp3Store(root / SAMPLES_DIR),
     )
 
