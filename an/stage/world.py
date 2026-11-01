@@ -105,6 +105,44 @@ def native_box(
     )
 
 
+def member_bands(
+    world: World | None, mall: Mapping[str, Mapping] | None
+) -> dict[str, dict[str, tuple[float, float]]]:
+    """``{member id: {shot size: (top, bottom)}}`` for every positioned member
+    whose kind gives its own bands (:attr:`an.genres.EntityKind.shot_sizes`,
+    reeleehq/cutan#106): what :func:`an.ir.world.resolve_viewpoint` frames a
+    size by, instead of :data:`an.ir.schema.SHOT_SIZES`. A band outside
+    ``0 <= top < bottom <= 1``, or a hook that raises, is not used (the
+    table's applies): a genre's landmark that cannot be read never moves the
+    camera somewhere arbitrary.
+
+    >>> member_bands(None, {})
+    {}
+    """
+    from an.genres.registry import entity_kind
+
+    out: dict[str, dict[str, tuple[float, float]]] = {}
+    if world is None:
+        return out
+    for member in world.members:
+        kind = entity_kind(member.kind)
+        hook = getattr(kind, "shot_sizes", None) if kind is not None else None
+        if hook is None or member.at is None:
+            continue
+        try:
+            given = dict(hook(member, mall) or {})
+        except Exception:  # noqa: BLE001 - a genre that cannot say gives no band
+            continue
+        sane = {
+            size: (float(top), float(bottom))
+            for size, (top, bottom) in given.items()
+            if 0.0 <= float(top) < float(bottom) <= 1.0
+        }
+        if sane:
+            out[member.id] = sane
+    return out
+
+
 def member_extents(
     world: World | None,
     mall: Mapping[str, Mapping] | None,
@@ -351,6 +389,7 @@ def _lower_world(
         fps=fps,
         extent_problems=problems,
         plane_geometry=plane_geometry(scene.world, mall),
+        bands=member_bands(scene.world, mall),
     )
 
 

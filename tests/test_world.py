@@ -2311,3 +2311,49 @@ def test_a_keyed_pair_out_of_order_is_explained_by_its_keys():
     assert "where it first shows" not in keyed
     ((_, plain),) = depth_order_problems([ref("a"), ref("b")], times, depths, whole)
     assert "the world orders each member by its depth where it first shows" in plain
+
+
+def test_a_kind_s_own_shot_size_band_frames_its_close_up():
+    """reeleehq/cutan#106: a subject whose rig puts the close-up band lower
+    (a big-headed build: the chin at 0.6 of its height, not 0.35) is framed
+    from farther, so the band still fills the frame; a subject with no band of
+    its own, or a size the band does not give, keeps `SHOT_SIZES`'."""
+    from an.ir.world import resolve_viewpoint
+
+    scene = _two_lamps_scene(timeline=[Shot(id="s", duration=1.0, viewpoint="right_cu")])
+    world = scene.world
+
+    def distance(**kw):
+        eye = resolve_viewpoint(world, "right_cu", extents=EXTENTS, width=W, height=H, **kw)
+        return 2.0 - eye.at[2]  # `right` stands 2 deep, the camera in front of it
+
+    table = distance()  # here the lamp's WIDTH binds: 0.4 units at 0.9 of 320 px
+    # the band binds: 0.6 of the lamp's 0.8 units filling 0.9 of 240 px at focal 300
+    own = distance(bands={"right": {"close_up": (0.0, 0.6)}})
+    assert own == pytest.approx(300.0 * 0.6 * 0.8 / (0.9 * 240.0)) and own > table
+    assert distance(bands={"left": {"close_up": (0.0, 0.6)}}) == table  # not the subject
+    assert distance(bands={"right": {"medium": (0.0, 0.7)}}) == table  # not this size
+
+
+def test_member_bands_read_a_kind_s_hook_and_drop_what_cannot_be_used(monkeypatch):
+    """reeleehq/cutan#106: `member_bands` asks each member's entity kind
+    (`EntityKind.shot_sizes`); a band outside 0 <= top < bottom <= 1 or a hook
+    that raises gives nothing, and a kind with no hook stays on the table."""
+    import an.genres.registry as registry
+    from an.genres.registry import EntityKind
+    from an.stage.world import member_bands
+
+    scene = _two_lamps_scene()
+
+    def bands(member, mall):
+        if member.id == "left":
+            raise KeyError("no head bone")
+        return {"close_up": (0.0, 0.6), "medium": (0.7, 0.2)}
+
+    monkeypatch.setattr(
+        registry, "entity_kind",
+        lambda name: EntityKind(name=name, shot_sizes=bands) if name == "prop" else None,
+    )  # fmt: skip
+    assert member_bands(scene.world, {}) == {"right": {"close_up": (0.0, 0.6)}}
+    monkeypatch.setattr(registry, "entity_kind", lambda name: EntityKind(name=name))
+    assert member_bands(scene.world, {}) == {}

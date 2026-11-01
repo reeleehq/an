@@ -464,8 +464,9 @@ DFLT_FOV_DEG: float = 50.0
 #: ADR 0009): ``name: (top, bottom, fill)``. ``top``/``bottom`` are the band of
 #: the subject's box the frame shows, as fractions of its height from the top
 #: (``0.35``: head and shoulders; ``0.55``: the waist); ``fill`` is how much of
-#: the frame's height that band fills. A genre may later supply landmarks from
-#: its rig (a seam, not built); until then these are human proportions.
+#: the frame's height that band fills. These are human proportions; a genre
+#: gives a kind's own bands from its rig (``EntityKind.shot_sizes``,
+#: reeleehq/cutan#106), and ``fill`` is always this table's.
 SHOT_SIZES: dict[str, tuple[float, float, float]] = {
     "wide": (0.0, 1.0, 0.5),
     "full": (0.0, 1.0, 0.9),
