@@ -44,7 +44,9 @@ from typing import Any, Callable, Protocol
 from an.base import (
     DEFAULT_RESOLUTION,
     PAINT_KEYS_OVERRIDE,
+    paint_key_items,
     paint_key_rank,
+    rider_host_key,
     PLANE_REST_VALUES,
     TRANSFORM_PROPERTIES,
     TRIM_PROPERTIES,
@@ -1281,11 +1283,6 @@ def _keyed_runs(names: Sequence[str], opening: Mapping[str, Any]) -> list[list[i
     return runs
 
 
-def _sort_key(key: Any) -> Any:
-    """A paint key as it sorts (a JSON list read back is a tuple)."""
-    return tuple(key) if isinstance(key, list) else key
-
-
 def z_index_keys(
     names: Sequence[str], keys: Mapping[str, Sequence[tuple[float, Any]]]
 ) -> dict[str, list[tuple[float, int]]]:
@@ -1325,11 +1322,11 @@ def _beside_their_hosts(
     """
     mine = {n: keys[n] for n in names if n in keys}
     while True:  # a rider of a dropped rider has no host here either
-        opening = {_sort_key(ks[0][1]) for ks in mine.values()}
+        opening = {paint_key_items(ks[0][1]) for ks in mine.values()}
         kept = {
             n: ks
             for n, ks in mine.items()
-            if len(ks[0][1]) <= 3 or _sort_key(ks[0][1])[:-2] in opening
+            if (host := rider_host_key(ks[0][1])) is None or host in opening
         }
         if len(kept) == len(mine):
             return kept

@@ -238,8 +238,14 @@ PAINT_KEYS_OVERRIDE: str = "paint_keys"
 #: The side of its host a rider's paint key puts it on: a rider's key is its
 #: host's plus ``[side, n]`` (an#648), in front with ``1``, just behind with
 #: ``-1`` (an#678: an attachment the built order put behind its host).
+#: :func:`paint_key_rank` relies on the side being ``±1`` and FIRST in the
+#: suffix: it compares against the ``0`` it appends to every key.
 RIDER_IN_FRONT: int = 1
 RIDER_BEHIND: int = -1
+#: Items in a world entity's own paint key (layer, depth, tiebreak), and in
+#: the suffix a rider adds to its host's (side, n).
+BASE_PAINT_KEY_LEN: int = 3
+RIDER_SUFFIX_LEN: int = 2
 #: The core's mark on an entity the world leans with its frame's acceleration
 #: (an#504): its ``rotation`` channel is that lean, which the hold layer takes
 #: out of the angle an item it carries comes to rest at (an#659).
@@ -268,6 +274,16 @@ CORE_OVERRIDE_KEYS: frozenset[str] = frozenset(
 )
 
 
+def paint_key_items(key: Any) -> tuple:
+    """A paint key as a tuple (a JSON list read back is a tuple; a plain
+    number is a one-item key).
+
+    >>> paint_key_items([1.0, -2.0, 3]), paint_key_items(2)
+    ((1.0, -2.0, 3), (2,))
+    """
+    return tuple(key) if isinstance(key, (list, tuple)) else (key,)
+
+
 def paint_key_rank(key: Any) -> tuple:
     """A paint key (``PAINT_KEYS_OVERRIDE``) as it sorts, a smaller one painted
     first: a rider's key (its host's plus ``[side, n]``) sorts just behind
@@ -281,8 +297,28 @@ def paint_key_rank(key: Any) -> tuple:
     >>> [k[3:] for k in ranked]
     [[], [-1, 0], [], [1, 0]]
     """
-    items = tuple(key) if isinstance(key, (list, tuple)) else (key,)
-    return (*items, 0)  # a host's end sorts between its riders' sides
+    return (*paint_key_items(key), 0)  # a host's end sorts between its riders' sides
+
+
+def rider_key(host_key: Any, *, side: int, n: int) -> list:
+    """The paint key of a rider of ``host_key`` (an#648, an#678): the host's
+    plus ``[side, n]``, ``n`` ordering riders on one side.
+
+    >>> rider_key([1.0, -2.0, 3], side=RIDER_BEHIND, n=0)
+    [1.0, -2.0, 3, -1, 0]
+    """
+    return [*host_key, side, n]
+
+
+def rider_host_key(key: Any) -> tuple | None:
+    """The key of the host a rider's ``key`` rides (:func:`rider_key`), as it
+    sorts; ``None`` for an entity's own key.
+
+    >>> rider_host_key([1.0, -2.0, 3, 1, 0]), rider_host_key([1.0, -2.0, 3])
+    ((1.0, -2.0, 3), None)
+    """
+    items = paint_key_items(key)
+    return items[:-RIDER_SUFFIX_LEN] if len(items) > BASE_PAINT_KEY_LEN else None
 
 
 def asset_overrides(overrides: Mapping[str, Any] | None) -> dict[str, Any]:

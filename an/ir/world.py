@@ -54,6 +54,7 @@ from an.base import (
     STREAM_OVERRIDE,
     SWAY_OVERRIDE,
     paint_key_rank,
+    rider_key,
 )
 from an.ir.compose import (
     delay,
@@ -1681,16 +1682,29 @@ def _crossing_paint_keys(
     return _depth_paint_keys(curves, duration=duration, near=near)
 
 
+@dataclass(frozen=True)
+class _Rider:
+    """How an attached member rides its host's paint keys (an#678): the host,
+    the side of it the BUILT order gave the member (read before any entity is
+    re-keyed), and its place in that order, which orders riders on one side."""
+
+    host: str
+    side: int
+    place: int
+
+
 def _attachment_riders(
     ordered: Sequence[tuple[Any, AssetRef, int | None]],
     world_members: Sequence[WorldMember],
     *,
     entity_ids: Collection[str],
-) -> dict[str, str]:
-    """``{member: host}`` for each member attached to another member built in
-    this shot, unless the author placed it ``after`` an entity (it rides that
-    one, an#648): it rides its host's paint keys (an#678). The ONE set both the
-    keying at rest leaves out and :func:`_with_paint_keys` keys."""
+) -> dict[str, _Rider]:
+    """Each member attached to another member built in this shot, unless the
+    author placed it ``after`` an entity (it rides that one, an#648): it rides
+    its host's paint keys (an#678). The ONE set both the keying at rest leaves
+    out and :func:`_with_paint_keys` keys. ``ordered`` is the built order, its
+    keys not yet replaced by paint keys: the side is read from it."""
+    place = {e.id: i for i, (_, e, _) in enumerate(ordered)}
     built = {e.id: e for _, e, _ in ordered}
     out = {}
     for m in world_members:
@@ -1699,7 +1713,9 @@ def _attachment_riders(
         stage = built[m.id].stage
         if stage is not None and stage.after in entity_ids:
             continue
-        out[m.id] = m.attached.to
+        host = m.attached.to
+        side = RIDER_BEHIND if place[m.id] < place[host] else RIDER_IN_FRONT
+        out[m.id] = _Rider(host, side, place[m.id])
     return out
 
 
@@ -1709,7 +1725,7 @@ def _with_paint_keys(
     *,
     entity_ids: Collection[str],
     members: Collection[str],
-    attached: Mapping[str, str] | None = None,
+    attached: Mapping[str, _Rider] | None = None,
 ) -> list[tuple[tuple[float, float, float], AssetRef, int | None]]:
     """``ordered`` with each entity's paint key from each time on recorded
     under :data:`an.base.PAINT_KEYS_OVERRIDE` (``[[time, key]]``, the first at
@@ -1726,7 +1742,8 @@ def _with_paint_keys(
     :func:`_attachment_riders`) rides its host the same way, on the side of
     it the built order gave it (:data:`an.base.RIDER_BEHIND` when built before
     it), and is built right beside it: painted with its host at every frame,
-    however the host or anything around it moves (an#678)."""
+    however the host or anything around it moves (an#678). Not yet when the
+    host itself rides another entity's keys (an#692)."""
     if not any(len(ks) > 1 for ks in pass_keys.values()):
         return ordered
     after = {
@@ -1734,12 +1751,9 @@ def _with_paint_keys(
     }
     hosts = {eid: a for eid, a in after.items() if a in entity_ids}
     attached = attached or {}
-    hosts.update(attached)
-    place = {e.id: i for i, (_, e, _) in enumerate(ordered)}
-    side = {
-        eid: RIDER_BEHIND if place[eid] < place[host] else RIDER_IN_FRONT
-        for eid, host in attached.items()
-    }
+    hosts.update((eid, r.host) for eid, r in attached.items())
+    # An attachment's `n` follows the built order, past every `after` rider's.
+    first = len(hosts)
 
     keys = {
         e.id: [[t, list(k)] for t, k in pass_keys.get(e.id) or [(0.0, key)]]
@@ -1751,8 +1765,9 @@ def _with_paint_keys(
         riding = False
         for n, (eid, host) in enumerate(sorted(hosts.items())):
             if host in keys and eid in members:
-                at = side.get(eid, RIDER_IN_FRONT)
-                keys[eid] = [[t, [*k, at, n]] for t, k in keys[host]]
+                r = attached.get(eid)
+                at, m = (r.side, first + r.place) if r else (RIDER_IN_FRONT, n)
+                keys[eid] = [[t, rider_key(k, side=at, n=m)] for t, k in keys[host]]
                 del hosts[eid]
                 riding = True
     built = [
