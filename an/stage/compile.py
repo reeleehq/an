@@ -118,7 +118,7 @@ from an.stage.serialize import (
 from an.stage.raster import art_size, is_raster, short_digest, versioned_src
 from an.ir.camera import CAMERA_MOVES, PAN_FRACTION, CameraError  # noqa: F401  (re-exported)
 from an.ir.camera import camera_keys as _camera_keys
-from an.ir.camera import camera_shake_offsets, dolly_frames
+from an.ir.camera import camera_shake_offsets, dolly_frames, dolly_growth, follow_overlay
 from an.ir.migrate import DocumentKind, migrate
 from an.stage.environments import PLANE_FILL_SPAN as _PLANE_FILL_SPAN
 from an.stage.environments import (
@@ -1085,20 +1085,42 @@ def camera_follow_keys(state: CompileState) -> list[CameraKey]:
             f"is not a node of this shot ({e}). Follow an entity id or one of its "
             "nodes."
         ) from e
-    x0, y0 = positions[0]
     if follow.lag:
         dt = 1.0 / state.fps
         xs = lag_filter([x for x, _ in positions], lag=follow.lag, dt=dt)
         ys = lag_filter([y for _, y in positions], lag=follow.lag, dt=dt)
         positions = list(zip(xs, ys))
+    # The target relative to the root's origin (the canvas centre), where the
+    # zoom is about: on screen it is `centre + g · (d − cam)`, so holding it
+    # where it stood as the shot opened (`g0 · d0`) while the root zooms by `g`
+    # (an overlay's zoom times the dolly's growth, an#625) needs
+    # `cam = d − d0 · g0 / g`; with no overlay, `g = 1` and `cam = d − d0`.
+    times = [min(duration, k / state.fps) for k in range(len(positions))]
+    if not state.shot.camera.keys:  # the follow as it always was, to the bit
+        x0, y0 = positions[0]
+        return [
+            CameraKey(
+                at=t,
+                x=(x - x0) if "x" in follow.axes else 0.0,
+                y=(y - y0) if "y" in follow.axes else 0.0,
+                easing="linear",
+            )
+            for t, (x, y) in zip(times, positions)
+        ]
+    overlay = follow_overlay(state.shot.camera.keys, times)
+    gains = [zoom * dolly_growth(1.0, dolly) for zoom, dolly in overlay]
+    d = [(x - centre[0], y - centre[1]) for x, y in positions]
+    held = (d[0][0] * gains[0], d[0][1] * gains[0])
     return [
         CameraKey(
-            at=min(duration, k / state.fps),
-            x=(x - x0) if "x" in follow.axes else 0.0,
-            y=(y - y0) if "y" in follow.axes else 0.0,
+            at=t,
+            x=(dx - held[0] / g) if "x" in follow.axes else 0.0,
+            y=(dy - held[1] / g) if "y" in follow.axes else 0.0,
+            zoom=zoom,
+            dolly=dolly,
             easing="linear",
         )
-        for k, (x, y) in enumerate(positions)
+        for t, (dx, dy), g, (zoom, dolly) in zip(times, d, gains, overlay)
     ]
 
 

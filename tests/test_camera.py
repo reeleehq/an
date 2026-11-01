@@ -737,3 +737,47 @@ def test_a_follow_with_lag_zero_is_the_follow_it_was_and_a_lag_trails_the_target
     for want, got in zip(ideal[1:], [e[1] for e in lagged[1:]]):
         prev = prev + k * (want - prev)
         assert got == pytest.approx(prev, abs=1e-6)
+
+
+@pytest.mark.parametrize(
+    "overlay",
+    [
+        [CameraKey(at=0.0), CameraKey(at=2.0, dolly=0.3, easing="ease_in_out")],
+        [CameraKey(at=0.0, zoom=1.2), CameraKey(at=2.0, zoom=1.6)],
+        [CameraKey(at=0.0), CameraKey(at=1.0, zoom=1.3, dolly=0.1), CameraKey(at=2.0, dolly=0.25)],
+    ],
+)
+def test_a_follow_that_dollies_keeps_its_target_on_screen_as_it_closes_in(tmp_path, overlay):
+    """an#625: a follow with a key overlay of `dolly` and `zoom` closes in on
+    the moving target (the root grows) while the target stays where it stood
+    on screen at the shot's start: the camera is `d − d0·g0/g`."""
+    from an.ir.schema import CameraFollow
+
+    shot = _follow_shot(follow={"target": "dot", "axes": "xy"})
+    shot = shot.model_copy(
+        update={"camera": Camera(follow=CameraFollow(target="dot", axes="xy"), keys=overlay)}
+    )
+    assert _validate(shot).passed
+    doc = compile_shot(shot, mall=_dot_mall(tmp_path), fps=12, width=640, height=360, strict_assets=True)
+    track = _screen_track(doc, "dot", 12, 24)
+    drift = max(abs(p[a] - track[0][a]) for p in track for a in (0, 1))
+    assert drift < 1e-6, drift
+    scale = _channels(doc)["scale_x"]
+    assert scale[-1][1] > scale[0][1] > 0.0  # it closed in
+
+
+def test_a_follow_overlay_that_places_or_rolls_the_camera_is_refused(tmp_path):
+    """an#625: beside a follow, keys set only `dolly` and `zoom`; a key that
+    also moves the camera is a second path, refused where compiling refuses."""
+    from an.ir.schema import CameraFollow
+
+    for bad in ({"x": 40.0}, {"rotation": 0.1}):
+        shot = _follow_shot(follow={"target": "dot"}).model_copy(
+            update={"camera": Camera(
+                follow=CameraFollow(target="dot"),
+                keys=[CameraKey(at=0.0), CameraKey(at=2.0, dolly=0.2, **bad)],
+            )}  # fmt: skip
+        )
+        assert not _validate(shot).passed
+        with pytest.raises(CutoutCompileError, match="may set only"):
+            compile_shot(shot, mall=_dot_mall(tmp_path), fps=12, width=640, height=360)
