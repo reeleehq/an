@@ -274,14 +274,25 @@ def voice_effects(mall: Mapping | None, voice_id: str) -> dict[str, Any]:
     return normalize_effects(doc.get("effects") if isinstance(doc, Mapping) else None)
 
 
+def _retimes(effects: Mapping[str, Any]) -> bool:
+    """Whether normalised ``effects`` pitch or retime the line: its chain then
+    has ``atempo`` stages, and its output is cut to ``input / tempo`` (an#350).
+    Decided from the effects, not from the chain another package builds (an#622).
+
+    >>> _retimes({"tempo": 1.1}), _retimes({"pitch_semitones": -2}), _retimes({})
+    (True, True, False)
+    """
+    return bool(effects.get("pitch_semitones")) or (effects.get("tempo") or 1.0) != 1.0
+
+
 def filter_chain(effects: Mapping[str, Any]) -> str:
     """The ffmpeg ``-af`` chain for normalised ``effects`` (``""`` for none):
     the input resampled to :data:`EFFECT_SAMPLE_RATE`, then the shared pitch
     and tempo chain (:func:`mixing.filtergraph.resample_pitch_filter`)."""
+    if not _retimes(effects):
+        return ""  # a trim alone needs no chain, and no mixing
     semitones = effects.get("pitch_semitones") or 0.0
     tempo = effects.get("tempo") or 1.0
-    if not semitones and tempo == 1.0:
-        return ""  # a trim alone needs no chain, and no mixing
     with mixing_too_old(needed_for="the voice-effect chain", error=VoiceEffectError):
         from mixing.filtergraph import resample_pitch_filter
     shift = resample_pitch_filter(
@@ -309,11 +320,12 @@ def apply_voice_effects(audio: bytes, effects: Mapping[str, Any]) -> bytes:
     if not chain and not trim:
         return audio
     if chain:
-        wav = _ffmpeg_wav(audio, chain, effects)
+        tempo = effects.get("tempo") or 1.0
+        wav = _ffmpeg_wav(audio, chain, cut_to_tempo=tempo)  # `chain` retimes
     elif _pcm16_wav(audio):
         wav = audio
     else:  # MP3 (ElevenLabs) and other containers: decoded, then trimmed
-        wav = _ffmpeg_wav(audio, decode_chain(), effects)
+        wav = _ffmpeg_wav(audio, decode_chain())
     if trim:
         wav = trim_silence(
             wav,
@@ -366,11 +378,19 @@ def ffmpeg_argv(
     ]  # fmt: skip
 
 
-def _ffmpeg_wav(audio: bytes, chain: str, effects: Mapping[str, Any]) -> bytes:
-    """``audio`` through the ffmpeg ``chain``, as bit-exact 16-bit PCM WAV."""
+def _ffmpeg_wav(
+    audio: bytes, chain: str, *, cut_to_tempo: float | None = None
+) -> bytes:
+    """``audio`` through the ffmpeg ``chain``, as bit-exact 16-bit PCM WAV.
+
+    ``cut_to_tempo``: the chain retimes by that factor (its ``atempo`` stages),
+    so the output is cut to exactly ``input / cut_to_tempo`` (an#350). The
+    caller, who knows the effects, says so (an#622); the chain string, built by
+    ``mixing``, is never searched for it."""
     if shutil.which("ffmpeg") is None:
         raise VoiceEffectError(
-            "this voice declares `effects`, which need the ffmpeg binary on PATH "
+            "this audio step (a voice's `effects`, a decode or a resample) needs "
+            "the ffmpeg binary on PATH "
             "(macOS: `brew install ffmpeg`; Debian/Ubuntu: `apt install ffmpeg`)"
         )
     # Output goes to a real file, not a pipe: ffmpeg cannot seek a pipe to patch
@@ -380,7 +400,7 @@ def _ffmpeg_wav(audio: bytes, chain: str, effects: Mapping[str, Any]) -> bytes:
         out_path = Path(tmp) / "shifted.wav"
         # A tempo chain also writes the decoded input: its length is what the
         # output is cut to (an#350; `atempo` drops the tail of its window).
-        source_path = Path(tmp) / "source.wav" if "atempo=" in chain else None
+        source_path = Path(tmp) / "source.wav" if cut_to_tempo is not None else None
         proc = subprocess.run(
             ffmpeg_argv(chain, out_path, source_path=source_path),
             input=audio,
@@ -389,12 +409,12 @@ def _ffmpeg_wav(audio: bytes, chain: str, effects: Mapping[str, Any]) -> bytes:
         )
         if proc.returncode != 0 or not out_path.exists():
             raise VoiceEffectError(
-                f"ffmpeg failed applying {dict(effects)}: "
+                f"ffmpeg failed running the chain {chain!r}: "
                 f"{proc.stderr.decode(errors='replace').strip()}"
             )
         if source_path is None:
             return out_path.read_bytes()
-        seconds = _seconds(source_path.read_bytes()) / (effects.get("tempo") or 1.0)
+        seconds = _seconds(source_path.read_bytes()) / cut_to_tempo
         return _exact_frames(out_path.read_bytes(), round(seconds * EFFECT_SAMPLE_RATE))
 
 
@@ -485,7 +505,7 @@ def speech_end(
         if shutil.which("ffmpeg") is None:
             return None
         try:
-            wav = _ffmpeg_wav(audio, decode_chain(), {})
+            wav = _ffmpeg_wav(audio, decode_chain())
         except VoiceEffectError:
             return None
     try:

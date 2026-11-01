@@ -868,7 +868,7 @@ def _reel_wav(audio: bytes, effects: Mapping[str, Any]) -> bytes:
         wav = apply_voice_effects(audio, effects) if effects else audio
         if _is_reel_wav(wav):
             return wav
-        return _ffmpeg_wav(wav, f"{decode_chain()},aformat=channel_layouts=mono", {})
+        return _ffmpeg_wav(wav, f"{decode_chain()},aformat=channel_layouts=mono")
     except VoiceEffectError as e:
         raise VoiceDesignError(
             "an audition reel decodes the provider's audio with ffmpeg (and "

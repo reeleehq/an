@@ -141,7 +141,7 @@ def _decode(audio: bytes) -> _Pcm:
 
     if not _pcm16_wav(audio):
         _require_ffmpeg("measuring a voice's loudness")
-        audio = _ffmpeg_wav(audio, f"aresample={EFFECT_SAMPLE_RATE}", {})
+        audio = _ffmpeg_wav(audio, f"aresample={EFFECT_SAMPLE_RATE}")
     with wave.open(io.BytesIO(audio), "rb") as w:
         channels, rate = w.getnchannels(), w.getframerate()
         frames = w.readframes(w.getnframes())
