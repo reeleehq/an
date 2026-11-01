@@ -191,13 +191,16 @@ class EntityKind:
     landmarks: (
         Callable[[Any], Mapping[str, tuple[str, tuple[float, float] | None]]] | None
     ) = None
-    #: ``(entity, mall) -> {shot size: (top, bottom)}``: where this kind's rig
-    #: puts each shot size's band (reeleehq/cutan#106), as fractions of the
-    #: entity's measured box height from its top: a close-up from the top of
-    #: the head to the chin of THIS build rather than of a human. A size it
-    #: does not give, or ``None`` here, is :data:`an.ir.schema.SHOT_SIZES`'.
+    #: ``(entity, mall, box) -> {shot size: (top, bottom)}``: where this kind's
+    #: rig puts each shot size's band (reeleehq/cutan#106), as fractions of
+    #: ``box``'s height from its top, ``box`` being the entity's measured
+    #: ``(x0, y0, x1, y1)`` (:func:`an.stage.world.member_extents`): a close-up
+    #: from the top of the head to the chin of THIS build rather than of a
+    #: human. A size it does not give, or ``None`` here, is
+    #: :data:`an.ir.schema.SHOT_SIZES`'; the frame's ``fill`` is always the
+    #: table's (composition, not anatomy). Since ``an.genres.API_LEVEL`` 14.
     shot_sizes: (
-        Callable[[Any, Any], Mapping[str, tuple[float, float]] | None] | None
+        Callable[[Any, Any, Any], Mapping[str, tuple[float, float]] | None] | None
     ) = None
 
 

@@ -1098,7 +1098,7 @@ def check_jump_cut(ctx: Any) -> None:
     if world is None:
         return
     from an.ir.world import resolve_viewpoint, viewpoint_of
-    from an.stage.world import member_bands, member_extents
+    from an.stage.world import member_extents, member_shot_sizes
 
     res = ctx.scene.meta.resolution
     width, height = int(res.width), int(res.height)
@@ -1108,7 +1108,10 @@ def check_jump_cut(ctx: Any) -> None:
             world, ctx.stores, width=width, height=height, problems={}
         ),
     )
-    bands = ctx.cached("constraints.bands", lambda: member_bands(world, ctx.stores))
+    bands = ctx.cached(
+        "constraints.bands",
+        lambda: member_shot_sizes(world, ctx.stores, extents=extents),
+    )
     at = {m.id: m.at for m in world.members if m.at is not None}
     views: list[tuple[frozenset[str], Any] | None] = []
     for shot in ctx.scene.timeline:

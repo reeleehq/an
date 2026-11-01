@@ -2530,6 +2530,7 @@ def _lower_shot(
     plane_geometry: Mapping[str, Mapping[str, tuple[tuple[float, float], Box | None]]],
     plane_anchors: dict[tuple[str, str], _PlaneAnchor],
     bands: Bands | None = None,
+    band_problems: Mapping[str, str] | None = None,
 ) -> tuple[Shot, list[WorldNote], list[int | None]]:
     shot = scene.timeline[index]
     world = scene.world
@@ -2546,6 +2547,15 @@ def _lower_shot(
         )
     for hid in vp.hide:
         _member(world, hid, where=f"shot {shot.id!r} viewpoint `hide`")
+    if vp.subject is not None:
+        subjects = [vp.subject] if isinstance(vp.subject, str) else list(vp.subject)
+        for sid in subjects:
+            if sid in (band_problems or {}):
+                note(
+                    "warning", "shot_size", sid,
+                    f"framed by human proportions, not its rig's own shot sizes: "
+                    f"{band_problems[sid]}",  # type: ignore[index]
+                )  # fmt: skip
     listed = {e.id: j for j, e in enumerate(shot.entities)}
     if any(STREAM_OVERRIDE in (e.overrides or {}) for e in shot.entities):
         # The shot holds slot entities the lowering made: it IS a lowered shot
@@ -3852,6 +3862,7 @@ def lower_world(
     plane_geometry: Mapping[str, Mapping[str, tuple[tuple[float, float], Box | None]]]
     | None = None,
     bands: Bands | None = None,
+    band_problems: Mapping[str, str] | None = None,
 ) -> Lowered:
     """The scene with every framed shot's placements derived from the world.
 
@@ -3875,7 +3886,9 @@ def lower_world(
     (:func:`an.stage.world.plane_geometry`): where a plane at a world depth is
     anchored and when it is on screen (an#503; the origin and no box for one
     it does not name); ``bands`` is where a subject's own rig puts each shot
-    size (:data:`Bands`, measured by :func:`an.stage.world.member_bands`).
+    size (:data:`Bands`, measured by :func:`an.stage.world.member_shot_sizes`),
+    and ``band_problems`` why a subject's could not be (a ``shot_size`` note on
+    each shot that frames it).
 
     Raises :class:`WorldError` for a viewpoint the world cannot resolve.
 
@@ -3912,6 +3925,7 @@ def lower_world(
             plane_geometry=plane_geometry or {},
             plane_anchors=plane_anchors,
             bands=bands,
+            band_problems=band_problems,
         )
         shots.append(lowered)
         notes.extend(shot_notes)
