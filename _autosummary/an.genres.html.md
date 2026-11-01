@@ -106,7 +106,7 @@ genre defined in the same process).
 | [`RegistryError`](#an.genres.RegistryError)                                | A registration is malformed or collides with one already made.         |
 | [`UnregisteredKindError`](#an.genres.UnregisteredKindError)(what, name, \*[, ...]) | A document names a kind no loaded genre registered.                    |
 
-### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 13*
+### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 14*
 
 every hook, registry
 field a genre package may rely on. Bumped by each change a
@@ -159,6 +159,15 @@ Levels (one line each; `tests/test_genre_gate.py` holds the list complete):
 13 = names a genre’s checks and pack read, public (reeleehq/cutan#148):
 : `an.ir.validate.rig_scope`, `an.semantic.matcher.lookup_method` and
   `as_choice`, `an.audio.loudness.voice_loudness_offset`.
+
+14 = a kind’s own shot sizes (reeleehq/cutan#106): 
+
+```
+``
+```
+
+EntityKind.shot_sizes(entity, mall,
+: box)\`\`, which the world’s framing reads instead of `SHOT_SIZES`.
 
 * **Type:**
   The level of the genre-facing API this `an` provides
@@ -276,7 +285,7 @@ checked against what the sugar declares).
 
 The entry-point group a genre package declares its [`Genre`](#an.genres.Genre) under.
 
-### *class* an.genres.EntityKind(name, space=None, store=None, description='', version='1', swap_declaration=None, descriptor_kind=None, placeholder_on_missing=False, swap_checks=None, specimen=None, landmarks=None)
+### *class* an.genres.EntityKind(name, space=None, store=None, description='', version='1', swap_declaration=None, descriptor_kind=None, placeholder_on_missing=False, swap_checks=None, specimen=None, landmarks=None, shot_sizes=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -308,6 +317,20 @@ bone of that name wins. `None`: the kind names no point.
 
 A missing `ref` is NOT an error because the compiler draws a placeholder
 instead; the genre reports it with its own (warning) check.
+
+#### shot_sizes *: [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[Any](https://docs.python.org/3/library/typing.html#typing.Any), [Any](https://docs.python.org/3/library/typing.html#typing.Any), [Any](https://docs.python.org/3/library/typing.html#typing.Any)], [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]] | [None](https://docs.python.org/3/builtins/constants.html#None)] | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+where this kind’s
+rig puts each shot size’s band (reeleehq/cutan#106), as fractions of
+`box`’s height from its top, `box` being the entity’s measured
+`(x0, y0, x1, y1)` ([`an.stage.world.member_extents()`](an.stage.world.html.md#an.stage.world.member_extents)): a close-up
+from the top of the head to the chin of THIS build rather than of a
+human. A size it does not give, or `None` here, is
+[`an.ir.schema.SHOT_SIZES`](an.ir.schema.html.md#an.ir.schema.SHOT_SIZES)’; the frame’s `fill` is always the
+table’s (composition, not anatomy). Since `an.genres.API_LEVEL` 14.
+
+* **Type:**
+  `(entity, mall, box) -> {shot size: (top, bottom)}`
 
 #### specimen *: [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[Any](https://docs.python.org/3/library/typing.html#typing.Any)], [Any](https://docs.python.org/3/library/typing.html#typing.Any)] | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
 

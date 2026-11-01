@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=360e0591"></script>
+    <script src="../_static/documentation_options.js?v=01f68ffb"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.351" />
+  <meta name="docsearch:version" content="0.1.352" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -2073,8 +2073,9 @@ right, <code class="code docutils literal notranslate"><span class="pre">y</span
 ADR 0009): <code class="docutils literal notranslate"><span class="pre">name:</span> <span class="pre">(top,</span> <span class="pre">bottom,</span> <span class="pre">fill)</span></code>. <code class="docutils literal notranslate"><span class="pre">top</span></code>/<code class="docutils literal notranslate"><span class="pre">bottom</span></code> are the band of
 the subject’s box the frame shows, as fractions of its height from the top
 (<code class="docutils literal notranslate"><span class="pre">0.35</span></code>: head and shoulders; <code class="docutils literal notranslate"><span class="pre">0.55</span></code>: the waist); <code class="docutils literal notranslate"><span class="pre">fill</span></code> is how much of
-the frame’s height that band fills. A genre may later supply landmarks from
-its rig (a seam, not built); until then these are human proportions.</p>
+the frame’s height that band fills. These are human proportions; a genre
+gives a kind’s own bands from its rig (<code class="docutils literal notranslate"><span class="pre">EntityKind.shot_sizes</span></code>,
+reeleehq/cutan#106), and <code class="docutils literal notranslate"><span class="pre">fill</span></code> is always this table’s.</p>
 </dd></dl>
 
 <dl class="py data">

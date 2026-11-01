@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=360e0591"></script>
+    <script src="../../../_static/documentation_options.js?v=01f68ffb"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.351" />
+  <meta name="docsearch:version" content="0.1.352" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -844,6 +844,10 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: ``{member or stream id: Box | None}``, measured by the stage</span>
 <span class="c1">#: (:func:`an.stage.world.member_extents`); the IR layer only reads it.</span>
 <span class="n">Extents</span> <span class="o">=</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="s2">"Box | None"</span><span class="p">]</span>
+<span class="c1">#: ``{member id: {shot size: (top, bottom)}}``: where a member's own rig puts</span>
+<span class="c1">#: each shot size's band, as fractions of its box's height from the top</span>
+<span class="c1">#: (reeleehq/cutan#106); a size it does not give is :data:`SHOT_SIZES`'.</span>
+<span class="n">Bands</span> <span class="o">=</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]</span>
 <span class="n">Point3</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
 
 <span class="c1">#: A hand ``stage.at`` this far from the world's placement is "the same"</span>
@@ -1162,10 +1166,13 @@ window.runMermaid = runMermaid;</script>
     <span class="n">width</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">height</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">member_at</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Point3</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">bands</span><span class="p">:</span> <span class="n">Bands</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Projection</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""The camera a viewpoint is, as a :class:`Projection`, in its own frame's</span>
 <span class="sd">    units. ``member_at`` overrides a subject's ``at`` with where it stands in</span>
 <span class="sd">    the VIEWPOINT's frame (a subject in another frame, at the shot's start).</span>
+<span class="sd">    ``bands`` gives a subject's own band for a size (its rig's landmarks,</span>
+<span class="sd">    :attr:`an.genres.EntityKind.shot_sizes`); otherwise :data:`SHOT_SIZES`'.</span>
 
 <span class="sd">    A viewpoint with ``at`` is that camera. One with a ``subject`` is computed:</span>
 <span class="sd">    on the look direction, at the distance that fills ``fill`` of the frame</span>
@@ -1196,8 +1203,10 @@ window.runMermaid = runMermaid;</script>
 
     <span class="n">subjects</span> <span class="o">=</span> <span class="p">[</span><span class="n">vp</span><span class="o">.</span><span class="n">subject</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">vp</span><span class="o">.</span><span class="n">subject</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="n">vp</span><span class="o">.</span><span class="n">subject</span><span class="p">)</span>
     <span class="n">forward</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">down</span> <span class="o">=</span> <span class="n">_basis</span><span class="p">(</span><span class="n">yaw</span><span class="p">,</span> <span class="n">pitch</span><span class="p">,</span> <span class="n">roll</span><span class="p">)</span>
-    <span class="n">top</span><span class="p">,</span> <span class="n">bottom</span><span class="p">,</span> <span class="n">fill</span> <span class="o">=</span> <span class="n">SHOT_SIZES</span><span class="p">[</span><span class="n">vp</span><span class="o">.</span><span class="n">size</span> <span class="ow">or</span> <span class="s2">"full"</span><span class="p">]</span>
+    <span class="n">size</span> <span class="o">=</span> <span class="n">vp</span><span class="o">.</span><span class="n">size</span> <span class="ow">or</span> <span class="s2">"full"</span>
+    <span class="n">top</span><span class="p">,</span> <span class="n">bottom</span><span class="p">,</span> <span class="n">fill</span> <span class="o">=</span> <span class="n">SHOT_SIZES</span><span class="p">[</span><span class="n">size</span><span class="p">]</span>
     <span class="n">boxes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">cuts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">positions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Point3</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">sid</span> <span class="ow">in</span> <span class="n">subjects</span><span class="p">:</span>
         <span class="n">member</span> <span class="o">=</span> <span class="n">_member</span><span class="p">(</span><span class="n">world</span><span class="p">,</span> <span class="n">sid</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="s2">"viewpoint `subject`"</span><span class="p">)</span>
@@ -1219,10 +1228,14 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
         <span class="n">boxes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_world_box</span><span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="n">box</span><span class="p">,</span> <span class="n">m</span><span class="p">))</span>
         <span class="n">positions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">position</span><span class="p">)</span>
+        <span class="n">cuts</span><span class="o">.</span><span class="n">append</span><span class="p">(((</span><span class="n">bands</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sid</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">bottom</span><span class="p">)))</span>
     <span class="n">x0</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">boxes</span><span class="p">)</span>
     <span class="n">x1</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">boxes</span><span class="p">)</span>
-    <span class="n">bands</span> <span class="o">=</span> <span class="p">[(</span><span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">top</span> <span class="o">*</span> <span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">bottom</span> <span class="o">*</span> <span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">boxes</span><span class="p">]</span>
-    <span class="n">y0</span><span class="p">,</span> <span class="n">y1</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bands</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bands</span><span class="p">)</span>
+    <span class="n">spans</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">t</span> <span class="o">*</span> <span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">u</span> <span class="o">*</span> <span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="k">for</span> <span class="n">b</span><span class="p">,</span> <span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">u</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">boxes</span><span class="p">,</span> <span class="n">cuts</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">y0</span><span class="p">,</span> <span class="n">y1</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">spans</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">spans</span><span class="p">)</span>
     <span class="n">n</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">positions</span><span class="p">))</span>
     <span class="n">centre</span><span class="p">:</span> <span class="n">Point3</span> <span class="o">=</span> <span class="p">(</span>
         <span class="p">(</span><span class="n">x0</span> <span class="o">+</span> <span class="n">x1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span>
@@ -3284,6 +3297,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">plane_geometry</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">Box</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]],</span>
     <span class="n">plane_anchors</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">_PlaneAnchor</span><span class="p">],</span>
+    <span class="n">bands</span><span class="p">:</span> <span class="n">Bands</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">band_problems</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Shot</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">WorldNote</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]:</span>
     <span class="n">shot</span> <span class="o">=</span> <span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
     <span class="n">world</span> <span class="o">=</span> <span class="n">scene</span><span class="o">.</span><span class="n">world</span>
@@ -3300,6 +3315,17 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
     <span class="k">for</span> <span class="n">hid</span> <span class="ow">in</span> <span class="n">vp</span><span class="o">.</span><span class="n">hide</span><span class="p">:</span>
         <span class="n">_member</span><span class="p">(</span><span class="n">world</span><span class="p">,</span> <span class="n">hid</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> viewpoint `hide`"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">vp</span><span class="o">.</span><span class="n">subject</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">subjects</span> <span class="o">=</span> <span class="p">[</span><span class="n">vp</span><span class="o">.</span><span class="n">subject</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">vp</span><span class="o">.</span><span class="n">subject</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="n">vp</span><span class="o">.</span><span class="n">subject</span><span class="p">)</span>
+        <span class="n">size</span> <span class="o">=</span> <span class="n">vp</span><span class="o">.</span><span class="n">size</span> <span class="ow">or</span> <span class="s2">"full"</span>
+        <span class="k">for</span> <span class="n">sid</span> <span class="ow">in</span> <span class="n">subjects</span><span class="p">:</span>
+            <span class="n">why</span> <span class="o">=</span> <span class="p">(</span><span class="n">band_problems</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sid</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="ow">in</span> <span class="n">why</span> <span class="ow">or</span> <span class="s2">"*"</span> <span class="ow">in</span> <span class="n">why</span><span class="p">)</span> <span class="ow">and</span> <span class="n">size</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">bands</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sid</span><span class="p">,</span> <span class="p">{}):</span>
+                <span class="n">note</span><span class="p">(</span>
+                    <span class="s2">"warning"</span><span class="p">,</span> <span class="s2">"shot_size"</span><span class="p">,</span> <span class="n">sid</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">"framed </span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2"> by human proportions, not its rig's own: "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">why</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">size</span><span class="p">)</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="n">why</span><span class="p">[</span><span class="s1">'*'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="p">)</span>  <span class="c1"># fmt: skip</span>
     <span class="n">listed</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">j</span> <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">)}</span>
     <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">STREAM_OVERRIDE</span> <span class="ow">in</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">overrides</span> <span class="ow">or</span> <span class="p">{})</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">):</span>
         <span class="c1"># The shot holds slot entities the lowering made: it IS a lowered shot</span>
@@ -3374,8 +3400,9 @@ window.runMermaid = runMermaid;</script>
             <span class="n">moving</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">mid</span><span class="p">)</span>
         <span class="n">member_at</span><span class="p">[</span><span class="n">mid</span><span class="p">]</span> <span class="o">=</span> <span class="n">p0</span>
     <span class="n">projection</span> <span class="o">=</span> <span class="n">resolve_viewpoint</span><span class="p">(</span>
-        <span class="n">world</span><span class="p">,</span> <span class="n">vp</span><span class="p">,</span> <span class="n">extents</span><span class="o">=</span><span class="n">extents</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span> <span class="n">member_at</span><span class="o">=</span><span class="n">member_at</span>
-    <span class="p">)</span>
+        <span class="n">world</span><span class="p">,</span> <span class="n">vp</span><span class="p">,</span> <span class="n">extents</span><span class="o">=</span><span class="n">extents</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span>
+        <span class="n">member_at</span><span class="o">=</span><span class="n">member_at</span><span class="p">,</span> <span class="n">bands</span><span class="o">=</span><span class="n">bands</span><span class="p">,</span>
+    <span class="p">)</span>  <span class="c1"># fmt: skip</span>
     <span class="n">ctx</span> <span class="o">=</span> <span class="n">_FrameCtx</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="n">film_start</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">vp_frame</span><span class="p">,</span> <span class="n">projection</span><span class="p">)</span>
     <span class="n">common</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
         <span class="n">extents</span><span class="o">=</span><span class="n">extents</span><span class="p">,</span>
@@ -4615,6 +4642,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">extent_problems</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">plane_geometry</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">Box</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]]</span>
     <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">bands</span><span class="p">:</span> <span class="n">Bands</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">band_problems</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Lowered</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""The scene with every framed shot's placements derived from the world.</span>
 
@@ -4637,7 +4666,10 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    drawn box around it (``None``: unknown), read by the stage</span>
 <span class="sd">    (:func:`an.stage.world.plane_geometry`): where a plane at a world depth is</span>
 <span class="sd">    anchored and when it is on screen (an#503; the origin and no box for one</span>
-<span class="sd">    it does not name).</span>
+<span class="sd">    it does not name); ``bands`` is where a subject's own rig puts each shot</span>
+<span class="sd">    size (:data:`Bands`, measured by :func:`an.stage.world.member_shot_sizes`),</span>
+<span class="sd">    and ``band_problems`` why a subject's could not be (a ``shot_size`` note on</span>
+<span class="sd">    each shot that frames it).</span>
 
 <span class="sd">    Raises :class:`WorldError` for a viewpoint the world cannot resolve.</span>
 
@@ -4673,6 +4705,8 @@ window.runMermaid = runMermaid;</script>
             <span class="n">fps</span><span class="o">=</span><span class="n">rate</span><span class="p">,</span>
             <span class="n">plane_geometry</span><span class="o">=</span><span class="n">plane_geometry</span> <span class="ow">or</span> <span class="p">{},</span>
             <span class="n">plane_anchors</span><span class="o">=</span><span class="n">plane_anchors</span><span class="p">,</span>
+            <span class="n">bands</span><span class="o">=</span><span class="n">bands</span><span class="p">,</span>
+            <span class="n">band_problems</span><span class="o">=</span><span class="n">band_problems</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">shots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lowered</span><span class="p">)</span>
         <span class="n">notes</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">shot_notes</span><span class="p">)</span>

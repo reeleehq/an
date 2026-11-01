@@ -222,7 +222,7 @@ compiler and `an validate` pass one bound to the entity’s descriptor), or
 
 alias of [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
-### *class* an.genres.registry.EntityKind(name, space=None, store=None, description='', version='1', swap_declaration=None, descriptor_kind=None, placeholder_on_missing=False, swap_checks=None, specimen=None, landmarks=None)
+### *class* an.genres.registry.EntityKind(name, space=None, store=None, description='', version='1', swap_declaration=None, descriptor_kind=None, placeholder_on_missing=False, swap_checks=None, specimen=None, landmarks=None, shot_sizes=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -254,6 +254,20 @@ bone of that name wins. `None`: the kind names no point.
 
 A missing `ref` is NOT an error because the compiler draws a placeholder
 instead; the genre reports it with its own (warning) check.
+
+#### shot_sizes *: [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[Any](https://docs.python.org/3/library/typing.html#typing.Any), [Any](https://docs.python.org/3/library/typing.html#typing.Any), [Any](https://docs.python.org/3/library/typing.html#typing.Any)], [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]] | [None](https://docs.python.org/3/builtins/constants.html#None)] | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+where this kind’s
+rig puts each shot size’s band (reeleehq/cutan#106), as fractions of
+`box`’s height from its top, `box` being the entity’s measured
+`(x0, y0, x1, y1)` ([`an.stage.world.member_extents()`](an.stage.world.html.md#an.stage.world.member_extents)): a close-up
+from the top of the head to the chin of THIS build rather than of a
+human. A size it does not give, or `None` here, is
+[`an.ir.schema.SHOT_SIZES`](an.ir.schema.html.md#an.ir.schema.SHOT_SIZES)’; the frame’s `fill` is always the
+table’s (composition, not anatomy). Since `an.genres.API_LEVEL` 14.
+
+* **Type:**
+  `(entity, mall, box) -> {shot size: (top, bottom)}`
 
 #### specimen *: [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[Any](https://docs.python.org/3/library/typing.html#typing.Any)], [Any](https://docs.python.org/3/library/typing.html#typing.Any)] | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
 

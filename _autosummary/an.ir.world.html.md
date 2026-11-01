@@ -318,7 +318,7 @@ False
 * **Return type:**
   [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
-### an.ir.world.lower_world(scene, , extents, film_starts=None, fps=None, extent_problems=None, plane_geometry=None)
+### an.ir.world.lower_world(scene, , extents, film_starts=None, fps=None, extent_problems=None, plane_geometry=None, bands=None, band_problems=None)
 
 The scene with every framed shot’s placements derived from the world.
 
@@ -341,7 +341,10 @@ shot sum by default); `plane_geometry` is `{environment member id: {plane:
 drawn box around it (`None`: unknown), read by the stage
 (`an.stage.world.plane_geometry()`): where a plane at a world depth is
 anchored and when it is on screen (an#503; the origin and no box for one
-it does not name).
+it does not name); `bands` is where a subject’s own rig puts each shot
+size (`Bands`, measured by `an.stage.world.member_shot_sizes()`),
+and `band_problems` why a subject’s could not be (a `shot_size` note on
+each shot that frames it).
 
 Raises [`WorldError`](#an.ir.world.WorldError) for a viewpoint the world cannot resolve.
 
@@ -405,11 +408,13 @@ The `(yaw, pitch)` in degrees a pose faces.
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
-### an.ir.world.resolve_viewpoint(world, viewpoint, , extents, width, height, member_at=None)
+### an.ir.world.resolve_viewpoint(world, viewpoint, , extents, width, height, member_at=None, bands=None)
 
 The camera a viewpoint is, as a [`Projection`](#an.ir.world.Projection), in its own frame’s
 units. `member_at` overrides a subject’s `at` with where it stands in
 the VIEWPOINT’s frame (a subject in another frame, at the shot’s start).
+`bands` gives a subject’s own band for a size (its rig’s landmarks,
+[`an.genres.EntityKind.shot_sizes`](an.genres.html.md#an.genres.EntityKind.shot_sizes)); otherwise `SHOT_SIZES`’.
 
 A viewpoint with `at` is that camera. One with a `subject` is computed:
 on the look direction, at the distance that fills `fill` of the frame

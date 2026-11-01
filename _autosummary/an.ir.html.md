@@ -965,7 +965,7 @@ Repeat `action` `count` times.
 * **Return type:**
   [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction)
 
-### an.ir.lower_world(scene, , extents, film_starts=None, fps=None, extent_problems=None, plane_geometry=None)
+### an.ir.lower_world(scene, , extents, film_starts=None, fps=None, extent_problems=None, plane_geometry=None, bands=None, band_problems=None)
 
 The scene with every framed shot’s placements derived from the world.
 
@@ -988,7 +988,10 @@ shot sum by default); `plane_geometry` is `{environment member id: {plane:
 drawn box around it (`None`: unknown), read by the stage
 (`an.stage.world.plane_geometry()`): where a plane at a world depth is
 anchored and when it is on screen (an#503; the origin and no box for one
-it does not name).
+it does not name); `bands` is where a subject’s own rig puts each shot
+size (`Bands`, measured by `an.stage.world.member_shot_sizes()`),
+and `band_problems` why a subject’s could not be (a `shot_size` note on
+each shot that frames it).
 
 Raises `WorldError` for a viewpoint the world cannot resolve.
 
