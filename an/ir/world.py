@@ -3673,10 +3673,12 @@ def depth_order_problems(
                         df[k],
                     )
                 why = (
-                    # a keyed pair (an#686): the keys order it, not its first depth
-                    "their paint keys still put it behind there: the lowering keys "
-                    "a crossing on its scan grid, so a pass lands up to a sample "
-                    "late, or is missed when the scan does not see it"
+                    # A keyed pair (an#686) is ordered by its keys, which are cut
+                    # from the depths this check samples: they cannot disagree
+                    # unless the keying is wrong (a tie it missed was an#684).
+                    "their paint keys put it behind there too, against the depths "
+                    "they are cut from, which is a bug in the world's lowering: "
+                    "report it with the scene"
                     if kb is not None and kf is not None
                     else "the world orders each member by its depth where it first "
                     "shows, so it stays on the wrong side"
