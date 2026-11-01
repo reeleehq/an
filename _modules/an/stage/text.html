@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=0ac84b6b"></script>
+    <script src="../../../_static/documentation_options.js?v=aeb0cf72"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.344" />
+  <meta name="docsearch:version" content="0.1.345" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -770,7 +770,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">Mapping</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">BaseModel</span><span class="p">,</span>
@@ -1401,6 +1401,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">runs</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">lay</span><span class="o">.</span><span class="n">runs</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">runs</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">TextLayoutError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"text </span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> lays out to nothing drawable"</span><span class="p">)</span>
+    <span class="n">_refuse_halos</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">runs</span><span class="p">)</span>
     <span class="n">face</span> <span class="o">=</span> <span class="n">runs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">face</span>
     <span class="k">if</span> <span class="n">desc</span><span class="o">.</span><span class="n">font</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">face</span><span class="o">.</span><span class="n">path</span> <span class="o">!=</span> <span class="n">request</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
         <span class="k">raise</span> <span class="n">TextFontError</span><span class="p">(</span>
@@ -1474,6 +1475,23 @@ window.runMermaid = runMermaid;</script>
         <span class="n">font</span><span class="o">=</span><span class="n">identity</span><span class="p">,</span>
         <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="n">bb</span><span class="o">.</span><span class="n">x0</span> <span class="o">+</span> <span class="n">dx</span><span class="p">,</span> <span class="n">bb</span><span class="o">.</span><span class="n">y0</span> <span class="o">+</span> <span class="n">dy</span><span class="p">,</span> <span class="n">bb</span><span class="o">.</span><span class="n">x1</span> <span class="o">+</span> <span class="n">dx</span><span class="p">,</span> <span class="n">bb</span><span class="o">.</span><span class="n">y1</span> <span class="o">+</span> <span class="n">dy</span><span class="p">),</span>
     <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_refuse_halos</span><span class="p">(</span><span class="n">desc</span><span class="p">:</span> <span class="n">TextDescriptor</span><span class="p">,</span> <span class="n">runs</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Refuse runs that carry a tituli ``halo`` (a soft glow under the glyphs,</span>
+<span class="sd">    tituli#19): ``an`` draws a run from its glyph contours alone, so the glow</span>
+<span class="sd">    would be silently left off the film (an#682). ``an`` never asks for one</span>
+<span class="sd">    (``block`` sets none), so this guards against tituli changing its</span>
+<span class="sd">    defaults, until ``an`` draws a halo as an underlay (an#701)."""</span>
+    <span class="n">haloed</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">text</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">runs</span> <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="s2">"halo"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">haloed</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">TextLayoutError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"text </span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2">: `tituli.block` returned </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">haloed</span><span class="p">)</span><span class="si">}</span><span class="s2"> run(s) "</span>
+            <span class="sa">f</span><span class="s2">"carrying a `halo` (</span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">t</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">haloed</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span><span class="si">}</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">', ...'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="n">haloed</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">''</span><span class="si">}</span><span class="s2">), which `an` never asks for and "</span>
+            <span class="s2">"cannot draw yet (an#701): it draws text from glyph outlines and "</span>
+            <span class="s2">"would leave the glow off. Did tituli change its defaults?"</span>
+        <span class="p">)</span>
 
 
 <div class="viewcode-block" id="TextOutlineWarning">

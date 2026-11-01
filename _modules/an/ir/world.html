@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=0ac84b6b"></script>
+    <script src="../../../_static/documentation_options.js?v=aeb0cf72"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.344" />
+  <meta name="docsearch:version" content="0.1.345" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -2183,7 +2183,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    (an#648). The slots keep their depth as the shot opens; a member at depth</span>
 <span class="sd">    ``d`` is then, in those terms, at ``d - rate * t``, so it is keyed again</span>
 <span class="sd">    at each time a closed-form pass crosses its depth, for each stretch at its</span>
-<span class="sd">    middle (never on a crossing). Anything moving like the streams (a member</span>
+<span class="sd">    middle (never on a crossing; a tie as a pass starts counts, an#684).</span>
+<span class="sd">    Anything moving like the streams (a member</span>
 <span class="sd">    standing in the world) keeps its opening key and stays right. Only when</span>
 <span class="sd">    every pass shares one nonzero rate; otherwise ``{}`` (the general form is</span>
 <span class="sd">    :func:`_crossing_paint_keys`'s, an#658).</span>
@@ -2207,8 +2208,11 @@ window.runMermaid = runMermaid;</script>
             <span class="n">end</span> <span class="o">=</span> <span class="n">slot</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">slot</span><span class="p">)</span> <span class="k">else</span> <span class="n">duration</span>
             <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">minus_depth</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">rest</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
                 <span class="n">t</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">minus_depth</span> <span class="o">-</span> <span class="n">depth0</span><span class="p">)</span> <span class="o">/</span> <span class="n">rate</span>
-                <span class="k">if</span> <span class="n">r</span> <span class="ow">and</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="n">t</span> <span class="o">&lt;</span> <span class="n">end</span><span class="p">:</span>
-                    <span class="n">crossings</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+                <span class="c1"># A tie where the pass starts (a walker setting off beside one</span>
+                <span class="c1"># standing, an#684) is a crossing too: the stretch after it is</span>
+                <span class="c1"># keyed at its middle, where the two already differ.</span>
+                <span class="k">if</span> <span class="n">r</span> <span class="ow">and</span> <span class="n">start</span> <span class="o">-</span> <span class="n">_BREAKPOINT_TOLERANCE</span> <span class="o">&lt;=</span> <span class="n">t</span> <span class="o">&lt;</span> <span class="n">end</span><span class="p">:</span>
+                    <span class="n">crossings</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">start</span><span class="p">))</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">crossings</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">{}</span>
     <span class="n">times</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">({</span><span class="mf">0.0</span><span class="p">}</span> <span class="o">|</span> <span class="n">crossings</span><span class="p">)</span>
