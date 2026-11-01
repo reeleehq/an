@@ -623,6 +623,8 @@ def load_wav(path: Path, *, denoise: str | None = None) -> bytes:
 
 #: ``path -> segments``: what the ``transcribe`` seam takes.
 Transcriber = Callable[[Path], Sequence[TranscriptSegment]]
+
+
 class Aligner(Protocol):
     """What the ``align`` seam takes (an#637): a forced aligner, which times a
     KNOWN ``text`` against the audio at ``path`` (a WAV) and gives each
@@ -711,7 +713,10 @@ class MfaAligner:
             if getattr(proc, "returncode", 1) != 0 or not grid.exists():
                 said = b"".join(
                     x if isinstance(x, bytes) else str(x).encode()
-                    for x in (getattr(proc, "stdout", b""), getattr(proc, "stderr", b""))
+                    for x in (
+                        getattr(proc, "stdout", b""),
+                        getattr(proc, "stderr", b""),
+                    )
                     if x
                 ).decode(errors="replace")
                 raise AlignmentError(
@@ -1171,8 +1176,15 @@ def _aligned_lines(
             "is what is said, or give a TextGrid"
         )
     timed = (
-        [TranscriptSegment(text=lines[0].text, start=0.0, end=total,
-                           speaker=lines[0].speaker, words=tuple(words))]  # fmt: skip
+        [
+            TranscriptSegment(
+                text=lines[0].text,
+                start=0.0,
+                end=total,
+                speaker=lines[0].speaker,
+                words=tuple(words),
+            )
+        ]  # fmt: skip
         if len(lines) == 1
         else segment_lines(lines, words, bounds=(0.0, total))
     )
