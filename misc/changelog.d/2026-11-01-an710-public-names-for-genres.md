@@ -1,0 +1,1 @@
+- **Four names a genre reads are public** (reeleehq/cutan#148, `an.genres.API_LEVEL` 13): `an.ir.validate.rig_scope`, `an.semantic.matcher.lookup_method` and `as_choice`, `an.audio.loudness.voice_loudness_offset`; the private spellings stay as aliases so a cutan built before the switch still runs.

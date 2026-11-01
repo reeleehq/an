@@ -62,7 +62,9 @@ __all__ = [
     "Missing",
     "Resolution",
     "applicable",
+    "as_choice",
     "resolve",
+    "lookup_method",
     "why_not",
 ]
 
@@ -133,8 +135,24 @@ class Resolution:
         return out
 
 
-def _method(x: Method | Choice | str, aspect_name: str | None = None) -> Method:
-    """The method ``x`` names — by spelling within ``aspect_name``, else by id.
+def lookup_method(x: Method | Choice | str, aspect_name: str | None = None) -> Method:
+    """The method ``x`` names — by spelling within ``aspect_name``, else by id
+    (public for a genre's own method tables, reeleehq/cutan#148). A lookup
+    only: unlike :func:`resolve`, it checks no applicability.
+
+    >>> from an.semantic.registry import register_entry, drop_owner
+    >>> _ = register_entry(Method("lk.walk", aspect="lk_move"), owner="lk")
+    >>> lookup_method("lk.walk").aspect, lookup_method(Choice("lk.walk"), "lk_move").id
+    ('lk_move', 'lk.walk')
+    >>> lookup_method("lk.walk", "lk_other")
+    Traceback (most recent call last):
+    ...
+    an.semantic.registry.VocabularyError: ...
+    >>> drop_owner("lk")
+
+    Raises:
+        VocabularyError: For a name no method has, or (with ``aspect_name``) a
+            method of another aspect.
 
     With ``aspect_name``, a method of ANOTHER aspect is refused: a typo in a
     style's ``policy:`` block must not realise one aspect with another's method.
@@ -167,7 +185,7 @@ def why_not(
     method: Method | Choice | str, subjects: ProfileLike
 ) -> tuple[Missing, ...]:
     """What ``method`` is missing on ``subjects``, each with its remedy (empty: it applies)."""
-    m = _method(method)
+    m = lookup_method(method)
     return tuple(
         Missing(term, m.remedies.get(term) or remedy_for(term))
         for term in missing(subjects, m.requires)
@@ -214,9 +232,9 @@ def resolve(
                 aspect_name, entity, None, NOOP.id, "noop", chosen_version=NOOP.version
             ),
         )
-    asked = _as_choice(requested, aspect_name)
+    asked = as_choice(requested, aspect_name)
     policy_choices = Policy.of(policy).choices(aspect_name)
-    own = _as_choice(declared, aspect_name) if asked is None else None
+    own = as_choice(declared, aspect_name) if asked is None else None
     if own is not None:
         if DECLARED_OUTRANKS_POLICY:
             asked = own
@@ -226,7 +244,7 @@ def resolve(
     skipped: list[tuple[str, tuple[str, ...]]] = []
 
     def trial(choice: Choice) -> Method | None:
-        m = _method(choice, aspect_name)
+        m = lookup_method(choice, aspect_name)
         gaps = tuple(missing(subjects, m.requires))
         if gaps:
             considered.append((m.id, gaps))
@@ -248,8 +266,8 @@ def resolve(
                 "noop",
                 chosen_version=NOOP.version,
             )
-        elif effective is not None and _method(effective, aspect_name).id != m.id:
-            wanted = _method(effective, aspect_name)
+        elif effective is not None and lookup_method(effective, aspect_name).id != m.id:
+            wanted = lookup_method(effective, aspect_name)
             gaps = next((g for mid, g in considered if mid == wanted.id), ())
             sub = Substitution(
                 aspect_name,
@@ -274,7 +292,7 @@ def resolve(
                     chosen_version=m.version,
                 )
         elif effective is None and asp.records_fallback and m.id != asp.chain[0]:
-            head = _method(asp.chain[0], aspect_name)
+            head = lookup_method(asp.chain[0], aspect_name)
             gaps = next((g for mid, g in considered if mid == head.id), ())
             sub = Substitution(
                 aspect_name,
@@ -321,23 +339,41 @@ def _first_of_chain(chain: tuple[str, ...], subjects: Subjects) -> Method | None
     for mid in chain:
         if mid == NOOP.id:
             return NOOP
-        m = _method(mid)
+        m = lookup_method(mid)
         if not missing(subjects, m.requires):
             return m
     return None
 
 
-def _as_choice(x: Any, aspect_name: str) -> Choice | None:
+def as_choice(x: Any, aspect_name: str) -> Choice | None:
+    """``x`` (a :class:`Method`, a :class:`Choice` or its spelling) as a
+    :class:`Choice` within ``aspect_name``, ``None`` for nothing (public for a
+    genre, reeleehq/cutan#148).
+
+    >>> as_choice(None, "any") is None, as_choice("", "any") is None
+    (True, True)
+    >>> as_choice(Method("ac.trot", aspect="ac_move"), "ac_move").method
+    'ac.trot'
+
+    Raises:
+        VocabularyError: For a pinned version the registry does not have, or a
+            pinned method :func:`lookup_method` refuses.
+    """
     if x is None or x == "":
         return None
     if isinstance(x, Method):
         return Choice(x.id)
     c = Choice.of(x)
     if c.version is not None:
-        m = _method(c, aspect_name)
+        m = lookup_method(c, aspect_name)
         if m.version != str(c.version):
             raise VocabularyError(
                 f"{m.id!r} is pinned to version {c.version!r}, but the registry has "
                 f"{m.version!r} — freeze its expansion, or update the pin"
             )
     return c
+
+
+#: The names genre packages imported before they were public (API level < 13); removed by an#709.
+_method = lookup_method
+_as_choice = as_choice
