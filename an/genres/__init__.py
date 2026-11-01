@@ -144,7 +144,9 @@ class GenreError(RegistryError):
 #: 13 = names a genre's checks and pack read, public (reeleehq/cutan#148):
 #:     ``an.ir.validate.rig_scope``, ``an.semantic.matcher.lookup_method`` and
 #:     ``as_choice``, ``an.audio.loudness.voice_loudness_offset``.
-API_LEVEL: int = 13
+#: 14 = a kind's own shot sizes (reeleehq/cutan#106): ``EntityKind.shot_sizes(entity, mall,
+#:     box)``, which the world's framing reads instead of ``SHOT_SIZES``.
+API_LEVEL: int = 14
 
 
 class GenreAPILevelError(GenreError, ImportError):
