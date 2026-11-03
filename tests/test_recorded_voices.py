@@ -1677,10 +1677,10 @@ def test_a_recorded_clip_carries_its_takes_phone_alphabet_or_none(tmp_path):
 
 
 def test_a_corrected_phone_alphabet_re_aligns_the_mouth(tmp_path):
-    """an#759: the phones key a take's audio (an#491's timings digest), their
-    alphabet does not; the viseme sidecar records it, so a take whose
-    alphabet is corrected (same bytes, same phones) is aligned again, and an
-    unchanged one is reused."""
+    """an#759: a take's words, phones AND their alphabet key its audio, so a
+    take whose alphabet is corrected (same bytes, same phones) is aligned
+    again, even when the scene is stamped and saved as a render leaves it;
+    an unchanged one is reused."""
     root = _project(tmp_path)
     grid = tmp_path / "take.TextGrid"
     grid.write_text(ALIGNED, encoding="utf-8")
@@ -1690,10 +1690,11 @@ def test_a_corrected_phone_alphabet_re_aligns_the_mouth(tmp_path):
         proj = load(root)
         lipsync = _Listening()
         produce_audio_for_scene(proj.scene, proj.mall, lipsync=lipsync, announce=None)
+        proj.mall["scenes"]["main"] = proj.scene  # stamped and saved, as a render does
         return [a for p, a in zip(lipsync.heard, lipsync.alphabets) if p]
 
     assert aligned_alphabets() == ["arpabet", "arpabet"]
-    assert aligned_alphabets() == [], "unchanged: the cached mouths are reused"
+    assert aligned_alphabets() == [], "unchanged: the stamped lines are reused"
     store = load(root).mall["recordings"]
     for key in list(store):
         store[key] = {**store[key], "phone_alphabet": "ipa"}
