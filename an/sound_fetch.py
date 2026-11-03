@@ -557,3 +557,20 @@ def cut_label(source: AssetSource) -> str | None:
 
     where = source.source_page_url or source.url or source.id or source.provider
     return f"{clock(cut['start'])}–{clock(cut['end'])} of {where}"
+
+
+def where_label(source: AssetSource) -> str | None:
+    """Where a fetched asset came from, for its credit line: the cut
+    (:func:`cut_label`) when one was recorded, else ``"from <page>"`` for a
+    source with an address, so a whole fetched sound still names the page a
+    reader checks its terms on (an#729); ``None`` without one.
+
+    >>> where_label(AssetSource(provider="web", url="https://example.org/a"))
+    'from https://example.org/a'
+    >>> where_label(AssetSource(provider="me")) is None
+    True
+    """
+    if cut := cut_label(source):
+        return cut
+    where = source.source_page_url or source.url
+    return f"from {where}" if where else None

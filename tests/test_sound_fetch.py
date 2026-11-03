@@ -99,3 +99,16 @@ def test_a_fetcher_that_declares_rights_but_states_none_is_refused(tmp_path):
     mall = build_project_mall(tmp_path, ensure=True)
     with pytest.raises(SoundError, match="licence is required"):
         add_sound_from_url(mall["sounds"], "fx", PAGE, fetcher=fetch)
+
+
+def test_a_whole_fetched_sound_names_its_page_in_the_credits(tmp_path):
+    """an#729 re-review: a sound kept whole records no cut, and its credit line
+    still names the page, so a reader can check an UNVERIFIED sound's terms."""
+    mall = build_project_mall(tmp_path)
+    page = "https://example.org/rain"
+    add_sound_from_url(
+        mall["sounds"], "rain", page, license="unknown",
+        fetcher=lambda url: Fetched(audio=synth_bed(1.0), url=url),
+    )  # fmt: skip
+    (line,) = [x for x in collect_credits(mall).format().splitlines() if "sounds/rain" in x]
+    assert f"from {page}" in line

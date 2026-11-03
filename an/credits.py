@@ -316,14 +316,15 @@ def _detail(e: CreditEntry) -> str:
         # Audio's revenue cap), on any asset made under them; a non-commercial
         # licence's restriction (an#373).
         out += f" ({restriction})"
-    from an.sound_fetch import cut_label, notice_label
+    from an.sound_fetch import notice_label, where_label
 
     if notice := notice_label(e.source):
         # A notice the licence requires shown verbatim (a foley export, an#729).
         out += f" — notice required: {notice}"
-    if cut := cut_label(e.source):
-        # A sound cut from fetched media says which part of which page (an#318).
-        out += f" — {cut}"
+    if where := where_label(e.source):
+        # A fetched asset says which part of which page (an#318), or which page
+        # when kept whole (an#729), so its terms can be checked.
+        out += f" — {where}"
     if e.covers:
         out += f" — covers {', '.join(e.covers)}"
     return out
