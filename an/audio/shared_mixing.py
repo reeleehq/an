@@ -75,7 +75,8 @@ def mixing_too_old(*, needed_for: str, error: type[Exception]) -> Iterator[None]
 
 def mixing_problem() -> str | None:
     """Why the installed ``mixing`` cannot serve ``an``: a part it uses is
-    missing (``mixing.loudness``, ``mixing.filtergraph``), or it is absent;
+    missing (``mixing.loudness`` with ``group_lufs`` and ``GainCappedWarning``,
+    an#699; ``mixing.filtergraph``), or it is absent;
     ``None`` when it can. Asked of the code, not of a version number: an
     editable install's metadata keeps the version it was installed at (an#644).
     """
@@ -83,6 +84,7 @@ def mixing_problem() -> str | None:
         with mixing_too_old(needed_for="an", error=RuntimeError):
             from mixing import loudness  # noqa: F401
             from mixing.filtergraph import resample_pitch_filter  # noqa: F401
+            from mixing.loudness import GainCappedWarning, group_lufs  # noqa: F401
     except RuntimeError as e:
         return str(e)
     return None

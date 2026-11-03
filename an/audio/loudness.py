@@ -57,6 +57,7 @@ import shutil
 import wave
 from collections.abc import Mapping, MutableMapping
 from dataclasses import dataclass
+from functools import partial
 from typing import Any
 
 from an.audio.shared_mixing import mixing_too_old
@@ -92,6 +93,7 @@ MIN_MEASURE_S: float = 1.0
 MISS_WARNING_DB: float = 1.0
 #: The loudness meter injected into :mod:`mixing.loudness` (one of its
 #: ``METERS``): ffmpeg's ``ebur128``, so ``an`` needs no scipy for its numpy meter.
+#: Given the PATH ffmpeg (its ``ffmpeg=``), so it must name a meter that takes one.
 METER: str = "ffmpeg_ebur128"
 #: 16-bit full scale.
 _INT16_FULL_SCALE: float = 32768.0
@@ -208,10 +210,11 @@ def _capped_message(voice: str, capped: Any) -> str:
 def group_loudness(pcms: list[_Pcm]) -> float:
     """The integrated loudness of a voice's lines, measured back to back
     (:func:`mixing.loudness.group_lufs`, an#699); ``-inf`` for no lines."""
+    component = _component()  # an old mixing is said even for a voice of no lines
     if not pcms:
         return float("-inf")
     segments, rates = _group_args(pcms)
-    return _component().group_lufs(
+    return component.group_lufs(
         segments, rates, meter=_meter, min_measure_s=MIN_MEASURE_S
     )
 
@@ -225,8 +228,11 @@ def integrated_loudness(pcm: _Pcm) -> float:
     """EBU R128 integrated loudness (LUFS) of ``pcm``, by :data:`METER` through
     :func:`mixing.loudness.integrated_lufs` (``-inf`` for silence)."""
     component = _component()
+    # The PATH ffmpeg, as every other ffmpeg ``an`` runs: never the pip-bundled
+    # build mixing prefers when imageio-ffmpeg is installed (an#578, mixing#145).
+    meter = partial(component.METERS[METER], ffmpeg=shutil.which("ffmpeg"))
     try:
-        return component.integrated_lufs(pcm.samples, pcm.rate, meter=METER)
+        return component.integrated_lufs(pcm.samples, pcm.rate, meter=meter)
     except RuntimeError as e:  # no ffmpeg, or ffmpeg failed
         raise VoiceLoudnessError(
             f"measuring a voice's loudness: {e} (macOS: `brew install ffmpeg`; "
