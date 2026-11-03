@@ -23,6 +23,12 @@ _SAMPLE_PATHS = (
     "deep/probes/x.png",
     "a/b/c/d",
     "artifacts/voice_options/a.json",
+    "x/foo/y",
+    "a",
+    "a/z",
+    ".env",
+    "sub/.env",
+    "q/r",
 )
 _SHAPES = (
     "*.lock",
@@ -30,6 +36,12 @@ _SHAPES = (
     "a/*/c",
     "artifacts/v?ice_options/[ab].json",
     "/scene.md",
+    "[!b].json",
+    "q?r",
+    "foo/",
+    "a/*",
+    ".env",
+    "cache//",
 )
 
 
@@ -52,6 +64,12 @@ def test_gitignored_agrees_with_git_check_ignore(tmp_path, lines):
 
 
 def test_a_line_it_cannot_read_as_git_does_is_refused():
-    for line in ("!keep.me", "artifacts/**/x", "# note", "\\*.md", "[^a].txt", "foo "):
+    for line in ("!keep.me", "artifacts/**/x", "# note", "\\*.md", "[^a].txt", "foo ",
+                 "[[:alpha:]]x", "", "/"):
         with pytest.raises(ValueError, match="cannot use"):
             gitignore_matcher((line,))
+    with pytest.raises(TypeError, match="not one str"):
+        gitignored("scene.md", lines="*.lock")
+    for rel in ("", "./artifacts/probes/x.png", "artifacts\\probes\\x.png", "a//b", "/a", "a/", "../a"):
+        with pytest.raises(ValueError, match="project-relative"):
+            gitignored(rel)

@@ -114,29 +114,32 @@ PROJECT_GITIGNORE: tuple[str, ...] = (
 )
 #: What a ``.gitignore`` line may hold that :func:`gitignore_matcher` would not
 #: read the way git does, so it refuses the line rather than misread it.
-_GITIGNORE_UNREAD: tuple[str, ...] = ("**", "\\", "[^")
+_GITIGNORE_UNREAD: tuple[str, ...] = ("**", "\\", "[^", "[:")
+#: How many compiled sets of lines :func:`gitignore_matcher` keeps.
+_GITIGNORE_CACHE_SIZE: int = 128
 
 
 def _gitignore_line_matcher(line: str) -> Callable[[str], bool]:
     """``rel -> bool`` for one ``.gitignore`` line, by git's rules (see
     :func:`gitignore_matcher`)."""
+    folders_only = line.endswith("/")
+    pattern = line[:-1] if folders_only else line  # one ``/``: ``a//`` stays anchored
     if (
         line != line.strip()
         or line.startswith(("!", "#"))
         or any(token in line for token in _GITIGNORE_UNREAD)
+        or not pattern.strip("/")  # a line git skips ("", "/") matches nothing here
     ):
         raise ValueError(
-            "a .gitignore line read here cannot use '!', '#', '**', '\\', '[^' "
-            f"or surrounding spaces (got {line!r})"
+            "a .gitignore line read here cannot use '!', '#', '**', '\\', '[^', "
+            f"'[:', surrounding spaces, or be empty (got {line!r})"
         )
-    folders_only = line.endswith("/")
-    pattern = line.rstrip("/")
     anchored = "/" in pattern
     pattern = pattern.lstrip("/")
     depth = pattern.count("/")
 
     def matches(rel: str) -> bool:
-        parts = rel.split("/")
+        parts = _project_relative(rel).split("/")
         # each folder holding ``rel`` (a matched folder covers its contents), then rel
         for n in range(1, len(parts) + (0 if folders_only else 1)):
             if anchored:
@@ -149,7 +152,19 @@ def _gitignore_line_matcher(line: str) -> Callable[[str], bool]:
     return matches
 
 
-@lru_cache(maxsize=None)
+def _project_relative(rel: str) -> str:
+    """``rel`` when it is a project-relative POSIX path (``a/b.png``); a
+    ``ValueError`` for what would be misread: empty, a backslash, a leading or
+    trailing ``/``, ``//``, or a ``.``/``..`` segment."""
+    parts = rel.split("/")
+    if not rel or "\\" in rel or any(p in ("", ".", "..") for p in parts):
+        raise ValueError(
+            f"a project-relative POSIX path is expected (like 'artifacts/x.png'), got {rel!r}"
+        )
+    return rel
+
+
+@lru_cache(maxsize=_GITIGNORE_CACHE_SIZE)
 def _compiled(lines: tuple[str, ...]) -> tuple[Callable[[str], bool], ...]:
     return tuple(_gitignore_line_matcher(line) for line in lines)
 
@@ -163,8 +178,12 @@ def gitignore_matcher(lines: Iterable[str] = PROJECT_GITIGNORE) -> Callable[[str
     case counts. What it does not read the way git does is refused with a
     ``ValueError`` rather than misread (a misread line could copy what it
     should keep local): negation (``!``), comments (``#``), ``**``, escapes
-    (``\\``), ``[^...]`` and surrounding spaces. For a genre or tool that
-    copies a project (a sync, an export) and keeps the same files local as git.
+    (``\\``), ``[^...]``, POSIX classes (``[:alpha:]``), surrounding spaces and
+    empty lines; so is a ``rel`` that is not a plain project-relative POSIX path
+    (a backslash, ``./``, ``..``). Case always counts, as git's does with
+    ``core.ignorecase=false`` (on macOS git ignores case by default). For a
+    genre or tool that copies a project (a sync, an export) and keeps the
+    same files local as git.
 
     >>> local = gitignore_matcher(("artifacts/shot_cache/", "notes.txt", "artifacts/v/*.lock"))
     >>> local("artifacts/shot_cache/blobs/x"), local("deep/notes.txt"), local("artifacts/audio/a.wav")
@@ -174,6 +193,8 @@ def gitignore_matcher(lines: Iterable[str] = PROJECT_GITIGNORE) -> Callable[[str
     >>> gitignore_matcher(("cache/",))("cache"), gitignore_matcher(("a/*/c",))("a/b/c/d")
     (False, True)
     """
+    if isinstance(lines, str):  # one line given bare: its characters are not lines
+        raise TypeError(f"lines is an iterable of .gitignore lines, not one str: {lines!r}")
     matchers = _compiled(tuple(lines))
     return lambda rel: any(m(rel) for m in matchers)
 
