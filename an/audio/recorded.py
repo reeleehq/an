@@ -452,7 +452,9 @@ class RecordedTTS:
                 # a corrected alphabet re-syncs; a take stored without one keeps
                 # its key
                 timed.append(record["phone_alphabet"])
-            options[TIMINGS_OPTION] = hashlib.sha256(json.dumps(timed).encode()).hexdigest()
+            options[TIMINGS_OPTION] = hashlib.sha256(
+                json.dumps(timed).encode()
+            ).hexdigest()
         return options
 
     def synthesize(
