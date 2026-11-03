@@ -396,7 +396,9 @@ def checkout(
             targets[path] = target
         for path, data in sorted(files.items()):
             targets[path].parent.mkdir(parents=True, exist_ok=True)
-            atomic_write(targets[path], data)  # a killed checkout tears no part (an#688)
+            atomic_write(
+                targets[path], data
+            )  # a killed checkout tears no part (an#688)
     doc = copy.deepcopy(version["doc"])
     if kind.name in METADATA_KINDS and isinstance(doc, dict):
         added = None
