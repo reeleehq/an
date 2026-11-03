@@ -294,6 +294,7 @@ def import_recorded(
     transcriber: str = "",
     diarize: bool = False,
     aligner: str = "",
+    rough_timing: bool = True,
     scene: str = DEFAULT_SCENE_FILE,
 ) -> str:
     """Import a performer's recording as the voice of its lines: each line is cut out,
@@ -313,6 +314,7 @@ def import_recorded(
     transcriber: the scribed backend when a take must be transcribed (default: scribed's default)
     diarize: ask the transcriber for speaker labels (map them with --speakers)
     aligner: time a plain transcript with a forced aligner, words and phones (for lip-sync): `mfa` (Montreal Forced Aligner, ARPAbet) or `mfa:ipa`
+    rough_timing: with --aligner and several lines in one take, time the lines roughly with the transcriber first (--transcriber, billed if that backend is) so each line is aligned in its own interval; --no-rough-timing aligns the whole text as one utterance, never transcribing
     scene: the scene file whose lines the takes voice (default scene.md; for example scene.studio.md)
     """
     from an.audio.recorded import DFLT_DENOISE, aligner_named, import_recordings
@@ -333,6 +335,7 @@ def import_recorded(
         transcriber=transcriber or None,
         diarize=diarize,
         align=align,
+        rough_timing=rough_timing,
         scene_file=scene,
     )
     return str(report)

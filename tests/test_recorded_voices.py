@@ -32,7 +32,9 @@ from an.audio.pipeline import (
 from an.audio.recorded import (
     RECORDINGS_STORE,
     RecordedVoicesError,
+    RecordedVoicesWarning,
     RecordingMissingError,
+    TranscriberUnavailableError,
     find_recording,
     import_recordings,
 )
@@ -1200,6 +1202,212 @@ def test_a_take_in_any_format_reaches_the_aligner_as_a_wav(tmp_path):
     assert align.heard[0][0] == ".wav"
 
 
+class _LineAligner(_Aligner):
+    """A fake line aligner (an#716): MFA's grid for the lines it is handed,
+    which it records."""
+
+    def __init__(self):
+        super().__init__()
+        self.lines = []
+
+    def align_lines(self, path, lines):
+        from an.audio.transcripts import parse_textgrid
+
+        self.lines.append([(s.text, s.start, s.end) for s in lines])
+        return parse_textgrid(MFA_GRID)
+
+
+def test_a_long_take_s_lines_are_aligned_each_in_its_rough_interval(tmp_path):
+    """an#716: with several lines and an aligner that aligns lines (MFA), the
+    lines are first timed roughly by the transcriber's words, and each is
+    aligned within its own interval, padded but never past its neighbour's;
+    the phones are those the one-utterance form gives. With no rough words,
+    or an aligner without lines, the whole text is one utterance (an#637)."""
+    from an.audio.recorded import DFLT_ALIGN_LINE_PAD_S
+    from an.audio.transcripts import parse_textgrid
+
+    heard = parse_textgrid(ALIGNED)  # the transcriber's words, roughly where said
+    by_lines = _project(tmp_path / "l")
+    align = _LineAligner()
+    import_recordings(
+        by_lines, _take(tmp_path), transcript=_plain(tmp_path), license=LICENSE,
+        align=align, transcribe=lambda path: heard,
+    )  # fmt: skip
+    ((first, second),) = align.lines
+    assert first[0] == HELLO and second[0] == FINE
+    pad = DFLT_ALIGN_LINE_PAD_S
+    assert first[1] == pytest.approx(0.5 - pad) and second[2] == pytest.approx(
+        3.3 + pad
+    )
+    assert first[2] <= second[1], "the intervals never overlap"
+    assert align.heard == [], "the one-utterance form is not used"
+    by_one = _project(tmp_path / "o")
+    import_recordings(
+        by_one, _take(tmp_path), transcript=_plain(tmp_path), license=LICENSE,
+        align=_Aligner(), transcribe=lambda path: pytest.fail("not transcribed"),
+    )  # fmt: skip
+    phones = lambda root: {r["text"]: r["phones"] for r in _records(root).values()}  # noqa: E731
+    assert phones(by_lines) == phones(by_one)
+    unplaced = _LineAligner()
+    with pytest.warns(RecordedVoicesWarning, match="one utterance"):
+        import_recordings(
+            _project(tmp_path / "u"), _take(tmp_path), transcript=_plain(tmp_path),
+            license=LICENSE, align=unplaced, transcribe=lambda path: [],
+        )  # fmt: skip
+    assert unplaced.lines == [] and len(unplaced.heard) == 1
+
+
+def _heard(*words):
+    """A transcriber hearing ``words`` (``(word, start, end)``) in any take."""
+    from an.audio.transcripts import TranscriptSegment
+
+    return lambda path: [TranscriptSegment(" ".join(w[0] for w in words), words=words)]
+
+
+#: The take's words as a transcriber hears them (the fixture's bursts).
+HEARD = (("hello", 0.5, 0.8), ("there", 0.8, 1.1), ("ned", 1.1, 1.5),
+         ("fine", 2.5, 2.9), ("thanks", 2.9, 3.3))  # fmt: skip
+
+
+def _import_lines(tmp_path, *, lines=(HELLO, FINE), align=None, **kw):
+    """The fixture take imported with a plain transcript of ``lines`` by a
+    line aligner (recorded in ``align``), into a fresh project."""
+    align = align if align is not None else _LineAligner()
+    text = tmp_path / "lines.txt"
+    text.write_text("".join(f"carl: {t}\n" for t in lines), encoding="utf-8")
+    root = _project(tmp_path / "p", lines=lines)
+    import_recordings(
+        root, _take(tmp_path), transcript=text, license=LICENSE, align=align, **kw
+    )
+    return root, align
+
+
+def test_rough_intervals_never_overlap_when_lines_are_closer_than_two_pads(tmp_path):
+    """an#716 review: two lines heard closer than twice the pad meet at the
+    midpoint of their gap (`cut_spans`), never overlapping."""
+    from an.audio.recorded import DFLT_ALIGN_LINE_PAD_S
+
+    close = HEARD[:2] + (("ned", 1.1, 2.1), ("fine", 2.3, 2.9), ("thanks", 2.9, 3.3))
+    assert 2.3 - 2.1 < 2 * DFLT_ALIGN_LINE_PAD_S
+    _, align = _import_lines(tmp_path, transcribe=_heard(*close))
+    ((first, second),) = align.lines
+    assert first[2] == pytest.approx(2.2) == second[1]
+
+
+def test_a_line_the_transcriber_did_not_hear_falls_back_to_one_utterance(tmp_path):
+    """an#716 review: a line the transcriber did not hear between two it did is
+    squeezed to nothing; no interval is trusted, and the lines are aligned as
+    one utterance, with a warning."""
+    lines = (HELLO, "Okay.", FINE)
+    squeezed = HEARD[:3] + (("fine", 1.5, 2.9), ("thanks", 2.9, 3.3))
+    with pytest.warns(
+        RecordedVoicesWarning, match="'Okay.' was not heard"
+    ):
+        _, align = _import_lines(tmp_path, lines=lines, transcribe=_heard(*squeezed))
+    assert align.lines == [] and len(align.heard) == 1
+
+
+def test_rough_words_that_do_not_fit_the_lines_fall_back_to_one_utterance(tmp_path):
+    """an#716 review: words that are not the transcript's (a wrong take, a
+    hallucinating transcriber) give no intervals, however confident."""
+    wrong = tuple((w, a, b) for (_, a, b), w in zip(HEARD, "a b c d e".split()))
+    with pytest.warns(
+        RecordedVoicesWarning, match="heard 0 of the transcript's 5 words"
+    ):
+        _, align = _import_lines(tmp_path, transcribe=_heard(*wrong))
+    assert align.lines == [] and len(align.heard) == 1
+
+
+def test_a_line_aligner_with_no_transcriber_falls_back_to_one_utterance(tmp_path):
+    """an#716 review: the import needed no transcriber before rough timing;
+    with none to run it still aligns, as one utterance, with a warning."""
+
+    def none_here(path):
+        raise TranscriberUnavailableError("no local transcriber is installed")
+
+    with pytest.warns(RecordedVoicesWarning, match="no local transcriber"):
+        root, align = _import_lines(tmp_path, transcribe=none_here)
+    assert align.lines == [] and len(align.heard) == 1
+    assert {r["text"] for r in _records(root).values()} == {HELLO, FINE}
+
+
+def test_rough_timing_off_never_transcribes(tmp_path):
+    """an#716 review: `rough_timing=False` aligns as before an#716, one
+    utterance, and never runs the transcriber."""
+    _, align = _import_lines(
+        tmp_path, rough_timing=False,
+        transcribe=lambda path: pytest.fail("not transcribed"),
+    )  # fmt: skip
+    assert align.lines == [] and len(align.heard) == 1
+
+
+class _HalfLineAligner(_LineAligner):
+    """A line aligner that aligns only the first line (MFA failing the second)."""
+
+    def align_lines(self, path, lines):
+        from an.audio.transcripts import parse_textgrid
+
+        self.lines.append([(s.text, s.start, s.end) for s in lines])
+        grid = _textgrid(
+            {k: [i for i in v if i[1] <= 1.5] for k, v in _TG_TIERS.items()}
+        )
+        return parse_textgrid(grid)
+
+
+def test_a_line_the_aligner_left_without_words_is_warned_of_and_kept(tmp_path):
+    """an#716 review: a line MFA placed no word in does not vanish into its
+    neighbour: it keeps its rough times, has no phones, and is warned of."""
+    with pytest.warns(
+        RecordedVoicesWarning, match="no word of the line 'Fine, thanks.'"
+    ):
+        root, _ = _import_lines(
+            tmp_path, align=_HalfLineAligner(), transcribe=_heard(*HEARD)
+        )
+    records = {r["text"]: r for r in _records(root).values()}
+    assert records[HELLO].get("phones") and records[FINE].get("phones") is None
+    assert records[FINE]["source"]["extra"]["span"] == pytest.approx([2.45, 3.35])
+
+
+def test_the_mfa_aligner_aligns_lines_from_a_textgrid_of_intervals(tmp_path):
+    """an#716: `align_lines` hands MFA a TextGrid with one interval per line
+    (spanning the whole take) instead of a `.lab`, and reads its TextGrid."""
+    from an.audio.recorded import mfa_aligner
+    from an.audio.transcripts import TranscriptSegment, _textgrid_tiers
+
+    given = []
+
+    def run(argv, **kw):
+        corpus, out = Path(argv[2]), Path(argv[5])
+        assert sorted(f.name for f in corpus.iterdir()) == ["take.TextGrid", "take.wav"]
+        given.append(
+            _textgrid_tiers((corpus / "take.TextGrid").read_text(encoding="utf-8"))
+        )
+        out.mkdir()
+        (out / "take.TextGrid").write_text(MFA_GRID, encoding="utf-8")
+        return type("Done", (), {"returncode": 0, "stderr": b""})()
+
+    lines = [TranscriptSegment(HELLO, 0.25, 1.75), TranscriptSegment(FINE, 2.25, 4.2)]
+    said = mfa_aligner(run=run).align_lines(_take(tmp_path), lines)
+    assert said and said[0].phones
+    assert given == [{"take": [(0.0, 0.25, ""), (0.25, 1.75, HELLO), (1.75, 2.25, ""),
+                               (2.25, 4.0, FINE)]}]  # fmt: skip
+    # clamped to the file's 4 s
+
+
+def test_a_textgrid_is_written_as_given_or_refused():
+    """an#716 review: `textgrid_text` clamps nothing: an interval out of the
+    grid's span or overlapping another is refused; a quote in a tier name is
+    escaped, and read back."""
+    from an.audio.transcripts import _textgrid_tiers, textgrid_text
+
+    with pytest.raises(ValueError, match="outside"):
+        textgrid_text({"take": [(0.5, 2.5, "a")]}, xmax=2.0)
+    with pytest.raises(ValueError, match="overlaps"):
+        textgrid_text({"take": [(0.5, 1.2, "a"), (1.0, 1.5, "b")]}, xmax=2.0)
+    grid = textgrid_text({'the "take"': [(0.5, 1.0, "a")]}, xmax=2.0)
+    assert list(_textgrid_tiers(grid)) == ['the "take"']
+
+
 def test_the_mfa_aligner_runs_mfa_on_a_one_file_corpus_and_reads_its_textgrid(tmp_path):
     """an#637: `mfa_aligner` writes the take and its text as a corpus, runs
     `mfa align` with the alphabet's English model, and reads the TextGrid back;
@@ -1419,3 +1627,21 @@ def test_json_that_is_not_mfa_s_keeps_its_segments_and_oov_is_not_a_phone():
     unknown = {"alignedWord": "<unk>", "start": 0.5, "end": 0.8,
                "phones": [{"phone": "oov_S", "duration": 0.3}]}  # fmt: skip
     assert _gentle_phones(unknown) == []
+
+
+def test_a_heard_one_word_line_keeps_the_per_line_alignment():
+    """an#716 re-review: a short line the transcriber heard ("No.", 0.08 s)
+    is judged by its padded interval, so it does not switch the whole take to
+    the one-utterance form; an unheard line squeezed between two heard ones
+    still does."""
+    from an.audio.recorded import DFLT_ROUGH_MIN_LINE_S, _rough_line_intervals, _RoughTimingUnfit
+    from an.audio.transcripts import parse_transcript_text
+
+    lines = parse_transcript_text("a: Hello there.\nb: No.\na: Fine thanks.", fmt="plain")
+    heard = [("hello", 0.5, 0.9), ("there", 0.9, 1.3), ("no", 2.5, 2.58),
+             ("fine", 4.0, 4.3), ("thanks", 4.3, 4.7)]  # fmt: skip
+    spans = _rough_line_intervals(lines, heard, total=6.0, pad_s=0.25)
+    assert spans[1].end - spans[1].start >= DFLT_ROUGH_MIN_LINE_S
+    unheard = [("hello", 0.5, 0.9), ("there", 0.9, 1.3), ("fine", 1.3, 1.6), ("thanks", 1.6, 1.9)]
+    with pytest.raises(_RoughTimingUnfit, match="not heard"):
+        _rough_line_intervals(lines, unheard, total=6.0, pad_s=0.25, min_coverage=0.0)

@@ -62,17 +62,20 @@ import re
 import shutil
 import subprocess
 import tempfile
+import warnings
 import wave
+from bisect import bisect_right
 from collections.abc import Callable, Iterable, Mapping, MutableMapping, Sequence
 from dataclasses import dataclass, field, replace
 from pathlib import Path
-from typing import Any, NamedTuple, Protocol
+from typing import Any, NamedTuple, Protocol, runtime_checkable
 
 from an.audio.transcripts import (
     ARPABET,
     IPA,
     TranscriptSegment,
     WordTiming,
+    align_words,
     cut_spans,
     from_transcript_object,
     normalize_text,
@@ -80,6 +83,7 @@ from an.audio.transcripts import (
     parse_transcript_text,
     rebase_words,
     segment_lines,
+    tokens_of,
 )
 from an.audio.tts import AudioClip, VoiceMeta
 from an.stores.transcripts import (
@@ -101,6 +105,7 @@ __all__ = [
     "DFLT_DENOISE",
     "DFLT_MATCH_THRESHOLD",
     "RecordedVoicesError",
+    "RecordedVoicesWarning",
     "RecordingMissingError",
     "TranscriberUnavailableError",
     "RecordedTTS",
@@ -179,6 +184,11 @@ _STEM_SPLIT_RE = re.compile(r"[-_. ]")
 
 class RecordedVoicesError(RuntimeError):
     """An import, or a lookup of a take, that cannot proceed; the message says what to do."""
+
+
+class RecordedVoicesWarning(UserWarning):
+    """An import that went ahead in a weaker form than asked; the message says
+    what was lost and what to do (an#716)."""
 
 
 class RecordingMissingError(RecordedVoicesError):
@@ -646,6 +656,31 @@ class Aligner(Protocol):
     def __call__(self, path: Path, text: str) -> Sequence[TranscriptSegment]: ...
 
 
+@runtime_checkable
+class LineAligner(Protocol):
+    """An :class:`Aligner` that can also align each of several ROUGHLY timed
+    lines within its own interval (an#716): what a long take of many lines
+    needs, since a forced aligner is built for short utterances. ``lines``
+    are timed (``start``/``end``, seconds in the take at ``path``)."""
+
+    def align_lines(
+        self, path: Path, lines: Sequence[TranscriptSegment]
+    ) -> Sequence[TranscriptSegment]: ...
+
+
+#: Silence kept on each side of a roughly timed line when a line aligner aligns
+#: it within its own interval (an#716): a transcriber's word edges are rough,
+#: and a line cut short would lose its first or last phone.
+DFLT_ALIGN_LINE_PAD_S: float = 0.25
+#: The least share of a plain transcript's words the transcriber must hear
+#: (:attr:`~an.audio.transcripts.AlignedWords.coverage`) for its rough line
+#: times to be trusted (an#716): below it the times are guesses, and the lines
+#: are aligned as one utterance instead.
+DFLT_ROUGH_MIN_COVERAGE: float = 0.5
+#: The shortest a roughly timed line may be, seconds (an#716): a line the
+#: transcriber did not hear is squeezed between its neighbours, and an
+#: interval that narrow holds no line to align.
+DFLT_ROUGH_MIN_LINE_S: float = 0.1
 #: The Montreal Forced Aligner's English models (an#637): one pronouncing
 #: dictionary and acoustic model per phone alphabet, both named the same.
 MFA_MODELS: Mapping[str, str] = {ARPABET: "english_us_arpa", IPA: "english_mfa"}
@@ -696,6 +731,30 @@ class MfaAligner:
         return self.alphabet
 
     def __call__(self, path: Path, text: str) -> list[TranscriptSegment]:
+        """``text`` aligned as one utterance over the whole take (a ``.lab``)."""
+        return self._align(path, f"{MFA_TAKE_STEM}.lab", text)
+
+    def align_lines(
+        self, path: Path, lines: Sequence[TranscriptSegment]
+    ) -> list[TranscriptSegment]:
+        """Each of the roughly timed ``lines`` aligned within its own interval
+        (an#716): MFA is given a TextGrid with one interval per line instead
+        of a ``.lab``, so a long take of many lines aligns as many short
+        utterances, which is what MFA is built for. The intervals are clamped
+        to the file's length (the take's length as cut may round past it)."""
+        from an.audio.transcripts import textgrid_text
+
+        xmax = wav_seconds(Path(path).read_bytes())
+        intervals = [
+            (max(0.0, seg.start), min(xmax, seg.end), seg.text) for seg in lines
+        ]
+        grid = textgrid_text({MFA_TAKE_STEM: intervals}, xmax=xmax)
+        return self._align(path, f"{MFA_TAKE_STEM}.TextGrid", grid)
+
+    def _align(self, path: Path, transcript: str, text: str) -> list[TranscriptSegment]:
+        """Run MFA on the take and its ``transcript`` file (named so MFA reads
+        it: ``.lab`` or ``.TextGrid``, holding ``text``) as a one-file corpus,
+        and read back the TextGrid it writes."""
         import shutil
         import subprocess
         import tempfile
@@ -713,7 +772,7 @@ class MfaAligner:
             out = Path(tmp) / "aligned"
             corpus.mkdir()
             shutil.copyfile(path, corpus / f"{MFA_TAKE_STEM}.wav")
-            (corpus / f"{MFA_TAKE_STEM}.lab").write_text(text, encoding="utf-8")
+            (corpus / transcript).write_text(text, encoding="utf-8")
             argv = [self.executable, self.command, str(corpus), model, model,
                     str(out), "--clean", "--single_speaker"]  # fmt: skip
             proc = (self.run or subprocess.run)(argv, capture_output=True, check=False)
@@ -1082,14 +1141,16 @@ def _timed_segments(
     make_transcriber: Callable[[], Transcriber],
     align: Aligner | None = None,
     wav: bytes | None = None,
+    rough_timing: bool = True,
 ) -> tuple[list[TranscriptSegment], str]:
     """The lines of the take at ``path``, each with its span in the file, and
     how the words were obtained: the transcript's kind (``'srt'``, ``'txt'``,
     ...), ``'asr'``, ``'<kind>+asr'`` for a plain transcript timed by the
     transcriber, ``'file'`` for one line, or ``'<kind>+align'`` for a plain
     transcript timed by the forced aligner, words and phones (an#637; ``wav``
-    is the take as decoded, which the aligner is given). An aligner with no
-    plain transcript is refused: it has no text to align."""
+    is the take as decoded, which the aligner is given; ``rough_timing``: the
+    transcriber times its lines roughly first, :func:`_aligned_lines`). An
+    aligner with no plain transcript is refused: it has no text to align."""
     lines = [s for s in given[0] if s.text] if given is not None else []
     if align is not None and (given is None or (lines and all(s.timed for s in lines))):
         raise RecordedVoicesError(
@@ -1128,10 +1189,19 @@ def _timed_segments(
             f"the transcript for {path.name} times some lines and not others; time all or none"
         )
     if align is not None:
+
+        def rough() -> list[WordTiming]:
+            """The transcriber's words: rough line times for a long take (an#716)."""
+            heard = (transcribe or make_transcriber())(path)
+            return [w for s in heard for w in (s.words or ())]
+
         return (
-            _aligned_lines(path, segments, total=total, align=align, wav=wav),
+            _aligned_lines(
+                path, segments, total=total, align=align, wav=wav,
+                rough=rough if rough_timing else None,
+            ),
             f"{kind}+align",
-        )
+        )  # fmt: skip
     if len(segments) == 1:
         seg = segments[0]
         return [
@@ -1160,28 +1230,64 @@ def _aligned_lines(
     total: float,
     align: Aligner,
     wav: bytes | None,
+    rough: Callable[[], Sequence[WordTiming]] | None = None,
+    line_pad_s: float = DFLT_ALIGN_LINE_PAD_S,
+    min_coverage: float = DFLT_ROUGH_MIN_COVERAGE,
+    min_line_s: float = DFLT_ROUGH_MIN_LINE_S,
 ) -> list[TranscriptSegment]:
     """A plain transcript's ``lines`` timed by a forced aligner (an#637): its
     words time the lines as a transcriber's would (:func:`segment_lines`), and
     each line keeps the phones that fall in its span. One line spans the file.
     The aligner is given ``wav`` (the take as decoded, denoised included: the
-    samples that are cut) as a WAV file, any format the import read."""
+    samples that are cut) as a WAV file, any format the import read.
+
+    Several lines and an aligner that can align lines (:class:`LineAligner`,
+    MFA): the lines are first timed roughly by ``rough`` (the transcriber's
+    words, :func:`_rough_line_intervals`), and each is aligned within its own
+    interval, ``line_pad_s`` wider on each side (an#716), since a forced aligner
+    is built for short utterances; each aligned word and phone belongs to the
+    line whose interval it falls in. Without ``rough`` (``rough_timing=False``),
+    the whole text is aligned as one utterance, as before an#716; so it is, with
+    a :class:`RecordedVoicesWarning`, when no transcriber can run or its words
+    do not fit the lines (``min_coverage``, ``min_line_s``). A line the aligner
+    placed no word in keeps its rough times, without phones, and is warned of."""
     import tempfile
 
-    text = " ".join(line.text for line in lines)
+    intervals = (
+        _rough_intervals_or_none(
+            path, lines, rough, total=total, pad_s=line_pad_s,
+            min_coverage=min_coverage, min_line_s=min_line_s,
+        )
+        if len(lines) > 1 and rough is not None and isinstance(align, LineAligner)
+        else None
+    )  # fmt: skip
+
+    def aligned_from(file: Path) -> list[TranscriptSegment]:
+        if intervals is not None:
+            return list(align.align_lines(file, intervals))
+        return list(align(file, " ".join(line.text for line in lines)))
+
     if wav is None:
-        aligned = list(align(path, text))
+        aligned = aligned_from(path)
     else:
         with tempfile.TemporaryDirectory(prefix="an-align-") as tmp:
             decoded = Path(tmp) / f"{path.stem}.wav"
             decoded.write_bytes(wav)
-            aligned = list(align(decoded, text))
+            aligned = aligned_from(decoded)
     words = [w for s in aligned for w in (s.words or ())]
     phones = [p for s in aligned for p in (s.phones or ())]
     if not words:
         raise RecordedVoicesError(
             f"the aligner returned no word timings for {path.name}; check the transcript "
             "is what is said, or give a TextGrid"
+        )
+    # The aligner's declared alphabet, else what its output showed (an#721).
+    alphabet = getattr(align, "phone_alphabet", None) or next(
+        (s.phone_alphabet for s in aligned if s.phone_alphabet), None
+    )
+    if intervals is not None:
+        return _lines_by_interval(
+            intervals, words, phones, alphabet=alphabet, name=path.name
         )
     timed = (
         [
@@ -1196,10 +1302,6 @@ def _aligned_lines(
         if len(lines) == 1
         else segment_lines(lines, words, bounds=(0.0, total))
     )
-    # The aligner's declared alphabet, else what its output showed (an#721).
-    alphabet = getattr(align, "phone_alphabet", None) or next(
-        (s.phone_alphabet for s in aligned if s.phone_alphabet), None
-    )
     eps = 1e-6
 
     def with_phones(seg: TranscriptSegment) -> TranscriptSegment:
@@ -1211,6 +1313,137 @@ def _aligned_lines(
         )
 
     return [with_phones(seg) for seg in timed]
+
+
+class _RoughTimingUnfit(ValueError):
+    """The transcriber's words cannot time the lines, roughly (an#716); the message says why."""
+
+
+def _rough_intervals_or_none(
+    path: Path,
+    lines: Sequence[TranscriptSegment],
+    rough: Callable[[], Sequence[WordTiming]],
+    **fit: Any,
+) -> list[TranscriptSegment] | None:
+    """:func:`_rough_line_intervals` of ``rough()``'s words, or ``None`` with a
+    :class:`RecordedVoicesWarning` naming what went wrong (no transcriber, or
+    words that do not fit), so the lines are aligned as one utterance."""
+    try:
+        return _rough_line_intervals(lines, rough(), **fit)
+    except (TranscriberUnavailableError, _RoughTimingUnfit) as e:
+        warnings.warn(
+            f"{path.name}: its {len(lines)} lines could not be timed roughly ({e}), "
+            "so the forced aligner aligns them as one utterance, which drifts on a "
+            "long take; give a transcriber (--transcriber), or cut the take into "
+            "one file per line",
+            RecordedVoicesWarning,
+            stacklevel=2,
+        )
+        return None
+
+
+def _rough_line_intervals(
+    lines: Sequence[TranscriptSegment],
+    words: Sequence[WordTiming],
+    *,
+    total: float,
+    pad_s: float,
+    min_coverage: float = DFLT_ROUGH_MIN_COVERAGE,
+    min_line_s: float = DFLT_ROUGH_MIN_LINE_S,
+) -> list[TranscriptSegment]:
+    """``lines`` timed roughly by a transcriber's ``words``
+    (:func:`~an.audio.transcripts.align_words`), each widened by ``pad_s`` as a
+    cut is (:func:`~an.audio.transcripts.cut_spans`: never past the midpoint to
+    its neighbour, nor out of ``0..total``): the intervals a line aligner aligns
+    each line within (an#716). Each keeps its rough ``words``. Raises
+    :class:`_RoughTimingUnfit` when the words cannot be trusted to place every
+    line: fewer than ``min_coverage`` of the lines' words heard, a line with
+    no words, or a line whose PADDED interval is shorter than ``min_line_s``,
+    which is what a line the transcriber did not hear between two it did
+    becomes (a heard one-word line keeps its pad, so it passes).
+
+    >>> lines = parse_transcript_text("carl: Hello there.\\nned: Hi.", fmt="plain")
+    >>> words = [("hello", 0.5, 0.9), ("there", 0.9, 1.3), ("hi", 2.0, 2.3)]
+    >>> [(s.text, s.start, s.end) for s in _rough_line_intervals(lines, words, total=3.0, pad_s=0.25)]
+    [('Hello there.', 0.25, 1.55), ('Hi.', 1.75, 2.55)]
+    """
+    per_line = [tokens_of(line.text) for line in lines]
+    heard = align_words(
+        [t for toks in per_line for t in toks], words, bounds=(0.0, total)
+    )
+    if heard.coverage < min_coverage:
+        raise _RoughTimingUnfit(
+            f"the transcriber heard {heard.matched} of the transcript's "
+            f"{heard.total} words, under {min_coverage:.0%}"
+        )
+    timed, cursor = [], 0
+    for line, toks in zip(lines, per_line):
+        said = tuple(heard.words[cursor : cursor + len(toks)])
+        cursor += len(toks)
+        if not said:
+            raise _RoughTimingUnfit(f"the line {line.text!r} has no words")
+        timed.append(replace(line, start=said[0][1], end=said[-1][2], words=said))
+    spans = cut_spans(timed, total=total, pad_s=pad_s)
+    # Judged padded: a heard one-word line ("No.", 0.08 s) keeps its pad either
+    # side; an unheard one squeezed between two heard lines has next to none.
+    for seg, (a, b) in zip(timed, spans):
+        if b - a < min_line_s:
+            raise _RoughTimingUnfit(
+                f"the line {seg.text!r} was not heard (its interval is under {min_line_s:g} s)"
+            )
+    return [replace(seg, start=a, end=b) for seg, (a, b) in zip(timed, spans)]
+
+
+def _lines_by_interval(
+    intervals: Sequence[TranscriptSegment],
+    words: Sequence[WordTiming],
+    phones: Sequence[WordTiming],
+    *,
+    alphabet: str | None,
+    name: str,
+) -> list[TranscriptSegment]:
+    """Each line of ``intervals`` (disjoint, in order, as
+    :func:`_rough_line_intervals` gives them) timed by the aligned ``words``
+    and ``phones`` whose midpoint falls in its interval (an#716). A line given
+    no word keeps its rough words and times, without phones, with a
+    :class:`RecordedVoicesWarning` (``name`` is the take's)."""
+    starts = [seg.start for seg in intervals]
+
+    def by_line(timings: Sequence[WordTiming]) -> list[list[WordTiming]]:
+        out: list[list[WordTiming]] = [[] for _ in intervals]
+        for t in timings:
+            i = bisect_right(starts, (t[1] + t[2]) / 2) - 1
+            if i >= 0 and (t[1] + t[2]) / 2 <= intervals[i].end:
+                out[i].append(t)
+        return out
+
+    def timed(seg: TranscriptSegment, said: list, sounds: list) -> TranscriptSegment:
+        if said:
+            return replace(
+                seg, start=said[0][1], end=said[-1][2], words=tuple(said),
+                phones=tuple(sounds) or None,
+                phone_alphabet=alphabet if sounds else None,
+            )  # fmt: skip
+        warnings.warn(
+            f"{name}: the aligner placed no word of the line {seg.text!r} in "
+            f"{seg.start:.2f}–{seg.end:.2f} s; it keeps the transcriber's rough "
+            "times and has no phones. Check it is what is said",
+            RecordedVoicesWarning,
+            stacklevel=2,
+        )
+        rough = seg.words or ()
+        return replace(
+            seg,
+            start=rough[0][1] if rough else seg.start,
+            end=rough[-1][2] if rough else seg.end,
+            phones=None,
+            phone_alphabet=None,
+        )
+
+    return [
+        timed(seg, said, sounds)
+        for seg, said, sounds in zip(intervals, by_line(words), by_line(phones))
+    ]
 
 
 def _speaker_of(
@@ -1548,6 +1781,7 @@ def import_recordings(
     transcriber: str | None = None,
     diarize: bool = False,
     align: Aligner | None = None,
+    rough_timing: bool = True,
     match_threshold: float = DFLT_MATCH_THRESHOLD,
     write: bool = True,
     scene_file: Any = DEFAULT_SCENE_FILE,
@@ -1576,6 +1810,13 @@ def import_recordings(
     ``align`` is the forced-aligner seam (``(path, text) -> segments``, e.g.
     :func:`mfa_aligner`, an#637): with a plain transcript it times the lines
     instead of a transcriber, and gives their phones, as a TextGrid would.
+    Several lines in one take are first timed roughly by the transcriber
+    (``transcribe``, else ``transcriber``: a billed backend named there is
+    billed for this pass too), and each is aligned within its own interval
+    (an#716); ``rough_timing=False`` never transcribes and aligns the whole
+    text as one utterance, which drifts on a long take. With no transcriber
+    to run, the import falls back to that one utterance, with a
+    :class:`RecordedVoicesWarning`.
     ``write=False`` runs everything but writes nothing (a dry run).
     ``scene_file`` imports into another scene of the project
     (``scene.studio.md``, an#554).
@@ -1612,6 +1853,7 @@ def import_recordings(
             make_transcriber=make_transcriber,
             align=align,
             wav=wav,
+            rough_timing=rough_timing,
         )
         spans = cut_spans(segments, total=total)
         previous_end: float | None = None
