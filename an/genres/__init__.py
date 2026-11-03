@@ -157,7 +157,8 @@ class GenreError(RegistryError):
 #: 16 = names cutan's presets, checks and passes read, public (an#730): ``an.motion``'s
 #:     ``alternating``, ``require_positive``, ``rest_value``, ``settled``, ``side_sign``,
 #:     ``through`` and ``tweens_of``; ``an.ir.validate.built_node_paths``, ``rig_document``
-#:     and ``text_block_ids``; ``an.stage.rig.asset_file``.
+#:     and ``text_block_ids``; ``an.stage.rig.asset_file`` (module-level names: those two
+#:     modules have no ``__all__``).
 API_LEVEL: int = 16
 
 

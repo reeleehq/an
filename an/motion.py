@@ -147,6 +147,11 @@ Rest = Mapping[str, float]
 
 
 def rest_value(rest: Rest | None, prop: str) -> float:
+    """``prop``'s value in the ``rest`` pose, else the identity pose's.
+
+    >>> rest_value({"x": -110.0}, "x"), rest_value(None, "rotation")
+    (-110.0, 0.0)
+    """
     return float((rest or {}).get(prop, _identity()[prop]))
 
 
@@ -156,13 +161,22 @@ def tweens_of(action: Action) -> list[FlatAction]:
 
 
 def require_positive(**durations: float) -> None:
+    """Refuse, naming it, any of ``durations`` that is not above zero.
+
+    >>> require_positive(duration=0.5)
+    >>> require_positive(hold=0)
+    Traceback (most recent call last):
+      ...
+    ValueError: hold must be positive, got 0
+    """
     for name, value in durations.items():
         if not value > 0:
             raise ValueError(f"{name} must be positive, got {value!r}")
 
 
 def settled(target: PathStr, prop: str, value: float, *moves: Action) -> Action:
-    """``moves`` then a ``set`` pinning ``prop`` at ``value`` where they end.
+    """``moves`` then a ``set`` pinning ``prop`` at ``value``, where they end
+    (``value`` is the last move's end value; the moves are variadic).
 
     A frame shows the pose at ``i / fps`` and the runtime HOLDS the last pose it
     applied, so a tween ending between two frames leaves its property wherever
@@ -200,6 +214,11 @@ def through(
 
 
 def alternating(n: int, first: EasingSpec, second: EasingSpec) -> list[EasingSpec]:
+    """``n`` easings alternating ``first`` and ``second`` (a swing's out and back).
+
+    >>> alternating(3, "ease_out", "ease_in")
+    ['ease_out', 'ease_in', 'ease_out']
+    """
     return [first if i % 2 == 0 else second for i in range(n)]
 
 
@@ -305,6 +324,11 @@ _SIDES: dict[str, float] = {"left": -1.0, "right": 1.0}
 
 
 def side_sign(side: str) -> float:
+    """``-1.0`` for ``"left"``, ``1.0`` for ``"right"``; any other side is refused.
+
+    >>> side_sign("left"), side_sign("right")
+    (-1.0, 1.0)
+    """
     if side not in _SIDES:
         raise ValueError(f"side must be one of {sorted(_SIDES)}, got {side!r}")
     return _SIDES[side]

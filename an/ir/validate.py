@@ -854,7 +854,8 @@ def built_node_paths(
     than restated: a preset play's node is checked against exactly what compile
     will look it up in (an#166). The failure is RETURNED so the caller reports
     that the check was skipped; swallowing it would be validate saying "fine"
-    about a play it never looked at."""
+    about a play it never looked at. Without ``resolution`` the stage is built
+    unsized, as a genre's check calls it (``built_node_paths(shot, stores)``)."""
     import warnings
 
     from an.motion import stage_poses
@@ -1921,8 +1922,10 @@ def _core_trim_targets(ctx: ValidationContext) -> None:
 
 
 def text_block_ids(ctx: ValidationContext) -> list:
-    """The current shot's text-block entity ids (checked by `_check_text_blocks`,
-    once; the target and entity-reference checks skip them)."""
+    """The current shot's text-block entity ids, which the target and
+    entity-reference checks skip. Not a pure getter: the first call per shot
+    RUNS the text-block check (`_check_text_blocks`), reporting through
+    ``ctx.report``; later calls return the cached ids (an#730)."""
     res = ctx.scene.meta.resolution
     return ctx.cached(
         ("text ids", ctx.index),
