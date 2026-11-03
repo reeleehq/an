@@ -112,6 +112,17 @@ LicenseClass = Literal["attribution", "free", "noncommercial", "private", "unkno
 #:   and the licence terminates once the user (with affiliates) makes more than
 #:   USD 1,000,000 in annual revenue; outputs must follow Stability's acceptable
 #:   use policy. So ``free``, with that cap named wherever it is listed (an#332).
+#: - OpenAI (``gpt-image`` plates and parts through ``an art generate``, and any
+#:   output recorded under ``openai``, an#728): the OpenAI Services Agreement
+#:   (API use, effective 2026-01-01, read 2026-11-03 at
+#:   openai.com/policies/services-agreement through its archived copy of
+#:   2026-01-07, openai.com refusing automated reads) §4.1: Customer "owns all
+#:   Output. OpenAI hereby assigns to Customer all OpenAI's right, title, and
+#:   interest, if any, in and to Output"; the Terms of Use for individuals
+#:   (effective 2026-01-01, archived 2026-11-02) say the same. No credit is
+#:   asked. §4.4: "Output may not be unique, and other users may receive
+#:   similar content", and use must follow OpenAI's usage policies. So
+#:   ``free``, with both named wherever it is listed.
 _STABILITY_TERMS: dict[str, LicenseClass] = {"stability-community": "free"}
 PROVIDER_TERMS: dict[str, dict[str, LicenseClass]] = {
     "elevenlabs": {
@@ -122,6 +133,7 @@ PROVIDER_TERMS: dict[str, dict[str, LicenseClass]] = {
     "stability": _STABILITY_TERMS,
     "stability-ai": _STABILITY_TERMS,
     "stable-audio": _STABILITY_TERMS,
+    "openai": {"openai-output-owned": "free"},
 }
 #: What a provider-terms code restricts beyond its class, by code: the words a
 #: credits report prints beside it.
@@ -131,6 +143,9 @@ PROVIDER_TERMS_RESTRICTIONS: dict[str, str] = {
     "stability-community": "Stability AI Community License: the licence ends once "
     "you (with affiliates) make over USD 1,000,000 a year (then an Enterprise "
     "licence is needed), and use must follow Stability's acceptable use policy",
+    "openai-output-owned": "OpenAI output: assigned to you, but it may not be "
+    "unique (others may receive similar output, which is not yours), and use "
+    "must follow OpenAI's usage policies",
 }
 
 
@@ -296,6 +311,8 @@ def license_class(source: AssetSource) -> LicenseClass:
     'free'
     >>> license_class(AssetSource(provider="openai", license="elevenlabs-paid-plan"))
     'unknown'
+    >>> license_class(AssetSource(provider="openai", license="openai-output-owned"))
+    'free'
     """
     if not source.license:
         return "unknown"

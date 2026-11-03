@@ -129,7 +129,11 @@ family (`cc-by-nc-4.0` is `cc-by-nc`'s class). Provider terms (`an.ir.assets.PRO
 provider made for you under its own terms, and their restriction is printed
 wherever the asset is listed: ElevenLabs' paid and free plans, and Stable
 Audio's `stability-community` (`free`; the licence ends above USD 1M annual
-revenue — read at stability.ai/community-license-agreement, 2026-10-06).
+revenue — read at stability.ai/community-license-agreement, 2026-10-06),
+and OpenAI's `openai-output-owned` (`free`: output assigned to the user, no
+credit; it may not be unique, and use follows OpenAI's usage policies — the
+Services Agreement and Terms of Use effective 2026-01-01, read 2026-11-03
+through archived copies, an#728).
 `AssetSource.cacheable` is `None` when not recorded; `False` means the terms
 forbid keeping the bytes, and the sounds store refuses them (an#332).
 

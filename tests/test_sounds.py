@@ -327,3 +327,20 @@ def test_credits_name_stable_audios_revenue_cap(tmp_path):
               source={"provider": "stability", "license": "stability-community"})
     text = collect_credits(mall).format()
     assert "1,000,000" in text
+
+
+def test_openai_output_is_owned_and_its_terms_are_named_in_the_credits(tmp_path):
+    """an#728: what an OpenAI model made (``an art generate``'s plates, recorded
+    ``openai-output-owned``) is assigned to the user: ``free``, not unknown,
+    with the terms' remaining restriction printed wherever it is listed; and
+    another provider's output is not OpenAI's to license."""
+    from an.ir.assets import AssetSource, license_class
+
+    made = {"provider": "openai", "license": "openai-output-owned"}
+    assert license_class(AssetSource(**made)) == "free"
+    assert license_class(AssetSource(provider="fal", license="openai-output-owned")) == "unknown"
+    mall = build_project_mall(tmp_path, ensure=True)
+    add_sound(mall["sounds"], "whoosh", synth_hit(seed=5), source=made)
+    report = collect_credits(mall)
+    assert "may not be unique" in report.format()
+    assert report.publishable

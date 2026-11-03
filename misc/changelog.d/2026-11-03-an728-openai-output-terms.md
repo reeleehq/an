@@ -1,0 +1,1 @@
+- `an credits` classes OpenAI image output (`provider="openai"`, `license="openai-output-owned"`, from `an art generate`) as `free`, naming its remaining terms (not unique; usage policies), read from OpenAI's terms effective 2026-01-01 (an#728).
