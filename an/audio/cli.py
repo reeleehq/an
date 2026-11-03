@@ -29,6 +29,7 @@ from collections.abc import Callable, Iterable
 from typing import Any
 
 from an.audio.providers import make_tts
+from an.audio.recorded import DFLT_OVERLAP_TOLERANCE_S
 from an.audio.tts import TTSProvider, VoiceMeta
 
 # The business logic lives with the voice listing (an#712); re-exported here.
@@ -295,6 +296,7 @@ def import_recorded(
     diarize: bool = False,
     aligner: str = "",
     rough_timing: bool = True,
+    overlap_tolerance: float = DFLT_OVERLAP_TOLERANCE_S,
     scene: str = DEFAULT_SCENE_FILE,
 ) -> str:
     """Import a performer's recording as the voice of its lines: each line is cut out,
@@ -315,6 +317,7 @@ def import_recorded(
     diarize: ask the transcriber for speaker labels (map them with --speakers)
     aligner: time a plain transcript with a forced aligner, words and phones (for lip-sync): `mfa` (Montreal Forced Aligner, ARPAbet) or `mfa:ipa`
     rough_timing: with --aligner and several lines in one take, time the lines roughly with the transcriber first (--transcriber, billed if that backend is) so each line is aligned in its own interval; --no-rough-timing aligns the whole text as one utterance, never transcribing
+    overlap_tolerance: how far (seconds) one line may run into the next before the two are refused as overlapping speech (raise it for a transcriber's loose word edges)
     scene: the scene file whose lines the takes voice (default scene.md; for example scene.studio.md)
     """
     from an.audio.recorded import DFLT_DENOISE, aligner_named, import_recordings
@@ -336,6 +339,7 @@ def import_recorded(
         diarize=diarize,
         align=align,
         rough_timing=rough_timing,
+        overlap_tolerance_s=overlap_tolerance,
         scene_file=scene,
     )
     return str(report)
