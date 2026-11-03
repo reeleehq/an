@@ -1,0 +1,1 @@
+- `an.kinematics.solve`: a held loop the geometry shows can hold (a chain of bare links between rigid ends, in reach) is kept converging instead of being read as a conflict when its rate is slow, so a long rope's grip is no longer given up and led back over and over (`SOLVER_VERSION` 8, an#706).

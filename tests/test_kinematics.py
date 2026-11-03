@@ -30,6 +30,7 @@ from an.kinematics import (
     Point,
     Slide,
     Weld,
+    arc_chain,
     digest,
     point_world,
     solve,
@@ -572,7 +573,12 @@ def test_a_rope_gives_up_its_end_never_a_link_and_takes_it_back(n):
     the gap in one frame (main: never, for 40 links and more; a jump of 100
     to 250 units for shorter ones). Its end is led back (a pull toward a
     point walking toward the grip at `regrip_speed`, the grip unjoined) and
-    taken within a unit; no link is given up, then or after."""
+    taken within a unit; no link is given up, then or after.
+
+    an#706: once taken back it is held to the end. A held rope swinging under
+    its own weight converges more slowly the more links it has, and the
+    70-link one's grip was read as a conflict, given up and led back three
+    times (on one platform's floats, not another's)."""
     link = 10.0
     bodies, joints = _rope(n, link)
 
@@ -588,9 +594,36 @@ def test_a_rope_gives_up_its_end_never_a_link_and_takes_it_back(n):
     assert worst < 3.5, worst  # links a little stretched while the end is led
     after = [s for s in r.snaps if s[0] >= 24]
     assert after and all(j == n and gap < 1.0 for _k, j, gap in after), r.snaps
-    assert r.dropped[-1] == ()  # held at the end
     led = [k for k in range(24, 100) if r.dropped[k]]
     assert led and n in dict(r.unsatisfied[led[0]])  # its gap, reported while led
+    taken = next(k for k in range(24, 100) if not r.dropped[k])
+    assert all(d == () for d in r.dropped[taken:]), (taken, r.dropped)  # and kept
+
+
+def _hung_rope(n: int, span: float, link: float = 10.0):
+    """:func:`_rope` hanging still on an arc between its hook and its end
+    ``span`` away: every joint holds."""
+    bodies, joints = _rope(n, link)
+    hung, x, y = [], 0.0, 0.0
+    for body, angle in zip(bodies, arc_chain((0.0, 0.0), (span, 0.0), [link] * n)):
+        hung.append(body.posed(x=x, y=y, rotation=angle))
+        x, y = x + link * math.cos(angle), y + link * math.sin(angle)
+    return [*hung, bodies[-1].posed(x=span, y=0.0)], joints
+
+
+def test_a_held_grip_in_reach_is_never_given_up_for_slow_convergence():
+    """an#706: a 70-link rope hanging between its hook and its end, the end
+    carried 140 units toward the hook in one frame (still in reach: 560 units
+    of span for 700 of rope). Gauss–Seidel over 70 links cuts the failure by
+    ~43% at 4x the passes, short of the half the conflict rule asked for, so
+    the grip was given up; the geometry says the loop can hold, and 64x the
+    passes do hold it. (``seed_chains=False``: the arc seed would lay the rope
+    at once, and this is about the passes.)"""
+    n, link = 70, 10.0
+    bodies, joints = _hung_rope(n, 0.7 * n * link)
+    end = {"end": {"x": 0.5 * n * link, "y": 0.0}}
+    r = solve(bodies, joints, targets=end, dt=DT, gravity=(0.0, 980.0), seed_chains=False)
+    assert r.dropped == () and r.ok, (r.dropped, r.unsatisfied)
 
 
 def test_a_soft_pull_beyond_reach_is_given_up_never_torn():

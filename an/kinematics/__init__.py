@@ -99,6 +99,20 @@ On 300 random out-and-back reaches, no frame is left failing in either mode
 (126 were, up to 6 px); a 50-link rope with its end out of reach costs ~90
 rather than ~40 ms a frame, with 7 rather than 22 frames failing.
 
+**A held loop that can hold is never a conflict** (an#706). Gauss–Seidel's
+rate falls with a chain's length, so "the retry halves the failure" read a
+long rope's grip in reach as a conflict: a 70-link rope held at both ends,
+swinging under its own weight, cut its failure to ~0.65 at 4x the passes, had
+its grip given up, led back and taken again three times (on macOS arm64's
+floats, not Linux's). A chain between two rigid ends, holding as the frame
+starts, of bare links (pins only) and within reach (exact: the annulus a
+revolute chain sweeps) is now kept converging up to the cap whatever its
+rate, and given up only if the cap leaves it failing (a jump no frame makes
+at once). On that run the frames cost a little less on average (388 rather
+than 415 projections, ~40 ms of CPU), a frame that needs the whole cap pays
+~280 ms (2724 projections, as the first frame already did), and the grip is
+led 12 frames instead of 30, held from its take-back to the end.
+
 Not in this version: friction (a contact is frictionless: a lamp on a table
 sliding sideways stays where it is until the edge passes), blending a snap
 (a rejoined joint closes its gap in one frame, reported in
