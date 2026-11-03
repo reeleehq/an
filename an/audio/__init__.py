@@ -31,6 +31,7 @@ from an.audio.offline_tts import OfflineTTS
 from an.audio.recorded import RecordedTTS, import_recordings
 from an.audio.elevenlabs_tts import ElevenLabsTTS
 from an.audio.mac_say_tts import MacSayTTS
+from an.audio.voice_listing import VoiceRow, list_voices
 from an.audio.pipeline import (
     default_tts,
     default_lipsync,
@@ -48,6 +49,8 @@ __all__ = [
     "TTSProvider",
     "AudioClip",
     "VoiceMeta",
+    "VoiceRow",
+    "list_voices",
     "LipSyncProvider",
     "Viseme",
     "VisemeTrack",

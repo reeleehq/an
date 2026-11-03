@@ -1,0 +1,1 @@
+- `an.audio.list_voices(provider, *, api_key=None, search=None)` lists a provider's voices as `VoiceRow`s with `is_library` ("nobody designed this", stated by each provider on `VoiceMeta.is_library`), so a host filters on a field, not on ElevenLabs' category; `make_tts` takes a host's `api_key` (an#712).

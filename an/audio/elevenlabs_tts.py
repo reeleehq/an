@@ -39,6 +39,9 @@ from an.audio.tts import AudioClip, VoiceMeta
 _DEFAULT_MODEL_ID: str = "eleven_turbo_v2_5"
 _DEFAULT_VOICE_ID: str = "21m00Tcm4TlvDq8ikWAM"  # ElevenLabs's "Rachel"
 _DEFAULT_OUTPUT_FORMAT: str = "mp3_44100_128"
+#: The category ElevenLabs gives its own library voices, the ones any account
+#: holds and nobody designed: ``VoiceMeta.is_library`` (an#712).
+ELEVENLABS_LIBRARY_CATEGORY: str = "premade"
 
 #: Model ids that read inline audio tags (``[excited]``, ``[sighs]``). Matched
 #: as prefixes, so ``eleven_v3_conversational`` and ``eleven_v4_turbo`` count.
@@ -338,6 +341,8 @@ class ElevenLabsTTS:
                         provider=self.name,
                         language=labels.get("language", "en"),
                         gender=labels.get("gender"),
+                        is_library=getattr(v, "category", None)
+                        == ELEVENLABS_LIBRARY_CATEGORY,
                         extra={
                             "category": getattr(v, "category", None),
                             "description": getattr(v, "description", None),

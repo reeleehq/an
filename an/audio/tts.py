@@ -14,6 +14,11 @@ class VoiceMeta:
     ``extra`` is the provider's own detail. Keys hosts read (a contract):
     ElevenLabs's ``category``, ``description``, ``labels`` and ``preview_url``
     (a sample to hear before casting, an#666; ``None`` when it has none).
+
+    ``is_library`` is the provider's own answer to "nobody designed this": a
+    voice of the provider's shared library (ElevenLabs' premade voices, a
+    system voice), not one an account designed, cloned or recorded (an#712);
+    ``None`` when the provider does not say.
     """
 
     voice_id: str
@@ -22,6 +27,7 @@ class VoiceMeta:
     language: str = "en"
     gender: str | None = None
     extra: dict[str, Any] = field(default_factory=dict)
+    is_library: bool | None = None
 
 
 @dataclass(slots=True)

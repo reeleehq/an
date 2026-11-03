@@ -394,7 +394,10 @@ class RecordedTTS:
             if isinstance(record, Mapping) and record.get("voice"):
                 seen[str(record["voice"])] = seen.get(str(record["voice"]), 0) + 1
         return [
-            VoiceMeta(voice_id=v, name=v, provider=self.name, extra={"takes": n})
+            VoiceMeta(
+                voice_id=v, name=v, provider=self.name, extra={"takes": n},
+                is_library=False,  # a performer's own takes (an#712)
+            )
             for v, n in sorted(seen.items())
         ]
 

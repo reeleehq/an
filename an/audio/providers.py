@@ -35,7 +35,8 @@ def _recorded_factory(*, mall: Mapping[str, Any] | None = None) -> RecordedTTS:
 #: store (``recorded``): :func:`make_tts` passes it only to those that accept it.
 TTS_FACTORIES: dict[str, Callable[..., TTSProvider]] = {
     "offline": lambda: OfflineTTS(),
-    "elevenlabs": lambda: ElevenLabsTTS(),
+    # ``api_key``: a host's own key (a guest's, a server's) instead of the env's
+    "elevenlabs": lambda *, api_key=None: ElevenLabsTTS(api_key=api_key),
     "mac_say": lambda: MacSayTTS(),
     "recorded": _recorded_factory,
 }
@@ -72,13 +73,19 @@ def _accepts(factory: Callable[..., Any], keyword: str) -> bool:
     )
 
 
-def make_tts(name: str, *, mall: Mapping[str, Any] | None = None) -> TTSProvider:
+def make_tts(
+    name: str,
+    *,
+    mall: Mapping[str, Any] | None = None,
+    api_key: str | None = None,
+) -> TTSProvider:
     """Instantiate a TTS provider by name.
 
     ``mall`` (the project mall) reaches the factories that take it — the
-    ``recorded`` provider reads the project's ``recordings`` store; the others
-    are built as before. Raises ``ValueError`` for unknown names with a list of
-    known options.
+    ``recorded`` provider reads the project's ``recordings`` store; ``api_key``
+    (a host's own key) reaches those that take one (ElevenLabs, an#712); the
+    others are built as before. Raises ``ValueError`` for unknown names with a
+    list of known options.
 
     >>> make_tts("recorded").name
     'recorded'
@@ -89,9 +96,10 @@ def make_tts(name: str, *, mall: Mapping[str, Any] | None = None) -> TTSProvider
         raise ValueError(
             f"unknown TTS provider {name!r}; known: {sorted(TTS_FACTORIES)}"
         ) from None
-    if mall is not None and _accepts(factory, "mall"):
-        return factory(mall=mall)
-    return factory()
+    given = {"mall": mall, "api_key": api_key}
+    return factory(
+        **{k: v for k, v in given.items() if v is not None and _accepts(factory, k)}
+    )
 
 
 def make_lipsync(name: str, *, language: str = DEFAULT_LANGUAGE) -> LipSyncProvider:

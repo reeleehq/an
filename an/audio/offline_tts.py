@@ -115,6 +115,7 @@ class OfflineTTS:
                 provider=self.name,
                 language="en",
                 extra={"note": "produces silent WAV of plausible duration"},
+                is_library=True,  # built in: nobody designed it (an#712)
             )
         ]
 
