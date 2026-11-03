@@ -1,0 +1,1 @@
+- A line's cached mouth is re-aligned when its take's phone alphabet is corrected on the same bytes and phones: the viseme sidecar records the alphabet it was aligned from (an#759).

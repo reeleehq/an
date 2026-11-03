@@ -1958,6 +1958,11 @@ def _with_clip_words(tts: TTSProvider, clip: AudioClip) -> AudioClip:
     return clip
 
 
+#: The viseme sidecar field recording the alphabet of the phones the track was
+#: aligned from (an#759): the phones themselves key the audio, their alphabet not.
+PHONE_ALPHABET_FIELD: str = "phone_alphabet"
+
+
 def _load_or_align(
     lipsync: LipSyncProvider,
     audio: AudioClip,
@@ -1997,7 +2002,14 @@ def _load_or_align(
             # A payload written before an#96 by a provider that HAS words is
             # missing them; re-align once so the sidecar carries them. The key
             # is the same, so the rewrite below replaces the old payload.
-            if same_audio and (
+            # Phones and words already key the audio (an#491's timings digest);
+            # the alphabet they are read in does not, so the sidecar records it
+            # and a change re-aligns (an#759). A sidecar without one is kept.
+            same_alphabet = (
+                payload.get(PHONE_ALPHABET_FIELD, audio.phone_alphabet)
+                == audio.phone_alphabet
+            )
+            if same_audio and same_alphabet and (
                 cached.words is not None or not _emits_word_timings(lipsync)
             ):
                 if recorded is None and digest is not None:
@@ -2028,6 +2040,8 @@ def _load_or_align(
         }
         if digest is not None:
             payload["audio_sha256"] = digest
+        if audio.phone_alphabet is not None:
+            payload[PHONE_ALPHABET_FIELD] = audio.phone_alphabet
         mall["visemes"][cache_key] = json.dumps(payload).encode("utf-8")
     return track
 
