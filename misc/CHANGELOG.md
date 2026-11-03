@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-11-03
+- The private helpers cutan imports are public at genre API level 16: `an.motion`'s `alternating`, `require_positive`, `rest_value`, `settled`, `side_sign`, `through`, `tweens_of`; `an.ir.validate.built_node_paths`, `rig_document`, `text_block_ids`; `an.stage.rig.asset_file`; the private spellings stay as aliases until an#747 (an#730).
 - The genre API level notes name `an.stage.solve.solve_report` as guaranteed from level 11 (an#570 merged after 10 was cut), and state that a public name a genre reads lands with a level bump (an#724).
 - `an credits` classes OpenAI image output (`provider="openai"`, `license="openai-output-owned"`, from `an art generate`) as `attribution`: the video must disclose AI generation (OpenAI's Terms of Use and Sharing & Publication Policy), with the remaining terms named; the class is the maintainer's call in an#742 (an#728).
 - `an.project.gitignored(rel, *, lines=PROJECT_GITIGNORE)` and `gitignore_matcher(lines)` read `.gitignore` lines by git's rules (checked against `git check-ignore`), for a genre that copies a project; genre API level 15 (an#725).
