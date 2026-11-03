@@ -14,24 +14,37 @@ from types import SimpleNamespace
 
 import pytest
 
-np = pytest.importorskip("numpy")
-pytest.importorskip("soundfile")
-foley = pytest.importorskip("foley")
-
-from foley.audio import encode  # noqa: E402
-from foley.base import AcquisitionMethod, LicenseRecord, SoundRecord  # noqa: E402
-from foley.index import MemoryIndex, SoundLibrary  # noqa: E402
-from foley.licensing import apply_license_flags  # noqa: E402
-from foley.sources.base import generated_license  # noqa: E402
-
-from an.credits import collect_credits  # noqa: E402
-from an.sound_fetch import (  # noqa: E402
+from an.credits import collect_credits
+from an.sound_fetch import (
     FILE_SHA256_FIELD,
     add_sound_from_url,
     foley_fetcher,
 )
-from an.sounds import SoundError  # noqa: E402
-from an.stores import build_project_mall  # noqa: E402
+from an.sounds import SoundError
+from an.stores import build_project_mall
+
+#: foley and its optional audio deps, bound by :func:`_foley_deps` when present:
+#: a module-level import would make the whole file vanish from collection
+#: without them (tests/test_browser_gate.py), rather than skip.
+np = foley = encode = AcquisitionMethod = LicenseRecord = SoundRecord = None
+MemoryIndex = SoundLibrary = apply_license_flags = generated_license = None
+
+
+@pytest.fixture(autouse=True)
+def _foley_deps():
+    """Skip each test unless numpy, soundfile and foley are installed, and bind
+    the names this module uses from them."""
+    global np, foley, encode, AcquisitionMethod, LicenseRecord, SoundRecord
+    global MemoryIndex, SoundLibrary, apply_license_flags, generated_license
+    np = pytest.importorskip("numpy")
+    pytest.importorskip("soundfile")
+    foley = pytest.importorskip("foley")
+    from foley.audio import encode
+    from foley.base import AcquisitionMethod, LicenseRecord, SoundRecord
+    from foley.index import MemoryIndex, SoundLibrary
+    from foley.licensing import apply_license_flags
+    from foley.sources.base import generated_license
+
 
 SR = 48_000
 DIM = 4

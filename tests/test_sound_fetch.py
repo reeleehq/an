@@ -101,6 +101,7 @@ def test_a_fetcher_that_declares_rights_but_states_none_is_refused(tmp_path):
         add_sound_from_url(mall["sounds"], "fx", PAGE, fetcher=fetch)
 
 
+@pytest.mark.ffmpeg
 def test_a_whole_fetched_sound_names_its_page_in_the_credits(tmp_path):
     """an#729 re-review: a sound kept whole records no cut, and its credit line
     still names the page, so a reader can check an UNVERIFIED sound's terms."""
