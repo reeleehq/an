@@ -1,0 +1,1 @@
+- `an.ir.world.planes_at_infinity(world, mall)` (with `far_reason` and `stated_plane_frame`): the validate check's rule of which planes are at infinity, public for a genre's far-plate critic; genre API level 16 (an#735).

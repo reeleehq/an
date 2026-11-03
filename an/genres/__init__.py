@@ -159,7 +159,9 @@ class GenreError(RegistryError):
 #:     ``through`` and ``tweens_of``; ``an.ir.validate.built_node_paths``, ``rig_document``
 #:     and ``text_block_ids``; ``an.stage.rig.asset_file`` (module-level names: those two
 #:     modules have no ``__all__``).
-API_LEVEL: int = 16
+#: 17 = one rule of "at infinity" (an#735): ``an.ir.world.planes_at_infinity``,
+#:     ``far_reason`` and ``stated_plane_frame``, for a genre's far-plate critic.
+API_LEVEL: int = 17
 
 
 class GenreAPILevelError(GenreError, ImportError):
