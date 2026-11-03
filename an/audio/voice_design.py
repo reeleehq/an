@@ -1307,7 +1307,7 @@ def _project_stores(project_dir: str | Path):
     root = Path(project_dir)
     return (
         VoicesStore(root / "assets" / "voices"),
-        JsonDirStore(root / OPTIONS_DIR, create=False),  # no empty folder on a read
+        JsonDirStore(root / OPTIONS_DIR),
         _Mp3Store(root / SAMPLES_DIR),
     )
 

@@ -31,9 +31,12 @@ class DecisionLogStore(MutableMapping):
     (1, 2)
     """
 
-    def __init__(self, log_path: str | Path) -> None:
+    def __init__(self, log_path: str | Path, *, ensure: bool = False) -> None:
+        # Its folder is made by the first append, or at once with ``ensure``
+        # (an#696), the rule of an's file stores (``an.stores._common.LazyFolder``).
         self._path = Path(log_path)
-        self._path.parent.mkdir(parents=True, exist_ok=True)
+        if ensure:
+            self._path.parent.mkdir(parents=True, exist_ok=True)
 
     def append(self, *, kind: str, body: Any, **extra: Any) -> int:
         """Append one decision; returns its ordinal index."""
@@ -43,6 +46,7 @@ class DecisionLogStore(MutableMapping):
             "body": body,
             **extra,
         }
+        self._path.parent.mkdir(parents=True, exist_ok=True)
         with self._path.open("a", encoding="utf-8") as f:
             f.write(json.dumps(entry, sort_keys=True, default=str) + "\n")
         return len(self) - 1
