@@ -37,6 +37,7 @@ import json
 import re
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
+from itertools import groupby
 from pathlib import Path
 from typing import Any
 
@@ -55,6 +56,9 @@ __all__ = [
     "from_transcript_object",
     "parse_timestamp",
     "phone_alphabet_of",
+    "ARPABET",
+    "IPA",
+    "ARPABET_PHONES",
     "normalize_tokens",
     "normalize_text",
     "align_words",
@@ -353,7 +357,9 @@ def parse_json(obj: Any) -> list[TranscriptSegment]:
     be a ``[text, start, end]`` list); or a bare list of words, read as one segment.
     A word's ``phones`` as Gentle writes them (durations from its start) become
     the segment's phones, and MFA's JSON (``tiers``) is read by
-    :func:`parse_mfa_json` (an#715).
+    :func:`parse_mfa_json` (an#715). In Gentle's JSON (``transcript`` and
+    ``words``), a word whose ``case`` is not :data:`GENTLE_SAID_CASE` is
+    dropped (an#721); any other JSON keeps every word.
 
     >>> segs = parse_json({"segments": [{"speaker": "carl", "words": [
     ...     {"word": "Hello", "start": 0.5, "end": 0.9}, ["there", 0.9, 1.2]]}]})
@@ -375,11 +381,12 @@ def parse_json(obj: Any) -> list[TranscriptSegment]:
         items = list(obj)
     if items and all(_word_from(it) is not None for it in items):
         items = [{"words": items}]  # a bare list of words: one line
+    gentle = _is_gentle_json(obj)
     out = []
     for item in items:
         if not isinstance(item, Mapping):
             raise ValueError(f"a transcript segment must be an object, got {item!r}")
-        said = [x for x in item.get("words") or () if _in_transcript(x)]
+        said = [x for x in item.get("words") or () if not gentle or _in_transcript(x)]
         words = tuple(w for w in (_word_from(x) for x in said) if w)
         phones = tuple(p for x in said for p in _gentle_phones(x))
         text = item.get("text")
@@ -416,8 +423,13 @@ def parse_json(obj: Any) -> list[TranscriptSegment]:
                     speaker=str(speaker_) if speaker_ else None,
                     words=words or None,
                     phones=phones or None,
-                    # Gentle's phones are stressless ARPAbet, always (an#721)
-                    phone_alphabet=ARPABET if phones else None,
+                    # Gentle's phones are stressless ARPAbet, always (an#721);
+                    # another writer's are what their labels show
+                    phone_alphabet=(
+                        ARPABET if gentle else phone_alphabet_of(p[0] for p in phones)
+                    )
+                    if phones
+                    else None,
                 )
             )
     return out
@@ -429,40 +441,86 @@ def parse_json(obj: Any) -> list[TranscriptSegment]:
 GENTLE_SAID_CASE: str = "success"
 
 
+def _is_gentle_json(obj: Any) -> bool:
+    """Whether ``obj`` is Gentle's JSON: an object with both its ``transcript``
+    and its ``words`` (an#721). Only there does a word's ``case`` mean Gentle's.
+
+    >>> _is_gentle_json({"transcript": "hi", "words": []}), _is_gentle_json({"words": []})
+    (True, False)
+    """
+    return isinstance(obj, Mapping) and "transcript" in obj and "words" in obj
+
+
 def _in_transcript(word: Any) -> bool:
-    """Whether a JSON word belongs to the transcript: any word but one whose
-    Gentle ``case`` is not :data:`GENTLE_SAID_CASE` (an#721).
+    """Whether a Gentle word belongs to the transcript: any word but one whose
+    ``case`` is not :data:`GENTLE_SAID_CASE` (an#721). Read only for a Gentle
+    JSON (:func:`_is_gentle_json`); another writer's ``case`` means nothing here.
 
     >>> [_in_transcript(w) for w in ({"word": "hi"}, {"word": "hi", "case": "success"},
     ...                               {"word": "um", "case": "not-found-in-transcript"})]
     [True, True, False]
     """
-    return not isinstance(word, Mapping) or word.get("case", GENTLE_SAID_CASE) == GENTLE_SAID_CASE
+    return (
+        not isinstance(word, Mapping)
+        or word.get("case", GENTLE_SAID_CASE) == GENTLE_SAID_CASE
+    )
 
 
 #: The phone alphabets a reader can report (an#721), as the forced aligner's
 #: ``phone_alphabet`` names them (an#637).
 ARPABET: str = "arpabet"
 IPA: str = "ipa"
-#: An ARPAbet vowel with its stress digit, as MFA's English ARPA model writes it.
-_ARPABET_STRESSED = re.compile(r"[A-Za-z]{2}[012]")
+#: The 39 ARPAbet phones of the CMU dictionary, without stress digits: every
+#: label must be one of them (its stress digit dropped) for the labels to be
+#: read as ARPAbet (cutan's ``ARPABET_TO_VISEME`` keys the same set).
+ARPABET_PHONES: frozenset[str] = frozenset(
+    {
+        # vowels
+        "AA", "AE", "AH", "AO", "AW", "AY", "EH", "ER", "EY", "IH", "IY",
+        "OW", "OY", "UH", "UW",
+        # consonants
+        "B", "CH", "D", "DH", "F", "G", "HH", "JH", "K", "L", "M", "N", "NG",
+        "P", "R", "S", "SH", "T", "TH", "V", "W", "Y", "Z", "ZH",
+    }
+)  # fmt: skip
+#: The stress digits an ARPAbet vowel may carry (``AH0``, ``AY1``, ``ER2``).
+_ARPABET_STRESS_DIGITS: str = "012"
+
+
+def _is_one_case(labels: Sequence[str]) -> bool:
+    """Whether ``labels`` (stress digits dropped) are all upper or all lower case:
+    a SAMPA ``V`` beside a lowercase ``l`` is not ARPAbet.
+
+    >>> _is_one_case(["HH", "AH"]), _is_one_case(["hh", "ah"]), _is_one_case(["l", "V"])
+    (True, True, False)
+    """
+    letters = [x.rstrip(_ARPABET_STRESS_DIGITS) for x in labels]
+    return all(x.isupper() for x in letters) or all(x.islower() for x in letters)
 
 
 def phone_alphabet_of(labels: Iterable[str]) -> str | None:
-    """The alphabet aligner phone ``labels`` show, or ``None`` when they do not
-    (an#721): a stress digit on a vowel is ARPAbet (``AH0``), a non-ASCII
-    symbol IPA (``ə``). Nothing else is guessed: ASCII with no stress digit
-    (``s t``, or SAMPA) is unknown; the lip-sync decides it per clip.
+    """The alphabet aligner phone ``labels`` show, or ``None`` when they show
+    none (an#721). :data:`ARPABET` when every label is ASCII, in one letter
+    case throughout, and in :data:`ARPABET_PHONES` once its stress digit is
+    dropped (cutan's rule for a clip, so its own can be ``phone_alphabet_of(p)
+    or "ipa"``); :data:`IPA` when any label is non-ASCII; otherwise unknown,
+    and the lip-sync decides it per clip. Silences are not labels.
 
     >>> phone_alphabet_of(["HH", "AH0", "L"]), phone_alphabet_of(["h", "ə", "l"])
     ('arpabet', 'ipa')
-    >>> phone_alphabet_of(["s", "t"]) is None
-    True
+    >>> phone_alphabet_of(["AH", "T"]), phone_alphabet_of(["ai1", "ou3"]) is None
+    ('arpabet', True)
     """
-    labels = [str(x).strip() for x in labels]
-    if any(not x.isascii() for x in labels):
+    spoken = [x for x in (str(y).strip() for y in labels) if _is_speech(x)]
+    if any(not x.isascii() for x in spoken):
         return IPA
-    if any(_ARPABET_STRESSED.fullmatch(x) for x in labels):
+    if (
+        spoken
+        and all(
+            x.upper().rstrip(_ARPABET_STRESS_DIGITS) in ARPABET_PHONES for x in spoken
+        )
+        and _is_one_case(spoken)
+    ):
         return ARPABET
     return None
 
@@ -562,6 +620,17 @@ _TG_WORD_TIERS: tuple[str, ...] = ("words", "word", "ortho", "orthography")
 #: The names a forced aligner gives its phone tier (Montreal Forced Aligner:
 #: ``phones``; others ``phonemes``), read beside the words (an#491).
 _TG_PHONE_TIERS: tuple[str, ...] = ("phones", "phone", "phonemes", "phoneme", "mau")
+#: Every tier name read above (lower case): MFA's ``"<speaker> - <tier>"``
+#: names a speaker only when ``<tier>`` is one of these (an#721), so a tier
+#: called ``"notes - draft"`` is not a speaker's.
+_TG_KNOWN_TIERS: frozenset[str] = frozenset(
+    _TG_LINE_TIERS + _TG_WORD_TIERS + _TG_PHONE_TIERS
+)
+#: MFA's separator between a speaker and its tier's name (``"carl - words"``).
+_TG_SPEAKER_SEP: str = " - "
+#: How far (seconds) a timing may stick out of a span and still be inside it:
+#: an aligner's float times for one boundary differ in the last digits.
+_SPAN_EPS_S: float = 1e-6
 #: Interval labels that are silence, not speech (compared lower-case): dropped
 #: from words and phones, as is any label in ``<…>``, ``[…]`` or ``+…+``
 #: (WebMAUS's ``<p:>``, a ``+breath+``, a ``[noise]``). ``spn`` is MFA's
@@ -583,8 +652,13 @@ def _is_speech(label: str) -> bool:
 
 
 def _tier_named(tiers: Mapping[str, Any], names: Sequence[str]) -> str | None:
-    """The tier whose name, or whose name after ``" - "`` (MFA's
-    ``"<speaker> - phones"``), is one of ``names`` (case-insensitive)."""
+    """The tier whose name, or whose name after a speaker's prefix (MFA's
+    ``"<speaker> - phones"``, :func:`_speaker_and_tier`), is one of ``names``
+    (case-insensitive), by the order of ``names``.
+
+    >>> _tier_named({"notes - draft": [], "carl - Words": []}, ("words",))
+    'carl - Words'
+    """
     for want in names:
         for name in tiers:
             if _speaker_and_tier(name)[1].strip().lower() == want:
@@ -644,47 +718,132 @@ def parse_textgrid(text: str) -> list[TranscriptSegment]:
 
 
 def _speaker_and_tier(name: str) -> tuple[str | None, str]:
-    """MFA's ``"<speaker> - words"`` → ``("<speaker>", "words")``; a name with
-    no speaker → ``(None, name)``."""
-    speaker, sep, bare = name.rpartition(" - ")
-    return (speaker.strip() or None, bare) if sep else (None, name)
+    """MFA's ``"<speaker> - words"`` → ``("<speaker>", "words")``. Only a known
+    tier name after the separator (:data:`_TG_KNOWN_TIERS`) makes a speaker;
+    any other name → ``(None, name)``.
+
+    >>> _speaker_and_tier("carl - words"), _speaker_and_tier("notes - draft")
+    (('carl', 'words'), (None, 'notes - draft'))
+    """
+    speaker, sep, bare = name.rpartition(_TG_SPEAKER_SEP)
+    if sep and speaker.strip() and bare.strip().lower() in _TG_KNOWN_TIERS:
+        return speaker.strip(), bare
+    return None, name
 
 
-def segments_from_tiers(
-    tiers: Mapping[str, Sequence[tuple[float, float, str]]],
-) -> list[TranscriptSegment]:
+Tiers = Mapping[str, Sequence[tuple[float, float, str]]]
+
+
+def _tiers_by_speaker(tiers: Tiers) -> dict[str | None, dict[str, Any]]:
+    """Partition ``tiers`` by their speaker prefix (:func:`_speaker_and_tier`):
+    ``{speaker: {tier name: intervals}}``, the unprefixed ones under ``None``.
+
+    >>> _tiers_by_speaker({"carl - words": [], "ned - phones": [], "notes": []})
+    {'carl': {'carl - words': []}, 'ned': {'ned - phones': []}, None: {'notes': []}}
+    """
+    groups: dict[str | None, dict[str, Any]] = {}
+    for name, intervals in tiers.items():
+        groups.setdefault(_speaker_and_tier(name)[0], {})[name] = intervals
+    return groups
+
+
+def _speech(tiers: Tiers, name: str | None) -> list[WordTiming]:
+    """The speech intervals of tier ``name`` as ``(label, start, end)``; ``[]``
+    when there is no such tier."""
+    if name is None:
+        return []
+    return [(t, a, b) for a, b, t in tiers[name] if _is_speech(t)]
+
+
+def _within(timings: Sequence[WordTiming], a: float, b: float) -> tuple | None:
+    """The timings inside ``[a, b]`` (give or take :data:`_SPAN_EPS_S`), or ``None``."""
+    inside = tuple(
+        x for x in timings if x[1] >= a - _SPAN_EPS_S and x[2] <= b + _SPAN_EPS_S
+    )
+    return inside or None
+
+
+def segments_from_tiers(tiers: Tiers) -> list[TranscriptSegment]:
     """An aligner's interval tiers (``{name: [(start, end, label), ...]}``,
-    as a TextGrid or MFA's JSON carries them) → segments: the words from a
-    tier named ``words`` (else the first that is neither phones nor lines),
-    the phones from a ``phones`` tier, one segment per interval of a lines
-    tier when there is one. MFA names a speaker's tiers ``"<speaker> -
-    words"``: every speaker's are read, the speaker set on its segments, and
-    several speakers' segments come back in time order (an#721).
+    as a TextGrid or MFA's JSON carries them) → segments.
+
+    One speaker (or none): the words from a tier named ``words`` (else the
+    first that is neither phones nor lines), the phones from a ``phones``
+    tier, one segment per interval of a lines tier when there is one.
+
+    MFA names a speaker's tiers ``"<speaker> - words"`` (a known tier name
+    after the separator, :data:`_TG_KNOWN_TIERS`). With two speakers or more
+    the conversation is cut into TURNS (an#721): every speaker's words in one
+    time-ordered stream, a new segment at each change of speaker, its phones
+    that speaker's within the turn (:func:`_turn_segments`). There, a tier
+    with no speaker prefix is ignored (it is nobody's), and so is a speaker
+    with no words tier: phones are never read as words (an#491).
 
     >>> segments_from_tiers({"words": [(0.5, 0.9, "hello")], "phones": [(0.5, 0.6, "HH"), (0.6, 0.9, "AH0")]})[0].phones
     (('HH', 0.5, 0.6), ('AH0', 0.6, 0.9))
     >>> [(s.speaker, s.text) for s in segments_from_tiers({
-    ...     "ned - words": [(0.5, 0.9, "yo")], "carl - words": [(0.0, 0.4, "hi")],
-    ...     "ned - phones": [(0.5, 0.7, "Y"), (0.7, 0.9, "OW1")]})]
-    [('carl', 'hi'), ('ned', 'yo')]
+    ...     "carl - words": [(0.0, 0.4, "hi"), (2.0, 2.4, "bye")],
+    ...     "ned - words": [(0.5, 0.9, "yo")]})]
+    [('carl', 'hi'), ('ned', 'yo'), ('carl', 'bye')]
     """
-    groups: dict[str | None, dict[str, Sequence[tuple[float, float, str]]]] = {}
-    for name, intervals in tiers.items():
-        groups.setdefault(_speaker_and_tier(name)[0], {})[name] = intervals
+    groups = _tiers_by_speaker(tiers)
     speakers = [k for k in groups if k is not None]
     if len(speakers) <= 1:  # one speaker (or none): its tiers, and any unnamed
         return _speaker_segments(tiers, speaker=next(iter(speakers), None))
-    return sorted(
-        (seg for who, group in groups.items() for seg in _speaker_segments(group, speaker=who)),
-        key=lambda seg: (seg.start, seg.end),
+    return _turn_segments(
+        {
+            who: (
+                _speech(groups[who], _tier_named(groups[who], _TG_WORD_TIERS)),
+                _speech(groups[who], _tier_named(groups[who], _TG_PHONE_TIERS)),
+            )
+            for who in speakers
+        }
     )
 
 
-def _speaker_segments(
-    tiers: Mapping[str, Sequence[tuple[float, float, str]]],
-    *,
-    speaker: str | None,
+def _turn_segments(
+    timings: Mapping[str, tuple[Sequence[WordTiming], Sequence[WordTiming]]],
 ) -> list[TranscriptSegment]:
+    """``{speaker: (words, phones)}`` → one segment per TURN (an#721): all the
+    speakers' words in time order, cut at every change of speaker. A turn's
+    words are that run, its span from its first word's start to its last's
+    end, its phones the speaker's inside that span, in the alphabet the
+    speaker's phones show (:func:`phone_alphabet_of`).
+
+    >>> [(t.speaker, t.text, t.start, t.end, t.phones) for t in _turn_segments({
+    ...     "carl": ([("hi", 0.0, 0.5), ("bye", 2.0, 2.5)], [("HH", 0.0, 0.2), ("B", 2.0, 2.1)]),
+    ...     "ned": ([("yo", 0.8, 1.5)], [])})]  # doctest: +NORMALIZE_WHITESPACE
+    [('carl', 'hi', 0.0, 0.5, (('HH', 0.0, 0.2),)), ('ned', 'yo', 0.8, 1.5, None),
+     ('carl', 'bye', 2.0, 2.5, (('B', 2.0, 2.1),))]
+    """
+    stream = sorted(
+        ((word, who) for who, (words, _) in timings.items() for word in words),
+        key=lambda item: (item[0][1], item[0][2]),
+    )
+    alphabets = {
+        who: phone_alphabet_of(p[0] for p in phones) if phones else None
+        for who, (_, phones) in timings.items()
+    }
+    out = []
+    for who, run in groupby(stream, key=lambda item: item[1]):
+        words = tuple(word for word, _ in run)
+        start, end = words[0][1], words[-1][2]
+        phones = _within(timings[who][1], start, end)
+        out.append(
+            TranscriptSegment(
+                text=" ".join(w[0] for w in words),
+                start=start,
+                end=end,
+                speaker=who,
+                words=words,
+                phones=phones,
+                phone_alphabet=alphabets[who] if phones else None,
+            )
+        )
+    return out
+
+
+def _speaker_segments(tiers: Tiers, *, speaker: str | None) -> list[TranscriptSegment]:
     """One speaker's tiers → segments (:func:`segments_from_tiers`); a line
     tier's own ``speaker: text`` wins over ``speaker``."""
     if not tiers:
@@ -697,17 +856,9 @@ def _speaker_segments(
     word_tier = _tier_named(tiers, _TG_WORD_TIERS) or next(
         (n for n in tiers if n not in (phone_tier, line_tier)), next(iter(tiers))
     )
-    words = [(t, a, b) for a, b, t in tiers[word_tier] if _is_speech(t)]
-    phones = (
-        [(t, a, b) for a, b, t in tiers[phone_tier] if _is_speech(t)]
-        if phone_tier is not None and phone_tier != word_tier
-        else []
-    )
+    words = _speech(tiers, word_tier)
+    phones = _speech(tiers, phone_tier) if phone_tier != word_tier else []
     alphabet = phone_alphabet_of(p[0] for p in phones) if phones else None
-
-    def within(timings: list, a: float, b: float) -> tuple | None:
-        inside = tuple(x for x in timings if x[1] >= a - 1e-6 and x[2] <= b + 1e-6)
-        return inside or None
 
     if line_tier is None:
         if not words:
@@ -728,14 +879,14 @@ def _speaker_segments(
         if not t:
             continue
         said_by, body = _speaker_and_text(t)
-        inside = within(phones, a, b)
+        inside = _within(phones, a, b)
         out.append(
             TranscriptSegment(
                 text=body,
                 start=a,
                 end=b,
                 speaker=said_by or speaker,
-                words=within(words, a, b),
+                words=_within(words, a, b),
                 phones=inside,
                 phone_alphabet=alphabet if inside else None,
             )

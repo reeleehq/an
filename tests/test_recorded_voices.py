@@ -1186,12 +1186,20 @@ def test_a_take_in_any_format_reaches_the_aligner_as_a_wav(tmp_path):
     import subprocess
 
     m4a = tmp_path / "take.m4a"
-    subprocess.run(["ffmpeg", "-v", "error", "-i", str(_take(tmp_path)), str(m4a)], check=True)
+    subprocess.run(
+        ["ffmpeg", "-v", "error", "-i", str(_take(tmp_path)), str(m4a)], check=True
+    )
     align = _Aligner()
     import_recordings(
-        _project(tmp_path), m4a, transcript=_plain(tmp_path), license=LICENSE, align=align
+        _project(tmp_path),
+        m4a,
+        transcript=_plain(tmp_path),
+        license=LICENSE,
+        align=align,
     )
     assert align.heard[0][0] == ".wav"
+
+
 def test_the_mfa_aligner_runs_mfa_on_a_one_file_corpus_and_reads_its_textgrid(tmp_path):
     """an#637: `mfa_aligner` writes the take and its text as a corpus, runs
     `mfa align` with the alphabet's English model, and reads the TextGrid back;
@@ -1224,7 +1232,11 @@ def test_the_mfa_aligner_runs_mfa_on_a_one_file_corpus_and_reads_its_textgrid(tm
         mfa_aligner(executable="no-such-mfa-here")(_take(tmp_path), "x")
     with pytest.raises(RecordedVoicesError, match="no MFA model"):
         mfa_aligner(alphabet="klingon")
-    failed = mfa_aligner(run=lambda argv, **kw: type("F", (), {"returncode": 1, "stdout": b"beam too narrow", "stderr": b""})())
+    failed = mfa_aligner(
+        run=lambda argv, **kw: type(
+            "F", (), {"returncode": 1, "stdout": b"beam too narrow", "stderr": b""}
+        )()
+    )
     with pytest.raises(AlignmentError, match="beam too narrow"):
         failed(_take(tmp_path), "x")
 
@@ -1254,7 +1266,9 @@ def test_mfa_and_gentle_json_give_the_phones_their_textgrid_gives(tmp_path):
                        for s, e, ph in inside],
         })  # fmt: skip
     gentle = tmp_path / "gentle.json"
-    gentle.write_text(json.dumps({"transcript": HELLO, "words": gentle_words}), encoding="utf-8")
+    gentle.write_text(
+        json.dumps({"transcript": HELLO, "words": gentle_words}), encoding="utf-8"
+    )
 
     def phones_of(transcript, name):
         root = _project(tmp_path / name, lines=(HELLO,))
@@ -1291,8 +1305,8 @@ def test_readers_give_every_mfa_speaker_the_alphabet_and_drop_gentle_s_disfluenc
     ]
     assert two[0].phones == (("HH", 0.0, 0.1), ("AY1", 0.1, 0.3))
     unknown = parse_json({"tiers": {
-        "words": {"entries": [[0.0, 0.3, "st"]]},
-        "phones": {"entries": [[0.0, 0.1, "s"], [0.1, 0.3, "t"]]},
+        "words": {"entries": [[0.0, 0.3, "ai"]]},
+        "phones": {"entries": [[0.0, 0.1, "ai1"], [0.1, 0.3, "ou3"]]},
     }})  # fmt: skip
     assert unknown[0].phones and unknown[0].phone_alphabet is None
     gentle = parse_json({"transcript": "hi there", "words": [
@@ -1304,7 +1318,91 @@ def test_readers_give_every_mfa_speaker_the_alphabet_and_drop_gentle_s_disfluenc
     ]})  # fmt: skip
     (seg,) = gentle
     assert seg.text == "hi" and seg.words == (("hi", 0.0, 0.3),)
-    assert [p[0] for p in seg.phones] == ["HH", "AY"] and seg.phone_alphabet == "arpabet"
+    assert [p[0] for p in seg.phones] == [
+        "HH",
+        "AY",
+    ] and seg.phone_alphabet == "arpabet"
+
+
+def test_an_interleaved_mfa_conversation_imports_one_take_per_turn(tmp_path):
+    """an#721 review: carl, then ned, then carl again in one MFA alignment is
+    three turns, not one carl segment nesting ned's (which the import refused
+    as overlapping cues); each turn's phones are its speaker's."""
+    root = init(tmp_path / "p")
+    proj = load(root)
+    scene = _scene((), character=False)
+    scene.timeline[0].dialogue = [
+        Dialogue(speaker="carl", text="Hi there."),
+        Dialogue(speaker="ned", text="Yo Carl."),
+        Dialogue(speaker="carl", text="Bye now."),
+    ]
+    proj.mall["scenes"]["main"] = scene
+    mfa = tmp_path / "talk.json"
+    mfa.write_text(json.dumps({"tiers": {
+        "carl - words": {"entries": [[0.1, 0.3, "hi"], [0.3, 0.6, "there"], [0.6, 0.9, ""],
+                                     [2.0, 2.2, "bye"], [2.2, 2.5, "now"]]},
+        "carl - phones": {"entries": [[0.1, 0.2, "HH"], [0.2, 0.3, "AY1"],
+                                      [2.0, 2.1, "B"], [2.1, 2.2, "AY1"]]},
+        "ned - words": {"entries": [[0.9, 1.2, "yo"], [1.2, 1.5, "carl"]]},
+        "ned - phones": {"entries": [[0.9, 1.0, "j"], [1.0, 1.2, "əʊ"]]},
+    }}), encoding="utf-8")  # fmt: skip
+    take = _take(tmp_path, seconds=3.0, bursts=((0.1, 0.6), (0.9, 1.5), (2.0, 2.5)))
+    report = import_recordings(root, take, transcript=mfa, license=LICENSE)
+    assert [(t.speaker, t.text) for t in report.takes] == [
+        ("carl", "Hi there."),
+        ("ned", "Yo Carl."),
+        ("carl", "Bye now."),
+    ]
+    by_text = {r["text"]: r for r in _records(root).values()}
+    assert [p[0] for p in by_text["Bye now."]["phones"]] == ["B", "AY1"]
+    assert by_text["Bye now."]["phone_alphabet"] == "arpabet"
+    assert by_text["Yo Carl."]["phone_alphabet"] == "ipa"
+
+
+def test_a_tier_is_a_speaker_s_only_when_its_name_ends_in_a_known_tier():
+    """an#721 review: ``"notes - draft"`` is a tier called that, not the
+    tiers of a speaker called notes."""
+    from an.audio.transcripts import segments_from_tiers
+
+    segs = segments_from_tiers({
+        "carl - words": [(0.0, 0.4, "hi")], "notes - draft": [(0.0, 1.0, "redo")],
+    })  # fmt: skip
+    assert [(s.speaker, s.text) for s in segs] == [("carl", "hi")]
+
+
+def test_a_speaker_with_phones_and_no_words_has_no_segment():
+    """an#721 review: with several speakers, one whose only tier is its phones
+    says nothing; its phones are never read as words (an#491)."""
+    from an.audio.transcripts import segments_from_tiers
+
+    segs = segments_from_tiers({
+        "carl - words": [(0.0, 0.4, "hi")],
+        "ned - phones": [(0.5, 0.7, "Y"), (0.7, 0.9, "OW1")],
+    })  # fmt: skip
+    assert [(s.speaker, s.text) for s in segs] == [("carl", "hi")]
+
+
+def test_the_arpabet_alphabet_is_read_from_the_arpabet_inventory():
+    """an#721 review: ARPAbet is ASCII labels in one case, each in the 39-phone
+    inventory once its stress digit is dropped (cutan's rule); pinyin's tone
+    digits are not stress digits."""
+    from an.audio.transcripts import ARPABET, IPA, phone_alphabet_of
+
+    assert phone_alphabet_of(["ai1", "ou3"]) is None
+    assert phone_alphabet_of(["AH", "T"]) == ARPABET
+    assert phone_alphabet_of(["h", "ə"]) == IPA
+
+
+def test_only_gentle_json_drops_a_word_by_its_case():
+    """an#721 review: Gentle's ``case`` is read only in Gentle's JSON
+    (``transcript`` and ``words``); another JSON's word with a ``case`` stays."""
+    from an.audio.transcripts import parse_json
+
+    (seg,) = parse_json({"words": [
+        {"word": "hi", "start": 0.0, "end": 0.3, "case": "x"},
+        {"word": "there", "start": 0.3, "end": 0.6},
+    ]})  # fmt: skip
+    assert seg.text == "hi there"
 
 
 def test_json_that_is_not_mfa_s_keeps_its_segments_and_oov_is_not_a_phone():

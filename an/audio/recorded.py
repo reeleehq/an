@@ -69,6 +69,8 @@ from pathlib import Path
 from typing import Any, NamedTuple, Protocol
 
 from an.audio.transcripts import (
+    ARPABET,
+    IPA,
     TranscriptSegment,
     WordTiming,
     cut_spans,
@@ -640,8 +642,8 @@ class Aligner(Protocol):
 
 #: The Montreal Forced Aligner's English models (an#637): one pronouncing
 #: dictionary and acoustic model per phone alphabet, both named the same.
-MFA_MODELS: Mapping[str, str] = {"arpabet": "english_us_arpa", "ipa": "english_mfa"}
-DFLT_MFA_ALPHABET: str = "arpabet"
+MFA_MODELS: Mapping[str, str] = {ARPABET: "english_us_arpa", IPA: "english_mfa"}
+DFLT_MFA_ALPHABET: str = ARPABET
 #: MFA 3's alignment subcommand (4.0 renames it ``align_legacy``): a keyword
 #: of :func:`mfa_aligner`, so a newer MFA is a keyword away.
 DFLT_MFA_COMMAND: str = "align"
