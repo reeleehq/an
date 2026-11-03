@@ -23,7 +23,7 @@ from __future__ import annotations
 
 import inspect
 from collections.abc import Callable
-from typing import Any, TypeAlias
+from typing import TypedDict
 
 from an.audio.providers import make_tts
 from an.audio.tts import TTSProvider, VoiceMeta
@@ -36,7 +36,20 @@ DEFAULT_BROWSE_PROVIDER = "elevenlabs"
 #: One voice as a host lists it: :meth:`VoiceMeta.as_row`, every
 #: :class:`~an.audio.tts.VoiceMeta` field but ``extra``, plus the provider's own
 #: ``category`` word (kept for display; filter on ``is_stock``).
-VoiceRow: TypeAlias = dict[str, Any]
+class VoiceRow(TypedDict):
+    """The keys of :meth:`VoiceMeta.as_row`, typed for hosts (a plain ``dict``
+    at runtime); a test pins them to the dataclass."""
+
+    voice_id: str
+    name: str
+    provider: str
+    language: str | None
+    gender: str | None
+    is_stock: bool | None
+    accent: str | None
+    description: str | None
+    preview_url: str | None
+    category: str | None
 
 
 def browse_voices(

@@ -140,3 +140,12 @@ def test_listable_providers_are_those_that_take_a_key():
     assert listable_providers() == ["elevenlabs"]
     factories = {"own_key": lambda *, api_key=None: None, "keyless": lambda: None}
     assert listable_providers(factories=factories) == ["own_key"]
+
+
+def test_the_row_type_names_exactly_the_keys_as_row_gives():
+    """an#712 re-review: ``VoiceRow`` (a TypedDict) is pinned to what
+    ``VoiceMeta.as_row`` returns, so a field added to one reaches the other."""
+    from an.audio.tts import VoiceMeta
+    from an.audio.voice_listing import VoiceRow
+
+    assert set(VoiceRow.__annotations__) == set(VoiceMeta("v", "n", "p").as_row())
