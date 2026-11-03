@@ -124,7 +124,7 @@ LicenseClass = Literal["attribution", "free", "noncommercial", "private", "unkno
 #:   shared content say it is AI-generated "in a way no user could reasonably
 #:   miss": a credit the video owes. So ``attribution`` (the credit discloses
 #:   AI generation), the stricter reading, pending the maintainer's call
-#:   (an#742); and the Usage Policies (effective 2026-11-20) forbid using
+#:   (an#742); and the Usage Policies (in force: effective 2025-10-29; the 2026-11-20 version keeps it) forbid using
 #:   someone's likeness without consent. Named in ``an credits``.
 _STABILITY_TERMS: dict[str, LicenseClass] = {"stability-community": "free"}
 PROVIDER_TERMS: dict[str, dict[str, LicenseClass]] = {
