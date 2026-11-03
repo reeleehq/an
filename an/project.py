@@ -15,8 +15,10 @@ Layout (from spec §11):
 from __future__ import annotations
 
 import json
-from collections.abc import MutableMapping
+from collections.abc import Callable, Iterable, MutableMapping
 from dataclasses import dataclass
+from fnmatch import fnmatchcase
+from functools import lru_cache
 from pathlib import Path
 from types import MappingProxyType
 from typing import Mapping
@@ -110,6 +112,83 @@ LOCKS_GITIGNORE: tuple[str, ...] = ("artifacts/voice_options/*.lock",)
 PROJECT_GITIGNORE: tuple[str, ...] = (
     RENDER_REPORTS_GITIGNORE + PROBES_GITIGNORE + LOCKS_GITIGNORE
 )
+#: What a ``.gitignore`` line may hold that :func:`gitignore_matcher` would not
+#: read the way git does, so it refuses the line rather than misread it.
+_GITIGNORE_UNREAD: tuple[str, ...] = ("**", "\\", "[^")
+
+
+def _gitignore_line_matcher(line: str) -> Callable[[str], bool]:
+    """``rel -> bool`` for one ``.gitignore`` line, by git's rules (see
+    :func:`gitignore_matcher`)."""
+    if (
+        line != line.strip()
+        or line.startswith(("!", "#"))
+        or any(token in line for token in _GITIGNORE_UNREAD)
+    ):
+        raise ValueError(
+            "a .gitignore line read here cannot use '!', '#', '**', '\\', '[^' "
+            f"or surrounding spaces (got {line!r})"
+        )
+    folders_only = line.endswith("/")
+    pattern = line.rstrip("/")
+    anchored = "/" in pattern
+    pattern = pattern.lstrip("/")
+    depth = pattern.count("/")
+
+    def matches(rel: str) -> bool:
+        parts = rel.split("/")
+        # each folder holding ``rel`` (a matched folder covers its contents), then rel
+        for n in range(1, len(parts) + (0 if folders_only else 1)):
+            if anchored:
+                if n - 1 == depth and fnmatchcase("/".join(parts[:n]), pattern):
+                    return True
+            elif fnmatchcase(parts[n - 1], pattern):
+                return True
+        return False
+
+    return matches
+
+
+@lru_cache(maxsize=None)
+def _compiled(lines: tuple[str, ...]) -> tuple[Callable[[str], bool], ...]:
+    return tuple(_gitignore_line_matcher(line) for line in lines)
+
+
+def gitignore_matcher(lines: Iterable[str] = PROJECT_GITIGNORE) -> Callable[[str], bool]:
+    """``rel -> bool``: whether any of ``lines`` (each a ``.gitignore`` line)
+    covers the project-relative POSIX path ``rel``, by git's rules (an#725): a
+    line with a ``/`` before its end is anchored at the project root, one
+    without matches a name at any depth; a trailing ``/`` matches folders only;
+    wildcards never cross a ``/``; a matched folder covers everything under it;
+    case counts. What it does not read the way git does is refused with a
+    ``ValueError`` rather than misread (a misread line could copy what it
+    should keep local): negation (``!``), comments (``#``), ``**``, escapes
+    (``\\``), ``[^...]`` and surrounding spaces. For a genre or tool that
+    copies a project (a sync, an export) and keeps the same files local as git.
+
+    >>> local = gitignore_matcher(("artifacts/shot_cache/", "notes.txt", "artifacts/v/*.lock"))
+    >>> local("artifacts/shot_cache/blobs/x"), local("deep/notes.txt"), local("artifacts/audio/a.wav")
+    (True, True, False)
+    >>> local("artifacts/v/a.json.lock"), local("artifacts/v/sub/a.lock")
+    (True, False)
+    >>> gitignore_matcher(("cache/",))("cache"), gitignore_matcher(("a/*/c",))("a/b/c/d")
+    (False, True)
+    """
+    matchers = _compiled(tuple(lines))
+    return lambda rel: any(m(rel) for m in matchers)
+
+
+def gitignored(rel: str, *, lines: Iterable[str] = PROJECT_GITIGNORE) -> bool:
+    """Whether a project's ``.gitignore`` keeps ``rel`` (a project-relative
+    POSIX path) local: :data:`PROJECT_GITIGNORE`, or ``lines``, read by git's
+    rules (:func:`gitignore_matcher`, an#725).
+
+    >>> gitignored("artifacts/probes/shot1/frame.png"), gitignored("scene.md")
+    (True, False)
+    >>> gitignored("artifacts/voice_options/jerry.json.lock")
+    True
+    """
+    return gitignore_matcher(lines)(rel)
 
 
 def _ensure_gitignored(pdir: Path, lines: tuple[str, ...]) -> None:

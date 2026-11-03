@@ -1,0 +1,1 @@
+- `an.project.gitignored(rel, *, lines=PROJECT_GITIGNORE)` and `gitignore_matcher(lines)` read `.gitignore` lines by git's rules (checked against `git check-ignore`), for a genre that copies a project; genre API level 15 (an#725).
