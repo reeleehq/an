@@ -1,0 +1,1 @@
+- A plain transcript of several lines aligned by MFA is first timed roughly by the transcriber, then each line aligned within its own interval (a TextGrid of intervals, `LineAligner.align_lines`), as MFA is built for short utterances; `an.audio.transcripts.textgrid_text` writes a TextGrid (an#716).

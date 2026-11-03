@@ -66,7 +66,7 @@ import wave
 from collections.abc import Callable, Iterable, Mapping, MutableMapping, Sequence
 from dataclasses import dataclass, field, replace
 from pathlib import Path
-from typing import Any, NamedTuple, Protocol
+from typing import Any, NamedTuple, Protocol, runtime_checkable
 
 from an.audio.transcripts import (
     ARPABET,
@@ -646,6 +646,22 @@ class Aligner(Protocol):
     def __call__(self, path: Path, text: str) -> Sequence[TranscriptSegment]: ...
 
 
+@runtime_checkable
+class LineAligner(Protocol):
+    """An :class:`Aligner` that can also align each of several ROUGHLY timed
+    lines within its own interval (an#716): what a long take of many lines
+    needs, since a forced aligner is built for short utterances. ``lines``
+    are timed (``start``/``end``, seconds in the take at ``path``)."""
+
+    def align_lines(
+        self, path: Path, lines: Sequence[TranscriptSegment]
+    ) -> Sequence[TranscriptSegment]: ...
+
+
+#: Silence kept on each side of a roughly timed line when a line aligner aligns
+#: it within its own interval (an#716): a transcriber's word edges are rough,
+#: and a line cut short would lose its first or last phone.
+DFLT_ALIGN_LINE_PAD_S: float = 0.25
 #: The Montreal Forced Aligner's English models (an#637): one pronouncing
 #: dictionary and acoustic model per phone alphabet, both named the same.
 MFA_MODELS: Mapping[str, str] = {ARPABET: "english_us_arpa", IPA: "english_mfa"}
@@ -696,6 +712,28 @@ class MfaAligner:
         return self.alphabet
 
     def __call__(self, path: Path, text: str) -> list[TranscriptSegment]:
+        """``text`` aligned as one utterance over the whole take (a ``.lab``)."""
+        return self._align(path, f"{MFA_TAKE_STEM}.lab", text)
+
+    def align_lines(
+        self, path: Path, lines: Sequence[TranscriptSegment]
+    ) -> list[TranscriptSegment]:
+        """Each of the roughly timed ``lines`` aligned within its own interval
+        (an#716): MFA is given a TextGrid with one interval per line instead
+        of a ``.lab``, so a long take of many lines aligns as many short
+        utterances, which is what MFA is built for."""
+        from an.audio.transcripts import textgrid_text
+
+        grid = textgrid_text(
+            {MFA_TAKE_STEM: [(seg.start, seg.end, seg.text) for seg in lines]},
+            xmax=_wav_file_seconds(path),
+        )
+        return self._align(path, f"{MFA_TAKE_STEM}.TextGrid", grid)
+
+    def _align(self, path: Path, transcript: str, text: str) -> list[TranscriptSegment]:
+        """Run MFA on the take and its ``transcript`` file (named so MFA reads
+        it: ``.lab`` or ``.TextGrid``, holding ``text``) as a one-file corpus,
+        and read back the TextGrid it writes."""
         import shutil
         import subprocess
         import tempfile
@@ -713,7 +751,7 @@ class MfaAligner:
             out = Path(tmp) / "aligned"
             corpus.mkdir()
             shutil.copyfile(path, corpus / f"{MFA_TAKE_STEM}.wav")
-            (corpus / f"{MFA_TAKE_STEM}.lab").write_text(text, encoding="utf-8")
+            (corpus / transcript).write_text(text, encoding="utf-8")
             argv = [self.executable, self.command, str(corpus), model, model,
                     str(out), "--clean", "--single_speaker"]  # fmt: skip
             proc = (self.run or subprocess.run)(argv, capture_output=True, check=False)
@@ -735,6 +773,14 @@ class MfaAligner:
                     "into one file per line"
                 )
             return parse_textgrid(grid.read_text(encoding="utf-8"))
+
+
+def _wav_file_seconds(path: Path) -> float:
+    """A WAV file's length, seconds (its header's frame count over its rate)."""
+    import wave
+
+    with wave.open(str(path), "rb") as w:
+        return w.getnframes() / float(w.getframerate())
 
 
 #: The name the seam's MFA aligner was first given (an#637).
@@ -1128,8 +1174,16 @@ def _timed_segments(
             f"the transcript for {path.name} times some lines and not others; time all or none"
         )
     if align is not None:
+
+        def rough() -> list[WordTiming]:
+            """The transcriber's words: rough line times for a long take (an#716)."""
+            heard = (transcribe or make_transcriber())(path)
+            return [w for s in heard for w in (s.words or ())]
+
         return (
-            _aligned_lines(path, segments, total=total, align=align, wav=wav),
+            _aligned_lines(
+                path, segments, total=total, align=align, wav=wav, rough=rough
+            ),
             f"{kind}+align",
         )
     if len(segments) == 1:
@@ -1160,22 +1214,39 @@ def _aligned_lines(
     total: float,
     align: Aligner,
     wav: bytes | None,
+    rough: Callable[[], Sequence[WordTiming]] | None = None,
+    line_pad_s: float = DFLT_ALIGN_LINE_PAD_S,
 ) -> list[TranscriptSegment]:
     """A plain transcript's ``lines`` timed by a forced aligner (an#637): its
     words time the lines as a transcriber's would (:func:`segment_lines`), and
     each line keeps the phones that fall in its span. One line spans the file.
     The aligner is given ``wav`` (the take as decoded, denoised included: the
-    samples that are cut) as a WAV file, any format the import read."""
+    samples that are cut) as a WAV file, any format the import read.
+
+    Several lines and an aligner that can align lines (:class:`LineAligner`,
+    MFA): the lines are first timed roughly by ``rough`` (the transcriber's
+    words, :func:`_rough_line_intervals`), and each is aligned within its own
+    interval, ``line_pad_s`` wider on each side (an#716), since a forced aligner
+    is built for short utterances. Without ``rough``, or when it cannot place
+    every line, the whole text is aligned as one utterance."""
     import tempfile
 
-    text = " ".join(line.text for line in lines)
+    def aligned_from(file: Path) -> list[TranscriptSegment]:
+        if len(lines) > 1 and rough is not None and isinstance(align, LineAligner):
+            intervals = _rough_line_intervals(
+                lines, rough(), total=total, pad_s=line_pad_s
+            )
+            if intervals is not None:
+                return list(align.align_lines(file, intervals))
+        return list(align(file, " ".join(line.text for line in lines)))
+
     if wav is None:
-        aligned = list(align(path, text))
+        aligned = aligned_from(path)
     else:
         with tempfile.TemporaryDirectory(prefix="an-align-") as tmp:
             decoded = Path(tmp) / f"{path.stem}.wav"
             decoded.write_bytes(wav)
-            aligned = list(align(decoded, text))
+            aligned = aligned_from(decoded)
     words = [w for s in aligned for w in (s.words or ())]
     phones = [p for s in aligned for p in (s.phones or ())]
     if not words:
@@ -1211,6 +1282,43 @@ def _aligned_lines(
         )
 
     return [with_phones(seg) for seg in timed]
+
+
+def _rough_line_intervals(
+    lines: Sequence[TranscriptSegment],
+    words: Sequence[WordTiming],
+    *,
+    total: float,
+    pad_s: float,
+) -> list[TranscriptSegment] | None:
+    """``lines`` timed roughly by a transcriber's ``words`` (:func:`segment_lines`),
+    each widened by ``pad_s`` on both sides but never past the midpoint of the
+    gap to its neighbour, nor out of ``0..total``: the intervals a line aligner
+    aligns each line within (an#716). ``None`` when the words cannot place
+    every line (no words, or a line left with none).
+
+    >>> lines = parse_transcript_text("carl: Hello there.\\nned: Hi.", fmt="plain")
+    >>> words = [("hello", 0.5, 0.9), ("there", 0.9, 1.3), ("hi", 2.0, 2.3)]
+    >>> [(s.text, s.start, s.end) for s in _rough_line_intervals(lines, words, total=3.0, pad_s=0.25)]
+    [('Hello there.', 0.25, 1.55), ('Hi.', 1.75, 2.55)]
+    """
+    if not words:
+        return None
+    timed = segment_lines(lines, words, bounds=(0.0, total))
+    if len(timed) != len(lines):
+        return None
+    out = []
+    for i, seg in enumerate(timed):
+        lo = (timed[i - 1].end + seg.start) / 2 if i else 0.0
+        hi = (seg.end + timed[i + 1].start) / 2 if i + 1 < len(timed) else total
+        out.append(
+            replace(
+                seg,
+                start=round(max(lo, seg.start - pad_s), 6),
+                end=round(min(hi, seg.end + pad_s), 6),
+            )
+        )
+    return out
 
 
 def _speaker_of(

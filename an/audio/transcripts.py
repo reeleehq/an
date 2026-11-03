@@ -53,6 +53,7 @@ __all__ = [
     "parse_plain",
     "parse_json",
     "parse_textgrid",
+    "textgrid_text",
     "from_transcript_object",
     "parse_timestamp",
     "phone_alphabet_of",
@@ -761,6 +762,44 @@ def _within(timings: Sequence[WordTiming], a: float, b: float) -> tuple | None:
         x for x in timings if x[1] >= a - _SPAN_EPS_S and x[2] <= b + _SPAN_EPS_S
     )
     return inside or None
+
+
+def textgrid_text(
+    tiers: Mapping[str, Sequence[tuple[float, float, str]]], *, xmax: float
+) -> str:
+    """A long-form Praat TextGrid of interval ``tiers`` (``{name: [(start, end,
+    label), ...]}``) spanning ``0..xmax``: what :func:`parse_textgrid` reads
+    back, and what a forced aligner takes as a transcript of timed lines
+    (an#716). The gaps between intervals are filled with empty ones, as Praat
+    requires a tier to cover its span; a ``"`` in a label is doubled.
+
+    >>> grid = textgrid_text({"take": [(0.5, 1.2, 'say "hi"')]}, xmax=2.0)
+    >>> _textgrid_tiers(grid)
+    {'take': [(0.0, 0.5, ''), (0.5, 1.2, 'say "hi"'), (1.2, 2.0, '')]}
+    """
+
+    def tiled(intervals: Sequence[tuple[float, float, str]]) -> list[tuple[float, float, str]]:
+        out, t = [], 0.0
+        for a, b, label in sorted(intervals):
+            if a > t:
+                out.append((t, a, ""))
+            out.append((a, b, label))
+            t = b
+        return out + ([(t, xmax, "")] if t < xmax else [])
+
+    lines = ['File type = "ooTextFile"', 'Object class = "TextGrid"', "",
+             "xmin = 0", f"xmax = {xmax}", "tiers? <exists>", f"size = {len(tiers)}",
+             "item []:"]  # fmt: skip
+    for i, (name, intervals) in enumerate(tiers.items(), start=1):
+        cells = tiled(intervals)
+        lines += [f"    item [{i}]:", '        class = "IntervalTier"',
+                  f'        name = "{name}"', "        xmin = 0", f"        xmax = {xmax}",
+                  f"        intervals: size = {len(cells)}"]  # fmt: skip
+        for j, (a, b, label) in enumerate(cells, start=1):
+            text = label.replace('"', '""')
+            lines += [f"        intervals [{j}]:", f"            xmin = {a}",
+                      f"            xmax = {b}", f'            text = "{text}"']  # fmt: skip
+    return "\n".join(lines) + "\n"
 
 
 def segments_from_tiers(tiers: Tiers) -> list[TranscriptSegment]:

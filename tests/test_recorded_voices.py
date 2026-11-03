@@ -1200,6 +1200,81 @@ def test_a_take_in_any_format_reaches_the_aligner_as_a_wav(tmp_path):
     assert align.heard[0][0] == ".wav"
 
 
+class _LineAligner(_Aligner):
+    """A fake line aligner (an#716): MFA's grid for the lines it is handed,
+    which it records."""
+
+    def __init__(self):
+        super().__init__()
+        self.lines = []
+
+    def align_lines(self, path, lines):
+        from an.audio.transcripts import parse_textgrid
+
+        self.lines.append([(s.text, s.start, s.end) for s in lines])
+        return parse_textgrid(MFA_GRID)
+
+
+def test_a_long_take_s_lines_are_aligned_each_in_its_rough_interval(tmp_path):
+    """an#716: with several lines and an aligner that aligns lines (MFA), the
+    lines are first timed roughly by the transcriber's words, and each is
+    aligned within its own interval, padded but never past its neighbour's;
+    the phones are those the one-utterance form gives. With no rough words,
+    or an aligner without lines, the whole text is one utterance (an#637)."""
+    from an.audio.recorded import DFLT_ALIGN_LINE_PAD_S
+    from an.audio.transcripts import parse_textgrid
+
+    heard = parse_textgrid(ALIGNED)  # the transcriber's words, roughly where said
+    by_lines = _project(tmp_path / "l")
+    align = _LineAligner()
+    import_recordings(
+        by_lines, _take(tmp_path), transcript=_plain(tmp_path), license=LICENSE,
+        align=align, transcribe=lambda path: heard,
+    )  # fmt: skip
+    ((first, second),) = align.lines
+    assert first[0] == HELLO and second[0] == FINE
+    pad = DFLT_ALIGN_LINE_PAD_S
+    assert first[1] == pytest.approx(0.5 - pad) and second[2] == pytest.approx(3.3 + pad)
+    assert first[2] <= second[1], "the intervals never overlap"
+    assert align.heard == [], "the one-utterance form is not used"
+    by_one = _project(tmp_path / "o")
+    import_recordings(
+        by_one, _take(tmp_path), transcript=_plain(tmp_path), license=LICENSE,
+        align=_Aligner(), transcribe=lambda path: pytest.fail("not transcribed"),
+    )  # fmt: skip
+    phones = lambda root: {r["text"]: r["phones"] for r in _records(root).values()}  # noqa: E731
+    assert phones(by_lines) == phones(by_one)
+    unplaced = _LineAligner()
+    import_recordings(
+        _project(tmp_path / "u"), _take(tmp_path), transcript=_plain(tmp_path),
+        license=LICENSE, align=unplaced, transcribe=lambda path: [],
+    )  # fmt: skip
+    assert unplaced.lines == [] and len(unplaced.heard) == 1
+
+
+def test_the_mfa_aligner_aligns_lines_from_a_textgrid_of_intervals(tmp_path):
+    """an#716: `align_lines` hands MFA a TextGrid with one interval per line
+    (spanning the whole take) instead of a `.lab`, and reads its TextGrid."""
+    from an.audio.recorded import mfa_aligner
+    from an.audio.transcripts import TranscriptSegment, _textgrid_tiers
+
+    given = []
+
+    def run(argv, **kw):
+        corpus, out = Path(argv[2]), Path(argv[5])
+        assert sorted(f.name for f in corpus.iterdir()) == ["take.TextGrid", "take.wav"]
+        given.append(_textgrid_tiers((corpus / "take.TextGrid").read_text(encoding="utf-8")))
+        out.mkdir()
+        (out / "take.TextGrid").write_text(MFA_GRID, encoding="utf-8")
+        return type("Done", (), {"returncode": 0, "stderr": b""})()
+
+    lines = [TranscriptSegment(HELLO, 0.25, 1.75), TranscriptSegment(FINE, 2.25, 3.55)]
+    said = mfa_aligner(run=run).align_lines(_take(tmp_path), lines)
+    assert said and said[0].phones
+    assert given == [{"take": [(0.0, 0.25, ""), (0.25, 1.75, HELLO), (1.75, 2.25, ""),
+                               (2.25, 3.55, FINE), (3.55, 4.0, "")]}]  # fmt: skip
+
+
 def test_the_mfa_aligner_runs_mfa_on_a_one_file_corpus_and_reads_its_textgrid(tmp_path):
     """an#637: `mfa_aligner` writes the take and its text as a corpus, runs
     `mfa align` with the alphabet's English model, and reads the TextGrid back;
