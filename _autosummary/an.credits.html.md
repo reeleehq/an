@@ -55,6 +55,11 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Everything a project owes, split by whether we actually know.
 
+#### *property* ai_generated *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[CreditEntry, [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]*
+
+`(entry, label)` for every entry that records an AI disclosure (a
+foley export, an#729): what its disclosure says ([`an.sound_fetch.ai_label()`](an.sound_fetch.html.md#an.sound_fetch.ai_label)).
+
 #### *property* commercial *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
 
 Whether a COMMERCIAL video may contain everything here (publishable,

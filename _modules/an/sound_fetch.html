@@ -727,7 +727,17 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">  16-bit WAV, and recorded with the source, so ``an credits`` says which part</span>
 <span class="sd">  of which page it is ("0:07.9–0:08.8 of &lt;url&gt;");</span>
 <span class="sd">- the licence is the caller's statement, never guessed: required, and</span>
-<span class="sd">  ``"unknown"`` says so explicitly (the sound is then UNVERIFIED).</span>
+<span class="sd">  ``"unknown"`` says so explicitly (the sound is then UNVERIFIED) -- unless the</span>
+<span class="sd">  source states its own rights (:attr:`Fetched.source`). A sound from a foley</span>
+<span class="sd">  library does (an#729): :func:`foley_fetcher` reads ``foley:&lt;sound_id&gt;`` through</span>
+<span class="sd">  ``foley.export_sound``, whose rights become the sound's</span>
+<span class="sd">  :class:`~an.ir.assets.AssetSource` (:func:`foley_asset_source`, with foley's</span>
+<span class="sd">  whole provenance as ``foley_provenance``), so the licence may be omitted, and</span>
+<span class="sd">  a caller's licence that disagrees is refused. A fetcher says which refs it</span>
+<span class="sd">  states rights for (:func:`fetcher_states_rights`), so a licence missing for</span>
+<span class="sd">  any other is refused before anything is downloaded. The default fetcher</span>
+<span class="sd">  (:func:`default_fetcher`) sends a ``foley:`` ref to foley and anything else to</span>
+<span class="sd">  ``yb``, so ``an sounds add &lt;project&gt; door foley:fsd-222`` works.</span>
 
 <span class="sd">&gt;&gt;&gt; fetched = Fetched(audio=b"...", url="https://example.org/a", id="a", author="Ann")</span>
 <span class="sd">&gt;&gt;&gt; fetched.provider</span>
@@ -736,18 +746,38 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">enum</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">MutableMapping</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">MutableMapping</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">urllib.parse</span><span class="w"> </span><span class="kn">import</span> <span class="n">urlparse</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.assets</span><span class="w"> </span><span class="kn">import</span> <span class="n">AssetSource</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.assets</span><span class="w"> </span><span class="kn">import</span> <span class="n">AssetSource</span><span class="p">,</span> <span class="n">normalise_license</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.sounds</span><span class="w"> </span><span class="kn">import</span> <span class="n">SoundAsset</span><span class="p">,</span> <span class="n">SoundError</span><span class="p">,</span> <span class="n">add_sound</span><span class="p">,</span> <span class="n">wav_duration</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"Fetched"</span><span class="p">,</span> <span class="s2">"Fetcher"</span><span class="p">,</span> <span class="s2">"add_sound_from_url"</span><span class="p">,</span> <span class="s2">"cut_to_wav"</span><span class="p">,</span> <span class="s2">"yb_fetcher"</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"UNSTATED"</span><span class="p">,</span>
+    <span class="s2">"Fetched"</span><span class="p">,</span>
+    <span class="s2">"Fetcher"</span><span class="p">,</span>
+    <span class="s2">"Unstated"</span><span class="p">,</span>
+    <span class="s2">"add_sound_from_url"</span><span class="p">,</span>
+    <span class="s2">"ai_label"</span><span class="p">,</span>
+    <span class="s2">"cut_to_wav"</span><span class="p">,</span>
+    <span class="s2">"default_fetcher"</span><span class="p">,</span>
+    <span class="s2">"fetcher_states_rights"</span><span class="p">,</span>
+    <span class="s2">"file_digest_fields"</span><span class="p">,</span>
+    <span class="s2">"foley_asset_source"</span><span class="p">,</span>
+    <span class="s2">"foley_fetcher"</span><span class="p">,</span>
+    <span class="s2">"notice_label"</span><span class="p">,</span>
+    <span class="s2">"yb_fetcher"</span><span class="p">,</span>
+<span class="p">]</span>
 
 <span class="c1">#: The source field (an ``AssetSource`` extra) recording which part of the</span>
 <span class="c1">#: fetched media the sound is: ``{"start": s, "end": s, "fade_out": s}``.</span>
@@ -756,13 +786,48 @@ window.runMermaid = runMermaid;</script>
 <span class="n">TITLE_FIELD</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"title"</span>
 <span class="c1">#: The sample rate a fetched sound is stored at.</span>
 <span class="n">FETCH_SAMPLE_RATE</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">44100</span>
+<span class="c1">#: The source field keeping the digest of the media a sound was cut from: a</span>
+<span class="c1">#: source's own ``sha256`` names those bytes, and a stored sound is the cut WAV,</span>
+<span class="c1">#: whose digest is the :class:`~an.sounds.SoundAsset`'s (an#623, an#729).</span>
+<span class="n">FILE_SHA256_FIELD</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"file_sha256"</span>
+<span class="c1">#: The ref of a sound in a foley library: ``foley:&lt;sound_id&gt;`` (an#729).</span>
+<span class="n">FOLEY_SCHEME</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"foley:"</span>
+<span class="c1">#: The source field keeping foley's whole export provenance (JSON-safe): the</span>
+<span class="c1">#: licence flags, a required notice, the terms' notes, excluded territories,</span>
+<span class="c1">#: the archived bytes' digest, an AI clip's Art. 50 checklist, ...</span>
+<span class="n">FOLEY_PROVENANCE_FIELD</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"foley_provenance"</span>
+<span class="c1">#: The provenance key of an AI-generated sound's disclosure: foley's EU AI Act</span>
+<span class="c1">#: Art. 50 checklist (``pending``, ``publish_ready``, ``obligations``) with the</span>
+<span class="c1">#: generation block (``provenance.generator_model``, ...).</span>
+<span class="n">AI_DISCLOSURE_KEY</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"ai_disclosure"</span>
+<span class="c1">#: The provenance key of a notice the licence requires shown verbatim.</span>
+<span class="n">NOTICE_KEY</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"notice_text_required"</span>
+
+
+<div class="viewcode-block" id="Unstated">
+<a class="viewcode-back" href="../../_autosummary/an.sound_fetch.html#an.sound_fetch.Unstated">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Unstated</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The type of :data:`UNSTATED`, ``license=`` left out."""</span>
+
+    <span class="n">UNSTATED</span> <span class="o">=</span> <span class="s2">"unstated"</span></div>
+
+
+
+<span class="c1">#: ``license=`` left out: the caller states no licence, which only a source that</span>
+<span class="c1">#: states its own rights (:attr:`Fetched.source`) may do.</span>
+<span class="n">UNSTATED</span> <span class="o">=</span> <span class="n">Unstated</span><span class="o">.</span><span class="n">UNSTATED</span>
 
 
 <div class="viewcode-block" id="Fetched">
 <a class="viewcode-back" href="../../_autosummary/an.sound_fetch.html#an.sound_fetch.Fetched">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Fetched</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""What a fetcher returns: the media's bytes, and what its page says about it."""</span>
+<span class="w">    </span><span class="sd">"""What a fetcher returns: the media's bytes, and what its page says about it.</span>
+
+<span class="sd">    When ``source`` is set it is the sound's whole provenance (the rights the</span>
+<span class="sd">    source states), and ``id``, ``title``, ``author`` and ``provider`` are not</span>
+<span class="sd">    read; otherwise they are, with the caller's licence.</span>
+<span class="sd">    """</span>
 
     <span class="n">audio</span><span class="p">:</span> <span class="nb">bytes</span>
     <span class="n">url</span><span class="p">:</span> <span class="nb">str</span>
@@ -770,12 +835,56 @@ window.runMermaid = runMermaid;</script>
     <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">author</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="c1">#: Where it came from, as an ``AssetSource.provider`` (``youtube``, …).</span>
-    <span class="n">provider</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"web"</span></div>
+    <span class="n">provider</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"web"</span>
+    <span class="c1">#: The rights the source itself states (a foley library's export), or</span>
+    <span class="c1">#: ``None``: then the licence is the caller's statement.</span>
+    <span class="n">source</span><span class="p">:</span> <span class="n">AssetSource</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 
 
-<span class="c1">#: ``(url) -&gt; Fetched``: how :func:`add_sound_from_url` gets the media.</span>
+<span class="c1">#: ``(url) -&gt; Fetched``: how :func:`add_sound_from_url` gets the media. A</span>
+<span class="c1">#: fetcher whose source states its own rights for some refs says which with a</span>
+<span class="c1">#: ``states_rights(url) -&gt; bool`` attribute (:func:`fetcher_states_rights`).</span>
 <span class="n">Fetcher</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Fetched</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="fetcher_states_rights">
+<a class="viewcode-back" href="../../_autosummary/an.sound_fetch.html#an.sound_fetch.fetcher_states_rights">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">fetcher_states_rights</span><span class="p">(</span><span class="n">fetcher</span><span class="p">:</span> <span class="n">Fetcher</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether ``fetcher`` declares that its source states the rights of ``url``.</span>
+
+<span class="sd">    Read from its ``states_rights(url)`` attribute (a ``functools.partial`` of a</span>
+<span class="sd">    fetcher keeps the declaration); a fetcher without one states none.</span>
+
+<span class="sd">    &gt;&gt;&gt; fetcher_states_rights(default_fetcher, "foley:fsd-222")</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; fetcher_states_rights(default_fetcher, "https://youtu.be/x"), fetcher_states_rights(print, "x")</span>
+<span class="sd">    (False, False)</span>
+<span class="sd">    """</span>
+    <span class="k">while</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fetcher</span><span class="p">,</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fetcher</span><span class="p">,</span> <span class="s2">"states_rights"</span><span class="p">):</span>
+            <span class="k">break</span>
+        <span class="n">fetcher</span> <span class="o">=</span> <span class="n">fetcher</span><span class="o">.</span><span class="n">func</span>
+    <span class="n">declared</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">fetcher</span><span class="p">,</span> <span class="s2">"states_rights"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">declared</span><span class="p">(</span><span class="n">url</span><span class="p">))</span> <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">declared</span><span class="p">)</span> <span class="k">else</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="file_digest_fields">
+<a class="viewcode-back" href="../../_autosummary/an.sound_fetch.html#an.sound_fetch.file_digest_fields">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">file_digest_fields</span><span class="p">(</span><span class="n">fields</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``fields`` with ``sha256`` (the fetched or library file's) moved to</span>
+<span class="sd">    :data:`FILE_SHA256_FIELD`: a stored sound is the cut WAV, whose digest is the</span>
+<span class="sd">    :class:`~an.sounds.SoundAsset`'s (an#623, an#729).</span>
+
+<span class="sd">    &gt;&gt;&gt; file_digest_fields({"provider": "p", "sha256": "ab"})</span>
+<span class="sd">    {'provider': 'p', 'file_sha256': 'ab'}</span>
+<span class="sd">    """</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s2">"sha256"</span> <span class="ow">in</span> <span class="n">out</span><span class="p">:</span>
+        <span class="n">out</span><span class="p">[</span><span class="n">FILE_SHA256_FIELD</span><span class="p">]</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"sha256"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_provider_of</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -817,6 +926,119 @@ window.runMermaid = runMermaid;</script>
         <span class="n">provider</span><span class="o">=</span><span class="n">_provider_of</span><span class="p">(</span><span class="n">page</span><span class="p">),</span>
     <span class="p">)</span></div>
 
+
+
+<div class="viewcode-block" id="foley_asset_source">
+<a class="viewcode-back" href="../../_autosummary/an.sound_fetch.html#an.sound_fetch.foley_asset_source">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">foley_asset_source</span><span class="p">(</span>
+    <span class="n">rights</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">provenance</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AssetSource</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""foley's ``(rights, provenance)`` (``foley.export_sound``) as an :class:`AssetSource`.</span>
+
+<span class="sd">    ``rights`` is keyed by the source's own field names (foley pins them to</span>
+<span class="sd">    ``lacing.Rights``, an's ``AssetSource``); its ``title`` rides as an extra.</span>
+<span class="sd">    ``sha256`` is the exported bytes' digest, and the whole ``provenance``</span>
+<span class="sd">    (JSON-safe) rides as :data:`FOLEY_PROVENANCE_FIELD`. ``url`` is where the</span>
+<span class="sd">    bytes came from (``foley:&lt;sound_id&gt;``).</span>
+
+<span class="sd">    &gt;&gt;&gt; src = foley_asset_source(</span>
+<span class="sd">    ...     {"provider": "fsd50k", "id": "222", "title": "Door creak", "license": "cc-by-4.0",</span>
+<span class="sd">    ...      "attribution": "Door creak by amy", "author": None},</span>
+<span class="sd">    ...     {"sha256": "ab", "archived_sha256": "cd", "ai_disclosure": None}, url="foley:fsd-222")</span>
+<span class="sd">    &gt;&gt;&gt; src.provider, src.license, src.url, src.author, src.sha256</span>
+<span class="sd">    ('fsd50k', 'cc-by-4.0', 'foley:fsd-222', None, 'ab')</span>
+<span class="sd">    &gt;&gt;&gt; src.model_extra["title"], src.model_extra["foley_provenance"]["archived_sha256"]</span>
+<span class="sd">    ('Door creak', 'cd')</span>
+<span class="sd">    """</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="o">**</span><span class="n">rights</span><span class="p">,</span>
+        <span class="s2">"url"</span><span class="p">:</span> <span class="n">url</span><span class="p">,</span>
+        <span class="s2">"sha256"</span><span class="p">:</span> <span class="n">provenance</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"sha256"</span><span class="p">),</span>
+        <span class="n">FOLEY_PROVENANCE_FIELD</span><span class="p">:</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">provenance</span><span class="p">),</span> <span class="n">default</span><span class="o">=</span><span class="nb">str</span><span class="p">)),</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">AssetSource</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">fields</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">})</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_is_foley_ref</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether ``url`` is a ``foley:&lt;sound_id&gt;`` ref (foley states its rights)."""</span>
+    <span class="k">return</span> <span class="n">url</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">FOLEY_SCHEME</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_foley_id</span><span class="p">(</span><span class="n">ref</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The sound id of a ``foley:&lt;sound_id&gt;`` ref.</span>
+
+<span class="sd">    &gt;&gt;&gt; _foley_id("foley:fsd-222")</span>
+<span class="sd">    'fsd-222'</span>
+<span class="sd">    """</span>
+    <span class="n">sound_id</span> <span class="o">=</span> <span class="n">ref</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">FOLEY_SCHEME</span><span class="p">)</span> <span class="p">:]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">if</span> <span class="n">ref</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">FOLEY_SCHEME</span><span class="p">)</span> <span class="k">else</span> <span class="s2">""</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">sound_id</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">SoundError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2"> is not a foley ref: write </span><span class="si">{</span><span class="n">FOLEY_SCHEME</span><span class="si">}</span><span class="s2">&lt;sound_id&gt; "</span>
+            <span class="s2">"(the id of a sound in the foley library)"</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">sound_id</span>
+
+
+<div class="viewcode-block" id="foley_fetcher">
+<a class="viewcode-back" href="../../_autosummary/an.sound_fetch.html#an.sound_fetch.foley_fetcher">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">foley_fetcher</span><span class="p">(</span><span class="n">ref</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">export</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Fetched</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Fetch ``foley:&lt;sound_id&gt;`` from a foley library, with the rights foley records.</span>
+
+<span class="sd">    export: ``(sound_id) -&gt; (bytes, rights, provenance)``, default</span>
+<span class="sd">        ``foley.export_sound`` (its default library; bind another with</span>
+<span class="sd">        ``functools.partial(foley.export_sound, library=...)``). foley is</span>
+<span class="sd">        imported on first use: ``import an`` never imports it.</span>
+
+<span class="sd">    The bytes are checked against the digest foley's provenance names, and the</span>
+<span class="sd">    rights become :attr:`Fetched.source` (:func:`foley_asset_source`), the</span>
+<span class="sd">    sound's only rights. It states rights for every ``foley:`` ref</span>
+<span class="sd">    (``foley_fetcher.states_rights``).</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        SoundError: For a ref that is not ``foley:&lt;sound_id&gt;``, foley not</span>
+<span class="sd">            installed, a sound foley does not hold or will not export (its</span>
+<span class="sd">            terms forbid keeping the bytes: a Freesound API pull is stored by</span>
+<span class="sd">            reference; its bytes changed since ingest; a failed re-encode),</span>
+<span class="sd">            naming the ref and foley's reason, or bytes that do not match the</span>
+<span class="sd">            digest foley names.</span>
+<span class="sd">    """</span>
+    <span class="n">sound_id</span> <span class="o">=</span> <span class="n">_foley_id</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">export</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">foley</span><span class="w"> </span><span class="kn">import</span> <span class="n">export_sound</span> <span class="k">as</span> <span class="n">export</span>
+        <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">SoundError</span><span class="p">(</span>
+                <span class="s2">"fetching a foley: sound needs foley: pip install foley "</span>
+                <span class="s2">"(or pass export=... / fetcher=... with your own)"</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">audio</span><span class="p">,</span> <span class="n">rights</span><span class="p">,</span> <span class="n">provenance</span> <span class="o">=</span> <span class="n">export</span><span class="p">(</span><span class="n">sound_id</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — a refusal (ValueError), a missing sound, a failed encode</span>
+        <span class="k">raise</span> <span class="n">SoundError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"foley will not export </span><span class="si">{</span><span class="n">sound_id</span><span class="si">!r}</span><span class="s2"> (</span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+    <span class="k">if</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">audio</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span> <span class="o">!=</span> <span class="n">provenance</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"sha256"</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">SoundError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"foley's export of </span><span class="si">{</span><span class="n">sound_id</span><span class="si">!r}</span><span class="s2"> does not match the sha256 its "</span>
+            <span class="s2">"provenance names; nothing was stored"</span>
+        <span class="p">)</span>
+    <span class="n">source</span> <span class="o">=</span> <span class="n">foley_asset_source</span><span class="p">(</span><span class="n">rights</span><span class="p">,</span> <span class="n">provenance</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="n">ref</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Fetched</span><span class="p">(</span><span class="n">audio</span><span class="o">=</span><span class="n">audio</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="n">ref</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="default_fetcher">
+<a class="viewcode-back" href="../../_autosummary/an.sound_fetch.html#an.sound_fetch.default_fetcher">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">default_fetcher</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Fetched</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The default ``fetcher=``: :func:`foley_fetcher` for a ``foley:`` ref, else :func:`yb_fetcher`."""</span>
+    <span class="n">fetch</span> <span class="o">=</span> <span class="n">foley_fetcher</span> <span class="k">if</span> <span class="n">_is_foley_ref</span><span class="p">(</span><span class="n">url</span><span class="p">)</span> <span class="k">else</span> <span class="n">yb_fetcher</span>
+    <span class="k">return</span> <span class="n">fetch</span><span class="p">(</span><span class="n">url</span><span class="p">)</span></div>
+
+
+
+<span class="n">foley_fetcher</span><span class="o">.</span><span class="n">states_rights</span> <span class="o">=</span> <span class="n">_is_foley_ref</span>
+<span class="n">default_fetcher</span><span class="o">.</span><span class="n">states_rights</span> <span class="o">=</span> <span class="n">_is_foley_ref</span>
 
 
 <div class="viewcode-block" id="cut_to_wav">
@@ -901,6 +1123,55 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">cut</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_license_code</span><span class="p">(</span><span class="n">license</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The code a caller's licence records: ``None`` (UNKNOWN) for ``unknown`` or nothing."""</span>
+    <span class="k">return</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">license</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span> <span class="s2">"unknown"</span><span class="p">)</span> <span class="k">else</span> <span class="n">license</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_stated_fields</span><span class="p">(</span>
+    <span class="n">stated</span><span class="p">:</span> <span class="n">AssetSource</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">license</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">|</span> <span class="n">Unstated</span><span class="p">,</span>
+    <span class="n">provider</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">author</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The fields of a source that states its own rights, checked against the caller's.</span>
+
+<span class="sd">    The source's rights are complete: a licence the caller gives must name the</span>
+<span class="sd">    same code (case and punctuation aside), and no provider or author may be</span>
+<span class="sd">    set over them (an AI clip has no author to add).</span>
+<span class="sd">    """</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="n">stated</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">exclude_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">license</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">UNSTATED</span> <span class="ow">and</span> <span class="n">_same_code</span><span class="p">(</span><span class="n">_license_code</span><span class="p">(</span><span class="n">license</span><span class="p">),</span> <span class="n">stated</span><span class="o">.</span><span class="n">license</span><span class="p">):</span>
+        <span class="n">license</span> <span class="o">=</span> <span class="n">UNSTATED</span>
+    <span class="n">given</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">license</span> <span class="ow">is</span> <span class="n">UNSTATED</span> <span class="k">else</span> <span class="p">{</span><span class="s2">"license"</span><span class="p">:</span> <span class="n">_license_code</span><span class="p">(</span><span class="n">license</span><span class="p">)}</span>
+    <span class="n">given</span> <span class="o">|=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="p">((</span><span class="s2">"provider"</span><span class="p">,</span> <span class="n">provider</span><span class="p">),</span> <span class="p">(</span><span class="s2">"author"</span><span class="p">,</span> <span class="n">author</span><span class="p">))</span> <span class="k">if</span> <span class="n">v</span><span class="p">}</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">given</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="n">SoundError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"the source states its own rights (</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">fields</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="si">!r}</span><span class="s2">), and "</span>
+            <span class="sa">f</span><span class="s2">"the caller says </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">: they are not overridden; leave "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> out, or use another copy of the sound"</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">file_digest_fields</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_same_code</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether two licence codes are the same code, case and punctuation aside.</span>
+
+<span class="sd">    &gt;&gt;&gt; _same_code("CC-BY-4.0", "cc-by-4.0"), _same_code(None, "cc0-1.0")</span>
+<span class="sd">    (True, False)</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">normalise_license</span><span class="p">(</span><span class="n">a</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span> <span class="o">==</span> <span class="n">normalise_license</span><span class="p">(</span><span class="n">b</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_refuse_unstated</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="n">SoundError</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">url</span><span class="si">!r}</span><span class="s2">: the licence is required, since this source states none "</span>
+        <span class="s2">"(license=..., --license on the command line: the code you vouch for; "</span>
+        <span class="s2">"'unknown' records that nobody has said, and the sound is UNVERIFIED)"</span>
+    <span class="p">)</span>
+
+
 <div class="viewcode-block" id="add_sound_from_url">
 <a class="viewcode-back" href="../../_autosummary/an.sound_fetch.html#an.sound_fetch.add_sound_from_url">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">add_sound_from_url</span><span class="p">(</span>
@@ -908,7 +1179,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
-    <span class="n">license</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">license</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">|</span> <span class="n">Unstated</span> <span class="o">=</span> <span class="n">UNSTATED</span><span class="p">,</span>
     <span class="n">fetcher</span><span class="p">:</span> <span class="n">Fetcher</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">start</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -919,25 +1190,103 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SoundAsset</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Fetch ``url``, cut it, and put it in the sounds ``store`` under ``key`` with its provenance.</span>
 
-<span class="sd">    license: the licence code the caller vouches for — required, never</span>
-<span class="sd">        guessed; ``"unknown"`` (or ``None``) records that nobody has said</span>
-<span class="sd">    fetcher: ``(url) -&gt; Fetched`` (default :func:`yb_fetcher`)</span>
+<span class="sd">    license: the licence code the caller vouches for, never guessed;</span>
+<span class="sd">        ``"unknown"`` (or ``None``) records that nobody has said. Required</span>
+<span class="sd">        unless the source states its own rights (:attr:`Fetched.source`, a</span>
+<span class="sd">        ``foley:`` sound), which are then recorded; a licence given with them</span>
+<span class="sd">        must agree</span>
+<span class="sd">    fetcher: ``(url) -&gt; Fetched`` (default :func:`default_fetcher`: a</span>
+<span class="sd">        ``foley:&lt;sound_id&gt;`` ref from foley, anything else with ``yb``)</span>
 <span class="sd">    start, duration, fade_out: the cut, in seconds of the fetched media</span>
-<span class="sd">    provider, author: override what the fetcher reported</span>
+<span class="sd">    provider, author: override what the fetcher reported (never on a source</span>
+<span class="sd">        that states its rights)</span>
+
+<span class="sd">    No cut is recorded when the whole media is kept (no ``start``,</span>
+<span class="sd">    ``duration`` or ``fade_out``).</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        SoundError: For no licence for a ref the fetcher states no rights for</span>
+<span class="sd">            (before anything is fetched: :func:`fetcher_states_rights`), or from</span>
+<span class="sd">            a source that turned out to state none; a caller's licence that</span>
+<span class="sd">            contradicts the source's, or a provider or author set over it; and</span>
+<span class="sd">            whatever the fetch, the cut or the store refuse.</span>
 <span class="sd">    """</span>
-    <span class="n">fetched</span> <span class="o">=</span> <span class="p">(</span><span class="n">fetcher</span> <span class="ow">or</span> <span class="n">yb_fetcher</span><span class="p">)(</span><span class="n">url</span><span class="p">)</span>
+    <span class="n">fetcher</span> <span class="o">=</span> <span class="n">fetcher</span> <span class="ow">or</span> <span class="n">default_fetcher</span>
+    <span class="k">if</span> <span class="n">license</span> <span class="ow">is</span> <span class="n">UNSTATED</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">fetcher_states_rights</span><span class="p">(</span><span class="n">fetcher</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
+        <span class="n">_refuse_unstated</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    <span class="n">fetched</span> <span class="o">=</span> <span class="n">fetcher</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">fetched</span><span class="o">.</span><span class="n">source</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">license</span> <span class="ow">is</span> <span class="n">UNSTATED</span><span class="p">:</span>
+        <span class="n">_refuse_unstated</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
     <span class="n">wav</span> <span class="o">=</span> <span class="n">cut_to_wav</span><span class="p">(</span><span class="n">fetched</span><span class="o">.</span><span class="n">audio</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span> <span class="n">fade_out</span><span class="o">=</span><span class="n">fade_out</span><span class="p">)</span>
-    <span class="n">cut</span> <span class="o">=</span> <span class="n">cut_record</span><span class="p">(</span><span class="n">wav</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">fade_out</span><span class="o">=</span><span class="n">fade_out</span><span class="p">)</span>
-    <span class="n">code</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">license</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span> <span class="s2">"unknown"</span><span class="p">)</span> <span class="k">else</span> <span class="n">license</span>
-    <span class="n">source</span> <span class="o">=</span> <span class="n">AssetSource</span><span class="p">(</span>
-        <span class="n">provider</span><span class="o">=</span><span class="n">provider</span> <span class="ow">or</span> <span class="n">fetched</span><span class="o">.</span><span class="n">provider</span><span class="p">,</span>
-        <span class="nb">id</span><span class="o">=</span><span class="n">fetched</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
-        <span class="n">url</span><span class="o">=</span><span class="n">fetched</span><span class="o">.</span><span class="n">url</span><span class="p">,</span>
-        <span class="n">author</span><span class="o">=</span><span class="n">author</span> <span class="ow">or</span> <span class="n">fetched</span><span class="o">.</span><span class="n">author</span><span class="p">,</span>
-        <span class="n">license</span><span class="o">=</span><span class="n">code</span><span class="p">,</span>
-        <span class="o">**</span><span class="p">{</span><span class="n">CUT_FIELD</span><span class="p">:</span> <span class="n">cut</span><span class="p">,</span> <span class="o">**</span><span class="p">({</span><span class="n">TITLE_FIELD</span><span class="p">:</span> <span class="n">fetched</span><span class="o">.</span><span class="n">title</span><span class="p">}</span> <span class="k">if</span> <span class="n">fetched</span><span class="o">.</span><span class="n">title</span> <span class="k">else</span> <span class="p">{})},</span>
-    <span class="p">)</span>
-    <span class="k">return</span> <span class="n">add_sound</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">wav</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">)</span></div>
+    <span class="k">if</span> <span class="n">fetched</span><span class="o">.</span><span class="n">source</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="n">_stated_fields</span><span class="p">(</span>
+            <span class="n">fetched</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">license</span><span class="o">=</span><span class="n">license</span><span class="p">,</span> <span class="n">provider</span><span class="o">=</span><span class="n">provider</span><span class="p">,</span> <span class="n">author</span><span class="o">=</span><span class="n">author</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"provider"</span><span class="p">:</span> <span class="n">provider</span> <span class="ow">or</span> <span class="n">fetched</span><span class="o">.</span><span class="n">provider</span><span class="p">,</span>
+            <span class="s2">"id"</span><span class="p">:</span> <span class="n">fetched</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+            <span class="s2">"author"</span><span class="p">:</span> <span class="n">author</span> <span class="ow">or</span> <span class="n">fetched</span><span class="o">.</span><span class="n">author</span><span class="p">,</span>
+            <span class="s2">"license"</span><span class="p">:</span> <span class="n">_license_code</span><span class="p">(</span><span class="n">license</span><span class="p">),</span>
+            <span class="o">**</span><span class="p">({</span><span class="n">TITLE_FIELD</span><span class="p">:</span> <span class="n">fetched</span><span class="o">.</span><span class="n">title</span><span class="p">}</span> <span class="k">if</span> <span class="n">fetched</span><span class="o">.</span><span class="n">title</span> <span class="k">else</span> <span class="p">{}),</span>
+        <span class="p">}</span>
+    <span class="n">fields</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">"url"</span><span class="p">,</span> <span class="n">fetched</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">fade_out</span><span class="p">)):</span>
+        <span class="n">fields</span><span class="p">[</span><span class="n">CUT_FIELD</span><span class="p">]</span> <span class="o">=</span> <span class="n">cut_record</span><span class="p">(</span><span class="n">wav</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">fade_out</span><span class="o">=</span><span class="n">fade_out</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">add_sound</span><span class="p">(</span>
+        <span class="n">store</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">wav</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">AssetSource</span><span class="p">(</span><span class="o">**</span><span class="n">fields</span><span class="p">),</span> <span class="n">description</span><span class="o">=</span><span class="n">description</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_foley_provenance</span><span class="p">(</span><span class="n">source</span><span class="p">:</span> <span class="n">AssetSource</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The foley provenance a source records (:data:`FOLEY_PROVENANCE_FIELD`), or ``{}``."""</span>
+    <span class="n">prov</span> <span class="o">=</span> <span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">model_extra</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">FOLEY_PROVENANCE_FIELD</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">prov</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">prov</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="p">{}</span>
+
+
+<div class="viewcode-block" id="ai_label">
+<a class="viewcode-back" href="../../_autosummary/an.sound_fetch.html#an.sound_fetch.ai_label">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ai_label</span><span class="p">(</span><span class="n">source</span><span class="p">:</span> <span class="n">AssetSource</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What an AI-generated source's disclosure says, or ``None`` for any other.</span>
+
+<span class="sd">    The model; whether the disclosure is a duty (a recognizable voice: "must be</span>
+<span class="sd">    disclosed") or a recommendation; and, when foley's EU AI Act Art. 50</span>
+<span class="sd">    checklist is not ``publish_ready``, the obligations still pending.</span>
+
+<span class="sd">    &gt;&gt;&gt; ai = {"is_ai_generated": True, "publish_ready": False,</span>
+<span class="sd">    ...       "pending": ["machine_readable_mark", "provenance_manifest"],</span>
+<span class="sd">    ...       "obligations": {"voice_disclosure": {"required": False}},</span>
+<span class="sd">    ...       "provenance": {"generator_model": "stable-audio-open-1.0"}}</span>
+<span class="sd">    &gt;&gt;&gt; ai_label(AssetSource(provider="stability-ai", foley_provenance={"ai_disclosure": ai}))</span>
+<span class="sd">    'AI-generated with stable-audio-open-1.0: disclosure recommended; not publish-ready, Art. 50 pending: machine_readable_mark, provenance_manifest'</span>
+<span class="sd">    &gt;&gt;&gt; ai_label(AssetSource(provider="fsd50k")) is None</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="n">ai</span> <span class="o">=</span> <span class="n">_foley_provenance</span><span class="p">(</span><span class="n">source</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">AI_DISCLOSURE_KEY</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ai</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">ai</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"is_ai_generated"</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="p">(</span><span class="n">ai</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"provenance"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"generator_model"</span><span class="p">)</span>
+    <span class="n">voice</span> <span class="o">=</span> <span class="p">(</span><span class="n">ai</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"obligations"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"voice_disclosure"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="n">duty</span> <span class="o">=</span> <span class="s2">"must be disclosed"</span> <span class="k">if</span> <span class="n">voice</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"required"</span><span class="p">)</span> <span class="k">else</span> <span class="s2">"disclosure recommended"</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"AI-generated</span><span class="si">{</span><span class="sa">f</span><span class="s1">' with </span><span class="si">{</span><span class="n">model</span><span class="si">}</span><span class="s1">'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">model</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">''</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">duty</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">if</span> <span class="n">ai</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"publish_ready"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">pending</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ai</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"pending"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">())</span> <span class="ow">or</span> <span class="s2">"see foley's checklist"</span>
+        <span class="n">label</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"; not publish-ready, Art. 50 pending: </span><span class="si">{</span><span class="n">pending</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">return</span> <span class="n">label</span></div>
+
+
+
+<div class="viewcode-block" id="notice_label">
+<a class="viewcode-back" href="../../_autosummary/an.sound_fetch.html#an.sound_fetch.notice_label">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">notice_label</span><span class="p">(</span><span class="n">source</span><span class="p">:</span> <span class="n">AssetSource</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The notice a source's licence requires shown verbatim, or ``None``.</span>
+
+<span class="sd">    &gt;&gt;&gt; notice_label(AssetSource(provider="p", foley_provenance={"notice_text_required": "(c) X"}))</span>
+<span class="sd">    '(c) X'</span>
+<span class="sd">    """</span>
+    <span class="n">notice</span> <span class="o">=</span> <span class="n">_foley_provenance</span><span class="p">(</span><span class="n">source</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">NOTICE_KEY</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">notice</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">notice</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">notice</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">else</span> <span class="kc">None</span></div>
 
 
 
@@ -956,8 +1305,25 @@ window.runMermaid = runMermaid;</script>
         <span class="n">minutes</span><span class="p">,</span> <span class="n">seconds</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="mi">60</span><span class="p">)</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">minutes</span><span class="p">)</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">seconds</span><span class="si">:</span><span class="s2">04.1f</span><span class="si">}</span><span class="s2">"</span>
 
-    <span class="n">where</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">url</span> <span class="ow">or</span> <span class="n">source</span><span class="o">.</span><span class="n">id</span> <span class="ow">or</span> <span class="n">source</span><span class="o">.</span><span class="n">provider</span>
+    <span class="n">where</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">source_page_url</span> <span class="ow">or</span> <span class="n">source</span><span class="o">.</span><span class="n">url</span> <span class="ow">or</span> <span class="n">source</span><span class="o">.</span><span class="n">id</span> <span class="ow">or</span> <span class="n">source</span><span class="o">.</span><span class="n">provider</span>
     <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">clock</span><span class="p">(</span><span class="n">cut</span><span class="p">[</span><span class="s1">'start'</span><span class="p">])</span><span class="si">}</span><span class="s2">–</span><span class="si">{</span><span class="n">clock</span><span class="p">(</span><span class="n">cut</span><span class="p">[</span><span class="s1">'end'</span><span class="p">])</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">where_label</span><span class="p">(</span><span class="n">source</span><span class="p">:</span> <span class="n">AssetSource</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Where a fetched asset came from, for its credit line: the cut</span>
+<span class="sd">    (:func:`cut_label`) when one was recorded, else ``"from &lt;page&gt;"`` for a</span>
+<span class="sd">    source with an address, so a whole fetched sound still names the page a</span>
+<span class="sd">    reader checks its terms on (an#729); ``None`` without one.</span>
+
+<span class="sd">    &gt;&gt;&gt; where_label(AssetSource(provider="web", url="https://example.org/a"))</span>
+<span class="sd">    'from https://example.org/a'</span>
+<span class="sd">    &gt;&gt;&gt; where_label(AssetSource(provider="me")) is None</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">cut</span> <span class="o">:=</span> <span class="n">cut_label</span><span class="p">(</span><span class="n">source</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">cut</span>
+    <span class="n">where</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">source_page_url</span> <span class="ow">or</span> <span class="n">source</span><span class="o">.</span><span class="n">url</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"from </span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">where</span> <span class="k">else</span> <span class="kc">None</span>
 </pre></div>
 
                 </article>

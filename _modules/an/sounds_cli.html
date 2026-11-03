@@ -737,16 +737,19 @@ window.runMermaid = runMermaid;</script>
     <span class="n">author</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
     <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Add a sound to the project from a URL (a YouTube page, any page yb reads), with its provenance.</span>
+<span class="w">    </span><span class="sd">"""Add a sound to the project from a URL (a YouTube page, any page yb reads) or a foley library (foley:&lt;sound_id&gt;), with its provenance.</span>
 
-<span class="sd">    The audio is fetched with yb (pip install yb yt-dlp), cut with ffmpeg and</span>
-<span class="sd">    stored as WAV; the source records the page, its id, title and channel, the</span>
-<span class="sd">    cut, and the licence you give — `an credits` lists it as "0:07.9–0:08.8 of &lt;url&gt;".</span>
+<span class="sd">    The audio is fetched with yb (pip install yb yt-dlp), or exported by foley</span>
+<span class="sd">    for a foley:&lt;sound_id&gt; ref, cut with ffmpeg and stored as WAV; the source</span>
+<span class="sd">    records the page, its id, title and channel, the cut, and the licence you</span>
+<span class="sd">    give — `an credits` lists it as "0:07.9–0:08.8 of &lt;url&gt;". A foley sound</span>
+<span class="sd">    carries its own rights (licence, credit, an AI disclosure), so --license may</span>
+<span class="sd">    be left out; one that disagrees is refused.</span>
 
 <span class="sd">    project_dir: the an project</span>
 <span class="sd">    key: the sound's key in the project's sounds store (what a cue names)</span>
-<span class="sd">    url: the page the sound is on</span>
-<span class="sd">    license: the licence code you vouch for (required; "unknown" records that nobody has said, and the sound is UNVERIFIED)</span>
+<span class="sd">    url: the page the sound is on, or foley:&lt;sound_id&gt;</span>
+<span class="sd">    license: the licence code you vouch for (required unless the source states its own, as a foley sound does; "unknown" records that nobody has said, and the sound is UNVERIFIED)</span>
 <span class="sd">    start: seconds into the media where the cut begins</span>
 <span class="sd">    duration: seconds kept (default: to the end)</span>
 <span class="sd">    fade_out: seconds of fade at the end of the cut</span>
@@ -754,27 +757,26 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    author: override the author the page reports (default: its channel)</span>
 <span class="sd">    description: what the sound is, for the store</span>
 <span class="sd">    """</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.sound_fetch</span><span class="w"> </span><span class="kn">import</span> <span class="n">add_sound_from_url</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.sound_fetch</span><span class="w"> </span><span class="kn">import</span> <span class="n">UNSTATED</span><span class="p">,</span> <span class="n">add_sound_from_url</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.sounds</span><span class="w"> </span><span class="kn">import</span> <span class="n">SoundError</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.stores</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_project_mall</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">license</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span>
-            <span class="s2">"an sounds add: --license is required (the code you vouch for; "</span>
-            <span class="s2">"'unknown' records that nobody has said, and the sound is UNVERIFIED)"</span>
-        <span class="p">)</span>
     <span class="n">mall</span> <span class="o">=</span> <span class="n">build_project_mall</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">asset</span> <span class="o">=</span> <span class="n">add_sound_from_url</span><span class="p">(</span>
-        <span class="n">mall</span><span class="p">[</span><span class="s2">"sounds"</span><span class="p">],</span>
-        <span class="n">key</span><span class="p">,</span>
-        <span class="n">url</span><span class="p">,</span>
-        <span class="n">license</span><span class="o">=</span><span class="n">license</span><span class="p">,</span>
-        <span class="n">start</span><span class="o">=</span><span class="n">start</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">duration</span><span class="o">=</span><span class="n">duration</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">fade_out</span><span class="o">=</span><span class="n">fade_out</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">provider</span><span class="o">=</span><span class="n">provider</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">author</span><span class="o">=</span><span class="n">author</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
-    <span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">asset</span> <span class="o">=</span> <span class="n">add_sound_from_url</span><span class="p">(</span>
+            <span class="n">mall</span><span class="p">[</span><span class="s2">"sounds"</span><span class="p">],</span>
+            <span class="n">key</span><span class="p">,</span>
+            <span class="n">url</span><span class="p">,</span>
+            <span class="n">license</span><span class="o">=</span><span class="n">license</span> <span class="ow">or</span> <span class="n">UNSTATED</span><span class="p">,</span>
+            <span class="n">start</span><span class="o">=</span><span class="n">start</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">duration</span><span class="o">=</span><span class="n">duration</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">fade_out</span><span class="o">=</span><span class="n">fade_out</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">provider</span><span class="o">=</span><span class="n">provider</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">author</span><span class="o">=</span><span class="n">author</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="n">SoundError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span><span class="sa">f</span><span class="s2">"an sounds add: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
     <span class="k">return</span> <span class="sa">f</span><span class="s2">"sounds/</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">asset</span><span class="o">.</span><span class="n">duration</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s from </span><span class="si">{</span><span class="n">asset</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">url</span><span class="si">}</span><span class="s2"> [</span><span class="si">{</span><span class="n">asset</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">license</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'unknown'</span><span class="si">}</span><span class="s2">]"</span></div>
 
 

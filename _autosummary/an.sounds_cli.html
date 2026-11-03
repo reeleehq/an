@@ -643,7 +643,7 @@ CLI by <code class="xref py py-data docutils literal notranslate"><span class="p
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.sounds_cli.add" title="an.sounds_cli.add"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add</span></code></a>(project_dir, key, url[, license, start, ...])</p></td>
-<td><p>Add a sound to the project from a URL (a YouTube page, any page yb reads), with its provenance.</p></td>
+<td><p>Add a sound to the project from a URL (a YouTube page, any page yb reads) or a foley library (foley:&lt;sound_id&gt;), with its provenance.</p></td>
 </tr>
 </tbody>
 </table>
@@ -651,14 +651,17 @@ CLI by <code class="xref py py-data docutils literal notranslate"><span class="p
 <dl class="py function">
 <dt class="sig sig-object py" id="an.sounds_cli.add">
 <span class="sig-prename descclassname"><span class="pre">an.sounds_cli.</span></span><span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">license</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fade_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">provider</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">author</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/sounds_cli.html#add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.sounds_cli.add" title="Link to this definition">#</a></dt>
-<dd><p>Add a sound to the project from a URL (a YouTube page, any page yb reads), with its provenance.</p>
-<p>The audio is fetched with yb (pip install yb yt-dlp), cut with ffmpeg and
-stored as WAV; the source records the page, its id, title and channel, the
-cut, and the licence you give — <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">credits</span></code> lists it as “0:07.9–0:08.8 of &lt;url&gt;”.</p>
+<dd><p>Add a sound to the project from a URL (a YouTube page, any page yb reads) or a foley library (foley:&lt;sound_id&gt;), with its provenance.</p>
+<p>The audio is fetched with yb (pip install yb yt-dlp), or exported by foley
+for a foley:&lt;sound_id&gt; ref, cut with ffmpeg and stored as WAV; the source
+records the page, its id, title and channel, the cut, and the licence you
+give — <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">credits</span></code> lists it as “0:07.9–0:08.8 of &lt;url&gt;”. A foley sound
+carries its own rights (licence, credit, an AI disclosure), so –license may
+be left out; one that disagrees is refused.</p>
 <p>project_dir: the an project
 key: the sound’s key in the project’s sounds store (what a cue names)
-url: the page the sound is on
-license: the licence code you vouch for (required; “unknown” records that nobody has said, and the sound is UNVERIFIED)
+url: the page the sound is on, or foley:&lt;sound_id&gt;
+license: the licence code you vouch for (required unless the source states its own, as a foley sound does; “unknown” records that nobody has said, and the sound is UNVERIFIED)
 start: seconds into the media where the cut begins
 duration: seconds kept (default: to the end)
 fade_out: seconds of fade at the end of the cut

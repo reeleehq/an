@@ -7,21 +7,24 @@ CLI by `an.tools._dispatch_namespaces`.
 
 ### Functions
 
-| [`add`](#an.sounds_cli.add)(project_dir, key, url[, license, start, ...])   | Add a sound to the project from a URL (a YouTube page, any page yb reads), with its provenance.   |
-|------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|
+| [`add`](#an.sounds_cli.add)(project_dir, key, url[, license, start, ...])   | Add a sound to the project from a URL (a YouTube page, any page yb reads) or a foley library (foley:<sound_id>), with its provenance.   |
+|------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
 
 ### an.sounds_cli.add(project_dir, key, url, license='', start=0.0, duration=0.0, fade_out=0.0, provider='', author='', description='')
 
-Add a sound to the project from a URL (a YouTube page, any page yb reads), with its provenance.
+Add a sound to the project from a URL (a YouTube page, any page yb reads) or a foley library (foley:<sound_id>), with its provenance.
 
-The audio is fetched with yb (pip install yb yt-dlp), cut with ffmpeg and
-stored as WAV; the source records the page, its id, title and channel, the
-cut, and the licence you give — `an credits` lists it as “0:07.9–0:08.8 of <url>”.
+The audio is fetched with yb (pip install yb yt-dlp), or exported by foley
+for a foley:<sound_id> ref, cut with ffmpeg and stored as WAV; the source
+records the page, its id, title and channel, the cut, and the licence you
+give — `an credits` lists it as “0:07.9–0:08.8 of <url>”. A foley sound
+carries its own rights (licence, credit, an AI disclosure), so –license may
+be left out; one that disagrees is refused.
 
 project_dir: the an project
 key: the sound’s key in the project’s sounds store (what a cue names)
-url: the page the sound is on
-license: the licence code you vouch for (required; “unknown” records that nobody has said, and the sound is UNVERIFIED)
+url: the page the sound is on, or foley:<sound_id>
+license: the licence code you vouch for (required unless the source states its own, as a foley sound does; “unknown” records that nobody has said, and the sound is UNVERIFIED)
 start: seconds into the media where the cut begins
 duration: seconds kept (default: to the end)
 fade_out: seconds of fade at the end of the cut

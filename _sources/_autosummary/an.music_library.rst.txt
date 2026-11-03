@@ -9,7 +9,6 @@ an.music\_library
    .. autosummary::
    
       DFLT_PAUSE_S
-      FOLEY_LICENSE_CODES
    
    .. rubric:: Functions
 

@@ -1,4 +1,4 @@
-> built 2026-11-03 13:48 UTC from a1d7062 (main) · an 0.1.368. Details: build_info.json
+> built 2026-11-03 13:52 UTC from 3b1e599 (main) · an 0.1.368. Details: build_info.json
 
 # index.html.md
 
@@ -8284,7 +8284,7 @@ because a timing-sensitive pool is one more thing to explain if the pixels
 ever do differ; `strict_assets=True` because a stand-in asset renders
 happily as a DIFFERENT picture (an#33).
 
-### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_boil': Fixture(path='misc/bench/corpus/path_boil', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.041666666666666664, 0.08333333333333333), golden_note="two boiling paths (an#443): the wobbled frame of \`path_wobble\` drawn three ways and a dashed, trimmed arrow drawn two ways, both stepping to their next drawing every 1/12 s. Nothing else moves, so the two goldens straddle a step: frame 1 is drawing 0 (the static wobble's bytes), frame 2 is drawing 1; a change to the variant seeds, the step clock or the runtime's draw set moves frame 2 only."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'path_shape': Fixture(path='misc/bench/corpus/path_shape', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='closed and filled paths (an#161): a badge drawn whole (fill under a mitred border joined at its first corner, no caps there), and a region as two entities, a border-less fill whose node \`alpha\` fades 0 -> 1 under a closed border that draws itself on (\`trim_end\` 0 -> 1). Frame 0 shows only the badge; a regression in the fill, the closing join, the fill staying untrimmed or a \`width: 0\` path drawing a stroke moves a golden.'), 'path_taper': Fixture(path='misc/bench/corpus/path_taper', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="variable-width paths (an#161), drawn as filled outlines: a wobbled brush stroke swelling from nothing to 1.2x and back to a point, and an arrow widening 0.2x -> 1x along a mitred polyline that draws itself on with its head on the tip. The width is anchored to the WHOLE path, so the arrow's base does not thin as it grows; a regression in the profile, the miter, the anchoring or the fill-instead-of-stroke rule moves a golden."), 'path_wobble': Fixture(path='misc/bench/corpus/path_wobble', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='two hand-drawn paths (an#161): a solid frame wobbling 3 px at a 60 px wavelength, and an arrow wobbling 4 px that draws itself on (\`trim_end\` 0 -> 1). The wobble is compile-time (seeded by the entity id, no trigonometry), so the frame is the same in both goldens and only the route grows; a change to the noise, the seed, the end envelope or the resampling moves both.'), 'rig_chain': Fixture(path='misc/bench/corpus/rig_chain', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a desk-lamp prop with \`nesting: bones\` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."), 'rig_interleave': Fixture(path='misc/bench/corpus/rig_interleave', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="the rig_chain desk lamp (\`nesting: bones\`, base -> upper arm -> forearm -> shade) with an UNRELATED panel ordered between the upper arm (1) and the forearm (3) (an#430): the panel covers the upper arm's top and the forearm crosses OVER the panel, which no sort of one container's items can give. Painted from the entity's global \`paint_order\`. The same three tweens as rig_chain move the arm between the goldens. A regression that painted the chain together (the panel over both arms, or under both) moves a golden."), 'rig_order': Fixture(path='misc/bench/corpus/rig_order', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a nested chain drawn BEHIND the part it hangs from (an#403): \`rig_chain\`'s desk lamp in \`nesting: bones\` with the whole arm (upper, forearm, shade: draw orders 1-3) behind its base (4). The base's container sorts its own drawing after the arm (\`sortableChildren\`, \`z_index\`), which the stage used to refuse. Between the goldens the arm swings as in \`rig_chain\`; where it passes over the base the base is in front. A regression in the runtime's sort, the compiler's \`z_index\` or the chain refusal moves a golden."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_boil': Fixture(path='misc/bench/corpus/path_boil', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.041666666666666664, 0.08333333333333333), golden_note="two boiling paths (an#443): the wobbled frame of \`path_wobble\` drawn three ways and a dashed, trimmed arrow drawn two ways, both stepping to their next drawing every 1/12 s. Nothing else moves, so the two goldens straddle a step: frame 1 is drawing 0 (the static wobble's bytes), frame 2 is drawing 1; a change to the variant seeds, the step clock or the runtime's draw set moves frame 2 only."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'path_shape': Fixture(path='misc/bench/corpus/path_shape', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='closed and filled paths (an#161): a badge drawn whole (fill under a mitred border joined at its first corner, no caps there), and a region as two entities, a border-less fill whose node \`alpha\` fades 0 -> 1 under a closed border that draws itself on (\`trim_end\` 0 -> 1). Frame 0 shows only the badge; a regression in the fill, the closing join, the fill staying untrimmed or a \`width: 0\` path drawing a stroke moves a golden.'), 'path_taper': Fixture(path='misc/bench/corpus/path_taper', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="variable-width paths (an#161), drawn as filled outlines: a wobbled brush stroke swelling from nothing to 1.2x and back to a point, and an arrow widening 0.2x -> 1x along a mitred polyline that draws itself on with its head on the tip. The width is anchored to the WHOLE path, so the arrow's base does not thin as it grows; a regression in the profile, the miter, the anchoring or the fill-instead-of-stroke rule moves a golden."), 'path_wobble': Fixture(path='misc/bench/corpus/path_wobble', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='two hand-drawn paths (an#161): a solid frame wobbling 3 px at a 60 px wavelength, and an arrow wobbling 4 px that draws itself on (\`trim_end\` 0 -> 1). The wobble is compile-time (seeded by the entity id, no trigonometry), so the frame is the same in both goldens and only the route grows; a change to the noise, the seed, the end envelope or the resampling moves both.'), 'rig_chain': Fixture(path='misc/bench/corpus/rig_chain', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a desk-lamp prop with \`nesting: bones\` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."), 'rig_interleave': Fixture(path='misc/bench/corpus/rig_interleave', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="the rig_chain desk lamp (\`nesting: bones\`, base -> upper arm -> forearm -> shade) with an UNRELATED panel ordered between the upper arm (1) and the forearm (3) (an#430): the panel covers the upper arm's top and the forearm crosses OVER the panel, which no sort of one container's items can give. Painted from the entity's global \`paint_order\`. The same three tweens as rig_chain move the arm between the goldens. A regression that painted the chain together (the panel over both arms, or under both) moves a golden."), 'rig_order': Fixture(path='misc/bench/corpus/rig_order', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a nested chain drawn BEHIND the part it hangs from (an#403): \`rig_chain\`'s desk lamp in \`nesting: bones\` with the whole arm (upper, forearm, shade: draw orders 1-3) behind its base (4). The base's container sorts its own drawing after the arm (\`sortableChildren\`, \`z_index\`), which the stage used to refuse. Between the goldens the arm swings as in \`rig_chain\`; where it passes over the base the base is in front. A regression in the runtime's sort, the compiler's \`z_index\` or the chain refusal moves a golden."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'rect', 'path'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
 The core corpus (see the module docstring).
 
@@ -8503,7 +8503,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_boil': Fixture(path='misc/bench/corpus/path_boil', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.041666666666666664, 0.08333333333333333), golden_note="two boiling paths (an#443): the wobbled frame of \`path_wobble\` drawn three ways and a dashed, trimmed arrow drawn two ways, both stepping to their next drawing every 1/12 s. Nothing else moves, so the two goldens straddle a step: frame 1 is drawing 0 (the static wobble's bytes), frame 2 is drawing 1; a change to the variant seeds, the step clock or the runtime's draw set moves frame 2 only."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'path_shape': Fixture(path='misc/bench/corpus/path_shape', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='closed and filled paths (an#161): a badge drawn whole (fill under a mitred border joined at its first corner, no caps there), and a region as two entities, a border-less fill whose node \`alpha\` fades 0 -> 1 under a closed border that draws itself on (\`trim_end\` 0 -> 1). Frame 0 shows only the badge; a regression in the fill, the closing join, the fill staying untrimmed or a \`width: 0\` path drawing a stroke moves a golden.'), 'path_taper': Fixture(path='misc/bench/corpus/path_taper', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="variable-width paths (an#161), drawn as filled outlines: a wobbled brush stroke swelling from nothing to 1.2x and back to a point, and an arrow widening 0.2x -> 1x along a mitred polyline that draws itself on with its head on the tip. The width is anchored to the WHOLE path, so the arrow's base does not thin as it grows; a regression in the profile, the miter, the anchoring or the fill-instead-of-stroke rule moves a golden."), 'path_wobble': Fixture(path='misc/bench/corpus/path_wobble', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='two hand-drawn paths (an#161): a solid frame wobbling 3 px at a 60 px wavelength, and an arrow wobbling 4 px that draws itself on (\`trim_end\` 0 -> 1). The wobble is compile-time (seeded by the entity id, no trigonometry), so the frame is the same in both goldens and only the route grows; a change to the noise, the seed, the end envelope or the resampling moves both.'), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'rig_chain': Fixture(path='misc/bench/corpus/rig_chain', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a desk-lamp prop with \`nesting: bones\` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."), 'rig_interleave': Fixture(path='misc/bench/corpus/rig_interleave', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="the rig_chain desk lamp (\`nesting: bones\`, base -> upper arm -> forearm -> shade) with an UNRELATED panel ordered between the upper arm (1) and the forearm (3) (an#430): the panel covers the upper arm's top and the forearm crosses OVER the panel, which no sort of one container's items can give. Painted from the entity's global \`paint_order\`. The same three tweens as rig_chain move the arm between the goldens. A regression that painted the chain together (the panel over both arms, or under both) moves a golden."), 'rig_order': Fixture(path='misc/bench/corpus/rig_order', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a nested chain drawn BEHIND the part it hangs from (an#403): \`rig_chain\`'s desk lamp in \`nesting: bones\` with the whole arm (upper, forearm, shade: draw orders 1-3) behind its base (4). The base's container sorts its own drawing after the arm (\`sortableChildren\`, \`z_index\`), which the stage used to refuse. Between the goldens the arm swings as in \`rig_chain\`; where it passes over the base the base is in front. A regression in the runtime's sort, the compiler's \`z_index\` or the chain refusal moves a golden."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_boil': Fixture(path='misc/bench/corpus/path_boil', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.041666666666666664, 0.08333333333333333), golden_note="two boiling paths (an#443): the wobbled frame of \`path_wobble\` drawn three ways and a dashed, trimmed arrow drawn two ways, both stepping to their next drawing every 1/12 s. Nothing else moves, so the two goldens straddle a step: frame 1 is drawing 0 (the static wobble's bytes), frame 2 is drawing 1; a change to the variant seeds, the step clock or the runtime's draw set moves frame 2 only."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'path_shape': Fixture(path='misc/bench/corpus/path_shape', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='closed and filled paths (an#161): a badge drawn whole (fill under a mitred border joined at its first corner, no caps there), and a region as two entities, a border-less fill whose node \`alpha\` fades 0 -> 1 under a closed border that draws itself on (\`trim_end\` 0 -> 1). Frame 0 shows only the badge; a regression in the fill, the closing join, the fill staying untrimmed or a \`width: 0\` path drawing a stroke moves a golden.'), 'path_taper': Fixture(path='misc/bench/corpus/path_taper', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="variable-width paths (an#161), drawn as filled outlines: a wobbled brush stroke swelling from nothing to 1.2x and back to a point, and an arrow widening 0.2x -> 1x along a mitred polyline that draws itself on with its head on the tip. The width is anchored to the WHOLE path, so the arrow's base does not thin as it grows; a regression in the profile, the miter, the anchoring or the fill-instead-of-stroke rule moves a golden."), 'path_wobble': Fixture(path='misc/bench/corpus/path_wobble', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='two hand-drawn paths (an#161): a solid frame wobbling 3 px at a 60 px wavelength, and an arrow wobbling 4 px that draws itself on (\`trim_end\` 0 -> 1). The wobble is compile-time (seeded by the entity id, no trigonometry), so the frame is the same in both goldens and only the route grows; a change to the noise, the seed, the end envelope or the resampling moves both.'), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'rig_chain': Fixture(path='misc/bench/corpus/rig_chain', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a desk-lamp prop with \`nesting: bones\` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."), 'rig_interleave': Fixture(path='misc/bench/corpus/rig_interleave', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="the rig_chain desk lamp (\`nesting: bones\`, base -> upper arm -> forearm -> shade) with an UNRELATED panel ordered between the upper arm (1) and the forearm (3) (an#430): the panel covers the upper arm's top and the forearm crosses OVER the panel, which no sort of one container's items can give. Painted from the entity's global \`paint_order\`. The same three tweens as rig_chain move the arm between the goldens. A regression that painted the chain together (the panel over both arms, or under both) moves a golden."), 'rig_order': Fixture(path='misc/bench/corpus/rig_order', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a nested chain drawn BEHIND the part it hangs from (an#403): \`rig_chain\`'s desk lamp in \`nesting: bones\` with the whole arm (upper, forearm, shade: draw orders 1-3) behind its base (4). The base's container sorts its own drawing after the arm (\`sortableChildren\`, \`z_index\`), which the stage used to refuse. Between the goldens the arm swings as in \`rig_chain\`; where it passes over the base the base is in front. A regression in the runtime's sort, the compiler's \`z_index\` or the chain refusal moves a golden."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'rect', 'path'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
 The cut-out scenes of the original corpus moved to `cutan` (`cutan.bench.CUTOUT_FIXTURES`, an#225); this
 is the core’s: `prop_swap` and the core corpus (`an.bench.core_corpus`).
@@ -15111,6 +15111,11 @@ parts carved out of several clips credits each clip, part by part.
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Everything a project owes, split by whether we actually know.
+
+#### *property* ai_generated *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[CreditEntry, [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]*
+
+`(entry, label)` for every entry that records an AI disclosure (a
+foley export, an#729): what its disclosure says ([`an.sound_fetch.ai_label()`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.ai_label)).
 
 #### *property* commercial *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
 
@@ -32436,8 +32441,9 @@ What stays here is what is an’s:
   `AcquiredTrack`, or its `.row()` read
   > back from a tracks table) as an [`an.ir.assets.AssetSource`](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource), the
   > provenance a sound in the project’s store carries. foley’s licence ids become
-  > an’s codes ([`license_code()`](_autosummary/an.music_library.html.md#an.music_library.license_code): `CC-BY-4.0` is `cc-by-4.0`; foley’s
-  > `unknown`, a paid library’s, is `None`, which an reads as UNKNOWN); the
+  > an’s codes ([`license_code()`](_autosummary/an.music_library.html.md#an.music_library.license_code), foley’s own mapping,
+  > `foley.licensing.consumer_license_code`: `CC-BY-4.0` is `cc-by-4.0`;
+  > foley’s `unknown`, a paid library’s, is `None`, which an reads as UNKNOWN); the
   > library’s own address is `source_page_url`; `rights_verified`, the mirror
   > and a titles file’s metadata ride as extras.
 - [`acquire()`](_autosummary/an.music_library.html.md#an.music_library.acquire), foley’s with an’s `pause` knob (seconds before a second
@@ -32466,21 +32472,20 @@ tracks-table reader [`read_tracks_table()`](_autosummary/an.music_library.html.m
 
 ### Module Attributes
 
-| [`DFLT_PAUSE_S`](_autosummary/an.music_library.html.md#an.music_library.DFLT_PAUSE_S)        | a library is someone's website).                                     |
-|----------------------------------------------------------------------|----------------------------------------------------------------------|
-| [`FOLEY_LICENSE_CODES`](_autosummary/an.music_library.html.md#an.music_library.FOLEY_LICENSE_CODES) | `unknown` (a paid library claims no rights) is `None`, an's UNKNOWN. |
+| [`DFLT_PAUSE_S`](_autosummary/an.music_library.html.md#an.music_library.DFLT_PAUSE_S)   | a library is someone's website).   |
+|-----------------------------------------------------------------|------------------------------------|
 
 ### Functions
 
 | [`acquire`](_autosummary/an.music_library.html.md#an.music_library.acquire)(library, titles, \*, out[, pause, config])   | foley's `acquire()`, paced by `pause`.                                                                                                                                                                                                                                            |
 |-------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`add_track_to_sounds`](_autosummary/an.music_library.html.md#an.music_library.add_track_to_sounds)(store, key, track, files, \*)    | Put one acquired track in the sounds `store` under `key` (an#623).                                                                                                                                                                                                                |
-| [`asset_source`](_autosummary/an.music_library.html.md#an.music_library.asset_source)(track, \*[, codes])                     | One foley row as an's [`AssetSource`](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource).                                                                                                                                                                      |
+| [`asset_source`](_autosummary/an.music_library.html.md#an.music_library.asset_source)(track)                                  | One foley row as an's [`AssetSource`](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource).                                                                                                                                                                      |
 | [`attribution_text`](_autosummary/an.music_library.html.md#an.music_library.attribution_text)(rows)                               | The attribution blocks to paste under a video, one per track that has one (acquired or kept), blank-line separated, each once.                                                                                                                                                    |
 | [`files_store`](_autosummary/an.music_library.html.md#an.music_library.files_store)(out)                                     | `out` as a `{file name: bytes}` store: a mapping is used as it is; a folder becomes foley's file store over it (`foley.stores.make_byte_store()`, which makes the folder on its first write).                                                                                     |
 | [`kept_digests`](_autosummary/an.music_library.html.md#an.music_library.kept_digests)(table)                                  | `{file: sha256}` of the acquired or kept rows of a tracks table: what a rerun may keep.                                                                                                                                                                                           |
 | [`kept_sources`](_autosummary/an.music_library.html.md#an.music_library.kept_sources)(table)                                  | `{file: {"sha256", "url", "mirror"}}` of the acquired or kept rows of a tracks table: [`kept_digests()`](_autosummary/an.music_library.html.md#an.music_library.kept_digests) with where each file came from, so a kept row still says which URL and mirror served it (`acquire(kept=...)` takes either). |
-| [`license_code`](_autosummary/an.music_library.html.md#an.music_library.license_code)(license_id, \*[, codes])                | foley's licence id as an's code: `codes` first, else the id in lowercase.                                                                                                                                                                                                         |
+| [`license_code`](_autosummary/an.music_library.html.md#an.music_library.license_code)(license_id)                             | foley's licence id as an's code: foley's `consumer_license_code`, the one mapping (an#729), imported on first use.                                                                                                                                                                |
 | [`probe_verify`](_autosummary/an.music_library.html.md#an.music_library.probe_verify)(data, \*[, probe, has_audio, suffix])   | The duration of the audio `data`, in seconds.                                                                                                                                                                                                                                     |
 | [`read_tracks_table`](_autosummary/an.music_library.html.md#an.music_library.read_tracks_table)(text)                              | The rows of a tracks table ([`tracks_table()`](_autosummary/an.music_library.html.md#an.music_library.tracks_table)'s CSV text), as written; a byte-order mark an editor added (Excel does) is not part of the first column.                                                                              |
 | [`register_music_library`](_autosummary/an.music_library.html.md#an.music_library.register_music_library)(library, \*[, replace])       | Add `library` to `MUSIC_LIBRARIES` (`replace` to redefine one).                                                                                                                                                                                                                   |
@@ -32576,14 +32581,6 @@ Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWa
 A tracks-table row named columns that set nothing, and [`AcquiredTrack.from_row()`](_autosummary/an.music_library.html.md#an.music_library.AcquiredTrack.from_row)
 dropped them.
 
-### an.music_library.FOLEY_LICENSE_CODES *: [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)]* *= {'unknown': None}*
-
-`unknown` (a paid
-library claims no rights) is `None`, an’s UNKNOWN.
-
-* **Type:**
-  foley licence ids whose an code is not the id in lowercase
-
 ### *class* an.music_library.MusicLibrary(name, author, license_url=None, track_url=None, attribution='"{title}" {author}', author_url=None, aliases=(), file_name=<function safe_file_name>)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
@@ -32658,7 +32655,7 @@ other keyword (`fetch`, `mirrors`, `verify`, `kept`, `intended_use`,
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`AcquiredTrack`](_autosummary/an.music_library.html.md#an.music_library.AcquiredTrack)]
 
-### an.music_library.add_track_to_sounds(store, key, track, files, , start=None, duration=None, fade_out=None, description='', codes={'unknown': None})
+### an.music_library.add_track_to_sounds(store, key, track, files, , start=None, duration=None, fade_out=None, description='')
 
 Put one acquired track in the sounds `store` under `key` (an#623).
 
@@ -32669,7 +32666,7 @@ folder as `{file name: bytes}` (`files_store(out)`). The file it names
 is checked against its `sha256`, cut with [`an.sound_fetch.cut_to_wav()`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.cut_to_wav)
 (`start`, `duration`, `fade_out`, as `an sounds add` takes them) and
 stored with the track as its [`AssetSource`](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource)
-([`asset_source()`](_autosummary/an.music_library.html.md#an.music_library.asset_source), `codes`) plus the cut, the file’s digest as
+([`asset_source()`](_autosummary/an.music_library.html.md#an.music_library.asset_source)) plus the cut, the file’s digest as
 `file_sha256`, so `an credits` lists the music with its licence. Nothing
 is fetched again: the site may be the one that refused scripts.
 
@@ -32680,7 +32677,7 @@ is fetched again: the site may be the one that refused scripts.
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
-### an.music_library.asset_source(track, , codes={'unknown': None})
+### an.music_library.asset_source(track)
 
 One foley row as an’s [`AssetSource`](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource).
 
@@ -32750,9 +32747,10 @@ still says which URL and mirror served it (`acquire(kept=...)` takes either).
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
 
-### an.music_library.license_code(license_id, , codes={'unknown': None})
+### an.music_library.license_code(license_id)
 
-foley’s licence id as an’s code: `codes` first, else the id in lowercase.
+foley’s licence id as an’s code: foley’s `consumer_license_code`, the
+one mapping (an#729), imported on first use.
 
 ```pycon
 >>> license_code("CC0-1.0"), license_code("unknown"), license_code(None)
@@ -35208,7 +35206,17 @@ by hand, [`an.sounds.add_sound()`](_autosummary/an.sounds.html.md#an.sounds.add_
   16-bit WAV, and recorded with the source, so `an credits` says which part
   of which page it is (“0:07.9–0:08.8 of <url>”);
 - the licence is the caller’s statement, never guessed: required, and
-  `"unknown"` says so explicitly (the sound is then UNVERIFIED).
+  `"unknown"` says so explicitly (the sound is then UNVERIFIED) – unless the
+  source states its own rights ([`Fetched.source`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.Fetched.source)). A sound from a foley
+  library does (an#729): [`foley_fetcher()`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.foley_fetcher) reads `foley:<sound_id>` through
+  `foley.export_sound`, whose rights become the sound’s
+  [`AssetSource`](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource) ([`foley_asset_source()`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.foley_asset_source), with foley’s
+  > whole provenance as `foley_provenance`), so the licence may be omitted, and
+  > a caller’s licence that disagrees is refused. A fetcher says which refs it
+  > states rights for ([`fetcher_states_rights()`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.fetcher_states_rights)), so a licence missing for
+  > any other is refused before anything is downloaded. The default fetcher
+  > ([`default_fetcher()`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.default_fetcher)) sends a `foley:` ref to foley and anything else to
+  > `yb`, so `an sounds add <project> door foley:fsd-222` works.
 
 ```pycon
 >>> fetched = Fetched(audio=b"...", url="https://example.org/a", id="a", author="Ann")
@@ -35218,53 +35226,125 @@ by hand, [`an.sounds.add_sound()`](_autosummary/an.sounds.html.md#an.sounds.add_
 
 ### Module Attributes
 
-| [`Fetcher`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.Fetcher)   | how [`add_sound_from_url()`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.add_sound_from_url) gets the media.   |
-|------------------------------------------------------------|---------------------------------------------------------------------------------------------|
+| [`UNSTATED`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.UNSTATED)   | the caller states no licence, which only a source that states its own rights ([`Fetched.source`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.Fetched.source)) may do.   |
+|-------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`Fetcher`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.Fetcher)    | how [`add_sound_from_url()`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.add_sound_from_url) gets the media.                                                                |
 
 ### Functions
 
-| [`add_sound_from_url`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.add_sound_from_url)(store, key, url, \*, license)   | Fetch `url`, cut it, and put it in the sounds `store` under `key` with its provenance.   |
-|-----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
-| [`cut_to_wav`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.cut_to_wav)(audio, \*[, start, duration, fade_out]) | `audio` (any container ffmpeg reads) cut to `[start, start + duration]`, as 16-bit WAV.  |
-| [`yb_fetcher`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.yb_fetcher)(url)                                    | Fetch the audio of `url` with `yb` (any site its `yt-dlp` reads).                        |
+| [`add_sound_from_url`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.add_sound_from_url)(store, key, url, \*[, ...])     | Fetch `url`, cut it, and put it in the sounds `store` under `key` with its provenance.                                                                                                                                                       |
+|-----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`ai_label`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.ai_label)(source)                                   | What an AI-generated source's disclosure says, or `None` for any other.                                                                                                                                                                      |
+| [`cut_to_wav`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.cut_to_wav)(audio, \*[, start, duration, fade_out]) | `audio` (any container ffmpeg reads) cut to `[start, start + duration]`, as 16-bit WAV.                                                                                                                                                      |
+| [`default_fetcher`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.default_fetcher)(url)                               | The default `fetcher=`: [`foley_fetcher()`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.foley_fetcher) for a `foley:` ref, else [`yb_fetcher()`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.yb_fetcher).                                                             |
+| [`fetcher_states_rights`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.fetcher_states_rights)(fetcher, url)                | Whether `fetcher` declares that its source states the rights of `url`.                                                                                                                                                                       |
+| [`file_digest_fields`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.file_digest_fields)(fields)                         | `fields` with `sha256` (the fetched or library file's) moved to `FILE_SHA256_FIELD`: a stored sound is the cut WAV, whose digest is the [`SoundAsset`](_autosummary/an.sounds.html.md#an.sounds.SoundAsset)'s (an#623, an#729). |
+| [`foley_asset_source`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.foley_asset_source)(rights, provenance, \*[, url])  | foley's `(rights, provenance)` (`foley.export_sound`) as an `AssetSource`.                                                                                                                                                                   |
+| [`foley_fetcher`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.foley_fetcher)(ref, \*[, export])                   | Fetch `foley:<sound_id>` from a foley library, with the rights foley records.                                                                                                                                                                |
+| [`notice_label`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.notice_label)(source)                               | The notice a source's licence requires shown verbatim, or `None`.                                                                                                                                                                            |
+| [`yb_fetcher`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.yb_fetcher)(url)                                    | Fetch the audio of `url` with `yb` (any site its `yt-dlp` reads).                                                                                                                                                                            |
 
 ### Classes
 
-| [`Fetched`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.Fetched)(audio, url[, id, title, author, ...])   | What a fetcher returns: the media's bytes, and what its page says about it.   |
-|--------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| [`Fetched`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.Fetched)(audio, url[, id, title, author, ...])   | What a fetcher returns: the media's bytes, and what its page says about it.                 |
+|--------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
+| [`Unstated`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.Unstated)(\*values)                              | The type of [`UNSTATED`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.UNSTATED), `license=` left out. |
 
-### *class* an.sound_fetch.Fetched(audio, url, id=None, title=None, author=None, provider='web')
+### *class* an.sound_fetch.Fetched(audio, url, id=None, title=None, author=None, provider='web', source=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 What a fetcher returns: the media’s bytes, and what its page says about it.
 
+When `source` is set it is the sound’s whole provenance (the rights the
+source states), and `id`, `title`, `author` and `provider` are not
+read; otherwise they are, with the caller’s licence.
+
 #### provider *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'web'*
 
 Where it came from, as an `AssetSource.provider` (`youtube`, …).
 
+#### source *: [AssetSource](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource) | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+The rights the source itself states (a foley library’s export), or
+`None`: then the licence is the caller’s statement.
+
 ### an.sound_fetch.Fetcher
 
-how [`add_sound_from_url()`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.add_sound_from_url) gets the media.
+how [`add_sound_from_url()`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.add_sound_from_url) gets the media. A
+fetcher whose source states its own rights for some refs says which with a
+`states_rights(url) -> bool` attribute ([`fetcher_states_rights()`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.fetcher_states_rights)).
 
 * **Type:**
   `(url) -> Fetched`
 
 alias of [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Fetched`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.Fetched)]
 
-### an.sound_fetch.add_sound_from_url(store, key, url, , license, fetcher=None, start=None, duration=None, fade_out=None, provider=None, author=None, description='')
+### an.sound_fetch.UNSTATED *= Unstated.UNSTATED*
+
+the caller states no licence, which only a source that
+states its own rights ([`Fetched.source`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.Fetched.source)) may do.
+
+* **Type:**
+  `license=` left out
+
+### *class* an.sound_fetch.Unstated(\*values)
+
+Bases: [`Enum`](https://docs.python.org/3/library/enum.html#enum.Enum)
+
+The type of [`UNSTATED`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.UNSTATED), `license=` left out.
+
+### an.sound_fetch.add_sound_from_url(store, key, url, , license=Unstated.UNSTATED, fetcher=None, start=None, duration=None, fade_out=None, provider=None, author=None, description='')
 
 Fetch `url`, cut it, and put it in the sounds `store` under `key` with its provenance.
 
-license: the licence code the caller vouches for — required, never
-: guessed; `"unknown"` (or `None`) records that nobody has said
+license: the licence code the caller vouches for, never guessed;
+: `"unknown"` (or `None`) records that nobody has said. Required
+  unless the source states its own rights ([`Fetched.source`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.Fetched.source), a
+  `foley:` sound), which are then recorded; a licence given with them
+  must agree
 
-fetcher: `(url) -> Fetched` (default [`yb_fetcher()`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.yb_fetcher))
+fetcher: `(url) -> Fetched` (default [`default_fetcher()`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.default_fetcher): a
+: `foley:<sound_id>` ref from foley, anything else with `yb`)
+
 start, duration, fade_out: the cut, in seconds of the fetched media
-provider, author: override what the fetcher reported
+provider, author: override what the fetcher reported (never on a source
 
+> that states its rights)
+
+No cut is recorded when the whole media is kept (no `start`,
+`duration` or `fade_out`).
+
+* **Raises:**
+  [**SoundError**](_autosummary/an.sounds.html.md#an.sounds.SoundError) – For no licence for a ref the fetcher states no rights for
+      (before anything is fetched: [`fetcher_states_rights()`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.fetcher_states_rights)), or from
+      a source that turned out to state none; a caller’s licence that
+      contradicts the source’s, or a provider or author set over it; and
+      whatever the fetch, the cut or the store refuse.
 * **Return type:**
   [`SoundAsset`](_autosummary/an.sounds.html.md#an.sounds.SoundAsset)
+
+### an.sound_fetch.ai_label(source)
+
+What an AI-generated source’s disclosure says, or `None` for any other.
+
+The model; whether the disclosure is a duty (a recognizable voice: “must be
+disclosed”) or a recommendation; and, when foley’s EU AI Act Art. 50
+checklist is not `publish_ready`, the obligations still pending.
+
+```pycon
+>>> ai = {"is_ai_generated": True, "publish_ready": False,
+...       "pending": ["machine_readable_mark", "provenance_manifest"],
+...       "obligations": {"voice_disclosure": {"required": False}},
+...       "provenance": {"generator_model": "stable-audio-open-1.0"}}
+>>> ai_label(AssetSource(provider="stability-ai", foley_provenance={"ai_disclosure": ai}))
+'AI-generated with stable-audio-open-1.0: disclosure recommended; not publish-ready, Art. 50 pending: machine_readable_mark, provenance_manifest'
+>>> ai_label(AssetSource(provider="fsd50k")) is None
+True
+```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.sound_fetch.cut_to_wav(audio, , start=None, duration=None, fade_out=None)
 
@@ -35274,6 +35354,104 @@ provider, author: override what the fetcher reported
 
 * **Return type:**
   [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+
+### an.sound_fetch.default_fetcher(url)
+
+The default `fetcher=`: [`foley_fetcher()`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.foley_fetcher) for a `foley:` ref, else [`yb_fetcher()`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.yb_fetcher).
+
+* **Return type:**
+  [`Fetched`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.Fetched)
+
+### an.sound_fetch.fetcher_states_rights(fetcher, url)
+
+Whether `fetcher` declares that its source states the rights of `url`.
+
+Read from its `states_rights(url)` attribute (a `functools.partial` of a
+fetcher keeps the declaration); a fetcher without one states none.
+
+```pycon
+>>> fetcher_states_rights(default_fetcher, "foley:fsd-222")
+True
+>>> fetcher_states_rights(default_fetcher, "https://youtu.be/x"), fetcher_states_rights(print, "x")
+(False, False)
+```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+### an.sound_fetch.file_digest_fields(fields)
+
+`fields` with `sha256` (the fetched or library file’s) moved to
+`FILE_SHA256_FIELD`: a stored sound is the cut WAV, whose digest is the
+[`SoundAsset`](_autosummary/an.sounds.html.md#an.sounds.SoundAsset)’s (an#623, an#729).
+
+```pycon
+>>> file_digest_fields({"provider": "p", "sha256": "ab"})
+{'provider': 'p', 'file_sha256': 'ab'}
+```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.sound_fetch.foley_asset_source(rights, provenance, , url=None)
+
+foley’s `(rights, provenance)` (`foley.export_sound`) as an `AssetSource`.
+
+`rights` is keyed by the source’s own field names (foley pins them to
+`lacing.Rights`, an’s `AssetSource`); its `title` rides as an extra.
+`sha256` is the exported bytes’ digest, and the whole `provenance`
+(JSON-safe) rides as `FOLEY_PROVENANCE_FIELD`. `url` is where the
+bytes came from (`foley:<sound_id>`).
+
+```pycon
+>>> src = foley_asset_source(
+...     {"provider": "fsd50k", "id": "222", "title": "Door creak", "license": "cc-by-4.0",
+...      "attribution": "Door creak by amy", "author": None},
+...     {"sha256": "ab", "archived_sha256": "cd", "ai_disclosure": None}, url="foley:fsd-222")
+>>> src.provider, src.license, src.url, src.author, src.sha256
+('fsd50k', 'cc-by-4.0', 'foley:fsd-222', None, 'ab')
+>>> src.model_extra["title"], src.model_extra["foley_provenance"]["archived_sha256"]
+('Door creak', 'cd')
+```
+
+* **Return type:**
+  [`AssetSource`](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource)
+
+### an.sound_fetch.foley_fetcher(ref, , export=None)
+
+Fetch `foley:<sound_id>` from a foley library, with the rights foley records.
+
+export: `(sound_id) -> (bytes, rights, provenance)`, default
+: `foley.export_sound` (its default library; bind another with
+  `functools.partial(foley.export_sound, library=...)`). foley is
+  imported on first use: `import an` never imports it.
+
+The bytes are checked against the digest foley’s provenance names, and the
+rights become [`Fetched.source`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.Fetched.source) ([`foley_asset_source()`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.foley_asset_source)), the
+sound’s only rights. It states rights for every `foley:` ref
+(`foley_fetcher.states_rights`).
+
+* **Raises:**
+  [**SoundError**](_autosummary/an.sounds.html.md#an.sounds.SoundError) – For a ref that is not `foley:<sound_id>`, foley not
+      installed, a sound foley does not hold or will not export (its
+      terms forbid keeping the bytes: a Freesound API pull is stored by
+      reference; its bytes changed since ingest; a failed re-encode),
+      naming the ref and foley’s reason, or bytes that do not match the
+      digest foley names.
+* **Return type:**
+  [`Fetched`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.Fetched)
+
+### an.sound_fetch.notice_label(source)
+
+The notice a source’s licence requires shown verbatim, or `None`.
+
+```pycon
+>>> notice_label(AssetSource(provider="p", foley_provenance={"notice_text_required": "(c) X"}))
+'(c) X'
+```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.sound_fetch.yb_fetcher(url)
 
@@ -35491,21 +35669,24 @@ CLI by `an.tools._dispatch_namespaces`.
 
 ### Functions
 
-| [`add`](_autosummary/an.sounds_cli.html.md#an.sounds_cli.add)(project_dir, key, url[, license, start, ...])   | Add a sound to the project from a URL (a YouTube page, any page yb reads), with its provenance.   |
-|------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|
+| [`add`](_autosummary/an.sounds_cli.html.md#an.sounds_cli.add)(project_dir, key, url[, license, start, ...])   | Add a sound to the project from a URL (a YouTube page, any page yb reads) or a foley library (foley:<sound_id>), with its provenance.   |
+|------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
 
 ### an.sounds_cli.add(project_dir, key, url, license='', start=0.0, duration=0.0, fade_out=0.0, provider='', author='', description='')
 
-Add a sound to the project from a URL (a YouTube page, any page yb reads), with its provenance.
+Add a sound to the project from a URL (a YouTube page, any page yb reads) or a foley library (foley:<sound_id>), with its provenance.
 
-The audio is fetched with yb (pip install yb yt-dlp), cut with ffmpeg and
-stored as WAV; the source records the page, its id, title and channel, the
-cut, and the licence you give — `an credits` lists it as “0:07.9–0:08.8 of <url>”.
+The audio is fetched with yb (pip install yb yt-dlp), or exported by foley
+for a foley:<sound_id> ref, cut with ffmpeg and stored as WAV; the source
+records the page, its id, title and channel, the cut, and the licence you
+give — `an credits` lists it as “0:07.9–0:08.8 of <url>”. A foley sound
+carries its own rights (licence, credit, an AI disclosure), so –license may
+be left out; one that disagrees is refused.
 
 project_dir: the an project
 key: the sound’s key in the project’s sounds store (what a cue names)
-url: the page the sound is on
-license: the licence code you vouch for (required; “unknown” records that nobody has said, and the sound is UNVERIFIED)
+url: the page the sound is on, or foley:<sound_id>
+license: the licence code you vouch for (required unless the source states its own, as a foley sound does; “unknown” records that nobody has said, and the sound is UNVERIFIED)
 start: seconds into the media where the cut begins
 duration: seconds kept (default: to the end)
 fade_out: seconds of fade at the end of the cut
@@ -49087,7 +49268,7 @@ scene: the scene file to read, inside the project (default scene.md; for example
 
 # About this build
 
-This documentation was built on **2026-11-03 13:48 UTC** from commit <a href="https://github.com/reeleehq/an/commit/a1d706224a43d73e8a780dbe31ef0335ff1d0593"><code>a1d7062</code></a> on branch <code>main</code>, for **an 0.1.368** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-03 13:52 UTC** from commit <a href="https://github.com/reeleehq/an/commit/3b1e5999327b879658a441b68fd455149af4d4c2"><code>3b1e599</code></a> on branch <code>main</code>, for **an 0.1.368** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -49096,7 +49277,7 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                    |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/an/commit/a1d706224a43d73e8a780dbe31ef0335ff1d0593"><code>a1d706224a43d73e8a780dbe31ef0335ff1d0593</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/an/commit/3b1e5999327b879658a441b68fd455149af4d4c2"><code>3b1e5999327b879658a441b68fd455149af4d4c2</code></a> |
 | Branch              | <code>main</code>                                                                                                                                  |
 | Tags at this commit | none                                                                                                                                               |
 | Working tree        | clean                                                                                                                                              |
@@ -49107,9 +49288,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/an</code>                                                                   |
-| Run          | <a href="https://github.com/reeleehq/an/actions/runs/41642588059">41642588059</a>          |
+| Run          | <a href="https://github.com/reeleehq/an/actions/runs/41642612846">41642612846</a>          |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>44360d3ea030b8d7f48a7bfc64fb1c852058f769</code> (in the history of the built commit) |
+| Event commit | <code>b919d4782fc1b0a5c0c0cbd12f261ec1027d93a5</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -49140,7 +49321,7 @@ Latest release: <a href="https://pypi.org/project/an/0.1.368/">0.1.368</a>, the 
 
 ```bash
 git clone https://github.com/reeleehq/an && cd an
-git checkout a1d706224a43d73e8a780dbe31ef0335ff1d0593
+git checkout 3b1e5999327b879658a441b68fd455149af4d4c2
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

@@ -8,6 +8,7 @@ an.sound\_fetch
 
    .. autosummary::
    
+      UNSTATED
       Fetcher
    
    .. rubric:: Functions
@@ -15,7 +16,14 @@ an.sound\_fetch
    .. autosummary::
    
       add_sound_from_url
+      ai_label
       cut_to_wav
+      default_fetcher
+      fetcher_states_rights
+      file_digest_fields
+      foley_asset_source
+      foley_fetcher
+      notice_label
       yb_fetcher
    
    .. rubric:: Classes
@@ -23,4 +31,5 @@ an.sound\_fetch
    .. autosummary::
    
       Fetched
+      Unstated
    

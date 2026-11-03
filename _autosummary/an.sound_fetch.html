@@ -640,7 +640,7 @@
 <p>A production that sources its music or an effect from the web used to write
 the same script each time: download, cut with ffmpeg, type an <code class="docutils literal notranslate"><span class="pre">AssetSource</span></code>
 by hand, <a class="reference internal" href="an.sounds.html#an.sounds.add_sound" title="an.sounds.add_sound"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.sounds.add_sound()</span></code></a>. <a class="reference internal" href="#an.sound_fetch.add_sound_from_url" title="an.sound_fetch.add_sound_from_url"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_sound_from_url()</span></code></a> is that script:</p>
-<ul class="simple">
+<ul>
 <li><p>the download is a seam, <code class="docutils literal notranslate"><span class="pre">fetcher=</span></code>: any <code class="docutils literal notranslate"><span class="pre">(url)</span> <span class="pre">-&gt;</span> <span class="pre">Fetched</span></code> (the bytes in
 any container ffmpeg reads, and what the source says about itself). The
 default, <a class="reference internal" href="#an.sound_fetch.yb_fetcher" title="an.sound_fetch.yb_fetcher"><code class="xref py py-func docutils literal notranslate"><span class="pre">yb_fetcher()</span></code></a>, uses <a class="reference external" href="https://github.com/thorwhalen/yb">yb</a>
@@ -650,7 +650,20 @@ never a dependency of <code class="docutils literal notranslate"><span class="pr
 16-bit WAV, and recorded with the source, so <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">credits</span></code> says which part
 of which page it is (“0:07.9–0:08.8 of &lt;url&gt;”);</p></li>
 <li><p>the licence is the caller’s statement, never guessed: required, and
-<code class="docutils literal notranslate"><span class="pre">&quot;unknown&quot;</span></code> says so explicitly (the sound is then UNVERIFIED).</p></li>
+<code class="docutils literal notranslate"><span class="pre">&quot;unknown&quot;</span></code> says so explicitly (the sound is then UNVERIFIED) – unless the
+source states its own rights (<a class="reference internal" href="#an.sound_fetch.Fetched.source" title="an.sound_fetch.Fetched.source"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Fetched.source</span></code></a>). A sound from a foley
+library does (an#729): <a class="reference internal" href="#an.sound_fetch.foley_fetcher" title="an.sound_fetch.foley_fetcher"><code class="xref py py-func docutils literal notranslate"><span class="pre">foley_fetcher()</span></code></a> reads <code class="docutils literal notranslate"><span class="pre">foley:&lt;sound_id&gt;</span></code> through
+<code class="docutils literal notranslate"><span class="pre">foley.export_sound</span></code>, whose rights become the sound’s
+<a class="reference internal" href="an.ir.assets.html#an.ir.assets.AssetSource" title="an.ir.assets.AssetSource"><code class="xref py py-class docutils literal notranslate"><span class="pre">AssetSource</span></code></a> (<a class="reference internal" href="#an.sound_fetch.foley_asset_source" title="an.sound_fetch.foley_asset_source"><code class="xref py py-func docutils literal notranslate"><span class="pre">foley_asset_source()</span></code></a>, with foley’s</p>
+<blockquote>
+<div><p>whole provenance as <code class="docutils literal notranslate"><span class="pre">foley_provenance</span></code>), so the licence may be omitted, and
+a caller’s licence that disagrees is refused. A fetcher says which refs it
+states rights for (<a class="reference internal" href="#an.sound_fetch.fetcher_states_rights" title="an.sound_fetch.fetcher_states_rights"><code class="xref py py-func docutils literal notranslate"><span class="pre">fetcher_states_rights()</span></code></a>), so a licence missing for
+any other is refused before anything is downloaded. The default fetcher
+(<a class="reference internal" href="#an.sound_fetch.default_fetcher" title="an.sound_fetch.default_fetcher"><code class="xref py py-func docutils literal notranslate"><span class="pre">default_fetcher()</span></code></a>) sends a <code class="docutils literal notranslate"><span class="pre">foley:</span></code> ref to foley and anything else to
+<code class="docutils literal notranslate"><span class="pre">yb</span></code>, so <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">sounds</span> <span class="pre">add</span> <span class="pre">&lt;project&gt;</span> <span class="pre">door</span> <span class="pre">foley:fsd-222</span></code> works.</p>
+</div></blockquote>
+</li>
 </ul>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fetched</span> <span class="o">=</span> <span class="n">Fetched</span><span class="p">(</span><span class="n">audio</span><span class="o">=</span><span class="sa">b</span><span class="s2">"..."</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="s2">"https://example.org/a"</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="s2">"a"</span><span class="p">,</span> <span class="n">author</span><span class="o">=</span><span class="s2">"Ann"</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fetched</span><span class="o">.</span><span class="n">provider</span>
@@ -660,7 +673,10 @@ of which page it is (“0:07.9–0:08.8 of &lt;url&gt;”);</p></li>
 <p class="rubric">Module Attributes</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.sound_fetch.Fetcher" title="an.sound_fetch.Fetcher"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Fetcher</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.sound_fetch.UNSTATED" title="an.sound_fetch.UNSTATED"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UNSTATED</span></code></a></p></td>
+<td><p>the caller states no licence, which only a source that states its own rights (<a class="reference internal" href="#an.sound_fetch.Fetched.source" title="an.sound_fetch.Fetched.source"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Fetched.source</span></code></a>) may do.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.sound_fetch.Fetcher" title="an.sound_fetch.Fetcher"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Fetcher</span></code></a></p></td>
 <td><p>how <a class="reference internal" href="#an.sound_fetch.add_sound_from_url" title="an.sound_fetch.add_sound_from_url"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_sound_from_url()</span></code></a> gets the media.</p></td>
 </tr>
 </tbody>
@@ -669,13 +685,34 @@ of which page it is (“0:07.9–0:08.8 of &lt;url&gt;”);</p></li>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.sound_fetch.add_sound_from_url" title="an.sound_fetch.add_sound_from_url"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_sound_from_url</span></code></a>(store, key, url, *, license)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.sound_fetch.add_sound_from_url" title="an.sound_fetch.add_sound_from_url"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_sound_from_url</span></code></a>(store, key, url, *[, ...])</p></td>
 <td><p>Fetch <code class="docutils literal notranslate"><span class="pre">url</span></code>, cut it, and put it in the sounds <code class="docutils literal notranslate"><span class="pre">store</span></code> under <code class="docutils literal notranslate"><span class="pre">key</span></code> with its provenance.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.sound_fetch.cut_to_wav" title="an.sound_fetch.cut_to_wav"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cut_to_wav</span></code></a>(audio, *[, start, duration, fade_out])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.sound_fetch.ai_label" title="an.sound_fetch.ai_label"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ai_label</span></code></a>(source)</p></td>
+<td><p>What an AI-generated source's disclosure says, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for any other.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.sound_fetch.cut_to_wav" title="an.sound_fetch.cut_to_wav"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cut_to_wav</span></code></a>(audio, *[, start, duration, fade_out])</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">audio</span></code> (any container ffmpeg reads) cut to <code class="docutils literal notranslate"><span class="pre">[start,</span> <span class="pre">start</span> <span class="pre">+</span> <span class="pre">duration]</span></code>, as 16-bit WAV.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.sound_fetch.yb_fetcher" title="an.sound_fetch.yb_fetcher"><code class="xref py py-obj docutils literal notranslate"><span class="pre">yb_fetcher</span></code></a>(url)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.sound_fetch.default_fetcher" title="an.sound_fetch.default_fetcher"><code class="xref py py-obj docutils literal notranslate"><span class="pre">default_fetcher</span></code></a>(url)</p></td>
+<td><p>The default <code class="docutils literal notranslate"><span class="pre">fetcher=</span></code>: <a class="reference internal" href="#an.sound_fetch.foley_fetcher" title="an.sound_fetch.foley_fetcher"><code class="xref py py-func docutils literal notranslate"><span class="pre">foley_fetcher()</span></code></a> for a <code class="docutils literal notranslate"><span class="pre">foley:</span></code> ref, else <a class="reference internal" href="#an.sound_fetch.yb_fetcher" title="an.sound_fetch.yb_fetcher"><code class="xref py py-func docutils literal notranslate"><span class="pre">yb_fetcher()</span></code></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.sound_fetch.fetcher_states_rights" title="an.sound_fetch.fetcher_states_rights"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fetcher_states_rights</span></code></a>(fetcher, url)</p></td>
+<td><p>Whether <code class="docutils literal notranslate"><span class="pre">fetcher</span></code> declares that its source states the rights of <code class="docutils literal notranslate"><span class="pre">url</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.sound_fetch.file_digest_fields" title="an.sound_fetch.file_digest_fields"><code class="xref py py-obj docutils literal notranslate"><span class="pre">file_digest_fields</span></code></a>(fields)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">fields</span></code> with <code class="docutils literal notranslate"><span class="pre">sha256</span></code> (the fetched or library file's) moved to <code class="xref py py-data docutils literal notranslate"><span class="pre">FILE_SHA256_FIELD</span></code>: a stored sound is the cut WAV, whose digest is the <a class="reference internal" href="an.sounds.html#an.sounds.SoundAsset" title="an.sounds.SoundAsset"><code class="xref py py-class docutils literal notranslate"><span class="pre">SoundAsset</span></code></a>'s (an#623, an#729).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.sound_fetch.foley_asset_source" title="an.sound_fetch.foley_asset_source"><code class="xref py py-obj docutils literal notranslate"><span class="pre">foley_asset_source</span></code></a>(rights, provenance, *[, url])</p></td>
+<td><p>foley's <code class="docutils literal notranslate"><span class="pre">(rights,</span> <span class="pre">provenance)</span></code> (<code class="docutils literal notranslate"><span class="pre">foley.export_sound</span></code>) as an <code class="xref py py-class docutils literal notranslate"><span class="pre">AssetSource</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.sound_fetch.foley_fetcher" title="an.sound_fetch.foley_fetcher"><code class="xref py py-obj docutils literal notranslate"><span class="pre">foley_fetcher</span></code></a>(ref, *[, export])</p></td>
+<td><p>Fetch <code class="docutils literal notranslate"><span class="pre">foley:&lt;sound_id&gt;</span></code> from a foley library, with the rights foley records.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.sound_fetch.notice_label" title="an.sound_fetch.notice_label"><code class="xref py py-obj docutils literal notranslate"><span class="pre">notice_label</span></code></a>(source)</p></td>
+<td><p>The notice a source's licence requires shown verbatim, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.sound_fetch.yb_fetcher" title="an.sound_fetch.yb_fetcher"><code class="xref py py-obj docutils literal notranslate"><span class="pre">yb_fetcher</span></code></a>(url)</p></td>
 <td><p>Fetch the audio of <code class="docutils literal notranslate"><span class="pre">url</span></code> with <code class="docutils literal notranslate"><span class="pre">yb</span></code> (any site its <code class="docutils literal notranslate"><span class="pre">yt-dlp</span></code> reads).</p></td>
 </tr>
 </tbody>
@@ -687,14 +724,20 @@ of which page it is (“0:07.9–0:08.8 of &lt;url&gt;”);</p></li>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.sound_fetch.Fetched" title="an.sound_fetch.Fetched"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Fetched</span></code></a>(audio, url[, id, title, author, ...])</p></td>
 <td><p>What a fetcher returns: the media's bytes, and what its page says about it.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.sound_fetch.Unstated" title="an.sound_fetch.Unstated"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Unstated</span></code></a>(*values)</p></td>
+<td><p>The type of <a class="reference internal" href="#an.sound_fetch.UNSTATED" title="an.sound_fetch.UNSTATED"><code class="xref py py-data docutils literal notranslate"><span class="pre">UNSTATED</span></code></a>, <code class="docutils literal notranslate"><span class="pre">license=</span></code> left out.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.sound_fetch.Fetched">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.sound_fetch.</span></span><span class="sig-name descname"><span class="pre">Fetched</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">audio</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">author</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">provider</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'web'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/sound_fetch.html#Fetched"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.sound_fetch.Fetched" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.sound_fetch.</span></span><span class="sig-name descname"><span class="pre">Fetched</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">audio</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">author</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">provider</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'web'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/sound_fetch.html#Fetched"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.sound_fetch.Fetched" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>What a fetcher returns: the media’s bytes, and what its page says about it.</p>
+<p>When <code class="docutils literal notranslate"><span class="pre">source</span></code> is set it is the sound’s whole provenance (the rights the
+source states), and <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">title</span></code>, <code class="docutils literal notranslate"><span class="pre">author</span></code> and <code class="docutils literal notranslate"><span class="pre">provider</span></code> are not
+read; otherwise they are, with the caller’s licence.</p>
 <dl class="field-list simple">
 </dl>
 <dl class="py attribute">
@@ -703,12 +746,21 @@ of which page it is (“0:07.9–0:08.8 of &lt;url&gt;”);</p></li>
 <dd><p>Where it came from, as an <code class="docutils literal notranslate"><span class="pre">AssetSource.provider</span></code> (<code class="docutils literal notranslate"><span class="pre">youtube</span></code>, …).</p>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.sound_fetch.Fetched.source">
+<span class="sig-name descname"><span class="pre">source</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="an.ir.assets.html#an.ir.assets.AssetSource" title="an.ir.assets.AssetSource"><span class="pre">AssetSource</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#an.sound_fetch.Fetched.source" title="Link to this definition">#</a></dt>
+<dd><p>The rights the source itself states (a foley library’s export), or
+<code class="docutils literal notranslate"><span class="pre">None</span></code>: then the licence is the caller’s statement.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.sound_fetch.Fetcher">
 <span class="sig-prename descclassname"><span class="pre">an.sound_fetch.</span></span><span class="sig-name descname"><span class="pre">Fetcher</span></span><a class="headerlink" href="#an.sound_fetch.Fetcher" title="Link to this definition">#</a></dt>
-<dd><p>how <a class="reference internal" href="#an.sound_fetch.add_sound_from_url" title="an.sound_fetch.add_sound_from_url"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_sound_from_url()</span></code></a> gets the media.</p>
+<dd><p>how <a class="reference internal" href="#an.sound_fetch.add_sound_from_url" title="an.sound_fetch.add_sound_from_url"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_sound_from_url()</span></code></a> gets the media. A
+fetcher whose source states its own rights for some refs says which with a
+<code class="docutils literal notranslate"><span class="pre">states_rights(url)</span> <span class="pre">-&gt;</span> <span class="pre">bool</span></code> attribute (<a class="reference internal" href="#an.sound_fetch.fetcher_states_rights" title="an.sound_fetch.fetcher_states_rights"><code class="xref py py-func docutils literal notranslate"><span class="pre">fetcher_states_rights()</span></code></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">(url)</span> <span class="pre">-&gt;</span> <span class="pre">Fetched</span></code></p>
@@ -717,20 +769,79 @@ of which page it is (“0:07.9–0:08.8 of &lt;url&gt;”);</p></li>
 <p>alias of <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code></a>[[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>], <a class="reference internal" href="#an.sound_fetch.Fetched" title="an.sound_fetch.Fetched"><code class="xref py py-class docutils literal notranslate"><span class="pre">Fetched</span></code></a>]</p>
 </dd></dl>
 
-<dl class="py function">
-<dt class="sig sig-object py" id="an.sound_fetch.add_sound_from_url">
-<span class="sig-prename descclassname"><span class="pre">an.sound_fetch.</span></span><span class="sig-name descname"><span class="pre">add_sound_from_url</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">store</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">license</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fetcher</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fade_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">provider</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">author</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/sound_fetch.html#add_sound_from_url"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.sound_fetch.add_sound_from_url" title="Link to this definition">#</a></dt>
-<dd><p>Fetch <code class="docutils literal notranslate"><span class="pre">url</span></code>, cut it, and put it in the sounds <code class="docutils literal notranslate"><span class="pre">store</span></code> under <code class="docutils literal notranslate"><span class="pre">key</span></code> with its provenance.</p>
-<dl class="simple">
-<dt>license: the licence code the caller vouches for — required, never</dt><dd><p>guessed; <code class="docutils literal notranslate"><span class="pre">&quot;unknown&quot;</span></code> (or <code class="docutils literal notranslate"><span class="pre">None</span></code>) records that nobody has said</p>
+<dl class="py data">
+<dt class="sig sig-object py" id="an.sound_fetch.UNSTATED">
+<span class="sig-prename descclassname"><span class="pre">an.sound_fetch.</span></span><span class="sig-name descname"><span class="pre">UNSTATED</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unstated.UNSTATED</span></span><a class="headerlink" href="#an.sound_fetch.UNSTATED" title="Link to this definition">#</a></dt>
+<dd><p>the caller states no licence, which only a source that
+states its own rights (<a class="reference internal" href="#an.sound_fetch.Fetched.source" title="an.sound_fetch.Fetched.source"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Fetched.source</span></code></a>) may do.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">license=</span></code> left out</p>
 </dd>
 </dl>
-<p>fetcher: <code class="docutils literal notranslate"><span class="pre">(url)</span> <span class="pre">-&gt;</span> <span class="pre">Fetched</span></code> (default <a class="reference internal" href="#an.sound_fetch.yb_fetcher" title="an.sound_fetch.yb_fetcher"><code class="xref py py-func docutils literal notranslate"><span class="pre">yb_fetcher()</span></code></a>)
-start, duration, fade_out: the cut, in seconds of the fetched media
-provider, author: override what the fetcher reported</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.sound_fetch.Unstated">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.sound_fetch.</span></span><span class="sig-name descname"><span class="pre">Unstated</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/sound_fetch.html#Unstated"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.sound_fetch.Unstated" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></a></p>
+<p>The type of <a class="reference internal" href="#an.sound_fetch.UNSTATED" title="an.sound_fetch.UNSTATED"><code class="xref py py-data docutils literal notranslate"><span class="pre">UNSTATED</span></code></a>, <code class="docutils literal notranslate"><span class="pre">license=</span></code> left out.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.sound_fetch.add_sound_from_url">
+<span class="sig-prename descclassname"><span class="pre">an.sound_fetch.</span></span><span class="sig-name descname"><span class="pre">add_sound_from_url</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">store</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">license</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Unstated.UNSTATED</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fetcher</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fade_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">provider</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">author</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/sound_fetch.html#add_sound_from_url"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.sound_fetch.add_sound_from_url" title="Link to this definition">#</a></dt>
+<dd><p>Fetch <code class="docutils literal notranslate"><span class="pre">url</span></code>, cut it, and put it in the sounds <code class="docutils literal notranslate"><span class="pre">store</span></code> under <code class="docutils literal notranslate"><span class="pre">key</span></code> with its provenance.</p>
+<dl class="simple">
+<dt>license: the licence code the caller vouches for, never guessed;</dt><dd><p><code class="docutils literal notranslate"><span class="pre">&quot;unknown&quot;</span></code> (or <code class="docutils literal notranslate"><span class="pre">None</span></code>) records that nobody has said. Required
+unless the source states its own rights (<a class="reference internal" href="#an.sound_fetch.Fetched.source" title="an.sound_fetch.Fetched.source"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Fetched.source</span></code></a>, a
+<code class="docutils literal notranslate"><span class="pre">foley:</span></code> sound), which are then recorded; a licence given with them
+must agree</p>
+</dd>
+<dt>fetcher: <code class="docutils literal notranslate"><span class="pre">(url)</span> <span class="pre">-&gt;</span> <span class="pre">Fetched</span></code> (default <a class="reference internal" href="#an.sound_fetch.default_fetcher" title="an.sound_fetch.default_fetcher"><code class="xref py py-func docutils literal notranslate"><span class="pre">default_fetcher()</span></code></a>: a</dt><dd><p><code class="docutils literal notranslate"><span class="pre">foley:&lt;sound_id&gt;</span></code> ref from foley, anything else with <code class="docutils literal notranslate"><span class="pre">yb</span></code>)</p>
+</dd>
+</dl>
+<p>start, duration, fade_out: the cut, in seconds of the fetched media
+provider, author: override what the fetcher reported (never on a source</p>
+<blockquote>
+<div><p>that states its rights)</p>
+</div></blockquote>
+<p>No cut is recorded when the whole media is kept (no <code class="docutils literal notranslate"><span class="pre">start</span></code>,
+<code class="docutils literal notranslate"><span class="pre">duration</span></code> or <code class="docutils literal notranslate"><span class="pre">fade_out</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="an.sounds.html#an.sounds.SoundError" title="an.sounds.SoundError"><strong>SoundError</strong></a> – For no licence for a ref the fetcher states no rights for
+    (before anything is fetched: <a class="reference internal" href="#an.sound_fetch.fetcher_states_rights" title="an.sound_fetch.fetcher_states_rights"><code class="xref py py-func docutils literal notranslate"><span class="pre">fetcher_states_rights()</span></code></a>), or from
+    a source that turned out to state none; a caller’s licence that
+    contradicts the source’s, or a provider or author set over it; and
+    whatever the fetch, the cut or the store refuse.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.sounds.html#an.sounds.SoundAsset" title="an.sounds.SoundAsset"><code class="xref py py-class docutils literal notranslate"><span class="pre">SoundAsset</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.sound_fetch.ai_label">
+<span class="sig-prename descclassname"><span class="pre">an.sound_fetch.</span></span><span class="sig-name descname"><span class="pre">ai_label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/sound_fetch.html#ai_label"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.sound_fetch.ai_label" title="Link to this definition">#</a></dt>
+<dd><p>What an AI-generated source’s disclosure says, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for any other.</p>
+<p>The model; whether the disclosure is a duty (a recognizable voice: “must be
+disclosed”) or a recommendation; and, when foley’s EU AI Act Art. 50
+checklist is not <code class="docutils literal notranslate"><span class="pre">publish_ready</span></code>, the obligations still pending.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ai</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"is_ai_generated"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"publish_ready"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<span class="gp">... </span>      <span class="s2">"pending"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"machine_readable_mark"</span><span class="p">,</span> <span class="s2">"provenance_manifest"</span><span class="p">],</span>
+<span class="gp">... </span>      <span class="s2">"obligations"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"voice_disclosure"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">}},</span>
+<span class="gp">... </span>      <span class="s2">"provenance"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"generator_model"</span><span class="p">:</span> <span class="s2">"stable-audio-open-1.0"</span><span class="p">}}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ai_label</span><span class="p">(</span><span class="n">AssetSource</span><span class="p">(</span><span class="n">provider</span><span class="o">=</span><span class="s2">"stability-ai"</span><span class="p">,</span> <span class="n">foley_provenance</span><span class="o">=</span><span class="p">{</span><span class="s2">"ai_disclosure"</span><span class="p">:</span> <span class="n">ai</span><span class="p">}))</span>
+<span class="go">'AI-generated with stable-audio-open-1.0: disclosure recommended; not publish-ready, Art. 50 pending: machine_readable_mark, provenance_manifest'</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ai_label</span><span class="p">(</span><span class="n">AssetSource</span><span class="p">(</span><span class="n">provider</span><span class="o">=</span><span class="s2">"fsd50k"</span><span class="p">))</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="go">True</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.sounds.html#an.sounds.SoundAsset" title="an.sounds.SoundAsset"><code class="xref py py-class docutils literal notranslate"><span class="pre">SoundAsset</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -743,6 +854,123 @@ provider, author: override what the fetcher reported</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bytes" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.sound_fetch.default_fetcher">
+<span class="sig-prename descclassname"><span class="pre">an.sound_fetch.</span></span><span class="sig-name descname"><span class="pre">default_fetcher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/sound_fetch.html#default_fetcher"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.sound_fetch.default_fetcher" title="Link to this definition">#</a></dt>
+<dd><p>The default <code class="docutils literal notranslate"><span class="pre">fetcher=</span></code>: <a class="reference internal" href="#an.sound_fetch.foley_fetcher" title="an.sound_fetch.foley_fetcher"><code class="xref py py-func docutils literal notranslate"><span class="pre">foley_fetcher()</span></code></a> for a <code class="docutils literal notranslate"><span class="pre">foley:</span></code> ref, else <a class="reference internal" href="#an.sound_fetch.yb_fetcher" title="an.sound_fetch.yb_fetcher"><code class="xref py py-func docutils literal notranslate"><span class="pre">yb_fetcher()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.sound_fetch.Fetched" title="an.sound_fetch.Fetched"><code class="xref py py-class docutils literal notranslate"><span class="pre">Fetched</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.sound_fetch.fetcher_states_rights">
+<span class="sig-prename descclassname"><span class="pre">an.sound_fetch.</span></span><span class="sig-name descname"><span class="pre">fetcher_states_rights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fetcher</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/sound_fetch.html#fetcher_states_rights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.sound_fetch.fetcher_states_rights" title="Link to this definition">#</a></dt>
+<dd><p>Whether <code class="docutils literal notranslate"><span class="pre">fetcher</span></code> declares that its source states the rights of <code class="docutils literal notranslate"><span class="pre">url</span></code>.</p>
+<p>Read from its <code class="docutils literal notranslate"><span class="pre">states_rights(url)</span></code> attribute (a <code class="docutils literal notranslate"><span class="pre">functools.partial</span></code> of a
+fetcher keeps the declaration); a fetcher without one states none.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fetcher_states_rights</span><span class="p">(</span><span class="n">default_fetcher</span><span class="p">,</span> <span class="s2">"foley:fsd-222"</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fetcher_states_rights</span><span class="p">(</span><span class="n">default_fetcher</span><span class="p">,</span> <span class="s2">"https://youtu.be/x"</span><span class="p">),</span> <span class="n">fetcher_states_rights</span><span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">)</span>
+<span class="go">(False, False)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.sound_fetch.file_digest_fields">
+<span class="sig-prename descclassname"><span class="pre">an.sound_fetch.</span></span><span class="sig-name descname"><span class="pre">file_digest_fields</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fields</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/sound_fetch.html#file_digest_fields"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.sound_fetch.file_digest_fields" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">fields</span></code> with <code class="docutils literal notranslate"><span class="pre">sha256</span></code> (the fetched or library file’s) moved to
+<code class="xref py py-data docutils literal notranslate"><span class="pre">FILE_SHA256_FIELD</span></code>: a stored sound is the cut WAV, whose digest is the
+<a class="reference internal" href="an.sounds.html#an.sounds.SoundAsset" title="an.sounds.SoundAsset"><code class="xref py py-class docutils literal notranslate"><span class="pre">SoundAsset</span></code></a>’s (an#623, an#729).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">file_digest_fields</span><span class="p">({</span><span class="s2">"provider"</span><span class="p">:</span> <span class="s2">"p"</span><span class="p">,</span> <span class="s2">"sha256"</span><span class="p">:</span> <span class="s2">"ab"</span><span class="p">})</span>
+<span class="go">{'provider': 'p', 'file_sha256': 'ab'}</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.sound_fetch.foley_asset_source">
+<span class="sig-prename descclassname"><span class="pre">an.sound_fetch.</span></span><span class="sig-name descname"><span class="pre">foley_asset_source</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rights</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">provenance</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/sound_fetch.html#foley_asset_source"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.sound_fetch.foley_asset_source" title="Link to this definition">#</a></dt>
+<dd><p>foley’s <code class="docutils literal notranslate"><span class="pre">(rights,</span> <span class="pre">provenance)</span></code> (<code class="docutils literal notranslate"><span class="pre">foley.export_sound</span></code>) as an <code class="xref py py-class docutils literal notranslate"><span class="pre">AssetSource</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">rights</span></code> is keyed by the source’s own field names (foley pins them to
+<code class="docutils literal notranslate"><span class="pre">lacing.Rights</span></code>, an’s <code class="docutils literal notranslate"><span class="pre">AssetSource</span></code>); its <code class="docutils literal notranslate"><span class="pre">title</span></code> rides as an extra.
+<code class="docutils literal notranslate"><span class="pre">sha256</span></code> is the exported bytes’ digest, and the whole <code class="docutils literal notranslate"><span class="pre">provenance</span></code>
+(JSON-safe) rides as <code class="xref py py-data docutils literal notranslate"><span class="pre">FOLEY_PROVENANCE_FIELD</span></code>. <code class="docutils literal notranslate"><span class="pre">url</span></code> is where the
+bytes came from (<code class="docutils literal notranslate"><span class="pre">foley:&lt;sound_id&gt;</span></code>).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">src</span> <span class="o">=</span> <span class="n">foley_asset_source</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="p">{</span><span class="s2">"provider"</span><span class="p">:</span> <span class="s2">"fsd50k"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">:</span> <span class="s2">"222"</span><span class="p">,</span> <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"Door creak"</span><span class="p">,</span> <span class="s2">"license"</span><span class="p">:</span> <span class="s2">"cc-by-4.0"</span><span class="p">,</span>
+<span class="gp">... </span>     <span class="s2">"attribution"</span><span class="p">:</span> <span class="s2">"Door creak by amy"</span><span class="p">,</span> <span class="s2">"author"</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
+<span class="gp">... </span>    <span class="p">{</span><span class="s2">"sha256"</span><span class="p">:</span> <span class="s2">"ab"</span><span class="p">,</span> <span class="s2">"archived_sha256"</span><span class="p">:</span> <span class="s2">"cd"</span><span class="p">,</span> <span class="s2">"ai_disclosure"</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span> <span class="n">url</span><span class="o">=</span><span class="s2">"foley:fsd-222"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">src</span><span class="o">.</span><span class="n">provider</span><span class="p">,</span> <span class="n">src</span><span class="o">.</span><span class="n">license</span><span class="p">,</span> <span class="n">src</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="n">src</span><span class="o">.</span><span class="n">author</span><span class="p">,</span> <span class="n">src</span><span class="o">.</span><span class="n">sha256</span>
+<span class="go">('fsd50k', 'cc-by-4.0', 'foley:fsd-222', None, 'ab')</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">src</span><span class="o">.</span><span class="n">model_extra</span><span class="p">[</span><span class="s2">"title"</span><span class="p">],</span> <span class="n">src</span><span class="o">.</span><span class="n">model_extra</span><span class="p">[</span><span class="s2">"foley_provenance"</span><span class="p">][</span><span class="s2">"archived_sha256"</span><span class="p">]</span>
+<span class="go">('Door creak', 'cd')</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.ir.assets.html#an.ir.assets.AssetSource" title="an.ir.assets.AssetSource"><code class="xref py py-class docutils literal notranslate"><span class="pre">AssetSource</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.sound_fetch.foley_fetcher">
+<span class="sig-prename descclassname"><span class="pre">an.sound_fetch.</span></span><span class="sig-name descname"><span class="pre">foley_fetcher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">export</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/sound_fetch.html#foley_fetcher"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.sound_fetch.foley_fetcher" title="Link to this definition">#</a></dt>
+<dd><p>Fetch <code class="docutils literal notranslate"><span class="pre">foley:&lt;sound_id&gt;</span></code> from a foley library, with the rights foley records.</p>
+<dl class="simple">
+<dt>export: <code class="docutils literal notranslate"><span class="pre">(sound_id)</span> <span class="pre">-&gt;</span> <span class="pre">(bytes,</span> <span class="pre">rights,</span> <span class="pre">provenance)</span></code>, default</dt><dd><p><code class="docutils literal notranslate"><span class="pre">foley.export_sound</span></code> (its default library; bind another with
+<code class="docutils literal notranslate"><span class="pre">functools.partial(foley.export_sound,</span> <span class="pre">library=...)</span></code>). foley is
+imported on first use: <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">an</span></code> never imports it.</p>
+</dd>
+</dl>
+<p>The bytes are checked against the digest foley’s provenance names, and the
+rights become <a class="reference internal" href="#an.sound_fetch.Fetched.source" title="an.sound_fetch.Fetched.source"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Fetched.source</span></code></a> (<a class="reference internal" href="#an.sound_fetch.foley_asset_source" title="an.sound_fetch.foley_asset_source"><code class="xref py py-func docutils literal notranslate"><span class="pre">foley_asset_source()</span></code></a>), the
+sound’s only rights. It states rights for every <code class="docutils literal notranslate"><span class="pre">foley:</span></code> ref
+(<code class="docutils literal notranslate"><span class="pre">foley_fetcher.states_rights</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="an.sounds.html#an.sounds.SoundError" title="an.sounds.SoundError"><strong>SoundError</strong></a> – For a ref that is not <code class="docutils literal notranslate"><span class="pre">foley:&lt;sound_id&gt;</span></code>, foley not
+    installed, a sound foley does not hold or will not export (its
+    terms forbid keeping the bytes: a Freesound API pull is stored by
+    reference; its bytes changed since ingest; a failed re-encode),
+    naming the ref and foley’s reason, or bytes that do not match the
+    digest foley names.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.sound_fetch.Fetched" title="an.sound_fetch.Fetched"><code class="xref py py-class docutils literal notranslate"><span class="pre">Fetched</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.sound_fetch.notice_label">
+<span class="sig-prename descclassname"><span class="pre">an.sound_fetch.</span></span><span class="sig-name descname"><span class="pre">notice_label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/sound_fetch.html#notice_label"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.sound_fetch.notice_label" title="Link to this definition">#</a></dt>
+<dd><p>The notice a source’s licence requires shown verbatim, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">notice_label</span><span class="p">(</span><span class="n">AssetSource</span><span class="p">(</span><span class="n">provider</span><span class="o">=</span><span class="s2">"p"</span><span class="p">,</span> <span class="n">foley_provenance</span><span class="o">=</span><span class="p">{</span><span class="s2">"notice_text_required"</span><span class="p">:</span> <span class="s2">"(c) X"</span><span class="p">}))</span>
+<span class="go">'(c) X'</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -809,11 +1037,21 @@ provider, author: override what the fetcher reported</p>
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sound_fetch.Fetched"><code class="docutils literal notranslate"><span class="pre">Fetched</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sound_fetch.Fetched.provider"><code class="docutils literal notranslate"><span class="pre">Fetched.provider</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sound_fetch.Fetched.source"><code class="docutils literal notranslate"><span class="pre">Fetched.source</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sound_fetch.Fetcher"><code class="docutils literal notranslate"><span class="pre">Fetcher</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sound_fetch.UNSTATED"><code class="docutils literal notranslate"><span class="pre">UNSTATED</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sound_fetch.Unstated"><code class="docutils literal notranslate"><span class="pre">Unstated</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sound_fetch.add_sound_from_url"><code class="docutils literal notranslate"><span class="pre">add_sound_from_url()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sound_fetch.ai_label"><code class="docutils literal notranslate"><span class="pre">ai_label()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sound_fetch.cut_to_wav"><code class="docutils literal notranslate"><span class="pre">cut_to_wav()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sound_fetch.default_fetcher"><code class="docutils literal notranslate"><span class="pre">default_fetcher()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sound_fetch.fetcher_states_rights"><code class="docutils literal notranslate"><span class="pre">fetcher_states_rights()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sound_fetch.file_digest_fields"><code class="docutils literal notranslate"><span class="pre">file_digest_fields()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sound_fetch.foley_asset_source"><code class="docutils literal notranslate"><span class="pre">foley_asset_source()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sound_fetch.foley_fetcher"><code class="docutils literal notranslate"><span class="pre">foley_fetcher()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sound_fetch.notice_label"><code class="docutils literal notranslate"><span class="pre">notice_label()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sound_fetch.yb_fetcher"><code class="docutils literal notranslate"><span class="pre">yb_fetcher()</span></code></a></li>
 </ul>
   </nav></div>

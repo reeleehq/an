@@ -729,8 +729,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">  :class:`~foley.sources.music_library.AcquiredTrack`, or its ``.row()`` read</span>
 <span class="sd">  back from a tracks table) as an :class:`an.ir.assets.AssetSource`, the</span>
 <span class="sd">  provenance a sound in the project's store carries. foley's licence ids become</span>
-<span class="sd">  an's codes (:func:`license_code`: ``CC-BY-4.0`` is ``cc-by-4.0``; foley's</span>
-<span class="sd">  ``unknown``, a paid library's, is ``None``, which an reads as UNKNOWN); the</span>
+<span class="sd">  an's codes (:func:`license_code`, foley's own mapping,</span>
+<span class="sd">  ``foley.licensing.consumer_license_code``: ``CC-BY-4.0`` is ``cc-by-4.0``;</span>
+<span class="sd">  foley's ``unknown``, a paid library's, is ``None``, which an reads as UNKNOWN); the</span>
 <span class="sd">  library's own address is ``source_page_url``; ``rights_verified``, the mirror</span>
 <span class="sd">  and a titles file's metadata ride as extras.</span>
 <span class="sd">- :func:`acquire`, foley's with an's ``pause`` knob (seconds before a second</span>
@@ -763,6 +764,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.assets</span><span class="w"> </span><span class="kn">import</span> <span class="n">AssetSource</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.sound_fetch</span><span class="w"> </span><span class="kn">import</span> <span class="n">file_digest_fields</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>  <span class="c1"># foley loads on first use, never with `import an`</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">foley.sources.music_library</span><span class="w"> </span><span class="kn">import</span> <span class="n">AcquiredTrack</span>
@@ -771,7 +773,6 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"ACQUIRED"</span><span class="p">,</span>
     <span class="s2">"DFLT_PAUSE_S"</span><span class="p">,</span>
     <span class="s2">"FAILED"</span><span class="p">,</span>
-    <span class="s2">"FOLEY_LICENSE_CODES"</span><span class="p">,</span>
     <span class="s2">"KEPT"</span><span class="p">,</span>
     <span class="s2">"MUSIC_LIBRARIES"</span><span class="p">,</span>
     <span class="s2">"REFUSED"</span><span class="p">,</span>
@@ -834,9 +835,6 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: is someone's website).</span>
 <span class="n">DFLT_PAUSE_S</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span>
 <span class="n">SECONDS_PER_MINUTE</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">60.0</span>
-<span class="c1">#: foley licence ids whose an code is not the id in lowercase: ``unknown`` (a paid</span>
-<span class="c1">#: library claims no rights) is ``None``, an's UNKNOWN.</span>
-<span class="n">FOLEY_LICENSE_CODES</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"unknown"</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
 <span class="c1">#: The row columns that describe the acquisition, not the asset: they stay in the</span>
 <span class="c1">#: tracks table. ``title`` and ``library`` become ``id`` and ``provider``.</span>
 <span class="n">ROW_ONLY</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"status"</span><span class="p">,</span> <span class="s2">"file"</span><span class="p">,</span> <span class="s2">"duration_s"</span><span class="p">,</span> <span class="s2">"error"</span><span class="p">})</span>
@@ -864,31 +862,22 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="license_code">
 <a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.license_code">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">license_code</span><span class="p">(</span>
-    <span class="n">license_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="o">*</span><span class="p">,</span>
-    <span class="n">codes</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="n">FOLEY_LICENSE_CODES</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""foley's licence id as an's code: ``codes`` first, else the id in lowercase.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">license_code</span><span class="p">(</span><span class="n">license_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""foley's licence id as an's code: foley's ``consumer_license_code``, the</span>
+<span class="sd">    one mapping (an#729), imported on first use.</span>
 
 <span class="sd">    &gt;&gt;&gt; license_code("CC0-1.0"), license_code("unknown"), license_code(None)</span>
 <span class="sd">    ('cc0-1.0', None, None)</span>
 <span class="sd">    """</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">license_id</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">None</span>
-    <span class="k">if</span> <span class="n">license_id</span> <span class="ow">in</span> <span class="n">codes</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">codes</span><span class="p">[</span><span class="n">license_id</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">license_id</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span></div>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">foley.licensing</span><span class="w"> </span><span class="kn">import</span> <span class="n">consumer_license_code</span>
+
+    <span class="k">return</span> <span class="n">consumer_license_code</span><span class="p">(</span><span class="n">license_id</span><span class="p">)</span></div>
 
 
 
 <div class="viewcode-block" id="asset_source">
 <a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.asset_source">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">asset_source</span><span class="p">(</span>
-    <span class="n">track</span><span class="p">:</span> <span class="n">AcquiredTrack</span> <span class="o">|</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
-    <span class="o">*</span><span class="p">,</span>
-    <span class="n">codes</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="n">FOLEY_LICENSE_CODES</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AssetSource</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">asset_source</span><span class="p">(</span><span class="n">track</span><span class="p">:</span> <span class="n">AcquiredTrack</span> <span class="o">|</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">AssetSource</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""One foley row as an's :class:`~an.ir.assets.AssetSource`.</span>
 
 <span class="sd">    ``track`` is a foley ``AcquiredTrack`` or its ``.row()`` (as a tracks table</span>
@@ -929,7 +918,7 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">AssetSource</span><span class="p">(</span>
         <span class="n">provider</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s2">"library"</span><span class="p">],</span>
         <span class="nb">id</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s2">"title"</span><span class="p">],</span>
-        <span class="n">license</span><span class="o">=</span><span class="n">license_code</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"license"</span><span class="p">),</span> <span class="n">codes</span><span class="o">=</span><span class="n">codes</span><span class="p">),</span>
+        <span class="n">license</span><span class="o">=</span><span class="n">license_code</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"license"</span><span class="p">)),</span>
         <span class="o">**</span><span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">fields</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">v</span> <span class="o">!=</span> <span class="s2">""</span><span class="p">},</span>
     <span class="p">)</span></div>
 
@@ -970,10 +959,6 @@ window.runMermaid = runMermaid;</script>
 
 
 
-<span class="c1">#: Where ``add_track_to_sounds`` keeps the digest of the library file a cut was</span>
-<span class="c1">#: made from: ``sha256`` is the stored bytes' own (the cut WAV, :class:`SoundAsset`).</span>
-<span class="n">FILE_SHA256_FIELD</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"file_sha256"</span>
-
 
 <div class="viewcode-block" id="track_row">
 <a class="viewcode-back" href="../../_autosummary/an.music_library.html#an.music_library.track_row">[docs]</a>
@@ -1008,7 +993,6 @@ window.runMermaid = runMermaid;</script>
     <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">fade_out</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
-    <span class="n">codes</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="n">FOLEY_LICENSE_CODES</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Put one acquired track in the sounds ``store`` under ``key`` (an#623).</span>
 
@@ -1019,7 +1003,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    is checked against its ``sha256``, cut with :func:`an.sound_fetch.cut_to_wav`</span>
 <span class="sd">    (``start``, ``duration``, ``fade_out``, as ``an sounds add`` takes them) and</span>
 <span class="sd">    stored with the track as its :class:`~an.ir.assets.AssetSource`</span>
-<span class="sd">    (:func:`asset_source`, ``codes``) plus the cut, the file's digest as</span>
+<span class="sd">    (:func:`asset_source`) plus the cut, the file's digest as</span>
 <span class="sd">    ``file_sha256``, so ``an credits`` lists the music with its licence. Nothing</span>
 <span class="sd">    is fetched again: the site may be the one that refused scripts.</span>
 
@@ -1055,8 +1039,7 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"row recorded (changed since it was acquired); rerun `an music add-library`"</span>
         <span class="p">)</span>
     <span class="n">wav</span> <span class="o">=</span> <span class="n">cut_to_wav</span><span class="p">(</span><span class="n">audio</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span> <span class="n">fade_out</span><span class="o">=</span><span class="n">fade_out</span><span class="p">)</span>
-    <span class="n">fields</span> <span class="o">=</span> <span class="n">asset_source</span><span class="p">(</span><span class="n">track</span><span class="p">,</span> <span class="n">codes</span><span class="o">=</span><span class="n">codes</span><span class="p">)</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">exclude_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">fields</span><span class="p">[</span><span class="n">FILE_SHA256_FIELD</span><span class="p">]</span> <span class="o">=</span> <span class="n">fields</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"sha256"</span><span class="p">)</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="n">file_digest_fields</span><span class="p">(</span><span class="n">asset_source</span><span class="p">(</span><span class="n">track</span><span class="p">)</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">exclude_none</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
     <span class="n">fields</span><span class="p">[</span><span class="n">CUT_FIELD</span><span class="p">]</span> <span class="o">=</span> <span class="n">cut_record</span><span class="p">(</span><span class="n">wav</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">fade_out</span><span class="o">=</span><span class="n">fade_out</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">add_sound</span><span class="p">(</span>
         <span class="n">store</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">wav</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">AssetSource</span><span class="p">(</span><span class="o">**</span><span class="n">fields</span><span class="p">),</span> <span class="n">description</span><span class="o">=</span><span class="n">description</span>

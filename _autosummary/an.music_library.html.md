@@ -17,8 +17,9 @@ What stays here is what is an’s:
   `AcquiredTrack`, or its `.row()` read
   > back from a tracks table) as an [`an.ir.assets.AssetSource`](an.ir.assets.html.md#an.ir.assets.AssetSource), the
   > provenance a sound in the project’s store carries. foley’s licence ids become
-  > an’s codes ([`license_code()`](#an.music_library.license_code): `CC-BY-4.0` is `cc-by-4.0`; foley’s
-  > `unknown`, a paid library’s, is `None`, which an reads as UNKNOWN); the
+  > an’s codes ([`license_code()`](#an.music_library.license_code), foley’s own mapping,
+  > `foley.licensing.consumer_license_code`: `CC-BY-4.0` is `cc-by-4.0`;
+  > foley’s `unknown`, a paid library’s, is `None`, which an reads as UNKNOWN); the
   > library’s own address is `source_page_url`; `rights_verified`, the mirror
   > and a titles file’s metadata ride as extras.
 - [`acquire()`](#an.music_library.acquire), foley’s with an’s `pause` knob (seconds before a second
@@ -47,21 +48,20 @@ tracks-table reader [`read_tracks_table()`](#an.music_library.read_tracks_table)
 
 ### Module Attributes
 
-| [`DFLT_PAUSE_S`](#an.music_library.DFLT_PAUSE_S)        | a library is someone's website).                                     |
-|----------------------------------------------------------------------|----------------------------------------------------------------------|
-| [`FOLEY_LICENSE_CODES`](#an.music_library.FOLEY_LICENSE_CODES) | `unknown` (a paid library claims no rights) is `None`, an's UNKNOWN. |
+| [`DFLT_PAUSE_S`](#an.music_library.DFLT_PAUSE_S)   | a library is someone's website).   |
+|-----------------------------------------------------------------|------------------------------------|
 
 ### Functions
 
 | [`acquire`](#an.music_library.acquire)(library, titles, \*, out[, pause, config])   | foley's `acquire()`, paced by `pause`.                                                                                                                                                                                                                                            |
 |-------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`add_track_to_sounds`](#an.music_library.add_track_to_sounds)(store, key, track, files, \*)    | Put one acquired track in the sounds `store` under `key` (an#623).                                                                                                                                                                                                                |
-| [`asset_source`](#an.music_library.asset_source)(track, \*[, codes])                     | One foley row as an's [`AssetSource`](an.ir.assets.html.md#an.ir.assets.AssetSource).                                                                                                                                                                      |
+| [`asset_source`](#an.music_library.asset_source)(track)                                  | One foley row as an's [`AssetSource`](an.ir.assets.html.md#an.ir.assets.AssetSource).                                                                                                                                                                      |
 | [`attribution_text`](#an.music_library.attribution_text)(rows)                               | The attribution blocks to paste under a video, one per track that has one (acquired or kept), blank-line separated, each once.                                                                                                                                                    |
 | [`files_store`](#an.music_library.files_store)(out)                                     | `out` as a `{file name: bytes}` store: a mapping is used as it is; a folder becomes foley's file store over it (`foley.stores.make_byte_store()`, which makes the folder on its first write).                                                                                     |
 | [`kept_digests`](#an.music_library.kept_digests)(table)                                  | `{file: sha256}` of the acquired or kept rows of a tracks table: what a rerun may keep.                                                                                                                                                                                           |
 | [`kept_sources`](#an.music_library.kept_sources)(table)                                  | `{file: {"sha256", "url", "mirror"}}` of the acquired or kept rows of a tracks table: [`kept_digests()`](#an.music_library.kept_digests) with where each file came from, so a kept row still says which URL and mirror served it (`acquire(kept=...)` takes either). |
-| [`license_code`](#an.music_library.license_code)(license_id, \*[, codes])                | foley's licence id as an's code: `codes` first, else the id in lowercase.                                                                                                                                                                                                         |
+| [`license_code`](#an.music_library.license_code)(license_id)                             | foley's licence id as an's code: foley's `consumer_license_code`, the one mapping (an#729), imported on first use.                                                                                                                                                                |
 | [`probe_verify`](#an.music_library.probe_verify)(data, \*[, probe, has_audio, suffix])   | The duration of the audio `data`, in seconds.                                                                                                                                                                                                                                     |
 | [`read_tracks_table`](#an.music_library.read_tracks_table)(text)                              | The rows of a tracks table ([`tracks_table()`](#an.music_library.tracks_table)'s CSV text), as written; a byte-order mark an editor added (Excel does) is not part of the first column.                                                                              |
 | [`register_music_library`](#an.music_library.register_music_library)(library, \*[, replace])       | Add `library` to `MUSIC_LIBRARIES` (`replace` to redefine one).                                                                                                                                                                                                                   |
@@ -157,14 +157,6 @@ Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWa
 A tracks-table row named columns that set nothing, and [`AcquiredTrack.from_row()`](#an.music_library.AcquiredTrack.from_row)
 dropped them.
 
-### an.music_library.FOLEY_LICENSE_CODES *: [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)]* *= {'unknown': None}*
-
-`unknown` (a paid
-library claims no rights) is `None`, an’s UNKNOWN.
-
-* **Type:**
-  foley licence ids whose an code is not the id in lowercase
-
 ### *class* an.music_library.MusicLibrary(name, author, license_url=None, track_url=None, attribution='"{title}" {author}', author_url=None, aliases=(), file_name=<function safe_file_name>)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
@@ -239,7 +231,7 @@ other keyword (`fetch`, `mirrors`, `verify`, `kept`, `intended_use`,
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`AcquiredTrack`](#an.music_library.AcquiredTrack)]
 
-### an.music_library.add_track_to_sounds(store, key, track, files, , start=None, duration=None, fade_out=None, description='', codes={'unknown': None})
+### an.music_library.add_track_to_sounds(store, key, track, files, , start=None, duration=None, fade_out=None, description='')
 
 Put one acquired track in the sounds `store` under `key` (an#623).
 
@@ -250,7 +242,7 @@ folder as `{file name: bytes}` (`files_store(out)`). The file it names
 is checked against its `sha256`, cut with [`an.sound_fetch.cut_to_wav()`](an.sound_fetch.html.md#an.sound_fetch.cut_to_wav)
 (`start`, `duration`, `fade_out`, as `an sounds add` takes them) and
 stored with the track as its [`AssetSource`](an.ir.assets.html.md#an.ir.assets.AssetSource)
-([`asset_source()`](#an.music_library.asset_source), `codes`) plus the cut, the file’s digest as
+([`asset_source()`](#an.music_library.asset_source)) plus the cut, the file’s digest as
 `file_sha256`, so `an credits` lists the music with its licence. Nothing
 is fetched again: the site may be the one that refused scripts.
 
@@ -261,7 +253,7 @@ is fetched again: the site may be the one that refused scripts.
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
-### an.music_library.asset_source(track, , codes={'unknown': None})
+### an.music_library.asset_source(track)
 
 One foley row as an’s [`AssetSource`](an.ir.assets.html.md#an.ir.assets.AssetSource).
 
@@ -331,9 +323,10 @@ still says which URL and mirror served it (`acquire(kept=...)` takes either).
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
 
-### an.music_library.license_code(license_id, , codes={'unknown': None})
+### an.music_library.license_code(license_id)
 
-foley’s licence id as an’s code: `codes` first, else the id in lowercase.
+foley’s licence id as an’s code: foley’s `consumer_license_code`, the
+one mapping (an#729), imported on first use.
 
 ```pycon
 >>> license_code("CC0-1.0"), license_code("unknown"), license_code(None)

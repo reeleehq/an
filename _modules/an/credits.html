@@ -855,6 +855,14 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">publishable</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">noncommercial</span>
 
     <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ai_generated</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">CreditEntry</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">"""``(entry, label)`` for every entry that records an AI disclosure (a</span>
+<span class="sd">        foley export, an#729): what its disclosure says (:func:`an.sound_fetch.ai_label`)."""</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.sound_fetch</span><span class="w"> </span><span class="kn">import</span> <span class="n">ai_label</span>
+
+        <span class="k">return</span> <span class="p">[(</span><span class="n">e</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">entries</span> <span class="k">if</span> <span class="p">(</span><span class="n">label</span> <span class="o">:=</span> <span class="n">ai_label</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">source</span><span class="p">))]</span>
+
+    <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">private</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">CreditEntry</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""Entries that may NOT be published: all rights reserved, private</span>
 <span class="sd">        study only (an#211). A video containing any of them is not shippable,</span>
@@ -893,6 +901,10 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"unverified"</span><span class="p">:</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">unverified</span><span class="p">],</span>
             <span class="s2">"private_study"</span><span class="p">:</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">private</span><span class="p">],</span>
             <span class="s2">"non_commercial"</span><span class="p">:</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">noncommercial</span><span class="p">],</span>
+            <span class="s2">"ai_generated"</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span><span class="s2">"asset"</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">asset</span><span class="p">,</span> <span class="s2">"disclosure"</span><span class="p">:</span> <span class="n">label</span><span class="p">}</span>
+                <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ai_generated</span>
+            <span class="p">],</span>
             <span class="s2">"own_work"</span><span class="p">:</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">entries</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">own_work</span><span class="p">],</span>
             <span class="s2">"publishable"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">publishable</span><span class="p">,</span>
             <span class="s2">"commercial"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">commercial</span><span class="p">,</span>
@@ -961,6 +973,10 @@ window.runMermaid = runMermaid;</script>
                     <span class="s2">"was recorded — the record is incomplete)"</span>
                 <span class="p">)</span>
                 <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">text</span><span class="si">}{</span><span class="n">_detail</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ai</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ai_generated</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"AI-GENERATED (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">ai</span><span class="p">)</span><span class="si">}</span><span class="s2">) — what each disclosure asks:"</span><span class="p">)</span>
+            <span class="n">lines</span> <span class="o">+=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">ai</span><span class="p">]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">unverified</span><span class="p">:</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
@@ -1020,11 +1036,15 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># Audio's revenue cap), on any asset made under them; a non-commercial</span>
         <span class="c1"># licence's restriction (an#373).</span>
         <span class="n">out</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">" (</span><span class="si">{</span><span class="n">restriction</span><span class="si">}</span><span class="s2">)"</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.sound_fetch</span><span class="w"> </span><span class="kn">import</span> <span class="n">cut_label</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.sound_fetch</span><span class="w"> </span><span class="kn">import</span> <span class="n">notice_label</span><span class="p">,</span> <span class="n">where_label</span>
 
-    <span class="k">if</span> <span class="n">cut</span> <span class="o">:=</span> <span class="n">cut_label</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">source</span><span class="p">):</span>
-        <span class="c1"># A sound cut from fetched media says which part of which page (an#318).</span>
-        <span class="n">out</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">" — </span><span class="si">{</span><span class="n">cut</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">if</span> <span class="n">notice</span> <span class="o">:=</span> <span class="n">notice_label</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">source</span><span class="p">):</span>
+        <span class="c1"># A notice the licence requires shown verbatim (a foley export, an#729).</span>
+        <span class="n">out</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">" — notice required: </span><span class="si">{</span><span class="n">notice</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">if</span> <span class="n">where</span> <span class="o">:=</span> <span class="n">where_label</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">source</span><span class="p">):</span>
+        <span class="c1"># A fetched asset says which part of which page (an#318), or which page</span>
+        <span class="c1"># when kept whole (an#729), so its terms can be checked.</span>
+        <span class="n">out</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">" — </span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">"</span>
     <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">covers</span><span class="p">:</span>
         <span class="n">out</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">" — covers </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">covers</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
     <span class="k">return</span> <span class="n">out</span>
