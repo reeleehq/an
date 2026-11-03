@@ -410,7 +410,7 @@ def test_a_voice_of_only_short_lines_is_leveled_not_taken_for_silence():
 
 @pytest.mark.ffmpeg
 def test_room_tone_is_not_raised_past_the_gain_cap():
-    from an.audio.loudness import MAX_GAIN_DB
+    from an.audio.loudness import MAX_GAIN_DB, VoiceLoudnessWarning
 
     rng = np.random.default_rng(0)
     tone = _wav(rng.normal(0, 10 ** (-60 / 20), RATE * 2))  # ~ -62 LUFS of noise
@@ -424,7 +424,11 @@ def test_room_tone_is_not_raised_past_the_gain_cap():
         if d.speaker == "clone_a"
     }
     assert gains == {MAX_GAIN_DB}
-    assert any("capped" in str(w.message) for w in caught)
+    # said of the voice, as an's own warning: mixing's GainCappedWarning is
+    # relabelled from its fields, never passed on about a "group" (an#699)
+    (said,) = [w for w in caught if "mostly noise; capped" in str(w.message)]
+    assert said.category is VoiceLoudnessWarning
+    assert str(said.message).startswith("voice 'clone_a' measures ")
 
 
 def test_a_bad_offset_is_refused_with_its_bounds():

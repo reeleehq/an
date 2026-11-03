@@ -126,9 +126,11 @@ def _require_ffmpeg(doing: str) -> None:
 
 def _component() -> Any:
     """:mod:`mixing.loudness`, or :class:`VoiceLoudnessError` when the installed
-    ``mixing`` predates it."""
+    ``mixing`` predates it or the parts used here: ``group_lufs``, per-segment
+    rates and ``GainCappedWarning`` (mixing#85, an#699)."""
     with mixing_too_old(needed_for="leveling voices", error=VoiceLoudnessError):
         from mixing import loudness
+        from mixing.loudness import GainCappedWarning, group_lufs  # noqa: F401
     return loudness
 
 
@@ -164,46 +166,28 @@ def _encode(pcm: _Pcm) -> bytes:
     return buf.getvalue()
 
 
-def _at_one_rate(pcms: list[_Pcm]) -> tuple[list[Any], int]:
-    """``(segments, rate)``: the lines at the first line's rate (a voice's lines
-    share a provider, so a rate; another is resampled), each keeping its
-    channels — :func:`mixing.loudness.level_group` joins them back to back,
-    keeping channels when they all agree (EBU R128 weights channels) and
-    looping a short voice to :data:`MIN_MEASURE_S`."""
-    import numpy as np
-
-    if not pcms:
-        return [], 48000
-    rate = pcms[0].rate
-    segments = []
-    for p in pcms:
-        x = p.samples
-        if p.rate != rate and len(x):
-            positions = np.arange(0, len(x), p.rate / rate)
-            x = np.stack(
-                [
-                    np.interp(positions, np.arange(len(x)), x[:, c])
-                    for c in range(x.shape[1])
-                ],
-                axis=1,
-            )
-        segments.append(x)
-    return segments, rate
-
-
 def _meter(data: Any, fs: int) -> float:
     """The meter :func:`mixing.loudness.level_group` is given: this module's
     :func:`integrated_loudness` (looked up at call time, so it can be counted)."""
     return integrated_loudness(_Pcm(data, fs))
 
 
+def _group_args(pcms: list[_Pcm]) -> tuple[list[Any], list[int]]:
+    """A voice's decoded lines as :mod:`mixing.loudness` takes a group: the
+    segments and one rate each (it resamples them, polyphase, to the highest,
+    an#699), each keeping its channels — they are joined back to back, keeping
+    channels when they all agree (EBU R128 weights channels), and a short voice
+    is looped to :data:`MIN_MEASURE_S`."""
+    return [p.samples for p in pcms], [p.rate for p in pcms]
+
+
 def _level_group(pcms: list[_Pcm], *, target_lufs: float, max_gain_db: float):
     """:func:`mixing.loudness.level_group` over a voice's decoded lines:
     ``(gain_db, measured_lufs)``, measured by :data:`METER`."""
-    segments, rate = _at_one_rate(pcms)
+    segments, rates = _group_args(pcms)
     return _component().level_group(
         segments,
-        rate,
+        rates,
         target_lufs=target_lufs,
         meter=_meter,
         max_gain_db=max_gain_db,
@@ -211,9 +195,25 @@ def _level_group(pcms: list[_Pcm], *, target_lufs: float, max_gain_db: float):
     )
 
 
+def _capped_message(voice: str, capped: Any) -> str:
+    """What ``mixing``'s ``GainCappedWarning`` says (of a "group"), said of
+    ``voice`` from its fields (an#699)."""
+    return (
+        f"voice {voice!r} measures {capped.measured_lufs:.1f} LUFS: reaching "
+        f"{capped.target_lufs:g} would take {capped.requested_gain_db:.1f} dB, "
+        f"mostly noise; capped at +{capped.max_gain_db:g} dB"
+    )
+
+
 def group_loudness(pcms: list[_Pcm]) -> float:
-    """The integrated loudness of a voice's lines, measured back to back."""
-    return _level_group(pcms, target_lufs=0.0, max_gain_db=float("inf"))[1]
+    """The integrated loudness of a voice's lines, measured back to back
+    (:func:`mixing.loudness.group_lufs`, an#699); ``-inf`` for no lines."""
+    if not pcms:
+        return float("-inf")
+    segments, rates = _group_args(pcms)
+    return _component().group_lufs(
+        segments, rates, meter=_meter, min_measure_s=MIN_MEASURE_S
+    )
 
 
 # -----------------------------------------------------------------------------
@@ -420,11 +420,9 @@ def level_voices(
         level = VoiceLevel(voice, lufs, lines=len(lines))
         levels.append(level)
         for caught in capped:
-            if (
-                caught.category is UserWarning
-            ):  # the component capped the gain: said per voice
+            if issubclass(caught.category, _component().GainCappedWarning):
                 warnings.warn(
-                    f"voice {voice!r}: {caught.message}",
+                    _capped_message(voice, caught.message),
                     VoiceLoudnessWarning,
                     stacklevel=3,
                 )
