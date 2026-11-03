@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-11-03
+- `an.kinematics.solve`: a held loop the geometry shows can hold (a chain of bare links between rigid ends, in reach) is kept converging instead of being read as a conflict when its rate is slow, so a long rope's grip is no longer given up and led back over and over (`SOLVER_VERSION` 8, an#706).
 - File stores follow one folder rule (`an.stores._common.LazyFolder`): a folder is made by the first write, never by a read (`JsonSidecarStore.sidecar_path` no longer makes the entry folder), and a missing one lists as empty, so `build_project_mall` lays out nothing of an's own; the stores' flag is `ensure` (was `create`), and `ensure=True` (`an init`) lays out the same tree as before through the stores and `UNSTORED_FOLDERS`; lacing's two stores follow once reeleehq/lacing#155 lands (an#696).
 - `an.ir.world.planes_at_infinity(world, environments)`: the validate check's rule of which planes are at infinity (listed `far`, or in a frame coupled `far`), as `PlaneAtInfinity` records with a reason and an IR path, public for a genre's far-plate critic; a travel plate listed under two roles is refused as the scene loads; genre API level 17 (an#735).
 - Voice leveling resamples lines at another rate with ffmpeg (one call per rate), not mixing's scipy-backed resampler, so a voice whose lines differ in rate measures without scipy (fixes an#699's regression in the rendering lane).
