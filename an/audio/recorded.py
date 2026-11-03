@@ -1472,21 +1472,23 @@ _TIMED_BY: Mapping[str, str] = {"asr": "the transcriber", "align": "the aligner"
 
 
 def _overlap_remedy(kind: str, *, tolerance_s: float) -> str:
-    """What to do about two overlapping lines of a take of ``kind``: fix the
-    transcript's times, unless a machine made them (an#739).
+    """What to do about two overlapping lines of a take of ``kind`` (an#739):
+    fix the transcript's times, or give one when a machine made them; either
+    way, a tolerance (``overlap_tolerance_s=`` / ``--overlap-tolerance``) lets
+    a small overlap through.
 
     >>> _overlap_remedy("srt", tolerance_s=0.05)
-    "or fix the transcript's times"
+    "fix the transcript's times, or raise overlap_tolerance_s= / --overlap-tolerance (0.05 s now)"
     >>> _overlap_remedy("asr", tolerance_s=0.05)
-    'or, as the transcriber timed them, give a timed transcript (SRT, TextGrid), or raise --overlap-tolerance (0.05 s now)'
+    'as the transcriber timed them, give a timed transcript (SRT, TextGrid), or raise overlap_tolerance_s= / --overlap-tolerance (0.05 s now)'
     """
     timer = _TIMED_BY.get(kind.rpartition("+")[2])
-    if timer is None:
-        return "or fix the transcript's times"
-    return (
-        f"or, as {timer} timed them, give a timed transcript (SRT, TextGrid), "
-        f"or raise --overlap-tolerance ({tolerance_s:g} s now)"
+    fix = (
+        "fix the transcript's times"
+        if timer is None
+        else f"as {timer} timed them, give a timed transcript (SRT, TextGrid)"
     )
+    return f"{fix}, or raise overlap_tolerance_s= / --overlap-tolerance ({tolerance_s:g} s now)"
 
 
 def _refuse_overlaps(
@@ -1507,7 +1509,7 @@ def _refuse_overlaps(
     >>> _refuse_overlaps([a, b], name="t.wav", kind="srt")
     Traceback (most recent call last):
       ...
-    an.audio.recorded.RecordedVoicesError: t.wav: 'Hello.' (0.00–1.00 s) and 'Yo.' (0.50–0.80 s) overlap: two voices at once cannot be cut into a take each; give them separate files, or fix the transcript's times. Nothing was written.
+    an.audio.recorded.RecordedVoicesError: t.wav: 'Hello.' (0.00–1.00 s) and 'Yo.' (0.50–0.80 s) overlap: two voices at once cannot be cut into a take each; give them separate files, fix the transcript's times, or raise overlap_tolerance_s= / --overlap-tolerance (0.05 s now). Nothing was written.
     """
     timed = [s for s in segments if s.timed]
     for prev, seg in zip(timed, timed[1:]):

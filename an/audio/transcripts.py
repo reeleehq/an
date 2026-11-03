@@ -761,8 +761,8 @@ def _speech(tiers: Tiers, name: str | None) -> list[WordTiming]:
 
 
 def _lines(tiers: Tiers, name: str | None) -> list[WordTiming]:
-    """The non-empty intervals of lines tier ``name`` as ``(label, start,
-    end)``; ``[]`` when there is no such tier, or only empty intervals in it
+    """The spoken intervals of lines tier ``name`` (not empty, not a silence
+    label such as ``sil`` or ``<sp>``) as ``(label, start, end)``; ``[]`` when there is no such tier, or only empty intervals in it
     (a speaker with an empty lines tier is read by its words, an#739).
 
     >>> _lines({"utterances": [(0.0, 0.5, " "), (0.5, 1.0, "Hi.")]}, "utterances")
@@ -770,7 +770,7 @@ def _lines(tiers: Tiers, name: str | None) -> list[WordTiming]:
     """
     if name is None:
         return []
-    return [(t, a, b) for a, b, t in tiers[name] if t.strip()]
+    return [(t, a, b) for a, b, t in tiers[name] if t.strip() and _is_speech(t)]
 
 
 def _within(timings: Sequence[WordTiming], a: float, b: float) -> tuple | None:
