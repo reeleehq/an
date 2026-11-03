@@ -32,18 +32,24 @@ cuts what is left by more than :data:`DFLT_STALL_PROGRESS`, up to
 :data:`DFLT_CONVERGE_CAP` times ``iterations`` (an#568). A round that stalls
 is a conflict after all (a grip inside the arm's length but past its elbow's
 range converges at first, then sits a pixel short), and what is left after the
-cap is only reported. Only the failure on loops the geometry cannot vouch for
-is judged by its progress (an#706): a chain between two rigid ends, its links
-bare (pins only, no range, no held channel), holding as the frame starts
-(within :data:`DFLT_REGRIP_SNAP`) and within reach, can go on holding, so its
-failure is slow convergence however slowly it falls (Gauss–Seidel's rate drops
-with the chain's length: a 70-link rope's held grip cut its failure to 0.65 at
-the retry and was given up, then taken back, then given up again). It is
-never given up for that; what the cap leaves on it is a jump no frame makes
-at once (the end carried too far in one frame), given up like a conflict so a
-run of frames leads it back. A loop being closed this frame from afar (a grip
-taken back), a tree or a ranged elbow keeps the rule. A failure judged not
-slow is a conflict, settled per
+cap is only reported. A HELD LOOP is judged apart (an#706): a chain between
+two rigid ends whose links are bare (pins only: no range, weld, distance,
+contact, slide, pull or held channel) and whose ends are within its reach
+(an exact test) can hold, and its rigid ends cut it off from every other
+joint, so its failure is slow convergence however slowly it falls
+(Gauss–Seidel's rate drops with the chain's length: a 70-link rope's held
+grip cut its failure to 0.65 at the retry and was given up, taken back, given
+up again). It is given passes while it fails, up to the cap, whatever the
+other joints do, and never weighed in their conflict; at the cap only its own
+residual decides: past :data:`DFLT_HELD_JUMP` it is a jump no frame makes at
+once (its end carried too far) and gives up its grip, which a run of frames
+leads back; short of that it is reported. One more condition, that the loop
+already holds as the frame starts (within :data:`DFLT_HELD_GAP`), tells a hold
+from a take: a grip taken back from afar keeps the rule below and is led back
+(an#645) rather than snapped across the gap in one frame, and its frame does
+not pay the cap. The other joints, a tree or a ranged elbow among them, are
+judged by their progress as above; a failure judged not slow is a conflict,
+settled per
 LOOP: the joints that share a cycle through the held bodies with a failing
 one are tried last-declared first, and the first whose loss at least halves
 the failure is given up for the frame (an#641: a rope held at both ends gives
@@ -134,9 +140,7 @@ DFLT_CONFLICT_PROGRESS: float = 0.5
 #: takes it back in about a second.
 DFLT_REGRIP_SPEED: float = 600.0
 #: A led grip is taken (its pin enforced again) once its gap is this small
-#: (scene units): the rejoin the stage's own check calls a snap is over 2. The
-#: same line tells a loop held as the frame starts from one being closed across
-#: a gap (an#706: only the first is kept converging whatever its rate).
+#: (scene units): the rejoin the stage's own check calls a snap is over 2.
 DFLT_REGRIP_SNAP: float = 1.0
 #: The strength of that lead (a :class:`Force` pull toward the walking point,
 #: which closes no loop a conflict could settle by giving up a link), for
@@ -144,6 +148,18 @@ DFLT_REGRIP_SNAP: float = 1.0
 #: bodies weigh more scales it (the stage: by the led chain's mass, :func:`regrip_strength_by_mass`).
 #: Too stiff, it drags a chain past a range it cannot keep (an#568's elbow).
 DFLT_REGRIP_STRENGTH: float = 1e6
+#: A loop counts as HELD as the frame starts (an#706) when each of its joints
+#: is at most this far apart (scene units) in the input poses, before the
+#: frame's targets move anything: a grip carried this frame was held on the
+#: last. (The regrip's :data:`DFLT_REGRIP_SNAP` is measured after the targets.)
+DFLT_HELD_GAP: float = 1.0
+#: A held loop the cap leaves failing gives up its grip only when a joint of it
+#: is still more than this apart (scene units): a jump no frame makes at once
+#: (its end carried too far), led back over frames (an#645). Less is reported,
+#: as what the cap leaves on a contested frame is: a 70-link rope's end swept
+#: at 600 units/s was left 0.254 apart (tolerance 0.25), and with no such
+#: margin gave its grip up and never took it back.
+DFLT_HELD_JUMP: float = 1.0
 #: The most trial solves :func:`solve` spends looking for the joint to give
 #: up in a conflict (each is a full solve of the frame).
 DFLT_MAX_DROP_TRIALS: int = 12
@@ -167,7 +183,8 @@ DFLT_SEGMENT_MARGIN: float = 0.5
 #: out of reach is led back over several frames (an#645); 6: the stage's per-frame
 #: solve leads lost grips back too (an#668); 7: it pulls each lead by the led
 #: chain's own mass (an#672); 8: a held loop the geometry shows can hold is
-#: kept converging, never given up for its rate (an#706).
+#: judged apart: kept converging, never given up for its rate or for a conflict
+#: elsewhere, only for a jump the cap leaves (an#706).
 SOLVER_VERSION: str = "8"
 #: The most passes a frame whose first retry made progress is given, as a
 #: multiple of ``iterations``: its retry is repeated with ``retry`` times the
@@ -888,8 +905,8 @@ def _out_of_reach(st: _State, rows: list[_Row], tolerance: float) -> list[int]:
 
 def _held_loops(
     st: _State, rows: list[_Row], tolerance: float, *, closed: frozenset[int]
-) -> frozenset[int]:
-    """The joints of every loop that is HELD and that the geometry alone shows
+) -> tuple[tuple[int, ...], ...]:
+    """The joints, per loop, of every loop that is HELD and that the geometry alone shows
     can go on holding (an#706): a chain between two rigid ends, within reach
     (:func:`_within_reach`), every joint of it in ``closed`` (holding as the
     frame starts), and its links bare, touched by nothing but the chain's own
@@ -914,13 +931,12 @@ def _held_loops(
             for i, *_ in chain[2]
         )
 
-    return frozenset(
-        j
+    return tuple(
+        tuple(chain[5])
         for chain in _rigid_chains(st, rows)
         if closed.issuperset(chain[5])
         and bare(chain)
         and _within_reach(st, chain, tolerance)
-        for j in chain[5]
     )
 
 
@@ -1220,12 +1236,12 @@ def solve(
     # a loop held as the frame starts that it shows can go on holding is never
     # in conflict (an#706).
     st0 = _State(bodies)
-    closed = _closed_joints(st0, joints, within=DFLT_REGRIP_SNAP)
+    closed = _closed_joints(st0, joints, within=DFLT_HELD_GAP)
     st0.drive(targets)
     st0.restore_held()
     rows0 = _rows(st0, joints, forces)
     unreachable = _out_of_reach(st0, rows0, tolerance) if drop_conflicts else []
-    held_loops = _held_loops(st0, rows0, tolerance, closed=closed)
+    held = _held_loops(st0, rows0, tolerance, closed=closed)
     starts: dict[bool, tuple[list[float], list[float], list[float]]] = {}
 
     def attempt(passes: int, skip: Sequence[int], *, nudge: bool) -> _Attempt:
@@ -1283,12 +1299,20 @@ def solve(
     if result.failure and retry > 1:
         # Slow to converge, a singular start (a straight chain pushed along
         # its length), or a conflict? More passes from a nudged start first.
-        # Only the contested failure is judged by its progress: a loop the
-        # geometry shows can hold is converging, however slowly (an#706: a
+        # Two kinds of joints, judged apart (an#706). A held loop the geometry
+        # shows can hold is cut off from the rest by its rigid ends: it gets
+        # passes while it fails, up to the cap, however slowly it converges (a
         # 70-link rope's grip in reach cut its failure by a third, not a half,
-        # and was given up, then taken back, then given up again).
+        # and was given up, then taken back, then given up again), and only
+        # its own residual at the cap decides it. The rest (contested) is
+        # judged by its progress.
+        held_joints = frozenset(j for loop in held for j in loop)
+
         def contested(a: _Attempt) -> float:
-            return a.failure_outside(held_loops)
+            return a.failure_outside(held_joints)
+
+        def held_failing(a: _Attempt) -> bool:
+            return any(j in held_joints for j, _share in a.shares)
 
         passes = iterations * retry
         retried = attempt(passes, unreachable, nudge=True)
@@ -1298,22 +1322,33 @@ def solve(
         # One that stalls short of holding is a conflict too (an#568: a grip
         # within the arm's length but past its elbow's range halved once, then
         # sat at 1.2 px for any number of passes).
-        while slow and result.failure and passes * retry <= iterations * converge_cap:
+        while (
+            held_failing(result) or (slow and contested(result))
+        ) and passes * retry <= iterations * converge_cap:
             passes *= retry
             more = attempt(passes, unreachable, nudge=True)
-            slow = contested(more) <= DFLT_STALL_PROGRESS * contested(result)
+            if slow:
+                slow = contested(more) <= DFLT_STALL_PROGRESS * contested(result)
             result = more if more.failure <= result.failure else result
-        if drop_conflicts and result.failure and not (slow and contested(result)):
-            # A stall is a conflict among the contested joints; what the cap
-            # leaves on a loop that can hold is a jump no frame makes at once
-            # (a grip back in reach far from the rope's end), given up like a
-            # conflict so that a run of frames leads it back (an#645).
-            result = _give_up_conflicts(
-                result,
-                attempt,
-                passes=iterations * retry,
-                settled=frozenset() if slow else held_loops,
+        if drop_conflicts and not slow and contested(result):
+            # A stall among the contested joints is a conflict, settled per
+            # loop with the held loops neither weighed nor candidates; its
+            # trials run at the retry's passes, so the held loops are then
+            # given theirs again (a trial would leave them torn).
+            settled = _give_up_conflicts(
+                result, attempt, passes=iterations * retry, settled=held_joints
             )
+            if held and settled.dropped != result.dropped:
+                again = attempt(passes, settled.dropped, nudge=True)
+                while held_failing(again) and passes * retry <= iterations * converge_cap:
+                    passes *= retry
+                    more = attempt(passes, settled.dropped, nudge=True)
+                    again = more if more.failure <= again.failure else again
+                settled = again if again.failure <= settled.failure else settled
+            result = settled
+        jumps = _jumps(result, held, jump=DFLT_HELD_JUMP) if drop_conflicts else ()
+        if jumps:  # what the cap leaves on a held loop is reported, unless a jump
+            result = attempt(passes, (*result.dropped, *jumps), nudge=True)
     if not all(math.isfinite(v) for v in result.st.as_array().flat):
         raise KinematicsError(
             "the solve produced a non-finite pose; check the inputs' scale"
@@ -1352,6 +1387,19 @@ class _Attempt:
     def failure_outside(self, settled: Collection[int]) -> float:
         """The failure of the joints not in ``settled``."""
         return sum(share for j, share in self.shares if j not in settled)
+
+
+def _jumps(
+    result: _Attempt, held: Sequence[tuple[int, ...]], *, jump: float
+) -> tuple[int, ...]:
+    """The grips (last-declared joints) of the held loops ``result`` leaves
+    with a joint more than ``jump`` apart (an#706): a jump no frame makes at
+    once (the end carried too far), led back over frames (an#645)."""
+    return tuple(
+        max(loop)
+        for loop in held
+        if max((r for j, r in result.unsatisfied if j in loop), default=0.0) > jump
+    )
 
 
 def _give_up_conflicts(
