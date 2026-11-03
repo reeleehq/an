@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=159d369e"></script>
+    <script src="../_static/documentation_options.js?v=3f26f144"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.359" />
+  <meta name="docsearch:version" content="0.1.360" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -823,7 +823,7 @@ genre defined in the same process).</p>
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.genres.API_LEVEL">
-<span class="sig-prename descclassname"><span class="pre">an.genres.</span></span><span class="sig-name descname"><span class="pre">API_LEVEL</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">14</span></span><a class="headerlink" href="#an.genres.API_LEVEL" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.genres.</span></span><span class="sig-name descname"><span class="pre">API_LEVEL</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">15</span></span><a class="headerlink" href="#an.genres.API_LEVEL" title="Link to this definition">#</a></dt>
 <dd><p>every hook, registry
 field a genre package may rely on. Bumped by each change a
 genre needs (the P8 seam PRs and each move to <code class="docutils literal notranslate"><span class="pre">cutan</span></code>, an#225), never
@@ -868,6 +868,8 @@ it reads <code class="docutils literal notranslate"><span class="pre">getattr(an
 <code class="docutils literal notranslate"><span class="pre">as_choice</span></code>, <code class="docutils literal notranslate"><span class="pre">an.audio.loudness.voice_loudness_offset</span></code>.</p>
 </dd>
 <dt>14 = a kind’s own shot sizes (reeleehq/cutan#106): <a href="#id1"><span class="problematic" id="id2">``</span></a>EntityKind.shot_sizes(entity, mall,</dt><dd><p>box)``, which the world’s framing reads instead of <code class="docutils literal notranslate"><span class="pre">SHOT_SIZES</span></code>.</p>
+</dd>
+<dt>15 = a project’s <code class="docutils literal notranslate"><span class="pre">.gitignore</span></code> read by git’s rules (an#725): <code class="docutils literal notranslate"><span class="pre">an.project.gitignored</span></code></dt><dd><p>and <code class="docutils literal notranslate"><span class="pre">gitignore_matcher</span></code>, for a genre that copies a project (cutan’s projects store).</p>
 </dd>
 </dl>
 <dl class="field-list simple">

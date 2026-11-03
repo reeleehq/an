@@ -23,8 +23,10 @@ Layout (from spec §11):
 
 ### Functions
 
-| [`init`](#an.project.init)(project_dir, \*[, name, force])      | Create a fresh an project at `project_dir`.                                                                                                                                                                                                                                                                                                                                                           |
+| [`gitignore_matcher`](#an.project.gitignore_matcher)([lines])                | `rel -> bool`: whether any of `lines` (each a `.gitignore` line) covers the project-relative POSIX path `rel`, by git's rules (an#725): a line with a `/` before its end is anchored at the project root, one without matches a name at any depth; a trailing `/` matches folders only; wildcards never cross a `/`; a matched folder covers everything under it; case counts.                        |
 |--------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`gitignored`](#an.project.gitignored)(rel, \*[, lines])              | Whether a project's `.gitignore` keeps `rel` (a project-relative POSIX path) local: [`PROJECT_GITIGNORE`](#an.project.PROJECT_GITIGNORE), or `lines`, read by git's rules ([`gitignore_matcher()`](#an.project.gitignore_matcher), an#725).                                                                                                                               |
+| [`init`](#an.project.init)(project_dir, \*[, name, force])      | Create a fresh an project at `project_dir`.                                                                                                                                                                                                                                                                                                                                                           |
 | [`keep_out_of_git`](#an.project.keep_out_of_git)(pdir, lines)              | Add `lines` to an OLDER project's `.gitignore` (an `an init` from before they existed left them out) — conservatively: never a line whose folder the file already says anything about (a project may have chosen to commit its reports, `!artifacts/render_reports/`), never through a symlink (a shared ignore file), and never creating a `.gitignore` in a project that is not in a git work tree. |
 | [`keep_reports_out_of_git`](#an.project.keep_reports_out_of_git)(pdir)             | Add [`RENDER_REPORTS_GITIGNORE`](#an.project.RENDER_REPORTS_GITIGNORE) to an older project's `.gitignore` the first time a render writes a report (an#309), by [`keep_out_of_git()`](#an.project.keep_out_of_git)'s rules.                                                                                                                                                     |
 | [`load`](#an.project.load)(project_dir, \*[, check_kinds, ...]) | Load an existing project.                                                                                                                                                                                                                                                                                                                                                                             |
@@ -60,6 +62,52 @@ A loaded an project: directory + mall + current scene.
 
 A render report records what a render on THIS machine found — warnings,
 exception text — so it is per-machine output, not project source (an#254).
+
+### an.project.gitignore_matcher(lines=('artifacts/render_reports/', 'artifacts/probes/', 'artifacts/voice_options/\*.lock'))
+
+`rel -> bool`: whether any of `lines` (each a `.gitignore` line)
+covers the project-relative POSIX path `rel`, by git’s rules (an#725): a
+line with a `/` before its end is anchored at the project root, one
+without matches a name at any depth; a trailing `/` matches folders only;
+wildcards never cross a `/`; a matched folder covers everything under it;
+case counts. What it does not read the way git does is refused with a
+`ValueError` rather than misread (a misread line could copy what it
+should keep local): negation (`!`), comments (`#`), `**`, escapes
+(`\`), `[^...]`, POSIX classes (`[:alpha:]`), surrounding spaces and
+empty lines; so is a `rel` that is not a plain project-relative POSIX path
+(a backslash, `./`, `..`). Case always counts, as git’s does with
+`core.ignorecase=false` (on macOS git ignores case by default). For a
+genre or tool that copies a project (a sync, an export) and keeps the
+same files local as git.
+
+```pycon
+>>> local = gitignore_matcher(("artifacts/shot_cache/", "notes.txt", "artifacts/v/*.lock"))
+>>> local("artifacts/shot_cache/blobs/x"), local("deep/notes.txt"), local("artifacts/audio/a.wav")
+(True, True, False)
+>>> local("artifacts/v/a.json.lock"), local("artifacts/v/sub/a.lock")
+(True, False)
+>>> gitignore_matcher(("cache/",))("cache"), gitignore_matcher(("a/*/c",))("a/b/c/d")
+(False, True)
+```
+
+* **Return type:**
+  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`bool`](https://docs.python.org/3/builtins/functions.html#bool)]
+
+### an.project.gitignored(rel, , lines=('artifacts/render_reports/', 'artifacts/probes/', 'artifacts/voice_options/\*.lock'))
+
+Whether a project’s `.gitignore` keeps `rel` (a project-relative
+POSIX path) local: [`PROJECT_GITIGNORE`](#an.project.PROJECT_GITIGNORE), or `lines`, read by git’s
+rules ([`gitignore_matcher()`](#an.project.gitignore_matcher), an#725).
+
+```pycon
+>>> gitignored("artifacts/probes/shot1/frame.png"), gitignored("scene.md")
+(True, False)
+>>> gitignored("artifacts/voice_options/jerry.json.lock")
+True
+```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ### an.project.init(project_dir, , name=None, force=False)
 

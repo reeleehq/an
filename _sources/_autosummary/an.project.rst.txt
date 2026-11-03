@@ -17,6 +17,8 @@ an.project
 
    .. autosummary::
    
+      gitignore_matcher
+      gitignored
       init
       keep_out_of_git
       keep_reports_out_of_git
