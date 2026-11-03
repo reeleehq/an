@@ -1293,7 +1293,9 @@ def solve(
         for j, c in limits:
             if j not in skip:
                 shares.append((j, abs(c) / angle_tolerance))
-        return _Attempt(st, rows, residuals, unsatisfied, limits, tuple(skip), tuple(shares))
+        return _Attempt(
+            st, rows, residuals, unsatisfied, limits, tuple(skip), tuple(shares)
+        )
 
     result = attempt(iterations, unreachable, nudge=False)
     if result.failure and retry > 1:
@@ -1340,7 +1342,9 @@ def solve(
             )
             if held and settled.dropped != result.dropped:
                 again = attempt(passes, settled.dropped, nudge=True)
-                while held_failing(again) and passes * retry <= iterations * converge_cap:
+                while (
+                    held_failing(again) and passes * retry <= iterations * converge_cap
+                ):
                     passes *= retry
                     more = attempt(passes, settled.dropped, nudge=True)
                     again = more if more.failure <= again.failure else again
@@ -2056,7 +2060,9 @@ def _gap(bodies: Sequence[Body], joint: Joint) -> float:
     return _state_gap(_State(bodies), joint)
 
 
-def _closed_joints(st: _State, joints: Sequence[Joint], *, within: float) -> frozenset[int]:
+def _closed_joints(
+    st: _State, joints: Sequence[Joint], *, within: float
+) -> frozenset[int]:
     """The joined pins, hinges and welds of ``joints`` whose points are at most
     ``within`` apart in ``st`` (at the frame's start: what holds already)."""
     return frozenset(
