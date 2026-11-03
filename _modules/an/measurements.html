@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=a7983ba7"></script>
+    <script src="../../_static/documentation_options.js?v=03e0bfbe"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.374" />
+  <meta name="docsearch:version" content="0.1.375" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -761,9 +761,12 @@ window.runMermaid = runMermaid;</script>
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">"MeasurementError"</span><span class="p">,</span>
     <span class="s2">"ShotFindingWarning"</span><span class="p">,</span>
+    <span class="s2">"UNMEASURED_FIX"</span><span class="p">,</span>
+    <span class="s2">"UnmeasuredLengthError"</span><span class="p">,</span>
     <span class="s2">"accept_measured"</span><span class="p">,</span>
     <span class="s2">"clock_owner_for"</span><span class="p">,</span>
     <span class="s2">"declared_duration"</span><span class="p">,</span>
+    <span class="s2">"is_unmeasured"</span><span class="p">,</span>
     <span class="s2">"settle_durations"</span><span class="p">,</span>
     <span class="s2">"warn_findings"</span><span class="p">,</span>
 <span class="p">]</span>
@@ -773,10 +776,39 @@ window.runMermaid = runMermaid;</script>
 <span class="n">META_DURATION_TOLERANCE_S</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.01</span>
 
 
+<span class="c1">#: What the finding of a clock-owned shot never measured suggests; also what</span>
+<span class="c1">#: marks it (:func:`is_unmeasured`): its length is a placeholder.</span>
+<span class="n">UNMEASURED_FIX</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"render the project once (`an render`) so its renderer measures the shot"</span>
+<span class="p">)</span>
+
+
 <div class="viewcode-block" id="MeasurementError">
 <a class="viewcode-back" href="../../_autosummary/an.measurements.html#an.measurements.MeasurementError">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">MeasurementError</span><span class="p">(</span><span class="ne">RuntimeError</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""A measured shot cannot be laid out as asked (e.g. a hold under strict mode)."""</span></div>
+
+
+
+<div class="viewcode-block" id="UnmeasuredLengthError">
+<a class="viewcode-back" href="../../_autosummary/an.measurements.html#an.measurements.UnmeasuredLengthError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">UnmeasuredLengthError</span><span class="p">(</span><span class="n">MeasurementError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A clock-owned shot was never measured, so its length (and every later</span>
+<span class="sd">    shot's start) is a placeholder, and the caller did not accept that."""</span></div>
+
+
+
+<div class="viewcode-block" id="is_unmeasured">
+<a class="viewcode-back" href="../../_autosummary/an.measurements.html#an.measurements.is_unmeasured">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_unmeasured</span><span class="p">(</span><span class="n">finding</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether ``finding`` (one of :func:`settle_durations`') says a shot's</span>
+<span class="sd">    length is a placeholder: its renderer decides it and never measured it.</span>
+
+<span class="sd">    &gt;&gt;&gt; from types import SimpleNamespace as NS</span>
+<span class="sd">    &gt;&gt;&gt; is_unmeasured(NS(suggested_fix=UNMEASURED_FIX)), is_unmeasured(NS(suggested_fix=None))</span>
+<span class="sd">    (True, False)</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">finding</span><span class="p">,</span> <span class="s2">"suggested_fix"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="n">UNMEASURED_FIX</span></div>
 
 
 
@@ -878,6 +910,7 @@ window.runMermaid = runMermaid;</script>
                     <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> is drawn by </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">renderer</span><span class="si">!r}</span><span class="s2">, which decides "</span>
                     <span class="s2">"its length; it is unknown until the first render, so nothing "</span>
                     <span class="s2">"is judged against it yet"</span><span class="p">,</span>
+                    <span class="n">UNMEASURED_FIX</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="p">)</span>
             <span class="c1"># Judge against nothing: long enough for its own dialogue.</span>

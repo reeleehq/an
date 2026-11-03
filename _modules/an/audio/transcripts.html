@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=a7983ba7"></script>
+    <script src="../../../_static/documentation_options.js?v=03e0bfbe"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.374" />
+  <meta name="docsearch:version" content="0.1.375" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1510,6 +1510,19 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="p">[(</span><span class="n">t</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tiers</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">if</span> <span class="n">_is_speech</span><span class="p">(</span><span class="n">t</span><span class="p">)]</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_lines</span><span class="p">(</span><span class="n">tiers</span><span class="p">:</span> <span class="n">Tiers</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">WordTiming</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The spoken intervals of lines tier ``name`` (not empty, not a silence</span>
+<span class="sd">    label such as ``sil`` or ``&lt;sp&gt;``) as ``(label, start, end)``; ``[]`` when there is no such tier, or only empty intervals in it</span>
+<span class="sd">    (a speaker with an empty lines tier is read by its words, an#739).</span>
+
+<span class="sd">    &gt;&gt;&gt; _lines({"utterances": [(0.0, 0.5, " "), (0.5, 1.0, "Hi.")]}, "utterances")</span>
+<span class="sd">    [('Hi.', 0.5, 1.0)]</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="k">return</span> <span class="p">[(</span><span class="n">t</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tiers</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">and</span> <span class="n">_is_speech</span><span class="p">(</span><span class="n">t</span><span class="p">)]</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_within</span><span class="p">(</span><span class="n">timings</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">WordTiming</span><span class="p">],</span> <span class="n">a</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""The timings inside ``[a, b]`` (give or take :data:`_SPAN_EPS_S`), or ``None``."""</span>
     <span class="n">inside</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
@@ -1596,7 +1609,11 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    time-ordered stream, a new segment at each change of speaker, its phones</span>
 <span class="sd">    that speaker's within the turn (:func:`_turn_segments`). There, a tier</span>
 <span class="sd">    with no speaker prefix is ignored (it is nobody's), and so is a speaker</span>
-<span class="sd">    with no words tier: phones are never read as words (an#491).</span>
+<span class="sd">    with no words tier: phones are never read as words (an#491). A speaker</span>
+<span class="sd">    with a lines tier of its own (``"&lt;speaker&gt; - utterances"``, with at least</span>
+<span class="sd">    one non-empty interval) is read by its lines, one segment per interval;</span>
+<span class="sd">    its lines stand in the stream as turn boundaries, so another speaker's</span>
+<span class="sd">    words on either side of one are two turns, not one spanning it (an#739).</span>
 
 <span class="sd">    &gt;&gt;&gt; segments_from_tiers({"words": [(0.5, 0.9, "hello")], "phones": [(0.5, 0.6, "HH"), (0.6, 0.9, "AH0")]})[0].phones</span>
 <span class="sd">    (('HH', 0.5, 0.6), ('AH0', 0.6, 0.9))</span>
@@ -1604,20 +1621,40 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    ...     "carl - words": [(0.0, 0.4, "hi"), (2.0, 2.4, "bye")],</span>
 <span class="sd">    ...     "ned - words": [(0.5, 0.9, "yo")]})]</span>
 <span class="sd">    [('carl', 'hi'), ('ned', 'yo'), ('carl', 'bye')]</span>
+<span class="sd">    &gt;&gt;&gt; [(s.speaker, s.text) for s in segments_from_tiers({</span>
+<span class="sd">    ...     "carl - utterances": [(0.0, 0.5, "Hi there.")],</span>
+<span class="sd">    ...     "ned - utterances": [(0.8, 1.5, "Yo.")]})]</span>
+<span class="sd">    [('carl', 'Hi there.'), ('ned', 'Yo.')]</span>
+<span class="sd">    &gt;&gt;&gt; [(s.speaker, s.text) for s in segments_from_tiers({</span>
+<span class="sd">    ...     "carl - utterances": [(0.0, 1.0, "Hi."), (3.0, 4.0, "Bye.")],</span>
+<span class="sd">    ...     "ned - words": [(1.5, 1.9, "yo"), (5.0, 5.4, "later")]})]</span>
+<span class="sd">    [('carl', 'Hi.'), ('ned', 'yo'), ('carl', 'Bye.'), ('ned', 'later')]</span>
 <span class="sd">    """</span>
     <span class="n">groups</span> <span class="o">=</span> <span class="n">_tiers_by_speaker</span><span class="p">(</span><span class="n">tiers</span><span class="p">)</span>
     <span class="n">speakers</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">groups</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">speakers</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># one speaker (or none): its tiers, and any unnamed</span>
         <span class="k">return</span> <span class="n">_speaker_segments</span><span class="p">(</span><span class="n">tiers</span><span class="p">,</span> <span class="n">speaker</span><span class="o">=</span><span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">speakers</span><span class="p">),</span> <span class="kc">None</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">_turn_segments</span><span class="p">(</span>
+    <span class="c1"># A speaker with lines of its own is read by its lines (an#739); in the</span>
+    <span class="c1"># stream they only cut the others' words into turns, and their own turns</span>
+    <span class="c1"># are dropped.</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">w</span><span class="p">:</span> <span class="n">_lines</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="n">w</span><span class="p">],</span> <span class="n">_tier_named</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="n">w</span><span class="p">],</span> <span class="n">_TG_LINE_TIERS</span><span class="p">))</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">speakers</span>
+    <span class="p">}</span>
+    <span class="n">lined</span> <span class="o">=</span> <span class="p">{</span><span class="n">w</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">speakers</span> <span class="k">if</span> <span class="n">lines</span><span class="p">[</span><span class="n">w</span><span class="p">]}</span>
+    <span class="n">turns</span> <span class="o">=</span> <span class="n">_turn_segments</span><span class="p">(</span>
         <span class="p">{</span>
-            <span class="n">who</span><span class="p">:</span> <span class="p">(</span>
+            <span class="n">who</span><span class="p">:</span> <span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="n">who</span><span class="p">],</span> <span class="p">[])</span>
+            <span class="k">if</span> <span class="n">who</span> <span class="ow">in</span> <span class="n">lined</span>
+            <span class="k">else</span> <span class="p">(</span>
                 <span class="n">_speech</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="n">who</span><span class="p">],</span> <span class="n">_tier_named</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="n">who</span><span class="p">],</span> <span class="n">_TG_WORD_TIERS</span><span class="p">)),</span>
                 <span class="n">_speech</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="n">who</span><span class="p">],</span> <span class="n">_tier_named</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="n">who</span><span class="p">],</span> <span class="n">_TG_PHONE_TIERS</span><span class="p">)),</span>
             <span class="p">)</span>
             <span class="k">for</span> <span class="n">who</span> <span class="ow">in</span> <span class="n">speakers</span>
         <span class="p">}</span>
     <span class="p">)</span>
+    <span class="n">by_lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">who</span> <span class="ow">in</span> <span class="n">lined</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">_speaker_segments</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="n">who</span><span class="p">],</span> <span class="n">speaker</span><span class="o">=</span><span class="n">who</span><span class="p">)]</span>
+    <span class="n">others</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">turns</span> <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">speaker</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">lined</span><span class="p">]</span>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">([</span><span class="o">*</span><span class="n">by_lines</span><span class="p">,</span> <span class="o">*</span><span class="n">others</span><span class="p">],</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">seg</span><span class="p">:</span> <span class="p">(</span><span class="n">seg</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">seg</span><span class="o">.</span><span class="n">end</span><span class="p">))</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_turn_segments</span><span class="p">(</span>
@@ -1663,12 +1700,27 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_speaker_segments</span><span class="p">(</span><span class="n">tiers</span><span class="p">:</span> <span class="n">Tiers</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">speaker</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">TranscriptSegment</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""One speaker's tiers → segments (:func:`segments_from_tiers`); a line</span>
-<span class="sd">    tier's own ``speaker: text`` wins over ``speaker``."""</span>
+<span class="w">    </span><span class="sd">"""One speaker's tiers → segments (:func:`segments_from_tiers`). A lines</span>
+<span class="sd">    tier with only empty intervals is no lines tier: the words are read</span>
+<span class="sd">    (an#739). An unprefixed lines tier's own ``speaker: text`` wins over</span>
+<span class="sd">    ``speaker``; a speaker's own (``"carl - utterances"``) names the speaker,</span>
+<span class="sd">    so a colon in its label is text (an#739).</span>
+
+<span class="sd">    &gt;&gt;&gt; [(s.speaker, s.text) for s in _speaker_segments(</span>
+<span class="sd">    ...     {"carl - utterances": [(0.0, 1.0, "Wait: what?")]}, speaker="carl")]</span>
+<span class="sd">    [('carl', 'Wait: what?')]</span>
+<span class="sd">    &gt;&gt;&gt; [(s.speaker, s.text) for s in _speaker_segments(</span>
+<span class="sd">    ...     {"utterances": [(0.0, 1.0, "ned: Yo.")]}, speaker=None)]</span>
+<span class="sd">    [('ned', 'Yo.')]</span>
+<span class="sd">    &gt;&gt;&gt; [s.text for s in _speaker_segments(</span>
+<span class="sd">    ...     {"utterances": [(0.0, 1.0, "")], "words": [(0.2, 0.5, "hi")]}, speaker=None)]</span>
+<span class="sd">    ['hi']</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">tiers</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">[]</span>
     <span class="n">phone_tier</span> <span class="o">=</span> <span class="n">_tier_named</span><span class="p">(</span><span class="n">tiers</span><span class="p">,</span> <span class="n">_TG_PHONE_TIERS</span><span class="p">)</span>
     <span class="n">line_tier</span> <span class="o">=</span> <span class="n">_tier_named</span><span class="p">(</span><span class="n">tiers</span><span class="p">,</span> <span class="n">_TG_LINE_TIERS</span><span class="p">)</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">_lines</span><span class="p">(</span><span class="n">tiers</span><span class="p">,</span> <span class="n">line_tier</span><span class="p">)</span>
     <span class="c1"># Without a tier named for words, the first tier that is neither the</span>
     <span class="c1"># phones nor the lines (a phones tier read as words would put "HH AH0" in</span>
     <span class="c1"># the captions, an#491).</span>
@@ -1679,7 +1731,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">phones</span> <span class="o">=</span> <span class="n">_speech</span><span class="p">(</span><span class="n">tiers</span><span class="p">,</span> <span class="n">phone_tier</span><span class="p">)</span> <span class="k">if</span> <span class="n">phone_tier</span> <span class="o">!=</span> <span class="n">word_tier</span> <span class="k">else</span> <span class="p">[]</span>
     <span class="n">alphabet</span> <span class="o">=</span> <span class="n">phone_alphabet_of</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">phones</span><span class="p">)</span> <span class="k">if</span> <span class="n">phones</span> <span class="k">else</span> <span class="kc">None</span>
 
-    <span class="k">if</span> <span class="n">line_tier</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">lines</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">words</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">[]</span>
         <span class="k">return</span> <span class="p">[</span>
@@ -1693,11 +1745,12 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">phone_alphabet</span><span class="o">=</span><span class="n">alphabet</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="p">]</span>
+    <span class="n">tier_speaker</span> <span class="o">=</span> <span class="n">_speaker_and_tier</span><span class="p">(</span><span class="n">line_tier</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tiers</span><span class="p">[</span><span class="n">line_tier</span><span class="p">]:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">t</span><span class="p">:</span>
-            <span class="k">continue</span>
-        <span class="n">said_by</span><span class="p">,</span> <span class="n">body</span> <span class="o">=</span> <span class="n">_speaker_and_text</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+        <span class="n">said_by</span><span class="p">,</span> <span class="n">body</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">tier_speaker</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="k">if</span> <span class="n">tier_speaker</span> <span class="k">else</span> <span class="n">_speaker_and_text</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+        <span class="p">)</span>
         <span class="n">inside</span> <span class="o">=</span> <span class="n">_within</span><span class="p">(</span><span class="n">phones</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
         <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
             <span class="n">TranscriptSegment</span><span class="p">(</span>

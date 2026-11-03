@@ -1,4 +1,4 @@
-> built 2026-11-03 14:46 UTC from 8b45a35 (main) · an 0.1.374. Details: build_info.json
+> built 2026-11-03 15:20 UTC from b134091 (main) · an 0.1.375. Details: build_info.json
 
 # index.html.md
 
@@ -2088,7 +2088,7 @@ abc  Ada  (accent=british)
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.audio.cli.import_recorded(project, audio, transcript='', speaker='', speakers='', shot='', voice='', denoise=False, license='', recorded_by='', transcriber='', diarize=False, aligner='', rough_timing=True, scene='scene.md')
+### an.audio.cli.import_recorded(project, audio, transcript='', speaker='', speakers='', shot='', voice='', denoise=False, license='', recorded_by='', transcriber='', diarize=False, aligner='', rough_timing=True, overlap_tolerance=0.05, scene='scene.md')
 
 Import a performer’s recording as the voice of its lines: each line is cut out,
 matched to the scene’s dialogue (or added to –shot), stored with its provenance,
@@ -2108,6 +2108,7 @@ transcriber: the scribed backend when a take must be transcribed (default: scrib
 diarize: ask the transcriber for speaker labels (map them with –speakers)
 aligner: time a plain transcript with a forced aligner, words and phones (for lip-sync): `mfa` (Montreal Forced Aligner, ARPAbet) or `mfa:ipa`
 rough_timing: with –aligner and several lines in one take, time the lines roughly with the transcriber first (–transcriber, billed if that backend is) so each line is aligned in its own interval; –no-rough-timing aligns the whole text as one utterance, never transcribing
+overlap_tolerance: how far (seconds) one line may run into the next before the two are refused as overlapping speech (raise it for a transcriber’s loose word edges)
 scene: the scene file whose lines the takes voice (default scene.md; for example scene.studio.md)
 
 * **Return type:**
@@ -3185,7 +3186,7 @@ The default TTS provider: `OfflineTTS`.
 * **Return type:**
   [`TTSProvider`](_autosummary/an.audio.tts.html.md#an.audio.tts.TTSProvider)
 
-### an.audio.import_recordings(project, audio, , transcript=None, speaker=None, speakers=None, shot=None, voice=None, denoise=None, license=None, recorded_by=None, transcribe=None, transcriber=None, diarize=False, align=None, rough_timing=True, match_threshold=0.75, write=True, scene_file='scene.md')
+### an.audio.import_recordings(project, audio, , transcript=None, speaker=None, speakers=None, shot=None, voice=None, denoise=None, license=None, recorded_by=None, transcribe=None, transcriber=None, diarize=False, align=None, rough_timing=True, overlap_tolerance_s=0.05, match_threshold=0.75, write=True, scene_file='scene.md')
 
 Import a performer’s recording(s) as the voice of their lines (an#490).
 
@@ -3218,6 +3219,9 @@ billed for this pass too), and each is aligned within its own interval
 text as one utterance, which drifts on a long take. With no transcriber
 to run, the import falls back to that one utterance, with a
 `RecordedVoicesWarning`.
+Two lines of a take overlapping by more than `overlap_tolerance_s`
+seconds are refused, naming both (an#739): two voices at once cannot be
+cut apart.
 `write=False` runs everything but writes nothing (a dry run).
 `scene_file` imports into another scene of the project
 (`scene.studio.md`, an#554).
@@ -4970,7 +4974,7 @@ added in `scene.md` does not orphan the take.
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
-### an.audio.recorded.import_recordings(project, audio, , transcript=None, speaker=None, speakers=None, shot=None, voice=None, denoise=None, license=None, recorded_by=None, transcribe=None, transcriber=None, diarize=False, align=None, rough_timing=True, match_threshold=0.75, write=True, scene_file='scene.md')
+### an.audio.recorded.import_recordings(project, audio, , transcript=None, speaker=None, speakers=None, shot=None, voice=None, denoise=None, license=None, recorded_by=None, transcribe=None, transcriber=None, diarize=False, align=None, rough_timing=True, overlap_tolerance_s=0.05, match_threshold=0.75, write=True, scene_file='scene.md')
 
 Import a performer’s recording(s) as the voice of their lines (an#490).
 
@@ -5003,6 +5007,9 @@ billed for this pass too), and each is aligned within its own interval
 text as one utterance, which drifts on a long take. With no transcriber
 to run, the import falls back to that one utterance, with a
 [`RecordedVoicesWarning`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.RecordedVoicesWarning).
+Two lines of a take overlapping by more than `overlap_tolerance_s`
+seconds are refused, naming both (an#739): two voices at once cannot be
+cut apart.
 `write=False` runs everything but writes nothing (a dry run).
 `scene_file` imports into another scene of the project
 (`scene.studio.md`, an#554).
@@ -30834,20 +30841,27 @@ True
 3.0
 ```
 
+### Module Attributes
+
+| [`UNMEASURED_FIX`](_autosummary/an.measurements.html.md#an.measurements.UNMEASURED_FIX)   | What the finding of a clock-owned shot never measured suggests; also what marks it ([`is_unmeasured()`](_autosummary/an.measurements.html.md#an.measurements.is_unmeasured)): its length is a placeholder.   |
+|-------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+
 ### Functions
 
-| [`accept_measured`](_autosummary/an.measurements.html.md#an.measurements.accept_measured)(project_dir, \*[, scene_file])   | Write each clock-owned shot's MEASURED length into the authored scene.                                      |
-|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
-| [`clock_owner_for`](_autosummary/an.measurements.html.md#an.measurements.clock_owner_for)(shot[, registry])                | The registered renderer of `shot` if it owns its clock, else `None`.                                        |
-| [`declared_duration`](_autosummary/an.measurements.html.md#an.measurements.declared_duration)(shot)                          | The duration the AUTHOR wrote, or `None`.                                                                   |
-| [`settle_durations`](_autosummary/an.measurements.html.md#an.measurements.settle_durations)(scene, ctx, \*, render[, ...])  | A COPY of `scene` whose clock-owned shots carry their settled length, and the findings about them.          |
-| [`warn_findings`](_autosummary/an.measurements.html.md#an.measurements.warn_findings)(findings, \*[, stacklevel])        | Warn each finding as a [`ShotFindingWarning`](_autosummary/an.measurements.html.md#an.measurements.ShotFindingWarning) (`location: …`). |
+| [`accept_measured`](_autosummary/an.measurements.html.md#an.measurements.accept_measured)(project_dir, \*[, scene_file])   | Write each clock-owned shot's MEASURED length into the authored scene.                                                                                                                |
+|---------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`clock_owner_for`](_autosummary/an.measurements.html.md#an.measurements.clock_owner_for)(shot[, registry])                | The registered renderer of `shot` if it owns its clock, else `None`.                                                                                                                  |
+| [`declared_duration`](_autosummary/an.measurements.html.md#an.measurements.declared_duration)(shot)                          | The duration the AUTHOR wrote, or `None`.                                                                                                                                             |
+| [`is_unmeasured`](_autosummary/an.measurements.html.md#an.measurements.is_unmeasured)(finding)                           | Whether `finding` (one of [`settle_durations()`](_autosummary/an.measurements.html.md#an.measurements.settle_durations)') says a shot's length is a placeholder: its renderer decides it and never measured it. |
+| [`settle_durations`](_autosummary/an.measurements.html.md#an.measurements.settle_durations)(scene, ctx, \*, render[, ...])  | A COPY of `scene` whose clock-owned shots carry their settled length, and the findings about them.                                                                                    |
+| [`warn_findings`](_autosummary/an.measurements.html.md#an.measurements.warn_findings)(findings, \*[, stacklevel])        | Warn each finding as a [`ShotFindingWarning`](_autosummary/an.measurements.html.md#an.measurements.ShotFindingWarning) (`location: …`).                                                                           |
 
 ### Exceptions
 
-| [`MeasurementError`](_autosummary/an.measurements.html.md#an.measurements.MeasurementError)   | A measured shot cannot be laid out as asked (e.g. a hold under strict mode).                                                           |
-|---------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|
-| [`ShotFindingWarning`](_autosummary/an.measurements.html.md#an.measurements.ShotFindingWarning) | A finding about a shot, warned by `an render` — located by `file:line` when the thing to fix is an opaque source (a Manim scene file). |
+| [`MeasurementError`](_autosummary/an.measurements.html.md#an.measurements.MeasurementError)      | A measured shot cannot be laid out as asked (e.g. a hold under strict mode).                                                              |
+|------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
+| [`ShotFindingWarning`](_autosummary/an.measurements.html.md#an.measurements.ShotFindingWarning)    | A finding about a shot, warned by `an render` — located by `file:line` when the thing to fix is an opaque source (a Manim scene file).    |
+| [`UnmeasuredLengthError`](_autosummary/an.measurements.html.md#an.measurements.UnmeasuredLengthError) | A clock-owned shot was never measured, so its length (and every later shot's start) is a placeholder, and the caller did not accept that. |
 
 ### *exception* an.measurements.MeasurementError
 
@@ -30861,6 +30875,18 @@ Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWa
 
 A finding about a shot, warned by `an render` — located by `file:line`
 when the thing to fix is an opaque source (a Manim scene file).
+
+### an.measurements.UNMEASURED_FIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'render the project once (\`an render\`) so its renderer measures the shot'*
+
+What the finding of a clock-owned shot never measured suggests; also what
+marks it ([`is_unmeasured()`](_autosummary/an.measurements.html.md#an.measurements.is_unmeasured)): its length is a placeholder.
+
+### *exception* an.measurements.UnmeasuredLengthError
+
+Bases: [`MeasurementError`](_autosummary/an.measurements.html.md#an.measurements.MeasurementError)
+
+A clock-owned shot was never measured, so its length (and every later
+shot’s start) is a placeholder, and the caller did not accept that.
 
 ### an.measurements.accept_measured(project_dir, , scene_file='scene.md')
 
@@ -30891,6 +30917,20 @@ declared” — an explicit `duration: 5` is indistinguishable from it.
 
 * **Return type:**
   [`float`](https://docs.python.org/3/builtins/functions.html#float) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.measurements.is_unmeasured(finding)
+
+Whether `finding` (one of [`settle_durations()`](_autosummary/an.measurements.html.md#an.measurements.settle_durations)’) says a shot’s
+length is a placeholder: its renderer decides it and never measured it.
+
+```pycon
+>>> from types import SimpleNamespace as NS
+>>> is_unmeasured(NS(suggested_fix=UNMEASURED_FIX)), is_unmeasured(NS(suggested_fix=None))
+(True, False)
+```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ### an.measurements.settle_durations(scene, ctx, , render, force=False, strict=False, registry=None)
 
@@ -33215,8 +33255,9 @@ the code runs (`an._shims.alias_module()`).
 
 Looking at one moment of a shot used to mean a whole render, or a throwaway
 script that staged the scene its own way and drew something else. A probe
-prepares the shot exactly as [`an.render.render()`](_autosummary/an.render.html.md#an.render.render) does (`_prepare_shots`:
-settled length, burned captions, the style pack, the resolved knobs), then asks
+prepares the shot exactly as [`an.render.render()`](_autosummary/an.render.html.md#an.render.render) does
+([`an.render.prepared_shots()`](_autosummary/an.render.html.md#an.render.prepared_shots): settled length, burned captions, the style
+pack, the resolved knobs; no document compiled), then asks
 the shot’s own renderer for the frames showing at the instants given:
 
 - a frame-stage renderer (the stage engine, the cut-out renderer) opens the
@@ -33568,20 +33609,23 @@ adapters and the same flow handles them.
 
 ### Functions
 
-| [`cache_entries`](_autosummary/an.render.html.md#an.render.cache_entries)(project, engine, \*\*knobs)    | The shot-cache entry ids of [`cache_reach()`](_autosummary/an.render.html.md#an.render.cache_reach) (what `an.build.gc` keeps of the shot cache, an#274).                                                                                                                                                                                                                                                                                                            |
-|-----------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`cache_reach`](_autosummary/an.render.html.md#an.render.cache_reach)(project, engine, \*[, fps, ...]) | What a render of `project`'s CURRENT scene under these knobs would read — the shot-cache entry ids, and the record-store entries of the renderers' derived stores (a Manim shot's measurement record, which names its picture and contact sheet: [`an.build.derived`](_autosummary/an.build.derived.html.md#module-an.build.derived), an#299) — computed by the render's own setup and the engine's own key code, rendering and synthesising nothing. |
-| [`format_render_findings`](_autosummary/an.render.html.md#an.render.format_render_findings)(project[, ...])       | `an render`'s summary of what the render found: one heading per kind ([`FINDING_GROUPS`](_autosummary/an.render.html.md#an.render.FINDING_GROUPS)) with its count, then each finding's IR path and message — the message carries its fix — at most `max_per_group` per kind.                                                                                                                                                                                            |
-| [`live_runs`](_autosummary/an.render.html.md#an.render.live_runs)(project_root)                      | Every cached render of this project still in progress, with the time it started (its live marker's mtime): what `an cache gc` must not race.                                                                                                                                                                                                                                                                                                                |
-| [`portable_text`](_autosummary/an.render.html.md#an.render.portable_text)(text, \*[, root, home, tmp])   | `text` with this machine's absolute paths taken out: a path under the project `root` becomes project-relative, the root itself `.`, a temp folder `<tmp>` and the home directory `~` — so a render report (which a project may commit or share, and an agent may pass on) names no user, host folder or temp dir.                                                                                                                                           |
-| [`render`](_autosummary/an.render.html.md#an.render.render)(project, \*[, output_name, fps, ...]) | Lower-level: render a loaded `Project` to mp4.                                                                                                                                                                                                                                                                                                                                                                                                              |
-| [`render_findings`](_autosummary/an.render.html.md#an.render.render_findings)(project[, output_name])      | The `Finding` s the last render of `output_name` reported (an#254), from `render_reports/<output_name>.json`; `[]` before any render.                                                                                                                                                                                                                                                                                                                       |
-| [`render_project`](_autosummary/an.render.html.md#an.render.render_project)(project_dir, \*[, ...])       | Render every shot in `project_dir`'s scene and concatenate to one mp4.                                                                                                                                                                                                                                                                                                                                                                                      |
+| [`cache_entries`](_autosummary/an.render.html.md#an.render.cache_entries)(project, engine, \*\*knobs)    | The shot-cache entry ids of [`cache_reach()`](_autosummary/an.render.html.md#an.render.cache_reach) (what `an.build.gc` keeps of the shot cache, an#274).                                                                                                                                                                                                                                                                                                                            |
+|-----------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`cache_reach`](_autosummary/an.render.html.md#an.render.cache_reach)(project, engine, \*[, fps, ...]) | What a render of `project`'s CURRENT scene under these knobs would read — the shot-cache entry ids, and the record-store entries of the renderers' derived stores (a Manim shot's measurement record, which names its picture and contact sheet: [`an.build.derived`](_autosummary/an.build.derived.html.md#module-an.build.derived), an#299) — computed by the render's own setup and the engine's own key code, rendering and synthesising nothing.                 |
+| [`format_render_findings`](_autosummary/an.render.html.md#an.render.format_render_findings)(project[, ...])       | `an render`'s summary of what the render found: one heading per kind ([`FINDING_GROUPS`](_autosummary/an.render.html.md#an.render.FINDING_GROUPS)) with its count, then each finding's IR path and message — the message carries its fix — at most `max_per_group` per kind.                                                                                                                                                                                                            |
+| [`live_runs`](_autosummary/an.render.html.md#an.render.live_runs)(project_root)                      | Every cached render of this project still in progress, with the time it started (its live marker's mtime): what `an cache gc` must not race.                                                                                                                                                                                                                                                                                                                                |
+| [`portable_text`](_autosummary/an.render.html.md#an.render.portable_text)(text, \*[, root, home, tmp])   | `text` with this machine's absolute paths taken out: a path under the project `root` becomes project-relative, the root itself `.`, a temp folder `<tmp>` and the home directory `~` — so a render report (which a project may commit or share, and an agent may pass on) names no user, host folder or temp dir.                                                                                                                                                           |
+| [`prepared_shots`](_autosummary/an.render.html.md#an.render.prepared_shots)(project, \*[, fps, ...])      | Every shot of `project` prepared exactly as [`render()`](_autosummary/an.render.html.md#an.render.render) prepares it, without drawing (an#733): the preparation `render` and `an probe` share (`_prepare_shots()`: settled lengths, the style pack, `step_hz`, default easing, burned captions, `continue:` shots, the closing transition), each shot's film start, and its stage document on demand ([`PreparedShot.document`](_autosummary/an.render.html.md#an.render.PreparedShot.document)). |
+| [`render`](_autosummary/an.render.html.md#an.render.render)(project, \*[, output_name, fps, ...]) | Lower-level: render a loaded `Project` to mp4.                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| [`render_findings`](_autosummary/an.render.html.md#an.render.render_findings)(project[, output_name])      | The `Finding` s the last render of `output_name` reported (an#254), from `render_reports/<output_name>.json`; `[]` before any render.                                                                                                                                                                                                                                                                                                                                       |
+| [`render_project`](_autosummary/an.render.html.md#an.render.render_project)(project_dir, \*[, ...])       | Render every shot in `project_dir`'s scene and concatenate to one mp4.                                                                                                                                                                                                                                                                                                                                                                                                      |
 
 ### Classes
 
-| [`CacheReach`](_autosummary/an.render.html.md#an.render.CacheReach)([ids, derived])   | [`cache_reach()`](_autosummary/an.render.html.md#an.render.cache_reach)'s answer: shot-cache ids, and derived-store entries by store name.   |
-|-------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
+| [`CacheReach`](_autosummary/an.render.html.md#an.render.CacheReach)([ids, derived])                        | [`cache_reach()`](_autosummary/an.render.html.md#an.render.cache_reach)'s answer: shot-cache ids, and derived-store entries by store name.                                                                                                                                                                                                      |
+|----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`PreparedShot`](_autosummary/an.render.html.md#an.render.PreparedShot)(shot, renderer, ctx, start)          | One shot as [`render()`](_autosummary/an.render.html.md#an.render.render) draws it (an#733): the shot as prepared (settled length, burned captions), the renderer that draws it, the context it is drawn in, and where it starts in the film, seconds (the film's layout: a dissolve overlaps, so starts are not summed lengths).          |
+| [`PreparedShots`](_autosummary/an.render.html.md#an.render.PreparedShots)(fps, resolution, shots[, findings]) | Every shot of a film as [`render()`](_autosummary/an.render.html.md#an.render.render) prepares it ([`prepared_shots()`](_autosummary/an.render.html.md#an.render.prepared_shots)): the film's rate and size, the shots in timeline order, and what preparing them found (settled lengths, cues timed by the picture), as the render report files them. |
 
 ### Exceptions
 
@@ -33603,6 +33647,33 @@ kind not listed (another warning category) is headed by its own name, after.
 ### an.render.POSIX_TEMP_DIRS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('/tmp', '/private/tmp', '/var/tmp')*
 
 The temp folders every POSIX machine has, besides the one Python reports.
+
+### *class* an.render.PreparedShot(shot, renderer, ctx, start)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One shot as [`render()`](_autosummary/an.render.html.md#an.render.render) draws it (an#733): the shot as prepared
+(settled length, burned captions), the renderer that draws it, the context
+it is drawn in, and where it starts in the film, seconds (the film’s
+layout: a dissolve overlaps, so starts are not summed lengths).
+
+[`document`](_autosummary/an.render.html.md#an.render.PreparedShot.document) is compiled on first read only, so a caller that needs
+none (`an probe`) pays no compile.
+
+#### *property* document *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)*
+
+The stage document exactly as the render’s engine compiles it
+([`an.stage.cache_key.compiled_document()`](_autosummary/an.stage.cache_key.html.md#an.stage.cache_key.compiled_document)); `None` for a shot
+not drawn on the stage ([`an.stage.draws_on_stage()`](_autosummary/an.stage.html.md#an.stage.draws_on_stage); Manim).
+
+### *class* an.render.PreparedShots(fps, resolution, shots, findings=list())
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+Every shot of a film as [`render()`](_autosummary/an.render.html.md#an.render.render) prepares it ([`prepared_shots()`](_autosummary/an.render.html.md#an.render.prepared_shots)):
+the film’s rate and size, the shots in timeline order, and what preparing
+them found (settled lengths, cues timed by the picture), as the render
+report files them.
 
 ### an.render.RENDER_OUTPUTS_DIR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'outputs'*
 
@@ -33748,6 +33819,34 @@ separator and in any case.
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.render.prepared_shots(project, , fps=None, resolution=None, supersample=1, measure=False, allow_unmeasured=False, work_dir=None)
+
+Every shot of `project` prepared exactly as [`render()`](_autosummary/an.render.html.md#an.render.render) prepares
+it, without drawing (an#733): the preparation `render` and `an probe`
+share (`_prepare_shots()`: settled lengths, the style pack,
+`step_hz`, default easing, burned captions, `continue:` shots, the
+closing transition), each shot’s film start, and its stage document on
+demand ([`PreparedShot.document`](_autosummary/an.render.html.md#an.render.PreparedShot.document)). For a verifier that reads a
+render’s timelines (a mouth or body cadence measured apart).
+
+`fps` and `resolution` as `an render` takes them (`None`: the
+scene’s). `supersample` is the context’s fidelity only (what a caller
+that draws, a probe, draws at); it does not reach the document.
+
+A shot whose renderer owns its clock (Manim) and was never measured has a
+placeholder length that shifts every later start, so it is refused
+([`an.measurements.UnmeasuredLengthError`](_autosummary/an.measurements.html.md#an.measurements.UnmeasuredLengthError)) unless
+`allow_unmeasured` (its finding is then in `findings`). `measure=True`
+measures it as a render does: it RUNS that renderer and WRITES its
+measurement (and the picture it drew) to the project’s stores.
+
+`work_dir` is the render context’s scratch folder, for a caller that
+draws through `ctx` (a probe stages there); preparing without
+`measure` writes nothing there (default `<project>/.an/render_work`).
+
+* **Return type:**
+  [`PreparedShots`](_autosummary/an.render.html.md#an.render.PreparedShots)
 
 ### an.render.render(project, , output_name='main', fps=None, resolution=None, auto_audio=True, tts=None, lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en', incremental=False, force_render=False, echo_warnings=True)
 
@@ -35017,7 +35116,7 @@ One sentence per camera move, in production terms.
 
 Version of each named camera move (ADR 0003). Bump one when its keys change.
 
-### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions, closing_transition}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.camera.follow', kind='field', version='1', name='shot.camera.follow', title='', description='a camera that follows an entity', usage="camera.follow (optional): {target: <entity id or node path>, axes: x|y|xy, lag: <seconds, optional: the camera trails the target with this time constant>} — the camera tracks the target, keeping it where it stood at the shot's start (a walk across a long set); planes parallax with it. Instead of a move or keys (hold is fine); a shake layers on top.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera.shake', kind='field', version='1', name='shot.camera.shake', title='', description='a jolt of the frame inside the shot', usage='camera.shake (optional): jolts of the frame layered on the move or keys — [{at: s, duration: 0.4, amplitude: 0.015, frequency: 24, decay: true, seed: 0}], amplitude a fraction of the frame height; for an impact, a slam, an explosion. The frame is at rest before \`at\` and after the end; shakes may not overlap or run past the shot.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. On a text block, 'text' swaps a replacement set's string ('texts', unit 'block'; the value is a key) and 'value' is a counter block's number ('counter'; set or tween a number, lowered at compile to the strings the frames show). Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, '#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / plane_fade_start / plane_fade_end tilt the node's plane away from the camera (radians, frame heights, plane px), and then pivot_y slides its content along the plane. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve" | "wipe", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. \\'wipe\\' overlaps the same way, but a hard edge sweeps across the frame in direction (\\'left\\', \\'right\\', \\'up\\' or \\'down\\': the way the edge travels). A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.closing_transition', kind='field', version='1', name='meta.closing_transition', title='', description='how the film ends', usage="meta.closing_transition (optional): how the film ENDS — {kind: 'fade', duration: seconds, color: '#rrggbb'}: the last shot's last duration fades to color (its final frame IS the color) and the sound fades with it; the film's length is unchanged. Omitted (or 'cut') = it ends on its last frame. A dissolve is refused.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
+### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions, closing_transition}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.camera.follow', kind='field', version='1', name='shot.camera.follow', title='', description='a camera that follows an entity', usage="camera.follow (optional): {target: <entity id or node path>, axes: x|y|xy, lag: <seconds, optional: the camera trails the target with this time constant>} — the camera tracks the target, keeping it where it stood at the shot's start (a walk across a long set); planes parallax with it. Instead of a move or keys (hold is fine); a shake layers on top.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera.shake', kind='field', version='1', name='shot.camera.shake', title='', description='a jolt of the frame inside the shot', usage='camera.shake (optional): jolts of the frame layered on the move or keys — [{at: s, duration: 0.4, amplitude: 0.015, frequency: 24, decay: true, seed: 0}], amplitude a fraction of the frame height; for an impact, a slam, an explosion. The frame is at rest before \`at\` and after the end; shakes may not overlap or run past the shot.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. On a text block, 'text' swaps a replacement set's string ('texts', unit 'block'; the value is a key) and 'value' is a counter block's number ('counter'; set or tween a number, lowered at compile to the strings the frames show). Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, '#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / plane_fade_start / plane_fade_end tilt the node's plane away from the camera (radians, frame heights, plane px), and then pivot_y slides its content along the plane. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve" | "wipe", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. \\'wipe\\' overlaps the same way, but a hard edge sweeps across the frame in direction (\\'left\\', \\'right\\', \\'up\\' or \\'down\\': the way the edge travels). A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.closing_transition', kind='field', version='1', name='meta.closing_transition', title='', description='how the film ends', usage="meta.closing_transition (optional): how the film ENDS — {kind: 'fade', duration: seconds, color: '#rrggbb'}: the last shot's last duration fades to color (its final frame IS the color) and the sound fades with it; the film's length is unchanged. Omitted (or 'cut') = it ends on its last frame. A dissolve is refused.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
 
 the core).
 
@@ -38015,6 +38114,11 @@ the others.
 | [`STAGE_RENDERER_NAMES`](_autosummary/an.stage.html.md#an.stage.STAGE_RENDERER_NAMES)   | the persisted `cutout` and the engine's own `stage` (ADR 0001 decision 9).   |
 |-------------------------------------------------------------------------|------------------------------------------------------------------------------|
 
+### Functions
+
+| [`draws_on_stage`](_autosummary/an.stage.html.md#an.stage.draws_on_stage)(shot)   | Whether `shot` is drawn on the stage, so it has a compiled stage document an can read (positions, timelines): THE rule, read off the shot's `renderer` selector (the names the stage's renderer claims).   |
+|-------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+
 ### an.stage.STAGE_RENDERER_NAMES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('cutout', 'stage')*
 
 the persisted `cutout` and
@@ -38022,6 +38126,22 @@ the engine’s own `stage` (ADR 0001 decision 9). The ONE copy.
 
 * **Type:**
   The `Shot.renderer` values the stage draws
+
+### an.stage.draws_on_stage(shot)
+
+Whether `shot` is drawn on the stage, so it has a compiled stage
+document an can read (positions, timelines): THE rule, read off the shot’s
+`renderer` selector (the names the stage’s renderer claims). A Manim shot
+is not.
+
+```pycon
+>>> from types import SimpleNamespace as NS
+>>> draws_on_stage(NS(renderer="cutout")), draws_on_stage(NS(renderer="manim"))
+(True, False)
+```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ### Modules
 
@@ -49274,18 +49394,20 @@ scene: the scene file to read, inside the project (default scene.md; for example
 
 # About this build
 
-This documentation was built on **2026-11-03 14:46 UTC** from commit <a href="https://github.com/reeleehq/an/commit/8b45a350dca49513b2cc626e01b792882121d11c"><code>8b45a35</code></a> on branch <code>main</code>, for **an 0.1.374** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-03 15:20 UTC** from commit <a href="https://github.com/reeleehq/an/commit/b1340918e192affbe59156f850a1bbe5c9d47087"><code>b134091</code></a> on branch <code>main</code>, for **an 0.1.375** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.1.375) is ahead of the latest release on PyPI (0.1.374): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                    |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/an/commit/8b45a350dca49513b2cc626e01b792882121d11c"><code>8b45a350dca49513b2cc626e01b792882121d11c</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/an/commit/b1340918e192affbe59156f850a1bbe5c9d47087"><code>b1340918e192affbe59156f850a1bbe5c9d47087</code></a> |
 | Branch              | <code>main</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.374</code>                                                                                                                               |
+| Tags at this commit | none                                                                                                                                               |
 | Working tree        | clean                                                                                                                                              |
 | Remote              | <code>https://github.com/reeleehq/an</code>                                                                                                        |
 
@@ -49294,9 +49416,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/an</code>                                                                   |
-| Run          | <a href="https://github.com/reeleehq/an/actions/runs/41652730450">41652730450</a>          |
+| Run          | <a href="https://github.com/reeleehq/an/actions/runs/41658683348">41658683348</a>          |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>13baf710b1ee4b276c016998c2ab8bb092147efe</code> (in the history of the built commit) |
+| Event commit | <code>fce663485255df611c0646fa1c988a8ae47650e6</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -49321,13 +49443,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.374/">0.1.374</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.374/">0.1.374</a>, older than the documented version (0.1.375).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/an && cd an
-git checkout 8b45a350dca49513b2cc626e01b792882121d11c
+git checkout b1340918e192affbe59156f850a1bbe5c9d47087
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

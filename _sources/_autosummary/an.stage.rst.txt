@@ -10,6 +10,12 @@ an.stage
    
       STAGE_RENDERER_NAMES
    
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      draws_on_stage
+   
 .. rubric:: Modules
 
 .. autosummary::

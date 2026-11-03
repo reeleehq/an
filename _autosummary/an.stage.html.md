@@ -33,6 +33,11 @@ the others.
 | [`STAGE_RENDERER_NAMES`](#an.stage.STAGE_RENDERER_NAMES)   | the persisted `cutout` and the engine's own `stage` (ADR 0001 decision 9).   |
 |-------------------------------------------------------------------------|------------------------------------------------------------------------------|
 
+### Functions
+
+| [`draws_on_stage`](#an.stage.draws_on_stage)(shot)   | Whether `shot` is drawn on the stage, so it has a compiled stage document an can read (positions, timelines): THE rule, read off the shot's `renderer` selector (the names the stage's renderer claims).   |
+|-------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+
 ### an.stage.STAGE_RENDERER_NAMES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('cutout', 'stage')*
 
 the persisted `cutout` and
@@ -40,6 +45,22 @@ the engine’s own `stage` (ADR 0001 decision 9). The ONE copy.
 
 * **Type:**
   The `Shot.renderer` values the stage draws
+
+### an.stage.draws_on_stage(shot)
+
+Whether `shot` is drawn on the stage, so it has a compiled stage
+document an can read (positions, timelines): THE rule, read off the shot’s
+`renderer` selector (the names the stage’s renderer claims). A Manim shot
+is not.
+
+```pycon
+>>> from types import SimpleNamespace as NS
+>>> draws_on_stage(NS(renderer="cutout")), draws_on_stage(NS(renderer="manim"))
+(True, False)
+```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ### Modules
 

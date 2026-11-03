@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=a7983ba7"></script>
+    <script src="../../_static/documentation_options.js?v=03e0bfbe"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.374" />
+  <meta name="docsearch:version" content="0.1.375" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -766,15 +766,15 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_stage_document</span><span class="p">(</span><span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">renderer</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-    <span class="n">engine</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">renderer</span><span class="p">,</span> <span class="s2">"engine"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-    <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">"stage"</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage</span><span class="w"> </span><span class="kn">import</span> <span class="n">draws_on_stage</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.cache_key</span><span class="w"> </span><span class="kn">import</span> <span class="n">compiled_document</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">draws_on_stage</span><span class="p">(</span><span class="n">shot</span><span class="p">):</span>
         <span class="k">raise</span> <span class="n">SoundAnchorError</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> is drawn by </span><span class="si">{</span><span class="nb">getattr</span><span class="p">(</span><span class="n">renderer</span><span class="p">,</span><span class="w"> </span><span class="s1">'name'</span><span class="p">,</span><span class="w"> </span><span class="n">renderer</span><span class="p">)</span><span class="si">!r}</span><span class="s2">: "</span>
             <span class="s2">"a cue can be timed by the picture only in a stage shot (whose "</span>
             <span class="s2">"positions an can compute); give it `at:` in seconds"</span>
         <span class="p">)</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.cache_key</span><span class="w"> </span><span class="kn">import</span> <span class="n">compiled_document</span>
-
     <span class="k">return</span> <span class="n">compiled_document</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
 
 

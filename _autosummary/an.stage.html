@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=a7983ba7"></script>
+    <script src="../_static/documentation_options.js?v=03e0bfbe"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.374" />
+  <meta name="docsearch:version" content="0.1.375" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -674,6 +674,15 @@ the others.</p>
 </tbody>
 </table>
 </div>
+<p class="rubric">Functions</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.draws_on_stage" title="an.stage.draws_on_stage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">draws_on_stage</span></code></a>(shot)</p></td>
+<td><p>Whether <code class="docutils literal notranslate"><span class="pre">shot</span></code> is drawn on the stage, so it has a compiled stage document an can read (positions, timelines): THE rule, read off the shot's <code class="docutils literal notranslate"><span class="pre">renderer</span></code> selector (the names the stage's renderer claims).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.stage.STAGE_RENDERER_NAMES">
 <span class="sig-prename descclassname"><span class="pre">an.stage.</span></span><span class="sig-name descname"><span class="pre">STAGE_RENDERER_NAMES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('cutout',</span> <span class="pre">'stage')</span></span><a class="headerlink" href="#an.stage.STAGE_RENDERER_NAMES" title="Link to this definition">#</a></dt>
@@ -682,6 +691,25 @@ the engine’s own <code class="docutils literal notranslate"><span class="pre">
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>The <code class="docutils literal notranslate"><span class="pre">Shot.renderer</span></code> values the stage draws</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.draws_on_stage">
+<span class="sig-prename descclassname"><span class="pre">an.stage.</span></span><span class="sig-name descname"><span class="pre">draws_on_stage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shot</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage.html#draws_on_stage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.draws_on_stage" title="Link to this definition">#</a></dt>
+<dd><p>Whether <code class="docutils literal notranslate"><span class="pre">shot</span></code> is drawn on the stage, so it has a compiled stage
+document an can read (positions, timelines): THE rule, read off the shot’s
+<code class="docutils literal notranslate"><span class="pre">renderer</span></code> selector (the names the stage’s renderer claims). A Manim shot
+is not.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimpleNamespace</span> <span class="k">as</span> <span class="n">NS</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">draws_on_stage</span><span class="p">(</span><span class="n">NS</span><span class="p">(</span><span class="n">renderer</span><span class="o">=</span><span class="s2">"cutout"</span><span class="p">)),</span> <span class="n">draws_on_stage</span><span class="p">(</span><span class="n">NS</span><span class="p">(</span><span class="n">renderer</span><span class="o">=</span><span class="s2">"manim"</span><span class="p">))</span>
+<span class="go">(True, False)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -829,6 +857,7 @@ the engine’s own <code class="docutils literal notranslate"><span class="pre">
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.STAGE_RENDERER_NAMES"><code class="docutils literal notranslate"><span class="pre">STAGE_RENDERER_NAMES</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.draws_on_stage"><code class="docutils literal notranslate"><span class="pre">draws_on_stage()</span></code></a></li>
 </ul>
   </nav></div>
 

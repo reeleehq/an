@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=a7983ba7"></script>
+    <script src="../../../_static/documentation_options.js?v=03e0bfbe"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.374" />
+  <meta name="docsearch:version" content="0.1.375" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -743,6 +743,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.providers</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_tts</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.recorded</span><span class="w"> </span><span class="kn">import</span> <span class="n">DFLT_OVERLAP_TOLERANCE_S</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.tts</span><span class="w"> </span><span class="kn">import</span> <span class="n">TTSProvider</span><span class="p">,</span> <span class="n">VoiceMeta</span>
 
 <span class="c1"># The business logic lives with the voice listing (an#712); re-exported here.</span>
@@ -1017,6 +1018,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">diarize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">aligner</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
     <span class="n">rough_timing</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">overlap_tolerance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_OVERLAP_TOLERANCE_S</span><span class="p">,</span>
     <span class="n">scene</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_SCENE_FILE</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Import a performer's recording as the voice of its lines: each line is cut out,</span>
@@ -1037,6 +1039,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    diarize: ask the transcriber for speaker labels (map them with --speakers)</span>
 <span class="sd">    aligner: time a plain transcript with a forced aligner, words and phones (for lip-sync): `mfa` (Montreal Forced Aligner, ARPAbet) or `mfa:ipa`</span>
 <span class="sd">    rough_timing: with --aligner and several lines in one take, time the lines roughly with the transcriber first (--transcriber, billed if that backend is) so each line is aligned in its own interval; --no-rough-timing aligns the whole text as one utterance, never transcribing</span>
+<span class="sd">    overlap_tolerance: how far (seconds) one line may run into the next before the two are refused as overlapping speech (raise it for a transcriber's loose word edges)</span>
 <span class="sd">    scene: the scene file whose lines the takes voice (default scene.md; for example scene.studio.md)</span>
 <span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.recorded</span><span class="w"> </span><span class="kn">import</span> <span class="n">DFLT_DENOISE</span><span class="p">,</span> <span class="n">aligner_named</span><span class="p">,</span> <span class="n">import_recordings</span>
@@ -1058,6 +1061,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">diarize</span><span class="o">=</span><span class="n">diarize</span><span class="p">,</span>
         <span class="n">align</span><span class="o">=</span><span class="n">align</span><span class="p">,</span>
         <span class="n">rough_timing</span><span class="o">=</span><span class="n">rough_timing</span><span class="p">,</span>
+        <span class="n">overlap_tolerance_s</span><span class="o">=</span><span class="n">overlap_tolerance</span><span class="p">,</span>
         <span class="n">scene_file</span><span class="o">=</span><span class="n">scene</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">report</span><span class="p">)</span></div>

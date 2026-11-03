@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=a7983ba7"></script>
+    <script src="../_static/documentation_options.js?v=03e0bfbe"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.374" />
+  <meta name="docsearch:version" content="0.1.375" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -664,6 +664,15 @@ frame for the difference, and a warning says so — or, under <code class="docut
 <span class="go">3.0</span>
 </pre></div>
 </div>
+<p class="rubric">Module Attributes</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.measurements.UNMEASURED_FIX" title="an.measurements.UNMEASURED_FIX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UNMEASURED_FIX</span></code></a></p></td>
+<td><p>What the finding of a clock-owned shot never measured suggests; also what marks it (<a class="reference internal" href="#an.measurements.is_unmeasured" title="an.measurements.is_unmeasured"><code class="xref py py-func docutils literal notranslate"><span class="pre">is_unmeasured()</span></code></a>): its length is a placeholder.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
@@ -676,10 +685,13 @@ frame for the difference, and a warning says so — or, under <code class="docut
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.measurements.declared_duration" title="an.measurements.declared_duration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">declared_duration</span></code></a>(shot)</p></td>
 <td><p>The duration the AUTHOR wrote, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.measurements.settle_durations" title="an.measurements.settle_durations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">settle_durations</span></code></a>(scene, ctx, *, render[, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.measurements.is_unmeasured" title="an.measurements.is_unmeasured"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_unmeasured</span></code></a>(finding)</p></td>
+<td><p>Whether <code class="docutils literal notranslate"><span class="pre">finding</span></code> (one of <a class="reference internal" href="#an.measurements.settle_durations" title="an.measurements.settle_durations"><code class="xref py py-func docutils literal notranslate"><span class="pre">settle_durations()</span></code></a>') says a shot's length is a placeholder: its renderer decides it and never measured it.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.measurements.settle_durations" title="an.measurements.settle_durations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">settle_durations</span></code></a>(scene, ctx, *, render[, ...])</p></td>
 <td><p>A COPY of <code class="docutils literal notranslate"><span class="pre">scene</span></code> whose clock-owned shots carry their settled length, and the findings about them.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.measurements.warn_findings" title="an.measurements.warn_findings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">warn_findings</span></code></a>(findings, *[, stacklevel])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.measurements.warn_findings" title="an.measurements.warn_findings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">warn_findings</span></code></a>(findings, *[, stacklevel])</p></td>
 <td><p>Warn each finding as a <a class="reference internal" href="#an.measurements.ShotFindingWarning" title="an.measurements.ShotFindingWarning"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotFindingWarning</span></code></a> (<code class="docutils literal notranslate"><span class="pre">location:</span> <span class="pre">…</span></code>).</p></td>
 </tr>
 </tbody>
@@ -693,6 +705,9 @@ frame for the difference, and a warning says so — or, under <code class="docut
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.measurements.ShotFindingWarning" title="an.measurements.ShotFindingWarning"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ShotFindingWarning</span></code></a></p></td>
 <td><p>A finding about a shot, warned by <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span></code> — located by <code class="docutils literal notranslate"><span class="pre">file:line</span></code> when the thing to fix is an opaque source (a Manim scene file).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.measurements.UnmeasuredLengthError" title="an.measurements.UnmeasuredLengthError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UnmeasuredLengthError</span></code></a></p></td>
+<td><p>A clock-owned shot was never measured, so its length (and every later shot's start) is a placeholder, and the caller did not accept that.</p></td>
 </tr>
 </tbody>
 </table>
@@ -710,6 +725,21 @@ frame for the difference, and a warning says so — or, under <code class="docut
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#UserWarning" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserWarning</span></code></a></p>
 <p>A finding about a shot, warned by <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span></code> — located by <code class="docutils literal notranslate"><span class="pre">file:line</span></code>
 when the thing to fix is an opaque source (a Manim scene file).</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.measurements.UNMEASURED_FIX">
+<span class="sig-prename descclassname"><span class="pre">an.measurements.</span></span><span class="sig-name descname"><span class="pre">UNMEASURED_FIX</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'render</span> <span class="pre">the</span> <span class="pre">project</span> <span class="pre">once</span> <span class="pre">(`an</span> <span class="pre">render`)</span> <span class="pre">so</span> <span class="pre">its</span> <span class="pre">renderer</span> <span class="pre">measures</span> <span class="pre">the</span> <span class="pre">shot'</span></span><a class="headerlink" href="#an.measurements.UNMEASURED_FIX" title="Link to this definition">#</a></dt>
+<dd><p>What the finding of a clock-owned shot never measured suggests; also what
+marks it (<a class="reference internal" href="#an.measurements.is_unmeasured" title="an.measurements.is_unmeasured"><code class="xref py py-func docutils literal notranslate"><span class="pre">is_unmeasured()</span></code></a>): its length is a placeholder.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="an.measurements.UnmeasuredLengthError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.measurements.</span></span><span class="sig-name descname"><span class="pre">UnmeasuredLengthError</span></span><a class="reference internal" href="../_modules/an/measurements.html#UnmeasuredLengthError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.measurements.UnmeasuredLengthError" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#an.measurements.MeasurementError" title="an.measurements.MeasurementError"><code class="xref py py-class docutils literal notranslate"><span class="pre">MeasurementError</span></code></a></p>
+<p>A clock-owned shot was never measured, so its length (and every later
+shot’s start) is a placeholder, and the caller did not accept that.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -748,6 +778,23 @@ declared” — an explicit <code class="docutils literal notranslate"><span cla
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.measurements.is_unmeasured">
+<span class="sig-prename descclassname"><span class="pre">an.measurements.</span></span><span class="sig-name descname"><span class="pre">is_unmeasured</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">finding</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/measurements.html#is_unmeasured"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.measurements.is_unmeasured" title="Link to this definition">#</a></dt>
+<dd><p>Whether <code class="docutils literal notranslate"><span class="pre">finding</span></code> (one of <a class="reference internal" href="#an.measurements.settle_durations" title="an.measurements.settle_durations"><code class="xref py py-func docutils literal notranslate"><span class="pre">settle_durations()</span></code></a>’) says a shot’s
+length is a placeholder: its renderer decides it and never measured it.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimpleNamespace</span> <span class="k">as</span> <span class="n">NS</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">is_unmeasured</span><span class="p">(</span><span class="n">NS</span><span class="p">(</span><span class="n">suggested_fix</span><span class="o">=</span><span class="n">UNMEASURED_FIX</span><span class="p">)),</span> <span class="n">is_unmeasured</span><span class="p">(</span><span class="n">NS</span><span class="p">(</span><span class="n">suggested_fix</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span>
+<span class="go">(True, False)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -830,9 +877,12 @@ stored; <code class="docutils literal notranslate"><span class="pre">force</span
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.measurements.MeasurementError"><code class="docutils literal notranslate"><span class="pre">MeasurementError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.measurements.ShotFindingWarning"><code class="docutils literal notranslate"><span class="pre">ShotFindingWarning</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.measurements.UNMEASURED_FIX"><code class="docutils literal notranslate"><span class="pre">UNMEASURED_FIX</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.measurements.UnmeasuredLengthError"><code class="docutils literal notranslate"><span class="pre">UnmeasuredLengthError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.measurements.accept_measured"><code class="docutils literal notranslate"><span class="pre">accept_measured()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.measurements.clock_owner_for"><code class="docutils literal notranslate"><span class="pre">clock_owner_for()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.measurements.declared_duration"><code class="docutils literal notranslate"><span class="pre">declared_duration()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.measurements.is_unmeasured"><code class="docutils literal notranslate"><span class="pre">is_unmeasured()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.measurements.settle_durations"><code class="docutils literal notranslate"><span class="pre">settle_durations()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.measurements.warn_findings"><code class="docutils literal notranslate"><span class="pre">warn_findings()</span></code></a></li>
 </ul>

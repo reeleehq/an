@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=a7983ba7"></script>
+    <script src="../../_static/documentation_options.js?v=03e0bfbe"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.374" />
+  <meta name="docsearch:version" content="0.1.375" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -716,8 +716,9 @@ window.runMermaid = runMermaid;</script>
 
 <span class="sd">Looking at one moment of a shot used to mean a whole render, or a throwaway</span>
 <span class="sd">script that staged the scene its own way and drew something else. A probe</span>
-<span class="sd">prepares the shot exactly as :func:`an.render.render` does (``_prepare_shots``:</span>
-<span class="sd">settled length, burned captions, the style pack, the resolved knobs), then asks</span>
+<span class="sd">prepares the shot exactly as :func:`an.render.render` does</span>
+<span class="sd">(:func:`an.render.prepared_shots`: settled length, burned captions, the style</span>
+<span class="sd">pack, the resolved knobs; no document compiled), then asks</span>
 <span class="sd">the shot's own renderer for the frames showing at the instants given:</span>
 
 <span class="sd">- a frame-stage renderer (the stage engine, the cut-out renderer) opens the</span>
@@ -794,7 +795,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    supersample: as ``an render --supersample`` (the frame is the film's only</span>
 <span class="sd">        if it matches the render's)</span>
 <span class="sd">    """</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.render</span><span class="w"> </span><span class="kn">import</span> <span class="n">_prepare_shots</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.render</span><span class="w"> </span><span class="kn">import</span> <span class="n">prepared_shots</span>
 
     <span class="n">project</span> <span class="o">=</span> <span class="n">_project</span><span class="p">(</span><span class="n">project</span><span class="p">)</span>
     <span class="n">times</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">times</span><span class="p">]</span>
@@ -803,23 +804,18 @@ window.runMermaid = runMermaid;</script>
     <span class="n">work</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">root</span> <span class="o">/</span> <span class="s2">".an"</span> <span class="o">/</span> <span class="n">PROBE_WORK_DIR</span> <span class="o">/</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span><span class="p">[:</span><span class="mi">12</span><span class="p">]</span>
     <span class="n">work</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">prep</span> <span class="o">=</span> <span class="n">_prepare_shots</span><span class="p">(</span>
+        <span class="n">prepared</span> <span class="o">=</span> <span class="n">prepared_shots</span><span class="p">(</span>
             <span class="n">project</span><span class="p">,</span>
-            <span class="n">work</span><span class="p">,</span>
-            <span class="n">fps</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">resolution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">strict_assets</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="n">supersample</span><span class="o">=</span><span class="n">supersample</span><span class="p">,</span>
-            <span class="n">pix_fmt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">capture</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">step_hz</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">measure</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>  <span class="c1"># a probe never runs a renderer to measure a shot</span>
+            <span class="n">allow_unmeasured</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># another shot's placeholder moves no frame of this one</span>
+            <span class="n">work_dir</span><span class="o">=</span><span class="n">work</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="n">found</span> <span class="o">=</span> <span class="p">[(</span><span class="n">s</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">prep</span><span class="o">.</span><span class="n">shot_renderers</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">shot</span><span class="p">]</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">prepared</span><span class="o">.</span><span class="n">shots</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">shot</span><span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">found</span><span class="p">:</span>
-            <span class="n">ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">prep</span><span class="o">.</span><span class="n">shot_renderers</span><span class="p">]</span>
+            <span class="n">ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">prepared</span><span class="o">.</span><span class="n">shots</span><span class="p">]</span>
             <span class="k">raise</span> <span class="n">ProbeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"the scene has no shot </span><span class="si">{</span><span class="n">shot</span><span class="si">!r}</span><span class="s2">; its shots: </span><span class="si">{</span><span class="n">ids</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-        <span class="n">the_shot</span><span class="p">,</span> <span class="n">renderer</span><span class="p">,</span> <span class="n">ctx</span> <span class="o">=</span> <span class="n">found</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">the_shot</span><span class="p">,</span> <span class="n">renderer</span><span class="p">,</span> <span class="n">ctx</span> <span class="o">=</span> <span class="n">found</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span> <span class="n">found</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">renderer</span><span class="p">,</span> <span class="n">found</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ctx</span>
         <span class="n">late</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">times</span> <span class="k">if</span> <span class="n">t</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">t</span> <span class="o">&gt;</span> <span class="n">the_shot</span><span class="o">.</span><span class="n">duration</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">late</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">ProbeError</span><span class="p">(</span>

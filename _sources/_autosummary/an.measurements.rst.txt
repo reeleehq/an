@@ -4,6 +4,12 @@ an.measurements
 .. automodule:: an.measurements
 
    
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      UNMEASURED_FIX
+   
    .. rubric:: Functions
 
    .. autosummary::
@@ -11,6 +17,7 @@ an.measurements
       accept_measured
       clock_owner_for
       declared_duration
+      is_unmeasured
       settle_durations
       warn_findings
    
@@ -20,4 +27,5 @@ an.measurements
    
       MeasurementError
       ShotFindingWarning
+      UnmeasuredLengthError
    

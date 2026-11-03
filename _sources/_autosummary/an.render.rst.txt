@@ -28,6 +28,7 @@ an.render
       format_render_findings
       live_runs
       portable_text
+      prepared_shots
       render
       render_findings
       render_project
@@ -37,6 +38,8 @@ an.render
    .. autosummary::
    
       CacheReach
+      PreparedShot
+      PreparedShots
    
    .. rubric:: Exceptions
 

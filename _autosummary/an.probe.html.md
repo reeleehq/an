@@ -4,8 +4,9 @@
 
 Looking at one moment of a shot used to mean a whole render, or a throwaway
 script that staged the scene its own way and drew something else. A probe
-prepares the shot exactly as [`an.render.render()`](an.render.html.md#an.render.render) does (`_prepare_shots`:
-settled length, burned captions, the style pack, the resolved knobs), then asks
+prepares the shot exactly as [`an.render.render()`](an.render.html.md#an.render.render) does
+([`an.render.prepared_shots()`](an.render.html.md#an.render.prepared_shots): settled length, burned captions, the style
+pack, the resolved knobs; no document compiled), then asks
 the shot’s own renderer for the frames showing at the instants given:
 
 - a frame-stage renderer (the stage engine, the cut-out renderer) opens the

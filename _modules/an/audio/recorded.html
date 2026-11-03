@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=a7983ba7"></script>
+    <script src="../../../_static/documentation_options.js?v=03e0bfbe"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.374" />
+  <meta name="docsearch:version" content="0.1.375" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -2241,6 +2241,69 @@ window.runMermaid = runMermaid;</script>
     <span class="p">]</span>
 
 
+<span class="c1">#: How far one line may run into the next before the two are refused as</span>
+<span class="c1">#: overlapping speech (seconds): an aligner's or a transcriber's word edges</span>
+<span class="c1">#: meet within a few hundredths, two people talking at once do not (an#739).</span>
+<span class="n">DFLT_OVERLAP_TOLERANCE_S</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span>
+
+
+<span class="c1">#: Who timed a take's lines, by the last part of its kind (:func:`_timed_segments`:</span>
+<span class="c1">#: ``'asr'``, ``'srt+asr'``, ``'txt+align'``); any other kind's times are its</span>
+<span class="c1">#: transcript's own.</span>
+<span class="n">_TIMED_BY</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"asr"</span><span class="p">:</span> <span class="s2">"the transcriber"</span><span class="p">,</span> <span class="s2">"align"</span><span class="p">:</span> <span class="s2">"the aligner"</span><span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_overlap_remedy</span><span class="p">(</span><span class="n">kind</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tolerance_s</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What to do about two overlapping lines of a take of ``kind`` (an#739):</span>
+<span class="sd">    fix the transcript's times, or give one when a machine made them; either</span>
+<span class="sd">    way, a tolerance (``overlap_tolerance_s=`` / ``--overlap-tolerance``) lets</span>
+<span class="sd">    a small overlap through.</span>
+
+<span class="sd">    &gt;&gt;&gt; _overlap_remedy("srt", tolerance_s=0.05)</span>
+<span class="sd">    "fix the transcript's times, or raise overlap_tolerance_s= / --overlap-tolerance (0.05 s now)"</span>
+<span class="sd">    &gt;&gt;&gt; _overlap_remedy("asr", tolerance_s=0.05)</span>
+<span class="sd">    'as the transcriber timed them, give a timed transcript (SRT, TextGrid), or raise overlap_tolerance_s= / --overlap-tolerance (0.05 s now)'</span>
+<span class="sd">    """</span>
+    <span class="n">timer</span> <span class="o">=</span> <span class="n">_TIMED_BY</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">kind</span><span class="o">.</span><span class="n">rpartition</span><span class="p">(</span><span class="s2">"+"</span><span class="p">)[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">fix</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">"fix the transcript's times"</span>
+        <span class="k">if</span> <span class="n">timer</span> <span class="ow">is</span> <span class="kc">None</span>
+        <span class="k">else</span> <span class="sa">f</span><span class="s2">"as </span><span class="si">{</span><span class="n">timer</span><span class="si">}</span><span class="s2"> timed them, give a timed transcript (SRT, TextGrid)"</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">fix</span><span class="si">}</span><span class="s2">, or raise overlap_tolerance_s= / --overlap-tolerance (</span><span class="si">{</span><span class="n">tolerance_s</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> s now)"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_refuse_overlaps</span><span class="p">(</span>
+    <span class="n">segments</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">TranscriptSegment</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">kind</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">tolerance_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_OVERLAP_TOLERANCE_S</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Refuse, naming both lines, two consecutive timed segments that overlap</span>
+<span class="sd">    by more than ``tolerance_s`` (an#739): speech at once cannot be cut into</span>
+<span class="sd">    one take each, and cutting between them would cut a word in two.</span>
+<span class="sd">    ``kind`` is how the lines were timed (:func:`_timed_segments`), which</span>
+<span class="sd">    says what can be done about it (:func:`_overlap_remedy`).</span>
+
+<span class="sd">    &gt;&gt;&gt; a, b = TranscriptSegment("Hello.", 0.0, 1.0), TranscriptSegment("Yo.", 0.5, 0.8)</span>
+<span class="sd">    &gt;&gt;&gt; _refuse_overlaps([a, TranscriptSegment("Yo.", 0.98, 1.4)], name="t.wav")</span>
+<span class="sd">    &gt;&gt;&gt; _refuse_overlaps([a, b], name="t.wav", kind="srt")</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">      ...</span>
+<span class="sd">    an.audio.recorded.RecordedVoicesError: t.wav: 'Hello.' (0.00–1.00 s) and 'Yo.' (0.50–0.80 s) overlap: two voices at once cannot be cut into a take each; give them separate files, fix the transcript's times, or raise overlap_tolerance_s= / --overlap-tolerance (0.05 s now). Nothing was written.</span>
+<span class="sd">    """</span>
+    <span class="n">timed</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">segments</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">timed</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">prev</span><span class="p">,</span> <span class="n">seg</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">timed</span><span class="p">,</span> <span class="n">timed</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+        <span class="k">if</span> <span class="n">seg</span><span class="o">.</span><span class="n">start</span> <span class="o">&lt;</span> <span class="n">prev</span><span class="o">.</span><span class="n">end</span> <span class="o">-</span> <span class="n">tolerance_s</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">RecordedVoicesError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">prev</span><span class="o">.</span><span class="n">text</span><span class="si">!r}</span><span class="s2"> (</span><span class="si">{</span><span class="n">prev</span><span class="o">.</span><span class="n">start</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">–</span><span class="si">{</span><span class="n">prev</span><span class="o">.</span><span class="n">end</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s) and "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">seg</span><span class="o">.</span><span class="n">text</span><span class="si">!r}</span><span class="s2"> (</span><span class="si">{</span><span class="n">seg</span><span class="o">.</span><span class="n">start</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">–</span><span class="si">{</span><span class="n">seg</span><span class="o">.</span><span class="n">end</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s) overlap: two voices "</span>
+                <span class="s2">"at once cannot be cut into a take each; give them separate files, "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_overlap_remedy</span><span class="p">(</span><span class="n">kind</span><span class="p">,</span><span class="w"> </span><span class="n">tolerance_s</span><span class="o">=</span><span class="n">tolerance_s</span><span class="p">)</span><span class="si">}</span><span class="s2">. Nothing was written."</span>
+            <span class="p">)</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_speaker_of</span><span class="p">(</span>
     <span class="n">take</span><span class="p">:</span> <span class="n">_Take</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
@@ -2579,6 +2642,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">diarize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">align</span><span class="p">:</span> <span class="n">Aligner</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">rough_timing</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">overlap_tolerance_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_OVERLAP_TOLERANCE_S</span><span class="p">,</span>
     <span class="n">match_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_MATCH_THRESHOLD</span><span class="p">,</span>
     <span class="n">write</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">scene_file</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">DEFAULT_SCENE_FILE</span><span class="p">,</span>
@@ -2614,6 +2678,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    text as one utterance, which drifts on a long take. With no transcriber</span>
 <span class="sd">    to run, the import falls back to that one utterance, with a</span>
 <span class="sd">    :class:`RecordedVoicesWarning`.</span>
+<span class="sd">    Two lines of a take overlapping by more than ``overlap_tolerance_s``</span>
+<span class="sd">    seconds are refused, naming both (an#739): two voices at once cannot be</span>
+<span class="sd">    cut apart.</span>
 <span class="sd">    ``write=False`` runs everything but writes nothing (a dry run).</span>
 <span class="sd">    ``scene_file`` imports into another scene of the project</span>
 <span class="sd">    (``scene.studio.md``, an#554).</span>
@@ -2651,6 +2718,9 @@ window.runMermaid = runMermaid;</script>
             <span class="n">align</span><span class="o">=</span><span class="n">align</span><span class="p">,</span>
             <span class="n">wav</span><span class="o">=</span><span class="n">wav</span><span class="p">,</span>
             <span class="n">rough_timing</span><span class="o">=</span><span class="n">rough_timing</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">_refuse_overlaps</span><span class="p">(</span>
+            <span class="n">segments</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="n">kind</span><span class="p">,</span> <span class="n">tolerance_s</span><span class="o">=</span><span class="n">overlap_tolerance_s</span>
         <span class="p">)</span>
         <span class="n">spans</span> <span class="o">=</span> <span class="n">cut_spans</span><span class="p">(</span><span class="n">segments</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="n">total</span><span class="p">)</span>
         <span class="n">previous_end</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>

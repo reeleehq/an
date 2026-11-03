@@ -32,20 +32,27 @@ True
 3.0
 ```
 
+### Module Attributes
+
+| [`UNMEASURED_FIX`](#an.measurements.UNMEASURED_FIX)   | What the finding of a clock-owned shot never measured suggests; also what marks it ([`is_unmeasured()`](#an.measurements.is_unmeasured)): its length is a placeholder.   |
+|-------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+
 ### Functions
 
-| [`accept_measured`](#an.measurements.accept_measured)(project_dir, \*[, scene_file])   | Write each clock-owned shot's MEASURED length into the authored scene.                                      |
-|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
-| [`clock_owner_for`](#an.measurements.clock_owner_for)(shot[, registry])                | The registered renderer of `shot` if it owns its clock, else `None`.                                        |
-| [`declared_duration`](#an.measurements.declared_duration)(shot)                          | The duration the AUTHOR wrote, or `None`.                                                                   |
-| [`settle_durations`](#an.measurements.settle_durations)(scene, ctx, \*, render[, ...])  | A COPY of `scene` whose clock-owned shots carry their settled length, and the findings about them.          |
-| [`warn_findings`](#an.measurements.warn_findings)(findings, \*[, stacklevel])        | Warn each finding as a [`ShotFindingWarning`](#an.measurements.ShotFindingWarning) (`location: …`). |
+| [`accept_measured`](#an.measurements.accept_measured)(project_dir, \*[, scene_file])   | Write each clock-owned shot's MEASURED length into the authored scene.                                                                                                                |
+|---------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`clock_owner_for`](#an.measurements.clock_owner_for)(shot[, registry])                | The registered renderer of `shot` if it owns its clock, else `None`.                                                                                                                  |
+| [`declared_duration`](#an.measurements.declared_duration)(shot)                          | The duration the AUTHOR wrote, or `None`.                                                                                                                                             |
+| [`is_unmeasured`](#an.measurements.is_unmeasured)(finding)                           | Whether `finding` (one of [`settle_durations()`](#an.measurements.settle_durations)') says a shot's length is a placeholder: its renderer decides it and never measured it. |
+| [`settle_durations`](#an.measurements.settle_durations)(scene, ctx, \*, render[, ...])  | A COPY of `scene` whose clock-owned shots carry their settled length, and the findings about them.                                                                                    |
+| [`warn_findings`](#an.measurements.warn_findings)(findings, \*[, stacklevel])        | Warn each finding as a [`ShotFindingWarning`](#an.measurements.ShotFindingWarning) (`location: …`).                                                                           |
 
 ### Exceptions
 
-| [`MeasurementError`](#an.measurements.MeasurementError)   | A measured shot cannot be laid out as asked (e.g. a hold under strict mode).                                                           |
-|---------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|
-| [`ShotFindingWarning`](#an.measurements.ShotFindingWarning) | A finding about a shot, warned by `an render` — located by `file:line` when the thing to fix is an opaque source (a Manim scene file). |
+| [`MeasurementError`](#an.measurements.MeasurementError)      | A measured shot cannot be laid out as asked (e.g. a hold under strict mode).                                                              |
+|------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
+| [`ShotFindingWarning`](#an.measurements.ShotFindingWarning)    | A finding about a shot, warned by `an render` — located by `file:line` when the thing to fix is an opaque source (a Manim scene file).    |
+| [`UnmeasuredLengthError`](#an.measurements.UnmeasuredLengthError) | A clock-owned shot was never measured, so its length (and every later shot's start) is a placeholder, and the caller did not accept that. |
 
 ### *exception* an.measurements.MeasurementError
 
@@ -59,6 +66,18 @@ Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWa
 
 A finding about a shot, warned by `an render` — located by `file:line`
 when the thing to fix is an opaque source (a Manim scene file).
+
+### an.measurements.UNMEASURED_FIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'render the project once (\`an render\`) so its renderer measures the shot'*
+
+What the finding of a clock-owned shot never measured suggests; also what
+marks it ([`is_unmeasured()`](#an.measurements.is_unmeasured)): its length is a placeholder.
+
+### *exception* an.measurements.UnmeasuredLengthError
+
+Bases: [`MeasurementError`](#an.measurements.MeasurementError)
+
+A clock-owned shot was never measured, so its length (and every later
+shot’s start) is a placeholder, and the caller did not accept that.
 
 ### an.measurements.accept_measured(project_dir, , scene_file='scene.md')
 
@@ -89,6 +108,20 @@ declared” — an explicit `duration: 5` is indistinguishable from it.
 
 * **Return type:**
   [`float`](https://docs.python.org/3/builtins/functions.html#float) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.measurements.is_unmeasured(finding)
+
+Whether `finding` (one of [`settle_durations()`](#an.measurements.settle_durations)’) says a shot’s
+length is a placeholder: its renderer decides it and never measured it.
+
+```pycon
+>>> from types import SimpleNamespace as NS
+>>> is_unmeasured(NS(suggested_fix=UNMEASURED_FIX)), is_unmeasured(NS(suggested_fix=None))
+(True, False)
+```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ### an.measurements.settle_durations(scene, ctx, , render, force=False, strict=False, registry=None)
 

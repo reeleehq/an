@@ -299,7 +299,7 @@ added in `scene.md` does not orphan the take.
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
-### an.audio.recorded.import_recordings(project, audio, , transcript=None, speaker=None, speakers=None, shot=None, voice=None, denoise=None, license=None, recorded_by=None, transcribe=None, transcriber=None, diarize=False, align=None, rough_timing=True, match_threshold=0.75, write=True, scene_file='scene.md')
+### an.audio.recorded.import_recordings(project, audio, , transcript=None, speaker=None, speakers=None, shot=None, voice=None, denoise=None, license=None, recorded_by=None, transcribe=None, transcriber=None, diarize=False, align=None, rough_timing=True, overlap_tolerance_s=0.05, match_threshold=0.75, write=True, scene_file='scene.md')
 
 Import a performer’s recording(s) as the voice of their lines (an#490).
 
@@ -332,6 +332,9 @@ billed for this pass too), and each is aligned within its own interval
 text as one utterance, which drifts on a long take. With no transcriber
 to run, the import falls back to that one utterance, with a
 [`RecordedVoicesWarning`](#an.audio.recorded.RecordedVoicesWarning).
+Two lines of a take overlapping by more than `overlap_tolerance_s`
+seconds are refused, naming both (an#739): two voices at once cannot be
+cut apart.
 `write=False` runs everything but writes nothing (a dry run).
 `scene_file` imports into another scene of the project
 (`scene.studio.md`, an#554).

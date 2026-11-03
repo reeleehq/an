@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=a7983ba7"></script>
+    <script src="../_static/documentation_options.js?v=03e0bfbe"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.374" />
+  <meta name="docsearch:version" content="0.1.375" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -696,13 +696,16 @@ adapters and the same flow handles them.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.render.portable_text" title="an.render.portable_text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">portable_text</span></code></a>(text, *[, root, home, tmp])</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">text</span></code> with this machine's absolute paths taken out: a path under the project <code class="docutils literal notranslate"><span class="pre">root</span></code> becomes project-relative, the root itself <code class="docutils literal notranslate"><span class="pre">.</span></code>, a temp folder <code class="docutils literal notranslate"><span class="pre">&lt;tmp&gt;</span></code> and the home directory <code class="docutils literal notranslate"><span class="pre">~</span></code> — so a render report (which a project may commit or share, and an agent may pass on) names no user, host folder or temp dir.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.render.render" title="an.render.render"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render</span></code></a>(project, *[, output_name, fps, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.render.prepared_shots" title="an.render.prepared_shots"><code class="xref py py-obj docutils literal notranslate"><span class="pre">prepared_shots</span></code></a>(project, *[, fps, ...])</p></td>
+<td><p>Every shot of <code class="docutils literal notranslate"><span class="pre">project</span></code> prepared exactly as <a class="reference internal" href="#an.render.render" title="an.render.render"><code class="xref py py-func docutils literal notranslate"><span class="pre">render()</span></code></a> prepares it, without drawing (an#733): the preparation <code class="docutils literal notranslate"><span class="pre">render</span></code> and <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">probe</span></code> share (<code class="xref py py-func docutils literal notranslate"><span class="pre">_prepare_shots()</span></code>: settled lengths, the style pack, <code class="docutils literal notranslate"><span class="pre">step_hz</span></code>, default easing, burned captions, <code class="docutils literal notranslate"><span class="pre">continue:</span></code> shots, the closing transition), each shot's film start, and its stage document on demand (<a class="reference internal" href="#an.render.PreparedShot.document" title="an.render.PreparedShot.document"><code class="xref py py-attr docutils literal notranslate"><span class="pre">PreparedShot.document</span></code></a>).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.render.render" title="an.render.render"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render</span></code></a>(project, *[, output_name, fps, ...])</p></td>
 <td><p>Lower-level: render a loaded <code class="docutils literal notranslate"><span class="pre">Project</span></code> to mp4.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.render.render_findings" title="an.render.render_findings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render_findings</span></code></a>(project[, output_name])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.render.render_findings" title="an.render.render_findings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render_findings</span></code></a>(project[, output_name])</p></td>
 <td><p>The <code class="docutils literal notranslate"><span class="pre">Finding</span></code> s the last render of <code class="docutils literal notranslate"><span class="pre">output_name</span></code> reported (an#254), from <code class="docutils literal notranslate"><span class="pre">render_reports/&lt;output_name&gt;.json</span></code>; <code class="docutils literal notranslate"><span class="pre">[]</span></code> before any render.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.render.render_project" title="an.render.render_project"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render_project</span></code></a>(project_dir, *[, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.render.render_project" title="an.render.render_project"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render_project</span></code></a>(project_dir, *[, ...])</p></td>
 <td><p>Render every shot in <code class="docutils literal notranslate"><span class="pre">project_dir</span></code>'s scene and concatenate to one mp4.</p></td>
 </tr>
 </tbody>
@@ -713,6 +716,12 @@ adapters and the same flow handles them.</p>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.render.CacheReach" title="an.render.CacheReach"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CacheReach</span></code></a>([ids, derived])</p></td>
 <td><p><a class="reference internal" href="#an.render.cache_reach" title="an.render.cache_reach"><code class="xref py py-func docutils literal notranslate"><span class="pre">cache_reach()</span></code></a>'s answer: shot-cache ids, and derived-store entries by store name.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.render.PreparedShot" title="an.render.PreparedShot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PreparedShot</span></code></a>(shot, renderer, ctx, start)</p></td>
+<td><p>One shot as <a class="reference internal" href="#an.render.render" title="an.render.render"><code class="xref py py-func docutils literal notranslate"><span class="pre">render()</span></code></a> draws it (an#733): the shot as prepared (settled length, burned captions), the renderer that draws it, the context it is drawn in, and where it starts in the film, seconds (the film's layout: a dissolve overlaps, so starts are not summed lengths).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.render.PreparedShots" title="an.render.PreparedShots"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PreparedShots</span></code></a>(fps, resolution, shots[, findings])</p></td>
+<td><p>Every shot of a film as <a class="reference internal" href="#an.render.render" title="an.render.render"><code class="xref py py-func docutils literal notranslate"><span class="pre">render()</span></code></a> prepares it (<a class="reference internal" href="#an.render.prepared_shots" title="an.render.prepared_shots"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepared_shots()</span></code></a>): the film's rate and size, the shots in timeline order, and what preparing them found (settled lengths, cues timed by the picture), as the render report files them.</p></td>
 </tr>
 </tbody>
 </table>
@@ -747,6 +756,40 @@ kind not listed (another warning category) is headed by its own name, after.</p>
 <dt class="sig sig-object py" id="an.render.POSIX_TEMP_DIRS">
 <span class="sig-prename descclassname"><span class="pre">an.render.</span></span><span class="sig-name descname"><span class="pre">POSIX_TEMP_DIRS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('/tmp',</span> <span class="pre">'/private/tmp',</span> <span class="pre">'/var/tmp')</span></span><a class="headerlink" href="#an.render.POSIX_TEMP_DIRS" title="Link to this definition">#</a></dt>
 <dd><p>The temp folders every POSIX machine has, besides the one Python reports.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.render.PreparedShot">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.render.</span></span><span class="sig-name descname"><span class="pre">PreparedShot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">renderer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/render.html#PreparedShot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.render.PreparedShot" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>One shot as <a class="reference internal" href="#an.render.render" title="an.render.render"><code class="xref py py-func docutils literal notranslate"><span class="pre">render()</span></code></a> draws it (an#733): the shot as prepared
+(settled length, burned captions), the renderer that draws it, the context
+it is drawn in, and where it starts in the film, seconds (the film’s
+layout: a dissolve overlaps, so starts are not summed lengths).</p>
+<p><a class="reference internal" href="#an.render.PreparedShot.document" title="an.render.PreparedShot.document"><code class="xref py py-attr docutils literal notranslate"><span class="pre">document</span></code></a> is compiled on first read only, so a caller that needs
+none (<code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">probe</span></code>) pays no compile.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="an.render.PreparedShot.document">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">document</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a></span><a class="headerlink" href="#an.render.PreparedShot.document" title="Link to this definition">#</a></dt>
+<dd><p>The stage document exactly as the render’s engine compiles it
+(<a class="reference internal" href="an.stage.cache_key.html#an.stage.cache_key.compiled_document" title="an.stage.cache_key.compiled_document"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.stage.cache_key.compiled_document()</span></code></a>); <code class="docutils literal notranslate"><span class="pre">None</span></code> for a shot
+not drawn on the stage (<a class="reference internal" href="an.stage.html#an.stage.draws_on_stage" title="an.stage.draws_on_stage"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.stage.draws_on_stage()</span></code></a>; Manim).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.render.PreparedShots">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.render.</span></span><span class="sig-name descname"><span class="pre">PreparedShots</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">findings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">list()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/render.html#PreparedShots"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.render.PreparedShots" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Every shot of a film as <a class="reference internal" href="#an.render.render" title="an.render.render"><code class="xref py py-func docutils literal notranslate"><span class="pre">render()</span></code></a> prepares it (<a class="reference internal" href="#an.render.prepared_shots" title="an.render.prepared_shots"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepared_shots()</span></code></a>):
+the film’s rate and size, the shots in timeline order, and what preparing
+them found (settled lengths, cues timed by the picture), as the render
+report files them.</p>
+<dl class="field-list simple">
+</dl>
 </dd></dl>
 
 <dl class="py data">
@@ -932,6 +975,35 @@ separator and in any case.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.render.prepared_shots">
+<span class="sig-prename descclassname"><span class="pre">an.render.</span></span><span class="sig-name descname"><span class="pre">prepared_shots</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">supersample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">measure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_unmeasured</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">work_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/render.html#prepared_shots"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.render.prepared_shots" title="Link to this definition">#</a></dt>
+<dd><p>Every shot of <code class="docutils literal notranslate"><span class="pre">project</span></code> prepared exactly as <a class="reference internal" href="#an.render.render" title="an.render.render"><code class="xref py py-func docutils literal notranslate"><span class="pre">render()</span></code></a> prepares
+it, without drawing (an#733): the preparation <code class="docutils literal notranslate"><span class="pre">render</span></code> and <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">probe</span></code>
+share (<code class="xref py py-func docutils literal notranslate"><span class="pre">_prepare_shots()</span></code>: settled lengths, the style pack,
+<code class="docutils literal notranslate"><span class="pre">step_hz</span></code>, default easing, burned captions, <code class="docutils literal notranslate"><span class="pre">continue:</span></code> shots, the
+closing transition), each shot’s film start, and its stage document on
+demand (<a class="reference internal" href="#an.render.PreparedShot.document" title="an.render.PreparedShot.document"><code class="xref py py-attr docutils literal notranslate"><span class="pre">PreparedShot.document</span></code></a>). For a verifier that reads a
+render’s timelines (a mouth or body cadence measured apart).</p>
+<p><code class="docutils literal notranslate"><span class="pre">fps</span></code> and <code class="docutils literal notranslate"><span class="pre">resolution</span></code> as <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span></code> takes them (<code class="docutils literal notranslate"><span class="pre">None</span></code>: the
+scene’s). <code class="docutils literal notranslate"><span class="pre">supersample</span></code> is the context’s fidelity only (what a caller
+that draws, a probe, draws at); it does not reach the document.</p>
+<p>A shot whose renderer owns its clock (Manim) and was never measured has a
+placeholder length that shifts every later start, so it is refused
+(<a class="reference internal" href="an.measurements.html#an.measurements.UnmeasuredLengthError" title="an.measurements.UnmeasuredLengthError"><code class="xref py py-class docutils literal notranslate"><span class="pre">an.measurements.UnmeasuredLengthError</span></code></a>) unless
+<code class="docutils literal notranslate"><span class="pre">allow_unmeasured</span></code> (its finding is then in <code class="docutils literal notranslate"><span class="pre">findings</span></code>). <code class="docutils literal notranslate"><span class="pre">measure=True</span></code>
+measures it as a render does: it RUNS that renderer and WRITES its
+measurement (and the picture it drew) to the project’s stores.</p>
+<p><code class="docutils literal notranslate"><span class="pre">work_dir</span></code> is the render context’s scratch folder, for a caller that
+draws through <code class="docutils literal notranslate"><span class="pre">ctx</span></code> (a probe stages there); preparing without
+<code class="docutils literal notranslate"><span class="pre">measure</span></code> writes nothing there (default <code class="docutils literal notranslate"><span class="pre">&lt;project&gt;/.an/render_work</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.render.PreparedShots" title="an.render.PreparedShots"><code class="xref py py-class docutils literal notranslate"><span class="pre">PreparedShots</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1156,6 +1228,11 @@ another scene may not take <code class="docutils literal notranslate"><span clas
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.CacheReach"><code class="docutils literal notranslate"><span class="pre">CacheReach</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.FINDING_GROUPS"><code class="docutils literal notranslate"><span class="pre">FINDING_GROUPS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.POSIX_TEMP_DIRS"><code class="docutils literal notranslate"><span class="pre">POSIX_TEMP_DIRS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.PreparedShot"><code class="docutils literal notranslate"><span class="pre">PreparedShot</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.PreparedShot.document"><code class="docutils literal notranslate"><span class="pre">PreparedShot.document</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.PreparedShots"><code class="docutils literal notranslate"><span class="pre">PreparedShots</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.RENDER_OUTPUTS_DIR"><code class="docutils literal notranslate"><span class="pre">RENDER_OUTPUTS_DIR</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.RENDER_RUNS_DIR"><code class="docutils literal notranslate"><span class="pre">RENDER_RUNS_DIR</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.RENDER_WORK_DIR"><code class="docutils literal notranslate"><span class="pre">RENDER_WORK_DIR</span></code></a></li>
@@ -1170,6 +1247,7 @@ another scene may not take <code class="docutils literal notranslate"><span clas
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.format_render_findings"><code class="docutils literal notranslate"><span class="pre">format_render_findings()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.live_runs"><code class="docutils literal notranslate"><span class="pre">live_runs()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.portable_text"><code class="docutils literal notranslate"><span class="pre">portable_text()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.prepared_shots"><code class="docutils literal notranslate"><span class="pre">prepared_shots()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.render"><code class="docutils literal notranslate"><span class="pre">render()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.render_findings"><code class="docutils literal notranslate"><span class="pre">render_findings()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.render_project"><code class="docutils literal notranslate"><span class="pre">render_project()</span></code></a></li>
