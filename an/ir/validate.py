@@ -2808,7 +2808,7 @@ def _report_plane_depths(ctx: ValidationContext, world: Any, env_store: Any) -> 
     one spelling; none is in a ``far`` frame (at infinity: factor 0). Reported
     once per member, at the first framed shot."""
     from an.ir.frames import FrameTree
-    from an.ir.world import plane_frame
+    from an.ir.world import _plane_at_infinity
     from an.stage.environments import (
         ENVIRONMENT_DOCUMENT_KIND,
         EnvironmentDescriptor,
@@ -2827,29 +2827,23 @@ def _report_plane_depths(ctx: ValidationContext, world: Any, env_store: Any) -> 
         except Exception:  # noqa: BLE001 — a missing or malformed environment is another check's
             continue
         planes = {p.name: p for p in env.planes}
-        frames = world.all_frames()
-        tree = FrameTree(frames)
+        tree = FrameTree(world.all_frames())
         for name in sorted(member.depths):
             where = f"world/members/{j}"
-            frame = plane_frame(world, member, name)
-            travel_far = world.travel is not None and f"{member.id}/{name}" in (
-                world.travel.plates.get("far", ())
-            )
-            if travel_far:
+            far = _plane_at_infinity(world, member.id, name, member=member, tree=tree)
+            if far is not None and far.reason == "listed":
                 ctx.report.add(
                     "error",
                     where,
-                    f"plane '{member.id}/{name}' has a world depth but `world.travel.plates` "
+                    f"plane '{far.path}' has a world depth but `world.travel.plates` "
                     "lists it `far`: that is at infinity, factor 0. Drop one.",
                 )
-            elif frame in tree and any(
-                frames[n].coupling == "far" for n in tree.chain(frame)
-            ):
+            elif far is not None:
                 ctx.report.add(
                     "error",
                     where,
                     f"plane {member.id}/{name!r} has a world depth but is in frame "
-                    f"{frame!r}, coupled by rotation only: that is at infinity, "
+                    f"{far.frame!r}, coupled by rotation only: that is at infinity, "
                     "factor 0. Drop the depth.",
                 )
             elif name not in planes:
@@ -2898,15 +2892,14 @@ def _core_viewpoint(ctx: ValidationContext) -> None:
     _report_plane_depths(ctx, world, env_store)
     from an.ir.frames import FrameTree
     from an.ir.schema import WORLD_FRAME
-    from an.ir.world import far_reason, stated_plane_frame, viewpoint_of
+    from an.ir.world import _plane_at_infinity, _stated_plane_frame, viewpoint_of
     from an.stage.environments import (
         ENVIRONMENT_DOCUMENT_KIND,
         environment_from_document,
     )
 
     travel = world.travel
-    frames = world.all_frames()
-    tree = FrameTree(frames)
+    tree = FrameTree(world.all_frames())
     vp = viewpoint_of(world, shot.viewpoint)
     vp_frame = (vp.frame if vp is not None else None) or world.default_frame()
     moving_view = vp_frame != WORLD_FRAME and not tree.is_still(vp_frame)
@@ -2941,11 +2934,13 @@ def _core_viewpoint(ctx: ValidationContext) -> None:
         for plane in env.planes:
             path = f"{entity.id}/{plane.name}"
             role = roles.get(path)
-            frame = stated_plane_frame(world, member, plane.name)
+            frame = _stated_plane_frame(world, member, plane.name)
             if frame is not None and frame not in tree:
                 continue  # an unknown frame: the schema refuses one as it loads
             # the one rule of "at infinity", shared with genres (an#735)
-            at_infinity = far_reason(world, path, frame, tree=tree) is not None
+            far = _plane_at_infinity(
+                world, entity.id, plane.name, member=member, tree=tree
+            )
             if role is None and frame is None:
                 if moving_view:
                     ctx.report.add(
@@ -2966,15 +2961,15 @@ def _core_viewpoint(ctx: ValidationContext) -> None:
                         "the far range: nothing nearer, which the streams draw) or `vehicle` "
                         "(rigid with the camera: the cabin, the dashboard).",
                     )
-            elif at_infinity:
+            elif far is not None:
                 if plane.factors() != (0.0, 0.0):
                     ctx.report.add(
                         "warning",
                         f"{ctx.path}/entities",
                         f"plane {path!r} is declared `far` (at infinity) but its parallax "
                         f"factor is {plane.factors()}: a far plate is pinned, `depth: 0`."
-                        if role == "far"
-                        else f"plane {path!r} is in frame {frame!r}, coupled by rotation only "
+                        if far.reason == "listed"
+                        else f"plane {path!r} is in frame {far.frame!r}, coupled by rotation only "
                         f"(at infinity), but its parallax factor is {plane.factors()}: a far "
                         "plate is pinned, `depth: 0`.",
                     )

@@ -708,27 +708,97 @@ def test_a_plane_in_a_far_frame_is_pinned_and_one_in_another_moving_frame_is_a_w
     assert not any("'set/rail'" in d for d in found), "rail rides with the camera"
 
 
-def test_planes_at_infinity_names_what_validate_holds_to_far(tmp_path):
-    """an#735: the public rule genres read (cutan's far-plate critic) is the
-    validate check's own: a plane in a frame coupled `far` (or under one) and
-    a plane listed `far` under the travel's plates, with why; a plane riding
-    with the camera or in the world is not at infinity."""
-    from an.ir.schema import Travel
+def _validate_pins(project, scene) -> set[str]:
+    """The planes validate holds at infinity on ``scene``: every plane of the
+    corpus `stage` has parallax factor 1, so each one it holds to `far` gets a
+    "pinned" warning."""
+    import re
+
+    return {
+        re.match(r"plane '([^']+)'", d).group(1)
+        for d in _plate_findings(project, scene)
+        if "a far plate is pinned" in d
+    }
+
+
+def _at_infinity(project, scene) -> dict[str, object]:
     from an.ir.world import planes_at_infinity
 
+    return {
+        p.path: p for p in planes_at_infinity(scene.world, project.mall["environments"])
+    }
+
+
+def test_planes_at_infinity_is_exactly_what_validate_pins(tmp_path):
+    """an#735: the public rule genres read (cutan's far-plate critic) is the
+    validate check's own, plane for plane: a plane in a frame coupled `far`
+    (or under one), a plane listed `far` under the travel's plates; a plane
+    riding with the camera or in the world is not at infinity."""
     project = _env_project(tmp_path)
     scene = _plates_scene(
         project, frame="vehicle", planes={"sky": "far", "hill": "world"}
     )
-    world = scene.world
-    found = planes_at_infinity(world, project.mall)
-    assert [(m, p) for m, p, _ in found] == [("set", "sky")]
-    assert "coupled `far`" in found[0][2]
-    world.travel = Travel(plates={"far": ["set/hill", "gone/plate"]})
-    found = {(m, p): why for m, p, why in planes_at_infinity(world, project.mall)}
-    assert set(found) == {("set", "sky"), ("set", "hill"), ("gone", "plate")}
-    assert "world.travel.plates" in found[("set", "hill")]
-    assert planes_at_infinity(None, project.mall) == []
+    found = _at_infinity(project, scene)
+    assert set(found) == _validate_pins(project, scene) == {"set/sky"}
+    sky = found["set/sky"]
+    assert (sky.reason, sky.frame, sky.coupled_frame) == ("frame", "far", "far")
+    assert sky.ir_path == f"world/members/{len(scene.world.members) - 1}"
+    assert "coupled `far`" in sky.why
+
+    scene.world.travel = Travel(plates={"far": ["set/hill", "gone/plate", "oops"]})
+    found = _at_infinity(project, scene)
+    assert set(found) - {"gone/plate"} == _validate_pins(project, scene)
+    assert set(found) == {"set/sky", "set/hill", "gone/plate"}, "`oops` is malformed"
+    hill = found["set/hill"]
+    assert (hill.reason, hill.ir_path) == ("listed", "world/travel/plates/far/0")
+    assert "world.travel.plates" in hill.why
+    assert found["gone/plate"].ir_path == "world/travel/plates/far/1"
+
+
+def test_a_depth_only_plane_of_a_far_member_is_at_infinity(tmp_path):
+    """A member `in` a far frame puts every plane there, one it gives only a
+    world depth included; validate pins it and refuses the depth."""
+    from an.ir.world import planes_at_infinity
+
+    project = _env_project(tmp_path)
+    scene = _plates_scene(project, frame="far", depths={"hill": 40.0})
+    found = _at_infinity(project, scene)
+    assert (
+        set(found)
+        == _validate_pins(project, scene)
+        == {
+            "set/sky",
+            "set/hill",
+            "set/rail",
+        }
+    )
+    assert {p.reason for p in found.values()} == {"frame"}
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        report = validate_semantic(
+            scene,
+            available_props=project.mall["props"],
+            available_environments=project.mall["environments"],
+        )
+    assert any(
+        "has a world depth but is in frame 'far'" in f.description
+        for f in report.findings
+    )
+    assert planes_at_infinity(None, project.mall["environments"]) == []
+
+
+def test_a_plate_listed_under_two_roles_is_refused_as_it_loads():
+    """an#735: a plate holds one thing, so it has one role; a path listed
+    `far` and `vehicle` used to change verdict with the dict's order."""
+    import pydantic
+    import pytest
+
+    with pytest.raises(pydantic.ValidationError) as caught:
+        Travel(plates={"far": ["set/sky"], "vehicle": ["set/hill", "set/sky"]})
+    said = caught.value.errors()[0]["msg"]
+    assert "'set/sky' is listed under 'far' and 'vehicle'" in said
+    assert "set/hill" not in said
+    assert Travel(plates={"far": ["set/sky", "set/sky"]}).plates, "a repeat is one role"
 
 
 # --- an world show --frames ----------------------------------------------------------------
@@ -775,14 +845,23 @@ def test_motion_that_ends_where_it_began_is_still_motion():
             viewpoint="road",
             actions=[
                 sequence(
-                    tween("right", "at_x", to=1.0, duration=1.0, from_=0.5, easing="linear"),
+                    tween(
+                        "right",
+                        "at_x",
+                        to=1.0,
+                        duration=1.0,
+                        from_=0.5,
+                        easing="linear",
+                    ),
                     tween("right", "at_x", to=0.5, duration=1.0, easing="linear"),
                 )
             ],
         )
     )
     xs = _channel(_lowered(scene), "right", "x")
-    assert xs and max(t[3] for t in xs) == pytest.approx(150.0, abs=2.0), "out to 150 px and back"
+    assert xs and max(t[3] for t in xs) == pytest.approx(150.0, abs=2.0), (
+        "out to 150 px and back"
+    )
 
 
 def test_a_member_that_goes_behind_the_camera_and_returns_is_hidden_meanwhile():
@@ -795,7 +874,14 @@ def test_a_member_that_goes_behind_the_camera_and_returns_is_hidden_meanwhile():
             viewpoint="road",
             actions=[
                 sequence(
-                    tween("right", "at_z", to=-3.0, duration=2.0, from_=6.0, easing="linear"),
+                    tween(
+                        "right",
+                        "at_z",
+                        to=-3.0,
+                        duration=2.0,
+                        from_=6.0,
+                        easing="linear",
+                    ),
                     tween("right", "at_z", to=6.0, duration=2.0, easing="linear"),
                 )
             ],
