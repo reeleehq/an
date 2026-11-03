@@ -1,1 +1,0 @@
-- The genre API level notes name `an.stage.solve.solve_report` as guaranteed from level 11 (an#570 merged after 10 was cut), and state that a public name a genre reads lands with a level bump (an#724).
