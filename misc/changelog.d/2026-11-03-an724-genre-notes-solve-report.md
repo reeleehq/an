@@ -1,0 +1,1 @@
+- The genre API level notes name `an.stage.solve.solve_report` and `SOLVE_EXTENSION` as guaranteed from level 11, and a test checks every dotted name the notes guarantee still resolves (an#724).

@@ -128,6 +128,38 @@ def test_every_api_level_is_documented():
     assert documented == set(range(1, API_LEVEL + 1)), documented
 
 
+#: Names a level line once named that a later level retired (12: the P8 shims).
+_RETIRED_LEVEL_NAMES = frozenset({"an._shims.moved_to_package"})
+
+
+def test_every_name_the_level_notes_guarantee_resolves():
+    """A level guarantees the names its line names (an#724): each dotted
+    ``an.…`` name in the notes is importable, but those a later level retired,
+    so a note naming a name that moved or was misspelled fails here."""
+    import importlib
+
+    source = (ROOT / "an" / "genres" / "__init__.py").read_text(encoding="utf-8")
+    notes = source[source.index("#: Levels (one line each") : source.index("API_LEVEL: int")]
+    names = set(re.findall(r"``(an(?:\.\w+)+)``", notes)) - _RETIRED_LEVEL_NAMES
+    assert {"an.stage.solve.solve_report", "an.stage.solve.SOLVE_EXTENSION"} <= names
+
+    def resolves(dotted: str) -> bool:
+        parts = dotted.split(".")
+        for cut in range(len(parts), 0, -1):
+            try:
+                obj = importlib.import_module(".".join(parts[:cut]))
+            except ImportError:
+                continue
+            for attr in parts[cut:]:
+                if not hasattr(obj, attr):
+                    return False
+                obj = getattr(obj, attr)
+            return True
+        return False
+
+    assert sorted(n for n in names if not resolves(n)) == []
+
+
 def test_api_level_13_names_are_public_and_the_old_ones_still_resolve():
     """reeleehq/cutan#148: the four names cutan read privately are public at
     API level 13; the private spellings stay as aliases, so a cutan built
