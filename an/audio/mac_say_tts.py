@@ -150,6 +150,7 @@ class MacSayTTS:
                     name=name,
                     provider=self.name,
                     language=language.replace("_", "-"),
+                    is_stock=True,  # a system voice: nobody designed it (an#712)
                 )
             )
         return voices

@@ -32,10 +32,14 @@ def _recorded_factory(*, mall: Mapping[str, Any] | None = None) -> RecordedTTS:
 
 
 #: A factory takes no arguments, or ``mall=`` when the provider reads a project
-#: store (``recorded``): :func:`make_tts` passes it only to those that accept it.
+#: store (``recorded``), or ``api_key=`` when a host may hand it its own key
+#: (``elevenlabs``): :func:`make_tts` passes each only to those that accept it,
+#: and :func:`listable_providers` reads the latter, so a provider registered
+#: here with ``api_key=`` is listable by hosts with nothing else to change.
 TTS_FACTORIES: dict[str, Callable[..., TTSProvider]] = {
     "offline": lambda: OfflineTTS(),
-    "elevenlabs": lambda: ElevenLabsTTS(),
+    # ``api_key``: a host's own key (a guest's, a server's) instead of the env's
+    "elevenlabs": lambda *, api_key=None: ElevenLabsTTS(api_key=api_key),
     "mac_say": lambda: MacSayTTS(),
     "recorded": _recorded_factory,
 }
@@ -72,13 +76,34 @@ def _accepts(factory: Callable[..., Any], keyword: str) -> bool:
     )
 
 
-def make_tts(name: str, *, mall: Mapping[str, Any] | None = None) -> TTSProvider:
+def listable_providers(
+    *, factories: Mapping[str, Callable[..., Any]] = TTS_FACTORIES
+) -> list[str]:
+    """The TTS providers a host may list voices from with its own key: those
+    whose factory takes ``api_key=`` (an#712). Hand one, with the key, to
+    :func:`an.audio.list_voices`.
+
+    >>> listable_providers()
+    ['elevenlabs']
+    >>> listable_providers(factories={"a": lambda *, api_key=None: None, "b": lambda: None})
+    ['a']
+    """
+    return sorted(name for name, f in factories.items() if _accepts(f, "api_key"))
+
+
+def make_tts(
+    name: str,
+    *,
+    mall: Mapping[str, Any] | None = None,
+    api_key: str | None = None,
+) -> TTSProvider:
     """Instantiate a TTS provider by name.
 
     ``mall`` (the project mall) reaches the factories that take it — the
-    ``recorded`` provider reads the project's ``recordings`` store; the others
-    are built as before. Raises ``ValueError`` for unknown names with a list of
-    known options.
+    ``recorded`` provider reads the project's ``recordings`` store; ``api_key``
+    (a host's own key) reaches those that take one (ElevenLabs, an#712); the
+    others are built as before. Raises ``ValueError`` for unknown names with a
+    list of known options.
 
     >>> make_tts("recorded").name
     'recorded'
@@ -89,9 +114,10 @@ def make_tts(name: str, *, mall: Mapping[str, Any] | None = None) -> TTSProvider
         raise ValueError(
             f"unknown TTS provider {name!r}; known: {sorted(TTS_FACTORIES)}"
         ) from None
-    if mall is not None and _accepts(factory, "mall"):
-        return factory(mall=mall)
-    return factory()
+    given = {"mall": mall, "api_key": api_key}
+    return factory(
+        **{k: v for k, v in given.items() if v is not None and _accepts(factory, k)}
+    )
 
 
 def make_lipsync(name: str, *, language: str = DEFAULT_LANGUAGE) -> LipSyncProvider:
