@@ -47,6 +47,7 @@ an.audio.recorded
    .. autosummary::
    
       RecordedVoicesError
+      RecordedVoicesWarning
       RecordingMissingError
       TranscriberUnavailableError
    

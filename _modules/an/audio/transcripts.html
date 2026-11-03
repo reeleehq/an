@@ -767,6 +767,7 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"parse_plain"</span><span class="p">,</span>
     <span class="s2">"parse_json"</span><span class="p">,</span>
     <span class="s2">"parse_textgrid"</span><span class="p">,</span>
+    <span class="s2">"textgrid_text"</span><span class="p">,</span>
     <span class="s2">"from_transcript_object"</span><span class="p">,</span>
     <span class="s2">"parse_timestamp"</span><span class="p">,</span>
     <span class="s2">"phone_alphabet_of"</span><span class="p">,</span>
@@ -774,6 +775,7 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"IPA"</span><span class="p">,</span>
     <span class="s2">"ARPABET_PHONES"</span><span class="p">,</span>
     <span class="s2">"normalize_tokens"</span><span class="p">,</span>
+    <span class="s2">"tokens_of"</span><span class="p">,</span>
     <span class="s2">"normalize_text"</span><span class="p">,</span>
     <span class="s2">"align_words"</span><span class="p">,</span>
     <span class="s2">"segment_lines"</span><span class="p">,</span>
@@ -1343,12 +1345,15 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="n">_TG_TIER_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
-    <span class="sa">r</span><span class="s1">'class\s*=\s*"IntervalTier"\s*\n\s*name\s*=\s*"(?P&lt;name&gt;[^"]*)"'</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">S</span>
+    <span class="sa">r</span><span class="s1">'class\s*=\s*"IntervalTier"\s*\n\s*name\s*=\s*"(?P&lt;name&gt;(?:[^"]|"")*)"'</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">S</span>
 <span class="p">)</span>
 <span class="n">_TG_INTERVAL_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
     <span class="sa">r</span><span class="s1">'xmin\s*=\s*(?P&lt;a&gt;[\d.]+)\s*\n\s*xmax\s*=\s*(?P&lt;b&gt;[\d.]+)\s*\n\s*text\s*=\s*"(?P&lt;t&gt;(?:[^"]|"")*)"'</span>
 <span class="p">)</span>
-<span class="n">_TG_SHORT_TIER_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">'"IntervalTier"\s*\n\s*"(?P&lt;name&gt;[^"]*)"\s*\n'</span><span class="p">)</span>
+<span class="n">_TG_SHORT_TIER_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">'"IntervalTier"\s*\n\s*"(?P&lt;name&gt;(?:[^"]|"")*)"\s*\n'</span><span class="p">)</span>
+<span class="c1">#: Decimals :func:`textgrid_text` writes a time with (fixed-point, as the TextGrid</span>
+<span class="c1">#: interval patterns read no exponent): a microsecond.</span>
+<span class="n">_TG_DECIMALS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">6</span>
 <span class="n">_TG_SHORT_INTERVAL_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
     <span class="sa">r</span><span class="s1">'(?P&lt;a&gt;\d+(?:\.\d+)?)\s*\n\s*(?P&lt;b&gt;\d+(?:\.\d+)?)\s*\n\s*"(?P&lt;t&gt;(?:[^"]|"")*)"'</span>
 <span class="p">)</span>
@@ -1437,7 +1442,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="k">if</span> <span class="n">intervals</span> <span class="ow">and</span> <span class="n">intervals</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s2">""</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">intervals</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span>
                 <span class="k">else</span> <span class="n">intervals</span>
             <span class="p">)</span>
-        <span class="n">tiers</span><span class="p">[</span><span class="n">head</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"name"</span><span class="p">)]</span> <span class="o">=</span> <span class="n">intervals</span>
+        <span class="n">tiers</span><span class="p">[</span><span class="n">head</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"name"</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">'""'</span><span class="p">,</span> <span class="s1">'"'</span><span class="p">)]</span> <span class="o">=</span> <span class="n">intervals</span>
     <span class="k">return</span> <span class="n">tiers</span>
 
 
@@ -1511,6 +1516,70 @@ window.runMermaid = runMermaid;</script>
         <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">timings</span> <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">a</span> <span class="o">-</span> <span class="n">_SPAN_EPS_S</span> <span class="ow">and</span> <span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">b</span> <span class="o">+</span> <span class="n">_SPAN_EPS_S</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">inside</span> <span class="ow">or</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="textgrid_text">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.transcripts.html#an.audio.transcripts.textgrid_text">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">textgrid_text</span><span class="p">(</span>
+    <span class="n">tiers</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]],</span> <span class="o">*</span><span class="p">,</span> <span class="n">xmax</span><span class="p">:</span> <span class="nb">float</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A long-form Praat TextGrid of interval ``tiers`` (``{name: [(start, end,</span>
+<span class="sd">    label), ...]}``) spanning ``0..xmax``: what :func:`parse_textgrid` reads</span>
+<span class="sd">    back, and what a forced aligner takes as a transcript of timed lines</span>
+<span class="sd">    (an#716). The gaps between intervals are filled with empty ones, as Praat</span>
+<span class="sd">    requires a tier to cover its span; a ``"`` in a label or a tier name is</span>
+<span class="sd">    doubled. Nothing is clamped: an interval outside ``0..xmax``, empty, or</span>
+<span class="sd">    overlapping another is a ``ValueError`` (clamp before, where the reason is</span>
+<span class="sd">    known).</span>
+
+<span class="sd">    &gt;&gt;&gt; grid = textgrid_text({"take": [(0.5, 1.2, 'say "hi"')]}, xmax=2.0)</span>
+<span class="sd">    &gt;&gt;&gt; _textgrid_tiers(grid)</span>
+<span class="sd">    {'take': [(0.0, 0.5, ''), (0.5, 1.2, 'say "hi"'), (1.2, 2.0, '')]}</span>
+<span class="sd">    &gt;&gt;&gt; textgrid_text({"take": [(0.5, 1.2, "a"), (1.0, 1.5, "b")]}, xmax=2.0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">      ...</span>
+<span class="sd">    ValueError: tier 'take': interval (1.0, 1.5, 'b') overlaps the one before, which ends at 1.2</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">quoted</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">'"'</span><span class="p">,</span> <span class="s1">'""'</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">num</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>  <span class="c1"># fixed-point: the reader takes no exponent</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">x</span><span class="si">:</span><span class="s2">.</span><span class="si">{</span><span class="n">_TG_DECIMALS</span><span class="si">}</span><span class="s2">f</span><span class="si">}</span><span class="s2">"</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">"0"</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">"."</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">"0"</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">tiled</span><span class="p">(</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">intervals</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+        <span class="n">out</span><span class="p">,</span> <span class="n">t</span> <span class="o">=</span> <span class="p">[],</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">intervals</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="mf">0.0</span> <span class="o">&lt;=</span> <span class="n">a</span> <span class="o">&lt;</span> <span class="n">b</span> <span class="o">&lt;=</span> <span class="n">xmax</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"tier </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">: interval </span><span class="si">{</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="n">label</span><span class="p">)</span><span class="si">!r}</span><span class="s2"> is empty or outside 0..</span><span class="si">{</span><span class="n">xmax</span><span class="si">}</span><span class="s2">"</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="n">a</span> <span class="o">&lt;</span> <span class="n">t</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"tier </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">: interval </span><span class="si">{</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="n">label</span><span class="p">)</span><span class="si">!r}</span><span class="s2"> overlaps the one "</span>
+                    <span class="sa">f</span><span class="s2">"before, which ends at </span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s2">"</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="n">a</span> <span class="o">&gt;</span> <span class="n">t</span><span class="p">:</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">t</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="s2">""</span><span class="p">))</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">label</span><span class="p">))</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">b</span>
+        <span class="k">return</span> <span class="n">out</span> <span class="o">+</span> <span class="p">([(</span><span class="n">t</span><span class="p">,</span> <span class="n">xmax</span><span class="p">,</span> <span class="s2">""</span><span class="p">)]</span> <span class="k">if</span> <span class="n">t</span> <span class="o">&lt;</span> <span class="n">xmax</span> <span class="k">else</span> <span class="p">[])</span>
+
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'File type = "ooTextFile"'</span><span class="p">,</span> <span class="s1">'Object class = "TextGrid"'</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span>
+             <span class="s2">"xmin = 0"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"xmax = </span><span class="si">{</span><span class="n">num</span><span class="p">(</span><span class="n">xmax</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="s2">"tiers? &lt;exists&gt;"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"size = </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">tiers</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+             <span class="s2">"item []:"</span><span class="p">]</span>  <span class="c1"># fmt: skip</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">intervals</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tiers</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">cells</span> <span class="o">=</span> <span class="n">tiled</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">intervals</span><span class="p">)</span>
+        <span class="n">lines</span> <span class="o">+=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"    item [</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">]:"</span><span class="p">,</span> <span class="s1">'        class = "IntervalTier"'</span><span class="p">,</span>
+                  <span class="sa">f</span><span class="s1">'        name = "</span><span class="si">{</span><span class="n">quoted</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="si">}</span><span class="s1">"'</span><span class="p">,</span> <span class="s2">"        xmin = 0"</span><span class="p">,</span>
+                  <span class="sa">f</span><span class="s2">"        xmax = </span><span class="si">{</span><span class="n">num</span><span class="p">(</span><span class="n">xmax</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"        intervals: size = </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">cells</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">]</span>  <span class="c1"># fmt: skip</span>
+        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cells</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">lines</span> <span class="o">+=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"        intervals [</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">]:"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"            xmin = </span><span class="si">{</span><span class="n">num</span><span class="p">(</span><span class="n">a</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                      <span class="sa">f</span><span class="s2">"            xmax = </span><span class="si">{</span><span class="n">num</span><span class="p">(</span><span class="n">b</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="sa">f</span><span class="s1">'            text = "</span><span class="si">{</span><span class="n">quoted</span><span class="p">(</span><span class="n">label</span><span class="p">)</span><span class="si">}</span><span class="s1">"'</span><span class="p">]</span>  <span class="c1"># fmt: skip</span>
+    <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span></div>
+
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">segments_from_tiers</span><span class="p">(</span><span class="n">tiers</span><span class="p">:</span> <span class="n">Tiers</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">TranscriptSegment</span><span class="p">]:</span>
@@ -1701,16 +1770,29 @@ window.runMermaid = runMermaid;</script>
 <span class="c1"># --- matching words ------------------------------------------------------------</span>
 
 
+<div class="viewcode-block" id="tokens_of">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.transcripts.html#an.audio.transcripts.tokens_of">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">tokens_of</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The words of ``text`` as written: punctuation dropped, an apostrophe</span>
+<span class="sd">    inside a word kept, case kept. What a line's words are timed as</span>
+<span class="sd">    (:func:`segment_lines`).</span>
+
+<span class="sd">    &gt;&gt;&gt; tokens_of("Hello, there — it's ME!")</span>
+<span class="sd">    ['Hello', 'there', "it's", 'ME']</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">_TOKEN_RE</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">text</span><span class="p">)</span></div>
+
+
+
 <div class="viewcode-block" id="normalize_tokens">
 <a class="viewcode-back" href="../../../_autosummary/an.audio.transcripts.html#an.audio.transcripts.normalize_tokens">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">normalize_tokens</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""The words of ``text`` for matching: case-folded, punctuation dropped,</span>
-<span class="sd">    an apostrophe inside a word kept.</span>
+<span class="w">    </span><span class="sd">"""The words of ``text`` for matching: :func:`tokens_of` case-folded.</span>
 
 <span class="sd">    &gt;&gt;&gt; normalize_tokens("Hello, there — it's ME!")</span>
 <span class="sd">    ['hello', 'there', "it's", 'me']</span>
 <span class="sd">    """</span>
-    <span class="k">return</span> <span class="n">_TOKEN_RE</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">text</span><span class="o">.</span><span class="n">casefold</span><span class="p">())</span></div>
+    <span class="k">return</span> <span class="n">tokens_of</span><span class="p">(</span><span class="n">text</span><span class="o">.</span><span class="n">casefold</span><span class="p">())</span></div>
 
 
 
@@ -1809,7 +1891,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    &gt;&gt;&gt; [(s.speaker, s.start, s.end, len(s.words)) for s in segment_lines(lines, timed)]</span>
 <span class="sd">    [('carl', 0.5, 1.3, 2), ('ned', 2.0, 2.3, 1)]</span>
 <span class="sd">    """</span>
-    <span class="n">per_line</span> <span class="o">=</span> <span class="p">[[</span><span class="n">tok</span> <span class="k">for</span> <span class="n">tok</span> <span class="ow">in</span> <span class="n">_TOKEN_RE</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="p">)]</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">]</span>
+    <span class="n">per_line</span> <span class="o">=</span> <span class="p">[</span><span class="n">tokens_of</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">]</span>
     <span class="n">flat</span> <span class="o">=</span> <span class="p">[</span><span class="n">tok</span> <span class="k">for</span> <span class="n">toks</span> <span class="ow">in</span> <span class="n">per_line</span> <span class="k">for</span> <span class="n">tok</span> <span class="ow">in</span> <span class="n">toks</span><span class="p">]</span>
     <span class="n">aligned</span> <span class="o">=</span> <span class="n">align_words</span><span class="p">(</span><span class="n">flat</span><span class="p">,</span> <span class="n">timed</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">)</span><span class="o">.</span><span class="n">words</span>
     <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>

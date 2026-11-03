@@ -91,10 +91,11 @@ True
 
 ### Exceptions
 
-| [`RecordedVoicesError`](#an.audio.recorded.RecordedVoicesError)         | An import, or a lookup of a take, that cannot proceed; the message says what to do.   |
-|------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
-| [`RecordingMissingError`](#an.audio.recorded.RecordingMissingError)       | A line spoken by a recorded voice has no take in the store.                           |
-| [`TranscriberUnavailableError`](#an.audio.recorded.TranscriberUnavailableError) | A take needs transcribing and no transcriber can run here.                            |
+| [`RecordedVoicesError`](#an.audio.recorded.RecordedVoicesError)         | An import, or a lookup of a take, that cannot proceed; the message says what to do.                            |
+|------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|
+| [`RecordedVoicesWarning`](#an.audio.recorded.RecordedVoicesWarning)       | An import that went ahead in a weaker form than asked; the message says what was lost and what to do (an#716). |
+| [`RecordingMissingError`](#an.audio.recorded.RecordingMissingError)       | A line spoken by a recorded voice has no take in the store.                                                    |
+| [`TranscriberUnavailableError`](#an.audio.recorded.TranscriberUnavailableError) | A take needs transcribing and no transcriber can run here.                                                     |
 
 ### an.audio.recorded.DENOISE_FILTERS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'afftdn': 'afftdn', 'anlmdn': 'anlmdn'}*
 
@@ -231,6 +232,13 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 An import, or a lookup of a take, that cannot proceed; the message says what to do.
 
+### *exception* an.audio.recorded.RecordedVoicesWarning
+
+Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
+
+An import that went ahead in a weaker form than asked; the message says
+what was lost and what to do (an#716).
+
 ### *exception* an.audio.recorded.RecordingMissingError
 
 Bases: [`RecordedVoicesError`](#an.audio.recorded.RecordedVoicesError)
@@ -294,7 +302,7 @@ added in `scene.md` does not orphan the take.
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
-### an.audio.recorded.import_recordings(project, audio, , transcript=None, speaker=None, speakers=None, shot=None, voice=None, denoise=None, license=None, recorded_by=None, transcribe=None, transcriber=None, diarize=False, align=None, match_threshold=0.75, write=True, scene_file='scene.md')
+### an.audio.recorded.import_recordings(project, audio, , transcript=None, speaker=None, speakers=None, shot=None, voice=None, denoise=None, license=None, recorded_by=None, transcribe=None, transcriber=None, diarize=False, align=None, rough_timing=True, match_threshold=0.75, write=True, scene_file='scene.md')
 
 Import a performer’s recording(s) as the voice of their lines (an#490).
 
@@ -320,6 +328,13 @@ and `diarize` for speaker labels, built only when a take needs it.
 `align` is the forced-aligner seam (`(path, text) -> segments`, e.g.
 `mfa_aligner()`, an#637): with a plain transcript it times the lines
 instead of a transcriber, and gives their phones, as a TextGrid would.
+Several lines in one take are first timed roughly by the transcriber
+(`transcribe`, else `transcriber`: a billed backend named there is
+billed for this pass too), and each is aligned within its own interval
+(an#716); `rough_timing=False` never transcribes and aligns the whole
+text as one utterance, which drifts on a long take. With no transcriber
+to run, the import falls back to that one utterance, with a
+[`RecordedVoicesWarning`](#an.audio.recorded.RecordedVoicesWarning).
 `write=False` runs everything but writes nothing (a dry run).
 `scene_file` imports into another scene of the project
 (`scene.studio.md`, an#554).

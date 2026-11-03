@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "built_at": "2026-11-03T13:22:41Z",
+  "built_at": "2026-11-03T13:31:41Z",
   "package": {
     "name": "an",
     "version": "0.1.365",
@@ -9,26 +9,24 @@
   },
   "git": {
     "available": true,
-    "commit": "be1c21aed8e37816440b3d28ef19caf089eeb381",
-    "short_commit": "be1c21a",
+    "commit": "d77e25eb36a518b0180549ef51ef98f8ce0b6139",
+    "short_commit": "d77e25e",
     "branch": "main",
-    "tags": [
-      "0.1.365"
-    ],
+    "tags": [],
     "dirty": false,
     "remote_url": "https://github.com/reeleehq/an",
-    "commit_url": "https://github.com/reeleehq/an/commit/be1c21aed8e37816440b3d28ef19caf089eeb381",
+    "commit_url": "https://github.com/reeleehq/an/commit/d77e25eb36a518b0180549ef51ef98f8ce0b6139",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "reeleehq/an",
-    "sha": "72238a48555c42f74af9e4ab91994427c0e35d4e",
+    "sha": "08bc7082e02e8880afc0e1567aa16ec3f455bd6b",
     "sha_in_history": true,
     "ref": "refs/heads/main",
     "ref_name": "main",
-    "run_id": "41639499803",
-    "run_url": "https://github.com/reeleehq/an/actions/runs/41639499803",
+    "run_id": "41639519557",
+    "run_url": "https://github.com/reeleehq/an/actions/runs/41639519557",
     "server_url": "https://github.com"
   },
   "tools": {
@@ -58,7 +56,7 @@
   },
   "site": {
     "modules_documented": 230,
-    "objects_documented": 3336
+    "objects_documented": 3339
   },
   "pypi": {
     "checked": true,
@@ -66,7 +64,7 @@
     "relation": "same",
     "error": null
   },
-  "reproduce": "git clone https://github.com/reeleehq/an && cd an\ngit checkout be1c21aed8e37816440b3d28ef19caf089eeb381\npip install \"epythet==0.2.22\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/reeleehq/an && cd an\ngit checkout d77e25eb36a518b0180549ef51ef98f8ce0b6139\npip install \"epythet==0.2.22\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
     "aligned": true,

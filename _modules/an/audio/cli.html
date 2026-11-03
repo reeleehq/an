@@ -1016,6 +1016,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">transcriber</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
     <span class="n">diarize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">aligner</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">rough_timing</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">scene</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_SCENE_FILE</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Import a performer's recording as the voice of its lines: each line is cut out,</span>
@@ -1035,6 +1036,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    transcriber: the scribed backend when a take must be transcribed (default: scribed's default)</span>
 <span class="sd">    diarize: ask the transcriber for speaker labels (map them with --speakers)</span>
 <span class="sd">    aligner: time a plain transcript with a forced aligner, words and phones (for lip-sync): `mfa` (Montreal Forced Aligner, ARPAbet) or `mfa:ipa`</span>
+<span class="sd">    rough_timing: with --aligner and several lines in one take, time the lines roughly with the transcriber first (--transcriber, billed if that backend is) so each line is aligned in its own interval; --no-rough-timing aligns the whole text as one utterance, never transcribing</span>
 <span class="sd">    scene: the scene file whose lines the takes voice (default scene.md; for example scene.studio.md)</span>
 <span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.recorded</span><span class="w"> </span><span class="kn">import</span> <span class="n">DFLT_DENOISE</span><span class="p">,</span> <span class="n">aligner_named</span><span class="p">,</span> <span class="n">import_recordings</span>
@@ -1055,6 +1057,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">transcriber</span><span class="o">=</span><span class="n">transcriber</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">diarize</span><span class="o">=</span><span class="n">diarize</span><span class="p">,</span>
         <span class="n">align</span><span class="o">=</span><span class="n">align</span><span class="p">,</span>
+        <span class="n">rough_timing</span><span class="o">=</span><span class="n">rough_timing</span><span class="p">,</span>
         <span class="n">scene_file</span><span class="o">=</span><span class="n">scene</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">report</span><span class="p">)</span></div>

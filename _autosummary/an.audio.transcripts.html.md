@@ -51,10 +51,12 @@ All times are seconds from the start of the recording they describe.
 | [`parse_plain`](#an.audio.transcripts.parse_plain)(text)                           | One non-empty line per segment, untimed; `speaker: text` names the speaker.                                                                                                                                                                                                                                                    |
 | [`parse_json`](#an.audio.transcripts.parse_json)(obj)                             | A word-timed JSON → segments.                                                                                                                                                                                                                                                                                                  |
 | [`parse_textgrid`](#an.audio.transcripts.parse_textgrid)(text)                        | A Praat TextGrid (long or short form, as a forced aligner writes it) → segments.                                                                                                                                                                                                                                               |
+| [`textgrid_text`](#an.audio.transcripts.textgrid_text)(tiers, \*, xmax)              | A long-form Praat TextGrid of interval `tiers` (`{name: [(start, end, label), ...]}`) spanning `0..xmax`: what [`parse_textgrid()`](#an.audio.transcripts.parse_textgrid) reads back, and what a forced aligner takes as a transcript of timed lines (an#716).                                                          |
 | [`from_transcript_object`](#an.audio.transcripts.from_transcript_object)(obj)                 | A transcriber's result — scribed's `Transcript` or anything shaped like it (iterable segments with `text`, `start`, `end`, `speaker` and `words` having `text`/`start`/`end`) — as segments.                                                                                                                                   |
 | [`parse_timestamp`](#an.audio.transcripts.parse_timestamp)(value)                      | `HH:MM:SS,mmm` / `MM:SS.mmm` / plain seconds → seconds.                                                                                                                                                                                                                                                                        |
 | [`phone_alphabet_of`](#an.audio.transcripts.phone_alphabet_of)(labels)                   | The alphabet aligner phone `labels` show, or `None` when they show none (an#721).                                                                                                                                                                                                                                              |
-| [`normalize_tokens`](#an.audio.transcripts.normalize_tokens)(text)                      | The words of `text` for matching: case-folded, punctuation dropped, an apostrophe inside a word kept.                                                                                                                                                                                                                          |
+| [`normalize_tokens`](#an.audio.transcripts.normalize_tokens)(text)                      | The words of `text` for matching: [`tokens_of()`](#an.audio.transcripts.tokens_of) case-folded.                                                                                                                                                                                                                    |
+| [`tokens_of`](#an.audio.transcripts.tokens_of)(text)                             | The words of `text` as written: punctuation dropped, an apostrophe inside a word kept, case kept.                                                                                                                                                                                                                              |
 | [`normalize_text`](#an.audio.transcripts.normalize_text)(text)                        | [`normalize_tokens()`](#an.audio.transcripts.normalize_tokens) joined by single spaces (what two lines are compared by).                                                                                                                                                                                                  |
 | [`align_words`](#an.audio.transcripts.align_words)(reference, timed, \*[, bounds]) | Time the `reference` words (the text the performer was meant to say) by a transcriber's `timed` words of the same audio.                                                                                                                                                                                                       |
 | [`segment_lines`](#an.audio.transcripts.segment_lines)(lines, timed, \*[, bounds])   | Time untimed `lines` (a plain transcript) by a transcriber's `timed` words of the whole recording: the lines' words are aligned as one text ([`align_words()`](#an.audio.transcripts.align_words)) and handed back per line, each line spanning its first word's start to its last word's end, with its own `words`. |
@@ -201,8 +203,7 @@ it (iterable segments with `text`, `start`, `end`, `speaker` and
 
 ### an.audio.transcripts.normalize_tokens(text)
 
-The words of `text` for matching: case-folded, punctuation dropped,
-an apostrophe inside a word kept.
+The words of `text` for matching: [`tokens_of()`](#an.audio.transcripts.tokens_of) case-folded.
 
 ```pycon
 >>> normalize_tokens("Hello, there — it's ME!")
@@ -379,3 +380,41 @@ first word’s start to its last word’s end, with its own `words`.
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`TranscriptSegment`](#an.audio.transcripts.TranscriptSegment)]
+
+### an.audio.transcripts.textgrid_text(tiers, , xmax)
+
+A long-form Praat TextGrid of interval `tiers` (`{name: [(start, end,
+label), ...]}`) spanning `0..xmax`: what [`parse_textgrid()`](#an.audio.transcripts.parse_textgrid) reads
+back, and what a forced aligner takes as a transcript of timed lines
+(an#716). The gaps between intervals are filled with empty ones, as Praat
+requires a tier to cover its span; a `"` in a label or a tier name is
+doubled. Nothing is clamped: an interval outside `0..xmax`, empty, or
+overlapping another is a `ValueError` (clamp before, where the reason is
+known).
+
+```pycon
+>>> grid = textgrid_text({"take": [(0.5, 1.2, 'say "hi"')]}, xmax=2.0)
+>>> _textgrid_tiers(grid)
+{'take': [(0.0, 0.5, ''), (0.5, 1.2, 'say "hi"'), (1.2, 2.0, '')]}
+>>> textgrid_text({"take": [(0.5, 1.2, "a"), (1.0, 1.5, "b")]}, xmax=2.0)
+Traceback (most recent call last):
+  ...
+ValueError: tier 'take': interval (1.0, 1.5, 'b') overlaps the one before, which ends at 1.2
+```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.audio.transcripts.tokens_of(text)
+
+The words of `text` as written: punctuation dropped, an apostrophe
+inside a word kept, case kept. What a line’s words are timed as
+([`segment_lines()`](#an.audio.transcripts.segment_lines)).
+
+```pycon
+>>> tokens_of("Hello, there — it's ME!")
+['Hello', 'there', "it's", 'ME']
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]

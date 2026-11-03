@@ -74,7 +74,7 @@ abc  Ada  (accent=british)
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.audio.cli.import_recorded(project, audio, transcript='', speaker='', speakers='', shot='', voice='', denoise=False, license='', recorded_by='', transcriber='', diarize=False, aligner='', scene='scene.md')
+### an.audio.cli.import_recorded(project, audio, transcript='', speaker='', speakers='', shot='', voice='', denoise=False, license='', recorded_by='', transcriber='', diarize=False, aligner='', rough_timing=True, scene='scene.md')
 
 Import a performer’s recording as the voice of its lines: each line is cut out,
 matched to the scene’s dialogue (or added to –shot), stored with its provenance,
@@ -93,6 +93,7 @@ recorded_by: who recorded the take (the performer), for the credits
 transcriber: the scribed backend when a take must be transcribed (default: scribed’s default)
 diarize: ask the transcriber for speaker labels (map them with –speakers)
 aligner: time a plain transcript with a forced aligner, words and phones (for lip-sync): `mfa` (Montreal Forced Aligner, ARPAbet) or `mfa:ipa`
+rough_timing: with –aligner and several lines in one take, time the lines roughly with the transcriber first (–transcriber, billed if that backend is) so each line is aligned in its own interval; –no-rough-timing aligns the whole text as one utterance, never transcribing
 scene: the scene file whose lines the takes voice (default scene.md; for example scene.studio.md)
 
 * **Return type:**

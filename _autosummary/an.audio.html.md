@@ -448,7 +448,7 @@ The default TTS provider: `OfflineTTS`.
 * **Return type:**
   [`TTSProvider`](an.audio.tts.html.md#an.audio.tts.TTSProvider)
 
-### an.audio.import_recordings(project, audio, , transcript=None, speaker=None, speakers=None, shot=None, voice=None, denoise=None, license=None, recorded_by=None, transcribe=None, transcriber=None, diarize=False, align=None, match_threshold=0.75, write=True, scene_file='scene.md')
+### an.audio.import_recordings(project, audio, , transcript=None, speaker=None, speakers=None, shot=None, voice=None, denoise=None, license=None, recorded_by=None, transcribe=None, transcriber=None, diarize=False, align=None, rough_timing=True, match_threshold=0.75, write=True, scene_file='scene.md')
 
 Import a performer’s recording(s) as the voice of their lines (an#490).
 
@@ -474,6 +474,13 @@ and `diarize` for speaker labels, built only when a take needs it.
 `align` is the forced-aligner seam (`(path, text) -> segments`, e.g.
 `mfa_aligner()`, an#637): with a plain transcript it times the lines
 instead of a transcriber, and gives their phones, as a TextGrid would.
+Several lines in one take are first timed roughly by the transcriber
+(`transcribe`, else `transcriber`: a billed backend named there is
+billed for this pass too), and each is aligned within its own interval
+(an#716); `rough_timing=False` never transcribes and aligns the whole
+text as one utterance, which drifts on a long take. With no transcriber
+to run, the import falls back to that one utterance, with a
+`RecordedVoicesWarning`.
 `write=False` runs everything but writes nothing (a dry run).
 `scene_file` imports into another scene of the project
 (`scene.studio.md`, an#554).
