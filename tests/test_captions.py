@@ -664,6 +664,8 @@ def test_the_loudness_component_loads_no_media_stack():
         "m._component().limit_peaks\n"
         "import numpy as np\n"
         "m.integrated_loudness(m._Pcm(np.zeros((22050, 1)) + 0.1, 22050))\n"  # a measurement, not just an import
+        # lines at two rates (an#699): resampled by ffmpeg, never by mixing's scipy path
+        "m.group_loudness([m._Pcm(np.zeros((44100, 2)) + 0.1, 44100), m._Pcm(np.zeros((22050, 1)) + 0.1, 22050)])\n"
         "import an.audio.effects as e\n"
         "e.filter_chain({'pitch_semitones': 4.0})\n"  # the builder (an#611)
         "bad = [n for n in ('moviepy', 'imageio_ffmpeg', 'imageio', 'scipy', 'cv2', 'pydub')"
@@ -671,7 +673,11 @@ def test_the_loudness_component_loads_no_media_stack():
         "print(bad)\n"
         "sys.exit(1 if bad else 0)\n"
     )
-    done = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True)
+    root = Path(__file__).resolve().parents[1]  # this checkout's an, not an installed one
+    done = subprocess.run(
+        [sys.executable, "-c", code], capture_output=True, text=True, cwd=root,
+        env={**__import__("os").environ, "PYTHONPATH": str(root)},
+    )
     assert done.returncode == 0, done.stdout + done.stderr
 
 
