@@ -30,3 +30,16 @@ the others.
 #: The ``Shot.renderer`` values the stage draws: the persisted ``cutout`` and
 #: the engine's own ``stage`` (ADR 0001 decision 9). The ONE copy.
 STAGE_RENDERER_NAMES: tuple[str, ...] = ("cutout", "stage")
+
+
+def draws_on_stage(shot) -> bool:
+    """Whether ``shot`` is drawn on the stage, so it has a compiled stage
+    document an can read (positions, timelines): THE rule, read off the shot's
+    ``renderer`` selector (the names the stage's renderer claims). A Manim shot
+    is not.
+
+    >>> from types import SimpleNamespace as NS
+    >>> draws_on_stage(NS(renderer="cutout")), draws_on_stage(NS(renderer="manim"))
+    (True, False)
+    """
+    return shot.renderer in STAGE_RENDERER_NAMES

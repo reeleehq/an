@@ -49,15 +49,15 @@ def has_anchors(scene: SceneIR) -> bool:
 
 
 def _stage_document(shot: Any, ctx: Any, renderer: Any) -> Any:
-    engine = getattr(renderer, "engine", None)
-    if getattr(engine, "name", None) != "stage":
+    from an.stage import draws_on_stage
+    from an.stage.cache_key import compiled_document
+
+    if not draws_on_stage(shot):
         raise SoundAnchorError(
             f"shot {shot.id!r} is drawn by {getattr(renderer, 'name', renderer)!r}: "
             "a cue can be timed by the picture only in a stage shot (whose "
             "positions an can compute); give it `at:` in seconds"
         )
-    from an.stage.cache_key import compiled_document
-
     return compiled_document(shot, ctx)
 
 

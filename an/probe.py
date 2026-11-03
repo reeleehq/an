@@ -2,8 +2,9 @@
 
 Looking at one moment of a shot used to mean a whole render, or a throwaway
 script that staged the scene its own way and drew something else. A probe
-prepares the shot exactly as :func:`an.render.render` does (``_prepare_shots``:
-settled length, burned captions, the style pack, the resolved knobs), then asks
+prepares the shot exactly as :func:`an.render.render` does
+(:func:`an.render.prepared_shots`: settled length, burned captions, the style
+pack, the resolved knobs; no document compiled), then asks
 the shot's own renderer for the frames showing at the instants given:
 
 - a frame-stage renderer (the stage engine, the cut-out renderer) opens the
@@ -75,7 +76,7 @@ def frames(
     supersample: as ``an render --supersample`` (the frame is the film's only
         if it matches the render's)
     """
-    from an.render import _prepare_shots
+    from an.render import prepared_shots
 
     project = _project(project)
     times = [float(t) for t in times]
@@ -84,23 +85,18 @@ def frames(
     work = project.root / ".an" / PROBE_WORK_DIR / uuid.uuid4().hex[:12]
     work.mkdir(parents=True, exist_ok=True)
     try:
-        prep = _prepare_shots(
+        prepared = prepared_shots(
             project,
-            work,
-            fps=None,
-            resolution=None,
-            strict_assets=False,
             supersample=supersample,
-            pix_fmt=None,
-            capture=None,
-            step_hz=None,
             measure=False,  # a probe never runs a renderer to measure a shot
+            allow_unmeasured=True,  # another shot's placeholder moves no frame of this one
+            work_dir=work,
         )
-        found = [(s, r, c) for s, r, c in prep.shot_renderers if s.id == shot]
+        found = [p for p in prepared.shots if p.shot.id == shot]
         if not found:
-            ids = [s.id for s, _, _ in prep.shot_renderers]
+            ids = [p.shot.id for p in prepared.shots]
             raise ProbeError(f"the scene has no shot {shot!r}; its shots: {ids}")
-        the_shot, renderer, ctx = found[0]
+        the_shot, renderer, ctx = found[0].shot, found[0].renderer, found[0].ctx
         late = [t for t in times if t < 0 or t > the_shot.duration]
         if late:
             raise ProbeError(

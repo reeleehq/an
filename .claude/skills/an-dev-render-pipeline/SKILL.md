@@ -493,6 +493,16 @@ a probe frame with the rendered film frame pixel for pixel. A renderer opts in
 by defining `probe_frames(shot, ctx, times)`; Manim's reads its stored picture
 and never runs Manim.
 
+**The preparation is one public seam** (an#733): `an.render.prepared_shots(project,
+*, fps, resolution, supersample, measure, allow_unmeasured, work_dir) ->
+PreparedShots(fps, resolution, shots, findings)`, each `PreparedShot(shot,
+renderer, ctx, start)` with a lazy `document` (compiled only when read, `None` off
+the stage). `an probe` prepares through it (never `_prepare_shots` directly), and
+so does any verifier that reads a render's timelines. An unmeasured clock-owned
+(Manim) length is a placeholder that moves every later start: refused
+(`UnmeasuredLengthError`) unless `allow_unmeasured`, which the probe passes.
+"Is this a stage shot" is ONE rule, `an.stage.draws_on_stage(shot)`.
+
 ---
 
 ## 8. Cost and what is still unmeasured
