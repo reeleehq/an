@@ -1,0 +1,1 @@
+- `an.ir.world.planes_at_infinity(world, environments)`: the validate check's rule of which planes are at infinity (listed `far`, or in a frame coupled `far`), as `PlaneAtInfinity` records with a reason and an IR path, public for a genre's far-plate critic; a travel plate listed under two roles is refused as the scene loads; genre API level 17 (an#735).

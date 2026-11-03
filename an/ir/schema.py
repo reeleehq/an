@@ -38,6 +38,7 @@ True
 from __future__ import annotations
 
 import re
+from collections.abc import Mapping, Sequence
 from typing import Annotated, Any, Literal, Union
 
 from pydantic import (
@@ -497,7 +498,8 @@ VEHICLE_FRAME: str = "vehicle"
 #: How a frame follows its parent: `rigid` takes the parent's whole pose,
 #: `far` only its rotation (what is at infinity turns with the camera and never
 #: translates).
-FRAME_COUPLINGS: tuple[str, ...] = ("rigid", "far")
+FAR_COUPLING: str = "far"
+FRAME_COUPLINGS: tuple[str, ...] = ("rigid", FAR_COUPLING)
 #: The key an element's frame is written under in a document (`frame` is the
 #: field; `in` is not a name Python lets a field have).
 FRAME_KEY: str = "in"
@@ -1147,7 +1149,24 @@ class Stream(_IRModel):
 
 #: What a plane under a travel may be declared as: at infinity, or rigid with
 #: the vehicle the viewpoints are mounted on.
-TRAVEL_PLATE_ROLES: tuple[str, ...] = ("far", "vehicle")
+FAR_PLATE_ROLE: str = "far"
+TRAVEL_PLATE_ROLES: tuple[str, ...] = (FAR_PLATE_ROLE, "vehicle")
+
+
+def _plates_under_two_roles(
+    plates: Mapping[str, Sequence[str]],
+) -> dict[str, list[str]]:
+    """``{path: [role, ...]}`` for each plate path ``plates`` lists under more
+    than one role (an#735), roles in the order they are listed.
+
+    >>> _plates_under_two_roles({"far": ["set/sky"], "vehicle": ["set/sky", "set/cab"]})
+    {'set/sky': ['far', 'vehicle']}
+    """
+    roles: dict[str, list[str]] = {}
+    for role, paths in plates.items():
+        for path in dict.fromkeys(paths):
+            roles.setdefault(path, []).append(role)
+    return {path: rs for path, rs in roles.items() if len(rs) > 1}
 
 
 class Travel(_IRModel):
@@ -1195,6 +1214,16 @@ class Travel(_IRModel):
         if unknown:
             raise ValueError(
                 f"travel plates may be {list(TRAVEL_PLATE_ROLES)}; got {unknown}."
+            )
+        twice = _plates_under_two_roles(self.plates)
+        if twice:
+            raise ValueError(
+                "a travel plate holds one thing, so it has one role; "
+                + "; ".join(
+                    f"{path!r} is listed under {' and '.join(map(repr, roles))}"
+                    for path, roles in twice.items()
+                )
+                + ". Keep it under the one that says what it holds."
             )
         seen: dict[str, int] = {}
         for s in self.streams:
