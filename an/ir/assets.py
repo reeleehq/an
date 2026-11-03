@@ -113,16 +113,19 @@ LicenseClass = Literal["attribution", "free", "noncommercial", "private", "unkno
 #:   USD 1,000,000 in annual revenue; outputs must follow Stability's acceptable
 #:   use policy. So ``free``, with that cap named wherever it is listed (an#332).
 #: - OpenAI (``gpt-image`` plates and parts through ``an art generate``, and any
-#:   output recorded under ``openai``, an#728): the OpenAI Services Agreement
-#:   (API use, effective 2026-01-01, read 2026-11-03 at
-#:   openai.com/policies/services-agreement through its archived copy of
-#:   2026-01-07, openai.com refusing automated reads) §4.1: Customer "owns all
-#:   Output. OpenAI hereby assigns to Customer all OpenAI's right, title, and
-#:   interest, if any, in and to Output"; the Terms of Use for individuals
-#:   (effective 2026-01-01, archived 2026-11-02) say the same. No credit is
-#:   asked. §4.4: "Output may not be unique, and other users may receive
-#:   similar content", and use must follow OpenAI's usage policies. So
-#:   ``free``, with both named wherever it is listed.
+#:   output recorded under ``openai``, an#728), read 2026-11-03 through archived
+#:   copies (openai.com refuses automated reads): the Services Agreement (API
+#:   use, effective 2026-01-01) §4.1, "to the extent permitted by applicable
+#:   law", the customer "owns all Output" and OpenAI assigns its rights "if
+#:   any" (AI-made images may hold no copyright at all), asking no credit;
+#:   §4.4 "Output may not be unique". But the Terms of Use (effective
+#:   2026-01-01) forbid presenting output as human-generated, and the Sharing
+#:   & Publication Policy the agreement names (updated 2022-11-14) asks that
+#:   shared content say it is AI-generated "in a way no user could reasonably
+#:   miss": a credit the video owes. So ``attribution`` (the credit discloses
+#:   AI generation), the stricter reading, pending the maintainer's call
+#:   (an#742); and the Usage Policies (effective 2026-11-20) forbid using
+#:   someone's likeness without consent. Named in ``an credits``.
 _STABILITY_TERMS: dict[str, LicenseClass] = {"stability-community": "free"}
 PROVIDER_TERMS: dict[str, dict[str, LicenseClass]] = {
     "elevenlabs": {
@@ -133,7 +136,7 @@ PROVIDER_TERMS: dict[str, dict[str, LicenseClass]] = {
     "stability": _STABILITY_TERMS,
     "stability-ai": _STABILITY_TERMS,
     "stable-audio": _STABILITY_TERMS,
-    "openai": {"openai-output-owned": "free"},
+    "openai": {"openai-output-owned": "attribution"},
 }
 #: What a provider-terms code restricts beyond its class, by code: the words a
 #: credits report prints beside it.
@@ -143,9 +146,10 @@ PROVIDER_TERMS_RESTRICTIONS: dict[str, str] = {
     "stability-community": "Stability AI Community License: the licence ends once "
     "you (with affiliates) make over USD 1,000,000 a year (then an Enterprise "
     "licence is needed), and use must follow Stability's acceptable use policy",
-    "openai-output-owned": "OpenAI output: assigned to you, but it may not be "
-    "unique (others may receive similar output, which is not yours), and use "
-    "must follow OpenAI's usage policies",
+    "openai-output-owned": "OpenAI output: the video must say it is AI-generated "
+    "and never present it as human-made; OpenAI assigns whatever rights it has "
+    "(AI-made images may hold none), it may not be unique, and use must follow "
+    "OpenAI's usage policies (no one's likeness without consent)",
 }
 
 
@@ -312,7 +316,7 @@ def license_class(source: AssetSource) -> LicenseClass:
     >>> license_class(AssetSource(provider="openai", license="elevenlabs-paid-plan"))
     'unknown'
     >>> license_class(AssetSource(provider="openai", license="openai-output-owned"))
-    'free'
+    'attribution'
     """
     if not source.license:
         return "unknown"
