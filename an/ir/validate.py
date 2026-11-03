@@ -524,10 +524,6 @@ def rig_scope(shot: Any, stores: Mapping[str, Any]) -> tuple[dict[str, Any], set
     return rigs, unchecked
 
 
-#: The name genre packages imported before it was public (API level < 13); removed by an#709.
-_rig_scope = rig_scope
-
-
 def _declared_swap_sets(entity, stores: Mapping[str, Any], *, cache: dict) -> Any:
     """``{set: {key: …}}`` that ``entity``'s kind declares through its
     :attr:`~an.genres.EntityKind.swap_declaration` hook, or ``None`` — the
