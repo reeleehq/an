@@ -64,11 +64,13 @@ import subprocess
 import tempfile
 import wave
 from collections.abc import Callable, Iterable, Mapping, MutableMapping, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any, NamedTuple, Protocol
 
 from an.audio.transcripts import (
+    ARPABET,
+    IPA,
     TranscriptSegment,
     WordTiming,
     cut_spans,
@@ -640,8 +642,8 @@ class Aligner(Protocol):
 
 #: The Montreal Forced Aligner's English models (an#637): one pronouncing
 #: dictionary and acoustic model per phone alphabet, both named the same.
-MFA_MODELS: Mapping[str, str] = {"arpabet": "english_us_arpa", "ipa": "english_mfa"}
-DFLT_MFA_ALPHABET: str = "arpabet"
+MFA_MODELS: Mapping[str, str] = {ARPABET: "english_us_arpa", IPA: "english_mfa"}
+DFLT_MFA_ALPHABET: str = ARPABET
 #: MFA 3's alignment subcommand (4.0 renames it ``align_legacy``): a keyword
 #: of :func:`mfa_aligner`, so a newer MFA is a keyword away.
 DFLT_MFA_COMMAND: str = "align"
@@ -1188,21 +1190,21 @@ def _aligned_lines(
         if len(lines) == 1
         else segment_lines(lines, words, bounds=(0.0, total))
     )
+    # The aligner's declared alphabet, else what its output showed (an#721).
+    alphabet = getattr(align, "phone_alphabet", None) or next(
+        (s.phone_alphabet for s in aligned if s.phone_alphabet), None
+    )
     eps = 1e-6
-    return [
-        TranscriptSegment(
-            text=seg.text,
-            start=seg.start,
-            end=seg.end,
-            speaker=seg.speaker,
-            words=seg.words,
-            phones=tuple(
-                p for p in phones if seg.start - eps <= p[1] and p[2] <= seg.end + eps
-            )
-            or None,
+
+    def with_phones(seg: TranscriptSegment) -> TranscriptSegment:
+        inside = tuple(
+            p for p in phones if seg.start - eps <= p[1] and p[2] <= seg.end + eps
         )
-        for seg in timed
-    ]
+        return replace(
+            seg, phones=inside or None, phone_alphabet=alphabet if inside else None
+        )
+
+    return [with_phones(seg) for seg in timed]
 
 
 def _speaker_of(
@@ -1622,9 +1624,7 @@ def import_recordings(
                 wav=clip,
                 words=rebase_words(segment.words, a),
                 phones=rebase_words(segment.phones, a),
-                phone_alphabet=getattr(align, "phone_alphabet", None)
-                if align is not None and segment.phones
-                else None,
+                phone_alphabet=segment.phone_alphabet if segment.phones else None,
                 speaker=None,
                 transcript_kind=kind,
                 transcript_ref=given[path].ref if path in given else None,
