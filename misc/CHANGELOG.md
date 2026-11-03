@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-11-03
+- The private aliases of the genre API level-13 names (`_rig_scope`, `_method`, `_as_choice`, `_offset`) are removed: cutan requires level 14 and imports the public names (an#709).
 - `an.render.prepared_shots(project, *, fps, resolution, supersample, measure, allow_unmeasured, work_dir)` prepares every shot exactly as `render` does, without drawing: `PreparedShots(fps, resolution, shots, findings)` of `PreparedShot(shot, renderer, ctx, start)` with a lazy `document`, for verifiers that read a render's timelines; an unmeasured Manim length is refused (`UnmeasuredLengthError`) unless `allow_unmeasured`; `an probe` prepares through it; `an.stage.draws_on_stage(shot)` is the one stage-shot rule (an#733).
 - Recorded voices: overlapping speech (two lines at once, beyond `overlap_tolerance_s`, 0.05 s by default; `an voices import --overlap-tolerance`) is refused at import naming both lines, never cut through a word, and a transcriber's or aligner's overlap is not blamed on a transcript; a speaker with a non-empty lines tier of its own is read by its lines (a colon in one is text), which cut the other speakers' words into turns (an#739).
 - A take's phone alphabet keys its audio beside its words and phones (the `timings` digest), so a corrected alphabet re-aligns the mouth even on a stamped scene; a take stored without one keeps its key (an#759).

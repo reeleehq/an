@@ -1,1 +1,0 @@
-- The private aliases of the genre API level-13 names (`_rig_scope`, `_method`, `_as_choice`, `_offset`) are removed: cutan requires level 14 and imports the public names (an#709).
