@@ -300,8 +300,11 @@ def _detail(e: CreditEntry) -> str:
         # Audio's revenue cap), on any asset made under them; a non-commercial
         # licence's restriction (an#373).
         out += f" ({restriction})"
-    from an.sound_fetch import cut_label
+    from an.sound_fetch import ai_label, cut_label
 
+    if ai := ai_label(e.source):
+        # An AI-generated sound says so, with its model (a foley export, an#729).
+        out += f" — {ai}"
     if cut := cut_label(e.source):
         # A sound cut from fetched media says which part of which page (an#318).
         out += f" — {cut}"

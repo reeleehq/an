@@ -15,8 +15,9 @@ What stays here is what is an's:
   :class:`~foley.sources.music_library.AcquiredTrack`, or its ``.row()`` read
   back from a tracks table) as an :class:`an.ir.assets.AssetSource`, the
   provenance a sound in the project's store carries. foley's licence ids become
-  an's codes (:func:`license_code`: ``CC-BY-4.0`` is ``cc-by-4.0``; foley's
-  ``unknown``, a paid library's, is ``None``, which an reads as UNKNOWN); the
+  an's codes (:func:`license_code`, foley's own mapping,
+  ``foley.licensing.consumer_license_code``: ``CC-BY-4.0`` is ``cc-by-4.0``;
+  foley's ``unknown``, a paid library's, is ``None``, which an reads as UNKNOWN); the
   library's own address is ``source_page_url``; ``rights_verified``, the mirror
   and a titles file's metadata ride as extras.
 - :func:`acquire`, foley's with an's ``pause`` knob (seconds before a second
@@ -49,6 +50,7 @@ from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any
 
 from an.ir.assets import AssetSource
+from an.sound_fetch import FILE_SHA256_FIELD
 
 if TYPE_CHECKING:  # foley loads on first use, never with `import an`
     from foley.sources.music_library import AcquiredTrack
@@ -57,7 +59,6 @@ __all__ = [
     "ACQUIRED",
     "DFLT_PAUSE_S",
     "FAILED",
-    "FOLEY_LICENSE_CODES",
     "KEPT",
     "MUSIC_LIBRARIES",
     "REFUSED",
@@ -120,9 +121,6 @@ FOLEY_NAMES: frozenset[str] = frozenset(
 #: is someone's website).
 DFLT_PAUSE_S: float = 2.0
 SECONDS_PER_MINUTE: float = 60.0
-#: foley licence ids whose an code is not the id in lowercase: ``unknown`` (a paid
-#: library claims no rights) is ``None``, an's UNKNOWN.
-FOLEY_LICENSE_CODES: Mapping[str, str | None] = {"unknown": None}
 #: The row columns that describe the acquisition, not the asset: they stay in the
 #: tracks table. ``title`` and ``library`` become ``id`` and ``provider``.
 ROW_ONLY: frozenset[str] = frozenset({"status", "file", "duration_s", "error"})
@@ -148,28 +146,19 @@ def __dir__() -> list[str]:
     return sorted(set(globals()) | FOLEY_NAMES)
 
 
-def license_code(
-    license_id: str | None,
-    *,
-    codes: Mapping[str, str | None] = FOLEY_LICENSE_CODES,
-) -> str | None:
-    """foley's licence id as an's code: ``codes`` first, else the id in lowercase.
+def license_code(license_id: str | None) -> str | None:
+    """foley's licence id as an's code: foley's ``consumer_license_code``, the
+    one mapping (an#729), imported on first use.
 
     >>> license_code("CC0-1.0"), license_code("unknown"), license_code(None)
     ('cc0-1.0', None, None)
     """
-    if not license_id:
-        return None
-    if license_id in codes:
-        return codes[license_id]
-    return license_id.lower()
+    from foley.licensing import consumer_license_code
+
+    return consumer_license_code(license_id)
 
 
-def asset_source(
-    track: AcquiredTrack | Mapping[str, Any],
-    *,
-    codes: Mapping[str, str | None] = FOLEY_LICENSE_CODES,
-) -> AssetSource:
+def asset_source(track: AcquiredTrack | Mapping[str, Any]) -> AssetSource:
     """One foley row as an's :class:`~an.ir.assets.AssetSource`.
 
     ``track`` is a foley ``AcquiredTrack`` or its ``.row()`` (as a tracks table
@@ -208,7 +197,7 @@ def asset_source(
     return AssetSource(
         provider=row["library"],
         id=row["title"],
-        license=license_code(row.get("license"), codes=codes),
+        license=license_code(row.get("license")),
         **{k: v for k, v in fields.items() if v is not None and v != ""},
     )
 
@@ -245,10 +234,6 @@ def acquire(
     return foley_acquire(library, titles, out=out, config=config, **kwargs)
 
 
-#: Where ``add_track_to_sounds`` keeps the digest of the library file a cut was
-#: made from: ``sha256`` is the stored bytes' own (the cut WAV, :class:`SoundAsset`).
-FILE_SHA256_FIELD: str = "file_sha256"
-
 
 def track_row(text: str, title: str) -> dict[str, str]:
     """``title``'s row in the tracks table ``text``.
@@ -278,7 +263,6 @@ def add_track_to_sounds(
     duration: float | None = None,
     fade_out: float | None = None,
     description: str = "",
-    codes: Mapping[str, str | None] = FOLEY_LICENSE_CODES,
 ) -> Any:
     """Put one acquired track in the sounds ``store`` under ``key`` (an#623).
 
@@ -289,7 +273,7 @@ def add_track_to_sounds(
     is checked against its ``sha256``, cut with :func:`an.sound_fetch.cut_to_wav`
     (``start``, ``duration``, ``fade_out``, as ``an sounds add`` takes them) and
     stored with the track as its :class:`~an.ir.assets.AssetSource`
-    (:func:`asset_source`, ``codes``) plus the cut, the file's digest as
+    (:func:`asset_source`) plus the cut, the file's digest as
     ``file_sha256``, so ``an credits`` lists the music with its licence. Nothing
     is fetched again: the site may be the one that refused scripts.
 
@@ -325,7 +309,7 @@ def add_track_to_sounds(
             "row recorded (changed since it was acquired); rerun `an music add-library`"
         )
     wav = cut_to_wav(audio, start=start, duration=duration, fade_out=fade_out)
-    fields = asset_source(track, codes=codes).model_dump(exclude_none=True)
+    fields = asset_source(track).model_dump(exclude_none=True)
     fields[FILE_SHA256_FIELD] = fields.pop("sha256")
     fields[CUT_FIELD] = cut_record(wav, start=start, fade_out=fade_out)
     return add_sound(
