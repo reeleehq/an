@@ -645,23 +645,48 @@ def _collect_interrupted_writes(
             temps = store.interrupted_writes()
         except OSError:
             continue  # an unreadable folder: nothing known, nothing deleted
-        for path in temps:
-            real = Path(path).resolve()
+        root = getattr(store, "_root", None)
+        root = Path(root).absolute() if root is not None else None
+        for path in map(Path, temps):
+            real = path.resolve()
             if real in seen:
                 continue  # two stores over one folder: counted once
             seen.add(real)
+            # the entry it was written in, for a store of folders (an#688)
+            label = f"{name}/{_relative_to(path, root)}"
             try:
-                st = Path(path).stat()
+                st = path.stat()
                 if st.st_mtime >= before:
                     continue
                 if not report.dry_run:
-                    Path(path).unlink()
+                    path.unlink()
+                    _remove_if_empty(path.parent, keep=root)
             except FileNotFoundError:
                 continue  # its writer finished, or someone else removed it
             except OSError:
-                report.failed.append(f"{name}/{Path(path).name}")
+                report.failed.append(label)
                 continue
-            report.deleted_temps[f"{name}/{Path(path).name}"] = st.st_size
+            report.deleted_temps[label] = st.st_size
+
+
+def _relative_to(path: Path, root: Path | None) -> str:
+    """``path`` below ``root`` (a store's folder) as a posix string; its name
+    when there is no root or it is not below it."""
+    try:
+        return path.relative_to(root).as_posix() if root else path.name
+    except ValueError:
+        return path.name
+
+
+def _remove_if_empty(folder: Path, *, keep: Path | None) -> None:
+    """Remove ``folder`` if empty and not ``keep`` (the store's own): the entry
+    folder of a first write that was killed is no key, only clutter (an#688)."""
+    if keep is None or folder == keep:
+        return
+    try:
+        folder.rmdir()
+    except OSError:
+        pass  # not empty, or gone: either way, nothing to do
 
 
 def _collect_orphans(

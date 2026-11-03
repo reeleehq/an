@@ -43,6 +43,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, NamedTuple
 
+from dol import atomic_write
 from dol.content import ContentRef, content_hash
 
 from an.library.api import (
@@ -395,7 +396,7 @@ def checkout(
             targets[path] = target
         for path, data in sorted(files.items()):
             targets[path].parent.mkdir(parents=True, exist_ok=True)
-            targets[path].write_bytes(data)
+            atomic_write(targets[path], data)  # a killed checkout tears no part (an#688)
     doc = copy.deepcopy(version["doc"])
     if kind.name in METADATA_KINDS and isinstance(doc, dict):
         added = None

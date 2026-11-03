@@ -2,7 +2,12 @@
 
 from __future__ import annotations
 
+import os
+import subprocess
+import sys
 import tempfile
+import time
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
@@ -159,14 +164,27 @@ def test_a_blob_store_never_lists_a_killed_writes_temp_and_leaves_none(tmp_path)
     assert VoicesStore(tmp_path / "v").interrupted_writes() == []
 
 
+def _kill_mid_write(script: str, *args: str, until: Callable[[], bool]) -> None:
+    """Run ``script`` (a child Python that starts a write and stalls in it)
+    with ``args``, and kill it once ``until()`` holds (or after 30 s). The
+    child imports THIS checkout's ``an``, not whichever one is installed."""
+    import an
+
+    env = {**os.environ, "PYTHONPATH": str(Path(an.__file__).parents[1])}
+    proc = subprocess.Popen([sys.executable, "-c", script, *args], env=env)
+    try:
+        deadline = time.monotonic() + 30
+        while not until() and time.monotonic() < deadline:
+            time.sleep(0.05)
+    finally:
+        proc.kill()
+        proc.wait()
+
+
 def test_a_write_killed_mid_way_leaves_a_temp_interrupted_writes_finds(tmp_path):
     """The temp a REAL killed ``dol.atomic_write`` leaves is what
     ``interrupted_writes`` lists, so a change to dol's temp naming fails here
     rather than silently stopping ``an cache gc`` collecting them (an#674)."""
-    import subprocess
-    import sys
-    import time
-
     from an.stores.artifacts import ShotArtifactStore
 
     store = ShotArtifactStore(tmp_path)
@@ -179,14 +197,7 @@ def test_a_write_killed_mid_way_leaves_a_temp_interrupted_writes_finds(tmp_path)
         "    yield b'never'\n"
         "atomic_write(sys.argv[1], chunks())\n"
     )
-    proc = subprocess.Popen([sys.executable, "-c", writer, str(store.path_of("k"))])
-    try:
-        deadline = time.monotonic() + 30
-        while not store.interrupted_writes() and time.monotonic() < deadline:
-            time.sleep(0.05)
-    finally:
-        proc.kill()
-        proc.wait()
+    _kill_mid_write(writer, str(store.path_of("k")), until=store.interrupted_writes)
     (temp,) = store.interrupted_writes()
     assert temp.name.startswith(".k.mp4.") and list(store) == []
 
@@ -196,46 +207,29 @@ def test_a_sidecar_write_killed_mid_way_keeps_the_previous_file(tmp_path, write)
     """``meta.json`` and ``audio.wav`` are written atomically: a process killed
     mid-write leaves the previous file whole and a temp that
     ``interrupted_writes`` lists for ``an cache gc`` (an#688)."""
-    import subprocess
-    import sys
-    import time
-
     from an.stores._common import AudioSidecarStore
 
     store = AudioSidecarStore(tmp_path)
     store["x"] = {"v": 1}
     store.write_audio("x", b"RIFF old take")
+    # The child stalls the store's own write: it swaps the module's
+    # ``atomic_write`` (the name ``_common`` calls) for one that hangs mid-way.
     writer = (
         "import sys, time\n"
         "import an.stores._common as c\n"
         "real = c.atomic_write\n"
-        "def slow(data):\n"
+        "def stall(data):\n"
         "    yield data[:3]\n"
         "    time.sleep(60)\n"
         "    yield data[3:]\n"
-        "c.atomic_write = lambda path, data, **kw: real(path, slow(data), **kw)\n"
+        "c.atomic_write = lambda path, data, **kw: real(path, stall(data), **kw)\n"
         "store = c.AudioSidecarStore(sys.argv[1])\n"
         "if sys.argv[2] == 'meta':\n"
-        "    store['x'] = {'v': 2, 'pad': 'y' * 1000}\n"
+        "    store['x'] = {'v': 2}\n"
         "else:\n"
         "    store.write_audio('x', b'RIFF new take')\n"
     )
-    import os
-
-    import an
-
-    # the child imports THIS checkout's an, not whichever one is installed
-    env = {**os.environ, "PYTHONPATH": str(Path(an.__file__).parents[1])}
-    proc = subprocess.Popen(
-        [sys.executable, "-c", writer, str(tmp_path), write], env=env
-    )
-    try:
-        deadline = time.monotonic() + 30
-        while not store.interrupted_writes() and time.monotonic() < deadline:
-            time.sleep(0.05)
-    finally:
-        proc.kill()
-        proc.wait()
+    _kill_mid_write(writer, str(tmp_path), write, until=store.interrupted_writes)
     (temp,) = store.interrupted_writes()
     target = "meta.json" if write == "meta" else "audio.wav"
     assert temp.parent == tmp_path / "x" and temp.name.startswith(f".{target}.")

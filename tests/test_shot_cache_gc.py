@@ -1387,24 +1387,30 @@ def test_gc_deletes_the_temps_killed_writes_left_and_spares_a_fresh_one(tmp_path
 
 def test_gc_deletes_the_temps_killed_sidecar_writes_left(tmp_path):
     """A killed ``meta.json`` or ``audio.wav`` write leaves its temp in the
-    entry folder, one level below the store's: the collection finds it there
-    (an#688), including in a folder whose first write was killed."""
+    entry folder, below the store's: the collection finds it there, names the
+    entry, and removes a folder whose first write was killed (an#688)."""
     from an.build.gc import INTERRUPTED_WRITE_MIN_AGE_S
+    from an.stores.characters import CharactersStore
 
     root = _project(tmp_path)
     now = time.time()
     stale_at = now - INTERRUPTED_WRITE_MIN_AGE_S - 60
+    meta = CharactersStore.META_NAME
     temps = [
         root / "assets" / "sounds" / "door" / ".audio.wav.ab12cd34.tmp",
-        root / "assets" / "characters" / "new" / ".meta.json.0011aabb.tmp",
+        root / "assets" / "characters" / "new" / f".{meta}.0011aabb.tmp",
     ]
+    (root / "assets" / "sounds" / "door").mkdir(parents=True)
+    (root / "assets" / "sounds" / "door" / "meta.json").write_text("{}")
     for t in temps:
         t.parent.mkdir(parents=True, exist_ok=True)
         t.write_bytes(b"x")
         os.utime(t, (stale_at, stale_at))
     report = collect_garbage(root, now=now, force=True)
     assert set(report.deleted_temps) == {
-        "sounds/.audio.wav.ab12cd34.tmp",
-        "characters/.meta.json.0011aabb.tmp",
+        "sounds/door/.audio.wav.ab12cd34.tmp",
+        f"characters/new/.{meta}.0011aabb.tmp",
     }
     assert not any(t.exists() for t in temps)
+    assert (root / "assets" / "sounds" / "door").is_dir()  # an entry: kept
+    assert not (root / "assets" / "characters" / "new").exists()  # no entry: gone
