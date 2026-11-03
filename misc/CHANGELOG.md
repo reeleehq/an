@@ -3,6 +3,9 @@
 AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
+## 2026-11-03
+- Sidecar stores write `meta.json` and `audio.wav` atomically (characters, environments, props, sounds, recordings) through a new `JsonSidecarStore.write_sidecar`, the library checkout writes part files atomically, and `an cache gc` collects the temps a killed write leaves anywhere under an entry folder, naming the entry (an#688).
+
 ## 2026-11-01
 - **Phones from MFA's and Gentle's JSON** (an#715): a JSON transcript gives `TranscriptSegment.phones` as a TextGrid does: MFA's `--output_format json` (`tiers.<name>.entries`, `parse_mfa_json`, read by the TextGrid's own tier rules, now `segments_from_tiers`) and Gentle's per-word `phones` (durations from the word's start, `hh_B`-style position suffixes stripped).
 - **One light per scene, and shading agrees** (an#519, catalogue D1, the `an` side): `meta.light` (`SceneLight`: a finite `direction` or a named `key`, with an optional `elevation`; round-trips through scene.md, omitted when unset) and the core's `light` constraint: a member whose art declares `metadata.shaded_side` (or `overrides.shaded_side`) is warned about when that side, read where it faces on screen as the shot opens (mirrors and rotations above it included), is not in the quadrant facing away from the light; `flat` art is exempt. The art-brief hook is cutan's.
