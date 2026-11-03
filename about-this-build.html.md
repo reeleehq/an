@@ -2,7 +2,7 @@
 
 # About this build
 
-This documentation was built on **2026-11-03 14:15 UTC** from commit <a href="https://github.com/reeleehq/an/commit/19e29bc716b826edc57c794a9cfd949bf77cb25b"><code>19e29bc</code></a> on branch <code>main</code>, for **an 0.1.372** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-03 14:19 UTC** from commit <a href="https://github.com/reeleehq/an/commit/19e29bc716b826edc57c794a9cfd949bf77cb25b"><code>19e29bc</code></a> on branch <code>main</code>, for **an 0.1.372** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -22,9 +22,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/an</code>                                                                   |
-| Run          | <a href="https://github.com/reeleehq/an/actions/runs/41644771169">41644771169</a>          |
+| Run          | <a href="https://github.com/reeleehq/an/actions/runs/41645710427">41645710427</a>          |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>d77e25eb36a518b0180549ef51ef98f8ce0b6139</code> (in the history of the built commit) |
+| Event commit | <code>03fa0eaa76776854573ac895f22062e81c041281</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -33,7 +33,7 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 | epythet  | 0.2.22  |
 | Sphinx   | 9.1.1   |
 | docutils | 0.22.4  |
-| Python   | 3.12.15 |
+| Python   | 3.12.16 |
 
 ## Configuration as resolved
 

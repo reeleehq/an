@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "built_at": "2026-11-03T14:15:56Z",
+  "built_at": "2026-11-03T14:19:52Z",
   "package": {
     "name": "an",
     "version": "0.1.372",
@@ -23,19 +23,19 @@
   "ci": {
     "provider": "github",
     "repository": "reeleehq/an",
-    "sha": "d77e25eb36a518b0180549ef51ef98f8ce0b6139",
+    "sha": "03fa0eaa76776854573ac895f22062e81c041281",
     "sha_in_history": true,
     "ref": "refs/heads/main",
     "ref_name": "main",
-    "run_id": "41644771169",
-    "run_url": "https://github.com/reeleehq/an/actions/runs/41644771169",
+    "run_id": "41645710427",
+    "run_url": "https://github.com/reeleehq/an/actions/runs/41645710427",
     "server_url": "https://github.com"
   },
   "tools": {
     "epythet": "0.2.22",
     "sphinx": "9.1.1",
     "docutils": "0.22.4",
-    "python": "3.12.15"
+    "python": "3.12.16"
   },
   "config": {
     "theme": "auto",
