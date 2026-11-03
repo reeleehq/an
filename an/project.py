@@ -169,7 +169,9 @@ def _compiled(lines: tuple[str, ...]) -> tuple[Callable[[str], bool], ...]:
     return tuple(_gitignore_line_matcher(line) for line in lines)
 
 
-def gitignore_matcher(lines: Iterable[str] = PROJECT_GITIGNORE) -> Callable[[str], bool]:
+def gitignore_matcher(
+    lines: Iterable[str] = PROJECT_GITIGNORE,
+) -> Callable[[str], bool]:
     """``rel -> bool``: whether any of ``lines`` (each a ``.gitignore`` line)
     covers the project-relative POSIX path ``rel``, by git's rules (an#725): a
     line with a ``/`` before its end is anchored at the project root, one
@@ -194,7 +196,9 @@ def gitignore_matcher(lines: Iterable[str] = PROJECT_GITIGNORE) -> Callable[[str
     (False, True)
     """
     if isinstance(lines, str):  # one line given bare: its characters are not lines
-        raise TypeError(f"lines is an iterable of .gitignore lines, not one str: {lines!r}")
+        raise TypeError(
+            f"lines is an iterable of .gitignore lines, not one str: {lines!r}"
+        )
     matchers = _compiled(tuple(lines))
 
     def covered(rel: str) -> bool:
