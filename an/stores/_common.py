@@ -265,7 +265,43 @@ def interrupted_writes(folder: str | Path, *, recursive: bool = False) -> list[P
     return [Path(p) for p in _dol_interrupted_writes(folder, recursive=recursive)]
 
 
-class JsonDirStore(MutableMapping):
+class LazyFolder:
+    """The one folder rule of an's file stores (an#696): the store's folder is
+    made by its first write, and a missing folder lists as empty, so a mall
+    over an empty project, or a host scanning many folders, lays out nothing.
+    ``ensure=True`` makes the folder at once (``an init``).
+
+    The base of :class:`JsonDirStore`, :class:`JsonSidecarStore` and
+    ``an.stores.artifacts._BlobStore``, which list their keys through
+    :meth:`_listed`.
+
+    >>> import tempfile
+    >>> d = Path(tempfile.mkdtemp()) / "kept"
+    >>> folder = LazyFolder(d)
+    >>> folder._listed("*.json"), d.exists()
+    ([], False)
+    >>> _ = LazyFolder(d, ensure=True); d.is_dir()
+    True
+    """
+
+    def __init__(self, root_dir: str | Path, *, ensure: bool = False) -> None:
+        self._root = Path(root_dir)
+        if ensure:
+            self._root.mkdir(parents=True, exist_ok=True)
+
+    def _listed(self, pattern: str = "*") -> list[Path]:
+        """The folder's children matching ``pattern``, sorted: none while the
+        folder is not there."""
+        return sorted(self._root.glob(pattern)) if self._root.is_dir() else []
+
+    def __len__(self) -> int:
+        return sum(1 for _ in self)
+
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}({str(self._root)!r})"
+
+
+class JsonDirStore(LazyFolder, MutableMapping):
     """`MutableMapping` of name -> JSON document, stored as ``<name>.json`` files.
 
     Backed by the filesystem under ``root_dir``. Keys are the file stems; values
@@ -274,9 +310,9 @@ class JsonDirStore(MutableMapping):
     :mod:`an.stores` for hosts (an#664): a write is atomic and :meth:`locked`
     is the contract for a read, change and write shared with other processes.
 
-    Its folder is made by the first write or lock (an#696), so a host can scan
-    many folders through the store without leaving an empty one in each; a
-    missing folder reads as an empty store. ``create=True`` makes it at once.
+    Its folder follows :class:`LazyFolder`'s rule (an#696): made by the first
+    write or lock, so a host can scan many folders through the store without
+    leaving an empty one in each.
 
     >>> import tempfile
     >>> d = Path(tempfile.mkdtemp()) / "voice_options"
@@ -287,11 +323,6 @@ class JsonDirStore(MutableMapping):
     >>> list(store), d.exists()
     (['jerry'], True)
     """
-
-    def __init__(self, root_dir: str | Path, *, create: bool = False) -> None:
-        self._root = Path(root_dir)
-        if create:
-            self._root.mkdir(parents=True, exist_ok=True)
 
     def _path(self, key: str) -> Path:
         if "/" in key or key.startswith(".") or not key:
@@ -336,44 +367,35 @@ class JsonDirStore(MutableMapping):
         p.unlink()
 
     def __iter__(self) -> Iterator[str]:
-        for child in sorted(self._root.glob("*.json")):
+        for child in self._listed("*.json"):
             yield child.stem
-
-    def __len__(self) -> int:
-        return sum(1 for _ in self)
 
     def interrupted_writes(self) -> list[Path]:
         """The temp files killed writes left in this store's folder (an#674)."""
         return interrupted_writes(self._root)
 
-    def __repr__(self) -> str:
-        return f"{type(self).__name__}({str(self._root)!r})"
 
-
-class JsonSidecarStore(MutableMapping):
+class JsonSidecarStore(LazyFolder, MutableMapping):
     """`MutableMapping` of name -> dict, where each entry is a directory containing
     ``meta.json`` plus optional binary sidecars.
 
     Reading returns the parsed ``meta.json``. Writing replaces ``meta.json``;
     sidecars are written separately by the caller, atomically through
     :meth:`write_sidecar` (``sidecar_path(key, name)`` is where one lives).
-    Deleting removes the whole directory. The store's folder is made by the
-    first write (an#696): a missing folder reads as an empty store, and
-    ``create=True`` makes it at once.
+    Deleting removes the whole directory. The store's folder, and an entry's,
+    follow :class:`LazyFolder`'s rule (an#696): made by the first write, never
+    by a read.
 
     >>> import tempfile
     >>> d = Path(tempfile.mkdtemp()) / "props"
     >>> store = JsonSidecarStore(d)
-    >>> list(store), "lamp" in store, d.exists()
-    ([], False, False)
+    >>> list(store), "lamp" in store, store.sidecar_path("lamp", "x.svg").name
+    ([], False, 'x.svg')
+    >>> d.exists()
+    False
     """
 
     META_NAME = "meta.json"
-
-    def __init__(self, root_dir: str | Path, *, create: bool = False) -> None:
-        self._root = Path(root_dir)
-        if create:
-            self._root.mkdir(parents=True, exist_ok=True)
 
     def _entry_dir(self, key: str) -> Path:
         if "/" in key or key.startswith(".") or not key:
@@ -381,9 +403,10 @@ class JsonSidecarStore(MutableMapping):
         return self._root / key
 
     def sidecar_path(self, key: str, name: str) -> Path:
-        d = self._entry_dir(key)
-        d.mkdir(parents=True, exist_ok=True)
-        return d / name
+        """Where the sidecar ``name`` of ``key`` lives. Pure (an#696): nothing
+        is made, so a read through it leaves no folder; a caller writing there
+        makes the parent, as :meth:`write_sidecar` does."""
+        return self._entry_dir(key) / name
 
     def write_sidecar(self, key: str, name: str, data: bytes) -> None:
         """Write the sidecar ``name`` of ``key`` atomically (an#688): a write
@@ -426,14 +449,9 @@ class JsonSidecarStore(MutableMapping):
         d.rmdir()
 
     def __iter__(self) -> Iterator[str]:
-        if not self._root.is_dir():
-            return  # not written yet: an empty store (an#696)
-        for child in sorted(self._root.iterdir()):
+        for child in self._listed():
             if child.is_dir() and (child / self.META_NAME).exists():
                 yield child.name
-
-    def __len__(self) -> int:
-        return sum(1 for _ in self)
 
     def interrupted_writes(self) -> list[Path]:
         """The temp files killed writes left in the entry folders and below
@@ -452,9 +470,6 @@ class JsonSidecarStore(MutableMapping):
         (['x'], ['x', 'y'])
         """
         return interrupted_writes(self._root, recursive=True)
-
-    def __repr__(self) -> str:
-        return f"{type(self).__name__}({str(self._root)!r})"
 
 
 class AudioSidecarStore(JsonSidecarStore):

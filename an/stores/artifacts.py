@@ -16,21 +16,17 @@ from typing import Iterator
 
 from dol import atomic_write
 
-from an.stores._common import interrupted_writes
+from an.stores._common import LazyFolder, interrupted_writes
 
 
-class _BlobStore(MutableMapping):
+class _BlobStore(LazyFolder, MutableMapping):
     """Generic file-as-bytes store with a fixed extension.
 
-    Subclasses set ``EXT`` to the file extension (without the dot).
+    Subclasses set ``EXT`` to the file extension (without the dot). Its folder
+    follows :class:`~an.stores._common.LazyFolder`'s rule (an#696).
     """
 
     EXT: str = "bin"
-
-    def __init__(self, root_dir: str | Path, *, create: bool = False) -> None:
-        self._root = Path(root_dir)
-        if create:  # else the first write makes it; missing reads as empty (an#696)
-            self._root.mkdir(parents=True, exist_ok=True)
 
     def _path(self, key: str) -> Path:
         if "/" in key or key.startswith(".") or not key:
@@ -60,11 +56,8 @@ class _BlobStore(MutableMapping):
 
     def __iter__(self) -> Iterator[str]:
         suffix = f".{self.EXT}"
-        for child in sorted(self._root.glob(f"*{suffix}")):
+        for child in self._listed(f"*{suffix}"):
             yield child.name[: -len(suffix)]
-
-    def __len__(self) -> int:
-        return sum(1 for _ in self)
 
     def interrupted_writes(self) -> list[Path]:
         """The temp files killed writes left in this store's folder (an#674):
@@ -74,9 +67,6 @@ class _BlobStore(MutableMapping):
     def path_of(self, key: str) -> Path:
         """Return the on-disk path for a key (whether it exists or not)."""
         return self._path(key)
-
-    def __repr__(self) -> str:
-        return f"{type(self).__name__}({str(self._root)!r})"
 
 
 class AudioArtifactStore(_BlobStore):

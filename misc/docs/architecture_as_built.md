@@ -296,7 +296,7 @@ an/
 │
 ├── stores/                  dol-backed project mall (MutableMapping facades)
 │   ├── __init__.py          build_project_mall(project_dir) factory
-│   ├── _common.py           JsonDirStore (exported from an.stores for hosts, an#664), JsonSidecarStore, _BlobStore base classes; each makes its folder on the first write (`create=True` at once), a missing folder reading as empty, so `build_project_mall(ensure=False)` lays out nothing of an's own (an#696; lacing's shot cache and transcripts stores still make catalog/ and blobs/ until reeleehq/lacing#155)
+│   ├── _common.py           JsonDirStore (exported from an.stores for hosts, an#664), JsonSidecarStore, _BlobStore base classes, all on LazyFolder: the one folder rule (an#696) — a folder is made by the first write (`ensure=True` at once), never by a read (`sidecar_path` is pure), and a missing one lists as empty, so `build_project_mall` lays out nothing of an's own and `ensure=True` (`an init`) lays out the tree through the stores plus `UNSTORED_FOLDERS` (`ir/`); lacing's shot cache and transcripts stores still make catalog/ and blobs/ until reeleehq/lacing#155
 │   ├── characters.py        sidecar-folder store (character.json + per-part art)
 │   ├── props.py             sidecar-folder store (prop.json + per-part art) — the
 │   │                        same shape, a different store, because the rig builder
