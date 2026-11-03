@@ -30,9 +30,10 @@ existing cache key moves.
 
 ### Module Attributes
 
-| [`AUDIO_TAG_MODEL_PREFIXES`](#an.audio.elevenlabs_tts.AUDIO_TAG_MODEL_PREFIXES)   | Model ids that read inline audio tags (`[excited]`, `[sighs]`).                            |
-|-----------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|
-| [`VOICE_SETTINGS_RANGES`](#an.audio.elevenlabs_tts.VOICE_SETTINGS_RANGES)      | The `voice_settings` keys the API takes, with the range each accepts (`None` = a boolean). |
+| [`ELEVENLABS_STOCK_CATEGORY`](#an.audio.elevenlabs_tts.ELEVENLABS_STOCK_CATEGORY)   | The category ElevenLabs gives its stock voices, the ones any account holds and nobody designed: `VoiceMeta.is_stock` (an#712).   |
+|------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
+| [`AUDIO_TAG_MODEL_PREFIXES`](#an.audio.elevenlabs_tts.AUDIO_TAG_MODEL_PREFIXES)    | Model ids that read inline audio tags (`[excited]`, `[sighs]`).                                                                  |
+| [`VOICE_SETTINGS_RANGES`](#an.audio.elevenlabs_tts.VOICE_SETTINGS_RANGES)       | The `voice_settings` keys the API takes, with the range each accepts (`None` = a boolean).                                       |
 
 ### Functions
 
@@ -57,6 +58,13 @@ existing cache key moves.
 Model ids that read inline audio tags (`[excited]`, `[sighs]`). Matched
 as prefixes, so `eleven_v3_conversational` and `eleven_v4_turbo` count.
 Every other model would speak the brackets, so it never receives a tag.
+
+### an.audio.elevenlabs_tts.ELEVENLABS_STOCK_CATEGORY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'premade'*
+
+The category ElevenLabs gives its stock voices, the ones any account holds
+and nobody designed: `VoiceMeta.is_stock` (an#712). A voice an account
+added from ElevenLabs’ shared Voice Library has another category, and is
+not stock.
 
 ### *class* an.audio.elevenlabs_tts.ElevenLabsTTS(, api_key=None, model_id='eleven_turbo_v2_5', output_format='mp3_44100_128', audio_tag_model_prefixes=('eleven_v3', 'eleven_v4'), client_factory=None)
 

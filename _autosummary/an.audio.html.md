@@ -20,33 +20,35 @@ without external services.
 
 ### Functions
 
-| [`word_timings_to_visemes`](#an.audio.word_timings_to_visemes)(words, \*, ...[, ...])    | Distribute viseme keyframes across word boundaries.                                                                                                                                                                     |
-|----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`import_recordings`](#an.audio.import_recordings)(project, audio, \*[, ...])      | Import a performer's recording(s) as the voice of their lines (an#490).                                                                                                                                                 |
-| [`default_tts`](#an.audio.default_tts)()                                     | The default TTS provider: `OfflineTTS`.                                                                                                                                                                                 |
-| [`default_lipsync`](#an.audio.default_lipsync)()                                 | The default lip-sync provider: the loaded genre's `offline` one (the deterministic char-to-viseme provider of `cutan`), else [`NullLipSync`](an.audio.lipsync.html.md#an.audio.lipsync.NullLipSync). |
-| [`produce_audio_for_dialogue`](#an.audio.produce_audio_for_dialogue)(dialogue[, mall, ...]) | Synthesize audio + visemes for one dialogue line.                                                                                                                                                                       |
-| [`produce_audio_for_scene`](#an.audio.produce_audio_for_scene)(scene[, mall, tts, ...])  | Walk every dialogue line, synthesize, and stamp viseme tracks back.                                                                                                                                                     |
-| [`make_tts`](#an.audio.make_tts)(name, \*[, mall])                        | Instantiate a TTS provider by name.                                                                                                                                                                                     |
-| [`make_lipsync`](#an.audio.make_lipsync)(name, \*[, language])                | Instantiate a LipSync provider by name.                                                                                                                                                                                 |
-| [`known_tts_names`](#an.audio.known_tts_names)()                                 | Return the registered TTS provider names.                                                                                                                                                                               |
-| [`known_lipsync_names`](#an.audio.known_lipsync_names)()                             | Return the registered LipSync provider names.                                                                                                                                                                           |
+| [`list_voices`](#an.audio.list_voices)(provider, \*[, api_key, search, make])   | The voices `provider` offers, as rows (an#712): `browse_voices()` through [`VoiceMeta.as_row()`](#an.audio.VoiceMeta.as_row).                                                                          |
+|-------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`word_timings_to_visemes`](#an.audio.word_timings_to_visemes)(words, \*, ...[, ...])       | Distribute viseme keyframes across word boundaries.                                                                                                                                                                     |
+| [`import_recordings`](#an.audio.import_recordings)(project, audio, \*[, ...])         | Import a performer's recording(s) as the voice of their lines (an#490).                                                                                                                                                 |
+| [`default_tts`](#an.audio.default_tts)()                                        | The default TTS provider: `OfflineTTS`.                                                                                                                                                                                 |
+| [`default_lipsync`](#an.audio.default_lipsync)()                                    | The default lip-sync provider: the loaded genre's `offline` one (the deterministic char-to-viseme provider of `cutan`), else [`NullLipSync`](an.audio.lipsync.html.md#an.audio.lipsync.NullLipSync). |
+| [`produce_audio_for_dialogue`](#an.audio.produce_audio_for_dialogue)(dialogue[, mall, ...])    | Synthesize audio + visemes for one dialogue line.                                                                                                                                                                       |
+| [`produce_audio_for_scene`](#an.audio.produce_audio_for_scene)(scene[, mall, tts, ...])     | Walk every dialogue line, synthesize, and stamp viseme tracks back.                                                                                                                                                     |
+| [`make_tts`](#an.audio.make_tts)(name, \*[, mall, api_key])                  | Instantiate a TTS provider by name.                                                                                                                                                                                     |
+| [`make_lipsync`](#an.audio.make_lipsync)(name, \*[, language])                   | Instantiate a LipSync provider by name.                                                                                                                                                                                 |
+| [`known_tts_names`](#an.audio.known_tts_names)()                                    | Return the registered TTS provider names.                                                                                                                                                                               |
+| [`known_lipsync_names`](#an.audio.known_lipsync_names)()                                | Return the registered LipSync provider names.                                                                                                                                                                           |
 
 ### Classes
 
-| [`TTSProvider`](#an.audio.TTSProvider)(\*args, \*\*kwargs)                   | Text-to-speech provider.                                                 |
-|----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
-| [`AudioClip`](#an.audio.AudioClip)([path, bytes_, duration, ...])          | A rendered audio clip, on disk or in memory.                             |
-| [`VoiceMeta`](#an.audio.VoiceMeta)(voice_id, name, provider[, ...])        | Metadata for a TTS voice as exposed by a provider.                       |
-| [`LipSyncProvider`](#an.audio.LipSyncProvider)(\*args, \*\*kwargs)               | Audio + transcript → aligned viseme track.                               |
-| [`Viseme`](#an.audio.Viseme)(time, code[, intensity])                   | A single mouth-shape keyframe.                                           |
-| [`VisemeTrack`](#an.audio.VisemeTrack)([visemes, convention, duration, ...]) | Aligned viseme sequence produced by a LipSyncProvider.                   |
-| [`WordTimingProvider`](#an.audio.WordTimingProvider)(\*args, \*\*kwargs)            | Audio → `[(word, start_s, end_s), ...]`.                                 |
-| [`NullLipSync`](#an.audio.NullLipSync)()                                     | The lip-sync provider of a core without a genre: no mouth shapes at all. |
-| [`OfflineTTS`](#an.audio.OfflineTTS)(\*[, sample_rate, channels, ...])      | Default TTS provider: silent WAV of length proportional to text.         |
-| [`RecordedTTS`](#an.audio.RecordedTTS)(\*[, recordings])                     | The `recorded` TTS provider: a line's audio is the take imported for it. |
-| [`ElevenLabsTTS`](#an.audio.ElevenLabsTTS)(\*[, api_key, model_id, ...])       | ElevenLabs-backed TTSProvider.                                           |
-| [`MacSayTTS`](#an.audio.MacSayTTS)(\*[, default_voice_id, ...])            | macOS `say`-backed TTSProvider.                                          |
+| [`TTSProvider`](#an.audio.TTSProvider)(\*args, \*\*kwargs)                   | Text-to-speech provider.                                                                                                                                         |
+|----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`AudioClip`](#an.audio.AudioClip)([path, bytes_, duration, ...])          | A rendered audio clip, on disk or in memory.                                                                                                                     |
+| [`VoiceMeta`](#an.audio.VoiceMeta)(voice_id, name, provider[, ...])        | Metadata for a TTS voice as exposed by a provider.                                                                                                               |
+| [`VoiceRow`](#an.audio.VoiceRow)                                          | The keys of [`VoiceMeta.as_row()`](#an.audio.VoiceMeta.as_row), typed for hosts (a plain `dict` at runtime); a test pins them to the dataclass. |
+| [`LipSyncProvider`](#an.audio.LipSyncProvider)(\*args, \*\*kwargs)               | Audio + transcript → aligned viseme track.                                                                                                                       |
+| [`Viseme`](#an.audio.Viseme)(time, code[, intensity])                   | A single mouth-shape keyframe.                                                                                                                                   |
+| [`VisemeTrack`](#an.audio.VisemeTrack)([visemes, convention, duration, ...]) | Aligned viseme sequence produced by a LipSyncProvider.                                                                                                           |
+| [`WordTimingProvider`](#an.audio.WordTimingProvider)(\*args, \*\*kwargs)            | Audio → `[(word, start_s, end_s), ...]`.                                                                                                                         |
+| [`NullLipSync`](#an.audio.NullLipSync)()                                     | The lip-sync provider of a core without a genre: no mouth shapes at all.                                                                                         |
+| [`OfflineTTS`](#an.audio.OfflineTTS)(\*[, sample_rate, channels, ...])      | Default TTS provider: silent WAV of length proportional to text.                                                                                                 |
+| [`RecordedTTS`](#an.audio.RecordedTTS)(\*[, recordings])                     | The `recorded` TTS provider: a line's audio is the take imported for it.                                                                                         |
+| [`ElevenLabsTTS`](#an.audio.ElevenLabsTTS)(\*[, api_key, model_id, ...])       | ElevenLabs-backed TTSProvider.                                                                                                                                   |
+| [`MacSayTTS`](#an.audio.MacSayTTS)(\*[, default_voice_id, ...])            | macOS `say`-backed TTSProvider.                                                                                                                                  |
 
 ### *class* an.audio.AudioClip(path=None, bytes_=None, duration=0.0, sample_rate=44100, channels=1, voice_id=None, transcript=None, words=None, phones=None)
 
@@ -360,15 +362,52 @@ is mouth cues only). Retained since an#96 rather than discarded after the
 viseme conversion: captions (Wave 8) and any consumer that wants to know
 *which word* a mouth shape belongs to read them from the IR.
 
-### *class* an.audio.VoiceMeta(voice_id, name, provider, language='en', gender=None, extra=dict())
+### *class* an.audio.VoiceMeta(voice_id, name, provider, language='en', gender=None, extra=dict(), is_stock=None, accent=None, description=None, preview_url=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Metadata for a TTS voice as exposed by a provider.
 
-`extra` is the provider’s own detail. Keys hosts read (a contract):
-ElevenLabs’s `category`, `description`, `labels` and `preview_url`
-(a sample to hear before casting, an#666; `None` when it has none).
+The fields are the provider-neutral facts a host shows and filters on
+(an#712): `is_stock` is the provider’s own answer to “nobody designed
+this” — one of its stock voices (ElevenLabs’ premade voices, a system
+voice) rather than one an account designed, cloned, recorded or added from
+a shared voice library; `accent`, `description` and `preview_url` (a
+sample to hear before casting, an#666) are `None` where the provider has
+none, and `is_stock` is `None` where it does not say.
+
+`extra` is the provider’s own detail, in its own words. Keys hosts read
+(a contract): ElevenLabs’s `category` and `labels`. Its
+`description` and `preview_url` keys repeat the fields for one more
+cycle (hosts read `extra["preview_url"]` since an#666): read the fields.
+
+[`as_row()`](#an.audio.VoiceMeta.as_row) is the flat, JSON-ready view a host lists
+([`an.audio.list_voices()`](#an.audio.list_voices)).
+
+```pycon
+>>> VoiceMeta("v1", "Rachel", "elevenlabs", is_stock=True, accent="american",
+...     extra={"category": "premade", "labels": {"age": "young"}}).as_row()
+...
+{'voice_id': 'v1', 'name': 'Rachel', 'provider': 'elevenlabs',
+ 'language': 'en', 'gender': None, 'is_stock': True, 'accent': 'american',
+ 'description': None, 'preview_url': None, 'category': 'premade'}
+```
+
+#### as_row()
+
+The voice as one flat, JSON-ready row: every field but `extra`,
+plus the provider’s own `category` word (kept for display; filter on
+`is_stock`).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### *class* an.audio.VoiceRow
+
+Bases: [`TypedDict`](https://docs.python.org/3/library/typing.html#typing.TypedDict)
+
+The keys of [`VoiceMeta.as_row()`](#an.audio.VoiceMeta.as_row), typed for hosts (a plain `dict`
+at runtime); a test pins them to the dataclass.
 
 ### *class* an.audio.WordTimingProvider(\*args, \*\*kwargs)
 
@@ -456,6 +495,25 @@ Return the registered TTS provider names.
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
+### an.audio.list_voices(provider, \*, api_key=None, search=None, make=<function make_tts>)
+
+The voices `provider` offers, as rows (an#712): `browse_voices()`
+through [`VoiceMeta.as_row()`](#an.audio.VoiceMeta.as_row).
+
+`api_key` is a host’s own key for a provider that takes one
+([`an.audio.providers.listable_providers()`](an.audio.providers.html.md#an.audio.providers.listable_providers)); `None` means the
+environment’s key, and `""` is refused (`ValueError`), so a host that
+forwards a guest’s absent key never lists the server’s own account. A
+provider that cannot be asked at all (its `check_available()` fails: no
+key anywhere) raises its own typed error (ElevenLabs:
+[`ElevenLabsUnavailableError`](an.audio.elevenlabs_tts.html.md#an.audio.elevenlabs_tts.ElevenLabsUnavailableError)) rather than
+answering `[]`, so an empty listing means “no voices”. `search` and
+`make` are as in `browse_voices()`. An unknown provider is a
+`ValueError` naming the known ones.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`VoiceRow`](an.audio.voice_listing.html.md#an.audio.voice_listing.VoiceRow)]
+
 ### an.audio.make_lipsync(name, , language='en')
 
 Instantiate a LipSync provider by name.
@@ -475,14 +533,15 @@ True
 * **Return type:**
   [`LipSyncProvider`](an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)
 
-### an.audio.make_tts(name, , mall=None)
+### an.audio.make_tts(name, , mall=None, api_key=None)
 
 Instantiate a TTS provider by name.
 
 `mall` (the project mall) reaches the factories that take it — the
-`recorded` provider reads the project’s `recordings` store; the others
-are built as before. Raises `ValueError` for unknown names with a list of
-known options.
+`recorded` provider reads the project’s `recordings` store; `api_key`
+(a host’s own key) reaches those that take one (ElevenLabs, an#712); the
+others are built as before. Raises `ValueError` for unknown names with a
+list of known options.
 
 ```pycon
 >>> make_tts("recorded").name
@@ -616,4 +675,5 @@ audio’s actual length.
 | [`transcripts`](an.audio.transcripts.html.md#module-an.audio.transcripts)       | Transcripts as INPUT: SRT, WebVTT, Praat TextGrid, word-timed JSON and plain text read into timed segments, and a known text matched to a transcriber's words. |
 | [`tts`](an.audio.tts.html.md#module-an.audio.tts)                       | TTS provider protocol + supporting dataclasses.                                                                                                                |
 | [`voice_design`](an.audio.voice_design.html.md#module-an.audio.voice_design)     | Design a project's voices from their written notes, then let the writer choose.                                                                                |
+| [`voice_listing`](an.audio.voice_listing.html.md#module-an.audio.voice_listing)   | The voices a TTS provider offers, as rows a host can show and filter (an#712).                                                                                 |
 | [`voices`](an.audio.voices.html.md#module-an.audio.voices)                 | Which voice speaks a dialogue line: the character → voice binding (an#194).                                                                                    |

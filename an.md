@@ -1,4 +1,4 @@
-> built 2026-11-03 12:36 UTC from ffba4ba (main) · an 0.1.362. Details: build_info.json
+> built 2026-11-03 13:13 UTC from 626297d (main) · an 0.1.363. Details: build_info.json
 
 # index.html.md
 
@@ -2017,8 +2017,8 @@ the same per-frame composition (`_compose_frame()`) the segments use.
 `an voices ...` — browse a TTS provider’s voices from the shell (an#209).
 
 Thin string-typed wrappers dispatched by typer the way `an character ...` is;
-the business logic is [`browse_voices()`](_autosummary/an.audio.cli.html.md#an.audio.cli.browse_voices), a plain function over the
-provider factories.
+the business logic is [`browse_voices()`](_autosummary/an.audio.voice_listing.html.md#an.audio.voice_listing.browse_voices), a plain
+function over the provider factories.
 
 > an voices list –provider elevenlabs
 > an voices list –provider elevenlabs –search british
@@ -2041,28 +2041,35 @@ the choosing, and prints what it will bill first.
 
 ### Functions
 
-| [`browse_voices`](_autosummary/an.audio.cli.html.md#an.audio.cli.browse_voices)([provider, search, make])        | The voices `provider` exposes, optionally filtered by `search`.                                                                                                                                                                                     |
-|-------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`format_voices`](_autosummary/an.audio.cli.html.md#an.audio.cli.format_voices)(voices)                          | One line per voice: `voice_id  name  (labels)`.                                                                                                                                                                                                     |
-| [`retake`](_autosummary/an.audio.cli.html.md#an.audio.cli.retake)(project, line, \*[, rescore, tts, ...]) | Release the recorded takes of the lines of `project` containing `line`.                                                                                                                                                                             |
-| [`import_recorded`](_autosummary/an.audio.cli.html.md#an.audio.cli.import_recorded)(project, audio[, ...])         | Import a performer's recording as the voice of its lines: each line is cut out, matched to the scene's dialogue (or added to --shot), stored with its provenance, and the speaker's character speaks with it — nothing synthesized, nothing billed. |
+| [`browse_voices`](_autosummary/an.audio.cli.html.md#an.audio.cli.browse_voices)([provider, search, api_key, make])   | The voices `provider` exposes, optionally filtered by `search`.                                                                                                                                                                                     |
+|-----------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`format_voices`](_autosummary/an.audio.cli.html.md#an.audio.cli.format_voices)(voices)                              | One line per voice: `voice_id  name  (labels)`.                                                                                                                                                                                                     |
+| [`retake`](_autosummary/an.audio.cli.html.md#an.audio.cli.retake)(project, line, \*[, rescore, tts, ...])     | Release the recorded takes of the lines of `project` containing `line`.                                                                                                                                                                             |
+| [`import_recorded`](_autosummary/an.audio.cli.html.md#an.audio.cli.import_recorded)(project, audio[, ...])             | Import a performer's recording as the voice of its lines: each line is cut out, matched to the scene's dialogue (or added to --shot), stored with its provenance, and the speaker's character speaks with it — nothing synthesized, nothing billed. |
 
-### an.audio.cli.browse_voices(provider='elevenlabs', \*, search=None, make=<function make_tts>)
+### an.audio.cli.browse_voices(provider='elevenlabs', \*, search=None, api_key=None, make=<function make_tts>)
 
 The voices `provider` exposes, optionally filtered by `search`.
 
 A provider whose `list_voices` takes `search` (ElevenLabs) filters on
 its server; for the others the filter is a case-insensitive substring over
-the name, id and labels.
+the id, name, accent, description and labels.
+
+`make` is the provider seam: `make(name)`, or `make(name,
+api_key=api_key)` only when a key was given (so a `make` that takes no
+key serves every keyless call); default [`an.audio.providers.make_tts()`](_autosummary/an.audio.providers.html.md#an.audio.providers.make_tts).
+`api_key=None` means the provider’s own default (ElevenLabs: the
+environment’s key); an empty key is refused (`ValueError`) rather than
+read as “none”.
 
 ```pycon
->>> from an.audio.tts import VoiceMeta
 >>> class Fake:
 ...     name = "fake"
 ...     def list_voices(self):
-...         return [VoiceMeta("v1", "Ada", "fake"), VoiceMeta("v2", "Bob", "fake")]
+...         return [VoiceMeta("v1", "Ada", "fake"),
+...                 VoiceMeta("v2", "Bob", "fake", description="adenoidal")]
 >>> [v.name for v in browse_voices("fake", search="ad", make=lambda _: Fake())]
-['Ada']
+['Ada', 'Bob']
 ```
 
 * **Return type:**
@@ -2538,9 +2545,10 @@ existing cache key moves.
 
 ### Module Attributes
 
-| [`AUDIO_TAG_MODEL_PREFIXES`](_autosummary/an.audio.elevenlabs_tts.html.md#an.audio.elevenlabs_tts.AUDIO_TAG_MODEL_PREFIXES)   | Model ids that read inline audio tags (`[excited]`, `[sighs]`).                            |
-|-----------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|
-| [`VOICE_SETTINGS_RANGES`](_autosummary/an.audio.elevenlabs_tts.html.md#an.audio.elevenlabs_tts.VOICE_SETTINGS_RANGES)      | The `voice_settings` keys the API takes, with the range each accepts (`None` = a boolean). |
+| [`ELEVENLABS_STOCK_CATEGORY`](_autosummary/an.audio.elevenlabs_tts.html.md#an.audio.elevenlabs_tts.ELEVENLABS_STOCK_CATEGORY)   | The category ElevenLabs gives its stock voices, the ones any account holds and nobody designed: `VoiceMeta.is_stock` (an#712).   |
+|------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
+| [`AUDIO_TAG_MODEL_PREFIXES`](_autosummary/an.audio.elevenlabs_tts.html.md#an.audio.elevenlabs_tts.AUDIO_TAG_MODEL_PREFIXES)    | Model ids that read inline audio tags (`[excited]`, `[sighs]`).                                                                  |
+| [`VOICE_SETTINGS_RANGES`](_autosummary/an.audio.elevenlabs_tts.html.md#an.audio.elevenlabs_tts.VOICE_SETTINGS_RANGES)       | The `voice_settings` keys the API takes, with the range each accepts (`None` = a boolean).                                       |
 
 ### Functions
 
@@ -2565,6 +2573,13 @@ existing cache key moves.
 Model ids that read inline audio tags (`[excited]`, `[sighs]`). Matched
 as prefixes, so `eleven_v3_conversational` and `eleven_v4_turbo` count.
 Every other model would speak the brackets, so it never receives a tag.
+
+### an.audio.elevenlabs_tts.ELEVENLABS_STOCK_CATEGORY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'premade'*
+
+The category ElevenLabs gives its stock voices, the ones any account holds
+and nobody designed: `VoiceMeta.is_stock` (an#712). A voice an account
+added from ElevenLabs’ shared Voice Library has another category, and is
+not stock.
 
 ### *class* an.audio.elevenlabs_tts.ElevenLabsTTS(, api_key=None, model_id='eleven_turbo_v2_5', output_format='mp3_44100_128', audio_tag_model_prefixes=('eleven_v3', 'eleven_v4'), client_factory=None)
 
@@ -2738,33 +2753,35 @@ without external services.
 
 ### Functions
 
-| [`word_timings_to_visemes`](_autosummary/an.audio.html.md#an.audio.word_timings_to_visemes)(words, \*, ...[, ...])    | Distribute viseme keyframes across word boundaries.                                                                                                                                                                     |
-|----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`import_recordings`](_autosummary/an.audio.html.md#an.audio.import_recordings)(project, audio, \*[, ...])      | Import a performer's recording(s) as the voice of their lines (an#490).                                                                                                                                                 |
-| [`default_tts`](_autosummary/an.audio.html.md#an.audio.default_tts)()                                     | The default TTS provider: `OfflineTTS`.                                                                                                                                                                                 |
-| [`default_lipsync`](_autosummary/an.audio.html.md#an.audio.default_lipsync)()                                 | The default lip-sync provider: the loaded genre's `offline` one (the deterministic char-to-viseme provider of `cutan`), else [`NullLipSync`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.NullLipSync). |
-| [`produce_audio_for_dialogue`](_autosummary/an.audio.html.md#an.audio.produce_audio_for_dialogue)(dialogue[, mall, ...]) | Synthesize audio + visemes for one dialogue line.                                                                                                                                                                       |
-| [`produce_audio_for_scene`](_autosummary/an.audio.html.md#an.audio.produce_audio_for_scene)(scene[, mall, tts, ...])  | Walk every dialogue line, synthesize, and stamp viseme tracks back.                                                                                                                                                     |
-| [`make_tts`](_autosummary/an.audio.html.md#an.audio.make_tts)(name, \*[, mall])                        | Instantiate a TTS provider by name.                                                                                                                                                                                     |
-| [`make_lipsync`](_autosummary/an.audio.html.md#an.audio.make_lipsync)(name, \*[, language])                | Instantiate a LipSync provider by name.                                                                                                                                                                                 |
-| [`known_tts_names`](_autosummary/an.audio.html.md#an.audio.known_tts_names)()                                 | Return the registered TTS provider names.                                                                                                                                                                               |
-| [`known_lipsync_names`](_autosummary/an.audio.html.md#an.audio.known_lipsync_names)()                             | Return the registered LipSync provider names.                                                                                                                                                                           |
+| [`list_voices`](_autosummary/an.audio.html.md#an.audio.list_voices)(provider, \*[, api_key, search, make])   | The voices `provider` offers, as rows (an#712): `browse_voices()` through [`VoiceMeta.as_row()`](_autosummary/an.audio.html.md#an.audio.VoiceMeta.as_row).                                                                          |
+|-------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`word_timings_to_visemes`](_autosummary/an.audio.html.md#an.audio.word_timings_to_visemes)(words, \*, ...[, ...])       | Distribute viseme keyframes across word boundaries.                                                                                                                                                                     |
+| [`import_recordings`](_autosummary/an.audio.html.md#an.audio.import_recordings)(project, audio, \*[, ...])         | Import a performer's recording(s) as the voice of their lines (an#490).                                                                                                                                                 |
+| [`default_tts`](_autosummary/an.audio.html.md#an.audio.default_tts)()                                        | The default TTS provider: `OfflineTTS`.                                                                                                                                                                                 |
+| [`default_lipsync`](_autosummary/an.audio.html.md#an.audio.default_lipsync)()                                    | The default lip-sync provider: the loaded genre's `offline` one (the deterministic char-to-viseme provider of `cutan`), else [`NullLipSync`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.NullLipSync). |
+| [`produce_audio_for_dialogue`](_autosummary/an.audio.html.md#an.audio.produce_audio_for_dialogue)(dialogue[, mall, ...])    | Synthesize audio + visemes for one dialogue line.                                                                                                                                                                       |
+| [`produce_audio_for_scene`](_autosummary/an.audio.html.md#an.audio.produce_audio_for_scene)(scene[, mall, tts, ...])     | Walk every dialogue line, synthesize, and stamp viseme tracks back.                                                                                                                                                     |
+| [`make_tts`](_autosummary/an.audio.html.md#an.audio.make_tts)(name, \*[, mall, api_key])                  | Instantiate a TTS provider by name.                                                                                                                                                                                     |
+| [`make_lipsync`](_autosummary/an.audio.html.md#an.audio.make_lipsync)(name, \*[, language])                   | Instantiate a LipSync provider by name.                                                                                                                                                                                 |
+| [`known_tts_names`](_autosummary/an.audio.html.md#an.audio.known_tts_names)()                                    | Return the registered TTS provider names.                                                                                                                                                                               |
+| [`known_lipsync_names`](_autosummary/an.audio.html.md#an.audio.known_lipsync_names)()                                | Return the registered LipSync provider names.                                                                                                                                                                           |
 
 ### Classes
 
-| [`TTSProvider`](_autosummary/an.audio.html.md#an.audio.TTSProvider)(\*args, \*\*kwargs)                   | Text-to-speech provider.                                                 |
-|----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
-| [`AudioClip`](_autosummary/an.audio.html.md#an.audio.AudioClip)([path, bytes_, duration, ...])          | A rendered audio clip, on disk or in memory.                             |
-| [`VoiceMeta`](_autosummary/an.audio.html.md#an.audio.VoiceMeta)(voice_id, name, provider[, ...])        | Metadata for a TTS voice as exposed by a provider.                       |
-| [`LipSyncProvider`](_autosummary/an.audio.html.md#an.audio.LipSyncProvider)(\*args, \*\*kwargs)               | Audio + transcript → aligned viseme track.                               |
-| [`Viseme`](_autosummary/an.audio.html.md#an.audio.Viseme)(time, code[, intensity])                   | A single mouth-shape keyframe.                                           |
-| [`VisemeTrack`](_autosummary/an.audio.html.md#an.audio.VisemeTrack)([visemes, convention, duration, ...]) | Aligned viseme sequence produced by a LipSyncProvider.                   |
-| [`WordTimingProvider`](_autosummary/an.audio.html.md#an.audio.WordTimingProvider)(\*args, \*\*kwargs)            | Audio → `[(word, start_s, end_s), ...]`.                                 |
-| [`NullLipSync`](_autosummary/an.audio.html.md#an.audio.NullLipSync)()                                     | The lip-sync provider of a core without a genre: no mouth shapes at all. |
-| [`OfflineTTS`](_autosummary/an.audio.html.md#an.audio.OfflineTTS)(\*[, sample_rate, channels, ...])      | Default TTS provider: silent WAV of length proportional to text.         |
-| [`RecordedTTS`](_autosummary/an.audio.html.md#an.audio.RecordedTTS)(\*[, recordings])                     | The `recorded` TTS provider: a line's audio is the take imported for it. |
-| [`ElevenLabsTTS`](_autosummary/an.audio.html.md#an.audio.ElevenLabsTTS)(\*[, api_key, model_id, ...])       | ElevenLabs-backed TTSProvider.                                           |
-| [`MacSayTTS`](_autosummary/an.audio.html.md#an.audio.MacSayTTS)(\*[, default_voice_id, ...])            | macOS `say`-backed TTSProvider.                                          |
+| [`TTSProvider`](_autosummary/an.audio.html.md#an.audio.TTSProvider)(\*args, \*\*kwargs)                   | Text-to-speech provider.                                                                                                                                         |
+|----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`AudioClip`](_autosummary/an.audio.html.md#an.audio.AudioClip)([path, bytes_, duration, ...])          | A rendered audio clip, on disk or in memory.                                                                                                                     |
+| [`VoiceMeta`](_autosummary/an.audio.html.md#an.audio.VoiceMeta)(voice_id, name, provider[, ...])        | Metadata for a TTS voice as exposed by a provider.                                                                                                               |
+| [`VoiceRow`](_autosummary/an.audio.html.md#an.audio.VoiceRow)                                          | The keys of [`VoiceMeta.as_row()`](_autosummary/an.audio.html.md#an.audio.VoiceMeta.as_row), typed for hosts (a plain `dict` at runtime); a test pins them to the dataclass. |
+| [`LipSyncProvider`](_autosummary/an.audio.html.md#an.audio.LipSyncProvider)(\*args, \*\*kwargs)               | Audio + transcript → aligned viseme track.                                                                                                                       |
+| [`Viseme`](_autosummary/an.audio.html.md#an.audio.Viseme)(time, code[, intensity])                   | A single mouth-shape keyframe.                                                                                                                                   |
+| [`VisemeTrack`](_autosummary/an.audio.html.md#an.audio.VisemeTrack)([visemes, convention, duration, ...]) | Aligned viseme sequence produced by a LipSyncProvider.                                                                                                           |
+| [`WordTimingProvider`](_autosummary/an.audio.html.md#an.audio.WordTimingProvider)(\*args, \*\*kwargs)            | Audio → `[(word, start_s, end_s), ...]`.                                                                                                                         |
+| [`NullLipSync`](_autosummary/an.audio.html.md#an.audio.NullLipSync)()                                     | The lip-sync provider of a core without a genre: no mouth shapes at all.                                                                                         |
+| [`OfflineTTS`](_autosummary/an.audio.html.md#an.audio.OfflineTTS)(\*[, sample_rate, channels, ...])      | Default TTS provider: silent WAV of length proportional to text.                                                                                                 |
+| [`RecordedTTS`](_autosummary/an.audio.html.md#an.audio.RecordedTTS)(\*[, recordings])                     | The `recorded` TTS provider: a line's audio is the take imported for it.                                                                                         |
+| [`ElevenLabsTTS`](_autosummary/an.audio.html.md#an.audio.ElevenLabsTTS)(\*[, api_key, model_id, ...])       | ElevenLabs-backed TTSProvider.                                                                                                                                   |
+| [`MacSayTTS`](_autosummary/an.audio.html.md#an.audio.MacSayTTS)(\*[, default_voice_id, ...])            | macOS `say`-backed TTSProvider.                                                                                                                                  |
 
 ### *class* an.audio.AudioClip(path=None, bytes_=None, duration=0.0, sample_rate=44100, channels=1, voice_id=None, transcript=None, words=None, phones=None)
 
@@ -3078,15 +3095,52 @@ is mouth cues only). Retained since an#96 rather than discarded after the
 viseme conversion: captions (Wave 8) and any consumer that wants to know
 *which word* a mouth shape belongs to read them from the IR.
 
-### *class* an.audio.VoiceMeta(voice_id, name, provider, language='en', gender=None, extra=dict())
+### *class* an.audio.VoiceMeta(voice_id, name, provider, language='en', gender=None, extra=dict(), is_stock=None, accent=None, description=None, preview_url=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Metadata for a TTS voice as exposed by a provider.
 
-`extra` is the provider’s own detail. Keys hosts read (a contract):
-ElevenLabs’s `category`, `description`, `labels` and `preview_url`
-(a sample to hear before casting, an#666; `None` when it has none).
+The fields are the provider-neutral facts a host shows and filters on
+(an#712): `is_stock` is the provider’s own answer to “nobody designed
+this” — one of its stock voices (ElevenLabs’ premade voices, a system
+voice) rather than one an account designed, cloned, recorded or added from
+a shared voice library; `accent`, `description` and `preview_url` (a
+sample to hear before casting, an#666) are `None` where the provider has
+none, and `is_stock` is `None` where it does not say.
+
+`extra` is the provider’s own detail, in its own words. Keys hosts read
+(a contract): ElevenLabs’s `category` and `labels`. Its
+`description` and `preview_url` keys repeat the fields for one more
+cycle (hosts read `extra["preview_url"]` since an#666): read the fields.
+
+[`as_row()`](_autosummary/an.audio.html.md#an.audio.VoiceMeta.as_row) is the flat, JSON-ready view a host lists
+([`an.audio.list_voices()`](_autosummary/an.audio.html.md#an.audio.list_voices)).
+
+```pycon
+>>> VoiceMeta("v1", "Rachel", "elevenlabs", is_stock=True, accent="american",
+...     extra={"category": "premade", "labels": {"age": "young"}}).as_row()
+...
+{'voice_id': 'v1', 'name': 'Rachel', 'provider': 'elevenlabs',
+ 'language': 'en', 'gender': None, 'is_stock': True, 'accent': 'american',
+ 'description': None, 'preview_url': None, 'category': 'premade'}
+```
+
+#### as_row()
+
+The voice as one flat, JSON-ready row: every field but `extra`,
+plus the provider’s own `category` word (kept for display; filter on
+`is_stock`).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### *class* an.audio.VoiceRow
+
+Bases: [`TypedDict`](https://docs.python.org/3/library/typing.html#typing.TypedDict)
+
+The keys of [`VoiceMeta.as_row()`](_autosummary/an.audio.html.md#an.audio.VoiceMeta.as_row), typed for hosts (a plain `dict`
+at runtime); a test pins them to the dataclass.
 
 ### *class* an.audio.WordTimingProvider(\*args, \*\*kwargs)
 
@@ -3174,6 +3228,25 @@ Return the registered TTS provider names.
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
+### an.audio.list_voices(provider, \*, api_key=None, search=None, make=<function make_tts>)
+
+The voices `provider` offers, as rows (an#712): `browse_voices()`
+through [`VoiceMeta.as_row()`](_autosummary/an.audio.html.md#an.audio.VoiceMeta.as_row).
+
+`api_key` is a host’s own key for a provider that takes one
+([`an.audio.providers.listable_providers()`](_autosummary/an.audio.providers.html.md#an.audio.providers.listable_providers)); `None` means the
+environment’s key, and `""` is refused (`ValueError`), so a host that
+forwards a guest’s absent key never lists the server’s own account. A
+provider that cannot be asked at all (its `check_available()` fails: no
+key anywhere) raises its own typed error (ElevenLabs:
+[`ElevenLabsUnavailableError`](_autosummary/an.audio.elevenlabs_tts.html.md#an.audio.elevenlabs_tts.ElevenLabsUnavailableError)) rather than
+answering `[]`, so an empty listing means “no voices”. `search` and
+`make` are as in `browse_voices()`. An unknown provider is a
+`ValueError` naming the known ones.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`VoiceRow`](_autosummary/an.audio.voice_listing.html.md#an.audio.voice_listing.VoiceRow)]
+
 ### an.audio.make_lipsync(name, , language='en')
 
 Instantiate a LipSync provider by name.
@@ -3193,14 +3266,15 @@ True
 * **Return type:**
   [`LipSyncProvider`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)
 
-### an.audio.make_tts(name, , mall=None)
+### an.audio.make_tts(name, , mall=None, api_key=None)
 
 Instantiate a TTS provider by name.
 
 `mall` (the project mall) reaches the factories that take it — the
-`recorded` provider reads the project’s `recordings` store; the others
-are built as before. Raises `ValueError` for unknown names with a list of
-known options.
+`recorded` provider reads the project’s `recordings` store; `api_key`
+(a host’s own key) reaches those that take one (ElevenLabs, an#712); the
+others are built as before. Raises `ValueError` for unknown names with a
+list of known options.
 
 ```pycon
 >>> make_tts("recorded").name
@@ -3334,6 +3408,7 @@ audio’s actual length.
 | [`transcripts`](_autosummary/an.audio.transcripts.html.md#module-an.audio.transcripts)       | Transcripts as INPUT: SRT, WebVTT, Praat TextGrid, word-timed JSON and plain text read into timed segments, and a known text matched to a transcriber's words. |
 | [`tts`](_autosummary/an.audio.tts.html.md#module-an.audio.tts)                       | TTS provider protocol + supporting dataclasses.                                                                                                                |
 | [`voice_design`](_autosummary/an.audio.voice_design.html.md#module-an.audio.voice_design)     | Design a project's voices from their written notes, then let the writer choose.                                                                                |
+| [`voice_listing`](_autosummary/an.audio.voice_listing.html.md#module-an.audio.voice_listing)   | The voices a TTS provider offers, as rows a host can show and filter (an#712).                                                                                 |
 | [`voices`](_autosummary/an.audio.voices.html.md#module-an.audio.voices)                 | Which voice speaks a dialogue line: the character → voice binding (an#194).                                                                                    |
 
 
@@ -3528,8 +3603,8 @@ The measuring and the limiter are the fleet’s shared loudness component,
 to [`MIN_MEASURE_S`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.MIN_MEASURE_S), channels kept when they agree), and
 `mixing.loudness.level_group()` does the same and caps the gain, its
 `GainCappedWarning` said again of the voice as a [`VoiceLoudnessWarning`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.VoiceLoudnessWarning)
-(an#699). Each line keeps its own rate: the component resamples them, polyphase,
-to the highest (an#699). The meter injected into both is [`METER`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.METER), ffmpeg’s
+(an#699). Lines at another rate than the voice’s highest are resampled to it by
+ffmpeg, one call per rate (mixing’s own resampler needs scipy, an#578). The meter injected into both is [`METER`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.METER), ffmpeg’s
 `ebur128` run by the ffmpeg on `PATH` (required: never the pip-bundled build
 `mixing` would otherwise prefer, an#578), so `an` takes no scipy.
 `mixing.loudness.limit_peaks()` is the limiter, moved there unchanged (so
@@ -4467,20 +4542,21 @@ specific classes.
 
 ### Module Attributes
 
-| [`TTS_FACTORIES`](_autosummary/an.audio.providers.html.md#an.audio.providers.TTS_FACTORIES)     | A factory takes no arguments, or `mall=` when the provider reads a project store (`recorded`): [`make_tts()`](_autosummary/an.audio.providers.html.md#an.audio.providers.make_tts) passes it only to those that accept it.   |
-|--------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`DEFAULT_LANGUAGE`](_autosummary/an.audio.providers.html.md#an.audio.providers.DEFAULT_LANGUAGE)  | The language a provider aligns for when the caller says nothing.                                                                                                                                     |
-| [`LIPSYNC_FACTORIES`](_autosummary/an.audio.providers.html.md#an.audio.providers.LIPSYNC_FACTORIES) | The lip-sync providers the core itself offers.                                                                                                                                                       |
-| [`DFLT_LIPSYNC`](_autosummary/an.audio.providers.html.md#an.audio.providers.DFLT_LIPSYNC)      | The provider `default_lipsync()` prefers when a genre registered it.                                                                                                                                 |
+| [`TTS_FACTORIES`](_autosummary/an.audio.providers.html.md#an.audio.providers.TTS_FACTORIES)     | A factory takes no arguments, or `mall=` when the provider reads a project store (`recorded`), or `api_key=` when a host may hand it its own key (`elevenlabs`): [`make_tts()`](_autosummary/an.audio.providers.html.md#an.audio.providers.make_tts) passes each only to those that accept it, and [`listable_providers()`](_autosummary/an.audio.providers.html.md#an.audio.providers.listable_providers) reads the latter, so a provider registered here with `api_key=` is listable by hosts with nothing else to change.   |
+|--------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`DEFAULT_LANGUAGE`](_autosummary/an.audio.providers.html.md#an.audio.providers.DEFAULT_LANGUAGE)  | The language a provider aligns for when the caller says nothing.                                                                                                                                                                                                                                                                                                                                                                                                     |
+| [`LIPSYNC_FACTORIES`](_autosummary/an.audio.providers.html.md#an.audio.providers.LIPSYNC_FACTORIES) | The lip-sync providers the core itself offers.                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| [`DFLT_LIPSYNC`](_autosummary/an.audio.providers.html.md#an.audio.providers.DFLT_LIPSYNC)      | The provider `default_lipsync()` prefers when a genre registered it.                                                                                                                                                                                                                                                                                                                                                                                                 |
 
 ### Functions
 
-| [`known_lipsync_names`](_autosummary/an.audio.providers.html.md#an.audio.providers.known_lipsync_names)()              | Return the registered LipSync provider names.                                 |
-|-------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
-| [`known_tts_names`](_autosummary/an.audio.providers.html.md#an.audio.providers.known_tts_names)()                  | Return the registered TTS provider names.                                     |
-| [`lipsync_factories`](_autosummary/an.audio.providers.html.md#an.audio.providers.lipsync_factories)()                | Every lip-sync factory by name: the core's, then the loaded genres' services. |
-| [`make_lipsync`](_autosummary/an.audio.providers.html.md#an.audio.providers.make_lipsync)(name, \*[, language]) | Instantiate a LipSync provider by name.                                       |
-| [`make_tts`](_autosummary/an.audio.providers.html.md#an.audio.providers.make_tts)(name, \*[, mall])         | Instantiate a TTS provider by name.                                           |
+| [`known_lipsync_names`](_autosummary/an.audio.providers.html.md#an.audio.providers.known_lipsync_names)()               | Return the registered LipSync provider names.                                                                  |
+|--------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|
+| [`known_tts_names`](_autosummary/an.audio.providers.html.md#an.audio.providers.known_tts_names)()                   | Return the registered TTS provider names.                                                                      |
+| [`lipsync_factories`](_autosummary/an.audio.providers.html.md#an.audio.providers.lipsync_factories)()                 | Every lip-sync factory by name: the core's, then the loaded genres' services.                                  |
+| [`listable_providers`](_autosummary/an.audio.providers.html.md#an.audio.providers.listable_providers)(\*[, factories]) | The TTS providers a host may list voices from with its own key: those whose factory takes `api_key=` (an#712). |
+| [`make_lipsync`](_autosummary/an.audio.providers.html.md#an.audio.providers.make_lipsync)(name, \*[, language])  | Instantiate a LipSync provider by name.                                                                        |
+| [`make_tts`](_autosummary/an.audio.providers.html.md#an.audio.providers.make_tts)(name, \*[, mall, api_key]) | Instantiate a TTS provider by name.                                                                            |
 
 ### an.audio.providers.DEFAULT_LANGUAGE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'en'*
 
@@ -4500,7 +4576,10 @@ the `lipsync.<name>` service (`cutan`: `offline`, `rhubarb`,
 ### an.audio.providers.TTS_FACTORIES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/typing.html#typing.Callable)[..., [TTSProvider](_autosummary/an.audio.tts.html.md#an.audio.tts.TTSProvider)]]* *= {'elevenlabs': <function <lambda>>, 'mac_say': <function <lambda>>, 'offline': <function <lambda>>, 'recorded': <function \_recorded_factory>}*
 
 A factory takes no arguments, or `mall=` when the provider reads a project
-store (`recorded`): [`make_tts()`](_autosummary/an.audio.providers.html.md#an.audio.providers.make_tts) passes it only to those that accept it.
+store (`recorded`), or `api_key=` when a host may hand it its own key
+(`elevenlabs`): [`make_tts()`](_autosummary/an.audio.providers.html.md#an.audio.providers.make_tts) passes each only to those that accept it,
+and [`listable_providers()`](_autosummary/an.audio.providers.html.md#an.audio.providers.listable_providers) reads the latter, so a provider registered
+here with `api_key=` is listable by hosts with nothing else to change.
 
 ### an.audio.providers.known_lipsync_names()
 
@@ -4523,6 +4602,22 @@ Every lip-sync factory by name: the core’s, then the loaded genres’ services
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis), [`LipSyncProvider`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)]]
 
+### an.audio.providers.listable_providers(\*, factories={'elevenlabs': <function <lambda>>, 'mac_say': <function <lambda>>, 'offline': <function <lambda>>, 'recorded': <function \_recorded_factory>})
+
+The TTS providers a host may list voices from with its own key: those
+whose factory takes `api_key=` (an#712). Hand one, with the key, to
+[`an.audio.list_voices()`](_autosummary/an.audio.html.md#an.audio.list_voices).
+
+```pycon
+>>> listable_providers()
+['elevenlabs']
+>>> listable_providers(factories={"a": lambda *, api_key=None: None, "b": lambda: None})
+['a']
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
 ### an.audio.providers.make_lipsync(name, , language='en')
 
 Instantiate a LipSync provider by name.
@@ -4542,14 +4637,15 @@ True
 * **Return type:**
   [`LipSyncProvider`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)
 
-### an.audio.providers.make_tts(name, , mall=None)
+### an.audio.providers.make_tts(name, , mall=None, api_key=None)
 
 Instantiate a TTS provider by name.
 
 `mall` (the project mall) reaches the factories that take it — the
-`recorded` provider reads the project’s `recordings` store; the others
-are built as before. Raises `ValueError` for unknown names with a list of
-known options.
+`recorded` provider reads the project’s `recordings` store; `api_key`
+(a host’s own key) reaches those that take one (ElevenLabs, an#712); the
+others are built as before. Raises `ValueError` for unknown names with a
+list of known options.
 
 ```pycon
 >>> make_tts("recorded").name
@@ -5944,15 +6040,45 @@ Render `text` in `voice_id`’s voice. Returns an AudioClip.
 * **Return type:**
   [`AudioClip`](_autosummary/an.audio.tts.html.md#an.audio.tts.AudioClip)
 
-### *class* an.audio.tts.VoiceMeta(voice_id, name, provider, language='en', gender=None, extra=dict())
+### *class* an.audio.tts.VoiceMeta(voice_id, name, provider, language='en', gender=None, extra=dict(), is_stock=None, accent=None, description=None, preview_url=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Metadata for a TTS voice as exposed by a provider.
 
-`extra` is the provider’s own detail. Keys hosts read (a contract):
-ElevenLabs’s `category`, `description`, `labels` and `preview_url`
-(a sample to hear before casting, an#666; `None` when it has none).
+The fields are the provider-neutral facts a host shows and filters on
+(an#712): `is_stock` is the provider’s own answer to “nobody designed
+this” — one of its stock voices (ElevenLabs’ premade voices, a system
+voice) rather than one an account designed, cloned, recorded or added from
+a shared voice library; `accent`, `description` and `preview_url` (a
+sample to hear before casting, an#666) are `None` where the provider has
+none, and `is_stock` is `None` where it does not say.
+
+`extra` is the provider’s own detail, in its own words. Keys hosts read
+(a contract): ElevenLabs’s `category` and `labels`. Its
+`description` and `preview_url` keys repeat the fields for one more
+cycle (hosts read `extra["preview_url"]` since an#666): read the fields.
+
+[`as_row()`](_autosummary/an.audio.tts.html.md#an.audio.tts.VoiceMeta.as_row) is the flat, JSON-ready view a host lists
+([`an.audio.list_voices()`](_autosummary/an.audio.html.md#an.audio.list_voices)).
+
+```pycon
+>>> VoiceMeta("v1", "Rachel", "elevenlabs", is_stock=True, accent="american",
+...     extra={"category": "premade", "labels": {"age": "young"}}).as_row()
+...
+{'voice_id': 'v1', 'name': 'Rachel', 'provider': 'elevenlabs',
+ 'language': 'en', 'gender': None, 'is_stock': True, 'accent': 'american',
+ 'description': None, 'preview_url': None, 'category': 'premade'}
+```
+
+#### as_row()
+
+The voice as one flat, JSON-ready row: every field but `extra`,
+plus the provider’s own `category` word (kept for display; filter on
+`is_stock`).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 
 # _autosummary/an.audio.voice_design.html.md
@@ -6685,6 +6811,98 @@ False
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+
+# _autosummary/an.audio.voice_listing.html.md
+
+# an.audio.voice_listing
+
+The voices a TTS provider offers, as rows a host can show and filter (an#712).
+
+A host that lets a user cast a voice (reelee’s character voices) needs the same
+few facts from every provider: an id, a name, a language, a gender, an accent,
+a description, a sample to hear, and whether the voice is one of the provider’s
+stock voices that nobody designed (`is_stock`) or one an account designed,
+cloned, recorded or added from a shared voice library. Those facts are fields of
+[`VoiceMeta`](_autosummary/an.audio.tts.html.md#an.audio.tts.VoiceMeta), which each provider fills in its own
+`list_voices`; a row is its flat view, [`as_row()`](_autosummary/an.audio.tts.html.md#an.audio.tts.VoiceMeta.as_row)
+([`VoiceRow`](_autosummary/an.audio.voice_listing.html.md#an.audio.voice_listing.VoiceRow)). So a host filters on a field rather than on a provider’s
+category string, and a new provider adds itself by filling `VoiceMeta`.
+
+Two listings, two shapes: [`list_voices()`](_autosummary/an.audio.voice_listing.html.md#an.audio.voice_listing.list_voices) (`an.audio.list_voices`) returns
+rows, for a host; [`browse_voices()`](_autosummary/an.audio.voice_listing.html.md#an.audio.voice_listing.browse_voices) and a provider’s own `list_voices`
+return [`VoiceMeta`](_autosummary/an.audio.tts.html.md#an.audio.tts.VoiceMeta).
+
+```pycon
+>>> rows = list_voices("offline")
+>>> [(r["voice_id"], r["provider"], r["is_stock"]) for r in rows]
+[('default', 'offline', True)]
+```
+
+### Functions
+
+| [`browse_voices`](_autosummary/an.audio.voice_listing.html.md#an.audio.voice_listing.browse_voices)([provider, search, api_key, make])   | The voices `provider` exposes, optionally filtered by `search`.                                                                                |
+|-----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`list_voices`](_autosummary/an.audio.voice_listing.html.md#an.audio.voice_listing.list_voices)(provider, \*[, api_key, search, make]) | The voices `provider` offers, as rows (an#712): [`browse_voices()`](_autosummary/an.audio.voice_listing.html.md#an.audio.voice_listing.browse_voices) through `VoiceMeta.as_row()`. |
+
+### Classes
+
+| [`VoiceRow`](_autosummary/an.audio.voice_listing.html.md#an.audio.voice_listing.VoiceRow)   | The keys of `VoiceMeta.as_row()`, typed for hosts (a plain `dict` at runtime); a test pins them to the dataclass.   |
+|-------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
+
+### *class* an.audio.voice_listing.VoiceRow
+
+Bases: [`TypedDict`](https://docs.python.org/3/library/typing.html#typing.TypedDict)
+
+The keys of `VoiceMeta.as_row()`, typed for hosts (a plain `dict`
+at runtime); a test pins them to the dataclass.
+
+### an.audio.voice_listing.browse_voices(provider='elevenlabs', \*, search=None, api_key=None, make=<function make_tts>)
+
+The voices `provider` exposes, optionally filtered by `search`.
+
+A provider whose `list_voices` takes `search` (ElevenLabs) filters on
+its server; for the others the filter is a case-insensitive substring over
+the id, name, accent, description and labels.
+
+`make` is the provider seam: `make(name)`, or `make(name,
+api_key=api_key)` only when a key was given (so a `make` that takes no
+key serves every keyless call); default [`an.audio.providers.make_tts()`](_autosummary/an.audio.providers.html.md#an.audio.providers.make_tts).
+`api_key=None` means the provider’s own default (ElevenLabs: the
+environment’s key); an empty key is refused (`ValueError`) rather than
+read as “none”.
+
+```pycon
+>>> class Fake:
+...     name = "fake"
+...     def list_voices(self):
+...         return [VoiceMeta("v1", "Ada", "fake"),
+...                 VoiceMeta("v2", "Bob", "fake", description="adenoidal")]
+>>> [v.name for v in browse_voices("fake", search="ad", make=lambda _: Fake())]
+['Ada', 'Bob']
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`VoiceMeta`](_autosummary/an.audio.tts.html.md#an.audio.tts.VoiceMeta)]
+
+### an.audio.voice_listing.list_voices(provider, \*, api_key=None, search=None, make=<function make_tts>)
+
+The voices `provider` offers, as rows (an#712): [`browse_voices()`](_autosummary/an.audio.voice_listing.html.md#an.audio.voice_listing.browse_voices)
+through `VoiceMeta.as_row()`.
+
+`api_key` is a host’s own key for a provider that takes one
+([`an.audio.providers.listable_providers()`](_autosummary/an.audio.providers.html.md#an.audio.providers.listable_providers)); `None` means the
+environment’s key, and `""` is refused (`ValueError`), so a host that
+forwards a guest’s absent key never lists the server’s own account. A
+provider that cannot be asked at all (its `check_available()` fails: no
+key anywhere) raises its own typed error (ElevenLabs:
+[`ElevenLabsUnavailableError`](_autosummary/an.audio.elevenlabs_tts.html.md#an.audio.elevenlabs_tts.ElevenLabsUnavailableError)) rather than
+answering `[]`, so an empty listing means “no voices”. `search` and
+`make` are as in [`browse_voices()`](_autosummary/an.audio.voice_listing.html.md#an.audio.voice_listing.browse_voices). An unknown provider is a
+`ValueError` naming the known ones.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`VoiceRow`](_autosummary/an.audio.voice_listing.html.md#an.audio.voice_listing.VoiceRow)]
 
 
 # _autosummary/an.audio.voices.html.md
@@ -8004,7 +8222,7 @@ because a timing-sensitive pool is one more thing to explain if the pixels
 ever do differ; `strict_assets=True` because a stand-in asset renders
 happily as a DIFFERENT picture (an#33).
 
-### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_boil': Fixture(path='misc/bench/corpus/path_boil', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.041666666666666664, 0.08333333333333333), golden_note="two boiling paths (an#443): the wobbled frame of \`path_wobble\` drawn three ways and a dashed, trimmed arrow drawn two ways, both stepping to their next drawing every 1/12 s. Nothing else moves, so the two goldens straddle a step: frame 1 is drawing 0 (the static wobble's bytes), frame 2 is drawing 1; a change to the variant seeds, the step clock or the runtime's draw set moves frame 2 only."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'path_shape': Fixture(path='misc/bench/corpus/path_shape', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='closed and filled paths (an#161): a badge drawn whole (fill under a mitred border joined at its first corner, no caps there), and a region as two entities, a border-less fill whose node \`alpha\` fades 0 -> 1 under a closed border that draws itself on (\`trim_end\` 0 -> 1). Frame 0 shows only the badge; a regression in the fill, the closing join, the fill staying untrimmed or a \`width: 0\` path drawing a stroke moves a golden.'), 'path_taper': Fixture(path='misc/bench/corpus/path_taper', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="variable-width paths (an#161), drawn as filled outlines: a wobbled brush stroke swelling from nothing to 1.2x and back to a point, and an arrow widening 0.2x -> 1x along a mitred polyline that draws itself on with its head on the tip. The width is anchored to the WHOLE path, so the arrow's base does not thin as it grows; a regression in the profile, the miter, the anchoring or the fill-instead-of-stroke rule moves a golden."), 'path_wobble': Fixture(path='misc/bench/corpus/path_wobble', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='two hand-drawn paths (an#161): a solid frame wobbling 3 px at a 60 px wavelength, and an arrow wobbling 4 px that draws itself on (\`trim_end\` 0 -> 1). The wobble is compile-time (seeded by the entity id, no trigonometry), so the frame is the same in both goldens and only the route grows; a change to the noise, the seed, the end envelope or the resampling moves both.'), 'rig_chain': Fixture(path='misc/bench/corpus/rig_chain', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a desk-lamp prop with \`nesting: bones\` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."), 'rig_interleave': Fixture(path='misc/bench/corpus/rig_interleave', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="the rig_chain desk lamp (\`nesting: bones\`, base -> upper arm -> forearm -> shade) with an UNRELATED panel ordered between the upper arm (1) and the forearm (3) (an#430): the panel covers the upper arm's top and the forearm crosses OVER the panel, which no sort of one container's items can give. Painted from the entity's global \`paint_order\`. The same three tweens as rig_chain move the arm between the goldens. A regression that painted the chain together (the panel over both arms, or under both) moves a golden."), 'rig_order': Fixture(path='misc/bench/corpus/rig_order', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a nested chain drawn BEHIND the part it hangs from (an#403): \`rig_chain\`'s desk lamp in \`nesting: bones\` with the whole arm (upper, forearm, shade: draw orders 1-3) behind its base (4). The base's container sorts its own drawing after the arm (\`sortableChildren\`, \`z_index\`), which the stage used to refuse. Between the goldens the arm swings as in \`rig_chain\`; where it passes over the base the base is in front. A regression in the runtime's sort, the compiler's \`z_index\` or the chain refusal moves a golden."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_boil': Fixture(path='misc/bench/corpus/path_boil', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.041666666666666664, 0.08333333333333333), golden_note="two boiling paths (an#443): the wobbled frame of \`path_wobble\` drawn three ways and a dashed, trimmed arrow drawn two ways, both stepping to their next drawing every 1/12 s. Nothing else moves, so the two goldens straddle a step: frame 1 is drawing 0 (the static wobble's bytes), frame 2 is drawing 1; a change to the variant seeds, the step clock or the runtime's draw set moves frame 2 only."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'path_shape': Fixture(path='misc/bench/corpus/path_shape', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='closed and filled paths (an#161): a badge drawn whole (fill under a mitred border joined at its first corner, no caps there), and a region as two entities, a border-less fill whose node \`alpha\` fades 0 -> 1 under a closed border that draws itself on (\`trim_end\` 0 -> 1). Frame 0 shows only the badge; a regression in the fill, the closing join, the fill staying untrimmed or a \`width: 0\` path drawing a stroke moves a golden.'), 'path_taper': Fixture(path='misc/bench/corpus/path_taper', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="variable-width paths (an#161), drawn as filled outlines: a wobbled brush stroke swelling from nothing to 1.2x and back to a point, and an arrow widening 0.2x -> 1x along a mitred polyline that draws itself on with its head on the tip. The width is anchored to the WHOLE path, so the arrow's base does not thin as it grows; a regression in the profile, the miter, the anchoring or the fill-instead-of-stroke rule moves a golden."), 'path_wobble': Fixture(path='misc/bench/corpus/path_wobble', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='two hand-drawn paths (an#161): a solid frame wobbling 3 px at a 60 px wavelength, and an arrow wobbling 4 px that draws itself on (\`trim_end\` 0 -> 1). The wobble is compile-time (seeded by the entity id, no trigonometry), so the frame is the same in both goldens and only the route grows; a change to the noise, the seed, the end envelope or the resampling moves both.'), 'rig_chain': Fixture(path='misc/bench/corpus/rig_chain', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a desk-lamp prop with \`nesting: bones\` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."), 'rig_interleave': Fixture(path='misc/bench/corpus/rig_interleave', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="the rig_chain desk lamp (\`nesting: bones\`, base -> upper arm -> forearm -> shade) with an UNRELATED panel ordered between the upper arm (1) and the forearm (3) (an#430): the panel covers the upper arm's top and the forearm crosses OVER the panel, which no sort of one container's items can give. Painted from the entity's global \`paint_order\`. The same three tweens as rig_chain move the arm between the goldens. A regression that painted the chain together (the panel over both arms, or under both) moves a golden."), 'rig_order': Fixture(path='misc/bench/corpus/rig_order', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a nested chain drawn BEHIND the part it hangs from (an#403): \`rig_chain\`'s desk lamp in \`nesting: bones\` with the whole arm (upper, forearm, shade: draw orders 1-3) behind its base (4). The base's container sorts its own drawing after the arm (\`sortableChildren\`, \`z_index\`), which the stage used to refuse. Between the goldens the arm swings as in \`rig_chain\`; where it passes over the base the base is in front. A regression in the runtime's sort, the compiler's \`z_index\` or the chain refusal moves a golden."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
 The core corpus (see the module docstring).
 
@@ -8223,7 +8441,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_boil': Fixture(path='misc/bench/corpus/path_boil', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.041666666666666664, 0.08333333333333333), golden_note="two boiling paths (an#443): the wobbled frame of \`path_wobble\` drawn three ways and a dashed, trimmed arrow drawn two ways, both stepping to their next drawing every 1/12 s. Nothing else moves, so the two goldens straddle a step: frame 1 is drawing 0 (the static wobble's bytes), frame 2 is drawing 1; a change to the variant seeds, the step clock or the runtime's draw set moves frame 2 only."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'path_shape': Fixture(path='misc/bench/corpus/path_shape', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='closed and filled paths (an#161): a badge drawn whole (fill under a mitred border joined at its first corner, no caps there), and a region as two entities, a border-less fill whose node \`alpha\` fades 0 -> 1 under a closed border that draws itself on (\`trim_end\` 0 -> 1). Frame 0 shows only the badge; a regression in the fill, the closing join, the fill staying untrimmed or a \`width: 0\` path drawing a stroke moves a golden.'), 'path_taper': Fixture(path='misc/bench/corpus/path_taper', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="variable-width paths (an#161), drawn as filled outlines: a wobbled brush stroke swelling from nothing to 1.2x and back to a point, and an arrow widening 0.2x -> 1x along a mitred polyline that draws itself on with its head on the tip. The width is anchored to the WHOLE path, so the arrow's base does not thin as it grows; a regression in the profile, the miter, the anchoring or the fill-instead-of-stroke rule moves a golden."), 'path_wobble': Fixture(path='misc/bench/corpus/path_wobble', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='two hand-drawn paths (an#161): a solid frame wobbling 3 px at a 60 px wavelength, and an arrow wobbling 4 px that draws itself on (\`trim_end\` 0 -> 1). The wobble is compile-time (seeded by the entity id, no trigonometry), so the frame is the same in both goldens and only the route grows; a change to the noise, the seed, the end envelope or the resampling moves both.'), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'rig_chain': Fixture(path='misc/bench/corpus/rig_chain', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a desk-lamp prop with \`nesting: bones\` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."), 'rig_interleave': Fixture(path='misc/bench/corpus/rig_interleave', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="the rig_chain desk lamp (\`nesting: bones\`, base -> upper arm -> forearm -> shade) with an UNRELATED panel ordered between the upper arm (1) and the forearm (3) (an#430): the panel covers the upper arm's top and the forearm crosses OVER the panel, which no sort of one container's items can give. Painted from the entity's global \`paint_order\`. The same three tweens as rig_chain move the arm between the goldens. A regression that painted the chain together (the panel over both arms, or under both) moves a golden."), 'rig_order': Fixture(path='misc/bench/corpus/rig_order', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a nested chain drawn BEHIND the part it hangs from (an#403): \`rig_chain\`'s desk lamp in \`nesting: bones\` with the whole arm (upper, forearm, shade: draw orders 1-3) behind its base (4). The base's container sorts its own drawing after the arm (\`sortableChildren\`, \`z_index\`), which the stage used to refuse. Between the goldens the arm swings as in \`rig_chain\`; where it passes over the base the base is in front. A regression in the runtime's sort, the compiler's \`z_index\` or the chain refusal moves a golden."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_boil': Fixture(path='misc/bench/corpus/path_boil', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.041666666666666664, 0.08333333333333333), golden_note="two boiling paths (an#443): the wobbled frame of \`path_wobble\` drawn three ways and a dashed, trimmed arrow drawn two ways, both stepping to their next drawing every 1/12 s. Nothing else moves, so the two goldens straddle a step: frame 1 is drawing 0 (the static wobble's bytes), frame 2 is drawing 1; a change to the variant seeds, the step clock or the runtime's draw set moves frame 2 only."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'path_shape': Fixture(path='misc/bench/corpus/path_shape', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='closed and filled paths (an#161): a badge drawn whole (fill under a mitred border joined at its first corner, no caps there), and a region as two entities, a border-less fill whose node \`alpha\` fades 0 -> 1 under a closed border that draws itself on (\`trim_end\` 0 -> 1). Frame 0 shows only the badge; a regression in the fill, the closing join, the fill staying untrimmed or a \`width: 0\` path drawing a stroke moves a golden.'), 'path_taper': Fixture(path='misc/bench/corpus/path_taper', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="variable-width paths (an#161), drawn as filled outlines: a wobbled brush stroke swelling from nothing to 1.2x and back to a point, and an arrow widening 0.2x -> 1x along a mitred polyline that draws itself on with its head on the tip. The width is anchored to the WHOLE path, so the arrow's base does not thin as it grows; a regression in the profile, the miter, the anchoring or the fill-instead-of-stroke rule moves a golden."), 'path_wobble': Fixture(path='misc/bench/corpus/path_wobble', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='two hand-drawn paths (an#161): a solid frame wobbling 3 px at a 60 px wavelength, and an arrow wobbling 4 px that draws itself on (\`trim_end\` 0 -> 1). The wobble is compile-time (seeded by the entity id, no trigonometry), so the frame is the same in both goldens and only the route grows; a change to the noise, the seed, the end envelope or the resampling moves both.'), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'rig_chain': Fixture(path='misc/bench/corpus/rig_chain', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a desk-lamp prop with \`nesting: bones\` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."), 'rig_interleave': Fixture(path='misc/bench/corpus/rig_interleave', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="the rig_chain desk lamp (\`nesting: bones\`, base -> upper arm -> forearm -> shade) with an UNRELATED panel ordered between the upper arm (1) and the forearm (3) (an#430): the panel covers the upper arm's top and the forearm crosses OVER the panel, which no sort of one container's items can give. Painted from the entity's global \`paint_order\`. The same three tweens as rig_chain move the arm between the goldens. A regression that painted the chain together (the panel over both arms, or under both) moves a golden."), 'rig_order': Fixture(path='misc/bench/corpus/rig_order', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a nested chain drawn BEHIND the part it hangs from (an#403): \`rig_chain\`'s desk lamp in \`nesting: bones\` with the whole arm (upper, forearm, shade: draw orders 1-3) behind its base (4). The base's container sorts its own drawing after the arm (\`sortableChildren\`, \`z_index\`), which the stage used to refuse. Between the goldens the arm swings as in \`rig_chain\`; where it passes over the base the base is in front. A regression in the runtime's sort, the compiler's \`z_index\` or the chain refusal moves a golden."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
 The cut-out scenes of the original corpus moved to `cutan` (`cutan.bench.CUTOUT_FIXTURES`, an#225); this
 is the core’s: `prop_swap` and the core corpus (`an.bench.core_corpus`).
@@ -16630,7 +16848,7 @@ genre defined in the same process).
 | [`RegistryError`](_autosummary/an.genres.html.md#an.genres.RegistryError)                                | A registration is malformed or collides with one already made.         |
 | [`UnregisteredKindError`](_autosummary/an.genres.html.md#an.genres.UnregisteredKindError)(what, name, \*[, ...]) | A document names a kind no loaded genre registered.                    |
 
-### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 15*
+### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 16*
 
 every hook, registry
 field a genre package may rely on. Bumped by each change a
@@ -16701,6 +16919,12 @@ EntityKind.shot_sizes(entity, mall,
 
 15 = a project’s `.gitignore` read by git’s rules (an#725): `an.project.gitignored`
 : and `gitignore_matcher`, for a genre that copies a project (cutan’s projects store).
+
+16 = names cutan’s presets, checks and passes read, public (an#730): `an.motion`’s
+: `alternating`, `require_positive`, `rest_value`, `settled`, `side_sign`,
+  `through` and `tweens_of`; `an.ir.validate.built_node_paths`, `rig_document`
+  and `text_block_ids`; `an.stage.rig.asset_file` (module-level names: those two
+  modules have no `__all__`).
 
 * **Type:**
   The level of the genre-facing API this `an` provides
@@ -23672,16 +23896,19 @@ Layout-overlap checks (boxes off-screen, text behind sprites) live in
 
 ### Functions
 
-| [`counter_block_ids`](_autosummary/an.ir.validate.html.md#an.ir.validate.counter_block_ids)(shot, stores)                   | The ids of `shot`'s counter text blocks (an#342): the only targets a `value` is authored on in the core.                                                                                                      |
-|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`post_synthesis_findings`](_autosummary/an.ir.validate.html.md#an.ir.validate.post_synthesis_findings)(scene, \*[, fps, checks]) | `(check, finding)` for each finding the synthesized timing gives.                                                                                                                                             |
-| [`registered_kind_problems`](_autosummary/an.ir.validate.html.md#an.ir.validate.registered_kind_problems)(scene)                   | The findings of the three registry checks alone — every action kind, entity kind and renderer the scene names must be registered — without the rest of `validate_semantic` (no stores, no rig builds; cheap). |
-| [`require_registered_kinds`](_autosummary/an.ir.validate.html.md#an.ir.validate.require_registered_kinds)(scene, \*[, where])      | `scene`, or [`UnregisteredInSceneError`](_autosummary/an.ir.validate.html.md#an.ir.validate.UnregisteredInSceneError) naming every action kind, entity kind and renderer it uses that is not registered.                                      |
-| [`rig_scope`](_autosummary/an.ir.validate.html.md#an.ir.validate.rig_scope)(shot, stores)                           | `(rigged entities by id, ids whose rig store was not supplied)`: which of `shot`'s entities a rig check can read, public for a genre's own checks (reeleehq/cutan#148, `an.genres.API_LEVEL` 13).             |
-| [`rig_stores`](_autosummary/an.ir.validate.html.md#an.ir.validate.rig_stores)()                                      | `{entity kind: (mall store, descriptor kind)}` for every kind that has a rig.                                                                                                                                 |
-| [`shot_dialogue_overruns`](_autosummary/an.ir.validate.html.md#an.ir.validate.shot_dialogue_overruns)(shot, \*[, ...])           | `(k, message)` for each line of `shot` that ends past the shot's end.                                                                                                                                         |
-| [`validate_schema`](_autosummary/an.ir.validate.html.md#an.ir.validate.validate_schema)(doc)                              | Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema.                                                                                                                                   |
-| [`validate_semantic`](_autosummary/an.ir.validate.html.md#an.ir.validate.validate_semantic)(scene, \*[, ...])               | Cross-field semantic checks.                                                                                                                                                                                  |
+| [`built_node_paths`](_autosummary/an.ir.validate.html.md#an.ir.validate.built_node_paths)(shot, stores, \*[, resolution])   | `(node paths, None)` — every node path the cutout compiler builds for `shot`'s STAGE (its entities; no actions), from the supplied stores — or `(None, why)` when the stage does not build.                   |
+|-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`counter_block_ids`](_autosummary/an.ir.validate.html.md#an.ir.validate.counter_block_ids)(shot, stores)                    | The ids of `shot`'s counter text blocks (an#342): the only targets a `value` is authored on in the core.                                                                                                      |
+| [`post_synthesis_findings`](_autosummary/an.ir.validate.html.md#an.ir.validate.post_synthesis_findings)(scene, \*[, fps, checks])  | `(check, finding)` for each finding the synthesized timing gives.                                                                                                                                             |
+| [`registered_kind_problems`](_autosummary/an.ir.validate.html.md#an.ir.validate.registered_kind_problems)(scene)                    | The findings of the three registry checks alone — every action kind, entity kind and renderer the scene names must be registered — without the rest of `validate_semantic` (no stores, no rig builds; cheap). |
+| [`require_registered_kinds`](_autosummary/an.ir.validate.html.md#an.ir.validate.require_registered_kinds)(scene, \*[, where])       | `scene`, or [`UnregisteredInSceneError`](_autosummary/an.ir.validate.html.md#an.ir.validate.UnregisteredInSceneError) naming every action kind, entity kind and renderer it uses that is not registered.                                      |
+| [`rig_document`](_autosummary/an.ir.validate.html.md#an.ir.validate.rig_document)(entity, stores)                       | The MIGRATED descriptor behind `entity`, or `None`.                                                                                                                                                           |
+| [`rig_scope`](_autosummary/an.ir.validate.html.md#an.ir.validate.rig_scope)(shot, stores)                            | `(rigged entities by id, ids whose rig store was not supplied)`: which of `shot`'s entities a rig check can read, public for a genre's own checks (reeleehq/cutan#148, `an.genres.API_LEVEL` 13).             |
+| [`rig_stores`](_autosummary/an.ir.validate.html.md#an.ir.validate.rig_stores)()                                       | `{entity kind: (mall store, descriptor kind)}` for every kind that has a rig.                                                                                                                                 |
+| [`shot_dialogue_overruns`](_autosummary/an.ir.validate.html.md#an.ir.validate.shot_dialogue_overruns)(shot, \*[, ...])            | `(k, message)` for each line of `shot` that ends past the shot's end.                                                                                                                                         |
+| [`text_block_ids`](_autosummary/an.ir.validate.html.md#an.ir.validate.text_block_ids)(ctx)                                | The current shot's text-block entity ids, which the target and entity-reference checks skip.                                                                                                                  |
+| [`validate_schema`](_autosummary/an.ir.validate.html.md#an.ir.validate.validate_schema)(doc)                               | Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema.                                                                                                                                   |
+| [`validate_semantic`](_autosummary/an.ir.validate.html.md#an.ir.validate.validate_semantic)(scene, \*[, ...])                | Cross-field semantic checks.                                                                                                                                                                                  |
 
 ### Classes
 
@@ -23843,6 +24070,20 @@ Result of running one or more validators.
 
 `passed` is True iff there are no error-severity findings.
 
+### an.ir.validate.built_node_paths(shot, stores, , resolution=None)
+
+`(node paths, None)` — every node path the cutout compiler builds for
+`shot`’s STAGE (its entities; no actions), from the supplied stores — or
+`(None, why)` when the stage does not build. Read off the compiler rather
+than restated: a preset play’s node is checked against exactly what compile
+will look it up in (an#166). The failure is RETURNED so the caller reports
+that the check was skipped; swallowing it would be validate saying “fine”
+about a play it never looked at. Without `resolution` the stage is built
+unsized, as a genre’s check calls it (`built_node_paths(shot, stores)`).
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`set`](https://docs.python.org/3/builtins/stdtypes.html#set)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] | [`None`](https://docs.python.org/3/builtins/constants.html#None), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)]
+
 ### an.ir.validate.counter_block_ids(shot, stores)
 
 The ids of `shot`’s counter text blocks (an#342): the only targets a
@@ -23884,6 +24125,23 @@ kind, entity kind and renderer it uses that is not registered.
 
 * **Return type:**
   [`SceneIR`](_autosummary/an.ir.schema.html.md#an.ir.schema.SceneIR)
+
+### an.ir.validate.rig_document(entity, stores)
+
+The MIGRATED descriptor behind `entity`, or `None`.
+
+Migrated because that is how the compiler reads it: every committed
+pre-0.3.0 character descriptor has no `asset_sets` on disk (0.1.0 carries
+`viseme_map`; `eyelid` is migration-seeded), so the raw dict would refuse
+swaps the compiler accepts.
+
+Keyed on the entity’s KIND rather than on “is it a character”, so a prop’s
+descriptor is found in the props store (an#108). It also refuses a
+document of the wrong kind in the right store — a `CharacterDescriptor`
+under `assets/props/` is not a prop, and the compiler says so too.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.ir.validate.rig_scope(shot, stores)
 
@@ -23964,6 +24222,16 @@ not trim — the fix of trimming the silence a real voice pads a line with.
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
+### an.ir.validate.text_block_ids(ctx)
+
+The current shot’s text-block entity ids, which the target and
+entity-reference checks skip. Not a pure getter: the first call per shot
+RUNS the text-block check (`_check_text_blocks`), reporting through
+`ctx.report`; later calls return the cached ids (an#730).
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)
 
 ### an.ir.validate.validate_schema(doc)
 
@@ -31523,7 +31791,7 @@ them. This module also holds what every preset is built from: the rest pose
 
 ```pycon
 >>> from an.ir.compose import flatten, sequence
->>> leaves = _tweens(sequence(pop_in("charlie"), hop("charlie"), shake("charlie")))
+>>> leaves = tweens_of(sequence(pop_in("charlie"), hop("charlie"), shake("charlie")))
 >>> [(f.action.target, f.action.property) for f in leaves][:3]
 [('charlie', 'scale_x'), ('charlie', 'scale_y'), ('charlie', 'y')]
 >>> round(leaves[-1].end, 3)
@@ -31580,17 +31848,24 @@ too since an#241, but verbatim, as its JSON form).
 
 ### Functions
 
-| [`as_leaves`](_autosummary/an.motion.html.md#an.motion.as_leaves)(action, \*[, start])                   | `action` as top-level leaves that `scene.md` can round-trip.                                                                                                                                                                                                                         |
-|---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`crawl`](_autosummary/an.motion.html.md#an.motion.crawl)(target, \*[, distance, duration, ...])     | An opening crawl: lay `target` on a plane tilted away, and slide it up and away.                                                                                                                                                                                                     |
-| [`hop`](_autosummary/an.motion.html.md#an.motion.hop)(target, \*[, height, duration, rest])        | Jump up by `height` scene pixels and land back where it started.                                                                                                                                                                                                                     |
-| [`pop_in`](_autosummary/an.motion.html.md#an.motion.pop_in)(target, \*[, duration, easing, rest])     | Grow from nothing to full size, overshooting and settling (an entrance).                                                                                                                                                                                                             |
-| [`rest_pose`](_autosummary/an.motion.html.md#an.motion.rest_pose)(shot, target, \*[, mall])              | The rest values of `target`'s node as the compiler builds `shot`.                                                                                                                                                                                                                    |
-| [`shake`](_autosummary/an.motion.html.md#an.motion.shake)(target, \*[, amplitude, duration, ...])    | Tremble side to side `cycles` times and come back to rest (on `x`).                                                                                                                                                                                                                  |
-| [`stage_poses`](_autosummary/an.motion.html.md#an.motion.stage_poses)(shot, \*[, mall, width, height])     | `{node path: rest pose}` for every node the compiler builds for `shot`'s stage — what [`rest_pose()`](_autosummary/an.motion.html.md#an.motion.rest_pose) reads one entry of, and what `an validate` checks a preset `play`'s node and every `set`/`tween` target against (an#166, an#193). |
-| [`slide_in`](_autosummary/an.motion.html.md#an.motion.slide_in)(target, \*[, from_side, distance, ...]) | Whip in from `distance` pixels off to one side, overshoot, and settle.                                                                                                                                                                                                               |
-| [`slide_out`](_autosummary/an.motion.html.md#an.motion.slide_out)(target, \*[, to_side, distance, ...])  | Exit `distance` pixels off to one side, accelerating (an exit).                                                                                                                                                                                                                      |
-| [`squash_stretch`](_autosummary/an.motion.html.md#an.motion.squash_stretch)(target, \*[, amount, ...])        | Squash (wide and short), stretch (narrow and tall), then settle.                                                                                                                                                                                                                     |
+| [`alternating`](_autosummary/an.motion.html.md#an.motion.alternating)(n, first, second)                     | `n` easings alternating `first` and `second` (a swing's out and back).                                                                                                                                                                                                               |
+|----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`as_leaves`](_autosummary/an.motion.html.md#an.motion.as_leaves)(action, \*[, start])                    | `action` as top-level leaves that `scene.md` can round-trip.                                                                                                                                                                                                                         |
+| [`crawl`](_autosummary/an.motion.html.md#an.motion.crawl)(target, \*[, distance, duration, ...])      | An opening crawl: lay `target` on a plane tilted away, and slide it up and away.                                                                                                                                                                                                     |
+| [`hop`](_autosummary/an.motion.html.md#an.motion.hop)(target, \*[, height, duration, rest])         | Jump up by `height` scene pixels and land back where it started.                                                                                                                                                                                                                     |
+| [`pop_in`](_autosummary/an.motion.html.md#an.motion.pop_in)(target, \*[, duration, easing, rest])      | Grow from nothing to full size, overshooting and settling (an entrance).                                                                                                                                                                                                             |
+| [`require_positive`](_autosummary/an.motion.html.md#an.motion.require_positive)(\*\*durations)                   | Refuse, naming it, any of `durations` that is not above zero.                                                                                                                                                                                                                        |
+| [`rest_pose`](_autosummary/an.motion.html.md#an.motion.rest_pose)(shot, target, \*[, mall])               | The rest values of `target`'s node as the compiler builds `shot`.                                                                                                                                                                                                                    |
+| [`rest_value`](_autosummary/an.motion.html.md#an.motion.rest_value)(rest, prop)                            | `prop`'s value in the `rest` pose, else the identity pose's.                                                                                                                                                                                                                         |
+| [`settled`](_autosummary/an.motion.html.md#an.motion.settled)(target, prop, value, \*moves)             | `moves` then a `set` pinning `prop` at `value`, where they end (`value` is the last move's end value; the moves are variadic).                                                                                                                                                       |
+| [`shake`](_autosummary/an.motion.html.md#an.motion.shake)(target, \*[, amplitude, duration, ...])     | Tremble side to side `cycles` times and come back to rest (on `x`).                                                                                                                                                                                                                  |
+| [`side_sign`](_autosummary/an.motion.html.md#an.motion.side_sign)(side)                                   | `-1.0` for `"left"`, `1.0` for `"right"`; any other side is refused.                                                                                                                                                                                                                 |
+| [`stage_poses`](_autosummary/an.motion.html.md#an.motion.stage_poses)(shot, \*[, mall, width, height])      | `{node path: rest pose}` for every node the compiler builds for `shot`'s stage — what [`rest_pose()`](_autosummary/an.motion.html.md#an.motion.rest_pose) reads one entry of, and what `an validate` checks a preset `play`'s node and every `set`/`tween` target against (an#166, an#193). |
+| [`slide_in`](_autosummary/an.motion.html.md#an.motion.slide_in)(target, \*[, from_side, distance, ...])  | Whip in from `distance` pixels off to one side, overshoot, and settle.                                                                                                                                                                                                               |
+| [`slide_out`](_autosummary/an.motion.html.md#an.motion.slide_out)(target, \*[, to_side, distance, ...])   | Exit `distance` pixels off to one side, accelerating (an exit).                                                                                                                                                                                                                      |
+| [`squash_stretch`](_autosummary/an.motion.html.md#an.motion.squash_stretch)(target, \*[, amount, ...])         | Squash (wide and short), stretch (narrow and tall), then settle.                                                                                                                                                                                                                     |
+| [`through`](_autosummary/an.motion.html.md#an.motion.through)(target, prop, values, \*, durations, ...) | Tweens from `values[i]` to `values[i+1]`, one after the other.                                                                                                                                                                                                                       |
+| [`tweens_of`](_autosummary/an.motion.html.md#an.motion.tweens_of)(action)                                 | The flattened TWEENS of `action` (the settling <br/><br/>```<br/>``<br/>```<br/><br/>set\`\`s left out).                                                                                                                                                                             |
 
 ### an.motion.HOME_PRESETS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'pop_in', 'slide_in'})*
 
@@ -31625,6 +31900,18 @@ starts here (an#248).
 
 * **Type:**
   Each preset’s vocabulary version (ADR 0003 decision 2)
+
+### an.motion.alternating(n, first, second)
+
+`n` easings alternating `first` and `second` (a swing’s out and back).
+
+```pycon
+>>> alternating(3, "ease_out", "ease_in")
+['ease_out', 'ease_in', 'ease_out']
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ### an.motion.as_leaves(action, , start=0.0)
 
@@ -31668,7 +31955,7 @@ enter from below. `fade=None` draws the plane to the horizon.
 >>> sorted((f.action.property, getattr(f.action, "value", None)) for f in leaves
 ...        if isinstance(f.action, SetAction) and f.start == 0)
 [('perspective', 1.0), ('rotation_x', 0.96)]
->>> [(f.action.from_value, f.action.to_value, f.end) for f in _tweens(crawl("crawl",
+>>> [(f.action.from_value, f.action.to_value, f.end) for f in tweens_of(crawl("crawl",
 ...     distance=1000, duration=20, start=-300))]
 [(-300.0, 700.0, 20.0)]
 ```
@@ -31681,7 +31968,7 @@ enter from below. `fade=None` draws the plane to the horizon.
 Jump up by `height` scene pixels and land back where it started.
 
 ```pycon
->>> [(f.action.from_value, f.action.to_value) for f in _tweens(hop("charlie", height=30))]
+>>> [(f.action.from_value, f.action.to_value) for f in tweens_of(hop("charlie", height=30))]
 [(0.0, -30.0), (-30.0, 0.0)]
 ```
 
@@ -31699,12 +31986,27 @@ with a `set` before it).
 
 ```pycon
 >>> [(f.action.property, f.action.from_value, f.action.to_value)
-...  for f in _tweens(pop_in("charlie"))]
+...  for f in tweens_of(pop_in("charlie"))]
 [('scale_x', 0.0, 1.0), ('scale_y', 0.0, 1.0)]
 ```
 
 * **Return type:**
   [`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
+
+### an.motion.require_positive(\*\*durations)
+
+Refuse, naming it, any of `durations` that is not above zero.
+
+```pycon
+>>> require_positive(duration=0.5)
+>>> require_positive(hold=0)
+Traceback (most recent call last):
+  ...
+ValueError: hold must be positive, got 0
+```
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.motion.rest_pose(shot, target, , mall=None)
 
@@ -31731,26 +32033,66 @@ a descriptor rig is built from its character store.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
+### an.motion.rest_value(rest, prop)
+
+`prop`’s value in the `rest` pose, else the identity pose’s.
+
+```pycon
+>>> rest_value({"x": -110.0}, "x"), rest_value(None, "rotation")
+(-110.0, 0.0)
+```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+### an.motion.settled(target, prop, value, \*moves)
+
+`moves` then a `set` pinning `prop` at `value`, where they end
+(`value` is the last move’s end value; the moves are variadic).
+
+A frame shows the pose at `i / fps` and the runtime HOLDS the last pose it
+applied, so a tween ending between two frames leaves its property wherever
+the last sampled frame had it — off rest by a fraction of the final
+segment, and under `step_hz` by the whole of it, since a stepped segment
+shorter than one grid step holds its `from` value to its last instant. A
+`set` holds from the first frame at or after its time until the next
+tween on the same property, so it lands the move exactly.
+
+* **Return type:**
+  [`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
+
 ### an.motion.shake(target, , amplitude=8.0, duration=0.4, cycles=3, rest=None)
 
 Tremble side to side `cycles` times and come back to rest (on `x`).
 
 ```pycon
->>> [f.action.to_value for f in _tweens(shake("charlie", amplitude=5, cycles=2))]
+>>> [f.action.to_value for f in tweens_of(shake("charlie", amplitude=5, cycles=2))]
 [5.0, -5.0, 5.0, -5.0, 0.0]
->>> [f.action.to_value for f in _tweens(shake("charlie", cycles=1, rest={"x": -110}))]
+>>> [f.action.to_value for f in tweens_of(shake("charlie", cycles=1, rest={"x": -110}))]
 [-102.0, -118.0, -110.0]
 ```
 
 * **Return type:**
   [`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
 
+### an.motion.side_sign(side)
+
+`-1.0` for `"left"`, `1.0` for `"right"`; any other side is refused.
+
+```pycon
+>>> side_sign("left"), side_sign("right")
+(-1.0, 1.0)
+```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
 ### an.motion.slide_in(target, , from_side='left', distance=600.0, duration=0.35, easing=(0.34, 1.56, 0.64, 1.0), rest=None)
 
 Whip in from `distance` pixels off to one side, overshoot, and settle.
 
 ```pycon
->>> [(f.action.from_value, f.action.to_value) for f in _tweens(slide_in("charlie", distance=400))]
+>>> [(f.action.from_value, f.action.to_value) for f in tweens_of(slide_in("charlie", distance=400))]
 [(-400.0, 0.0)]
 ```
 
@@ -31762,7 +32104,7 @@ Whip in from `distance` pixels off to one side, overshoot, and settle.
 Exit `distance` pixels off to one side, accelerating (an exit).
 
 ```pycon
->>> [(f.action.from_value, f.action.to_value) for f in _tweens(slide_out("charlie", to_side="left"))]
+>>> [(f.action.from_value, f.action.to_value) for f in tweens_of(slide_out("charlie", to_side="left"))]
 [(0.0, -600.0)]
 ```
 
@@ -31777,7 +32119,7 @@ Scales about the target’s own origin (for the procedural rig, the torso’s
 centre). Volume is roughly kept: one axis grows by what the other loses.
 
 ```pycon
->>> [[round(f.action.to_value, 2) for f in _tweens(squash_stretch("c"))
+>>> [[round(f.action.to_value, 2) for f in tweens_of(squash_stretch("c"))
 ...   if f.action.property == p] for p in ("scale_x", "scale_y")]
 [[1.2, 0.9, 1.0], [0.8, 1.1, 1.0]]
 ```
@@ -31805,6 +32147,29 @@ compiler’s) matter to text, whose line breaks depend on the frame.
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
+
+### an.motion.through(target, prop, values, , durations, easings)
+
+Tweens from `values[i]` to `values[i+1]`, one after the other.
+
+Every segment names its `from`, so the chain never depends on what the
+runtime was holding when it started.
+
+* **Return type:**
+  [`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
+
+### an.motion.tweens_of(action)
+
+The flattened TWEENS of `action` (the settling 
+
+```
+``
+```
+
+set\`\`s left out).
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`FlatAction`](_autosummary/an.ir.compose.html.md#an.ir.compose.FlatAction)]
 
 
 # _autosummary/an.music_cli.html.md
@@ -31898,8 +32263,9 @@ What stays here is what is an’s:
   uses the track without fetching it again (`an music use`).
 
 The rest of foley’s surface the command and its tests use (`MUSIC_LIBRARIES`,
-[`tracks_table()`](_autosummary/an.music_library.html.md#an.music_library.tracks_table), [`attribution_text()`](_autosummary/an.music_library.html.md#an.music_library.attribution_text), [`titles_by_library()`](_autosummary/an.music_library.html.md#an.music_library.titles_by_library), …) is
-re-exported by name, and loaded on first use: `import an` never imports foley.
+[`tracks_table()`](_autosummary/an.music_library.html.md#an.music_library.tracks_table), [`attribution_text()`](_autosummary/an.music_library.html.md#an.music_library.attribution_text), [`titles_by_library()`](_autosummary/an.music_library.html.md#an.music_library.titles_by_library), and the
+tracks-table reader [`read_tracks_table()`](_autosummary/an.music_library.html.md#an.music_library.read_tracks_table) and `LIST_SEPARATOR`, an#731) is re-exported by name, and loaded on first use:
+`import an` never imports foley.
 
 ```pycon
 >>> license_code("CC-BY-4.0"), license_code("unknown")
@@ -31911,7 +32277,7 @@ re-exported by name, and loaded on first use: `import an` never imports foley.
 >>> src.provider, src.id, src.license, src.source_page_url
 ('incompetech', 'Sneaky Snitch', 'cc-by-4.0', 'https://incompetech.com/x.mp3')
 >>> src.model_extra
-{'rights_verified': True, 'mirror': 'wayback'}
+{'rights_verified': True, 'commercial_ok': True, 'mirror': 'wayback'}
 ```
 
 ### Module Attributes
@@ -31932,11 +32298,10 @@ re-exported by name, and loaded on first use: `import an` never imports foley.
 | [`kept_sources`](_autosummary/an.music_library.html.md#an.music_library.kept_sources)(table)                                  | `{file: {"sha256", "url", "mirror"}}` of the acquired or kept rows of a tracks table: [`kept_digests()`](_autosummary/an.music_library.html.md#an.music_library.kept_digests) with where each file came from, so a kept row still says which URL and mirror served it (`acquire(kept=...)` takes either). |
 | [`license_code`](_autosummary/an.music_library.html.md#an.music_library.license_code)(license_id, \*[, codes])                | foley's licence id as an's code: `codes` first, else the id in lowercase.                                                                                                                                                                                                         |
 | [`probe_verify`](_autosummary/an.music_library.html.md#an.music_library.probe_verify)(data, \*[, probe, has_audio, suffix])   | The duration of the audio `data`, in seconds.                                                                                                                                                                                                                                     |
-| [`read_tracks_table`](_autosummary/an.music_library.html.md#an.music_library.read_tracks_table)(text)                              | The rows of a tracks table (`tracks.csv`, [`tracks_table()`](_autosummary/an.music_library.html.md#an.music_library.tracks_table)'s text), as written; a byte-order mark an editor added is not part of the first column.                                                                                 |
+| [`read_tracks_table`](_autosummary/an.music_library.html.md#an.music_library.read_tracks_table)(text)                              | The rows of a tracks table ([`tracks_table()`](_autosummary/an.music_library.html.md#an.music_library.tracks_table)'s CSV text), as written; a byte-order mark an editor added (Excel does) is not part of the first column.                                                                              |
 | [`register_music_library`](_autosummary/an.music_library.html.md#an.music_library.register_music_library)(library, \*[, replace])       | Add `library` to `MUSIC_LIBRARIES` (`replace` to redefine one).                                                                                                                                                                                                                   |
 | [`titles_by_library`](_autosummary/an.music_library.html.md#an.music_library.titles_by_library)(description, \*[, libraries])      | The titles a video description credits, by library (default: the registered ones).                                                                                                                                                                                                |
 | [`titles_from_json`](_autosummary/an.music_library.html.md#an.music_library.titles_from_json)(text)                               | A titles file's JSON: a list of titles, or `{title: {metadata}}`.                                                                                                                                                                                                                 |
-| [`track_from_row`](_autosummary/an.music_library.html.md#an.music_library.track_from_row)(row)                                  | foley's [`AcquiredTrack`](_autosummary/an.music_library.html.md#an.music_library.AcquiredTrack) for a tracks-table `row`, its licence rebuilt from the library's registry (`track_license`), never read from the row: a cell someone edited cannot grant rights (an#623).                                  |
 | [`track_row`](_autosummary/an.music_library.html.md#an.music_library.track_row)(text, title)                               | `title`'s row in the tracks table `text`.                                                                                                                                                                                                                                         |
 | [`tracks_table`](_autosummary/an.music_library.html.md#an.music_library.tracks_table)(rows)                                   | The tracks table as CSV text: `TRACK_COLUMNS`, then any metadata the rows carry, in name order ([`read_tracks_table()`](_autosummary/an.music_library.html.md#an.music_library.read_tracks_table) reads it back).                                                                                              |
 | [`wayback`](_autosummary/an.music_library.html.md#an.music_library.wayback)(url)                                         | The Internet Archive's raw copy of `url` (`WAYBACK_RAW`).                                                                                                                                                                                                                         |
@@ -31949,9 +32314,10 @@ re-exported by name, and loaded on first use: `import an` never imports foley.
 
 ### Exceptions
 
-| [`MusicLibraryError`](_autosummary/an.music_library.html.md#an.music_library.MusicLibraryError)   | A library, a title or a file that cannot be used, and why.             |
-|----------------------------------------------------------------------|------------------------------------------------------------------------|
-| [`MusicToolMissing`](_autosummary/an.music_library.html.md#an.music_library.MusicToolMissing)    | A tool every title needs is missing: the batch stops before it starts. |
+| [`DroppedColumnsWarning`](_autosummary/an.music_library.html.md#an.music_library.DroppedColumnsWarning)   | A tracks-table row named columns that set nothing, and [`AcquiredTrack.from_row()`](_autosummary/an.music_library.html.md#an.music_library.AcquiredTrack.from_row) dropped them.   |
+|--------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`MusicLibraryError`](_autosummary/an.music_library.html.md#an.music_library.MusicLibraryError)       | A library, a title or a file that cannot be used, and why.                                                                                       |
+| [`MusicToolMissing`](_autosummary/an.music_library.html.md#an.music_library.MusicToolMissing)        | A tool every title needs is missing: the batch stops before it starts.                                                                           |
 
 ### *class* an.music_library.AcquiredTrack(title, library, status, license, file=None, sha256=None, duration_s=None, url=None, mirror=None, page_url=None, credited_by=(), metadata=dict(), error=None)
 
@@ -31981,7 +32347,7 @@ A column outside `TRACK_COLUMNS` is metadata, as the table wrote it (a
 list or mapping a titles file gave comes back as its cell’s text). A column a
 titles file may not set (a downstream provenance field such as `cost_usd`
 or `cacheable`, a licence flag) is dropped with a
-`DroppedColumnsWarning`: it never sets anything.
+[`DroppedColumnsWarning`](_autosummary/an.music_library.html.md#an.music_library.DroppedColumnsWarning): it never sets anything.
 
 * **Raises:**
   [**MusicLibraryError**](_autosummary/an.music_library.html.md#an.music_library.MusicLibraryError) – For a row with a key that is not text, a blank title,
@@ -32018,6 +32384,13 @@ is someone’s website).
 
 * **Type:**
   Seconds before a second request to one host (foley’s default pace
+
+### *exception* an.music_library.DroppedColumnsWarning
+
+Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
+
+A tracks-table row named columns that set nothing, and [`AcquiredTrack.from_row()`](_autosummary/an.music_library.html.md#an.music_library.AcquiredTrack.from_row)
+dropped them.
 
 ### an.music_library.FOLEY_LICENSE_CODES *: [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)]* *= {'unknown': None}*
 
@@ -32107,7 +32480,7 @@ Put one acquired track in the sounds `store` under `key` (an#623).
 
 `track` is foley’s `AcquiredTrack`, or its tracks-table row (a
 `tracks.csv` line, [`track_row()`](_autosummary/an.music_library.html.md#an.music_library.track_row): its licence is rebuilt from the
-library’s registry, [`track_from_row()`](_autosummary/an.music_library.html.md#an.music_library.track_from_row)), and `files` the library
+library’s registry, `AcquiredTrack.from_row`), and `files` the library
 folder as `{file name: bytes}` (`files_store(out)`). The file it names
 is checked against its `sha256`, cut with [`an.sound_fetch.cut_to_wav()`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.cut_to_wav)
 (`start`, `duration`, `fade_out`, as `an sounds add` takes them) and
@@ -32128,17 +32501,18 @@ is fetched again: the site may be the one that refused scripts.
 One foley row as an’s [`AssetSource`](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource).
 
 `track` is a foley `AcquiredTrack` or its `.row()` (as a tracks table
-reads back). `library` is the `provider`, `title` the `id`, the
+reads back), which is rebuilt first (`AcquiredTrack.from_row`, an#731): its
+licence comes from the library’s registry, and a licence cell that says
+otherwise is REFUSED, so an edited row cannot grant rights. `library` is the `provider`, `title` the `id`, the
 licence id an’s code ([`license_code()`](_autosummary/an.music_library.html.md#an.music_library.license_code)); `url` (the mirror that served
 the bytes), `source_page_url` (the library’s own address), the licence URL,
 author, attribution and `sha256` keep their names. The acquisition’s own
 columns (`ROW_ONLY`) stay in the table; every other column
 (`rights_verified`, `commercial_ok`, `mirror`, `credited_by`, a titles
-file’s metadata) rides as an extra; a licence flag read back from CSV
-(`FLAG_COLUMNS`) is a boolean again; a column named like one of the
+file’s metadata) rides as an extra; a column named like one of the
 source’s own fields (`cost_usd`, `cacheable`, `id`, …) is dropped,
-never trusted. Empty cells are dropped. A track also
-gives its licence’s `creator_url` as `author_url` and whether its terms let
+never trusted. Empty cells are dropped. The licence’s `creator_url` is
+the `author_url` and whether its terms let
 the bytes be kept as `cacheable`.
 
 * **Return type:**
@@ -32236,14 +32610,17 @@ foley.sources.music_library.libraries.MusicLibraryError: the file has no readabl
 
 ### an.music_library.read_tracks_table(text)
 
-The rows of a tracks table (`tracks.csv`, [`tracks_table()`](_autosummary/an.music_library.html.md#an.music_library.tracks_table)’s text),
-as written; a byte-order mark an editor added is not part of the first column.
+The rows of a tracks table ([`tracks_table()`](_autosummary/an.music_library.html.md#an.music_library.tracks_table)’s CSV text), as written; a
+byte-order mark an editor added (Excel does) is not part of the first column.
 
 ```pycon
 >>> read_tracks_table("\ufefftitle,library\r\nA,incompetech\r\n")
 [{'title': 'A', 'library': 'incompetech'}]
 ```
 
+* **Raises:**
+  [**MusicLibraryError**](_autosummary/an.music_library.html.md#an.music_library.MusicLibraryError) – For a header that names a column twice, or a line with
+      more cells than the header has columns (naming its line).
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
@@ -32310,18 +32687,6 @@ A titles file’s JSON: a list of titles, or `{title: {metadata}}`.
   [**MusicLibraryError**](_autosummary/an.music_library.html.md#an.music_library.MusicLibraryError) – If `text` is not JSON, or not one of those two shapes.
 * **Return type:**
   [`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]]
-
-### an.music_library.track_from_row(row)
-
-foley’s [`AcquiredTrack`](_autosummary/an.music_library.html.md#an.music_library.AcquiredTrack) for a tracks-table `row`, its licence
-rebuilt from the library’s registry (`track_license`), never read from
-the row: a cell someone edited cannot grant rights (an#623). The row’s
-other columns are its metadata.
-
-* **Raises:**
-  [**MusicLibraryError**](_autosummary/an.music_library.html.md#an.music_library.MusicLibraryError) – For a library foley does not know.
-* **Return type:**
-  [`AcquiredTrack`](_autosummary/an.music_library.html.md#an.music_library.AcquiredTrack)
 
 ### an.music_library.track_row(text, title)
 
@@ -38849,6 +39214,7 @@ Two layers live here:
 
 | [`art_src`](_autosummary/an.stage.rig.html.md#an.stage.rig.art_src)(ref, rel_path, \*[, art_prefix])           | Path used inside the runtime dir, relative to `index.html`.                                                                                                                                                                                                                                                                                        |
 |-----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`asset_file`](_autosummary/an.stage.rig.html.md#an.stage.rig.asset_file)(root, ref_and_rel)                      | `<store root>/<ref>/<rel>` when `rel` stays inside the asset `ref`'s own folder (`an.stores._common.inside_folder()`), else `None`.                                                                                                                                                                                                                |
 | [`attachment_box`](_autosummary/an.stage.rig.html.md#an.stage.rig.attachment_box)(width, height, art)                 | The box a part draws in, in view_box units: the declared size wins, the art's aspect is kept (an#220).                                                                                                                                                                                                                                             |
 | [`bone_extent_centre`](_autosummary/an.stage.rig.html.md#an.stage.rig.bone_extent_centre)(bones)                          | The DEFAULT point in view_box space that the entity's placement refers to, when the rig declares no [`RigDocument.origin`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigDocument.origin) ([`rig_origin()`](_autosummary/an.stage.rig.html.md#an.stage.rig.rig_origin)).                                                                                                           |
 | [`bone_positions`](_autosummary/an.stage.rig.html.md#an.stage.rig.bone_positions)(desc)                               | Absolute `(x, y)` per bone, in view_box units.                                                                                                                                                                                                                                                                                                     |
@@ -39240,6 +39606,21 @@ Path used inside the runtime dir, relative to `index.html`.
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.stage.rig.asset_file(root, ref_and_rel)
+
+`<store root>/<ref>/<rel>` when `rel` stays inside the asset `ref`’s
+own folder (`an.stores._common.inside_folder()`), else `None`.
+
+```pycon
+>>> asset_file("/store", "maya/parts/head.svg").as_posix()
+'/store/maya/parts/head.svg'
+>>> asset_file("/store", "maya/../other/head.svg") is None, asset_file("/store", "maya") is None
+(True, True)
+```
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.stage.rig.attachment_box(width, height, art)
 
@@ -48430,7 +48811,7 @@ scene: the scene file to read, inside the project (default scene.md; for example
 
 # About this build
 
-This documentation was built on **2026-11-03 12:36 UTC** from commit <a href="https://github.com/reeleehq/an/commit/ffba4ba0dad36d89e20ad72864fcac37d86fb450"><code>ffba4ba</code></a> on branch <code>main</code>, for **an 0.1.362** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-03 13:13 UTC** from commit <a href="https://github.com/reeleehq/an/commit/626297d14f62284cff3f5c0d52a0a843171cf947"><code>626297d</code></a> on branch <code>main</code>, for **an 0.1.363** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -48439,9 +48820,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                    |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/an/commit/ffba4ba0dad36d89e20ad72864fcac37d86fb450"><code>ffba4ba0dad36d89e20ad72864fcac37d86fb450</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/an/commit/626297d14f62284cff3f5c0d52a0a843171cf947"><code>626297d14f62284cff3f5c0d52a0a843171cf947</code></a> |
 | Branch              | <code>main</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.362</code>                                                                                                                               |
+| Tags at this commit | none                                                                                                                                               |
 | Working tree        | clean                                                                                                                                              |
 | Remote              | <code>https://github.com/reeleehq/an</code>                                                                                                        |
 
@@ -48450,9 +48831,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/an</code>                                                                   |
-| Run          | <a href="https://github.com/reeleehq/an/actions/runs/41633876416">41633876416</a>          |
+| Run          | <a href="https://github.com/reeleehq/an/actions/runs/41638797567">41638797567</a>          |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>1e6c911ec9a2d9095320f1fd0d86cd00c5916be6</code> (in the history of the built commit) |
+| Event commit | <code>a71ee5f0269798b71ceb78001050ec5bed89195b</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -48477,13 +48858,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.362/">0.1.362</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.363/">0.1.363</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/an && cd an
-git checkout ffba4ba0dad36d89e20ad72864fcac37d86fb450
+git checkout 626297d14f62284cff3f5c0d52a0a843171cf947
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

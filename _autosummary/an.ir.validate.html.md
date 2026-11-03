@@ -26,16 +26,19 @@ Layout-overlap checks (boxes off-screen, text behind sprites) live in
 
 ### Functions
 
-| [`counter_block_ids`](#an.ir.validate.counter_block_ids)(shot, stores)                   | The ids of `shot`'s counter text blocks (an#342): the only targets a `value` is authored on in the core.                                                                                                      |
-|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`post_synthesis_findings`](#an.ir.validate.post_synthesis_findings)(scene, \*[, fps, checks]) | `(check, finding)` for each finding the synthesized timing gives.                                                                                                                                             |
-| [`registered_kind_problems`](#an.ir.validate.registered_kind_problems)(scene)                   | The findings of the three registry checks alone — every action kind, entity kind and renderer the scene names must be registered — without the rest of `validate_semantic` (no stores, no rig builds; cheap). |
-| [`require_registered_kinds`](#an.ir.validate.require_registered_kinds)(scene, \*[, where])      | `scene`, or [`UnregisteredInSceneError`](#an.ir.validate.UnregisteredInSceneError) naming every action kind, entity kind and renderer it uses that is not registered.                                      |
-| [`rig_scope`](#an.ir.validate.rig_scope)(shot, stores)                           | `(rigged entities by id, ids whose rig store was not supplied)`: which of `shot`'s entities a rig check can read, public for a genre's own checks (reeleehq/cutan#148, `an.genres.API_LEVEL` 13).             |
-| [`rig_stores`](#an.ir.validate.rig_stores)()                                      | `{entity kind: (mall store, descriptor kind)}` for every kind that has a rig.                                                                                                                                 |
-| [`shot_dialogue_overruns`](#an.ir.validate.shot_dialogue_overruns)(shot, \*[, ...])           | `(k, message)` for each line of `shot` that ends past the shot's end.                                                                                                                                         |
-| [`validate_schema`](#an.ir.validate.validate_schema)(doc)                              | Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema.                                                                                                                                   |
-| [`validate_semantic`](#an.ir.validate.validate_semantic)(scene, \*[, ...])               | Cross-field semantic checks.                                                                                                                                                                                  |
+| [`built_node_paths`](#an.ir.validate.built_node_paths)(shot, stores, \*[, resolution])   | `(node paths, None)` — every node path the cutout compiler builds for `shot`'s STAGE (its entities; no actions), from the supplied stores — or `(None, why)` when the stage does not build.                   |
+|-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`counter_block_ids`](#an.ir.validate.counter_block_ids)(shot, stores)                    | The ids of `shot`'s counter text blocks (an#342): the only targets a `value` is authored on in the core.                                                                                                      |
+| [`post_synthesis_findings`](#an.ir.validate.post_synthesis_findings)(scene, \*[, fps, checks])  | `(check, finding)` for each finding the synthesized timing gives.                                                                                                                                             |
+| [`registered_kind_problems`](#an.ir.validate.registered_kind_problems)(scene)                    | The findings of the three registry checks alone — every action kind, entity kind and renderer the scene names must be registered — without the rest of `validate_semantic` (no stores, no rig builds; cheap). |
+| [`require_registered_kinds`](#an.ir.validate.require_registered_kinds)(scene, \*[, where])       | `scene`, or [`UnregisteredInSceneError`](#an.ir.validate.UnregisteredInSceneError) naming every action kind, entity kind and renderer it uses that is not registered.                                      |
+| [`rig_document`](#an.ir.validate.rig_document)(entity, stores)                       | The MIGRATED descriptor behind `entity`, or `None`.                                                                                                                                                           |
+| [`rig_scope`](#an.ir.validate.rig_scope)(shot, stores)                            | `(rigged entities by id, ids whose rig store was not supplied)`: which of `shot`'s entities a rig check can read, public for a genre's own checks (reeleehq/cutan#148, `an.genres.API_LEVEL` 13).             |
+| [`rig_stores`](#an.ir.validate.rig_stores)()                                       | `{entity kind: (mall store, descriptor kind)}` for every kind that has a rig.                                                                                                                                 |
+| [`shot_dialogue_overruns`](#an.ir.validate.shot_dialogue_overruns)(shot, \*[, ...])            | `(k, message)` for each line of `shot` that ends past the shot's end.                                                                                                                                         |
+| [`text_block_ids`](#an.ir.validate.text_block_ids)(ctx)                                | The current shot's text-block entity ids, which the target and entity-reference checks skip.                                                                                                                  |
+| [`validate_schema`](#an.ir.validate.validate_schema)(doc)                               | Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema.                                                                                                                                   |
+| [`validate_semantic`](#an.ir.validate.validate_semantic)(scene, \*[, ...])                | Cross-field semantic checks.                                                                                                                                                                                  |
 
 ### Classes
 
@@ -197,6 +200,20 @@ Result of running one or more validators.
 
 `passed` is True iff there are no error-severity findings.
 
+### an.ir.validate.built_node_paths(shot, stores, , resolution=None)
+
+`(node paths, None)` — every node path the cutout compiler builds for
+`shot`’s STAGE (its entities; no actions), from the supplied stores — or
+`(None, why)` when the stage does not build. Read off the compiler rather
+than restated: a preset play’s node is checked against exactly what compile
+will look it up in (an#166). The failure is RETURNED so the caller reports
+that the check was skipped; swallowing it would be validate saying “fine”
+about a play it never looked at. Without `resolution` the stage is built
+unsized, as a genre’s check calls it (`built_node_paths(shot, stores)`).
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`set`](https://docs.python.org/3/builtins/stdtypes.html#set)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] | [`None`](https://docs.python.org/3/builtins/constants.html#None), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)]
+
 ### an.ir.validate.counter_block_ids(shot, stores)
 
 The ids of `shot`’s counter text blocks (an#342): the only targets a
@@ -238,6 +255,23 @@ kind, entity kind and renderer it uses that is not registered.
 
 * **Return type:**
   [`SceneIR`](an.ir.schema.html.md#an.ir.schema.SceneIR)
+
+### an.ir.validate.rig_document(entity, stores)
+
+The MIGRATED descriptor behind `entity`, or `None`.
+
+Migrated because that is how the compiler reads it: every committed
+pre-0.3.0 character descriptor has no `asset_sets` on disk (0.1.0 carries
+`viseme_map`; `eyelid` is migration-seeded), so the raw dict would refuse
+swaps the compiler accepts.
+
+Keyed on the entity’s KIND rather than on “is it a character”, so a prop’s
+descriptor is found in the props store (an#108). It also refuses a
+document of the wrong kind in the right store — a `CharacterDescriptor`
+under `assets/props/` is not a prop, and the compiler says so too.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.ir.validate.rig_scope(shot, stores)
 
@@ -318,6 +352,16 @@ not trim — the fix of trimming the silence a real voice pads a line with.
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
+### an.ir.validate.text_block_ids(ctx)
+
+The current shot’s text-block entity ids, which the target and
+entity-reference checks skip. Not a pure getter: the first call per shot
+RUNS the text-block check (`_check_text_blocks`), reporting through
+`ctx.report`; later calls return the cached ids (an#730).
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)
 
 ### an.ir.validate.validate_schema(doc)
 

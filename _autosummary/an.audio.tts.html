@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=aca6ff37"></script>
+    <script src="../_static/documentation_options.js?v=08de7b2e"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.362" />
+  <meta name="docsearch:version" content="0.1.363" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -344,6 +344,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.transcripts.html">an.audio.transcripts</a></li>
 <li class="toctree-l3 current active"><a aria-current="page" class="current reference internal" href="#">an.audio.tts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.voice_design.html">an.audio.voice_design</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.voice_listing.html">an.audio.voice_listing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.voices.html">an.audio.voices</a></li>
 </ul>
 </details></li>
@@ -713,14 +714,45 @@ transcription, and the audio pipeline stamps them on the line.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.audio.tts.VoiceMeta">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.tts.</span></span><span class="sig-name descname"><span class="pre">VoiceMeta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">voice_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">provider</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">language</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'en'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gender</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">dict()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/tts.html#VoiceMeta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.tts.VoiceMeta" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.tts.</span></span><span class="sig-name descname"><span class="pre">VoiceMeta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">voice_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">provider</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">language</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'en'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gender</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">dict()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_stock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preview_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/tts.html#VoiceMeta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.tts.VoiceMeta" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Metadata for a TTS voice as exposed by a provider.</p>
-<p><code class="docutils literal notranslate"><span class="pre">extra</span></code> is the provider’s own detail. Keys hosts read (a contract):
-ElevenLabs’s <code class="docutils literal notranslate"><span class="pre">category</span></code>, <code class="docutils literal notranslate"><span class="pre">description</span></code>, <code class="docutils literal notranslate"><span class="pre">labels</span></code> and <code class="docutils literal notranslate"><span class="pre">preview_url</span></code>
-(a sample to hear before casting, an#666; <code class="docutils literal notranslate"><span class="pre">None</span></code> when it has none).</p>
+<p>The fields are the provider-neutral facts a host shows and filters on
+(an#712): <code class="docutils literal notranslate"><span class="pre">is_stock</span></code> is the provider’s own answer to “nobody designed
+this” — one of its stock voices (ElevenLabs’ premade voices, a system
+voice) rather than one an account designed, cloned, recorded or added from
+a shared voice library; <code class="docutils literal notranslate"><span class="pre">accent</span></code>, <code class="docutils literal notranslate"><span class="pre">description</span></code> and <code class="docutils literal notranslate"><span class="pre">preview_url</span></code> (a
+sample to hear before casting, an#666) are <code class="docutils literal notranslate"><span class="pre">None</span></code> where the provider has
+none, and <code class="docutils literal notranslate"><span class="pre">is_stock</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code> where it does not say.</p>
+<p><code class="docutils literal notranslate"><span class="pre">extra</span></code> is the provider’s own detail, in its own words. Keys hosts read
+(a contract): ElevenLabs’s <code class="docutils literal notranslate"><span class="pre">category</span></code> and <code class="docutils literal notranslate"><span class="pre">labels</span></code>. Its
+<code class="docutils literal notranslate"><span class="pre">description</span></code> and <code class="docutils literal notranslate"><span class="pre">preview_url</span></code> keys repeat the fields for one more
+cycle (hosts read <code class="docutils literal notranslate"><span class="pre">extra[&quot;preview_url&quot;]</span></code> since an#666): read the fields.</p>
+<p><a class="reference internal" href="#an.audio.tts.VoiceMeta.as_row" title="an.audio.tts.VoiceMeta.as_row"><code class="xref py py-meth docutils literal notranslate"><span class="pre">as_row()</span></code></a> is the flat, JSON-ready view a host lists
+(<a class="reference internal" href="an.audio.html#an.audio.list_voices" title="an.audio.list_voices"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.audio.list_voices()</span></code></a>).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">VoiceMeta</span><span class="p">(</span><span class="s2">"v1"</span><span class="p">,</span> <span class="s2">"Rachel"</span><span class="p">,</span> <span class="s2">"elevenlabs"</span><span class="p">,</span> <span class="n">is_stock</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">accent</span><span class="o">=</span><span class="s2">"american"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">extra</span><span class="o">=</span><span class="p">{</span><span class="s2">"category"</span><span class="p">:</span> <span class="s2">"premade"</span><span class="p">,</span> <span class="s2">"labels"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"age"</span><span class="p">:</span> <span class="s2">"young"</span><span class="p">}})</span><span class="o">.</span><span class="n">as_row</span><span class="p">()</span>
+<span class="gp">...</span>
+<span class="go">{'voice_id': 'v1', 'name': 'Rachel', 'provider': 'elevenlabs',</span>
+<span class="go"> 'language': 'en', 'gender': None, 'is_stock': True, 'accent': 'american',</span>
+<span class="go"> 'description': None, 'preview_url': None, 'category': 'premade'}</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 </dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="an.audio.tts.VoiceMeta.as_row">
+<span class="sig-name descname"><span class="pre">as_row</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/tts.html#VoiceMeta.as_row"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.tts.VoiceMeta.as_row" title="Link to this definition">#</a></dt>
+<dd><p>The voice as one flat, JSON-ready row: every field but <code class="docutils literal notranslate"><span class="pre">extra</span></code>,
+plus the provider’s own <code class="docutils literal notranslate"><span class="pre">category</span></code> word (kept for display; filter on
+<code class="docutils literal notranslate"><span class="pre">is_stock</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 </section>
@@ -782,7 +814,10 @@ ElevenLabs’s <code class="docutils literal notranslate"><span class="pre">cate
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.tts.TTSProvider.synthesize"><code class="docutils literal notranslate"><span class="pre">TTSProvider.synthesize()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.tts.VoiceMeta"><code class="docutils literal notranslate"><span class="pre">VoiceMeta</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.tts.VoiceMeta"><code class="docutils literal notranslate"><span class="pre">VoiceMeta</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.tts.VoiceMeta.as_row"><code class="docutils literal notranslate"><span class="pre">VoiceMeta.as_row()</span></code></a></li>
+</ul>
+</li>
 </ul>
   </nav></div>
 

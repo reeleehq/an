@@ -50,12 +50,42 @@ Render `text` in `voice_id`’s voice. Returns an AudioClip.
 * **Return type:**
   [`AudioClip`](#an.audio.tts.AudioClip)
 
-### *class* an.audio.tts.VoiceMeta(voice_id, name, provider, language='en', gender=None, extra=dict())
+### *class* an.audio.tts.VoiceMeta(voice_id, name, provider, language='en', gender=None, extra=dict(), is_stock=None, accent=None, description=None, preview_url=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Metadata for a TTS voice as exposed by a provider.
 
-`extra` is the provider’s own detail. Keys hosts read (a contract):
-ElevenLabs’s `category`, `description`, `labels` and `preview_url`
-(a sample to hear before casting, an#666; `None` when it has none).
+The fields are the provider-neutral facts a host shows and filters on
+(an#712): `is_stock` is the provider’s own answer to “nobody designed
+this” — one of its stock voices (ElevenLabs’ premade voices, a system
+voice) rather than one an account designed, cloned, recorded or added from
+a shared voice library; `accent`, `description` and `preview_url` (a
+sample to hear before casting, an#666) are `None` where the provider has
+none, and `is_stock` is `None` where it does not say.
+
+`extra` is the provider’s own detail, in its own words. Keys hosts read
+(a contract): ElevenLabs’s `category` and `labels`. Its
+`description` and `preview_url` keys repeat the fields for one more
+cycle (hosts read `extra["preview_url"]` since an#666): read the fields.
+
+[`as_row()`](#an.audio.tts.VoiceMeta.as_row) is the flat, JSON-ready view a host lists
+([`an.audio.list_voices()`](an.audio.html.md#an.audio.list_voices)).
+
+```pycon
+>>> VoiceMeta("v1", "Rachel", "elevenlabs", is_stock=True, accent="american",
+...     extra={"category": "premade", "labels": {"age": "young"}}).as_row()
+...
+{'voice_id': 'v1', 'name': 'Rachel', 'provider': 'elevenlabs',
+ 'language': 'en', 'gender': None, 'is_stock': True, 'accent': 'american',
+ 'description': None, 'preview_url': None, 'category': 'premade'}
+```
+
+#### as_row()
+
+The voice as one flat, JSON-ready row: every field but `extra`,
+plus the provider’s own `category` word (kept for display; filter on
+`is_stock`).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]

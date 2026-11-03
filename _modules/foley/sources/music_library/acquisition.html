@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../../_static/documentation_options.js?v=aca6ff37"></script>
+    <script src="../../../../_static/documentation_options.js?v=08de7b2e"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.362" />
+  <meta name="docsearch:version" content="0.1.363" />
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -993,9 +993,12 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<div class="viewcode-block" id="DroppedColumnsWarning">
+<a class="viewcode-back" href="../../../../_autosummary/an.music_library.html#an.music_library.DroppedColumnsWarning">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DroppedColumnsWarning</span><span class="p">(</span><span class="ne">UserWarning</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""A tracks-table row named columns that set nothing, and :meth:`AcquiredTrack.from_row`</span>
-<span class="sd">    dropped them."""</span>
+<span class="sd">    dropped them."""</span></div>
+
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_without_reserved</span><span class="p">(</span><span class="n">title</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">metadata</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
@@ -1428,6 +1431,8 @@ window.runMermaid = runMermaid;</script>
 <span class="n">Table</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">AcquiredTrack</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]]</span>
 
 
+<div class="viewcode-block" id="read_tracks_table">
+<a class="viewcode-back" href="../../../../_autosummary/an.music_library.html#an.music_library.read_tracks_table">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">read_tracks_table</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">"""The rows of a tracks table (:func:`tracks_table`'s CSV text), as written; a</span>
 <span class="sd">    byte-order mark an editor added (Excel does) is not part of the first column.</span>
@@ -1452,7 +1457,8 @@ window.runMermaid = runMermaid;</script>
                 <span class="sa">f</span><span class="s2">"its header has columns: </span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="kc">None</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
             <span class="p">)</span>
         <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">rows</span>
+    <span class="k">return</span> <span class="n">rows</span></div>
+
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">held_rows</span><span class="p">(</span><span class="n">table</span><span class="p">:</span> <span class="n">Table</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>

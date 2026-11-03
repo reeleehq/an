@@ -43,8 +43,8 @@ The measuring and the limiter are the fleet’s shared loudness component,
 to [`MIN_MEASURE_S`](#an.audio.loudness.MIN_MEASURE_S), channels kept when they agree), and
 `mixing.loudness.level_group()` does the same and caps the gain, its
 `GainCappedWarning` said again of the voice as a [`VoiceLoudnessWarning`](#an.audio.loudness.VoiceLoudnessWarning)
-(an#699). Each line keeps its own rate: the component resamples them, polyphase,
-to the highest (an#699). The meter injected into both is [`METER`](#an.audio.loudness.METER), ffmpeg’s
+(an#699). Lines at another rate than the voice’s highest are resampled to it by
+ffmpeg, one call per rate (mixing’s own resampler needs scipy, an#578). The meter injected into both is [`METER`](#an.audio.loudness.METER), ffmpeg’s
 `ebur128` run by the ffmpeg on `PATH` (required: never the pip-bundled build
 `mixing` would otherwise prefer, an#578), so `an` takes no scipy.
 `mixing.loudness.limit_peaks()` is the limiter, moved there unchanged (so

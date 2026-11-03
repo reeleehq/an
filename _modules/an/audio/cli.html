@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=aca6ff37"></script>
+    <script src="../../../_static/documentation_options.js?v=08de7b2e"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.362" />
+  <meta name="docsearch:version" content="0.1.363" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -715,8 +715,8 @@ window.runMermaid = runMermaid;</script>
 <span></span><span class="sd">"""``an voices ...`` — browse a TTS provider's voices from the shell (an#209).</span>
 
 <span class="sd">Thin string-typed wrappers dispatched by typer the way ``an character ...`` is;</span>
-<span class="sd">the business logic is :func:`browse_voices`, a plain function over the</span>
-<span class="sd">provider factories.</span>
+<span class="sd">the business logic is :func:`~an.audio.voice_listing.browse_voices`, a plain</span>
+<span class="sd">function over the provider factories.</span>
 
 <span class="sd">    an voices list --provider elevenlabs</span>
 <span class="sd">    an voices list --provider elevenlabs --search british</span>
@@ -739,51 +739,17 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.providers</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_tts</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.tts</span><span class="w"> </span><span class="kn">import</span> <span class="n">TTSProvider</span><span class="p">,</span> <span class="n">VoiceMeta</span>
+
+<span class="c1"># The business logic lives with the voice listing (an#712); re-exported here.</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.voice_listing</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEFAULT_BROWSE_PROVIDER</span><span class="p">,</span> <span class="n">browse_voices</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.sync</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEFAULT_SCENE_FILE</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"browse_voices"</span><span class="p">,</span> <span class="s2">"format_voices"</span><span class="p">,</span> <span class="s2">"retake"</span><span class="p">,</span> <span class="s2">"import_recorded"</span><span class="p">]</span>
-
-<span class="c1">#: The provider ``an voices list`` browses when none is named.</span>
-<span class="n">DEFAULT_BROWSE_PROVIDER</span> <span class="o">=</span> <span class="s2">"elevenlabs"</span>
-
-
-<div class="viewcode-block" id="browse_voices">
-<a class="viewcode-back" href="../../../_autosummary/an.audio.cli.html#an.audio.cli.browse_voices">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">browse_voices</span><span class="p">(</span>
-    <span class="n">provider</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_BROWSE_PROVIDER</span><span class="p">,</span>
-    <span class="o">*</span><span class="p">,</span>
-    <span class="n">search</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">make</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="n">TTSProvider</span><span class="p">]</span> <span class="o">=</span> <span class="n">make_tts</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">VoiceMeta</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""The voices ``provider`` exposes, optionally filtered by ``search``.</span>
-
-<span class="sd">    A provider whose ``list_voices`` takes ``search`` (ElevenLabs) filters on</span>
-<span class="sd">    its server; for the others the filter is a case-insensitive substring over</span>
-<span class="sd">    the name, id and labels.</span>
-
-<span class="sd">    &gt;&gt;&gt; from an.audio.tts import VoiceMeta</span>
-<span class="sd">    &gt;&gt;&gt; class Fake:</span>
-<span class="sd">    ...     name = "fake"</span>
-<span class="sd">    ...     def list_voices(self):</span>
-<span class="sd">    ...         return [VoiceMeta("v1", "Ada", "fake"), VoiceMeta("v2", "Bob", "fake")]</span>
-<span class="sd">    &gt;&gt;&gt; [v.name for v in browse_voices("fake", search="ad", make=lambda _: Fake())]</span>
-<span class="sd">    ['Ada']</span>
-<span class="sd">    """</span>
-    <span class="n">tts</span> <span class="o">=</span> <span class="n">make</span><span class="p">(</span><span class="n">provider</span><span class="p">)</span>
-    <span class="k">if</span> <span class="s2">"search"</span> <span class="ow">in</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">tts</span><span class="o">.</span><span class="n">list_voices</span><span class="p">)</span><span class="o">.</span><span class="n">parameters</span><span class="p">:</span>
-        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">tts</span><span class="o">.</span><span class="n">list_voices</span><span class="p">(</span><span class="n">search</span><span class="o">=</span><span class="n">search</span><span class="p">))</span>  <span class="c1"># type: ignore[call-arg]</span>
-    <span class="n">voices</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">tts</span><span class="o">.</span><span class="n">list_voices</span><span class="p">())</span>
-    <span class="k">if</span> <span class="n">search</span><span class="p">:</span>
-        <span class="n">needle</span> <span class="o">=</span> <span class="n">search</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-        <span class="n">voices</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">voices</span> <span class="k">if</span> <span class="n">needle</span> <span class="ow">in</span> <span class="n">_haystack</span><span class="p">(</span><span class="n">v</span><span class="p">)]</span>
-    <span class="k">return</span> <span class="n">voices</span></div>
-
 
 
 <div class="viewcode-block" id="format_voices">
@@ -802,11 +768,6 @@ window.runMermaid = runMermaid;</script>
         <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">v</span><span class="o">.</span><span class="n">voice_id</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span> <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">"  (</span><span class="si">{</span><span class="n">tail</span><span class="si">}</span><span class="s2">)"</span> <span class="k">if</span> <span class="n">tail</span> <span class="k">else</span> <span class="s2">""</span><span class="p">))</span>
     <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
 
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_haystack</span><span class="p">(</span><span class="n">v</span><span class="p">:</span> <span class="n">VoiceMeta</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="n">labels</span> <span class="o">=</span> <span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">extra</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"labels"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
-    <span class="k">return</span> <span class="s2">" "</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">v</span><span class="o">.</span><span class="n">voice_id</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">labels</span><span class="o">.</span><span class="n">values</span><span class="p">())])</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_list</span><span class="p">(</span><span class="n">provider</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_BROWSE_PROVIDER</span><span class="p">,</span> <span class="n">search</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>

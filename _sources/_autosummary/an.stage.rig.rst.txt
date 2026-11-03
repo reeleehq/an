@@ -23,6 +23,7 @@ an.stage.rig
    .. autosummary::
    
       art_src
+      asset_file
       attachment_box
       bone_extent_centre
       bone_positions

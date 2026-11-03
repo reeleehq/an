@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=aca6ff37"></script>
+    <script src="../../../_static/documentation_options.js?v=08de7b2e"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.362" />
+  <meta name="docsearch:version" content="0.1.363" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -753,6 +753,11 @@ window.runMermaid = runMermaid;</script>
 <span class="n">_DEFAULT_MODEL_ID</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"eleven_turbo_v2_5"</span>
 <span class="n">_DEFAULT_VOICE_ID</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"21m00Tcm4TlvDq8ikWAM"</span>  <span class="c1"># ElevenLabs's "Rachel"</span>
 <span class="n">_DEFAULT_OUTPUT_FORMAT</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"mp3_44100_128"</span>
+<span class="c1">#: The category ElevenLabs gives its stock voices, the ones any account holds</span>
+<span class="c1">#: and nobody designed: ``VoiceMeta.is_stock`` (an#712). A voice an account</span>
+<span class="c1">#: added from ElevenLabs' shared Voice Library has another category, and is</span>
+<span class="c1">#: not stock.</span>
+<span class="n">ELEVENLABS_STOCK_CATEGORY</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"premade"</span>
 
 <span class="c1">#: Model ids that read inline audio tags (``[excited]``, ``[sighs]``). Matched</span>
 <span class="c1">#: as prefixes, so ``eleven_v3_conversational`` and ``eleven_v4_turbo`` count.</span>
@@ -1079,6 +1084,10 @@ window.runMermaid = runMermaid;</script>
         <span class="k">for</span> <span class="n">page</span> <span class="ow">in</span> <span class="n">pages</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">page</span><span class="o">.</span><span class="n">voices</span><span class="p">:</span>
                 <span class="n">labels</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s2">"labels"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span>
+                <span class="n">category</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s2">"category"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="n">description</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s2">"description"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="c1"># a sample to hear before casting the voice (an#666)</span>
+                <span class="n">preview_url</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s2">"preview_url"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
                 <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                     <span class="n">VoiceMeta</span><span class="p">(</span>
                         <span class="n">voice_id</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s2">"voice_id"</span><span class="p">,</span> <span class="s2">""</span><span class="p">),</span>
@@ -1086,12 +1095,17 @@ window.runMermaid = runMermaid;</script>
                         <span class="n">provider</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                         <span class="n">language</span><span class="o">=</span><span class="n">labels</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"language"</span><span class="p">,</span> <span class="s2">"en"</span><span class="p">),</span>
                         <span class="n">gender</span><span class="o">=</span><span class="n">labels</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"gender"</span><span class="p">),</span>
+                        <span class="n">is_stock</span><span class="o">=</span><span class="n">category</span> <span class="o">==</span> <span class="n">ELEVENLABS_STOCK_CATEGORY</span><span class="p">,</span>
+                        <span class="n">accent</span><span class="o">=</span><span class="n">labels</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"accent"</span><span class="p">),</span>
+                        <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                        <span class="n">preview_url</span><span class="o">=</span><span class="n">preview_url</span><span class="p">,</span>
                         <span class="n">extra</span><span class="o">=</span><span class="p">{</span>
-                            <span class="s2">"category"</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s2">"category"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-                            <span class="s2">"description"</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s2">"description"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                            <span class="s2">"category"</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span>
                             <span class="s2">"labels"</span><span class="p">:</span> <span class="n">labels</span><span class="p">,</span>
-                            <span class="c1"># a sample to hear before casting the voice (an#666)</span>
-                            <span class="s2">"preview_url"</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s2">"preview_url"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                            <span class="c1"># the fields again, for one cycle: hosts read</span>
+                            <span class="c1"># extra["preview_url"] since an#666 (an#712)</span>
+                            <span class="s2">"description"</span><span class="p">:</span> <span class="n">description</span><span class="p">,</span>
+                            <span class="s2">"preview_url"</span><span class="p">:</span> <span class="n">preview_url</span><span class="p">,</span>
                         <span class="p">},</span>
                     <span class="p">)</span>
                 <span class="p">)</span>

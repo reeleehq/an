@@ -22,7 +22,7 @@ them. This module also holds what every preset is built from: the rest pose
 
 ```pycon
 >>> from an.ir.compose import flatten, sequence
->>> leaves = _tweens(sequence(pop_in("charlie"), hop("charlie"), shake("charlie")))
+>>> leaves = tweens_of(sequence(pop_in("charlie"), hop("charlie"), shake("charlie")))
 >>> [(f.action.target, f.action.property) for f in leaves][:3]
 [('charlie', 'scale_x'), ('charlie', 'scale_y'), ('charlie', 'y')]
 >>> round(leaves[-1].end, 3)
@@ -79,17 +79,24 @@ too since an#241, but verbatim, as its JSON form).
 
 ### Functions
 
-| [`as_leaves`](#an.motion.as_leaves)(action, \*[, start])                   | `action` as top-level leaves that `scene.md` can round-trip.                                                                                                                                                                                                                         |
-|---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`crawl`](#an.motion.crawl)(target, \*[, distance, duration, ...])     | An opening crawl: lay `target` on a plane tilted away, and slide it up and away.                                                                                                                                                                                                     |
-| [`hop`](#an.motion.hop)(target, \*[, height, duration, rest])        | Jump up by `height` scene pixels and land back where it started.                                                                                                                                                                                                                     |
-| [`pop_in`](#an.motion.pop_in)(target, \*[, duration, easing, rest])     | Grow from nothing to full size, overshooting and settling (an entrance).                                                                                                                                                                                                             |
-| [`rest_pose`](#an.motion.rest_pose)(shot, target, \*[, mall])              | The rest values of `target`'s node as the compiler builds `shot`.                                                                                                                                                                                                                    |
-| [`shake`](#an.motion.shake)(target, \*[, amplitude, duration, ...])    | Tremble side to side `cycles` times and come back to rest (on `x`).                                                                                                                                                                                                                  |
-| [`stage_poses`](#an.motion.stage_poses)(shot, \*[, mall, width, height])     | `{node path: rest pose}` for every node the compiler builds for `shot`'s stage — what [`rest_pose()`](#an.motion.rest_pose) reads one entry of, and what `an validate` checks a preset `play`'s node and every `set`/`tween` target against (an#166, an#193). |
-| [`slide_in`](#an.motion.slide_in)(target, \*[, from_side, distance, ...]) | Whip in from `distance` pixels off to one side, overshoot, and settle.                                                                                                                                                                                                               |
-| [`slide_out`](#an.motion.slide_out)(target, \*[, to_side, distance, ...])  | Exit `distance` pixels off to one side, accelerating (an exit).                                                                                                                                                                                                                      |
-| [`squash_stretch`](#an.motion.squash_stretch)(target, \*[, amount, ...])        | Squash (wide and short), stretch (narrow and tall), then settle.                                                                                                                                                                                                                     |
+| [`alternating`](#an.motion.alternating)(n, first, second)                     | `n` easings alternating `first` and `second` (a swing's out and back).                                                                                                                                                                                                               |
+|----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`as_leaves`](#an.motion.as_leaves)(action, \*[, start])                    | `action` as top-level leaves that `scene.md` can round-trip.                                                                                                                                                                                                                         |
+| [`crawl`](#an.motion.crawl)(target, \*[, distance, duration, ...])      | An opening crawl: lay `target` on a plane tilted away, and slide it up and away.                                                                                                                                                                                                     |
+| [`hop`](#an.motion.hop)(target, \*[, height, duration, rest])         | Jump up by `height` scene pixels and land back where it started.                                                                                                                                                                                                                     |
+| [`pop_in`](#an.motion.pop_in)(target, \*[, duration, easing, rest])      | Grow from nothing to full size, overshooting and settling (an entrance).                                                                                                                                                                                                             |
+| [`require_positive`](#an.motion.require_positive)(\*\*durations)                   | Refuse, naming it, any of `durations` that is not above zero.                                                                                                                                                                                                                        |
+| [`rest_pose`](#an.motion.rest_pose)(shot, target, \*[, mall])               | The rest values of `target`'s node as the compiler builds `shot`.                                                                                                                                                                                                                    |
+| [`rest_value`](#an.motion.rest_value)(rest, prop)                            | `prop`'s value in the `rest` pose, else the identity pose's.                                                                                                                                                                                                                         |
+| [`settled`](#an.motion.settled)(target, prop, value, \*moves)             | `moves` then a `set` pinning `prop` at `value`, where they end (`value` is the last move's end value; the moves are variadic).                                                                                                                                                       |
+| [`shake`](#an.motion.shake)(target, \*[, amplitude, duration, ...])     | Tremble side to side `cycles` times and come back to rest (on `x`).                                                                                                                                                                                                                  |
+| [`side_sign`](#an.motion.side_sign)(side)                                   | `-1.0` for `"left"`, `1.0` for `"right"`; any other side is refused.                                                                                                                                                                                                                 |
+| [`stage_poses`](#an.motion.stage_poses)(shot, \*[, mall, width, height])      | `{node path: rest pose}` for every node the compiler builds for `shot`'s stage — what [`rest_pose()`](#an.motion.rest_pose) reads one entry of, and what `an validate` checks a preset `play`'s node and every `set`/`tween` target against (an#166, an#193). |
+| [`slide_in`](#an.motion.slide_in)(target, \*[, from_side, distance, ...])  | Whip in from `distance` pixels off to one side, overshoot, and settle.                                                                                                                                                                                                               |
+| [`slide_out`](#an.motion.slide_out)(target, \*[, to_side, distance, ...])   | Exit `distance` pixels off to one side, accelerating (an exit).                                                                                                                                                                                                                      |
+| [`squash_stretch`](#an.motion.squash_stretch)(target, \*[, amount, ...])         | Squash (wide and short), stretch (narrow and tall), then settle.                                                                                                                                                                                                                     |
+| [`through`](#an.motion.through)(target, prop, values, \*, durations, ...) | Tweens from `values[i]` to `values[i+1]`, one after the other.                                                                                                                                                                                                                       |
+| [`tweens_of`](#an.motion.tweens_of)(action)                                 | The flattened TWEENS of `action` (the settling <br/><br/>```<br/>``<br/>```<br/><br/>set\`\`s left out).                                                                                                                                                                             |
 
 ### an.motion.HOME_PRESETS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'pop_in', 'slide_in'})*
 
@@ -124,6 +131,18 @@ starts here (an#248).
 
 * **Type:**
   Each preset’s vocabulary version (ADR 0003 decision 2)
+
+### an.motion.alternating(n, first, second)
+
+`n` easings alternating `first` and `second` (a swing’s out and back).
+
+```pycon
+>>> alternating(3, "ease_out", "ease_in")
+['ease_out', 'ease_in', 'ease_out']
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ### an.motion.as_leaves(action, , start=0.0)
 
@@ -167,7 +186,7 @@ enter from below. `fade=None` draws the plane to the horizon.
 >>> sorted((f.action.property, getattr(f.action, "value", None)) for f in leaves
 ...        if isinstance(f.action, SetAction) and f.start == 0)
 [('perspective', 1.0), ('rotation_x', 0.96)]
->>> [(f.action.from_value, f.action.to_value, f.end) for f in _tweens(crawl("crawl",
+>>> [(f.action.from_value, f.action.to_value, f.end) for f in tweens_of(crawl("crawl",
 ...     distance=1000, duration=20, start=-300))]
 [(-300.0, 700.0, 20.0)]
 ```
@@ -180,7 +199,7 @@ enter from below. `fade=None` draws the plane to the horizon.
 Jump up by `height` scene pixels and land back where it started.
 
 ```pycon
->>> [(f.action.from_value, f.action.to_value) for f in _tweens(hop("charlie", height=30))]
+>>> [(f.action.from_value, f.action.to_value) for f in tweens_of(hop("charlie", height=30))]
 [(0.0, -30.0), (-30.0, 0.0)]
 ```
 
@@ -198,12 +217,27 @@ with a `set` before it).
 
 ```pycon
 >>> [(f.action.property, f.action.from_value, f.action.to_value)
-...  for f in _tweens(pop_in("charlie"))]
+...  for f in tweens_of(pop_in("charlie"))]
 [('scale_x', 0.0, 1.0), ('scale_y', 0.0, 1.0)]
 ```
 
 * **Return type:**
   [`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`SetAction`](an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
+
+### an.motion.require_positive(\*\*durations)
+
+Refuse, naming it, any of `durations` that is not above zero.
+
+```pycon
+>>> require_positive(duration=0.5)
+>>> require_positive(hold=0)
+Traceback (most recent call last):
+  ...
+ValueError: hold must be positive, got 0
+```
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.motion.rest_pose(shot, target, , mall=None)
 
@@ -230,26 +264,66 @@ a descriptor rig is built from its character store.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
+### an.motion.rest_value(rest, prop)
+
+`prop`’s value in the `rest` pose, else the identity pose’s.
+
+```pycon
+>>> rest_value({"x": -110.0}, "x"), rest_value(None, "rotation")
+(-110.0, 0.0)
+```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+### an.motion.settled(target, prop, value, \*moves)
+
+`moves` then a `set` pinning `prop` at `value`, where they end
+(`value` is the last move’s end value; the moves are variadic).
+
+A frame shows the pose at `i / fps` and the runtime HOLDS the last pose it
+applied, so a tween ending between two frames leaves its property wherever
+the last sampled frame had it — off rest by a fraction of the final
+segment, and under `step_hz` by the whole of it, since a stepped segment
+shorter than one grid step holds its `from` value to its last instant. A
+`set` holds from the first frame at or after its time until the next
+tween on the same property, so it lands the move exactly.
+
+* **Return type:**
+  [`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`SetAction`](an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
+
 ### an.motion.shake(target, , amplitude=8.0, duration=0.4, cycles=3, rest=None)
 
 Tremble side to side `cycles` times and come back to rest (on `x`).
 
 ```pycon
->>> [f.action.to_value for f in _tweens(shake("charlie", amplitude=5, cycles=2))]
+>>> [f.action.to_value for f in tweens_of(shake("charlie", amplitude=5, cycles=2))]
 [5.0, -5.0, 5.0, -5.0, 0.0]
->>> [f.action.to_value for f in _tweens(shake("charlie", cycles=1, rest={"x": -110}))]
+>>> [f.action.to_value for f in tweens_of(shake("charlie", cycles=1, rest={"x": -110}))]
 [-102.0, -118.0, -110.0]
 ```
 
 * **Return type:**
   [`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`SetAction`](an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
 
+### an.motion.side_sign(side)
+
+`-1.0` for `"left"`, `1.0` for `"right"`; any other side is refused.
+
+```pycon
+>>> side_sign("left"), side_sign("right")
+(-1.0, 1.0)
+```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
 ### an.motion.slide_in(target, , from_side='left', distance=600.0, duration=0.35, easing=(0.34, 1.56, 0.64, 1.0), rest=None)
 
 Whip in from `distance` pixels off to one side, overshoot, and settle.
 
 ```pycon
->>> [(f.action.from_value, f.action.to_value) for f in _tweens(slide_in("charlie", distance=400))]
+>>> [(f.action.from_value, f.action.to_value) for f in tweens_of(slide_in("charlie", distance=400))]
 [(-400.0, 0.0)]
 ```
 
@@ -261,7 +335,7 @@ Whip in from `distance` pixels off to one side, overshoot, and settle.
 Exit `distance` pixels off to one side, accelerating (an exit).
 
 ```pycon
->>> [(f.action.from_value, f.action.to_value) for f in _tweens(slide_out("charlie", to_side="left"))]
+>>> [(f.action.from_value, f.action.to_value) for f in tweens_of(slide_out("charlie", to_side="left"))]
 [(0.0, -600.0)]
 ```
 
@@ -276,7 +350,7 @@ Scales about the target’s own origin (for the procedural rig, the torso’s
 centre). Volume is roughly kept: one axis grows by what the other loses.
 
 ```pycon
->>> [[round(f.action.to_value, 2) for f in _tweens(squash_stretch("c"))
+>>> [[round(f.action.to_value, 2) for f in tweens_of(squash_stretch("c"))
 ...   if f.action.property == p] for p in ("scale_x", "scale_y")]
 [[1.2, 0.9, 1.0], [0.8, 1.1, 1.0]]
 ```
@@ -304,3 +378,26 @@ compiler’s) matter to text, whose line breaks depend on the frame.
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
+
+### an.motion.through(target, prop, values, , durations, easings)
+
+Tweens from `values[i]` to `values[i+1]`, one after the other.
+
+Every segment names its `from`, so the chain never depends on what the
+runtime was holding when it started.
+
+* **Return type:**
+  [`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`SetAction`](an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
+
+### an.motion.tweens_of(action)
+
+The flattened TWEENS of `action` (the settling 
+
+```
+``
+```
+
+set\`\`s left out).
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`FlatAction`](an.ir.compose.html.md#an.ir.compose.FlatAction)]

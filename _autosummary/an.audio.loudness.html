@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=aca6ff37"></script>
+    <script src="../_static/documentation_options.js?v=08de7b2e"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.362" />
+  <meta name="docsearch:version" content="0.1.363" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -344,6 +344,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.transcripts.html">an.audio.transcripts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.voice_design.html">an.audio.voice_design</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.voice_listing.html">an.audio.voice_listing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.voices.html">an.audio.voices</a></li>
 </ul>
 </details></li>
@@ -678,8 +679,8 @@ Without a target, <a class="reference internal" href="#an.audio.loudness.loudnes
 to <a class="reference internal" href="#an.audio.loudness.MIN_MEASURE_S" title="an.audio.loudness.MIN_MEASURE_S"><code class="xref py py-data docutils literal notranslate"><span class="pre">MIN_MEASURE_S</span></code></a>, channels kept when they agree), and
 <code class="xref py py-func docutils literal notranslate"><span class="pre">mixing.loudness.level_group()</span></code> does the same and caps the gain, its
 <code class="docutils literal notranslate"><span class="pre">GainCappedWarning</span></code> said again of the voice as a <a class="reference internal" href="#an.audio.loudness.VoiceLoudnessWarning" title="an.audio.loudness.VoiceLoudnessWarning"><code class="xref py py-class docutils literal notranslate"><span class="pre">VoiceLoudnessWarning</span></code></a>
-(an#699). Each line keeps its own rate: the component resamples them, polyphase,
-to the highest (an#699). The meter injected into both is <a class="reference internal" href="#an.audio.loudness.METER" title="an.audio.loudness.METER"><code class="xref py py-data docutils literal notranslate"><span class="pre">METER</span></code></a>, ffmpeg’s
+(an#699). Lines at another rate than the voice’s highest are resampled to it by
+ffmpeg, one call per rate (mixing’s own resampler needs scipy, an#578). The meter injected into both is <a class="reference internal" href="#an.audio.loudness.METER" title="an.audio.loudness.METER"><code class="xref py py-data docutils literal notranslate"><span class="pre">METER</span></code></a>, ffmpeg’s
 <code class="docutils literal notranslate"><span class="pre">ebur128</span></code> run by the ffmpeg on <code class="docutils literal notranslate"><span class="pre">PATH</span></code> (required: never the pip-bundled build
 <code class="docutils literal notranslate"><span class="pre">mixing</span></code> would otherwise prefer, an#578), so <code class="docutils literal notranslate"><span class="pre">an</span></code> takes no scipy.
 <code class="xref py py-func docutils literal notranslate"><span class="pre">mixing.loudness.limit_peaks()</span></code> is the limiter, moved there unchanged (so

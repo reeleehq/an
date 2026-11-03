@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=aca6ff37"></script>
+    <script src="../_static/documentation_options.js?v=08de7b2e"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.362" />
+  <meta name="docsearch:version" content="0.1.363" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -344,6 +344,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.transcripts.html">an.audio.transcripts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.voice_design.html">an.audio.voice_design</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.voice_listing.html">an.audio.voice_listing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.voices.html">an.audio.voices</a></li>
 </ul>
 </details></li>
@@ -823,7 +824,7 @@ genre defined in the same process).</p>
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.genres.API_LEVEL">
-<span class="sig-prename descclassname"><span class="pre">an.genres.</span></span><span class="sig-name descname"><span class="pre">API_LEVEL</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">15</span></span><a class="headerlink" href="#an.genres.API_LEVEL" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.genres.</span></span><span class="sig-name descname"><span class="pre">API_LEVEL</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">16</span></span><a class="headerlink" href="#an.genres.API_LEVEL" title="Link to this definition">#</a></dt>
 <dd><p>every hook, registry
 field a genre package may rely on. Bumped by each change a
 genre needs (the P8 seam PRs and each move to <code class="docutils literal notranslate"><span class="pre">cutan</span></code>, an#225), never
@@ -875,6 +876,11 @@ an#570, merged after 10 was cut (its <code class="docutils literal notranslate">
 <dt>14 = a kind’s own shot sizes (reeleehq/cutan#106): <a href="#id1"><span class="problematic" id="id2">``</span></a>EntityKind.shot_sizes(entity, mall,</dt><dd><p>box)``, which the world’s framing reads instead of <code class="docutils literal notranslate"><span class="pre">SHOT_SIZES</span></code>.</p>
 </dd>
 <dt>15 = a project’s <code class="docutils literal notranslate"><span class="pre">.gitignore</span></code> read by git’s rules (an#725): <code class="docutils literal notranslate"><span class="pre">an.project.gitignored</span></code></dt><dd><p>and <code class="docutils literal notranslate"><span class="pre">gitignore_matcher</span></code>, for a genre that copies a project (cutan’s projects store).</p>
+</dd>
+<dt>16 = names cutan’s presets, checks and passes read, public (an#730): <code class="docutils literal notranslate"><span class="pre">an.motion</span></code>’s</dt><dd><p><code class="docutils literal notranslate"><span class="pre">alternating</span></code>, <code class="docutils literal notranslate"><span class="pre">require_positive</span></code>, <code class="docutils literal notranslate"><span class="pre">rest_value</span></code>, <code class="docutils literal notranslate"><span class="pre">settled</span></code>, <code class="docutils literal notranslate"><span class="pre">side_sign</span></code>,
+<code class="docutils literal notranslate"><span class="pre">through</span></code> and <code class="docutils literal notranslate"><span class="pre">tweens_of</span></code>; <code class="docutils literal notranslate"><span class="pre">an.ir.validate.built_node_paths</span></code>, <code class="docutils literal notranslate"><span class="pre">rig_document</span></code>
+and <code class="docutils literal notranslate"><span class="pre">text_block_ids</span></code>; <code class="docutils literal notranslate"><span class="pre">an.stage.rig.asset_file</span></code> (module-level names: those two
+modules have no <code class="docutils literal notranslate"><span class="pre">__all__</span></code>).</p>
 </dd>
 </dl>
 <dl class="field-list simple">

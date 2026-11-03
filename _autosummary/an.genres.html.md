@@ -106,7 +106,7 @@ genre defined in the same process).
 | [`RegistryError`](#an.genres.RegistryError)                                | A registration is malformed or collides with one already made.         |
 | [`UnregisteredKindError`](#an.genres.UnregisteredKindError)(what, name, \*[, ...]) | A document names a kind no loaded genre registered.                    |
 
-### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 15*
+### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 16*
 
 every hook, registry
 field a genre package may rely on. Bumped by each change a
@@ -177,6 +177,12 @@ EntityKind.shot_sizes(entity, mall,
 
 15 = a project’s `.gitignore` read by git’s rules (an#725): `an.project.gitignored`
 : and `gitignore_matcher`, for a genre that copies a project (cutan’s projects store).
+
+16 = names cutan’s presets, checks and passes read, public (an#730): `an.motion`’s
+: `alternating`, `require_positive`, `rest_value`, `settled`, `side_sign`,
+  `through` and `tweens_of`; `an.ir.validate.built_node_paths`, `rig_document`
+  and `text_block_ids`; `an.stage.rig.asset_file` (module-level names: those two
+  modules have no `__all__`).
 
 * **Type:**
   The level of the genre-facing API this `an` provides

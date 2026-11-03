@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=aca6ff37"></script>
+    <script src="../../../_static/documentation_options.js?v=08de7b2e"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.362" />
+  <meta name="docsearch:version" content="0.1.363" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -716,7 +716,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">fields</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Protocol</span><span class="p">,</span> <span class="n">runtime_checkable</span>
 
@@ -727,9 +727,28 @@ window.runMermaid = runMermaid;</script>
 <span class="k">class</span><span class="w"> </span><span class="nc">VoiceMeta</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Metadata for a TTS voice as exposed by a provider.</span>
 
-<span class="sd">    ``extra`` is the provider's own detail. Keys hosts read (a contract):</span>
-<span class="sd">    ElevenLabs's ``category``, ``description``, ``labels`` and ``preview_url``</span>
-<span class="sd">    (a sample to hear before casting, an#666; ``None`` when it has none).</span>
+<span class="sd">    The fields are the provider-neutral facts a host shows and filters on</span>
+<span class="sd">    (an#712): ``is_stock`` is the provider's own answer to "nobody designed</span>
+<span class="sd">    this" — one of its stock voices (ElevenLabs' premade voices, a system</span>
+<span class="sd">    voice) rather than one an account designed, cloned, recorded or added from</span>
+<span class="sd">    a shared voice library; ``accent``, ``description`` and ``preview_url`` (a</span>
+<span class="sd">    sample to hear before casting, an#666) are ``None`` where the provider has</span>
+<span class="sd">    none, and ``is_stock`` is ``None`` where it does not say.</span>
+
+<span class="sd">    ``extra`` is the provider's own detail, in its own words. Keys hosts read</span>
+<span class="sd">    (a contract): ElevenLabs's ``category`` and ``labels``. Its</span>
+<span class="sd">    ``description`` and ``preview_url`` keys repeat the fields for one more</span>
+<span class="sd">    cycle (hosts read ``extra["preview_url"]`` since an#666): read the fields.</span>
+
+<span class="sd">    :meth:`as_row` is the flat, JSON-ready view a host lists</span>
+<span class="sd">    (:func:`an.audio.list_voices`).</span>
+
+<span class="sd">    &gt;&gt;&gt; VoiceMeta("v1", "Rachel", "elevenlabs", is_stock=True, accent="american",</span>
+<span class="sd">    ...     extra={"category": "premade", "labels": {"age": "young"}}).as_row()</span>
+<span class="sd">    ... # doctest: +NORMALIZE_WHITESPACE</span>
+<span class="sd">    {'voice_id': 'v1', 'name': 'Rachel', 'provider': 'elevenlabs',</span>
+<span class="sd">     'language': 'en', 'gender': None, 'is_stock': True, 'accent': 'american',</span>
+<span class="sd">     'description': None, 'preview_url': None, 'category': 'premade'}</span>
 <span class="sd">    """</span>
 
     <span class="n">voice_id</span><span class="p">:</span> <span class="nb">str</span>
@@ -737,7 +756,22 @@ window.runMermaid = runMermaid;</script>
     <span class="n">provider</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">language</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"en"</span>
     <span class="n">gender</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">extra</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+    <span class="n">extra</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+    <span class="n">is_stock</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">accent</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">preview_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="VoiceMeta.as_row">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.tts.html#an.audio.VoiceMeta.as_row">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">as_row</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""The voice as one flat, JSON-ready row: every field but ``extra``,</span>
+<span class="sd">        plus the provider's own ``category`` word (kept for display; filter on</span>
+<span class="sd">        ``is_stock``)."""</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="p">{</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s2">"extra"</span><span class="p">}</span>
+        <span class="n">row</span><span class="p">[</span><span class="s2">"category"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">extra</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"category"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">row</span></div>
+</div>
 
 
 

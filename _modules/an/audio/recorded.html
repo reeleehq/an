@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=aca6ff37"></script>
+    <script src="../../../_static/documentation_options.js?v=08de7b2e"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.362" />
+  <meta name="docsearch:version" content="0.1.363" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1139,7 +1139,13 @@ window.runMermaid = runMermaid;</script>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">and</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"voice"</span><span class="p">):</span>
                 <span class="n">seen</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s2">"voice"</span><span class="p">])]</span> <span class="o">=</span> <span class="n">seen</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s2">"voice"</span><span class="p">]),</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
         <span class="k">return</span> <span class="p">[</span>
-            <span class="n">VoiceMeta</span><span class="p">(</span><span class="n">voice_id</span><span class="o">=</span><span class="n">v</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">v</span><span class="p">,</span> <span class="n">provider</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="p">{</span><span class="s2">"takes"</span><span class="p">:</span> <span class="n">n</span><span class="p">})</span>
+            <span class="n">VoiceMeta</span><span class="p">(</span>
+                <span class="n">voice_id</span><span class="o">=</span><span class="n">v</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">v</span><span class="p">,</span>
+                <span class="n">provider</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">extra</span><span class="o">=</span><span class="p">{</span><span class="s2">"takes"</span><span class="p">:</span> <span class="n">n</span><span class="p">},</span>
+                <span class="n">is_stock</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>  <span class="c1"># a performer's own takes (an#712)</span>
+            <span class="p">)</span>
             <span class="k">for</span> <span class="n">v</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">seen</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
         <span class="p">]</span></div>
 

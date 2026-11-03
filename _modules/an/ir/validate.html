@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=aca6ff37"></script>
+    <script src="../../../_static/documentation_options.js?v=08de7b2e"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.362" />
+  <meta name="docsearch:version" content="0.1.363" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -952,7 +952,9 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">registered</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">registered</span><span class="o">.</span><span class="n">placeholder_on_missing</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_rig_document</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">stores</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="rig_document">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.validate.html#an.rig_document">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rig_document</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">stores</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""The MIGRATED descriptor behind ``entity``, or ``None``.</span>
 
 <span class="sd">    Migrated because that is how the compiler reads it: every committed</span>
@@ -978,7 +980,8 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">candidate</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="n">candidate</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"kind"</span><span class="p">)</span> <span class="o">==</span> <span class="n">want_kind</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">migrate</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">candidate</span><span class="p">),</span> <span class="n">kind</span><span class="o">=</span><span class="n">want_kind</span><span class="p">)</span>
-    <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_path_document_problem</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">store</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"str | None | bool"</span><span class="p">:</span>
@@ -1359,7 +1362,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="n">prop</span> <span class="o">==</span> <span class="s2">"value"</span> <span class="ow">and</span> <span class="n">entity_id</span> <span class="ow">in</span> <span class="n">text_blocks</span><span class="p">:</span>
             <span class="k">continue</span>  <span class="c1"># a text block's `value`: `_check_text_blocks` owns it (an#342)</span>
         <span class="n">entity</span> <span class="o">=</span> <span class="n">rigs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entity_id</span><span class="p">)</span>
-        <span class="n">desc</span> <span class="o">=</span> <span class="n">_rig_document</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">stores</span><span class="p">)</span> <span class="k">if</span> <span class="n">entity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">desc</span> <span class="o">=</span> <span class="n">rig_document</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">stores</span><span class="p">)</span> <span class="k">if</span> <span class="n">entity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="n">registered</span> <span class="o">=</span> <span class="n">entity_kind</span><span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">kind</span><span class="p">)</span> <span class="k">if</span> <span class="n">entity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="n">swap_checks</span> <span class="o">=</span> <span class="n">registered</span><span class="o">.</span><span class="n">swap_checks</span> <span class="k">if</span> <span class="n">registered</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">desc</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">entity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1494,7 +1497,7 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Every `set`/`tween` target must be a node the compiler BUILDS (an#193).</span>
 
-<span class="sd">    Resolved against :func:`_built_node_paths` — the compiler's own stage</span>
+<span class="sd">    Resolved against :func:`built_node_paths` — the compiler's own stage</span>
 <span class="sd">    builder, the one a preset `play` is checked against (an#166) — so the rig</span>
 <span class="sd">    is never restated here; the message is the compiler's</span>
 <span class="sd">    (:func:`an.stage.compile.unknown_target_message`), with "did you</span>
@@ -1554,7 +1557,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span>
     <span class="n">why</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">built</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">built</span><span class="p">,</span> <span class="n">why</span> <span class="o">=</span> <span class="n">_built_node_paths</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">stores</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span><span class="p">)</span>
+        <span class="n">built</span><span class="p">,</span> <span class="n">why</span> <span class="o">=</span> <span class="n">built_node_paths</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">stores</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">built</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">on_unbuilt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">on_unbuilt</span><span class="p">(</span><span class="n">why</span><span class="p">)</span>
         <span class="k">return</span>
@@ -1574,7 +1577,9 @@ window.runMermaid = runMermaid;</script>
             <span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_built_node_paths</span><span class="p">(</span>
+<div class="viewcode-block" id="built_node_paths">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.validate.html#an.built_node_paths">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">built_node_paths</span><span class="p">(</span>
     <span class="n">shot</span><span class="p">,</span>
     <span class="n">stores</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
     <span class="o">*</span><span class="p">,</span>
@@ -1586,7 +1591,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    than restated: a preset play's node is checked against exactly what compile</span>
 <span class="sd">    will look it up in (an#166). The failure is RETURNED so the caller reports</span>
 <span class="sd">    that the check was skipped; swallowing it would be validate saying "fine"</span>
-<span class="sd">    about a play it never looked at."""</span>
+<span class="sd">    about a play it never looked at. Without ``resolution`` the stage is built</span>
+<span class="sd">    unsized, as a genre's check calls it (``built_node_paths(shot, stores)``)."""</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.motion</span><span class="w"> </span><span class="kn">import</span> <span class="n">stage_poses</span>
@@ -1600,7 +1606,8 @@ window.runMermaid = runMermaid;</script>
                 <span class="kc">None</span><span class="p">,</span>
             <span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — reported by the caller, by name</span>
-        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span></div>
+
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_check_voice_effects</span><span class="p">(</span>
@@ -1753,7 +1760,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">try</span><span class="p">:</span>
             <span class="c1"># MIGRATED, as the compiler reads it — a pre-flight that validates</span>
             <span class="c1"># a document differently from the thing it predicts is its own</span>
-            <span class="c1"># defect, which is the rule `_rig_document` already follows.</span>
+            <span class="c1"># defect, which is the rule `rig_document` already follows.</span>
             <span class="n">env</span> <span class="o">=</span> <span class="n">environment_from_document</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">entity</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — a malformed descriptor is another check's</span>
             <span class="k">continue</span>
@@ -2655,7 +2662,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="p">,</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">stores</span><span class="p">,</span>
-        <span class="n">text_blocks</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">(</span><span class="n">_text_ids</span><span class="p">(</span><span class="n">ctx</span><span class="p">)),</span>
+        <span class="n">text_blocks</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">(</span><span class="n">text_block_ids</span><span class="p">(</span><span class="n">ctx</span><span class="p">)),</span>
     <span class="p">)</span>
 
 
@@ -2670,9 +2677,13 @@ window.runMermaid = runMermaid;</script>
     <span class="n">_check_trim_targets</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">stores</span><span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_text_ids</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""The current shot's text-block entity ids (checked by `_check_text_blocks`,</span>
-<span class="sd">    once; the target and entity-reference checks skip them)."""</span>
+<div class="viewcode-block" id="text_block_ids">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.validate.html#an.text_block_ids">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">text_block_ids</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The current shot's text-block entity ids, which the target and</span>
+<span class="sd">    entity-reference checks skip. Not a pure getter: the first call per shot</span>
+<span class="sd">    RUNS the text-block check (`_check_text_blocks`), reporting through</span>
+<span class="sd">    ``ctx.report``; later calls return the cached ids (an#730)."""</span>
     <span class="n">res</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span>
     <span class="k">return</span> <span class="n">ctx</span><span class="o">.</span><span class="n">cached</span><span class="p">(</span>
         <span class="p">(</span><span class="s2">"text ids"</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">index</span><span class="p">),</span>
@@ -2684,11 +2695,12 @@ window.runMermaid = runMermaid;</script>
             <span class="n">width</span><span class="o">=</span><span class="n">res</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
             <span class="n">height</span><span class="o">=</span><span class="n">res</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
         <span class="p">),</span>
-    <span class="p">)</span>
+    <span class="p">)</span></div>
+
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_core_text_blocks</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="n">_text_ids</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+    <span class="n">text_block_ids</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_core_stage_after</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -2754,7 +2766,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="p">,</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">stores</span><span class="p">,</span>
         <span class="n">resolution</span><span class="o">=</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">width</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span> <span class="n">res</span><span class="o">.</span><span class="n">height</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">),</span>
-        <span class="n">skip</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">(</span><span class="n">_text_ids</span><span class="p">(</span><span class="n">ctx</span><span class="p">)),</span>
+        <span class="n">skip</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">(</span><span class="n">text_block_ids</span><span class="p">(</span><span class="n">ctx</span><span class="p">)),</span>
         <span class="n">built</span><span class="o">=</span><span class="n">_compiled_node_paths</span><span class="p">(</span><span class="n">ctx</span><span class="p">),</span>
         <span class="n">on_unbuilt</span><span class="o">=</span><span class="n">_targets_unchecked</span><span class="p">(</span><span class="n">ctx</span><span class="p">),</span>
     <span class="p">)</span>
@@ -2845,7 +2857,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_core_entity_refs</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Entity references resolve?"""</span>
-    <span class="n">text_ids</span> <span class="o">=</span> <span class="n">_text_ids</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+    <span class="n">text_ids</span> <span class="o">=</span> <span class="n">text_block_ids</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">entity</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">entity</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">text_ids</span><span class="p">:</span>
             <span class="k">continue</span>
@@ -2877,7 +2889,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">store</span> <span class="o">=</span> <span class="n">mall_stores</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">store_name</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">store</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">True</span>  <span class="c1"># store not supplied → this check did not run</span>
-    <span class="n">doc</span> <span class="o">=</span> <span class="n">_rig_document</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">mall_stores</span><span class="p">)</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="n">rig_document</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">mall_stores</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">_check_rig_document</span><span class="p">(</span>
             <span class="n">doc</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">ir_path</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="n">store</span><span class="p">[</span><span class="n">entity</span><span class="o">.</span><span class="n">ref</span><span class="p">],</span> <span class="n">renderer</span><span class="o">=</span><span class="n">renderer</span>
@@ -4225,6 +4237,12 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="n">_register_core_checks</span><span class="p">()</span>
+
+
+<span class="c1">#: The private spellings genre packages imported before they were public (API level &lt; 16); removed by an#747.</span>
+<span class="n">_built_node_paths</span> <span class="o">=</span> <span class="n">built_node_paths</span>
+<span class="n">_rig_document</span> <span class="o">=</span> <span class="n">rig_document</span>
+<span class="n">_text_ids</span> <span class="o">=</span> <span class="n">text_block_ids</span>
 </pre></div>
 
                 </article>

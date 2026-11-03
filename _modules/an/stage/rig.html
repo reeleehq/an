@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=aca6ff37"></script>
+    <script src="../../../_static/documentation_options.js?v=08de7b2e"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.362" />
+  <meta name="docsearch:version" content="0.1.363" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1966,19 +1966,22 @@ window.runMermaid = runMermaid;</script>
 
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_asset_file</span><span class="p">(</span><span class="n">root</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="n">ref_and_rel</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="asset_file">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.asset_file">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">asset_file</span><span class="p">(</span><span class="n">root</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="n">ref_and_rel</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""``&lt;store root&gt;/&lt;ref&gt;/&lt;rel&gt;`` when ``rel`` stays inside the asset ``ref``'s</span>
 <span class="sd">    own folder (:func:`an.stores._common.inside_folder`), else ``None``.</span>
 
-<span class="sd">    &gt;&gt;&gt; _asset_file("/store", "maya/parts/head.svg").as_posix()</span>
+<span class="sd">    &gt;&gt;&gt; asset_file("/store", "maya/parts/head.svg").as_posix()</span>
 <span class="sd">    '/store/maya/parts/head.svg'</span>
-<span class="sd">    &gt;&gt;&gt; _asset_file("/store", "maya/../other/head.svg") is None, _asset_file("/store", "maya") is None</span>
+<span class="sd">    &gt;&gt;&gt; asset_file("/store", "maya/../other/head.svg") is None, asset_file("/store", "maya") is None</span>
 <span class="sd">    (True, True)</span>
 <span class="sd">    """</span>
     <span class="n">ref</span><span class="p">,</span> <span class="n">sep</span><span class="p">,</span> <span class="n">rel</span> <span class="o">=</span> <span class="n">ref_and_rel</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">"/"</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">sep</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">ref</span> <span class="ow">or</span> <span class="s2">"/"</span> <span class="ow">in</span> <span class="n">ref</span> <span class="ow">or</span> <span class="n">ref</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"."</span><span class="p">,</span> <span class="s2">".."</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">None</span>
-    <span class="k">return</span> <span class="n">inside_folder</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">root</span><span class="p">)</span> <span class="o">/</span> <span class="n">ref</span><span class="p">,</span> <span class="n">rel</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">inside_folder</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">root</span><span class="p">)</span> <span class="o">/</span> <span class="n">ref</span><span class="p">,</span> <span class="n">rel</span><span class="p">)</span></div>
+
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_register_texture</span><span class="p">(</span>
@@ -2030,7 +2033,7 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># A `path` that leaves the ASSET's folder (`..`, absolute, a link to a</span>
         <span class="c1"># sibling asset) is not art the stage may read: absent, never followed</span>
         <span class="c1"># (an#483). `src` is `&lt;prefix&gt;&lt;ref&gt;/&lt;rel&gt;`; the folder is the ref's.</span>
-        <span class="n">path</span> <span class="o">=</span> <span class="n">_asset_file</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">src</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span> <span class="p">:])</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">asset_file</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">src</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span> <span class="p">:])</span>
         <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
             <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span>
         <span class="k">try</span><span class="p">:</span>
@@ -2065,7 +2068,7 @@ window.runMermaid = runMermaid;</script>
     <span class="k">def</span><span class="w"> </span><span class="nf">digest</span><span class="p">(</span><span class="n">src</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">root</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">is_raster</span><span class="p">(</span><span class="n">src</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">src</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">art_prefix</span><span class="p">):</span>
             <span class="k">return</span> <span class="kc">None</span>
-        <span class="n">path</span> <span class="o">=</span> <span class="n">_asset_file</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">src</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">art_prefix</span><span class="p">)</span> <span class="p">:])</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">asset_file</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">src</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">art_prefix</span><span class="p">)</span> <span class="p">:])</span>
         <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># outside the asset's folder: the probe calls it absent</span>
         <span class="k">try</span><span class="p">:</span>
@@ -2946,6 +2949,10 @@ window.runMermaid = runMermaid;</script>
                 <span class="s2">"y"</span><span class="p">:</span> <span class="n">dy</span><span class="p">,</span>
             <span class="p">}</span>
     <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="c1">#: The private spellings genre packages imported before they were public (API level &lt; 16); removed by an#747.</span>
+<span class="n">_asset_file</span> <span class="o">=</span> <span class="n">asset_file</span>
 </pre></div>
 
                 </article>

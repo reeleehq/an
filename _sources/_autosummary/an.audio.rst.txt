@@ -8,6 +8,7 @@ an.audio
 
    .. autosummary::
    
+      list_voices
       word_timings_to_visemes
       import_recordings
       default_tts
@@ -26,6 +27,7 @@ an.audio
       TTSProvider
       AudioClip
       VoiceMeta
+      VoiceRow
       LipSyncProvider
       Viseme
       VisemeTrack
@@ -57,4 +59,5 @@ an.audio
    transcripts
    tts
    voice_design
+   voice_listing
    voices

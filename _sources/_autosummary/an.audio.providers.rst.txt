@@ -20,6 +20,7 @@ an.audio.providers
       known_lipsync_names
       known_tts_names
       lipsync_factories
+      listable_providers
       make_lipsync
       make_tts
    

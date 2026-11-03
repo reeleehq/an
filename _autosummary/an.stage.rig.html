@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=aca6ff37"></script>
+    <script src="../_static/documentation_options.js?v=08de7b2e"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.362" />
+  <meta name="docsearch:version" content="0.1.363" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -344,6 +344,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.transcripts.html">an.audio.transcripts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.voice_design.html">an.audio.voice_design</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.voice_listing.html">an.audio.voice_listing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.voices.html">an.audio.voices</a></li>
 </ul>
 </details></li>
@@ -703,97 +704,100 @@ could not have done. The compiler re-exports the old private spellings.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.art_src" title="an.stage.rig.art_src"><code class="xref py py-obj docutils literal notranslate"><span class="pre">art_src</span></code></a>(ref, rel_path, *[, art_prefix])</p></td>
 <td><p>Path used inside the runtime dir, relative to <code class="docutils literal notranslate"><span class="pre">index.html</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.attachment_box" title="an.stage.rig.attachment_box"><code class="xref py py-obj docutils literal notranslate"><span class="pre">attachment_box</span></code></a>(width, height, art)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.asset_file" title="an.stage.rig.asset_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asset_file</span></code></a>(root, ref_and_rel)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&lt;store</span> <span class="pre">root&gt;/&lt;ref&gt;/&lt;rel&gt;</span></code> when <code class="docutils literal notranslate"><span class="pre">rel</span></code> stays inside the asset <code class="docutils literal notranslate"><span class="pre">ref</span></code>'s own folder (<code class="xref py py-func docutils literal notranslate"><span class="pre">an.stores._common.inside_folder()</span></code>), else <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.attachment_box" title="an.stage.rig.attachment_box"><code class="xref py py-obj docutils literal notranslate"><span class="pre">attachment_box</span></code></a>(width, height, art)</p></td>
 <td><p>The box a part draws in, in view_box units: the declared size wins, the art's aspect is kept (an#220).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.bone_extent_centre" title="an.stage.rig.bone_extent_centre"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bone_extent_centre</span></code></a>(bones)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.bone_extent_centre" title="an.stage.rig.bone_extent_centre"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bone_extent_centre</span></code></a>(bones)</p></td>
 <td><p>The DEFAULT point in view_box space that the entity's placement refers to, when the rig declares no <a class="reference internal" href="#an.stage.rig.RigDocument.origin" title="an.stage.rig.RigDocument.origin"><code class="xref py py-attr docutils literal notranslate"><span class="pre">RigDocument.origin</span></code></a> (<a class="reference internal" href="#an.stage.rig.rig_origin" title="an.stage.rig.rig_origin"><code class="xref py py-func docutils literal notranslate"><span class="pre">rig_origin()</span></code></a>).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.bone_positions" title="an.stage.rig.bone_positions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bone_positions</span></code></a>(desc)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.bone_positions" title="an.stage.rig.bone_positions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bone_positions</span></code></a>(desc)</p></td>
 <td><p>Absolute <code class="docutils literal notranslate"><span class="pre">(x,</span> <span class="pre">y)</span></code> per bone, in view_box units.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.bones_carry_a_rest_pose" title="an.stage.rig.bones_carry_a_rest_pose"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bones_carry_a_rest_pose</span></code></a>(doc)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.bones_carry_a_rest_pose" title="an.stage.rig.bones_carry_a_rest_pose"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bones_carry_a_rest_pose</span></code></a>(doc)</p></td>
 <td><p>Whether any bone of a (raw or model) rig document has a non-zero <code class="docutils literal notranslate"><span class="pre">rotation_deg</span></code> or a non-unit <code class="docutils literal notranslate"><span class="pre">scale_x</span></code>/<code class="docutils literal notranslate"><span class="pre">scale_y</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.build_rig_subtree" title="an.stage.rig.build_rig_subtree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_rig_subtree</span></code></a>(entity, desc_data, *, textures)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.build_rig_subtree" title="an.stage.rig.build_rig_subtree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_rig_subtree</span></code></a>(entity, desc_data, *, textures)</p></td>
 <td><p>Build the scene subtree for a rig (a prop or a character), <strong>from its descriptor</strong>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.chain_draw_order_problems" title="an.stage.rig.chain_draw_order_problems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">chain_draw_order_problems</span></code></a>(desc)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.chain_draw_order_problems" title="an.stage.rig.chain_draw_order_problems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">chain_draw_order_problems</span></code></a>(desc)</p></td>
 <td><p>Where a nested chain asks the STAGE for a draw order it cannot give (an#340, an#403).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.chain_paint_order" title="an.stage.rig.chain_paint_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">chain_paint_order</span></code></a>(desc, *[, built])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.chain_paint_order" title="an.stage.rig.chain_paint_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">chain_paint_order</span></code></a>(desc, *[, built])</p></td>
 <td><p>How each container of a nested chain must order what it holds (an#403).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.chain_pose_problems" title="an.stage.rig.chain_pose_problems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">chain_pose_problems</span></code></a>(desc)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.chain_pose_problems" title="an.stage.rig.chain_pose_problems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">chain_pose_problems</span></code></a>(desc)</p></td>
 <td><p>A rest pose the stage cannot apply in a nested chain (an#340).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.declared_origin" title="an.stage.rig.declared_origin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">declared_origin</span></code></a>(desc)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.declared_origin" title="an.stage.rig.declared_origin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">declared_origin</span></code></a>(desc)</p></td>
 <td><p>The rig's DECLARED origin as two floats, or <code class="docutils literal notranslate"><span class="pre">None</span></code> when it declares none.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.drawn_attachment" title="an.stage.rig.drawn_attachment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">drawn_attachment</span></code></a>(desc, skin, slot)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.drawn_attachment" title="an.stage.rig.drawn_attachment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">drawn_attachment</span></code></a>(desc, skin, slot)</p></td>
 <td><p>The <code class="docutils literal notranslate"><span class="pre">(name,</span> <span class="pre">attachment)</span></code> a slot draws by default, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.global_paint_order" title="an.stage.rig.global_paint_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">global_paint_order</span></code></a>(desc, *[, built])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.global_paint_order" title="an.stage.rig.global_paint_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">global_paint_order</span></code></a>(desc, *[, built])</p></td>
 <td><p>The node paths of a rig's slots, relative to its entity, in DECLARED draw order: the paint list the stage uses when a nested chain interleaves with an unrelated part (an#430), which no sort of a container's own items can give (<a class="reference internal" href="#an.stage.rig.chain_draw_order_problems" title="an.stage.rig.chain_draw_order_problems"><code class="xref py py-func docutils literal notranslate"><span class="pre">chain_draw_order_problems()</span></code></a>).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.legacy_rest_pose_unknown" title="an.stage.rig.legacy_rest_pose_unknown"><code class="xref py py-obj docutils literal notranslate"><span class="pre">legacy_rest_pose_unknown</span></code></a>(raw, kind, *, since)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.legacy_rest_pose_unknown" title="an.stage.rig.legacy_rest_pose_unknown"><code class="xref py py-obj docutils literal notranslate"><span class="pre">legacy_rest_pose_unknown</span></code></a>(raw, kind, *, since)</p></td>
 <td><p>The builder guard (an#339): whether <code class="docutils literal notranslate"><span class="pre">raw</span></code> may be a pre-rest-pose document that its migration could not see.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.natural_paint_order" title="an.stage.rig.natural_paint_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">natural_paint_order</span></code></a>(order, keys)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.natural_paint_order" title="an.stage.rig.natural_paint_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">natural_paint_order</span></code></a>(order, keys)</p></td>
 <td><p>What each container holds in the builder's own order: the slot's visual first, then its children by their own <code class="docutils literal notranslate"><span class="pre">(draw_order,</span> <span class="pre">name)</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.nesting_of" title="an.stage.rig.nesting_of"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nesting_of</span></code></a>(desc)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.nesting_of" title="an.stage.rig.nesting_of"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nesting_of</span></code></a>(desc)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">&quot;flat&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;bones&quot;</span></code> (an#340); unset is flat.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.omit_unset_rig_fields" title="an.stage.rig.omit_unset_rig_fields"><code class="xref py py-obj docutils literal notranslate"><span class="pre">omit_unset_rig_fields</span></code></a>(data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.omit_unset_rig_fields" title="an.stage.rig.omit_unset_rig_fields"><code class="xref py py-obj docutils literal notranslate"><span class="pre">omit_unset_rig_fields</span></code></a>(data)</p></td>
 <td><p>Drop every unset <a class="reference internal" href="#an.stage.rig.RigDocument" title="an.stage.rig.RigDocument"><code class="xref py py-class docutils literal notranslate"><span class="pre">RigDocument</span></code></a> field from a dumped document, in place.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.part_probe" title="an.stage.rig.part_probe"><code class="xref py py-obj docutils literal notranslate"><span class="pre">part_probe</span></code></a>(characters_store, *[, art_prefix])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.part_probe" title="an.stage.rig.part_probe"><code class="xref py py-obj docutils literal notranslate"><span class="pre">part_probe</span></code></a>(characters_store, *[, art_prefix])</p></td>
 <td><p>A probe answering <code class="docutils literal notranslate"><span class="pre">(art</span> <span class="pre">exists,</span> <span class="pre">the</span> <span class="pre">size</span> <span class="pre">it</span> <span class="pre">rasterises</span> <span class="pre">at)</span></code> for a part.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.primary_slot_per_bone" title="an.stage.rig.primary_slot_per_bone"><code class="xref py py-obj docutils literal notranslate"><span class="pre">primary_slot_per_bone</span></code></a>(desc)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.primary_slot_per_bone" title="an.stage.rig.primary_slot_per_bone"><code class="xref py py-obj docutils literal notranslate"><span class="pre">primary_slot_per_bone</span></code></a>(desc)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{bone</span> <span class="pre">name:</span> <span class="pre">the</span> <span class="pre">slot</span> <span class="pre">that</span> <span class="pre">IS</span> <span class="pre">that</span> <span class="pre">bone}</span></code>, when one exists.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.protect_legacy_rest_pose" title="an.stage.rig.protect_legacy_rest_pose"><code class="xref py py-obj docutils literal notranslate"><span class="pre">protect_legacy_rest_pose</span></code></a>(doc)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.protect_legacy_rest_pose" title="an.stage.rig.protect_legacy_rest_pose"><code class="xref py py-obj docutils literal notranslate"><span class="pre">protect_legacy_rest_pose</span></code></a>(doc)</p></td>
 <td><p>The migration step every rig kind runs onto the version that applies the rest pose (an#339).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.raster_digest" title="an.stage.rig.raster_digest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">raster_digest</span></code></a>(store, *[, art_prefix])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.raster_digest" title="an.stage.rig.raster_digest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">raster_digest</span></code></a>(store, *[, art_prefix])</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">digest(src)</span></code>: a short content digest for RASTER art, else <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.register_rest_pose_migration" title="an.stage.rig.register_rest_pose_migration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_rest_pose_migration</span></code></a>(kind, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.register_rest_pose_migration" title="an.stage.rig.register_rest_pose_migration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_rest_pose_migration</span></code></a>(kind, ...)</p></td>
 <td><p>Register the protective rest-pose step for one rig kind (an#339).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.rest_pose_protection" title="an.stage.rig.rest_pose_protection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rest_pose_protection</span></code></a>(raw, migrated, *[, kind])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.rest_pose_protection" title="an.stage.rig.rest_pose_protection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rest_pose_protection</span></code></a>(raw, migrated, *[, kind])</p></td>
 <td><p>What to say when the MIGRATION, on this read, kept a rig's pose unapplied (an#407).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.rest_transform" title="an.stage.rig.rest_transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rest_transform</span></code></a>(bone)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.rest_transform" title="an.stage.rig.rest_transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rest_transform</span></code></a>(bone)</p></td>
 <td><p>The node transform fields a bone's rest pose sets (an#339): its <code class="docutils literal notranslate"><span class="pre">rotation_deg</span></code> in radians and its scales, <code class="docutils literal notranslate"><span class="pre">-0.0</span></code> normalised to <code class="docutils literal notranslate"><span class="pre">0.0</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.rest_world_transforms" title="an.stage.rig.rest_world_transforms"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rest_world_transforms</span></code></a>(desc, *[, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.rest_world_transforms" title="an.stage.rig.rest_world_transforms"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rest_world_transforms</span></code></a>(desc, *[, ...])</p></td>
 <td><p>The rest transform of every slot's node in the entity's frame: the builder's own rule (<a class="reference internal" href="#an.stage.rig.build_rig_subtree" title="an.stage.rig.build_rig_subtree"><code class="xref py py-func docutils literal notranslate"><span class="pre">build_rig_subtree()</span></code></a>, <code class="docutils literal notranslate"><span class="pre">flat</span></code> or <code class="docutils literal notranslate"><span class="pre">bones</span></code> nesting, a bone's rest rotation and scale included, a part nested under another composing through it), for a rig that draws no art yet or whose art is missing too.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.rig_affordances" title="an.stage.rig.rig_affordances"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rig_affordances</span></code></a>(desc)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.rig_affordances" title="an.stage.rig.rig_affordances"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rig_affordances</span></code></a>(desc)</p></td>
 <td><p>What a rig's structure affords, derived from the rig model (an#340).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.rig_origin" title="an.stage.rig.rig_origin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rig_origin</span></code></a>(desc)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.rig_origin" title="an.stage.rig.rig_origin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rig_origin</span></code></a>(desc)</p></td>
 <td><p>The point of the rig, in view_box units, that lands at the entity's placement.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.rig_origin_problems" title="an.stage.rig.rig_origin_problems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rig_origin_problems</span></code></a>(desc)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.rig_origin_problems" title="an.stage.rig.rig_origin_problems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rig_origin_problems</span></code></a>(desc)</p></td>
 <td><p>What is wrong with a rig's declared origin, as warnings (an#338).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.rig_problems" title="an.stage.rig.rig_problems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rig_problems</span></code></a>(desc)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.rig_problems" title="an.stage.rig.rig_problems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rig_problems</span></code></a>(desc)</p></td>
 <td><p>What is structurally wrong with a rig's bones and slots (an#340).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.rig_rest_problems" title="an.stage.rig.rig_rest_problems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rig_rest_problems</span></code></a>(desc)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.rig_rest_problems" title="an.stage.rig.rig_rest_problems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rig_rest_problems</span></code></a>(desc)</p></td>
 <td><p>Warnings about a rig's rest pose (an#339), on a model or a raw document.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.rig_structure" title="an.stage.rig.rig_structure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rig_structure</span></code></a>(desc, *[, built])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.rig_structure" title="an.stage.rig.rig_structure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rig_structure</span></code></a>(desc, *[, built])</p></td>
 <td><p>The bodies, joints and bone anchors of a rig: the core's reading of ANY rig as a jointed figure (ADR 0008 decision 3), the one the <code class="docutils literal notranslate"><span class="pre">solve</span></code> pass builds its bodies from.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.slot_node_paths" title="an.stage.rig.slot_node_paths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">slot_node_paths</span></code></a>(desc)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.slot_node_paths" title="an.stage.rig.slot_node_paths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">slot_node_paths</span></code></a>(desc)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{slot:</span> <span class="pre">its</span> <span class="pre">node</span> <span class="pre">path</span> <span class="pre">relative</span> <span class="pre">to</span> <span class="pre">the</span> <span class="pre">entity}</span></code> (<code class="docutils literal notranslate"><span class="pre">torso/arm/hand</span></code>), by <a class="reference internal" href="#an.stage.rig.slot_parent_chain" title="an.stage.rig.slot_parent_chain"><code class="xref py py-func docutils literal notranslate"><span class="pre">slot_parent_chain()</span></code></a>; a slot caught in a cycle maps to its own name.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.slot_parent_chain" title="an.stage.rig.slot_parent_chain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">slot_parent_chain</span></code></a>(desc)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.slot_parent_chain" title="an.stage.rig.slot_parent_chain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">slot_parent_chain</span></code></a>(desc)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{slot:</span> <span class="pre">the</span> <span class="pre">slot</span> <span class="pre">it</span> <span class="pre">nests</span> <span class="pre">under,</span> <span class="pre">or</span> <span class="pre">None}</span></code>: THE nesting rule (an#340).</p></td>
 </tr>
 </tbody>
@@ -1269,6 +1273,24 @@ via animation tracks targeting <code class="docutils literal notranslate"><span 
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.rig.asset_file">
+<span class="sig-prename descclassname"><span class="pre">an.stage.rig.</span></span><span class="sig-name descname"><span class="pre">asset_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_and_rel</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/rig.html#asset_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.rig.asset_file" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">&lt;store</span> <span class="pre">root&gt;/&lt;ref&gt;/&lt;rel&gt;</span></code> when <code class="docutils literal notranslate"><span class="pre">rel</span></code> stays inside the asset <code class="docutils literal notranslate"><span class="pre">ref</span></code>’s
+own folder (<code class="xref py py-func docutils literal notranslate"><span class="pre">an.stores._common.inside_folder()</span></code>), else <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">asset_file</span><span class="p">(</span><span class="s2">"/store"</span><span class="p">,</span> <span class="s2">"maya/parts/head.svg"</span><span class="p">)</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span>
+<span class="go">'/store/maya/parts/head.svg'</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">asset_file</span><span class="p">(</span><span class="s2">"/store"</span><span class="p">,</span> <span class="s2">"maya/../other/head.svg"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span> <span class="n">asset_file</span><span class="p">(</span><span class="s2">"/store"</span><span class="p">,</span> <span class="s2">"maya"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="go">(True, True)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -2138,6 +2160,7 @@ names it and the builder refuses it.</p></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.rig.art_src"><code class="docutils literal notranslate"><span class="pre">art_src()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.rig.asset_file"><code class="docutils literal notranslate"><span class="pre">asset_file()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.rig.attachment_box"><code class="docutils literal notranslate"><span class="pre">attachment_box()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.rig.bone_extent_centre"><code class="docutils literal notranslate"><span class="pre">bone_extent_centre()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.rig.bone_positions"><code class="docutils literal notranslate"><span class="pre">bone_positions()</span></code></a></li>

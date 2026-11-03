@@ -39,6 +39,7 @@ Two layers live here:
 
 | [`art_src`](#an.stage.rig.art_src)(ref, rel_path, \*[, art_prefix])           | Path used inside the runtime dir, relative to `index.html`.                                                                                                                                                                                                                                                                                        |
 |-----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`asset_file`](#an.stage.rig.asset_file)(root, ref_and_rel)                      | `<store root>/<ref>/<rel>` when `rel` stays inside the asset `ref`'s own folder (`an.stores._common.inside_folder()`), else `None`.                                                                                                                                                                                                                |
 | [`attachment_box`](#an.stage.rig.attachment_box)(width, height, art)                 | The box a part draws in, in view_box units: the declared size wins, the art's aspect is kept (an#220).                                                                                                                                                                                                                                             |
 | [`bone_extent_centre`](#an.stage.rig.bone_extent_centre)(bones)                          | The DEFAULT point in view_box space that the entity's placement refers to, when the rig declares no [`RigDocument.origin`](#an.stage.rig.RigDocument.origin) ([`rig_origin()`](#an.stage.rig.rig_origin)).                                                                                                           |
 | [`bone_positions`](#an.stage.rig.bone_positions)(desc)                               | Absolute `(x, y)` per bone, in view_box units.                                                                                                                                                                                                                                                                                                     |
@@ -430,6 +431,21 @@ Path used inside the runtime dir, relative to `index.html`.
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.stage.rig.asset_file(root, ref_and_rel)
+
+`<store root>/<ref>/<rel>` when `rel` stays inside the asset `ref`’s
+own folder (`an.stores._common.inside_folder()`), else `None`.
+
+```pycon
+>>> asset_file("/store", "maya/parts/head.svg").as_posix()
+'/store/maya/parts/head.svg'
+>>> asset_file("/store", "maya/../other/head.svg") is None, asset_file("/store", "maya") is None
+(True, True)
+```
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.stage.rig.attachment_box(width, height, art)
 

@@ -28,8 +28,9 @@ What stays here is what is an’s:
   uses the track without fetching it again (`an music use`).
 
 The rest of foley’s surface the command and its tests use (`MUSIC_LIBRARIES`,
-[`tracks_table()`](#an.music_library.tracks_table), [`attribution_text()`](#an.music_library.attribution_text), [`titles_by_library()`](#an.music_library.titles_by_library), …) is
-re-exported by name, and loaded on first use: `import an` never imports foley.
+[`tracks_table()`](#an.music_library.tracks_table), [`attribution_text()`](#an.music_library.attribution_text), [`titles_by_library()`](#an.music_library.titles_by_library), and the
+tracks-table reader [`read_tracks_table()`](#an.music_library.read_tracks_table) and `LIST_SEPARATOR`, an#731) is re-exported by name, and loaded on first use:
+`import an` never imports foley.
 
 ```pycon
 >>> license_code("CC-BY-4.0"), license_code("unknown")
@@ -41,7 +42,7 @@ re-exported by name, and loaded on first use: `import an` never imports foley.
 >>> src.provider, src.id, src.license, src.source_page_url
 ('incompetech', 'Sneaky Snitch', 'cc-by-4.0', 'https://incompetech.com/x.mp3')
 >>> src.model_extra
-{'rights_verified': True, 'mirror': 'wayback'}
+{'rights_verified': True, 'commercial_ok': True, 'mirror': 'wayback'}
 ```
 
 ### Module Attributes
@@ -62,11 +63,10 @@ re-exported by name, and loaded on first use: `import an` never imports foley.
 | [`kept_sources`](#an.music_library.kept_sources)(table)                                  | `{file: {"sha256", "url", "mirror"}}` of the acquired or kept rows of a tracks table: [`kept_digests()`](#an.music_library.kept_digests) with where each file came from, so a kept row still says which URL and mirror served it (`acquire(kept=...)` takes either). |
 | [`license_code`](#an.music_library.license_code)(license_id, \*[, codes])                | foley's licence id as an's code: `codes` first, else the id in lowercase.                                                                                                                                                                                                         |
 | [`probe_verify`](#an.music_library.probe_verify)(data, \*[, probe, has_audio, suffix])   | The duration of the audio `data`, in seconds.                                                                                                                                                                                                                                     |
-| [`read_tracks_table`](#an.music_library.read_tracks_table)(text)                              | The rows of a tracks table (`tracks.csv`, [`tracks_table()`](#an.music_library.tracks_table)'s text), as written; a byte-order mark an editor added is not part of the first column.                                                                                 |
+| [`read_tracks_table`](#an.music_library.read_tracks_table)(text)                              | The rows of a tracks table ([`tracks_table()`](#an.music_library.tracks_table)'s CSV text), as written; a byte-order mark an editor added (Excel does) is not part of the first column.                                                                              |
 | [`register_music_library`](#an.music_library.register_music_library)(library, \*[, replace])       | Add `library` to `MUSIC_LIBRARIES` (`replace` to redefine one).                                                                                                                                                                                                                   |
 | [`titles_by_library`](#an.music_library.titles_by_library)(description, \*[, libraries])      | The titles a video description credits, by library (default: the registered ones).                                                                                                                                                                                                |
 | [`titles_from_json`](#an.music_library.titles_from_json)(text)                               | A titles file's JSON: a list of titles, or `{title: {metadata}}`.                                                                                                                                                                                                                 |
-| [`track_from_row`](#an.music_library.track_from_row)(row)                                  | foley's [`AcquiredTrack`](#an.music_library.AcquiredTrack) for a tracks-table `row`, its licence rebuilt from the library's registry (`track_license`), never read from the row: a cell someone edited cannot grant rights (an#623).                                  |
 | [`track_row`](#an.music_library.track_row)(text, title)                               | `title`'s row in the tracks table `text`.                                                                                                                                                                                                                                         |
 | [`tracks_table`](#an.music_library.tracks_table)(rows)                                   | The tracks table as CSV text: `TRACK_COLUMNS`, then any metadata the rows carry, in name order ([`read_tracks_table()`](#an.music_library.read_tracks_table) reads it back).                                                                                              |
 | [`wayback`](#an.music_library.wayback)(url)                                         | The Internet Archive's raw copy of `url` (`WAYBACK_RAW`).                                                                                                                                                                                                                         |
@@ -79,9 +79,10 @@ re-exported by name, and loaded on first use: `import an` never imports foley.
 
 ### Exceptions
 
-| [`MusicLibraryError`](#an.music_library.MusicLibraryError)   | A library, a title or a file that cannot be used, and why.             |
-|----------------------------------------------------------------------|------------------------------------------------------------------------|
-| [`MusicToolMissing`](#an.music_library.MusicToolMissing)    | A tool every title needs is missing: the batch stops before it starts. |
+| [`DroppedColumnsWarning`](#an.music_library.DroppedColumnsWarning)   | A tracks-table row named columns that set nothing, and [`AcquiredTrack.from_row()`](#an.music_library.AcquiredTrack.from_row) dropped them.   |
+|--------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`MusicLibraryError`](#an.music_library.MusicLibraryError)       | A library, a title or a file that cannot be used, and why.                                                                                       |
+| [`MusicToolMissing`](#an.music_library.MusicToolMissing)        | A tool every title needs is missing: the batch stops before it starts.                                                                           |
 
 ### *class* an.music_library.AcquiredTrack(title, library, status, license, file=None, sha256=None, duration_s=None, url=None, mirror=None, page_url=None, credited_by=(), metadata=dict(), error=None)
 
@@ -111,7 +112,7 @@ A column outside `TRACK_COLUMNS` is metadata, as the table wrote it (a
 list or mapping a titles file gave comes back as its cell’s text). A column a
 titles file may not set (a downstream provenance field such as `cost_usd`
 or `cacheable`, a licence flag) is dropped with a
-`DroppedColumnsWarning`: it never sets anything.
+[`DroppedColumnsWarning`](#an.music_library.DroppedColumnsWarning): it never sets anything.
 
 * **Raises:**
   [**MusicLibraryError**](#an.music_library.MusicLibraryError) – For a row with a key that is not text, a blank title,
@@ -148,6 +149,13 @@ is someone’s website).
 
 * **Type:**
   Seconds before a second request to one host (foley’s default pace
+
+### *exception* an.music_library.DroppedColumnsWarning
+
+Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
+
+A tracks-table row named columns that set nothing, and [`AcquiredTrack.from_row()`](#an.music_library.AcquiredTrack.from_row)
+dropped them.
 
 ### an.music_library.FOLEY_LICENSE_CODES *: [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)]* *= {'unknown': None}*
 
@@ -237,7 +245,7 @@ Put one acquired track in the sounds `store` under `key` (an#623).
 
 `track` is foley’s `AcquiredTrack`, or its tracks-table row (a
 `tracks.csv` line, [`track_row()`](#an.music_library.track_row): its licence is rebuilt from the
-library’s registry, [`track_from_row()`](#an.music_library.track_from_row)), and `files` the library
+library’s registry, `AcquiredTrack.from_row`), and `files` the library
 folder as `{file name: bytes}` (`files_store(out)`). The file it names
 is checked against its `sha256`, cut with [`an.sound_fetch.cut_to_wav()`](an.sound_fetch.html.md#an.sound_fetch.cut_to_wav)
 (`start`, `duration`, `fade_out`, as `an sounds add` takes them) and
@@ -258,17 +266,18 @@ is fetched again: the site may be the one that refused scripts.
 One foley row as an’s [`AssetSource`](an.ir.assets.html.md#an.ir.assets.AssetSource).
 
 `track` is a foley `AcquiredTrack` or its `.row()` (as a tracks table
-reads back). `library` is the `provider`, `title` the `id`, the
+reads back), which is rebuilt first (`AcquiredTrack.from_row`, an#731): its
+licence comes from the library’s registry, and a licence cell that says
+otherwise is REFUSED, so an edited row cannot grant rights. `library` is the `provider`, `title` the `id`, the
 licence id an’s code ([`license_code()`](#an.music_library.license_code)); `url` (the mirror that served
 the bytes), `source_page_url` (the library’s own address), the licence URL,
 author, attribution and `sha256` keep their names. The acquisition’s own
 columns (`ROW_ONLY`) stay in the table; every other column
 (`rights_verified`, `commercial_ok`, `mirror`, `credited_by`, a titles
-file’s metadata) rides as an extra; a licence flag read back from CSV
-(`FLAG_COLUMNS`) is a boolean again; a column named like one of the
+file’s metadata) rides as an extra; a column named like one of the
 source’s own fields (`cost_usd`, `cacheable`, `id`, …) is dropped,
-never trusted. Empty cells are dropped. A track also
-gives its licence’s `creator_url` as `author_url` and whether its terms let
+never trusted. Empty cells are dropped. The licence’s `creator_url` is
+the `author_url` and whether its terms let
 the bytes be kept as `cacheable`.
 
 * **Return type:**
@@ -366,14 +375,17 @@ foley.sources.music_library.libraries.MusicLibraryError: the file has no readabl
 
 ### an.music_library.read_tracks_table(text)
 
-The rows of a tracks table (`tracks.csv`, [`tracks_table()`](#an.music_library.tracks_table)’s text),
-as written; a byte-order mark an editor added is not part of the first column.
+The rows of a tracks table ([`tracks_table()`](#an.music_library.tracks_table)’s CSV text), as written; a
+byte-order mark an editor added (Excel does) is not part of the first column.
 
 ```pycon
 >>> read_tracks_table("\ufefftitle,library\r\nA,incompetech\r\n")
 [{'title': 'A', 'library': 'incompetech'}]
 ```
 
+* **Raises:**
+  [**MusicLibraryError**](#an.music_library.MusicLibraryError) – For a header that names a column twice, or a line with
+      more cells than the header has columns (naming its line).
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
@@ -440,18 +452,6 @@ A titles file’s JSON: a list of titles, or `{title: {metadata}}`.
   [**MusicLibraryError**](#an.music_library.MusicLibraryError) – If `text` is not JSON, or not one of those two shapes.
 * **Return type:**
   [`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]]
-
-### an.music_library.track_from_row(row)
-
-foley’s [`AcquiredTrack`](#an.music_library.AcquiredTrack) for a tracks-table `row`, its licence
-rebuilt from the library’s registry (`track_license`), never read from
-the row: a cell someone edited cannot grant rights (an#623). The row’s
-other columns are its metadata.
-
-* **Raises:**
-  [**MusicLibraryError**](#an.music_library.MusicLibraryError) – For a library foley does not know.
-* **Return type:**
-  [`AcquiredTrack`](#an.music_library.AcquiredTrack)
 
 ### an.music_library.track_row(text, title)
 

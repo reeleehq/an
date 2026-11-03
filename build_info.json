@@ -1,34 +1,32 @@
 {
   "schema_version": 1,
-  "built_at": "2026-11-03T12:36:11Z",
+  "built_at": "2026-11-03T13:13:09Z",
   "package": {
     "name": "an",
-    "version": "0.1.362",
+    "version": "0.1.363",
     "display_name": "an",
     "source": "pyproject.toml"
   },
   "git": {
     "available": true,
-    "commit": "ffba4ba0dad36d89e20ad72864fcac37d86fb450",
-    "short_commit": "ffba4ba",
+    "commit": "626297d14f62284cff3f5c0d52a0a843171cf947",
+    "short_commit": "626297d",
     "branch": "main",
-    "tags": [
-      "0.1.362"
-    ],
+    "tags": [],
     "dirty": false,
     "remote_url": "https://github.com/reeleehq/an",
-    "commit_url": "https://github.com/reeleehq/an/commit/ffba4ba0dad36d89e20ad72864fcac37d86fb450",
+    "commit_url": "https://github.com/reeleehq/an/commit/626297d14f62284cff3f5c0d52a0a843171cf947",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "reeleehq/an",
-    "sha": "1e6c911ec9a2d9095320f1fd0d86cd00c5916be6",
+    "sha": "a71ee5f0269798b71ceb78001050ec5bed89195b",
     "sha_in_history": true,
     "ref": "refs/heads/main",
     "ref_name": "main",
-    "run_id": "41633876416",
-    "run_url": "https://github.com/reeleehq/an/actions/runs/41633876416",
+    "run_id": "41638797567",
+    "run_url": "https://github.com/reeleehq/an/actions/runs/41638797567",
     "server_url": "https://github.com"
   },
   "tools": {
@@ -57,16 +55,16 @@
     "docs_dir": "docsrc"
   },
   "site": {
-    "modules_documented": 229,
-    "objects_documented": 3308
+    "modules_documented": 230,
+    "objects_documented": 3329
   },
   "pypi": {
     "checked": true,
-    "latest": "0.1.362",
+    "latest": "0.1.363",
     "relation": "same",
     "error": null
   },
-  "reproduce": "git clone https://github.com/reeleehq/an && cd an\ngit checkout ffba4ba0dad36d89e20ad72864fcac37d86fb450\npip install \"epythet==0.2.22\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/reeleehq/an && cd an\ngit checkout 626297d14f62284cff3f5c0d52a0a843171cf947\npip install \"epythet==0.2.22\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
     "aligned": true,

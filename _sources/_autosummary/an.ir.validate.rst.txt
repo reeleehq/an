@@ -21,13 +21,16 @@ an.ir.validate
 
    .. autosummary::
    
+      built_node_paths
       counter_block_ids
       post_synthesis_findings
       registered_kind_problems
       require_registered_kinds
+      rig_document
       rig_scope
       rig_stores
       shot_dialogue_overruns
+      text_block_ids
       validate_schema
       validate_semantic
    

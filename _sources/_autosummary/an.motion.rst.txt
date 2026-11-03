@@ -17,14 +17,21 @@ an.motion
 
    .. autosummary::
    
+      alternating
       as_leaves
       crawl
       hop
       pop_in
+      require_positive
       rest_pose
+      rest_value
+      settled
       shake
+      side_sign
       stage_poses
       slide_in
       slide_out
       squash_stretch
+      through
+      tweens_of
    

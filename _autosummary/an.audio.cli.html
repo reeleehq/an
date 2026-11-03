@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=aca6ff37"></script>
+    <script src="../_static/documentation_options.js?v=08de7b2e"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.362" />
+  <meta name="docsearch:version" content="0.1.363" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -344,6 +344,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.transcripts.html">an.audio.transcripts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.voice_design.html">an.audio.voice_design</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.voice_listing.html">an.audio.voice_listing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.voices.html">an.audio.voices</a></li>
 </ul>
 </details></li>
@@ -640,8 +641,8 @@
 <span id="an-audio-cli"></span><h1>an.audio.cli<a class="headerlink" href="#module-an.audio.cli" title="Link to this heading">#</a></h1>
 <p><code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">voices</span> <span class="pre">...</span></code> — browse a TTS provider’s voices from the shell (an#209).</p>
 <p>Thin string-typed wrappers dispatched by typer the way <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">character</span> <span class="pre">...</span></code> is;
-the business logic is <a class="reference internal" href="#an.audio.cli.browse_voices" title="an.audio.cli.browse_voices"><code class="xref py py-func docutils literal notranslate"><span class="pre">browse_voices()</span></code></a>, a plain function over the
-provider factories.</p>
+the business logic is <a class="reference internal" href="an.audio.voice_listing.html#an.audio.voice_listing.browse_voices" title="an.audio.voice_listing.browse_voices"><code class="xref py py-func docutils literal notranslate"><span class="pre">browse_voices()</span></code></a>, a plain
+function over the provider factories.</p>
 <blockquote>
 <div><p>an voices list –provider elevenlabs
 an voices list –provider elevenlabs –search british
@@ -665,7 +666,7 @@ the choosing, and prints what it will bill first.</p>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.cli.browse_voices" title="an.audio.cli.browse_voices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">browse_voices</span></code></a>([provider, search, make])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.cli.browse_voices" title="an.audio.cli.browse_voices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">browse_voices</span></code></a>([provider, search, api_key, make])</p></td>
 <td><p>The voices <code class="docutils literal notranslate"><span class="pre">provider</span></code> exposes, optionally filtered by <code class="docutils literal notranslate"><span class="pre">search</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.audio.cli.format_voices" title="an.audio.cli.format_voices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">format_voices</span></code></a>(voices)</p></td>
@@ -682,18 +683,24 @@ the choosing, and prints what it will bill first.</p>
 </div>
 <dl class="py function">
 <dt class="sig sig-object py" id="an.audio.cli.browse_voices">
-<span class="sig-prename descclassname"><span class="pre">an.audio.cli.</span></span><span class="sig-name descname"><span class="pre">browse_voices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">provider</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'elevenlabs'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">make</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">make_tts&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/cli.html#browse_voices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.cli.browse_voices" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.audio.cli.</span></span><span class="sig-name descname"><span class="pre">browse_voices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">provider</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'elevenlabs'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">make</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">make_tts&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/voice_listing.html#browse_voices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.cli.browse_voices" title="Link to this definition">#</a></dt>
 <dd><p>The voices <code class="docutils literal notranslate"><span class="pre">provider</span></code> exposes, optionally filtered by <code class="docutils literal notranslate"><span class="pre">search</span></code>.</p>
 <p>A provider whose <code class="docutils literal notranslate"><span class="pre">list_voices</span></code> takes <code class="docutils literal notranslate"><span class="pre">search</span></code> (ElevenLabs) filters on
 its server; for the others the filter is a case-insensitive substring over
-the name, id and labels.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.tts</span><span class="w"> </span><span class="kn">import</span> <span class="n">VoiceMeta</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">Fake</span><span class="p">:</span>
+the id, name, accent, description and labels.</p>
+<p><code class="docutils literal notranslate"><span class="pre">make</span></code> is the provider seam: <code class="docutils literal notranslate"><span class="pre">make(name)</span></code>, or <code class="docutils literal notranslate"><span class="pre">make(name,</span>
+<span class="pre">api_key=api_key)</span></code> only when a key was given (so a <code class="docutils literal notranslate"><span class="pre">make</span></code> that takes no
+key serves every keyless call); default <a class="reference internal" href="an.audio.providers.html#an.audio.providers.make_tts" title="an.audio.providers.make_tts"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.audio.providers.make_tts()</span></code></a>.
+<code class="docutils literal notranslate"><span class="pre">api_key=None</span></code> means the provider’s own default (ElevenLabs: the
+environment’s key); an empty key is refused (<code class="docutils literal notranslate"><span class="pre">ValueError</span></code>) rather than
+read as “none”.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">Fake</span><span class="p">:</span>
 <span class="gp">... </span>    <span class="n">name</span> <span class="o">=</span> <span class="s2">"fake"</span>
 <span class="gp">... </span>    <span class="k">def</span><span class="w"> </span><span class="nf">list_voices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="gp">... </span>        <span class="k">return</span> <span class="p">[</span><span class="n">VoiceMeta</span><span class="p">(</span><span class="s2">"v1"</span><span class="p">,</span> <span class="s2">"Ada"</span><span class="p">,</span> <span class="s2">"fake"</span><span class="p">),</span> <span class="n">VoiceMeta</span><span class="p">(</span><span class="s2">"v2"</span><span class="p">,</span> <span class="s2">"Bob"</span><span class="p">,</span> <span class="s2">"fake"</span><span class="p">)]</span>
+<span class="gp">... </span>        <span class="k">return</span> <span class="p">[</span><span class="n">VoiceMeta</span><span class="p">(</span><span class="s2">"v1"</span><span class="p">,</span> <span class="s2">"Ada"</span><span class="p">,</span> <span class="s2">"fake"</span><span class="p">),</span>
+<span class="gp">... </span>                <span class="n">VoiceMeta</span><span class="p">(</span><span class="s2">"v2"</span><span class="p">,</span> <span class="s2">"Bob"</span><span class="p">,</span> <span class="s2">"fake"</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">"adenoidal"</span><span class="p">)]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">browse_voices</span><span class="p">(</span><span class="s2">"fake"</span><span class="p">,</span> <span class="n">search</span><span class="o">=</span><span class="s2">"ad"</span><span class="p">,</span> <span class="n">make</span><span class="o">=</span><span class="k">lambda</span> <span class="n">_</span><span class="p">:</span> <span class="n">Fake</span><span class="p">())]</span>
-<span class="go">['Ada']</span>
+<span class="go">['Ada', 'Bob']</span>
 </pre></div>
 </div>
 <dl class="field-list simple">

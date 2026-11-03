@@ -28,7 +28,6 @@ an.music\_library
       register_music_library
       titles_by_library
       titles_from_json
-      track_from_row
       track_row
       tracks_table
       wayback
@@ -44,6 +43,7 @@ an.music\_library
 
    .. autosummary::
    
+      DroppedColumnsWarning
       MusicLibraryError
       MusicToolMissing
    

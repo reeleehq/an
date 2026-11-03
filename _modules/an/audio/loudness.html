@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=aca6ff37"></script>
+    <script src="../../../_static/documentation_options.js?v=08de7b2e"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.362" />
+  <meta name="docsearch:version" content="0.1.363" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -755,8 +755,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">to :data:`MIN_MEASURE_S`, channels kept when they agree), and</span>
 <span class="sd">:func:`mixing.loudness.level_group` does the same and caps the gain, its</span>
 <span class="sd">``GainCappedWarning`` said again of the voice as a :class:`VoiceLoudnessWarning`</span>
-<span class="sd">(an#699). Each line keeps its own rate: the component resamples them, polyphase,</span>
-<span class="sd">to the highest (an#699). The meter injected into both is :data:`METER`, ffmpeg's</span>
+<span class="sd">(an#699). Lines at another rate than the voice's highest are resampled to it by</span>
+<span class="sd">ffmpeg, one call per rate (mixing's own resampler needs scipy, an#578). The meter injected into both is :data:`METER`, ffmpeg's</span>
 <span class="sd">``ebur128`` run by the ffmpeg on ``PATH`` (required: never the pip-bundled build</span>
 <span class="sd">``mixing`` would otherwise prefer, an#578), so ``an`` takes no scipy.</span>
 <span class="sd">:func:`mixing.loudness.limit_peaks` is the limiter, moved there unchanged (so</span>
@@ -852,8 +852,8 @@ window.runMermaid = runMermaid;</script>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_component</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">""":mod:`mixing.loudness`, or :class:`VoiceLoudnessError` when the installed</span>
-<span class="sd">    ``mixing`` predates it or the parts used here: ``group_lufs``, per-segment</span>
-<span class="sd">    rates and ``GainCappedWarning`` (mixing#85, an#699)."""</span>
+<span class="sd">    ``mixing`` predates it or the parts used here: ``group_lufs`` and</span>
+<span class="sd">    ``GainCappedWarning`` (mixing#85, an#699)."""</span>
     <span class="k">with</span> <span class="n">mixing_too_old</span><span class="p">(</span><span class="n">needed_for</span><span class="o">=</span><span class="s2">"leveling voices"</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="n">VoiceLoudnessError</span><span class="p">):</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">mixing</span><span class="w"> </span><span class="kn">import</span> <span class="n">loudness</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">mixing.loudness</span><span class="w"> </span><span class="kn">import</span> <span class="n">GainCappedWarning</span><span class="p">,</span> <span class="n">group_lufs</span>  <span class="c1"># noqa: F401</span>
@@ -898,22 +898,47 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">integrated_loudness</span><span class="p">(</span><span class="n">_Pcm</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">fs</span><span class="p">))</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_group_args</span><span class="p">(</span><span class="n">pcms</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">_Pcm</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_at_rate</span><span class="p">(</span><span class="n">pcm</span><span class="p">:</span> <span class="n">_Pcm</span><span class="p">,</span> <span class="n">rate</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_Pcm</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``pcm`` resampled to ``rate`` by ffmpeg (``aresample``), which measuring</span>
+<span class="sd">    already needs: mixing's own per-segment resampler needs scipy, which ``an``</span>
+<span class="sd">    does not take (an#578)."""</span>
+    <span class="k">if</span> <span class="n">pcm</span><span class="o">.</span><span class="n">rate</span> <span class="o">==</span> <span class="n">rate</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pcm</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.effects</span><span class="w"> </span><span class="kn">import</span> <span class="n">_ffmpeg_wav</span>
+
+    <span class="n">_require_ffmpeg</span><span class="p">(</span><span class="s2">"measuring a voice whose lines differ in sample rate"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_decode</span><span class="p">(</span><span class="n">_ffmpeg_wav</span><span class="p">(</span><span class="n">_encode</span><span class="p">(</span><span class="n">pcm</span><span class="p">),</span> <span class="sa">f</span><span class="s2">"aresample=</span><span class="si">{</span><span class="n">rate</span><span class="si">}</span><span class="s2">"</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_group_args</span><span class="p">(</span><span class="n">pcms</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">_Pcm</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="nb">int</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""A voice's decoded lines as :mod:`mixing.loudness` takes a group: the</span>
-<span class="sd">    segments and one rate each (it resamples them, polyphase, to the highest,</span>
-<span class="sd">    an#699), each keeping its channels — they are joined back to back, keeping</span>
-<span class="sd">    channels when they all agree (EBU R128 weights channels), and a short voice</span>
-<span class="sd">    is looped to :data:`MIN_MEASURE_S`."""</span>
-    <span class="k">return</span> <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">samples</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pcms</span><span class="p">],</span> <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">rate</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pcms</span><span class="p">]</span>
+<span class="sd">    segments at one rate, the highest of theirs, each keeping its channels —</span>
+<span class="sd">    they are joined back to back, keeping channels when they all agree (EBU</span>
+<span class="sd">    R128 weights channels), and a short voice is looped to</span>
+<span class="sd">    :data:`MIN_MEASURE_S`. Lines at another rate are joined per rate and</span>
+<span class="sd">    channel count and resampled by ffmpeg in one call each (:func:`_at_rate`):</span>
+<span class="sd">    the measurement joins them anyway, and a voice with effects at 44.1 kHz</span>
+<span class="sd">    beside plain 22.05 kHz lines pays one subprocess, not one per line."""</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+    <span class="n">rate</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">rate</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pcms</span><span class="p">)</span>
+    <span class="n">segments</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">samples</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pcms</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">rate</span> <span class="o">==</span> <span class="n">rate</span><span class="p">]</span>
+    <span class="n">others</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pcms</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">rate</span> <span class="o">!=</span> <span class="n">rate</span><span class="p">:</span>
+            <span class="n">others</span><span class="o">.</span><span class="n">setdefault</span><span class="p">((</span><span class="n">p</span><span class="o">.</span><span class="n">rate</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">samples</span><span class="p">)</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">_</span><span class="p">),</span> <span class="n">parts</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">others</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+        <span class="n">segments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_at_rate</span><span class="p">(</span><span class="n">_Pcm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">parts</span><span class="p">),</span> <span class="n">r</span><span class="p">),</span> <span class="n">rate</span><span class="p">)</span><span class="o">.</span><span class="n">samples</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">segments</span><span class="p">,</span> <span class="n">rate</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_level_group</span><span class="p">(</span><span class="n">pcms</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">_Pcm</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">target_lufs</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">max_gain_db</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">""":func:`mixing.loudness.level_group` over a voice's decoded lines:</span>
 <span class="sd">    ``(gain_db, measured_lufs)``, measured by :data:`METER`."""</span>
-    <span class="n">segments</span><span class="p">,</span> <span class="n">rates</span> <span class="o">=</span> <span class="n">_group_args</span><span class="p">(</span><span class="n">pcms</span><span class="p">)</span>
+    <span class="n">segments</span><span class="p">,</span> <span class="n">rate</span> <span class="o">=</span> <span class="n">_group_args</span><span class="p">(</span><span class="n">pcms</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">_component</span><span class="p">()</span><span class="o">.</span><span class="n">level_group</span><span class="p">(</span>
         <span class="n">segments</span><span class="p">,</span>
-        <span class="n">rates</span><span class="p">,</span>
+        <span class="n">rate</span><span class="p">,</span>
         <span class="n">target_lufs</span><span class="o">=</span><span class="n">target_lufs</span><span class="p">,</span>
         <span class="n">meter</span><span class="o">=</span><span class="n">_meter</span><span class="p">,</span>
         <span class="n">max_gain_db</span><span class="o">=</span><span class="n">max_gain_db</span><span class="p">,</span>
@@ -955,9 +980,9 @@ window.runMermaid = runMermaid;</script>
     <span class="n">component</span> <span class="o">=</span> <span class="n">_component</span><span class="p">()</span>  <span class="c1"># an old mixing is said even for a voice of no lines</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">pcms</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="s2">"-inf"</span><span class="p">)</span>
-    <span class="n">segments</span><span class="p">,</span> <span class="n">rates</span> <span class="o">=</span> <span class="n">_group_args</span><span class="p">(</span><span class="n">pcms</span><span class="p">)</span>
+    <span class="n">segments</span><span class="p">,</span> <span class="n">rate</span> <span class="o">=</span> <span class="n">_group_args</span><span class="p">(</span><span class="n">pcms</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">component</span><span class="o">.</span><span class="n">group_lufs</span><span class="p">(</span>
-        <span class="n">segments</span><span class="p">,</span> <span class="n">rates</span><span class="p">,</span> <span class="n">meter</span><span class="o">=</span><span class="n">_meter</span><span class="p">,</span> <span class="n">min_measure_s</span><span class="o">=</span><span class="n">MIN_MEASURE_S</span>
+        <span class="n">segments</span><span class="p">,</span> <span class="n">rate</span><span class="p">,</span> <span class="n">meter</span><span class="o">=</span><span class="n">_meter</span><span class="p">,</span> <span class="n">min_measure_s</span><span class="o">=</span><span class="n">MIN_MEASURE_S</span>
     <span class="p">)</span></div>
 
 

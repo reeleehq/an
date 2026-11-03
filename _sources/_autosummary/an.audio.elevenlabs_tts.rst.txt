@@ -8,6 +8,7 @@ an.audio.elevenlabs\_tts
 
    .. autosummary::
    
+      ELEVENLABS_STOCK_CATEGORY
       AUDIO_TAG_MODEL_PREFIXES
       VOICE_SETTINGS_RANGES
    

@@ -3,8 +3,8 @@
 `an voices ...` — browse a TTS provider’s voices from the shell (an#209).
 
 Thin string-typed wrappers dispatched by typer the way `an character ...` is;
-the business logic is [`browse_voices()`](#an.audio.cli.browse_voices), a plain function over the
-provider factories.
+the business logic is [`browse_voices()`](an.audio.voice_listing.html.md#an.audio.voice_listing.browse_voices), a plain
+function over the provider factories.
 
 > an voices list –provider elevenlabs
 > an voices list –provider elevenlabs –search british
@@ -27,28 +27,35 @@ the choosing, and prints what it will bill first.
 
 ### Functions
 
-| [`browse_voices`](#an.audio.cli.browse_voices)([provider, search, make])        | The voices `provider` exposes, optionally filtered by `search`.                                                                                                                                                                                     |
-|-------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`format_voices`](#an.audio.cli.format_voices)(voices)                          | One line per voice: `voice_id  name  (labels)`.                                                                                                                                                                                                     |
-| [`retake`](#an.audio.cli.retake)(project, line, \*[, rescore, tts, ...]) | Release the recorded takes of the lines of `project` containing `line`.                                                                                                                                                                             |
-| [`import_recorded`](#an.audio.cli.import_recorded)(project, audio[, ...])         | Import a performer's recording as the voice of its lines: each line is cut out, matched to the scene's dialogue (or added to --shot), stored with its provenance, and the speaker's character speaks with it — nothing synthesized, nothing billed. |
+| [`browse_voices`](#an.audio.cli.browse_voices)([provider, search, api_key, make])   | The voices `provider` exposes, optionally filtered by `search`.                                                                                                                                                                                     |
+|-----------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`format_voices`](#an.audio.cli.format_voices)(voices)                              | One line per voice: `voice_id  name  (labels)`.                                                                                                                                                                                                     |
+| [`retake`](#an.audio.cli.retake)(project, line, \*[, rescore, tts, ...])     | Release the recorded takes of the lines of `project` containing `line`.                                                                                                                                                                             |
+| [`import_recorded`](#an.audio.cli.import_recorded)(project, audio[, ...])             | Import a performer's recording as the voice of its lines: each line is cut out, matched to the scene's dialogue (or added to --shot), stored with its provenance, and the speaker's character speaks with it — nothing synthesized, nothing billed. |
 
-### an.audio.cli.browse_voices(provider='elevenlabs', \*, search=None, make=<function make_tts>)
+### an.audio.cli.browse_voices(provider='elevenlabs', \*, search=None, api_key=None, make=<function make_tts>)
 
 The voices `provider` exposes, optionally filtered by `search`.
 
 A provider whose `list_voices` takes `search` (ElevenLabs) filters on
 its server; for the others the filter is a case-insensitive substring over
-the name, id and labels.
+the id, name, accent, description and labels.
+
+`make` is the provider seam: `make(name)`, or `make(name,
+api_key=api_key)` only when a key was given (so a `make` that takes no
+key serves every keyless call); default [`an.audio.providers.make_tts()`](an.audio.providers.html.md#an.audio.providers.make_tts).
+`api_key=None` means the provider’s own default (ElevenLabs: the
+environment’s key); an empty key is refused (`ValueError`) rather than
+read as “none”.
 
 ```pycon
->>> from an.audio.tts import VoiceMeta
 >>> class Fake:
 ...     name = "fake"
 ...     def list_voices(self):
-...         return [VoiceMeta("v1", "Ada", "fake"), VoiceMeta("v2", "Bob", "fake")]
+...         return [VoiceMeta("v1", "Ada", "fake"),
+...                 VoiceMeta("v2", "Bob", "fake", description="adenoidal")]
 >>> [v.name for v in browse_voices("fake", search="ad", make=lambda _: Fake())]
-['Ada']
+['Ada', 'Bob']
 ```
 
 * **Return type:**

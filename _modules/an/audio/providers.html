@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=aca6ff37"></script>
+    <script src="../../../_static/documentation_options.js?v=08de7b2e"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.362" />
+  <meta name="docsearch:version" content="0.1.363" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -746,10 +746,14 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="c1">#: A factory takes no arguments, or ``mall=`` when the provider reads a project</span>
-<span class="c1">#: store (``recorded``): :func:`make_tts` passes it only to those that accept it.</span>
+<span class="c1">#: store (``recorded``), or ``api_key=`` when a host may hand it its own key</span>
+<span class="c1">#: (``elevenlabs``): :func:`make_tts` passes each only to those that accept it,</span>
+<span class="c1">#: and :func:`listable_providers` reads the latter, so a provider registered</span>
+<span class="c1">#: here with ``api_key=`` is listable by hosts with nothing else to change.</span>
 <span class="n">TTS_FACTORIES</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">TTSProvider</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">"offline"</span><span class="p">:</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">OfflineTTS</span><span class="p">(),</span>
-    <span class="s2">"elevenlabs"</span><span class="p">:</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ElevenLabsTTS</span><span class="p">(),</span>
+    <span class="c1"># ``api_key``: a host's own key (a guest's, a server's) instead of the env's</span>
+    <span class="s2">"elevenlabs"</span><span class="p">:</span> <span class="k">lambda</span> <span class="o">*</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="kc">None</span><span class="p">:</span> <span class="n">ElevenLabsTTS</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">),</span>
     <span class="s2">"mac_say"</span><span class="p">:</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">MacSayTTS</span><span class="p">(),</span>
     <span class="s2">"recorded"</span><span class="p">:</span> <span class="n">_recorded_factory</span><span class="p">,</span>
 <span class="p">}</span>
@@ -789,15 +793,39 @@ window.runMermaid = runMermaid;</script>
     <span class="p">)</span>
 
 
+<div class="viewcode-block" id="listable_providers">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.providers.html#an.audio.listable_providers">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">listable_providers</span><span class="p">(</span>
+    <span class="o">*</span><span class="p">,</span> <span class="n">factories</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="n">TTS_FACTORIES</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The TTS providers a host may list voices from with its own key: those</span>
+<span class="sd">    whose factory takes ``api_key=`` (an#712). Hand one, with the key, to</span>
+<span class="sd">    :func:`an.audio.list_voices`.</span>
+
+<span class="sd">    &gt;&gt;&gt; listable_providers()</span>
+<span class="sd">    ['elevenlabs']</span>
+<span class="sd">    &gt;&gt;&gt; listable_providers(factories={"a": lambda *, api_key=None: None, "b": lambda: None})</span>
+<span class="sd">    ['a']</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">name</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">factories</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">_accepts</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="s2">"api_key"</span><span class="p">))</span></div>
+
+
+
 <div class="viewcode-block" id="make_tts">
 <a class="viewcode-back" href="../../../_autosummary/an.audio.providers.html#an.audio.make_tts">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">make_tts</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TTSProvider</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_tts</span><span class="p">(</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">api_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TTSProvider</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Instantiate a TTS provider by name.</span>
 
 <span class="sd">    ``mall`` (the project mall) reaches the factories that take it — the</span>
-<span class="sd">    ``recorded`` provider reads the project's ``recordings`` store; the others</span>
-<span class="sd">    are built as before. Raises ``ValueError`` for unknown names with a list of</span>
-<span class="sd">    known options.</span>
+<span class="sd">    ``recorded`` provider reads the project's ``recordings`` store; ``api_key``</span>
+<span class="sd">    (a host's own key) reaches those that take one (ElevenLabs, an#712); the</span>
+<span class="sd">    others are built as before. Raises ``ValueError`` for unknown names with a</span>
+<span class="sd">    list of known options.</span>
 
 <span class="sd">    &gt;&gt;&gt; make_tts("recorded").name</span>
 <span class="sd">    'recorded'</span>
@@ -808,9 +836,10 @@ window.runMermaid = runMermaid;</script>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"unknown TTS provider </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">; known: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">TTS_FACTORIES</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
-    <span class="k">if</span> <span class="n">mall</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">_accepts</span><span class="p">(</span><span class="n">factory</span><span class="p">,</span> <span class="s2">"mall"</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">factory</span><span class="p">(</span><span class="n">mall</span><span class="o">=</span><span class="n">mall</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">factory</span><span class="p">()</span></div>
+    <span class="n">given</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"mall"</span><span class="p">:</span> <span class="n">mall</span><span class="p">,</span> <span class="s2">"api_key"</span><span class="p">:</span> <span class="n">api_key</span><span class="p">}</span>
+    <span class="k">return</span> <span class="n">factory</span><span class="p">(</span>
+        <span class="o">**</span><span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">given</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">_accepts</span><span class="p">(</span><span class="n">factory</span><span class="p">,</span> <span class="n">k</span><span class="p">)}</span>
+    <span class="p">)</span></div>
 
 
 
