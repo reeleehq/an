@@ -37,15 +37,20 @@ Without a target, :func:`loudness_report` measures the voices and
 
 The measuring and the limiter are the fleet's shared loudness component,
 :mod:`mixing.loudness` (an#563; ``mixing`` is a core dependency since an#611):
-:func:`mixing.loudness.level_group` measures a voice's lines back to back (looped
-to :data:`MIN_MEASURE_S`, channels kept when they agree) and caps the gain, with
-ffmpeg's ``ebur128`` injected as its meter (:data:`METER`) so ``an`` takes no
-scipy; :func:`mixing.loudness.limit_peaks` is the limiter, moved there unchanged
-(so :data:`LEVEL_VERSION` did not move, and a test pins the leveled bytes).
-What stays here is ``an``'s own: the voices, the offsets, the hysteresis, the
-makeup pass and the content keys. A ``mixing`` too old to have
-``mixing.loudness`` raises :class:`VoiceLoudnessError` telling the user to
-upgrade it (:func:`an.audio.shared_mixing.mixing_too_old`, an#621).
+:func:`mixing.loudness.group_lufs` measures a voice's lines back to back (looped
+to :data:`MIN_MEASURE_S`, channels kept when they agree), and
+:func:`mixing.loudness.level_group` does the same and caps the gain, its
+``GainCappedWarning`` said again of the voice as a :class:`VoiceLoudnessWarning`
+(an#699). Each line keeps its own rate: the component resamples them, polyphase,
+to the highest (an#699). The meter injected into both is :data:`METER`, ffmpeg's
+``ebur128`` run by the ffmpeg on ``PATH`` (required: never the pip-bundled build
+``mixing`` would otherwise prefer, an#578), so ``an`` takes no scipy.
+:func:`mixing.loudness.limit_peaks` is the limiter, moved there unchanged (so
+:data:`LEVEL_VERSION` did not move, and a test pins the leveled bytes). What
+stays here is ``an``'s own: the voices, the offsets, the hysteresis, the makeup
+pass and the content keys. A ``mixing`` too old to have the parts used here
+raises :class:`VoiceLoudnessError` telling the user to upgrade it
+(:func:`an.audio.shared_mixing.mixing_too_old`, an#621).
 """
 
 from __future__ import annotations
@@ -55,9 +60,8 @@ import io
 import json
 import shutil
 import wave
-from collections.abc import Mapping, MutableMapping
+from collections.abc import Callable, Mapping, MutableMapping
 from dataclasses import dataclass
-from functools import partial
 from typing import Any
 
 from an.audio.shared_mixing import mixing_too_old
@@ -91,10 +95,6 @@ MIN_MEASURE_S: float = 1.0
 #: A leveled voice that ends further than this from its target (the limiter
 #: held its peaks, or the gain was capped) is warned about.
 MISS_WARNING_DB: float = 1.0
-#: The loudness meter injected into :mod:`mixing.loudness` (one of its
-#: ``METERS``): ffmpeg's ``ebur128``, so ``an`` needs no scipy for its numpy meter.
-#: Given the PATH ffmpeg (its ``ffmpeg=``), so it must name a meter that takes one.
-METER: str = "ffmpeg_ebur128"
 #: 16-bit full scale.
 _INT16_FULL_SCALE: float = 32768.0
 
@@ -118,12 +118,16 @@ class _Pcm:
     rate: int
 
 
-def _require_ffmpeg(doing: str) -> None:
-    if shutil.which("ffmpeg") is None:
+def _require_ffmpeg(doing: str) -> str:
+    """The ffmpeg on ``PATH``, or :class:`VoiceLoudnessError` saying how to
+    install it: never another build in its place (an#578)."""
+    ffmpeg = shutil.which("ffmpeg")
+    if ffmpeg is None:
         raise VoiceLoudnessError(
             f"{doing} needs the ffmpeg binary on PATH (macOS: `brew install ffmpeg`; "
             "Debian/Ubuntu: `apt install ffmpeg`)"
         )
+    return ffmpeg
 
 
 def _component() -> Any:
@@ -199,7 +203,23 @@ def _level_group(pcms: list[_Pcm], *, target_lufs: float, max_gain_db: float):
 
 def _capped_message(voice: str, capped: Any) -> str:
     """What ``mixing``'s ``GainCappedWarning`` says (of a "group"), said of
-    ``voice`` from its fields (an#699)."""
+    ``voice`` from its fields (an#699); its own words, prefixed with the voice,
+    when a field is missing.
+
+    Goes once ``level_group`` takes the subject to name (reeleehq/mixing#171).
+
+    >>> class Capped(UserWarning):
+    ...     measured_lufs, target_lufs = -62.0, -16.0
+    ...     requested_gain_db, max_gain_db = 46.0, 24.0
+    >>> _capped_message("kid", Capped())
+    "voice 'kid' measures -62.0 LUFS: reaching -16 would take 46.0 dB, mostly noise; capped at +24 dB"
+    >>> Capped.target_lufs = None  # a field missing: mixing's own words
+    >>> _capped_message("kid", Capped("group measures -62.0 LUFS"))
+    "voice 'kid': group measures -62.0 LUFS"
+    """
+    fields = ("measured_lufs", "target_lufs", "requested_gain_db", "max_gain_db")
+    if any(getattr(capped, f, None) is None for f in fields):
+        return f"voice {voice!r}: {capped}"
     return (
         f"voice {voice!r} measures {capped.measured_lufs:.1f} LUFS: reaching "
         f"{capped.target_lufs:g} would take {capped.requested_gain_db:.1f} dB, "
@@ -224,16 +244,31 @@ def group_loudness(pcms: list[_Pcm]) -> float:
 # -----------------------------------------------------------------------------
 
 
+def _path_ebur128(data: Any, fs: int) -> float:
+    """ffmpeg's ``ebur128`` (:func:`mixing.loudness.ebur128_lufs`) run by the
+    ffmpeg on ``PATH``, as every other ffmpeg ``an`` runs: never the pip-bundled
+    build ``mixing`` prefers when imageio-ffmpeg is installed (an#578,
+    mixing#145). :class:`VoiceLoudnessError` without one."""
+    ffmpeg = _require_ffmpeg("measuring a voice's loudness")
+    return _component().ebur128_lufs(data, fs, ffmpeg=ffmpeg)
+
+
+#: The loudness meter, ``(samples, rate) -> LUFS``, injected into
+#: :mod:`mixing.loudness` (looked up at call time, so it can be swapped):
+#: ffmpeg's ``ebur128`` by the PATH ffmpeg, so ``an`` needs no scipy for
+#: ``mixing``'s numpy meter.
+METER: Callable[[Any, int], float] = _path_ebur128
+
+
 def integrated_loudness(pcm: _Pcm) -> float:
     """EBU R128 integrated loudness (LUFS) of ``pcm``, by :data:`METER` through
     :func:`mixing.loudness.integrated_lufs` (``-inf`` for silence)."""
     component = _component()
-    # The PATH ffmpeg, as every other ffmpeg ``an`` runs: never the pip-bundled
-    # build mixing prefers when imageio-ffmpeg is installed (an#578, mixing#145).
-    meter = partial(component.METERS[METER], ffmpeg=shutil.which("ffmpeg"))
     try:
-        return component.integrated_lufs(pcm.samples, pcm.rate, meter=meter)
-    except RuntimeError as e:  # no ffmpeg, or ffmpeg failed
+        return component.integrated_lufs(pcm.samples, pcm.rate, meter=METER)
+    except VoiceLoudnessError:
+        raise  # already says what to do (no ffmpeg on PATH)
+    except RuntimeError as e:  # ffmpeg failed
         raise VoiceLoudnessError(
             f"measuring a voice's loudness: {e} (macOS: `brew install ffmpeg`; "
             "Debian/Ubuntu: `apt install ffmpeg`)"
