@@ -673,7 +673,11 @@ def test_the_loudness_component_loads_no_media_stack():
         "print(bad)\n"
         "sys.exit(1 if bad else 0)\n"
     )
-    done = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True)
+    root = Path(__file__).resolve().parents[1]  # this checkout's an, not an installed one
+    done = subprocess.run(
+        [sys.executable, "-c", code], capture_output=True, text=True, cwd=root,
+        env={**__import__("os").environ, "PYTHONPATH": str(root)},
+    )
     assert done.returncode == 0, done.stdout + done.stderr
 
 

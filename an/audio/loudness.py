@@ -41,8 +41,8 @@ The measuring and the limiter are the fleet's shared loudness component,
 to :data:`MIN_MEASURE_S`, channels kept when they agree), and
 :func:`mixing.loudness.level_group` does the same and caps the gain, its
 ``GainCappedWarning`` said again of the voice as a :class:`VoiceLoudnessWarning`
-(an#699). Each line keeps its own rate: the component resamples them, polyphase,
-to the highest (an#699). The meter injected into both is :data:`METER`, ffmpeg's
+(an#699). Lines at another rate than the voice's highest are resampled to it by
+ffmpeg, one call per rate (mixing's own resampler needs scipy, an#578). The meter injected into both is :data:`METER`, ffmpeg's
 ``ebur128`` run by the ffmpeg on ``PATH`` (required: never the pip-bundled build
 ``mixing`` would otherwise prefer, an#578), so ``an`` takes no scipy.
 :func:`mixing.loudness.limit_peaks` is the limiter, moved there unchanged (so
@@ -132,8 +132,8 @@ def _require_ffmpeg(doing: str) -> str:
 
 def _component() -> Any:
     """:mod:`mixing.loudness`, or :class:`VoiceLoudnessError` when the installed
-    ``mixing`` predates it or the parts used here: ``group_lufs``, per-segment
-    rates and ``GainCappedWarning`` (mixing#85, an#699)."""
+    ``mixing`` predates it or the parts used here: ``group_lufs`` and
+    ``GainCappedWarning`` (mixing#85, an#699)."""
     with mixing_too_old(needed_for="leveling voices", error=VoiceLoudnessError):
         from mixing import loudness
         from mixing.loudness import GainCappedWarning, group_lufs  # noqa: F401
@@ -192,12 +192,24 @@ def _at_rate(pcm: _Pcm, rate: int) -> _Pcm:
 
 def _group_args(pcms: list[_Pcm]) -> tuple[list[Any], int]:
     """A voice's decoded lines as :mod:`mixing.loudness` takes a group: the
-    segments at one rate, the highest of theirs (a line at another is
-    resampled by ffmpeg, :func:`_at_rate`), each keeping its channels — they
-    are joined back to back, keeping channels when they all agree (EBU R128
-    weights channels), and a short voice is looped to :data:`MIN_MEASURE_S`."""
+    segments at one rate, the highest of theirs, each keeping its channels —
+    they are joined back to back, keeping channels when they all agree (EBU
+    R128 weights channels), and a short voice is looped to
+    :data:`MIN_MEASURE_S`. Lines at another rate are joined per rate and
+    channel count and resampled by ffmpeg in one call each (:func:`_at_rate`):
+    the measurement joins them anyway, and a voice with effects at 44.1 kHz
+    beside plain 22.05 kHz lines pays one subprocess, not one per line."""
+    import numpy as np
+
     rate = max(p.rate for p in pcms)
-    return [_at_rate(p, rate).samples for p in pcms], rate
+    segments = [p.samples for p in pcms if p.rate == rate]
+    others: dict[tuple[int, int], list[Any]] = {}
+    for p in pcms:
+        if p.rate != rate:
+            others.setdefault((p.rate, p.samples.shape[1]), []).append(p.samples)
+    for (r, _), parts in sorted(others.items()):
+        segments.append(_at_rate(_Pcm(np.concatenate(parts), r), rate).samples)
+    return segments, rate
 
 
 def _level_group(pcms: list[_Pcm], *, target_lufs: float, max_gain_db: float):
