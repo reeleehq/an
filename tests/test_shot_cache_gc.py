@@ -1402,7 +1402,7 @@ def test_gc_deletes_the_temps_killed_sidecar_writes_left(tmp_path):
         root / "assets" / "props" / "lamp" / "parts" / ".arm.svg.22cc33dd.tmp",
     ]
     (root / "assets" / "sounds" / "door").mkdir(parents=True)
-    (root / "assets" / "sounds" / "door" / "meta.json").write_text("{}")
+    (root / "assets" / "sounds" / "door" / "meta.json").write_bytes(b"{}")
     for t in temps:
         t.parent.mkdir(parents=True, exist_ok=True)
         t.write_bytes(b"x")
