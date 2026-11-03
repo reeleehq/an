@@ -27,8 +27,7 @@ What stays here is what is an's:
 
 The rest of foley's surface the command and its tests use (:data:`MUSIC_LIBRARIES`,
 :func:`tracks_table`, :func:`attribution_text`, :func:`titles_by_library`, and the
-tracks-table reader :func:`read_tracks_table`, :func:`held_rows`,
-:data:`LIST_SEPARATOR`, an#731) is re-exported by name, and loaded on first use:
+tracks-table reader :func:`read_tracks_table` and :data:`LIST_SEPARATOR`, an#731) is re-exported by name, and loaded on first use:
 ``import an`` never imports foley.
 
 >>> license_code("CC-BY-4.0"), license_code("unknown")
@@ -40,7 +39,7 @@ tracks-table reader :func:`read_tracks_table`, :func:`held_rows`,
 >>> src.provider, src.id, src.license, src.source_page_url
 ('incompetech', 'Sneaky Snitch', 'cc-by-4.0', 'https://incompetech.com/x.mp3')
 >>> src.model_extra
-{'rights_verified': True, 'mirror': 'wayback'}
+{'rights_verified': True, 'commercial_ok': True, 'mirror': 'wayback'}
 """
 
 from __future__ import annotations
@@ -74,7 +73,6 @@ __all__ = [
     "asset_source",
     "attribution_text",
     "files_store",
-    "held_rows",
     "kept_digests",
     "kept_sources",
     "license_code",
@@ -83,7 +81,6 @@ __all__ = [
     "register_music_library",
     "titles_by_library",
     "titles_from_json",
-    "track_from_row",
     "track_row",
     "tracks_table",
     "wayback",
@@ -108,7 +105,6 @@ FOLEY_NAMES: frozenset[str] = frozenset(
         "MusicToolMissing",
         "attribution_text",
         "files_store",
-        "held_rows",
         "kept_digests",
         "kept_sources",
         "probe_verify",
@@ -130,11 +126,6 @@ FOLEY_LICENSE_CODES: Mapping[str, str | None] = {"unknown": None}
 #: The row columns that describe the acquisition, not the asset: they stay in the
 #: tracks table. ``title`` and ``library`` become ``id`` and ``provider``.
 ROW_ONLY: frozenset[str] = frozenset({"status", "file", "duration_s", "error"})
-#: The licence flags a row carries: a tracks table read back from CSV gives them as
-#: ``"True"`` / ``"False"``, which :func:`asset_source` makes booleans again.
-FLAG_COLUMNS: frozenset[str] = frozenset({"rights_verified", "commercial_ok"})
-#: How a CSV cell spells a flag.
-CSV_BOOLEANS: Mapping[str, bool] = {"True": True, "False": False}
 #: Row columns an :class:`AssetSource` field of the same name takes as is.
 SAME_NAME: tuple[str, ...] = (
     "url",
@@ -182,26 +173,29 @@ def asset_source(
     """One foley row as an's :class:`~an.ir.assets.AssetSource`.
 
     ``track`` is a foley ``AcquiredTrack`` or its ``.row()`` (as a tracks table
-    reads back). ``library`` is the ``provider``, ``title`` the ``id``, the
+    reads back), which is rebuilt first (``AcquiredTrack.from_row``, an#731): its
+    licence comes from the library's registry, and a licence cell that says
+    otherwise is REFUSED, so an edited row cannot grant rights. ``library`` is the ``provider``, ``title`` the ``id``, the
     licence id an's code (:func:`license_code`); ``url`` (the mirror that served
     the bytes), ``source_page_url`` (the library's own address), the licence URL,
     author, attribution and ``sha256`` keep their names. The acquisition's own
     columns (:data:`ROW_ONLY`) stay in the table; every other column
     (``rights_verified``, ``commercial_ok``, ``mirror``, ``credited_by``, a titles
-    file's metadata) rides as an extra; a licence flag read back from CSV
-    (:data:`FLAG_COLUMNS`) is a boolean again; a column named like one of the
+    file's metadata) rides as an extra; a column named like one of the
     source's own fields (``cost_usd``, ``cacheable``, ``id``, ...) is dropped,
-    never trusted. Empty cells are dropped. A track also
-    gives its licence's ``creator_url`` as ``author_url`` and whether its terms let
+    never trusted. Empty cells are dropped. The licence's ``creator_url`` is
+    the ``author_url`` and whether its terms let
     the bytes be kept as ``cacheable``.
     """
-    row = dict(track) if isinstance(track, Mapping) else track.row()
-    for k in FLAG_COLUMNS & row.keys():
-        row[k] = CSV_BOOLEANS.get(row[k], row[k])
-    fields: dict[str, Any] = {}
-    if not isinstance(track, Mapping):
-        fields["author_url"] = track.license.creator_url
-        fields["cacheable"] = track.license.cache_bytes_ok
+    if isinstance(track, Mapping):  # a row: rebuilt, so a forged licence cell is refused
+        from foley.sources.music_library import AcquiredTrack
+
+        track = AcquiredTrack.from_row(track)
+    row = track.row()
+    fields: dict[str, Any] = {
+        "author_url": track.license.creator_url,
+        "cacheable": track.license.cache_bytes_ok,
+    }
     # A titles file's metadata rides as extras, never as one of the source's own
     # fields: a `cost_usd` or `cacheable` column must not claim rights (an#623).
     rest = {
@@ -274,23 +268,6 @@ def track_row(text: str, title: str) -> dict[str, str]:
     return row
 
 
-def track_from_row(row: Mapping[str, Any]) -> AcquiredTrack:
-    """foley's :class:`AcquiredTrack` for a tracks-table ``row``: its
-    ``AcquiredTrack.from_row`` (an#731). The licence is rebuilt from the
-    library's registry, never read from the row (an#623), and a licence cell
-    that says otherwise is REFUSED rather than overridden: an edited cell
-    cannot grant rights, nor pass unnoticed. Columns a titles file may not set
-    are dropped with foley's ``DroppedColumnsWarning``.
-
-    Raises:
-        MusicLibraryError: For an unknown library, licence cells that differ
-            from the library's, or any row foley refuses.
-    """
-    from foley.sources.music_library import AcquiredTrack
-
-    return AcquiredTrack.from_row(row)
-
-
 def add_track_to_sounds(
     store: Any,
     key: str,
@@ -307,7 +284,7 @@ def add_track_to_sounds(
 
     ``track`` is foley's ``AcquiredTrack``, or its tracks-table row (a
     ``tracks.csv`` line, :func:`track_row`: its licence is rebuilt from the
-    library's registry, :func:`track_from_row`), and ``files`` the library
+    library's registry, ``AcquiredTrack.from_row``), and ``files`` the library
     folder as ``{file name: bytes}`` (``files_store(out)``). The file it names
     is checked against its ``sha256``, cut with :func:`an.sound_fetch.cut_to_wav`
     (``start``, ``duration``, ``fade_out``, as ``an sounds add`` takes them) and
@@ -327,8 +304,10 @@ def add_track_to_sounds(
     from an.sounds import add_sound
     from foley.sources.music_library import HELD, MusicLibraryError
 
-    if isinstance(track, Mapping):
-        track = track_from_row(track)
+    if isinstance(track, Mapping):  # its licence rebuilt from the registry (an#623)
+        from foley.sources.music_library import AcquiredTrack
+
+        track = AcquiredTrack.from_row(track)
     if track.status not in HELD or not track.file or not track.sha256:
         raise MusicLibraryError(
             f"track {track.title!r} holds no file (status {track.status!r}); "

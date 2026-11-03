@@ -420,13 +420,15 @@ def test_a_tracks_table_row_cannot_grant_rights_and_reads_with_a_bom():
     never sets that field. A forged `license` cell is REFUSED, not overridden
     (foley's `AcquiredTrack.from_row`, an#731: fail closed). A table an editor
     saved with a byte-order mark reads the same."""
-    from foley.sources.music_library import DroppedColumnsWarning
+    from an.music_library import AcquiredTrack, DroppedColumnsWarning, track_row
 
-    from an.music_library import track_from_row, track_row
+    track_from_row = AcquiredTrack.from_row
 
     (track,) = _acquire(["Sneaky Snitch"], Fetcher({_url("Sneaky Snitch"): b"x"}))
-    with pytest.raises(MusicLibraryError, match="licen"):
-        track_from_row({**track.row(), "license": "CC0-1.0"})
+    forged = {**track.row(), "license": "CC0-1.0"}
+    for read in (track_from_row, asset_source):  # neither path lets a cell grant rights
+        with pytest.raises(MusicLibraryError, match="licen"):
+            read(forged)
     row = {**track.row(), "cost_usd": "0", "cacheable": "False", "id": "spoofed",
            "feel": "sneaky"}  # fmt: skip
     with pytest.warns(DroppedColumnsWarning):
