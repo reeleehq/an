@@ -9,6 +9,8 @@ an.audio.transcripts
    .. autosummary::
    
       FORMATS
+      ARPABET
+      ARPABET_PHONES
    
    .. rubric:: Functions
 
@@ -24,6 +26,7 @@ an.audio.transcripts
       parse_textgrid
       from_transcript_object
       parse_timestamp
+      phone_alphabet_of
       normalize_tokens
       normalize_text
       align_words

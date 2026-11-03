@@ -68,7 +68,7 @@ re-exported by name, and loaded on first use: `import an` never imports foley.
 | [`titles_from_json`](#an.music_library.titles_from_json)(text)                               | A titles file's JSON: a list of titles, or `{title: {metadata}}`.                                                                                                                                                                                                                 |
 | [`track_from_row`](#an.music_library.track_from_row)(row)                                  | foley's [`AcquiredTrack`](#an.music_library.AcquiredTrack) for a tracks-table `row`, its licence rebuilt from the library's registry (`track_license`), never read from the row: a cell someone edited cannot grant rights (an#623).                                  |
 | [`track_row`](#an.music_library.track_row)(text, title)                               | `title`'s row in the tracks table `text`.                                                                                                                                                                                                                                         |
-| [`tracks_table`](#an.music_library.tracks_table)(rows)                                   | The tracks table as CSV text: `TRACK_COLUMNS`, then any metadata the rows carry, in name order.                                                                                                                                                                                   |
+| [`tracks_table`](#an.music_library.tracks_table)(rows)                                   | The tracks table as CSV text: `TRACK_COLUMNS`, then any metadata the rows carry, in name order ([`read_tracks_table()`](#an.music_library.read_tracks_table) reads it back).                                                                                              |
 | [`wayback`](#an.music_library.wayback)(url)                                         | The Internet Archive's raw copy of `url` (`WAYBACK_RAW`).                                                                                                                                                                                                                         |
 
 ### Classes
@@ -93,6 +93,33 @@ One row of the tracks table: a title, what became of it, and its provenance.
 name, `page_url` the library’s own address for the title; `credited_by` the
 videos that credit it and `metadata` a titles file’s other fields (`feel`,
 `genre`, …).
+
+#### *classmethod* from_row(row, , libraries=None)
+
+The track a tracks-table `row` records: the inverse of [`row()`](#an.music_library.AcquiredTrack.row).
+
+`row` is a [`row()`](#an.music_library.AcquiredTrack.row) dict (or one read back from JSON), or a line of the
+table ([`read_tracks_table()`](#an.music_library.read_tracks_table): every cell text, an empty one nothing). Its
+`library` is looked up in `libraries` (default
+`MUSIC_LIBRARIES`) and its licence
+rebuilt from it (`track_license()`), never read from the row. The row’s
+licence cells (`LICENSE_COLUMNS`) must still say what the library states
+now: a cell someone edited, or a library re-registered under other terms since
+the table was written, is refused rather than silently widened or narrowed.
+
+A column outside `TRACK_COLUMNS` is metadata, as the table wrote it (a
+list or mapping a titles file gave comes back as its cell’s text). A column a
+titles file may not set (a downstream provenance field such as `cost_usd`
+or `cacheable`, a licence flag) is dropped with a
+`DroppedColumnsWarning`: it never sets anything.
+
+* **Raises:**
+  [**MusicLibraryError**](#an.music_library.MusicLibraryError) – For a row with a key that is not text, a blank title,
+      no library or status, a status not in `STATUSES`, a library that
+      is not registered, a `duration_s` that is not a finite number, or
+      licence cells that differ from the library’s (naming them).
+* **Return type:**
+  [`AcquiredTrack`](#an.music_library.AcquiredTrack)
 
 #### row()
 
@@ -438,7 +465,7 @@ other columns are its metadata.
 ### an.music_library.tracks_table(rows)
 
 The tracks table as CSV text: `TRACK_COLUMNS`, then any metadata the
-rows carry, in name order.
+rows carry, in name order ([`read_tracks_table()`](#an.music_library.read_tracks_table) reads it back).
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

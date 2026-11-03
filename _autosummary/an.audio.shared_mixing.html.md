@@ -17,6 +17,16 @@ Traceback (most recent call last):
 RuntimeError: testing needs mixing.no_such_part, which the installed mixing is too old to have: `pip install -U mixing`
 ```
 
+A name missing from a module that exists is named in full:
+
+```pycon
+>>> with mixing_too_old(needed_for="testing", error=RuntimeError):
+...     from mixing.loudness import no_such_name
+Traceback (most recent call last):
+  ...
+RuntimeError: testing needs mixing.loudness.no_such_name, which the installed mixing is too old to have: `pip install -U mixing`
+```
+
 ### Module Attributes
 
 | [`MIXING`](#an.audio.shared_mixing.MIXING)       | The package, and what the user runs when theirs predates a part `an` needs.   |
@@ -25,7 +35,7 @@ RuntimeError: testing needs mixing.no_such_part, which the installed mixing is t
 
 ### Functions
 
-| [`mixing_problem`](#an.audio.shared_mixing.mixing_problem)()                      | Why the installed `mixing` cannot serve `an`: a part it uses is missing (`mixing.loudness`, `mixing.filtergraph`), or it is absent; `None` when it can.                                                                                                                                                                       |
+| [`mixing_problem`](#an.audio.shared_mixing.mixing_problem)()                      | Why the installed `mixing` cannot serve `an`: a part it uses is missing (`mixing.loudness` with `group_lufs` and `GainCappedWarning`, an#699; `mixing.filtergraph`), or it is absent; `None` when it can.                                                                                                                     |
 |----------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`mixing_too_old`](#an.audio.shared_mixing.mixing_too_old)(\*, needed_for, error) | Run an import of a part of `mixing`; an `ImportError` becomes `error`, saying the installed `mixing` is too old when it lacks the part, else what failed.                                                                                                                                                                     |
 | [`warn_if_mixing_too_old`](#an.audio.shared_mixing.warn_if_mixing_too_old)()              | Say once per process, before anything is billed, that the installed `mixing` cannot serve `an` ([`mixing_problem()`](#an.audio.shared_mixing.mixing_problem)): the entry points that may bill (a render, `an voices design`, `audition` and `reroll`) call it, so an old `mixing` is not found after synthesis (an#644). |
@@ -52,7 +62,8 @@ The installed `mixing` lacks a part `an` uses (or is absent).
 ### an.audio.shared_mixing.mixing_problem()
 
 Why the installed `mixing` cannot serve `an`: a part it uses is
-missing (`mixing.loudness`, `mixing.filtergraph`), or it is absent;
+missing (`mixing.loudness` with `group_lufs` and `GainCappedWarning`,
+an#699; `mixing.filtergraph`), or it is absent;
 `None` when it can. Asked of the code, not of a version number: an
 editable install’s metadata keeps the version it was installed at (an#644).
 

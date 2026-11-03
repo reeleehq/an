@@ -39,15 +39,20 @@ Without a target, [`loudness_report()`](#an.audio.loudness.loudness_report) meas
 
 The measuring and the limiter are the fleet’s shared loudness component,
 `mixing.loudness` (an#563; `mixing` is a core dependency since an#611):
-`mixing.loudness.level_group()` measures a voice’s lines back to back (looped
-to [`MIN_MEASURE_S`](#an.audio.loudness.MIN_MEASURE_S), channels kept when they agree) and caps the gain, with
-ffmpeg’s `ebur128` injected as its meter ([`METER`](#an.audio.loudness.METER)) so `an` takes no
-scipy; `mixing.loudness.limit_peaks()` is the limiter, moved there unchanged
-(so [`LEVEL_VERSION`](#an.audio.loudness.LEVEL_VERSION) did not move, and a test pins the leveled bytes).
-What stays here is `an`’s own: the voices, the offsets, the hysteresis, the
-makeup pass and the content keys. A `mixing` too old to have
-`mixing.loudness` raises [`VoiceLoudnessError`](#an.audio.loudness.VoiceLoudnessError) telling the user to
-upgrade it ([`an.audio.shared_mixing.mixing_too_old()`](an.audio.shared_mixing.html.md#an.audio.shared_mixing.mixing_too_old), an#621).
+`mixing.loudness.group_lufs()` measures a voice’s lines back to back (looped
+to [`MIN_MEASURE_S`](#an.audio.loudness.MIN_MEASURE_S), channels kept when they agree), and
+`mixing.loudness.level_group()` does the same and caps the gain, its
+`GainCappedWarning` said again of the voice as a [`VoiceLoudnessWarning`](#an.audio.loudness.VoiceLoudnessWarning)
+(an#699). Each line keeps its own rate: the component resamples them, polyphase,
+to the highest (an#699). The meter injected into both is [`METER`](#an.audio.loudness.METER), ffmpeg’s
+`ebur128` run by the ffmpeg on `PATH` (required: never the pip-bundled build
+`mixing` would otherwise prefer, an#578), so `an` takes no scipy.
+`mixing.loudness.limit_peaks()` is the limiter, moved there unchanged (so
+[`LEVEL_VERSION`](#an.audio.loudness.LEVEL_VERSION) did not move, and a test pins the leveled bytes). What
+stays here is `an`’s own: the voices, the offsets, the hysteresis, the makeup
+pass and the content keys. A `mixing` too old to have the parts used here
+raises [`VoiceLoudnessError`](#an.audio.loudness.VoiceLoudnessError) telling the user to upgrade it
+([`an.audio.shared_mixing.mixing_too_old()`](an.audio.shared_mixing.html.md#an.audio.shared_mixing.mixing_too_old), an#621).
 
 ### Module Attributes
 
@@ -61,12 +66,13 @@ upgrade it ([`an.audio.shared_mixing.mixing_too_old()`](an.audio.shared_mixing.h
 | [`OFFSET_LIMITS_DB`](#an.audio.loudness.OFFSET_LIMITS_DB)  | `loudness_offset_db` bounds on a voice document.                                                                                                                                                                                    |
 | [`MIN_MEASURE_S`](#an.audio.loudness.MIN_MEASURE_S)     | EBU R128 gates in 400 ms blocks, and a voice of only short lines would read as silence.                                                                                                                                             |
 | [`MISS_WARNING_DB`](#an.audio.loudness.MISS_WARNING_DB)   | A leveled voice that ends further than this from its target (the limiter held its peaks, or the gain was capped) is warned about.                                                                                                   |
-| [`METER`](#an.audio.loudness.METER)             | The loudness meter injected into `mixing.loudness` (one of its `METERS`): ffmpeg's `ebur128`, so `an` needs no scipy for its numpy meter.                                                                                           |
+| [`METER`](#an.audio.loudness.METER)(data, fs)   | The loudness meter, `(samples, rate) -> LUFS`, injected into `mixing.loudness` (looked up at call time, so it can be swapped): ffmpeg's `ebur128` by the PATH ffmpeg, so `an` needs no scipy for `mixing`'s numpy meter.            |
 
 ### Functions
 
-| [`group_loudness`](#an.audio.loudness.group_loudness)(pcms)                        | The integrated loudness of a voice's lines, measured back to back.                                                                                                                                                                                                                                                          |
+| [`METER`](#an.audio.loudness.METER)(data, fs)                             | The loudness meter, `(samples, rate) -> LUFS`, injected into `mixing.loudness` (looked up at call time, so it can be swapped): ffmpeg's `ebur128` by the PATH ffmpeg, so `an` needs no scipy for `mixing`'s numpy meter.                                                                                                    |
 |----------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`group_loudness`](#an.audio.loudness.group_loudness)(pcms)                        | The integrated loudness of a voice's lines, measured back to back (`mixing.loudness.group_lufs()`, an#699); `-inf` for no lines.                                                                                                                                                                                            |
 | [`integrated_loudness`](#an.audio.loudness.integrated_loudness)(pcm)                    | EBU R128 integrated loudness (LUFS) of `pcm`, by [`METER`](#an.audio.loudness.METER) through `mixing.loudness.integrated_lufs()` (`-inf` for silence).                                                                                                                                                   |
 | [`level_voices`](#an.audio.loudness.level_voices)(scene, mall, spec)             | Level every voice of `scene` to `spec` ([`VoiceLoudness`](an.ir.schema.html.md#an.ir.schema.VoiceLoudness)): each line is stamped with its leveled audio (made once per source bytes, gain and ceiling, in the `audio` store) and `Dialogue.leveled`.                                                |
 | [`leveled_audio`](#an.audio.loudness.leveled_audio)(audio, \*, gain_db, peak_db)  | `audio` at `gain_db`, its peaks held at `peak_db` dBFS, as a 16-bit PCM WAV of exactly the length of the decoded source (an MP3 source is stored decoded, as the mux would decode it).                                                                                                                                      |
@@ -117,10 +123,15 @@ an#315 review).
 The largest gain leveling gives a voice; beyond it the voice is mostly
 noise (room tone measured at -62 LUFS asked for +46 dB). Capped, and warned.
 
-### an.audio.loudness.METER *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'ffmpeg_ebur128'*
+### an.audio.loudness.METER(data, fs)
 
-The loudness meter injected into `mixing.loudness` (one of its
-`METERS`): ffmpeg’s `ebur128`, so `an` needs no scipy for its numpy meter.
+The loudness meter, `(samples, rate) -> LUFS`, injected into
+`mixing.loudness` (looked up at call time, so it can be swapped):
+ffmpeg’s `ebur128` by the PATH ffmpeg, so `an` needs no scipy for
+`mixing`’s numpy meter.
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.audio.loudness.MIN_MEASURE_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 1.0*
 
@@ -170,7 +181,8 @@ The film’s voices differ in loudness by more than [`SPREAD_WARNING_DB`](#an.au
 
 ### an.audio.loudness.group_loudness(pcms)
 
-The integrated loudness of a voice’s lines, measured back to back.
+The integrated loudness of a voice’s lines, measured back to back
+(`mixing.loudness.group_lufs()`, an#699); `-inf` for no lines.
 
 * **Return type:**
   [`float`](https://docs.python.org/3/builtins/functions.html#float)

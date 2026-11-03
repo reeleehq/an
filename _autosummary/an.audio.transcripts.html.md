@@ -35,8 +35,10 @@ All times are seconds from the start of the recording they describe.
 
 ### Module Attributes
 
-| [`FORMATS`](#an.audio.transcripts.FORMATS)   | The transcript formats read here, in detection order.   |
-|------------------------------------------------------------|---------------------------------------------------------|
+| [`FORMATS`](#an.audio.transcripts.FORMATS)        | The transcript formats read here, in detection order.                                                                                            |
+|-----------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`ARPABET`](#an.audio.transcripts.ARPABET)        | The phone alphabets a reader can report (an#721), as the forced aligner's `phone_alphabet` names them (an#637).                                  |
+| [`ARPABET_PHONES`](#an.audio.transcripts.ARPABET_PHONES) | every label must be one of them (its stress digit dropped) for the labels to be read as ARPAbet (cutan's `ARPABET_TO_VISEME` keys the same set). |
 
 ### Functions
 
@@ -51,6 +53,7 @@ All times are seconds from the start of the recording they describe.
 | [`parse_textgrid`](#an.audio.transcripts.parse_textgrid)(text)                        | A Praat TextGrid (long or short form, as a forced aligner writes it) → segments.                                                                                                                                                                                                                                               |
 | [`from_transcript_object`](#an.audio.transcripts.from_transcript_object)(obj)                 | A transcriber's result — scribed's `Transcript` or anything shaped like it (iterable segments with `text`, `start`, `end`, `speaker` and `words` having `text`/`start`/`end`) — as segments.                                                                                                                                   |
 | [`parse_timestamp`](#an.audio.transcripts.parse_timestamp)(value)                      | `HH:MM:SS,mmm` / `MM:SS.mmm` / plain seconds → seconds.                                                                                                                                                                                                                                                                        |
+| [`phone_alphabet_of`](#an.audio.transcripts.phone_alphabet_of)(labels)                   | The alphabet aligner phone `labels` show, or `None` when they show none (an#721).                                                                                                                                                                                                                                              |
 | [`normalize_tokens`](#an.audio.transcripts.normalize_tokens)(text)                      | The words of `text` for matching: case-folded, punctuation dropped, an apostrophe inside a word kept.                                                                                                                                                                                                                          |
 | [`normalize_text`](#an.audio.transcripts.normalize_text)(text)                        | [`normalize_tokens()`](#an.audio.transcripts.normalize_tokens) joined by single spaces (what two lines are compared by).                                                                                                                                                                                                  |
 | [`align_words`](#an.audio.transcripts.align_words)(reference, timed, \*[, bounds]) | Time the `reference` words (the text the performer was meant to say) by a transcriber's `timed` words of the same audio.                                                                                                                                                                                                       |
@@ -63,6 +66,20 @@ All times are seconds from the start of the recording they describe.
 | [`TranscriptSegment`](#an.audio.transcripts.TranscriptSegment)(text[, start, end, ...])   | One spoken line of a transcript: its text, and when and who, if known.                                                                                                                     |
 |-----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`AlignedWords`](#an.audio.transcripts.AlignedWords)(words, matched, total)          | [`align_words()`](#an.audio.transcripts.align_words)'s result: the reference words timed, and how many of them a transcribed word actually anchored (the rest are interpolated). |
+
+### an.audio.transcripts.ARPABET *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'arpabet'*
+
+The phone alphabets a reader can report (an#721), as the forced aligner’s
+`phone_alphabet` names them (an#637).
+
+### an.audio.transcripts.ARPABET_PHONES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'AA', 'AE', 'AH', 'AO', 'AW', 'AY', 'B', 'CH', 'D', 'DH', 'EH', 'ER', 'EY', 'F', 'G', 'HH', 'IH', 'IY', 'JH', 'K', 'L', 'M', 'N', 'NG', 'OW', 'OY', 'P', 'R', 'S', 'SH', 'T', 'TH', 'UH', 'UW', 'V', 'W', 'Y', 'Z', 'ZH'})*
+
+every
+label must be one of them (its stress digit dropped) for the labels to be
+read as ARPAbet (cutan’s `ARPABET_TO_VISEME` keys the same set).
+
+* **Type:**
+  The 39 ARPAbet phones of the CMU dictionary, without stress digits
 
 ### *class* an.audio.transcripts.AlignedWords(words, matched, total)
 
@@ -79,7 +96,7 @@ The share of reference words anchored by a transcribed word, 0..1.
 
 The transcript formats read here, in detection order.
 
-### *class* an.audio.transcripts.TranscriptSegment(text, start=None, end=None, speaker=None, words=None, phones=None)
+### *class* an.audio.transcripts.TranscriptSegment(text, start=None, end=None, speaker=None, words=None, phones=None, phone_alphabet=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -88,6 +105,12 @@ One spoken line of a transcript: its text, and when and who, if known.
 `start`/`end` are seconds from the recording’s start, `None` for an
 untimed (plain) transcript; `words` are the segment’s own word timings
 when the format carries them (word JSON, TextGrid), else `None`.
+
+#### phone_alphabet *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The alphabet `phones` are in (`"arpabet"`, `"ipa"`) when the
+format says it (an#721): Gentle’s always ARPAbet, an MFA grid’s by its
+labels ([`phone_alphabet_of()`](#an.audio.transcripts.phone_alphabet_of)); `None` when unknown.
 
 #### phones *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)], ...] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
@@ -197,7 +220,9 @@ of segments, each `{"text", "start", "end", "speaker", "words": [{"text"|"word",
 be a `[text, start, end]` list); or a bare list of words, read as one segment.
 A word’s `phones` as Gentle writes them (durations from its start) become
 the segment’s phones, and MFA’s JSON (`tiers`) is read by
-`parse_mfa_json()` (an#715).
+`parse_mfa_json()` (an#715). In Gentle’s JSON (`transcript` and
+`words`), a word whose `case` is not `GENTLE_SAID_CASE` is
+dropped (an#721); any other JSON keeps every word.
 
 ```pycon
 >>> segs = parse_json({"segments": [{"speaker": "carl", "words": [
@@ -227,7 +252,7 @@ SubRip cues → timed segments; a `speaker:` prefix names the speaker.
 
 ```pycon
 >>> parse_srt("1\n00:00:00,500 --> 00:00:01,000\nHi\nthere\n")
-[TranscriptSegment(text='Hi there', start=0.5, end=1.0, speaker=None, words=None, phones=None)]
+[TranscriptSegment(text='Hi there', start=0.5, end=1.0, speaker=None, words=None, phones=None, phone_alphabet=None)]
 ```
 
 * **Return type:**
@@ -250,7 +275,7 @@ is one segment.
 ...       '        intervals [2]:\n            xmin = 0.5\n            xmax = 0.9\n            text = "hello"\n'
 ...       '        intervals [3]:\n            xmin = 0.9\n            xmax = 1.3\n            text = "there"\n')
 >>> parse_textgrid(tg)
-[TranscriptSegment(text='hello there', start=0.5, end=1.3, speaker=None, words=(('hello', 0.5, 0.9), ('there', 0.9, 1.3)), phones=None)]
+[TranscriptSegment(text='hello there', start=0.5, end=1.3, speaker=None, words=(('hello', 0.5, 0.9), ('there', 0.9, 1.3)), phones=None, phone_alphabet=None)]
 ```
 
 * **Return type:**
@@ -275,7 +300,7 @@ itself — into segments. `fmt` (one of [`FORMATS`](#an.audio.transcripts.FORMAT
 
 ```pycon
 >>> parse_transcript("carl: Hello.\nned: Hi.")[1]
-TranscriptSegment(text='Hi.', start=None, end=None, speaker='ned', words=None, phones=None)
+TranscriptSegment(text='Hi.', start=None, end=None, speaker='ned', words=None, phones=None, phone_alphabet=None)
 ```
 
 * **Return type:**
@@ -300,11 +325,30 @@ WebVTT cues → timed segments; `<v Name>` or a `speaker:` prefix names the spea
 
 ```pycon
 >>> parse_vtt("WEBVTT\n\n00:01.000 --> 00:02.000\n<v Carl>Hello</v>\n")
-[TranscriptSegment(text='Hello', start=1.0, end=2.0, speaker='Carl', words=None, phones=None)]
+[TranscriptSegment(text='Hello', start=1.0, end=2.0, speaker='Carl', words=None, phones=None, phone_alphabet=None)]
 ```
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`TranscriptSegment`](#an.audio.transcripts.TranscriptSegment)]
+
+### an.audio.transcripts.phone_alphabet_of(labels)
+
+The alphabet aligner phone `labels` show, or `None` when they show
+none (an#721). [`ARPABET`](#an.audio.transcripts.ARPABET) when every label is ASCII, in one letter
+case throughout, and in [`ARPABET_PHONES`](#an.audio.transcripts.ARPABET_PHONES) once its stress digit is
+dropped (cutan’s rule for a clip, so its own can be `phone_alphabet_of(p)
+or "ipa"`); `IPA` when any label is non-ASCII; otherwise unknown,
+and the lip-sync decides it per clip. Silences are not labels.
+
+```pycon
+>>> phone_alphabet_of(["HH", "AH0", "L"]), phone_alphabet_of(["h", "ə", "l"])
+('arpabet', 'ipa')
+>>> phone_alphabet_of(["AH", "T"]), phone_alphabet_of(["ai1", "ou3"]) is None
+('arpabet', True)
+```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.audio.transcripts.rebase_words(words, start)
 

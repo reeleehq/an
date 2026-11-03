@@ -23,6 +23,7 @@ an.audio.loudness
 
    .. autosummary::
    
+      METER
       group_loudness
       integrated_loudness
       level_voices

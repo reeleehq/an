@@ -2,18 +2,20 @@
 
 # About this build
 
-This documentation was built on **2026-11-01 21:54 UTC** from commit <a href="https://github.com/reeleehq/an/commit/97c08f0404af6f395e2d9e09c8b0c31c93c9a678"><code>97c08f0</code></a> on branch <code>main</code>, for **an 0.1.356** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-03 11:46 UTC** from commit <a href="https://github.com/reeleehq/an/commit/ff45754e5a116554a12a7d828b572c56c5b2ae31"><code>ff45754</code></a> on branch <code>main</code>, for **an 0.1.357** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.1.357) is ahead of the latest release on PyPI (0.1.356): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                    |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/an/commit/97c08f0404af6f395e2d9e09c8b0c31c93c9a678"><code>97c08f0404af6f395e2d9e09c8b0c31c93c9a678</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/an/commit/ff45754e5a116554a12a7d828b572c56c5b2ae31"><code>ff45754e5a116554a12a7d828b572c56c5b2ae31</code></a> |
 | Branch              | <code>main</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.356</code>                                                                                                                               |
+| Tags at this commit | <code>0.1.357</code>                                                                                                                               |
 | Working tree        | clean                                                                                                                                              |
 | Remote              | <code>https://github.com/reeleehq/an</code>                                                                                                        |
 
@@ -22,9 +24,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/an</code>                                                                   |
-| Run          | <a href="https://github.com/reeleehq/an/actions/runs/41353721026">41353721026</a>          |
+| Run          | <a href="https://github.com/reeleehq/an/actions/runs/41628750356">41628750356</a>          |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>f12bbb4e15888c92b721182fb2b772b66d6ea2f3</code> (in the history of the built commit) |
+| Event commit | <code>e6740c004b321b170c006336c24bbd5ee2dd83c0</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -49,13 +51,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.356/">0.1.356</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.356/">0.1.356</a>, older than the documented version (0.1.357).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/an && cd an
-git checkout 97c08f0404af6f395e2d9e09c8b0c31c93c9a678
+git checkout ff45754e5a116554a12a7d828b572c56c5b2ae31
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
