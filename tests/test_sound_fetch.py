@@ -82,3 +82,34 @@ def test_the_cli_requires_a_licence_and_adds_the_sound(tmp_path, monkeypatch):
     done = runner.invoke(app, [*base, "--license", "cc0-1.0", "--start", "1", "--duration", "0.5"])
     assert done.exit_code == 0, done.output
     assert "sounds/theme: 0.50 s" in done.output
+
+
+def test_a_missing_licence_is_refused_before_anything_is_fetched(tmp_path):
+    def never(url):
+        raise AssertionError("fetched before the licence was checked")
+
+    mall = build_project_mall(tmp_path, ensure=True)
+    with pytest.raises(SoundError, match="licence is required"):
+        add_sound_from_url(mall["sounds"], "fx", PAGE, fetcher=never)
+
+
+def test_a_fetcher_that_declares_rights_but_states_none_is_refused(tmp_path):
+    fetch = _fetcher(1.0)
+    fetch.states_rights = lambda url: True
+    mall = build_project_mall(tmp_path, ensure=True)
+    with pytest.raises(SoundError, match="licence is required"):
+        add_sound_from_url(mall["sounds"], "fx", PAGE, fetcher=fetch)
+
+
+@pytest.mark.ffmpeg
+def test_a_whole_fetched_sound_names_its_page_in_the_credits(tmp_path):
+    """an#729 re-review: a sound kept whole records no cut, and its credit line
+    still names the page, so a reader can check an UNVERIFIED sound's terms."""
+    mall = build_project_mall(tmp_path)
+    page = "https://example.org/rain"
+    add_sound_from_url(
+        mall["sounds"], "rain", page, license="unknown",
+        fetcher=lambda url: Fetched(audio=synth_bed(1.0), url=url),
+    )  # fmt: skip
+    (line,) = [x for x in collect_credits(mall).format().splitlines() if "sounds/rain" in x]
+    assert f"from {page}" in line
