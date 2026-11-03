@@ -577,9 +577,10 @@ def test_measuring_without_ffmpeg_on_path_refuses_never_the_bundled_build():
 
 @pytest.mark.ffmpeg
 def test_a_voice_of_lines_at_different_rates_and_channels_is_measured_as_one():
-    """A 44.1 kHz stereo line and a 22.05 kHz mono one (mixing resamples each
-    to the highest rate, an#699): a finite, plausible loudness, the one the
-    same audio measures at a single rate, and the one leveling measures."""
+    """A 44.1 kHz stereo line and a 22.05 kHz mono one (resampled by ffmpeg to
+    the highest rate, an#699): a finite, plausible loudness, the one the same
+    audio measures at a single rate, and the one leveling measures, with no
+    scipy (mixing's own resampler needs it; ``an`` does not take it, an#578)."""
     from an.audio.loudness import _level_group, _Pcm, group_loudness
 
     def tone(rate, *, channels=1, seconds=1.5, amplitude=0.1, hz=440.0):

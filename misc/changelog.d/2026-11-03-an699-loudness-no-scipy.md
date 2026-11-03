@@ -1,0 +1,1 @@
+- Voice leveling resamples a line at another rate with ffmpeg, not mixing's scipy-backed resampler, so a voice whose lines differ in rate measures without scipy (fixes an#699's regression in the rendering lane).

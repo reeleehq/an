@@ -178,22 +178,35 @@ def _meter(data: Any, fs: int) -> float:
     return integrated_loudness(_Pcm(data, fs))
 
 
-def _group_args(pcms: list[_Pcm]) -> tuple[list[Any], list[int]]:
+def _at_rate(pcm: _Pcm, rate: int) -> _Pcm:
+    """``pcm`` resampled to ``rate`` by ffmpeg (``aresample``), which measuring
+    already needs: mixing's own per-segment resampler needs scipy, which ``an``
+    does not take (an#578)."""
+    if pcm.rate == rate:
+        return pcm
+    from an.audio.effects import _ffmpeg_wav
+
+    _require_ffmpeg("measuring a voice whose lines differ in sample rate")
+    return _decode(_ffmpeg_wav(_encode(pcm), f"aresample={rate}"))
+
+
+def _group_args(pcms: list[_Pcm]) -> tuple[list[Any], int]:
     """A voice's decoded lines as :mod:`mixing.loudness` takes a group: the
-    segments and one rate each (it resamples them, polyphase, to the highest,
-    an#699), each keeping its channels — they are joined back to back, keeping
-    channels when they all agree (EBU R128 weights channels), and a short voice
-    is looped to :data:`MIN_MEASURE_S`."""
-    return [p.samples for p in pcms], [p.rate for p in pcms]
+    segments at one rate, the highest of theirs (a line at another is
+    resampled by ffmpeg, :func:`_at_rate`), each keeping its channels — they
+    are joined back to back, keeping channels when they all agree (EBU R128
+    weights channels), and a short voice is looped to :data:`MIN_MEASURE_S`."""
+    rate = max(p.rate for p in pcms)
+    return [_at_rate(p, rate).samples for p in pcms], rate
 
 
 def _level_group(pcms: list[_Pcm], *, target_lufs: float, max_gain_db: float):
     """:func:`mixing.loudness.level_group` over a voice's decoded lines:
     ``(gain_db, measured_lufs)``, measured by :data:`METER`."""
-    segments, rates = _group_args(pcms)
+    segments, rate = _group_args(pcms)
     return _component().level_group(
         segments,
-        rates,
+        rate,
         target_lufs=target_lufs,
         meter=_meter,
         max_gain_db=max_gain_db,
@@ -233,9 +246,9 @@ def group_loudness(pcms: list[_Pcm]) -> float:
     component = _component()  # an old mixing is said even for a voice of no lines
     if not pcms:
         return float("-inf")
-    segments, rates = _group_args(pcms)
+    segments, rate = _group_args(pcms)
     return component.group_lufs(
-        segments, rates, meter=_meter, min_measure_s=MIN_MEASURE_S
+        segments, rate, meter=_meter, min_measure_s=MIN_MEASURE_S
     )
 
 
