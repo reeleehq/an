@@ -39,9 +39,11 @@ from an.audio.tts import AudioClip, VoiceMeta
 _DEFAULT_MODEL_ID: str = "eleven_turbo_v2_5"
 _DEFAULT_VOICE_ID: str = "21m00Tcm4TlvDq8ikWAM"  # ElevenLabs's "Rachel"
 _DEFAULT_OUTPUT_FORMAT: str = "mp3_44100_128"
-#: The category ElevenLabs gives its own library voices, the ones any account
-#: holds and nobody designed: ``VoiceMeta.is_library`` (an#712).
-ELEVENLABS_LIBRARY_CATEGORY: str = "premade"
+#: The category ElevenLabs gives its stock voices, the ones any account holds
+#: and nobody designed: ``VoiceMeta.is_stock`` (an#712). A voice an account
+#: added from ElevenLabs' shared Voice Library has another category, and is
+#: not stock.
+ELEVENLABS_STOCK_CATEGORY: str = "premade"
 
 #: Model ids that read inline audio tags (``[excited]``, ``[sighs]``). Matched
 #: as prefixes, so ``eleven_v3_conversational`` and ``eleven_v4_turbo`` count.
@@ -334,6 +336,10 @@ class ElevenLabsTTS:
         for page in pages:
             for v in page.voices:
                 labels = dict(getattr(v, "labels", None) or {})
+                category = getattr(v, "category", None)
+                description = getattr(v, "description", None)
+                # a sample to hear before casting the voice (an#666)
+                preview_url = getattr(v, "preview_url", None)
                 out.append(
                     VoiceMeta(
                         voice_id=getattr(v, "voice_id", ""),
@@ -341,14 +347,17 @@ class ElevenLabsTTS:
                         provider=self.name,
                         language=labels.get("language", "en"),
                         gender=labels.get("gender"),
-                        is_library=getattr(v, "category", None)
-                        == ELEVENLABS_LIBRARY_CATEGORY,
+                        is_stock=category == ELEVENLABS_STOCK_CATEGORY,
+                        accent=labels.get("accent"),
+                        description=description,
+                        preview_url=preview_url,
                         extra={
-                            "category": getattr(v, "category", None),
-                            "description": getattr(v, "description", None),
+                            "category": category,
                             "labels": labels,
-                            # a sample to hear before casting the voice (an#666)
-                            "preview_url": getattr(v, "preview_url", None),
+                            # the fields again, for one cycle: hosts read
+                            # extra["preview_url"] since an#666 (an#712)
+                            "description": description,
+                            "preview_url": preview_url,
                         },
                     )
                 )

@@ -1,8 +1,8 @@
 """``an voices ...`` — browse a TTS provider's voices from the shell (an#209).
 
 Thin string-typed wrappers dispatched by typer the way ``an character ...`` is;
-the business logic is :func:`browse_voices`, a plain function over the
-provider factories.
+the business logic is :func:`~an.audio.voice_listing.browse_voices`, a plain
+function over the provider factories.
 
     an voices list --provider elevenlabs
     an voices list --provider elevenlabs --search british
@@ -30,12 +30,12 @@ from typing import Any
 
 from an.audio.providers import make_tts
 from an.audio.tts import TTSProvider, VoiceMeta
+
+# The business logic lives with the voice listing (an#712); re-exported here.
+from an.audio.voice_listing import DEFAULT_BROWSE_PROVIDER, browse_voices
 from an.ir.sync import DEFAULT_SCENE_FILE
 
 __all__ = ["browse_voices", "format_voices", "retake", "import_recorded"]
-
-# The business logic lives with the voice listing (an#712); re-exported here.
-from an.audio.voice_listing import DEFAULT_BROWSE_PROVIDER, browse_voices  # noqa: E402
 
 
 def format_voices(voices: Iterable[VoiceMeta]) -> str:

@@ -32,7 +32,10 @@ def _recorded_factory(*, mall: Mapping[str, Any] | None = None) -> RecordedTTS:
 
 
 #: A factory takes no arguments, or ``mall=`` when the provider reads a project
-#: store (``recorded``): :func:`make_tts` passes it only to those that accept it.
+#: store (``recorded``), or ``api_key=`` when a host may hand it its own key
+#: (``elevenlabs``): :func:`make_tts` passes each only to those that accept it,
+#: and :func:`listable_providers` reads the latter, so a provider registered
+#: here with ``api_key=`` is listable by hosts with nothing else to change.
 TTS_FACTORIES: dict[str, Callable[..., TTSProvider]] = {
     "offline": lambda: OfflineTTS(),
     # ``api_key``: a host's own key (a guest's, a server's) instead of the env's
@@ -71,6 +74,21 @@ def _accepts(factory: Callable[..., Any], keyword: str) -> bool:
     return keyword in params or any(
         p.kind is inspect.Parameter.VAR_KEYWORD for p in params.values()
     )
+
+
+def listable_providers(
+    *, factories: Mapping[str, Callable[..., Any]] = TTS_FACTORIES
+) -> list[str]:
+    """The TTS providers a host may list voices from with its own key: those
+    whose factory takes ``api_key=`` (an#712). Hand one, with the key, to
+    :func:`an.audio.list_voices`.
+
+    >>> listable_providers()
+    ['elevenlabs']
+    >>> listable_providers(factories={"a": lambda *, api_key=None: None, "b": lambda: None})
+    ['a']
+    """
+    return sorted(name for name, f in factories.items() if _accepts(f, "api_key"))
 
 
 def make_tts(
