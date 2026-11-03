@@ -54,6 +54,7 @@ __all__ = [
     "parse_textgrid",
     "from_transcript_object",
     "parse_timestamp",
+    "phone_alphabet_of",
     "normalize_tokens",
     "normalize_text",
     "align_words",
@@ -115,6 +116,10 @@ class TranscriptSegment:
     #: The segment's phone timings, ``(phone, start, end)`` as an aligner
     #: writes them (a TextGrid's ``phones`` tier, an#491), else ``None``.
     phones: tuple[WordTiming, ...] | None = None
+    #: The alphabet ``phones`` are in (``"arpabet"``, ``"ipa"``) when the
+    #: format says it (an#721): Gentle's always ARPAbet, an MFA grid's by its
+    #: labels (:func:`phone_alphabet_of`); ``None`` when unknown.
+    phone_alphabet: str | None = None
 
     @property
     def timed(self) -> bool:
@@ -172,7 +177,7 @@ def parse_transcript(
     itself — into segments. ``fmt`` (one of :data:`FORMATS`) overrides detection.
 
     >>> parse_transcript("carl: Hello.\\nned: Hi.")[1]
-    TranscriptSegment(text='Hi.', start=None, end=None, speaker='ned', words=None, phones=None)
+    TranscriptSegment(text='Hi.', start=None, end=None, speaker='ned', words=None, phones=None, phone_alphabet=None)
     """
     suffix = ""
     text: str
@@ -278,7 +283,7 @@ def parse_srt(text: str) -> list[TranscriptSegment]:
     """SubRip cues → timed segments; a ``speaker:`` prefix names the speaker.
 
     >>> parse_srt("1\\n00:00:00,500 --> 00:00:01,000\\nHi\\nthere\\n")
-    [TranscriptSegment(text='Hi there', start=0.5, end=1.0, speaker=None, words=None, phones=None)]
+    [TranscriptSegment(text='Hi there', start=0.5, end=1.0, speaker=None, words=None, phones=None, phone_alphabet=None)]
     """
     out = []
     for block in _cue_blocks(text):
@@ -292,7 +297,7 @@ def parse_vtt(text: str) -> list[TranscriptSegment]:
     """WebVTT cues → timed segments; ``<v Name>`` or a ``speaker:`` prefix names the speaker.
 
     >>> parse_vtt("WEBVTT\\n\\n00:01.000 --> 00:02.000\\n<v Carl>Hello</v>\\n")
-    [TranscriptSegment(text='Hello', start=1.0, end=2.0, speaker='Carl', words=None, phones=None)]
+    [TranscriptSegment(text='Hello', start=1.0, end=2.0, speaker='Carl', words=None, phones=None, phone_alphabet=None)]
     """
     out = []
     for block in _cue_blocks(text):
@@ -374,8 +379,9 @@ def parse_json(obj: Any) -> list[TranscriptSegment]:
     for item in items:
         if not isinstance(item, Mapping):
             raise ValueError(f"a transcript segment must be an object, got {item!r}")
-        words = tuple(w for w in (_word_from(x) for x in item.get("words") or ()) if w)
-        phones = tuple(p for x in item.get("words") or () for p in _gentle_phones(x))
+        said = [x for x in item.get("words") or () if _in_transcript(x)]
+        words = tuple(w for w in (_word_from(x) for x in said) if w)
+        phones = tuple(p for x in said for p in _gentle_phones(x))
         text = item.get("text")
         if text is None:
             text = " ".join(w[0] for w in words)
@@ -410,9 +416,55 @@ def parse_json(obj: Any) -> list[TranscriptSegment]:
                     speaker=str(speaker_) if speaker_ else None,
                     words=words or None,
                     phones=phones or None,
+                    # Gentle's phones are stressless ARPAbet, always (an#721)
+                    phone_alphabet=ARPABET if phones else None,
                 )
             )
     return out
+
+
+#: A Gentle word's ``case`` when it was found in the transcript AND the audio;
+#: ``not-found-in-transcript`` is a disfluency the transcript does not hold
+#: ("um"), ``not-found-in-audio`` a word with no time (an#721).
+GENTLE_SAID_CASE: str = "success"
+
+
+def _in_transcript(word: Any) -> bool:
+    """Whether a JSON word belongs to the transcript: any word but one whose
+    Gentle ``case`` is not :data:`GENTLE_SAID_CASE` (an#721).
+
+    >>> [_in_transcript(w) for w in ({"word": "hi"}, {"word": "hi", "case": "success"},
+    ...                               {"word": "um", "case": "not-found-in-transcript"})]
+    [True, True, False]
+    """
+    return not isinstance(word, Mapping) or word.get("case", GENTLE_SAID_CASE) == GENTLE_SAID_CASE
+
+
+#: The phone alphabets a reader can report (an#721), as the forced aligner's
+#: ``phone_alphabet`` names them (an#637).
+ARPABET: str = "arpabet"
+IPA: str = "ipa"
+#: An ARPAbet vowel with its stress digit, as MFA's English ARPA model writes it.
+_ARPABET_STRESSED = re.compile(r"[A-Za-z]{2}[012]")
+
+
+def phone_alphabet_of(labels: Iterable[str]) -> str | None:
+    """The alphabet aligner phone ``labels`` show, or ``None`` when they do not
+    (an#721): a stress digit on a vowel is ARPAbet (``AH0``), a non-ASCII
+    symbol IPA (``ə``). Nothing else is guessed: ASCII with no stress digit
+    (``s t``, or SAMPA) is unknown; the lip-sync decides it per clip.
+
+    >>> phone_alphabet_of(["HH", "AH0", "L"]), phone_alphabet_of(["h", "ə", "l"])
+    ('arpabet', 'ipa')
+    >>> phone_alphabet_of(["s", "t"]) is None
+    True
+    """
+    labels = [str(x).strip() for x in labels]
+    if any(not x.isascii() for x in labels):
+        return IPA
+    if any(_ARPABET_STRESSED.fullmatch(x) for x in labels):
+        return ARPABET
+    return None
 
 
 #: Gentle's phones carry their place in the word (``hh_B``: begin, ``_I``
@@ -535,8 +587,7 @@ def _tier_named(tiers: Mapping[str, Any], names: Sequence[str]) -> str | None:
     ``"<speaker> - phones"``), is one of ``names`` (case-insensitive)."""
     for want in names:
         for name in tiers:
-            bare = name.lower().rsplit(" - ", 1)[-1].strip()
-            if bare == want:
+            if _speaker_and_tier(name)[1].strip().lower() == want:
                 return name
     return None
 
@@ -584,12 +635,19 @@ def parse_textgrid(text: str) -> list[TranscriptSegment]:
     ...       '        intervals [2]:\\n            xmin = 0.5\\n            xmax = 0.9\\n            text = "hello"\\n'
     ...       '        intervals [3]:\\n            xmin = 0.9\\n            xmax = 1.3\\n            text = "there"\\n')
     >>> parse_textgrid(tg)
-    [TranscriptSegment(text='hello there', start=0.5, end=1.3, speaker=None, words=(('hello', 0.5, 0.9), ('there', 0.9, 1.3)), phones=None)]
+    [TranscriptSegment(text='hello there', start=0.5, end=1.3, speaker=None, words=(('hello', 0.5, 0.9), ('there', 0.9, 1.3)), phones=None, phone_alphabet=None)]
     """
     tiers = _textgrid_tiers(text)
     if not tiers:
         raise ValueError("no IntervalTier found in the TextGrid")
     return segments_from_tiers(tiers)
+
+
+def _speaker_and_tier(name: str) -> tuple[str | None, str]:
+    """MFA's ``"<speaker> - words"`` → ``("<speaker>", "words")``; a name with
+    no speaker → ``(None, name)``."""
+    speaker, sep, bare = name.rpartition(" - ")
+    return (speaker.strip() or None, bare) if sep else (None, name)
 
 
 def segments_from_tiers(
@@ -599,12 +657,36 @@ def segments_from_tiers(
     as a TextGrid or MFA's JSON carries them) → segments: the words from a
     tier named ``words`` (else the first that is neither phones nor lines),
     the phones from a ``phones`` tier, one segment per interval of a lines
-    tier when there is one. MFA's ``"<speaker> - words"`` names are read for
-    ONE speaker: with several, the first speaker's tiers are.
+    tier when there is one. MFA names a speaker's tiers ``"<speaker> -
+    words"``: every speaker's are read, the speaker set on its segments, and
+    several speakers' segments come back in time order (an#721).
 
     >>> segments_from_tiers({"words": [(0.5, 0.9, "hello")], "phones": [(0.5, 0.6, "HH"), (0.6, 0.9, "AH0")]})[0].phones
     (('HH', 0.5, 0.6), ('AH0', 0.6, 0.9))
+    >>> [(s.speaker, s.text) for s in segments_from_tiers({
+    ...     "ned - words": [(0.5, 0.9, "yo")], "carl - words": [(0.0, 0.4, "hi")],
+    ...     "ned - phones": [(0.5, 0.7, "Y"), (0.7, 0.9, "OW1")]})]
+    [('carl', 'hi'), ('ned', 'yo')]
     """
+    groups: dict[str | None, dict[str, Sequence[tuple[float, float, str]]]] = {}
+    for name, intervals in tiers.items():
+        groups.setdefault(_speaker_and_tier(name)[0], {})[name] = intervals
+    speakers = [k for k in groups if k is not None]
+    if len(speakers) <= 1:  # one speaker (or none): its tiers, and any unnamed
+        return _speaker_segments(tiers, speaker=next(iter(speakers), None))
+    return sorted(
+        (seg for who, group in groups.items() for seg in _speaker_segments(group, speaker=who)),
+        key=lambda seg: (seg.start, seg.end),
+    )
+
+
+def _speaker_segments(
+    tiers: Mapping[str, Sequence[tuple[float, float, str]]],
+    *,
+    speaker: str | None,
+) -> list[TranscriptSegment]:
+    """One speaker's tiers → segments (:func:`segments_from_tiers`); a line
+    tier's own ``speaker: text`` wins over ``speaker``."""
     if not tiers:
         return []
     phone_tier = _tier_named(tiers, _TG_PHONE_TIERS)
@@ -621,6 +703,7 @@ def segments_from_tiers(
         if phone_tier is not None and phone_tier != word_tier
         else []
     )
+    alphabet = phone_alphabet_of(p[0] for p in phones) if phones else None
 
     def within(timings: list, a: float, b: float) -> tuple | None:
         inside = tuple(x for x in timings if x[1] >= a - 1e-6 and x[2] <= b + 1e-6)
@@ -634,23 +717,27 @@ def segments_from_tiers(
                 text=" ".join(w[0] for w in words),
                 start=words[0][1],
                 end=words[-1][2],
+                speaker=speaker,
                 words=tuple(words),
                 phones=tuple(phones) or None,
+                phone_alphabet=alphabet,
             )
         ]
     out = []
     for a, b, t in tiers[line_tier]:
         if not t:
             continue
-        speaker, body = _speaker_and_text(t)
+        said_by, body = _speaker_and_text(t)
+        inside = within(phones, a, b)
         out.append(
             TranscriptSegment(
                 text=body,
                 start=a,
                 end=b,
-                speaker=speaker,
+                speaker=said_by or speaker,
                 words=within(words, a, b),
-                phones=within(phones, a, b),
+                phones=inside,
+                phone_alphabet=alphabet if inside else None,
             )
         )
     return out

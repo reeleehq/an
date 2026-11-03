@@ -1,0 +1,1 @@
+- Transcripts: every MFA speaker's tiers are read (speaker set, segments in time order), readers report the phone alphabet the format shows (`TranscriptSegment.phone_alphabet`, `phone_alphabet_of`) and a take records it, and Gentle's words not in the transcript are dropped (an#721).

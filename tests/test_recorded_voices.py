@@ -1261,13 +1261,50 @@ def test_mfa_and_gentle_json_give_the_phones_their_textgrid_gives(tmp_path):
         take = _take(tmp_path / name, bursts=((0.5, 1.5),), seconds=2.0)
         import_recordings(root, take, transcript=transcript, license=LICENSE)
         (record,) = _records(root).values()
-        return record["phones"]
+        return record["phones"], record.get("phone_alphabet")
 
-    by_grid = phones_of(grid, "g")
+    by_grid, grid_alphabet = phones_of(grid, "g")
     assert by_grid and by_grid[0][0] == "HH"
-    assert phones_of(mfa, "m") == by_grid
+    # each reader states the alphabet its format shows (an#721)
+    assert grid_alphabet == "arpabet"
+    assert phones_of(mfa, "m") == (by_grid, "arpabet")
     unstressed = [[p.rstrip("012"), a, b] for p, a, b in by_grid]
-    assert phones_of(gentle, "j") == unstressed
+    assert phones_of(gentle, "j") == (unstressed, "arpabet")
+
+
+def test_readers_give_every_mfa_speaker_the_alphabet_and_drop_gentle_s_disfluencies():
+    """an#721: MFA's `"<speaker> - words"` tiers are read for EVERY speaker,
+    the speaker set and the segments in time order; the reader reports the
+    phone alphabet its labels show (IPA symbols, ARPAbet stress digits, else
+    unknown); Gentle's words not in the transcript (an "um") are dropped."""
+    from an.audio.transcripts import parse_json
+
+    two = parse_json({"tiers": {
+        "ned - words": {"entries": [[1.0, 1.4, "yo"]]},
+        "ned - phones": {"entries": [[1.0, 1.2, "j"], [1.2, 1.4, "əʊ"]]},
+        "carl - words": {"entries": [[0.0, 0.3, "hi"], [0.3, 0.6, ""]]},
+        "carl - phones": {"entries": [[0.0, 0.1, "HH"], [0.1, 0.3, "AY1"]]},
+    }})  # fmt: skip
+    assert [(s.speaker, s.text, s.phone_alphabet) for s in two] == [
+        ("carl", "hi", "arpabet"),
+        ("ned", "yo", "ipa"),
+    ]
+    assert two[0].phones == (("HH", 0.0, 0.1), ("AY1", 0.1, 0.3))
+    unknown = parse_json({"tiers": {
+        "words": {"entries": [[0.0, 0.3, "st"]]},
+        "phones": {"entries": [[0.0, 0.1, "s"], [0.1, 0.3, "t"]]},
+    }})  # fmt: skip
+    assert unknown[0].phones and unknown[0].phone_alphabet is None
+    gentle = parse_json({"transcript": "hi there", "words": [
+        {"word": "hi", "case": "success", "start": 0.0, "end": 0.3,
+         "phones": [{"phone": "hh_B", "duration": 0.1}, {"phone": "ay_E", "duration": 0.2}]},
+        {"word": "um", "case": "not-found-in-transcript", "start": 0.3, "end": 0.6,
+         "phones": [{"phone": "ah_B", "duration": 0.1}, {"phone": "m_E", "duration": 0.2}]},
+        {"word": "there", "case": "not-found-in-audio"},
+    ]})  # fmt: skip
+    (seg,) = gentle
+    assert seg.text == "hi" and seg.words == (("hi", 0.0, 0.3),)
+    assert [p[0] for p in seg.phones] == ["HH", "AY"] and seg.phone_alphabet == "arpabet"
 
 
 def test_json_that_is_not_mfa_s_keeps_its_segments_and_oov_is_not_a_phone():
