@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-11-03
+- `an credits` classes OpenAI image output (`provider="openai"`, `license="openai-output-owned"`, from `an art generate`) as `attribution`: the video must disclose AI generation (OpenAI's Terms of Use and Sharing & Publication Policy), with the remaining terms named; the class is the maintainer's call in an#742 (an#728).
 - `an.project.gitignored(rel, *, lines=PROJECT_GITIGNORE)` and `gitignore_matcher(lines)` read `.gitignore` lines by git's rules (checked against `git check-ignore`), for a genre that copies a project; genre API level 15 (an#725).
 - Transcripts: every MFA speaker's tiers are read, a several-speaker conversation cut into one segment per turn (speaker set; a prefix names a speaker only before a known tier name), readers report the phone alphabet the format shows (`TranscriptSegment.phone_alphabet`, `phone_alphabet_of` over the `ARPABET_PHONES` inventory) and a take records it, and Gentle's words not in the transcript are dropped (an#721).
 - Voice leveling adopts mixing#85: `GainCappedWarning` is relabelled per voice from its fields, the measurement is `mixing.loudness.group_lufs`, lines at different rates go to mixing per segment (polyphase), retiring `an`'s linear resampler, and the ebur128 meter runs the PATH ffmpeg, never the pip-bundled one (an#699).
