@@ -516,10 +516,12 @@ def _resolve(ep: EntryPoint) -> Genre:
     try:
         genre = ep.load()
     except Exception as e:  # noqa: BLE001 — re-raised, named
+        # A module `an` no longer has, or a name an `an` module no longer
+        # serves (a removed alias, an#709): either way, the genre is older.
         stale = (
-            " (it imports a path `an` no longer serves: upgrade the genre "
+            " (it imports a path or name `an` no longer serves: upgrade the genre "
             "package, for example `pip install -U cutan`)"
-            if isinstance(e, ModuleNotFoundError) and (e.name or "").startswith("an.")
+            if isinstance(e, ImportError) and (e.name or "").split(".")[0] == "an"
             else ""
         )
         raise GenreError(
