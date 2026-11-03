@@ -778,9 +778,9 @@ def _check_action_targets(
     the "targets were NOT checked" news instead of a warning of its own (the
     ``not_compiled`` line folds it in).
     """
-    from an.stage import STAGE_RENDERER_NAMES
+    from an.stage import draws_on_stage
 
-    if not stores or shot.renderer not in STAGE_RENDERER_NAMES:
+    if not stores or not draws_on_stage(shot):
         return
     from an.stage.compile import (
         CAMERA_NODE,

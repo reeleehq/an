@@ -301,9 +301,9 @@ def compile_as_rendered(
     """
     import warnings
 
-    from an.stage import STAGE_RENDERER_NAMES
+    from an.stage import draws_on_stage
 
-    if shot.renderer not in STAGE_RENDERER_NAMES:
+    if not draws_on_stage(shot):
         return None, None
 
     def pack_or_none(meta: Meta, styles: Mapping) -> "StylePack | None":
@@ -927,9 +927,9 @@ def compile_shot(
     measures pixels, where a stand-in is a wrong answer wearing a right one's
     clothes (an#33).
     """
-    from an.stage import STAGE_RENDERER_NAMES
+    from an.stage import STAGE_RENDERER_NAMES, draws_on_stage
 
-    if shot.renderer not in STAGE_RENDERER_NAMES:
+    if not draws_on_stage(shot):
         raise ValueError(
             f"compile_shot expects a stage renderer {STAGE_RENDERER_NAMES}; "
             f"got {shot.renderer!r}"

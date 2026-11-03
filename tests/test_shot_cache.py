@@ -1150,29 +1150,71 @@ def test_record_itself_refuses_frames_unless_asked(tmp_path):
 def test_prepared_shots_are_the_render_s_compiled_documents_without_drawing(tmp_path):
     """an#733: `an.render.prepared_shots` gives each shot as the render
     prepares it, its stage document exactly as the render's engine compiles it
-    (`compiled_document` under the render's context), and its film start, so a
+    (`compiled_document` under the render's context), and its film start as the
+    film lays it out (a dissolve overlaps: starts are not summed lengths), so a
     verifier reads a render's timelines without drawing a frame."""
     import json
 
-    from an.render import PreparedShot, _prepare_shots, prepared_shots
+    from an.ir.schema import Transition
+    from an.render import PreparedShot, PreparedShots, _prepare_shots, prepared_shots
     from an.stage import cache_key
 
     root = init(tmp_path / "p")
     project = load(root)
+    dissolve = Transition(kind="dissolve", duration=0.5)
     project.mall["scenes"]["main"] = SceneIR(
         meta=Meta(fps=_FPS, resolution=Resolution(width=160, height=120), step_hz=8.0),
-        timeline=[_shot("a", 1.0), _shot("b", 2.0)],
-    )
+        timeline=[_shot("a", 1.0), _shot("b", 2.0).model_copy(update={"transition": dissolve})],
+    )  # fmt: skip
     got = prepared_shots(root)
-    assert [type(p) for p in got] == [PreparedShot, PreparedShot]
-    assert [p.shot.id for p in got] == ["a", "b"]
-    assert [p.start for p in got] == [0.0, 1.0]
+    assert isinstance(got, PreparedShots)
+    assert (got.fps, got.resolution) == (_FPS, (160, 120))
+    assert [type(p) for p in got.shots] == [PreparedShot, PreparedShot]
+    assert [p.shot.id for p in got.shots] == ["a", "b"]
+    assert [p.start for p in got.shots] == [0.0, 0.5]
+    assert all("document" not in vars(p) for p in got.shots)  # compiled on demand
     prep = _prepare_shots(
         load(root), tmp_path / "work", fps=None, resolution=None, strict_assets=False,
         supersample=1, pix_fmt=None, capture=None, step_hz=None,
     )  # fmt: skip
-    for p, (shot, _, ctx) in zip(got, prep.shot_renderers):
+    for p, (shot, _, ctx) in zip(got.shots, prep.shot_renderers):
         expected = cache_key.compiled_document(shot, ctx)
-        assert json.dumps(p.document.model_dump(mode="json"), sort_keys=True) == json.dumps(
-            expected.model_dump(mode="json"), sort_keys=True
-        )
+        assert json.dumps(
+            p.document.model_dump(mode="json"), sort_keys=True
+        ) == json.dumps(expected.model_dump(mode="json"), sort_keys=True)
+
+
+def test_prepared_shots_refuse_an_unmeasured_clock_owned_length_unless_accepted(
+    tmp_path, monkeypatch
+):
+    """an#733: a Manim shot never measured has a placeholder length that moves
+    every later start, so `prepared_shots` refuses it unless the caller accepts
+    it (its finding is returned); a measured one lays out at its measured
+    length. A Manim shot has no stage document."""
+    import an.adapters.manim_adapter as ma
+    from an.adapters._base import DurationMeasurement
+    from an.measurements import UnmeasuredLengthError, is_unmeasured
+    from an.render import prepared_shots
+    from tests.test_manim_renderer import LINEAR
+
+    monkeypatch.setattr(ma, "manim_version", lambda: "0.0.0-fake")
+    root = init(tmp_path / "p")
+    project = load(root)
+    project.mall["sources"]["chart"] = LINEAR
+    project.mall["scenes"]["main"] = SceneIR(
+        meta=Meta(fps=_FPS, resolution=Resolution(width=160, height=120)),
+        timeline=[Shot(id="chart", renderer="manim", options={"source": "chart"}),
+                  _shot("b", 2.0)],
+    )  # fmt: skip
+    with pytest.raises(UnmeasuredLengthError, match="chart"):
+        prepared_shots(root)
+    got = prepared_shots(root, allow_unmeasured=True)
+    assert [is_unmeasured(f) for f in got.findings] == [True]
+    assert got.shots[0].document is None and got.shots[1].document is not None
+
+    def measured(self, shot, ctx, *, render=True, force=False):
+        return DurationMeasurement(duration=2.0)
+
+    monkeypatch.setattr(ma.ManimRenderer, "measure_duration", measured)
+    got = prepared_shots(root)
+    assert [p.start for p in got.shots] == [0.0, 2.0] and got.findings == []

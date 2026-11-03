@@ -47,9 +47,12 @@ if TYPE_CHECKING:  # pragma: no cover - types only
 __all__ = [
     "MeasurementError",
     "ShotFindingWarning",
+    "UNMEASURED_FIX",
+    "UnmeasuredLengthError",
     "accept_measured",
     "clock_owner_for",
     "declared_duration",
+    "is_unmeasured",
     "settle_durations",
     "warn_findings",
 ]
@@ -59,8 +62,31 @@ __all__ = [
 META_DURATION_TOLERANCE_S: float = 0.01
 
 
+#: What the finding of a clock-owned shot never measured suggests; also what
+#: marks it (:func:`is_unmeasured`): its length is a placeholder.
+UNMEASURED_FIX: str = (
+    "render the project once (`an render`) so its renderer measures the shot"
+)
+
+
 class MeasurementError(RuntimeError):
     """A measured shot cannot be laid out as asked (e.g. a hold under strict mode)."""
+
+
+class UnmeasuredLengthError(MeasurementError):
+    """A clock-owned shot was never measured, so its length (and every later
+    shot's start) is a placeholder, and the caller did not accept that."""
+
+
+def is_unmeasured(finding: Any) -> bool:
+    """Whether ``finding`` (one of :func:`settle_durations`') says a shot's
+    length is a placeholder: its renderer decides it and never measured it.
+
+    >>> from types import SimpleNamespace as NS
+    >>> is_unmeasured(NS(suggested_fix=UNMEASURED_FIX)), is_unmeasured(NS(suggested_fix=None))
+    (True, False)
+    """
+    return getattr(finding, "suggested_fix", None) == UNMEASURED_FIX
 
 
 class ShotFindingWarning(UserWarning):
@@ -150,6 +176,7 @@ def settle_durations(
                     f"shot {shot.id!r} is drawn by {shot.renderer!r}, which decides "
                     "its length; it is unknown until the first render, so nothing "
                     "is judged against it yet",
+                    UNMEASURED_FIX,
                 )
             )
             # Judge against nothing: long enough for its own dialogue.

@@ -19,6 +19,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from contextlib import contextmanager
 from dataclasses import dataclass, field
+from functools import cached_property
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -1064,69 +1065,123 @@ class _PreparedShots:
     sound_findings: list = field(default_factory=list)
 
 
-@dataclass(frozen=True)
+@dataclass
 class PreparedShot:
     """One shot as :func:`render` draws it (an#733): the shot as prepared
-    (settled length, burned captions), its compiled stage document (``None``
-    for a renderer that draws no stage, such as Manim), and where it starts
-    in the film, seconds."""
+    (settled length, burned captions), the renderer that draws it, the context
+    it is drawn in, and where it starts in the film, seconds (the film's
+    layout: a dissolve overlaps, so starts are not summed lengths).
+
+    :attr:`document` is compiled on first read only, so a caller that needs
+    none (``an probe``) pays no compile.
+    """
 
     shot: Any
-    document: Any
+    renderer: Any
+    ctx: RenderContext
     start: float
+
+    @cached_property
+    def document(self) -> Any:
+        """The stage document exactly as the render's engine compiles it
+        (:func:`an.stage.cache_key.compiled_document`); ``None`` for a shot
+        not drawn on the stage (:func:`an.stage.draws_on_stage`; Manim)."""
+        from an.stage import draws_on_stage
+        from an.stage.cache_key import compiled_document
+
+        return (
+            compiled_document(self.shot, self.ctx)
+            if draws_on_stage(self.shot)
+            else None
+        )
+
+
+@dataclass(frozen=True)
+class PreparedShots:
+    """Every shot of a film as :func:`render` prepares it (:func:`prepared_shots`):
+    the film's rate and size, the shots in timeline order, and what preparing
+    them found (settled lengths, cues timed by the picture), as the render
+    report files them."""
+
+    fps: int | float
+    resolution: tuple[int, int]
+    shots: list[PreparedShot]
+    findings: list = field(default_factory=list)
 
 
 def prepared_shots(
     project: Project | str | Path,
     *,
-    fps: float | None = None,
+    fps: int | None = None,
     resolution: tuple[int, int] | None = None,
-    supersample: int = 1,
+    supersample: int = DEFAULT_SUPERSAMPLE,
     measure: bool = False,
-) -> list[PreparedShot]:
-    """Every shot of ``project`` compiled exactly as :func:`render` compiles it,
-    without drawing (an#733): the preparation ``render`` and ``an probe`` share
-    (:func:`_prepare_shots`: settled lengths, the style pack, ``step_hz``,
-    default easing, burned captions, ``continue:`` shots, the closing
-    transition), then each stage shot's document as the render's engine
-    compiles it (:func:`an.stage.cache_key.compiled_document`). For a verifier
-    that reads a render's timelines (a mouth or body cadence measured apart).
+    allow_unmeasured: bool = False,
+    work_dir: str | Path | None = None,
+) -> PreparedShots:
+    """Every shot of ``project`` prepared exactly as :func:`render` prepares
+    it, without drawing (an#733): the preparation ``render`` and ``an probe``
+    share (:func:`_prepare_shots`: settled lengths, the style pack,
+    ``step_hz``, default easing, burned captions, ``continue:`` shots, the
+    closing transition), each shot's film start, and its stage document on
+    demand (:attr:`PreparedShot.document`). For a verifier that reads a
+    render's timelines (a mouth or body cadence measured apart).
 
-    ``fps``, ``resolution`` and ``supersample`` as ``an render`` takes them;
-    ``measure=True`` lets a clock-owning renderer (Manim) measure a shot whose
-    length is not stored, as a render does (else the stored measurement only).
+    ``fps`` and ``resolution`` as ``an render`` takes them (``None``: the
+    scene's). ``supersample`` is the context's fidelity only (what a caller
+    that draws, a probe, draws at); it does not reach the document.
+
+    A shot whose renderer owns its clock (Manim) and was never measured has a
+    placeholder length that shifts every later start, so it is refused
+    (:class:`an.measurements.UnmeasuredLengthError`) unless
+    ``allow_unmeasured`` (its finding is then in ``findings``). ``measure=True``
+    measures it as a render does: it RUNS that renderer and WRITES its
+    measurement (and the picture it drew) to the project's stores.
+
+    ``work_dir`` is the render context's scratch folder, for a caller that
+    draws through ``ctx`` (a probe stages there); preparing without
+    ``measure`` writes nothing there (default ``<project>/.an/render_work``).
     """
-    import tempfile
-
-    from an.assemble import film_timeline
-    from an.stage.cache_key import compiled_document, draws_on_stage
+    from an.measurements import (
+        UNMEASURED_FIX,
+        UnmeasuredLengthError,
+        is_unmeasured,
+    )
 
     if not isinstance(project, Project):
         project = load(project)
-    with tempfile.TemporaryDirectory(prefix="an-prepared-") as work:
-        prep = _prepare_shots(
-            project,
-            Path(work),
-            fps=fps,
-            resolution=resolution,
-            strict_assets=False,
-            supersample=supersample,
-            pix_fmt=None,
-            capture=None,
-            step_hz=None,
-            measure=measure,
+    prep = _prepare_shots(
+        project,
+        Path(work_dir) if work_dir is not None else project.root / RENDER_WORK_DIR,
+        fps=fps,
+        resolution=resolution,
+        strict_assets=False,
+        supersample=supersample,
+        pix_fmt=None,
+        capture=None,
+        step_hz=None,
+        measure=measure,
+    )
+    findings = [*prep.findings, *prep.sound_findings]
+    unmeasured = [f for f in findings if is_unmeasured(f)]
+    if unmeasured and not allow_unmeasured:
+        raise UnmeasuredLengthError(
+            "; ".join(f"{f.ir_path}: {f.description}" for f in unmeasured)
+            + ". A placeholder length moves every later shot's start: pass measure=True (runs the renderer and writes its "
+            f"measurement), {UNMEASURED_FIX}, or allow_unmeasured=True"
         )
-        laid_out = film_timeline(
-            list(prep.shots), fps=prep.fps, closing=prep.scene.meta.closing_transition
-        )
-        return [
-            PreparedShot(
-                shot=shot,
-                document=compiled_document(shot, ctx) if draws_on_stage(r) else None,
-                start=laid_out.start_seconds(i),
-            )
-            for i, (shot, r, ctx) in enumerate(prep.shot_renderers)
-        ]
+    laid_out = film_timeline(
+        list(prep.shots), fps=prep.fps, closing=prep.scene.meta.closing_transition
+    )
+    return PreparedShots(
+        fps=prep.fps,
+        resolution=tuple(prep.ctx.resolution),
+        shots=[
+            PreparedShot(shot, renderer, ctx, start=laid_out.start_seconds(i))
+            for i, (shot, renderer, ctx) in enumerate(prep.shot_renderers)
+        ],
+        findings=findings,
+    )
 
 
 def _prepare_shots(
@@ -1499,9 +1554,9 @@ def _burn_captions(shot, index, pages, captions, ctx, project, *, fps):
 
     if not any(p.shot == index for p in pages):
         return shot, ctx
-    from an.stage import STAGE_RENDERER_NAMES  # the stage has the overlay layer
+    from an.stage import draws_on_stage  # the stage has the overlay layer
 
-    if shot.renderer not in STAGE_RENDERER_NAMES:
+    if not draws_on_stage(shot):
         warnings.warn(
             f"shot {shot.id!r} is drawn by the {shot.renderer!r} renderer, which "
             "has no overlay layer: its captions are in the sidecar only",
