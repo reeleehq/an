@@ -42,6 +42,7 @@ from pathlib import Path
 from typing import Any, Callable, Protocol
 
 from an.base import (
+    DEFAULT_FPS,
     DEFAULT_RESOLUTION,
     PAINT_KEYS_OVERRIDE,
     paint_key_items,
@@ -93,9 +94,11 @@ from an.ir.schema import (
     CameraKey,
     Action,
     AssetRef,
+    Meta,
     SetAction,
     Shot,
     TweenAction,
+    resolve_step_hz,
 )
 
 from an.stage.serialize import (
@@ -186,49 +189,92 @@ def style_pack_for(scene_meta, styles_store: Mapping) -> "StylePack | None":
     return StylePack.model_validate(migrate(dict(raw), kind=STYLE_DOCUMENT_KIND.name))
 
 
-#: :func:`rendered_compile_args`' default for ``style_pack``: resolve the
-#: scene's own (:func:`style_pack_for`, which raises on a missing pack).
-_PACK_FROM_META: Any = object()
+def compile_args(
+    shot: Shot,
+    *,
+    mall: Mapping[str, Mapping] | None,
+    fps: float,
+    width: int,
+    height: int,
+    strict_assets: bool = False,
+    scene_step_hz: float | None = None,
+    style_pack: "StylePack | None" = None,
+    default_easing: Any = None,
+) -> dict[str, Any]:
+    """:func:`compile_shot`'s keywords for ``shot`` from settled values: the
+    ONE place they are spelled out (an#713). The render path calls it with its
+    `RenderContext`'s values (``an.stage.render.context_compile_args``), every
+    other caller through :func:`rendered_compile_args`.
+
+    ``fps`` may be fractional (a camera's 29.97): the compiled document's frame
+    grid is integral, so it is rounded here, and capture and mux keep the exact
+    rate. The step grid is the shot's over the scene's
+    (:func:`an.ir.schema.resolve_step_hz`).
+
+    >>> args = compile_args(Shot(id="s"), mall={}, fps=29.97, width=8, height=6, scene_step_hz=12.0)
+    >>> args["fps"], args["step_hz"], (args["width"], args["height"])
+    (30, 12.0, (8, 6))
+    """
+    return dict(
+        mall=mall,
+        fps=int(round(fps)),
+        width=width,
+        height=height,
+        strict_assets=strict_assets,
+        step_hz=resolve_step_hz(shot, scene_step_hz),
+        style_pack=style_pack,
+        default_easing=default_easing,
+    )
+
+
+#: How :func:`rendered_compile_args` finds a scene's pack: ``(meta, styles
+#: store) -> StylePack | None``.
+PackResolver = Callable[[Meta, Mapping], "StylePack | None"]
 
 
 def rendered_compile_args(
     shot: Shot,
-    meta: Any,
+    meta: Meta,
     mall: Mapping[str, Mapping] | None,
     *,
-    fps: float,
+    fps: float | None = None,
     width: int | None = None,
     height: int | None = None,
     strict_assets: bool = False,
-    style_pack: Any = _PACK_FROM_META,
+    resolve_pack: PackResolver = style_pack_for,
 ) -> dict[str, Any]:
     """:func:`compile_shot`'s keywords for ``shot`` as ``an render`` compiles
-    it under the scene's ``meta`` (an#713): the one place the render's rules
-    are spelled out for every caller outside the render path (validate, the
-    preview, the orchestrator's check, continuity, the bench's contract).
-    ``fps`` is rounded to the whole frame rate the compiler takes; the step
-    grid is the shot's over the scene's (:func:`an.ir.schema.resolve_step_hz`);
-    the resolution is the scene's unless ``width``/``height`` say; the style
-    pack is the scene's (:func:`style_pack_for`, which RAISES on a missing pack,
-    an#33) unless one is given (``None`` for none).
+    it under the scene's ``meta`` and no overrides (an#713): for every caller
+    outside the render path (validate, the preview, the orchestrator's check,
+    continuity, the bench's contract).
 
-    >>> from an.ir.schema import Meta, Shot
-    >>> args = rendered_compile_args(Shot(id="s", step_hz=12.0), Meta(fps=24), {}, fps=23.976)
-    >>> args["fps"], args["step_hz"], args["style_pack"], args["width"] == Meta().resolution.width
-    (24, 12.0, None, True)
+    The render's own defaults: ``fps`` (``None`` = the scene's, else
+    ``DEFAULT_FPS``), ``width``/``height`` (``None`` = the scene's, else
+    ``DEFAULT_RESOLUTION``), the scene's step grid and default easing. The pack
+    is ``resolve_pack(meta, mall["styles"])``: by default
+    :func:`style_pack_for`, which RAISES on a missing pack (an#33); a caller
+    that already holds one passes ``lambda *_: pack``.
+
+    >>> args = rendered_compile_args(Shot(id="s", step_hz=12.0), Meta(), {})
+    >>> args["fps"] == Meta().fps, args["step_hz"], args["style_pack"]
+    (True, 12.0, None)
+    >>> rendered_compile_args(Shot(id="s"), Meta(), {}, fps=23.976)["fps"]
+    24
     """
-    from an.ir.schema import resolve_step_hz
 
-    if style_pack is _PACK_FROM_META:
-        style_pack = style_pack_for(meta, (mall or {}).get("styles") or {})
-    return dict(
+    def given_or(value, default):
+        return default if value is None else value
+
+    res = meta.resolution
+    return compile_args(
+        shot,
         mall=mall,
-        fps=int(round(fps)),
-        width=meta.resolution.width if width is None else width,
-        height=meta.resolution.height if height is None else height,
+        fps=given_or(fps, meta.fps or DEFAULT_FPS),
+        width=given_or(width, res.width or DEFAULT_RESOLUTION[0]),
+        height=given_or(height, res.height or DEFAULT_RESOLUTION[1]),
         strict_assets=strict_assets,
-        step_hz=resolve_step_hz(shot, meta.step_hz),
-        style_pack=style_pack,
+        scene_step_hz=meta.step_hz,
+        style_pack=resolve_pack(meta, (mall or {}).get("styles") or {}),
         default_easing=meta.default_easing,
     )
 
@@ -259,17 +305,20 @@ def compile_as_rendered(
 
     if shot.renderer not in STAGE_RENDERER_NAMES:
         return None, None
-    try:
-        pack = style_pack_for(scene.meta, (mall or {}).get("styles") or {})
-    except Exception:  # noqa: BLE001 - a broken pack is the style check's to report
-        pack = None
+
+    def pack_or_none(meta: Meta, styles: Mapping) -> "StylePack | None":
+        try:
+            return style_pack_for(meta, styles)
+        except Exception:  # noqa: BLE001 - a broken pack is the style check's to report
+            return None
+
     try:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")  # the render's warnings, not validate's
             doc = compile_shot(
                 shot,
                 **rendered_compile_args(
-                    shot, scene.meta, mall, fps=fps, style_pack=pack
+                    shot, scene.meta, mall, fps=fps, resolve_pack=pack_or_none
                 ),
             )
     except Exception as e:  # noqa: BLE001 - reported by the check that owns it

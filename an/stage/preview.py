@@ -25,11 +25,9 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from an.stage.compile import compile_shot, rendered_compile_args
-from an.ir.schema import resolve_step_hz
 from an.stage.render import _serve_dir, _stage_scene_assets
 from an.stage.runtime_files import runtime_dir
 from an.stage.serialize import to_dict
-from an.base import DEFAULT_FPS, DEFAULT_RESOLUTION
 from an.ir.sync import DEFAULT_SCENE_FILE, SceneFile, resolve_scene_file
 from an.project import load
 
@@ -196,10 +194,6 @@ def _compile_scene_to(
             "`an render` instead."
         )
 
-    fps = scene.meta.fps or DEFAULT_FPS
-    width = scene.meta.resolution.width or DEFAULT_RESOLUTION[0]
-    height = scene.meta.resolution.height or DEFAULT_RESOLUTION[1]
-
     # The SAME arguments `an render` compiles with (an#713), the pack
     # included: without it, a project declaring one previewed in the default
     # palette and rendered in the pack's, and a scene naming a MISSING pack
@@ -207,9 +201,7 @@ def _compile_scene_to(
     # entirely (an#112 review, H2).
     scene_json = compile_shot(
         shot,
-        **rendered_compile_args(
-            shot, scene.meta, project.mall, fps=fps, width=width, height=height
-        ),
+        **rendered_compile_args(shot, scene.meta, project.mall),
     )
     _stage_scene_assets(scene_json, project.mall, runtime_target)
 

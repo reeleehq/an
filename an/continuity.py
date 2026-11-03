@@ -265,7 +265,6 @@ def continue_shots(
     """
     if not any(s.continue_from for s in scene.timeline):
         return scene
-    from an.ir.schema import resolve_step_hz
     from an.ir.sync import read_scene as _read
     from an.ir.world import viewpoint_key
     from an.stage.compile import compile_shot as _compile

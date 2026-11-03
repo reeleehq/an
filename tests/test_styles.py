@@ -471,20 +471,76 @@ def test_the_renderer_hands_the_pack_to_the_compiler(monkeypatch):
     assert getattr(seam.kwargs.get("style_pack"), "name", None) == "noir", seam.kwargs
 
 
-def test_the_preview_path_carries_it_too():
-    """`an preview` compiled without the pack, so a project declaring one
-    previewed in the default palette and rendered in the pack's — the author
-    iterating against the wrong picture (an#112 review, H2)."""
-    import inspect
+def _styled_project(root: Path, pack: str):
+    """A project with one stage shot whose scene names ``pack``, a step grid
+    and a default easing; only the pack ``noir`` exists."""
+    from an.ir.schema import SceneIR
+    from an.project import init, load
 
-    import an.preview as preview_mod
+    init(root)
+    project = load(root)
+    project.mall["styles"]["noir"] = StylePack(
+        name="noir", roles={"sky": "#3a3a44"}
+    ).model_dump()
+    project.mall["scenes"]["main"] = SceneIR(
+        meta=Meta(style_pack=pack, step_hz=8.0, default_easing="linear"),
+        timeline=[Shot(id="s1", renderer="cutout", duration=1.0)],
+    )
+    return load(root)
 
+
+def _render_ctx(project, work: Path):
+    from an.render import _prepare_shots
+
+    return _prepare_shots(
+        project, work, fps=None, resolution=None, strict_assets=False,
+        supersample=1, pix_fmt=None, capture=None, step_hz=None,
+    ).ctx  # fmt: skip
+
+
+def test_the_preview_refuses_a_missing_pack_as_the_render_does(tmp_path):
+    """`an preview` once compiled without the pack, so a scene naming a MISSING
+    one previewed happily and only failed at render, skipping the an#33 raise
+    (an#112 review, H2). Both now refuse it, with the same error."""
+    from an.stage.preview import _compile_scene_to
+
+    project = _styled_project(tmp_path / "p", pack="nope")
+    with pytest.raises(CutoutCompileError, match="'nope'") as previewed:
+        _compile_scene_to(project.root, tmp_path / "rt", shot_id=None)
+    with pytest.raises(CutoutCompileError) as rendered:
+        _render_ctx(project, tmp_path / "work")
+    assert str(previewed.value) == str(rendered.value)
+
+
+def test_the_preview_compiles_with_the_renders_arguments(tmp_path, monkeypatch):
+    """A project declaring a pack previewed in the default palette and rendered
+    in the pack's — the author iterating against the wrong picture (an#112
+    review, H2). The preview's keywords are the render's (an#713)."""
+    import an.stage.preview as preview_mod
+    from an.stage import cache_key
     from an.stage import compile as compile_mod
 
-    # the preview compiles with the render's own arguments (an#713), and those
-    # resolve the scene's pack, raising on a missing one (an#33)
-    assert "rendered_compile_args(" in inspect.getsource(preview_mod)
-    assert "style_pack_for(meta" in inspect.getsource(compile_mod.rendered_compile_args)
+    received = []
+
+    class _Stop(Exception):
+        pass
+
+    def spy(shot, **kw):
+        received.append(kw)
+        raise _Stop
+
+    project = _styled_project(tmp_path / "p", pack="noir")
+    monkeypatch.setattr(preview_mod, "compile_shot", spy)
+    monkeypatch.setattr(compile_mod, "compile_shot", spy)
+    with pytest.raises(_Stop):
+        preview_mod._compile_scene_to(project.root, tmp_path / "rt", shot_id=None)
+    ctx = _render_ctx(project, tmp_path / "work")
+    with pytest.raises(_Stop):
+        cache_key.compiled_document(project.scene.timeline[0], ctx)
+    previewed, rendered = received
+    assert previewed.pop("mall").keys() == rendered.pop("mall").keys()
+    assert previewed == rendered
+    assert previewed["style_pack"].name == "noir" and previewed["step_hz"] == 8.0
 
 
 @pytest.mark.genre("cutout_animation")

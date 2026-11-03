@@ -102,24 +102,14 @@ def _render_module():
 def compiled_document(shot: Any, ctx: Any) -> Any:
     """The document the stage engine (``StageEngine.open``) will compile for ``shot`` under ``ctx``.
 
-    The SAME call, argument for argument — `tests/test_shot_cache.py` pins the
-    two against each other, so a knob added to one and not the other fails
-    there rather than in a stale render.
+    The SAME call, argument for argument: both build their keywords with
+    ``an.stage.render.context_compile_args`` (an#713), and
+    `tests/test_shot_cache.py` pins the two against each other, so a knob
+    added to one and not the other fails there rather than in a stale render.
     """
     from an.stage.compile import compile_shot
 
-    r = _render_module()
-    return compile_shot(
-        shot,
-        mall=ctx.mall,
-        fps=int(round(ctx.fps)),
-        width=ctx.resolution[0],
-        height=ctx.resolution[1],
-        strict_assets=ctx.strict_assets,
-        step_hz=r.effective_step_hz(shot, ctx),
-        style_pack=ctx.style_pack,
-        default_easing=ctx.default_easing,
-    )
+    return compile_shot(shot, **_render_module().context_compile_args(shot, ctx))
 
 
 def texture_digests(scene_json: Any, mall: Mapping[str, Any]) -> dict[str, str]:

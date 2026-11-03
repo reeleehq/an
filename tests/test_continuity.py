@@ -86,6 +86,19 @@ def test_a_continued_shot_opens_as_the_other_one_ends(tmp_path):
     assert scene.timeline[0] == _bedtime(), "the source is untouched"
 
 
+def test_a_fractional_render_rate_continues_as_the_render_compiles(tmp_path):
+    """an#713: the source compiled at the raw rate, and the compiler takes a
+    whole one, so ``continue_shots(..., fps=29.97)`` raised where the render
+    (which rounds) drew the shot happily."""
+    mall = _mall(tmp_path)
+    scene = continue_shots(
+        _scene(_bedtime(), _studio(continue_from="bed")), mall, fps=29.97
+    )
+    opening = _opening(scene.timeline[1], mall)
+    assert opening[("lamp", "x")] == pytest.approx(120.0)
+    assert opening[("lamp/body", "lamp")] == "on"
+
+
 def test_the_shots_own_opening_wins(tmp_path):
     mall = _mall(tmp_path)
     own = SetAction(target="lamp", property="x", value=-40.0, at=0.0)
