@@ -1,0 +1,1 @@
+- Voice leveling adopts mixing#85: `GainCappedWarning` is relabelled per voice from its fields, the measurement is `mixing.loudness.group_lufs`, lines at different rates go to mixing per segment (polyphase), retiring `an`'s linear resampler, and the ebur128 meter runs the PATH ffmpeg, never the pip-bundled one (an#699).

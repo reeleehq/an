@@ -12,6 +12,14 @@ imports themselves stay written out where they are, so the licence firewall
 Traceback (most recent call last):
   ...
 RuntimeError: testing needs mixing.no_such_part, which the installed mixing is too old to have: `pip install -U mixing`
+
+A name missing from a module that exists is named in full:
+
+>>> with mixing_too_old(needed_for="testing", error=RuntimeError):
+...     from mixing.loudness import no_such_name
+Traceback (most recent call last):
+  ...
+RuntimeError: testing needs mixing.loudness.no_such_name, which the installed mixing is too old to have: `pip install -U mixing`
 """
 
 from __future__ import annotations
@@ -38,19 +46,33 @@ class MixingTooOldWarning(UserWarning):
 def _missing_part(e: ImportError) -> str | None:
     """The ``mixing.<part>`` an import of ``mixing`` failed to find, ``None``
     when the failure is something else (``mixing`` itself absent, or a module
-    it imports). ``from mixing import part`` raises a plain ``ImportError``
-    named ``mixing``; ``import mixing.part`` a ``ModuleNotFoundError`` named
-    ``mixing.part``."""
+    it imports). ``from mixing import part`` (or ``from mixing.module import
+    name``) raises a plain ``ImportError`` named for the module it searched,
+    the missing name only in its message; ``import mixing.part`` a
+    ``ModuleNotFoundError`` named ``mixing.part``.
+
+    >>> _missing_part(ImportError(
+    ...     "cannot import name 'group_lufs' from 'mixing.loudness'", name="mixing.loudness"))
+    'mixing.loudness.group_lufs'
+    >>> _missing_part(ImportError("cannot import name 'loudness' from 'mixing'", name="mixing"))
+    'mixing.loudness'
+    >>> _missing_part(ModuleNotFoundError("No module named 'mixing.loudness'", name="mixing.loudness"))
+    'mixing.loudness'
+    >>> _missing_part(ModuleNotFoundError("No module named 'mixing'", name="mixing")) is None
+    True
+    """
     name = e.name or ""
-    if name.startswith(f"{MIXING}."):
-        return name
-    if name == MIXING and not isinstance(e, ModuleNotFoundError):
-        # `name_from` is Python 3.12+; before, only the message names the part.
-        part = getattr(e, "name_from", None) or _CANNOT_IMPORT.search(str(e))
-        if isinstance(part, re.Match):
-            part = part.group(1)
-        return f"{MIXING}.{part}" if part else None
-    return None
+    if name != MIXING and not name.startswith(f"{MIXING}."):
+        return None  # not mixing's own module: something it imports failed
+    if isinstance(e, ModuleNotFoundError):
+        return None if name == MIXING else name
+    # `name_from` is Python 3.12+; before, only the message names the part.
+    part = getattr(e, "name_from", None) or _CANNOT_IMPORT.search(str(e))
+    if isinstance(part, re.Match):
+        part = part.group(1)
+    if part:
+        return f"{name}.{part}"
+    return None if name == MIXING else name
 
 
 @contextmanager
@@ -75,7 +97,8 @@ def mixing_too_old(*, needed_for: str, error: type[Exception]) -> Iterator[None]
 
 def mixing_problem() -> str | None:
     """Why the installed ``mixing`` cannot serve ``an``: a part it uses is
-    missing (``mixing.loudness``, ``mixing.filtergraph``), or it is absent;
+    missing (``mixing.loudness`` with ``group_lufs`` and ``GainCappedWarning``,
+    an#699; ``mixing.filtergraph``), or it is absent;
     ``None`` when it can. Asked of the code, not of a version number: an
     editable install's metadata keeps the version it was installed at (an#644).
     """
@@ -83,6 +106,7 @@ def mixing_problem() -> str | None:
         with mixing_too_old(needed_for="an", error=RuntimeError):
             from mixing import loudness  # noqa: F401
             from mixing.filtergraph import resample_pitch_filter  # noqa: F401
+            from mixing.loudness import GainCappedWarning, group_lufs  # noqa: F401
     except RuntimeError as e:
         return str(e)
     return None

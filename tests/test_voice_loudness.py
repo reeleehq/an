@@ -410,7 +410,7 @@ def test_a_voice_of_only_short_lines_is_leveled_not_taken_for_silence():
 
 @pytest.mark.ffmpeg
 def test_room_tone_is_not_raised_past_the_gain_cap():
-    from an.audio.loudness import MAX_GAIN_DB
+    from an.audio.loudness import MAX_GAIN_DB, VoiceLoudnessWarning
 
     rng = np.random.default_rng(0)
     tone = _wav(rng.normal(0, 10 ** (-60 / 20), RATE * 2))  # ~ -62 LUFS of noise
@@ -424,7 +424,11 @@ def test_room_tone_is_not_raised_past_the_gain_cap():
         if d.speaker == "clone_a"
     }
     assert gains == {MAX_GAIN_DB}
-    assert any("capped" in str(w.message) for w in caught)
+    # said of the voice, as an's own warning: mixing's GainCappedWarning is
+    # relabelled from its fields, never passed on about a "group" (an#699)
+    (said,) = [w for w in caught if "mostly noise; capped" in str(w.message)]
+    assert said.category is VoiceLoudnessWarning
+    assert str(said.message).startswith("voice 'clone_a' measures ")
 
 
 def test_a_bad_offset_is_refused_with_its_bounds():
@@ -530,3 +534,64 @@ def test_gc_after_a_target_edit_keys_the_new_leveling_in_memory(
         p for p, _ in report.reach.skipped if p["tts"] == "voice"
     ]  # keyed, not skipped
     assert set(load(root).mall["audio"]) == audio  # the new leveling stayed in memory
+
+
+# -----------------------------------------------------------------------------
+# an#699 review: the PATH ffmpeg only, lines at their own rates
+# -----------------------------------------------------------------------------
+
+
+def test_measuring_without_ffmpeg_on_path_refuses_never_the_bundled_build():
+    """No ffmpeg on PATH: measuring raises VoiceLoudnessError (its install
+    hint), and mixing's preference for the pip-bundled build (imageio_ffmpeg,
+    GPL, an#578) is never reached. In a fresh interpreter, so ``sys.modules``
+    says what measuring alone loaded."""
+    import os
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    code = (
+        "import shutil, sys\n"
+        "import numpy as np\n"
+        "import an.audio.loudness as m\n"
+        "shutil.which = lambda *a, **k: None\n"
+        "try:\n"
+        "    m.integrated_loudness(m._Pcm(np.zeros((22050, 1)) + 0.1, 22050))\n"
+        "except m.VoiceLoudnessError as e:\n"
+        "    assert 'brew install ffmpeg' in str(e), e\n"
+        "else:\n"
+        "    sys.exit('measured without an ffmpeg on PATH')\n"
+        "sys.exit('imageio_ffmpeg' in sys.modules)\n"
+    )
+    root = Path(__file__).resolve().parents[1]
+    done = subprocess.run(
+        [sys.executable, "-c", code],
+        capture_output=True,
+        text=True,
+        cwd=root,
+        env={**os.environ, "PYTHONPATH": str(root)},
+    )
+    assert done.returncode == 0, done.stdout + done.stderr
+
+
+@pytest.mark.ffmpeg
+def test_a_voice_of_lines_at_different_rates_and_channels_is_measured_as_one():
+    """A 44.1 kHz stereo line and a 22.05 kHz mono one (mixing resamples each
+    to the highest rate, an#699): a finite, plausible loudness, the one the
+    same audio measures at a single rate, and the one leveling measures."""
+    from an.audio.loudness import _level_group, _Pcm, group_loudness
+
+    def tone(rate, *, channels=1, seconds=1.5, amplitude=0.1, hz=440.0):
+        t = np.arange(int(rate * seconds)) / rate
+        x = amplitude * np.sin(2 * math.pi * hz * t)
+        return _Pcm(np.repeat(x[:, None], channels, axis=1), rate)
+
+    mixed = [tone(44100, channels=2), tone(22050)]
+    # the stereo line's channels agree, so its downmix is the mono tone
+    one_rate = [tone(44100), tone(44100)]
+    lufs = group_loudness(mixed)
+    assert -40.0 < lufs < -10.0  # a -20 dBFS sine: about -23 LUFS
+    assert abs(lufs - group_loudness(one_rate)) < 0.5
+    _, measured = _level_group(mixed, target_lufs=-16.0, max_gain_db=24.0)
+    assert measured == pytest.approx(lufs)

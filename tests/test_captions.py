@@ -600,8 +600,15 @@ MIXING_IMPORT_ALLOWED = {
         "mixing",
         "mixing.filtergraph",
         "mixing.filtergraph.resample_pitch_filter",
+        "mixing.loudness.GainCappedWarning",  # an#699
+        "mixing.loudness.group_lufs",
     },
-    "audio/loudness.py": {"mixing.loudness", "mixing"},
+    "audio/loudness.py": {
+        "mixing.loudness",
+        "mixing",
+        "mixing.loudness.GainCappedWarning",  # an#699: the parts it uses
+        "mixing.loudness.group_lufs",
+    },
     "audio/effects.py": {
         "mixing.filtergraph",
         "mixing.filtergraph.resample_pitch_filter",

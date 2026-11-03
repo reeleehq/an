@@ -37,15 +37,20 @@ Without a target, :func:`loudness_report` measures the voices and
 
 The measuring and the limiter are the fleet's shared loudness component,
 :mod:`mixing.loudness` (an#563; ``mixing`` is a core dependency since an#611):
-:func:`mixing.loudness.level_group` measures a voice's lines back to back (looped
-to :data:`MIN_MEASURE_S`, channels kept when they agree) and caps the gain, with
-ffmpeg's ``ebur128`` injected as its meter (:data:`METER`) so ``an`` takes no
-scipy; :func:`mixing.loudness.limit_peaks` is the limiter, moved there unchanged
-(so :data:`LEVEL_VERSION` did not move, and a test pins the leveled bytes).
-What stays here is ``an``'s own: the voices, the offsets, the hysteresis, the
-makeup pass and the content keys. A ``mixing`` too old to have
-``mixing.loudness`` raises :class:`VoiceLoudnessError` telling the user to
-upgrade it (:func:`an.audio.shared_mixing.mixing_too_old`, an#621).
+:func:`mixing.loudness.group_lufs` measures a voice's lines back to back (looped
+to :data:`MIN_MEASURE_S`, channels kept when they agree), and
+:func:`mixing.loudness.level_group` does the same and caps the gain, its
+``GainCappedWarning`` said again of the voice as a :class:`VoiceLoudnessWarning`
+(an#699). Each line keeps its own rate: the component resamples them, polyphase,
+to the highest (an#699). The meter injected into both is :data:`METER`, ffmpeg's
+``ebur128`` run by the ffmpeg on ``PATH`` (required: never the pip-bundled build
+``mixing`` would otherwise prefer, an#578), so ``an`` takes no scipy.
+:func:`mixing.loudness.limit_peaks` is the limiter, moved there unchanged (so
+:data:`LEVEL_VERSION` did not move, and a test pins the leveled bytes). What
+stays here is ``an``'s own: the voices, the offsets, the hysteresis, the makeup
+pass and the content keys. A ``mixing`` too old to have the parts used here
+raises :class:`VoiceLoudnessError` telling the user to upgrade it
+(:func:`an.audio.shared_mixing.mixing_too_old`, an#621).
 """
 
 from __future__ import annotations
@@ -55,7 +60,7 @@ import io
 import json
 import shutil
 import wave
-from collections.abc import Mapping, MutableMapping
+from collections.abc import Callable, Mapping, MutableMapping
 from dataclasses import dataclass
 from typing import Any
 
@@ -90,9 +95,6 @@ MIN_MEASURE_S: float = 1.0
 #: A leveled voice that ends further than this from its target (the limiter
 #: held its peaks, or the gain was capped) is warned about.
 MISS_WARNING_DB: float = 1.0
-#: The loudness meter injected into :mod:`mixing.loudness` (one of its
-#: ``METERS``): ffmpeg's ``ebur128``, so ``an`` needs no scipy for its numpy meter.
-METER: str = "ffmpeg_ebur128"
 #: 16-bit full scale.
 _INT16_FULL_SCALE: float = 32768.0
 
@@ -116,19 +118,25 @@ class _Pcm:
     rate: int
 
 
-def _require_ffmpeg(doing: str) -> None:
-    if shutil.which("ffmpeg") is None:
+def _require_ffmpeg(doing: str) -> str:
+    """The ffmpeg on ``PATH``, or :class:`VoiceLoudnessError` saying how to
+    install it: never another build in its place (an#578)."""
+    ffmpeg = shutil.which("ffmpeg")
+    if ffmpeg is None:
         raise VoiceLoudnessError(
             f"{doing} needs the ffmpeg binary on PATH (macOS: `brew install ffmpeg`; "
             "Debian/Ubuntu: `apt install ffmpeg`)"
         )
+    return ffmpeg
 
 
 def _component() -> Any:
     """:mod:`mixing.loudness`, or :class:`VoiceLoudnessError` when the installed
-    ``mixing`` predates it."""
+    ``mixing`` predates it or the parts used here: ``group_lufs``, per-segment
+    rates and ``GainCappedWarning`` (mixing#85, an#699)."""
     with mixing_too_old(needed_for="leveling voices", error=VoiceLoudnessError):
         from mixing import loudness
+        from mixing.loudness import GainCappedWarning, group_lufs  # noqa: F401
     return loudness
 
 
@@ -164,46 +172,28 @@ def _encode(pcm: _Pcm) -> bytes:
     return buf.getvalue()
 
 
-def _at_one_rate(pcms: list[_Pcm]) -> tuple[list[Any], int]:
-    """``(segments, rate)``: the lines at the first line's rate (a voice's lines
-    share a provider, so a rate; another is resampled), each keeping its
-    channels — :func:`mixing.loudness.level_group` joins them back to back,
-    keeping channels when they all agree (EBU R128 weights channels) and
-    looping a short voice to :data:`MIN_MEASURE_S`."""
-    import numpy as np
-
-    if not pcms:
-        return [], 48000
-    rate = pcms[0].rate
-    segments = []
-    for p in pcms:
-        x = p.samples
-        if p.rate != rate and len(x):
-            positions = np.arange(0, len(x), p.rate / rate)
-            x = np.stack(
-                [
-                    np.interp(positions, np.arange(len(x)), x[:, c])
-                    for c in range(x.shape[1])
-                ],
-                axis=1,
-            )
-        segments.append(x)
-    return segments, rate
-
-
 def _meter(data: Any, fs: int) -> float:
     """The meter :func:`mixing.loudness.level_group` is given: this module's
     :func:`integrated_loudness` (looked up at call time, so it can be counted)."""
     return integrated_loudness(_Pcm(data, fs))
 
 
+def _group_args(pcms: list[_Pcm]) -> tuple[list[Any], list[int]]:
+    """A voice's decoded lines as :mod:`mixing.loudness` takes a group: the
+    segments and one rate each (it resamples them, polyphase, to the highest,
+    an#699), each keeping its channels — they are joined back to back, keeping
+    channels when they all agree (EBU R128 weights channels), and a short voice
+    is looped to :data:`MIN_MEASURE_S`."""
+    return [p.samples for p in pcms], [p.rate for p in pcms]
+
+
 def _level_group(pcms: list[_Pcm], *, target_lufs: float, max_gain_db: float):
     """:func:`mixing.loudness.level_group` over a voice's decoded lines:
     ``(gain_db, measured_lufs)``, measured by :data:`METER`."""
-    segments, rate = _at_one_rate(pcms)
+    segments, rates = _group_args(pcms)
     return _component().level_group(
         segments,
-        rate,
+        rates,
         target_lufs=target_lufs,
         meter=_meter,
         max_gain_db=max_gain_db,
@@ -211,14 +201,63 @@ def _level_group(pcms: list[_Pcm], *, target_lufs: float, max_gain_db: float):
     )
 
 
+def _capped_message(voice: str, capped: Any) -> str:
+    """What ``mixing``'s ``GainCappedWarning`` says (of a "group"), said of
+    ``voice`` from its fields (an#699); its own words, prefixed with the voice,
+    when a field is missing.
+
+    Goes once ``level_group`` takes the subject to name (reeleehq/mixing#171).
+
+    >>> class Capped(UserWarning):
+    ...     measured_lufs, target_lufs = -62.0, -16.0
+    ...     requested_gain_db, max_gain_db = 46.0, 24.0
+    >>> _capped_message("kid", Capped())
+    "voice 'kid' measures -62.0 LUFS: reaching -16 would take 46.0 dB, mostly noise; capped at +24 dB"
+    >>> Capped.target_lufs = None  # a field missing: mixing's own words
+    >>> _capped_message("kid", Capped("group measures -62.0 LUFS"))
+    "voice 'kid': group measures -62.0 LUFS"
+    """
+    fields = ("measured_lufs", "target_lufs", "requested_gain_db", "max_gain_db")
+    if any(getattr(capped, f, None) is None for f in fields):
+        return f"voice {voice!r}: {capped}"
+    return (
+        f"voice {voice!r} measures {capped.measured_lufs:.1f} LUFS: reaching "
+        f"{capped.target_lufs:g} would take {capped.requested_gain_db:.1f} dB, "
+        f"mostly noise; capped at +{capped.max_gain_db:g} dB"
+    )
+
+
 def group_loudness(pcms: list[_Pcm]) -> float:
-    """The integrated loudness of a voice's lines, measured back to back."""
-    return _level_group(pcms, target_lufs=0.0, max_gain_db=float("inf"))[1]
+    """The integrated loudness of a voice's lines, measured back to back
+    (:func:`mixing.loudness.group_lufs`, an#699); ``-inf`` for no lines."""
+    component = _component()  # an old mixing is said even for a voice of no lines
+    if not pcms:
+        return float("-inf")
+    segments, rates = _group_args(pcms)
+    return component.group_lufs(
+        segments, rates, meter=_meter, min_measure_s=MIN_MEASURE_S
+    )
 
 
 # -----------------------------------------------------------------------------
 # Measuring
 # -----------------------------------------------------------------------------
+
+
+def _path_ebur128(data: Any, fs: int) -> float:
+    """ffmpeg's ``ebur128`` (:func:`mixing.loudness.ebur128_lufs`) run by the
+    ffmpeg on ``PATH``, as every other ffmpeg ``an`` runs: never the pip-bundled
+    build ``mixing`` prefers when imageio-ffmpeg is installed (an#578,
+    mixing#145). :class:`VoiceLoudnessError` without one."""
+    ffmpeg = _require_ffmpeg("measuring a voice's loudness")
+    return _component().ebur128_lufs(data, fs, ffmpeg=ffmpeg)
+
+
+#: The loudness meter, ``(samples, rate) -> LUFS``, injected into
+#: :mod:`mixing.loudness` (looked up at call time, so it can be swapped):
+#: ffmpeg's ``ebur128`` by the PATH ffmpeg, so ``an`` needs no scipy for
+#: ``mixing``'s numpy meter.
+METER: Callable[[Any, int], float] = _path_ebur128
 
 
 def integrated_loudness(pcm: _Pcm) -> float:
@@ -227,7 +266,9 @@ def integrated_loudness(pcm: _Pcm) -> float:
     component = _component()
     try:
         return component.integrated_lufs(pcm.samples, pcm.rate, meter=METER)
-    except RuntimeError as e:  # no ffmpeg, or ffmpeg failed
+    except VoiceLoudnessError:
+        raise  # already says what to do (no ffmpeg on PATH)
+    except RuntimeError as e:  # ffmpeg failed
         raise VoiceLoudnessError(
             f"measuring a voice's loudness: {e} (macOS: `brew install ffmpeg`; "
             "Debian/Ubuntu: `apt install ffmpeg`)"
@@ -420,11 +461,9 @@ def level_voices(
         level = VoiceLevel(voice, lufs, lines=len(lines))
         levels.append(level)
         for caught in capped:
-            if (
-                caught.category is UserWarning
-            ):  # the component capped the gain: said per voice
+            if issubclass(caught.category, _component().GainCappedWarning):
                 warnings.warn(
-                    f"voice {voice!r}: {caught.message}",
+                    _capped_message(voice, caught.message),
                     VoiceLoudnessWarning,
                     stacklevel=3,
                 )
