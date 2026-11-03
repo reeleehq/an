@@ -487,7 +487,9 @@ class RecordedTTS:
             transcript=text,
             words=_read_timings(record.get("words")),
             phones=_read_timings(record.get("phones")),
-            phone_alphabet=record.get("phone_alphabet") if record.get("phones") else None,
+            phone_alphabet=record.get("phone_alphabet")
+            if record.get("phones")
+            else None,
         )
 
     # -- the pipeline's read-back hook ------------------------------------------
