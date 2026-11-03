@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=1cb5c24b"></script>
+    <script src="../../../_static/documentation_options.js?v=b8cd4652"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.368" />
+  <meta name="docsearch:version" content="0.1.369" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1236,25 +1236,28 @@ window.runMermaid = runMermaid;</script>
             <span class="n">transcript</span><span class="o">=</span><span class="n">text</span><span class="p">,</span>
             <span class="n">words</span><span class="o">=</span><span class="n">_read_timings</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"words"</span><span class="p">)),</span>
             <span class="n">phones</span><span class="o">=</span><span class="n">_read_timings</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"phones"</span><span class="p">)),</span>
+            <span class="n">phone_alphabet</span><span class="o">=</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"phone_alphabet"</span><span class="p">)</span> <span class="k">if</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"phones"</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
         <span class="p">)</span></div>
 
 
     <span class="c1"># -- the pipeline's read-back hook ------------------------------------------</span>
 
-<div class="viewcode-block" id="RecordedTTS.words_for_clip">
-<a class="viewcode-back" href="../../../_autosummary/an.audio.recorded.html#an.audio.RecordedTTS.words_for_clip">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">words_for_clip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clip</span><span class="p">:</span> <span class="n">AudioClip</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">WordTiming</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""The stored words of the take whose bytes ``clip`` carries, or ``None``."""</span>
+<div class="viewcode-block" id="RecordedTTS.timings_for_clip">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.recorded.html#an.audio.RecordedTTS.timings_for_clip">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">timings_for_clip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clip</span><span class="p">:</span> <span class="n">AudioClip</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""What the take whose bytes ``clip`` carries stored beside its audio:</span>
+<span class="sd">        ``words``, ``phones`` (an#491) and the phones' ``phone_alphabet``</span>
+<span class="sd">        (an#726), each only when stored; ``{}`` for bytes of no take. One</span>
+<span class="sd">        lookup, so the phones and their alphabet come from the same record."""</span>
         <span class="n">record</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_record_for_clip</span><span class="p">(</span><span class="n">clip</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">_read_timings</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"words"</span><span class="p">))</span> <span class="k">if</span> <span class="n">record</span> <span class="k">else</span> <span class="kc">None</span></div>
-
-
-<div class="viewcode-block" id="RecordedTTS.phones_for_clip">
-<a class="viewcode-back" href="../../../_autosummary/an.audio.recorded.html#an.audio.RecordedTTS.phones_for_clip">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">phones_for_clip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clip</span><span class="p">:</span> <span class="n">AudioClip</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">WordTiming</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""The stored phones of the take whose bytes ``clip`` carries, or ``None`` (an#491)."""</span>
-        <span class="n">record</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_record_for_clip</span><span class="p">(</span><span class="n">clip</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">_read_timings</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"phones"</span><span class="p">))</span> <span class="k">if</span> <span class="n">record</span> <span class="k">else</span> <span class="kc">None</span></div>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">record</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span>
+        <span class="n">found</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">k</span><span class="p">:</span> <span class="n">t</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"words"</span><span class="p">,</span> <span class="s2">"phones"</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">t</span> <span class="o">:=</span> <span class="n">_read_timings</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">)))</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="n">found</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"phones"</span><span class="p">)</span> <span class="ow">and</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"phone_alphabet"</span><span class="p">):</span>
+            <span class="n">found</span><span class="p">[</span><span class="s2">"phone_alphabet"</span><span class="p">]</span> <span class="o">=</span> <span class="n">record</span><span class="p">[</span><span class="s2">"phone_alphabet"</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">found</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_record_for_clip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clip</span><span class="p">:</span> <span class="n">AudioClip</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>

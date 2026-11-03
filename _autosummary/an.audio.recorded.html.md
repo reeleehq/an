@@ -184,13 +184,6 @@ One entry per voice that has takes in the store.
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`VoiceMeta`](an.audio.tts.html.md#an.audio.tts.VoiceMeta)]
 
-#### phones_for_clip(clip)
-
-The stored phones of the take whose bytes `clip` carries, or `None` (an#491).
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 #### repeatable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
 
 The same request gives the same bytes, and nothing is billed (an#311).
@@ -219,12 +212,15 @@ The take of `text` in `voice_id` (by `recording` digest when given), with its wo
 * **Return type:**
   [`AudioClip`](an.audio.tts.html.md#an.audio.tts.AudioClip)
 
-#### words_for_clip(clip)
+#### timings_for_clip(clip)
 
-The stored words of the take whose bytes `clip` carries, or `None`.
+What the take whose bytes `clip` carries stored beside its audio:
+`words`, `phones` (an#491) and the phones’ `phone_alphabet`
+(an#726), each only when stored; `{}` for bytes of no take. One
+lookup, so the phones and their alphabet come from the same record.
 
 * **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### *exception* an.audio.recorded.RecordedVoicesError
 

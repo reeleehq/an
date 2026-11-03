@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=1cb5c24b"></script>
+    <script src="../_static/documentation_options.js?v=b8cd4652"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.368" />
+  <meta name="docsearch:version" content="0.1.369" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -919,17 +919,6 @@ voice never falls back to a synthesized one.</p>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="an.audio.recorded.RecordedTTS.phones_for_clip">
-<span class="sig-name descname"><span class="pre">phones_for_clip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">clip</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/recorded.html#RecordedTTS.phones_for_clip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.recorded.RecordedTTS.phones_for_clip" title="Link to this definition">#</a></dt>
-<dd><p>The stored phones of the take whose bytes <code class="docutils literal notranslate"><span class="pre">clip</span></code> carries, or <code class="docutils literal notranslate"><span class="pre">None</span></code> (an#491).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]] | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
-</dd>
-</dl>
-</dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.audio.recorded.RecordedTTS.repeatable">
 <span class="sig-name descname"><span class="pre">repeatable</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#an.audio.recorded.RecordedTTS.repeatable" title="Link to this definition">#</a></dt>
@@ -968,12 +957,15 @@ produced for a recorded voice that is missing a take. Without a line
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="an.audio.recorded.RecordedTTS.words_for_clip">
-<span class="sig-name descname"><span class="pre">words_for_clip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">clip</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/recorded.html#RecordedTTS.words_for_clip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.recorded.RecordedTTS.words_for_clip" title="Link to this definition">#</a></dt>
-<dd><p>The stored words of the take whose bytes <code class="docutils literal notranslate"><span class="pre">clip</span></code> carries, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+<dt class="sig sig-object py" id="an.audio.recorded.RecordedTTS.timings_for_clip">
+<span class="sig-name descname"><span class="pre">timings_for_clip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">clip</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/recorded.html#RecordedTTS.timings_for_clip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.recorded.RecordedTTS.timings_for_clip" title="Link to this definition">#</a></dt>
+<dd><p>What the take whose bytes <code class="docutils literal notranslate"><span class="pre">clip</span></code> carries stored beside its audio:
+<code class="docutils literal notranslate"><span class="pre">words</span></code>, <code class="docutils literal notranslate"><span class="pre">phones</span></code> (an#491) and the phones’ <code class="docutils literal notranslate"><span class="pre">phone_alphabet</span></code>
+(an#726), each only when stored; <code class="docutils literal notranslate"><span class="pre">{}</span></code> for bytes of no take. One
+lookup, so the phones and their alphabet come from the same record.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]] | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1270,11 +1262,10 @@ lazy: a take with a timed transcript never needs it.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.RECORD_VERSION"><code class="docutils literal notranslate"><span class="pre">RECORD_VERSION</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.RecordedTTS"><code class="docutils literal notranslate"><span class="pre">RecordedTTS</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.RecordedTTS.list_voices"><code class="docutils literal notranslate"><span class="pre">RecordedTTS.list_voices()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.RecordedTTS.phones_for_clip"><code class="docutils literal notranslate"><span class="pre">RecordedTTS.phones_for_clip()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.RecordedTTS.repeatable"><code class="docutils literal notranslate"><span class="pre">RecordedTTS.repeatable</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.RecordedTTS.synthesis_options"><code class="docutils literal notranslate"><span class="pre">RecordedTTS.synthesis_options()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.RecordedTTS.synthesize"><code class="docutils literal notranslate"><span class="pre">RecordedTTS.synthesize()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.RecordedTTS.words_for_clip"><code class="docutils literal notranslate"><span class="pre">RecordedTTS.words_for_clip()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.RecordedTTS.timings_for_clip"><code class="docutils literal notranslate"><span class="pre">RecordedTTS.timings_for_clip()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.RecordedVoicesError"><code class="docutils literal notranslate"><span class="pre">RecordedVoicesError</span></code></a></li>

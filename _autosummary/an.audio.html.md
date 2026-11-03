@@ -50,11 +50,17 @@ without external services.
 | [`ElevenLabsTTS`](#an.audio.ElevenLabsTTS)(\*[, api_key, model_id, ...])       | ElevenLabs-backed TTSProvider.                                                                                                                                   |
 | [`MacSayTTS`](#an.audio.MacSayTTS)(\*[, default_voice_id, ...])            | macOS `say`-backed TTSProvider.                                                                                                                                  |
 
-### *class* an.audio.AudioClip(path=None, bytes_=None, duration=0.0, sample_rate=44100, channels=1, voice_id=None, transcript=None, words=None, phones=None)
+### *class* an.audio.AudioClip(path=None, bytes_=None, duration=0.0, sample_rate=44100, channels=1, voice_id=None, transcript=None, words=None, phones=None, phone_alphabet=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A rendered audio clip, on disk or in memory.
+
+#### phone_alphabet *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The alphabet `phones` are in (`"arpabet"`, `"ipa"`), as the take’s
+record states it (an#637, an#721); `None` when unknown, and a lip-sync
+provider then guesses from the labels (an#726).
 
 #### phones *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
@@ -281,13 +287,6 @@ One entry per voice that has takes in the store.
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`VoiceMeta`](an.audio.tts.html.md#an.audio.tts.VoiceMeta)]
 
-#### phones_for_clip(clip)
-
-The stored phones of the take whose bytes `clip` carries, or `None` (an#491).
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 #### repeatable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
 
 The same request gives the same bytes, and nothing is billed (an#311).
@@ -316,12 +315,15 @@ The take of `text` in `voice_id` (by `recording` digest when given), with its wo
 * **Return type:**
   [`AudioClip`](an.audio.tts.html.md#an.audio.tts.AudioClip)
 
-#### words_for_clip(clip)
+#### timings_for_clip(clip)
 
-The stored words of the take whose bytes `clip` carries, or `None`.
+What the take whose bytes `clip` carries stored beside its audio:
+`words`, `phones` (an#491) and the phones’ `phone_alphabet`
+(an#726), each only when stored; `{}` for bytes of no take. One
+lookup, so the phones and their alphabet come from the same record.
 
 * **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### *class* an.audio.TTSProvider(\*args, \*\*kwargs)
 

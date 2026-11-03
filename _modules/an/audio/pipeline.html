@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=1cb5c24b"></script>
+    <script src="../../../_static/documentation_options.js?v=b8cd4652"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.368" />
+  <meta name="docsearch:version" content="0.1.369" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -2731,20 +2731,28 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_with_clip_words</span><span class="p">(</span><span class="n">tts</span><span class="p">:</span> <span class="n">TTSProvider</span><span class="p">,</span> <span class="n">clip</span><span class="p">:</span> <span class="n">AudioClip</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AudioClip</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""``clip`` with the word timings its provider knows for these bytes</span>
-<span class="sd">    (``words_for_clip(clip)``, the ``recorded`` provider: a take imported with a</span>
-<span class="sd">    timed transcript), when the clip does not carry them already — so a line</span>
-<span class="sd">    read back from the audio store aligns from the same words as a fresh one.</span>
+<span class="w">    </span><span class="sd">"""``clip`` with the timings its provider knows for these bytes</span>
+<span class="sd">    (``timings_for_clip(clip)``, the ``recorded`` provider: a take imported with</span>
+<span class="sd">    a timed transcript): its words, phones (an#491) and their alphabet (an#726),</span>
+<span class="sd">    each where the clip does not carry it already — so a line read back from the</span>
+<span class="sd">    audio store aligns from the same words and phones as a fresh one.</span>
 <span class="sd">    """</span>
-    <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"words"</span><span class="p">,</span> <span class="s2">"phones"</span><span class="p">):</span>  <span class="c1"># phones too (an#491)</span>
-        <span class="n">hook</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">tts</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">field</span><span class="si">}</span><span class="s2">_for_clip"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">hook</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">clip</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">continue</span>
-        <span class="n">timings</span> <span class="o">=</span> <span class="n">hook</span><span class="p">(</span><span class="n">clip</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">timings</span><span class="p">:</span>
+    <span class="n">hook</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">tts</span><span class="p">,</span> <span class="s2">"timings_for_clip"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">missing</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"words"</span><span class="p">,</span> <span class="s2">"phones"</span><span class="p">,</span> <span class="s2">"phone_alphabet"</span><span class="p">)</span> <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">clip</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="n">hook</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">missing</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">clip</span>
+    <span class="n">found</span> <span class="o">=</span> <span class="n">hook</span><span class="p">(</span><span class="n">clip</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"words"</span><span class="p">,</span> <span class="s2">"phones"</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">missing</span> <span class="ow">and</span> <span class="n">found</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">field</span><span class="p">):</span>
             <span class="nb">setattr</span><span class="p">(</span>
-                <span class="n">clip</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="p">[(</span><span class="nb">str</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">timings</span><span class="p">]</span>
+                <span class="n">clip</span><span class="p">,</span>
+                <span class="n">field</span><span class="p">,</span>
+                <span class="p">[(</span><span class="nb">str</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">found</span><span class="p">[</span><span class="n">field</span><span class="p">]],</span>
             <span class="p">)</span>
+    <span class="k">if</span> <span class="s2">"phone_alphabet"</span> <span class="ow">in</span> <span class="n">missing</span> <span class="ow">and</span> <span class="n">clip</span><span class="o">.</span><span class="n">phones</span> <span class="ow">and</span> <span class="n">found</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"phones"</span><span class="p">):</span>
+        <span class="n">clip</span><span class="o">.</span><span class="n">phone_alphabet</span> <span class="o">=</span> <span class="n">found</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"phone_alphabet"</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">clip</span>
 
 

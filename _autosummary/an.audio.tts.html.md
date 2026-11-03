@@ -9,11 +9,17 @@ TTS provider protocol + supporting dataclasses.
 | [`TTSProvider`](#an.audio.tts.TTSProvider)(\*args, \*\*kwargs)            | Text-to-speech provider.                           |
 | [`VoiceMeta`](#an.audio.tts.VoiceMeta)(voice_id, name, provider[, ...]) | Metadata for a TTS voice as exposed by a provider. |
 
-### *class* an.audio.tts.AudioClip(path=None, bytes_=None, duration=0.0, sample_rate=44100, channels=1, voice_id=None, transcript=None, words=None, phones=None)
+### *class* an.audio.tts.AudioClip(path=None, bytes_=None, duration=0.0, sample_rate=44100, channels=1, voice_id=None, transcript=None, words=None, phones=None, phone_alphabet=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A rendered audio clip, on disk or in memory.
+
+#### phone_alphabet *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The alphabet `phones` are in (`"arpabet"`, `"ipa"`), as the take’s
+record states it (an#637, an#721); `None` when unknown, and a lip-sync
+provider then guesses from the labels (an#726).
 
 #### phones *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
