@@ -1176,7 +1176,8 @@ window.runMermaid = runMermaid;</script>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""``{"recording": &lt;digest&gt;}`` of the take this line has — the audio key</span>
 <span class="sd">        follows the take, so a re-recorded line is new audio. A take with</span>
-<span class="sd">        phones adds ``{"timings": &lt;digest&gt;}`` of its words and phones (an#491):</span>
+<span class="sd">        phones adds ``{"timings": &lt;digest&gt;}`` of its words, phones (an#491) and</span>
+<span class="sd">        their alphabet when stored (an#759):</span>
 <span class="sd">        the same audio imported again with new timings is new audio to the</span>
 <span class="sd">        caches, so the lip-sync sees them. (Only then: a take without phones</span>
 <span class="sd">        keys as before.)</span>
@@ -1196,9 +1197,13 @@ window.runMermaid = runMermaid;</script>
         <span class="n">record</span> <span class="o">=</span> <span class="n">found</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">options</span> <span class="o">=</span> <span class="p">{</span><span class="n">RECORDING_OPTION</span><span class="p">:</span> <span class="n">record</span><span class="p">[</span><span class="s2">"sha256"</span><span class="p">]}</span>
         <span class="k">if</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"phones"</span><span class="p">):</span>
-            <span class="n">options</span><span class="p">[</span><span class="n">TIMINGS_OPTION</span><span class="p">]</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span>
-                <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">([</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"words"</span><span class="p">),</span> <span class="n">record</span><span class="p">[</span><span class="s2">"phones"</span><span class="p">]])</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
-            <span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+            <span class="n">timed</span> <span class="o">=</span> <span class="p">[</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"words"</span><span class="p">),</span> <span class="n">record</span><span class="p">[</span><span class="s2">"phones"</span><span class="p">]]</span>
+            <span class="k">if</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"phone_alphabet"</span><span class="p">):</span>
+                <span class="c1"># the alphabet the phones are read in keys the audio too (an#759):</span>
+                <span class="c1"># a corrected alphabet re-syncs; a take stored without one keeps</span>
+                <span class="c1"># its key</span>
+                <span class="n">timed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s2">"phone_alphabet"</span><span class="p">])</span>
+            <span class="n">options</span><span class="p">[</span><span class="n">TIMINGS_OPTION</span><span class="p">]</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">timed</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">options</span></div>
 
 

@@ -295,7 +295,8 @@ The same request gives the same bytes, and nothing is billed (an#311).
 
 `{"recording": <digest>}` of the take this line has — the audio key
 follows the take, so a re-recorded line is new audio. A take with
-phones adds `{"timings": <digest>}` of its words and phones (an#491):
+phones adds `{"timings": <digest>}` of its words, phones (an#491) and
+their alphabet when stored (an#759):
 the same audio imported again with new timings is new audio to the
 caches, so the lip-sync sees them. (Only then: a take without phones
 keys as before.)
