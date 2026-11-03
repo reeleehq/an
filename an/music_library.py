@@ -26,8 +26,10 @@ What stays here is what is an's:
   uses the track without fetching it again (``an music use``).
 
 The rest of foley's surface the command and its tests use (:data:`MUSIC_LIBRARIES`,
-:func:`tracks_table`, :func:`attribution_text`, :func:`titles_by_library`, ...) is
-re-exported by name, and loaded on first use: ``import an`` never imports foley.
+:func:`tracks_table`, :func:`attribution_text`, :func:`titles_by_library`, and the
+tracks-table reader :func:`read_tracks_table`, :func:`held_rows`,
+:data:`LIST_SEPARATOR`, an#731) is re-exported by name, and loaded on first use:
+``import an`` never imports foley.
 
 >>> license_code("CC-BY-4.0"), license_code("unknown")
 ('cc-by-4.0', None)
@@ -62,6 +64,8 @@ __all__ = [
     "REFUSED",
     "WISHLIST",
     "AcquiredTrack",
+    "DroppedColumnsWarning",
+    "LIST_SEPARATOR",
     "MusicLibrary",
     "MusicLibraryError",
     "MusicToolMissing",
@@ -70,6 +74,7 @@ __all__ = [
     "asset_source",
     "attribution_text",
     "files_store",
+    "held_rows",
     "kept_digests",
     "kept_sources",
     "license_code",
@@ -96,14 +101,18 @@ FOLEY_NAMES: frozenset[str] = frozenset(
         "REFUSED",
         "WISHLIST",
         "AcquiredTrack",
+        "DroppedColumnsWarning",
+        "LIST_SEPARATOR",
         "MusicLibrary",
         "MusicLibraryError",
         "MusicToolMissing",
         "attribution_text",
         "files_store",
+        "held_rows",
         "kept_digests",
         "kept_sources",
         "probe_verify",
+        "read_tracks_table",
         "register_music_library",
         "titles_by_library",
         "titles_from_json",
@@ -242,24 +251,9 @@ def acquire(
     return foley_acquire(library, titles, out=out, config=config, **kwargs)
 
 
-#: How a tracks table joins a list in one cell (foley's ``AcquiredTrack.row``).
-LIST_SEPARATOR: str = "; "
 #: Where ``add_track_to_sounds`` keeps the digest of the library file a cut was
 #: made from: ``sha256`` is the stored bytes' own (the cut WAV, :class:`SoundAsset`).
 FILE_SHA256_FIELD: str = "file_sha256"
-
-
-def read_tracks_table(text: str) -> list[dict[str, str]]:
-    r"""The rows of a tracks table (``tracks.csv``, :func:`tracks_table`'s text),
-    as written; a byte-order mark an editor added is not part of the first column.
-
-    >>> read_tracks_table("\ufefftitle,library\r\nA,incompetech\r\n")
-    [{'title': 'A', 'library': 'incompetech'}]
-    """
-    import csv
-    import io
-
-    return list(csv.DictReader(io.StringIO(text.removeprefix("\ufeff"))))
 
 
 def track_row(text: str, title: str) -> dict[str, str]:
@@ -268,7 +262,7 @@ def track_row(text: str, title: str) -> dict[str, str]:
     Raises:
         MusicLibraryError: When no row has that title, naming the ones there are.
     """
-    from foley.sources.music_library import MusicLibraryError
+    from foley.sources.music_library import MusicLibraryError, read_tracks_table
 
     rows = read_tracks_table(text)
     row = next((r for r in rows if r.get("title") == title), None)
@@ -281,59 +275,20 @@ def track_row(text: str, title: str) -> dict[str, str]:
 
 
 def track_from_row(row: Mapping[str, Any]) -> AcquiredTrack:
-    """foley's :class:`AcquiredTrack` for a tracks-table ``row``, its licence
-    rebuilt from the library's registry (``track_license``), never read from
-    the row: a cell someone edited cannot grant rights (an#623). The row's
-    other columns are its metadata.
+    """foley's :class:`AcquiredTrack` for a tracks-table ``row``: its
+    ``AcquiredTrack.from_row`` (an#731). The licence is rebuilt from the
+    library's registry, never read from the row (an#623), and a licence cell
+    that says otherwise is REFUSED rather than overridden: an edited cell
+    cannot grant rights, nor pass unnoticed. Columns a titles file may not set
+    are dropped with foley's ``DroppedColumnsWarning``.
 
     Raises:
-        MusicLibraryError: For a library foley does not know.
+        MusicLibraryError: For an unknown library, licence cells that differ
+            from the library's, or any row foley refuses.
     """
-    from foley.sources.music_library import (
-        MUSIC_LIBRARIES,
-        TRACK_COLUMNS,
-        AcquiredTrack,
-        MusicLibraryError,
-        track_license,
-    )
+    from foley.sources.music_library import AcquiredTrack
 
-    library = MUSIC_LIBRARIES.get(row.get("library", ""))
-    if library is None:
-        raise MusicLibraryError(
-            f"track {row.get('title')!r}: no library {row.get('library')!r}; "
-            f"registered: {sorted(MUSIC_LIBRARIES)}"
-        )
-    cell = {k: (v if v not in ("", None) else None) for k, v in row.items()}
-    duration = cell.get("duration_s")
-    try:
-        duration = float(duration) if duration is not None else None
-    except (TypeError, ValueError) as e:
-        raise MusicLibraryError(
-            f"track {row.get('title')!r}: duration_s {duration!r} is not a number"
-        ) from e
-    return AcquiredTrack(
-        title=row["title"],
-        library=library.name,
-        status=row.get("status", ""),
-        license=track_license(
-            library,
-            row["title"],
-            page_url=cell.get("source_page_url"),
-            sha256=cell.get("sha256"),
-        ),  # fmt: skip
-        file=cell.get("file"),
-        sha256=cell.get("sha256"),
-        duration_s=duration,
-        url=cell.get("url"),
-        mirror=cell.get("mirror"),
-        page_url=cell.get("source_page_url"),
-        credited_by=tuple((cell.get("credited_by") or "").split(LIST_SEPARATOR))
-        if cell.get("credited_by")
-        else (),
-        metadata={
-            k: v for k, v in cell.items() if k not in TRACK_COLUMNS and v is not None
-        },
-    )
+    return AcquiredTrack.from_row(row)
 
 
 def add_track_to_sounds(

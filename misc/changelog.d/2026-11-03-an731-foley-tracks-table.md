@@ -1,0 +1,1 @@
+- `an.music_library` reads tracks tables with foley's public reader (`read_tracks_table`, `held_rows`, `LIST_SEPARATOR`) and rebuilds a row with `AcquiredTrack.from_row`, so a forged licence cell is refused, not overridden (an#731).
