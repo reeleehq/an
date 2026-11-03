@@ -61,6 +61,7 @@ __all__ = [
     "IPA",
     "ARPABET_PHONES",
     "normalize_tokens",
+    "tokens_of",
     "normalize_text",
     "align_words",
     "segment_lines",
@@ -597,12 +598,15 @@ def parse_mfa_json(obj: Mapping[str, Any]) -> list[TranscriptSegment]:
 
 
 _TG_TIER_RE = re.compile(
-    r'class\s*=\s*"IntervalTier"\s*\n\s*name\s*=\s*"(?P<name>[^"]*)"', re.S
+    r'class\s*=\s*"IntervalTier"\s*\n\s*name\s*=\s*"(?P<name>(?:[^"]|"")*)"', re.S
 )
 _TG_INTERVAL_RE = re.compile(
     r'xmin\s*=\s*(?P<a>[\d.]+)\s*\n\s*xmax\s*=\s*(?P<b>[\d.]+)\s*\n\s*text\s*=\s*"(?P<t>(?:[^"]|"")*)"'
 )
-_TG_SHORT_TIER_RE = re.compile(r'"IntervalTier"\s*\n\s*"(?P<name>[^"]*)"\s*\n')
+_TG_SHORT_TIER_RE = re.compile(r'"IntervalTier"\s*\n\s*"(?P<name>(?:[^"]|"")*)"\s*\n')
+#: Decimals :func:`textgrid_text` writes a time with (fixed-point, as the TextGrid
+#: interval patterns read no exponent): a microsecond.
+_TG_DECIMALS: int = 6
 _TG_SHORT_INTERVAL_RE = re.compile(
     r'(?P<a>\d+(?:\.\d+)?)\s*\n\s*(?P<b>\d+(?:\.\d+)?)\s*\n\s*"(?P<t>(?:[^"]|"")*)"'
 )
@@ -691,7 +695,7 @@ def _textgrid_tiers(text: str) -> dict[str, list[tuple[float, float, str]]]:
                 if intervals and intervals[0][2] == "" and len(intervals) > 1
                 else intervals
             )
-        tiers[head.group("name")] = intervals
+        tiers[head.group("name").replace('""', '"')] = intervals
     return tiers
 
 
@@ -771,16 +775,40 @@ def textgrid_text(
     label), ...]}``) spanning ``0..xmax``: what :func:`parse_textgrid` reads
     back, and what a forced aligner takes as a transcript of timed lines
     (an#716). The gaps between intervals are filled with empty ones, as Praat
-    requires a tier to cover its span; a ``"`` in a label is doubled.
+    requires a tier to cover its span; a ``"`` in a label or a tier name is
+    doubled. Nothing is clamped: an interval outside ``0..xmax``, empty, or
+    overlapping another is a ``ValueError`` (clamp before, where the reason is
+    known).
 
     >>> grid = textgrid_text({"take": [(0.5, 1.2, 'say "hi"')]}, xmax=2.0)
     >>> _textgrid_tiers(grid)
     {'take': [(0.0, 0.5, ''), (0.5, 1.2, 'say "hi"'), (1.2, 2.0, '')]}
+    >>> textgrid_text({"take": [(0.5, 1.2, "a"), (1.0, 1.5, "b")]}, xmax=2.0)
+    Traceback (most recent call last):
+      ...
+    ValueError: tier 'take': interval (1.0, 1.5, 'b') overlaps the one before, which ends at 1.2
     """
 
-    def tiled(intervals: Sequence[tuple[float, float, str]]) -> list[tuple[float, float, str]]:
+    def quoted(text: str) -> str:
+        return text.replace('"', '""')
+
+    def num(x: float) -> str:  # fixed-point: the reader takes no exponent
+        return f"{x:.{_TG_DECIMALS}f}".rstrip("0").rstrip(".") or "0"
+
+    def tiled(
+        name: str, intervals: Sequence[tuple[float, float, str]]
+    ) -> list[tuple[float, float, str]]:
         out, t = [], 0.0
         for a, b, label in sorted(intervals):
+            if not 0.0 <= a < b <= xmax:
+                raise ValueError(
+                    f"tier {name!r}: interval {(a, b, label)!r} is empty or outside 0..{xmax}"
+                )
+            if a < t:
+                raise ValueError(
+                    f"tier {name!r}: interval {(a, b, label)!r} overlaps the one "
+                    f"before, which ends at {t}"
+                )
             if a > t:
                 out.append((t, a, ""))
             out.append((a, b, label))
@@ -788,17 +816,16 @@ def textgrid_text(
         return out + ([(t, xmax, "")] if t < xmax else [])
 
     lines = ['File type = "ooTextFile"', 'Object class = "TextGrid"', "",
-             "xmin = 0", f"xmax = {xmax}", "tiers? <exists>", f"size = {len(tiers)}",
+             "xmin = 0", f"xmax = {num(xmax)}", "tiers? <exists>", f"size = {len(tiers)}",
              "item []:"]  # fmt: skip
     for i, (name, intervals) in enumerate(tiers.items(), start=1):
-        cells = tiled(intervals)
+        cells = tiled(name, intervals)
         lines += [f"    item [{i}]:", '        class = "IntervalTier"',
-                  f'        name = "{name}"', "        xmin = 0", f"        xmax = {xmax}",
-                  f"        intervals: size = {len(cells)}"]  # fmt: skip
+                  f'        name = "{quoted(name)}"', "        xmin = 0",
+                  f"        xmax = {num(xmax)}", f"        intervals: size = {len(cells)}"]  # fmt: skip
         for j, (a, b, label) in enumerate(cells, start=1):
-            text = label.replace('"', '""')
-            lines += [f"        intervals [{j}]:", f"            xmin = {a}",
-                      f"            xmax = {b}", f'            text = "{text}"']  # fmt: skip
+            lines += [f"        intervals [{j}]:", f"            xmin = {num(a)}",
+                      f"            xmax = {num(b)}", f'            text = "{quoted(label)}"']  # fmt: skip
     return "\n".join(lines) + "\n"
 
 
@@ -987,14 +1014,24 @@ def from_transcript_object(obj: Any) -> list[TranscriptSegment]:
 # --- matching words ------------------------------------------------------------
 
 
+def tokens_of(text: str) -> list[str]:
+    """The words of ``text`` as written: punctuation dropped, an apostrophe
+    inside a word kept, case kept. What a line's words are timed as
+    (:func:`segment_lines`).
+
+    >>> tokens_of("Hello, there — it's ME!")
+    ['Hello', 'there', "it's", 'ME']
+    """
+    return _TOKEN_RE.findall(text)
+
+
 def normalize_tokens(text: str) -> list[str]:
-    """The words of ``text`` for matching: case-folded, punctuation dropped,
-    an apostrophe inside a word kept.
+    """The words of ``text`` for matching: :func:`tokens_of` case-folded.
 
     >>> normalize_tokens("Hello, there — it's ME!")
     ['hello', 'there', "it's", 'me']
     """
-    return _TOKEN_RE.findall(text.casefold())
+    return tokens_of(text.casefold())
 
 
 def normalize_text(text: str) -> str:
@@ -1084,7 +1121,7 @@ def segment_lines(
     >>> [(s.speaker, s.start, s.end, len(s.words)) for s in segment_lines(lines, timed)]
     [('carl', 0.5, 1.3, 2), ('ned', 2.0, 2.3, 1)]
     """
-    per_line = [[tok for tok in _TOKEN_RE.findall(line.text)] for line in lines]
+    per_line = [tokens_of(line.text) for line in lines]
     flat = [tok for toks in per_line for tok in toks]
     aligned = align_words(flat, timed, bounds=bounds).words
     out = []
