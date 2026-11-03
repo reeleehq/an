@@ -146,7 +146,9 @@ class GenreError(RegistryError):
 #:     ``as_choice``, ``an.audio.loudness.voice_loudness_offset``.
 #: 14 = a kind's own shot sizes (reeleehq/cutan#106): ``EntityKind.shot_sizes(entity, mall,
 #:     box)``, which the world's framing reads instead of ``SHOT_SIZES``.
-API_LEVEL: int = 14
+#: 15 = a project's ``.gitignore`` read by git's rules (an#725): ``an.project.gitignored``
+#:     and ``gitignore_matcher``, for a genre that copies a project (cutan's projects store).
+API_LEVEL: int = 15
 
 
 class GenreAPILevelError(GenreError, ImportError):

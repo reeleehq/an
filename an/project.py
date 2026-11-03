@@ -15,8 +15,10 @@ Layout (from spec §11):
 from __future__ import annotations
 
 import json
-from collections.abc import MutableMapping
+from collections.abc import Callable, Iterable, MutableMapping
 from dataclasses import dataclass
+from fnmatch import fnmatchcase
+from functools import lru_cache
 from pathlib import Path
 from types import MappingProxyType
 from typing import Mapping
@@ -110,6 +112,109 @@ LOCKS_GITIGNORE: tuple[str, ...] = ("artifacts/voice_options/*.lock",)
 PROJECT_GITIGNORE: tuple[str, ...] = (
     RENDER_REPORTS_GITIGNORE + PROBES_GITIGNORE + LOCKS_GITIGNORE
 )
+#: What a ``.gitignore`` line may hold that :func:`gitignore_matcher` would not
+#: read the way git does, so it refuses the line rather than misread it.
+_GITIGNORE_UNREAD: tuple[str, ...] = ("**", "\\", "[^", "[:")
+#: How many compiled sets of lines :func:`gitignore_matcher` keeps.
+_GITIGNORE_CACHE_SIZE: int = 128
+
+
+def _gitignore_line_matcher(line: str) -> Callable[[str], bool]:
+    """``rel -> bool`` for one ``.gitignore`` line, by git's rules (see
+    :func:`gitignore_matcher`)."""
+    folders_only = line.endswith("/")
+    pattern = line[:-1] if folders_only else line  # one ``/``: ``a//`` stays anchored
+    if (
+        line != line.strip()
+        or line.startswith(("!", "#"))
+        or any(token in line for token in _GITIGNORE_UNREAD)
+        or not pattern.strip("/")  # a line git skips ("", "/") matches nothing here
+    ):
+        raise ValueError(
+            "a .gitignore line read here cannot use '!', '#', '**', '\\', '[^', "
+            f"'[:', surrounding spaces, or be empty (got {line!r})"
+        )
+    anchored = "/" in pattern
+    pattern = pattern.lstrip("/")
+    depth = pattern.count("/")
+
+    def matches(rel: str) -> bool:
+        parts = rel.split("/")
+        # each folder holding ``rel`` (a matched folder covers its contents), then rel
+        for n in range(1, len(parts) + (0 if folders_only else 1)):
+            if anchored:
+                if n - 1 == depth and fnmatchcase("/".join(parts[:n]), pattern):
+                    return True
+            elif fnmatchcase(parts[n - 1], pattern):
+                return True
+        return False
+
+    return matches
+
+
+def _project_relative(rel: str) -> str:
+    """``rel`` when it is a project-relative POSIX path (``a/b.png``); a
+    ``ValueError`` for what would be misread: empty, a backslash, a leading or
+    trailing ``/``, ``//``, or a ``.``/``..`` segment."""
+    parts = rel.split("/")
+    if not rel or "\\" in rel or any(p in ("", ".", "..") for p in parts):
+        raise ValueError(
+            f"a project-relative POSIX path is expected (like 'artifacts/x.png'), got {rel!r}"
+        )
+    return rel
+
+
+@lru_cache(maxsize=_GITIGNORE_CACHE_SIZE)
+def _compiled(lines: tuple[str, ...]) -> tuple[Callable[[str], bool], ...]:
+    return tuple(_gitignore_line_matcher(line) for line in lines)
+
+
+def gitignore_matcher(lines: Iterable[str] = PROJECT_GITIGNORE) -> Callable[[str], bool]:
+    """``rel -> bool``: whether any of ``lines`` (each a ``.gitignore`` line)
+    covers the project-relative POSIX path ``rel``, by git's rules (an#725): a
+    line with a ``/`` before its end is anchored at the project root, one
+    without matches a name at any depth; a trailing ``/`` matches folders only;
+    wildcards never cross a ``/``; a matched folder covers everything under it;
+    case counts. What it does not read the way git does is refused with a
+    ``ValueError`` rather than misread (a misread line could copy what it
+    should keep local): negation (``!``), comments (``#``), ``**``, escapes
+    (``\\``), ``[^...]``, POSIX classes (``[:alpha:]``), surrounding spaces and
+    empty lines; so is a ``rel`` that is not a plain project-relative POSIX path
+    (a backslash, ``./``, ``..``). Case always counts, as git's does with
+    ``core.ignorecase=false`` (on macOS git ignores case by default). For a
+    genre or tool that copies a project (a sync, an export) and keeps the
+    same files local as git.
+
+    >>> local = gitignore_matcher(("artifacts/shot_cache/", "notes.txt", "artifacts/v/*.lock"))
+    >>> local("artifacts/shot_cache/blobs/x"), local("deep/notes.txt"), local("artifacts/audio/a.wav")
+    (True, True, False)
+    >>> local("artifacts/v/a.json.lock"), local("artifacts/v/sub/a.lock")
+    (True, False)
+    >>> gitignore_matcher(("cache/",))("cache"), gitignore_matcher(("a/*/c",))("a/b/c/d")
+    (False, True)
+    """
+    if isinstance(lines, str):  # one line given bare: its characters are not lines
+        raise TypeError(f"lines is an iterable of .gitignore lines, not one str: {lines!r}")
+    matchers = _compiled(tuple(lines))
+
+    def covered(rel: str) -> bool:
+        rel = _project_relative(rel)  # once per call, whatever the lines
+        return any(m(rel) for m in matchers)
+
+    return covered
+
+
+def gitignored(rel: str, *, lines: Iterable[str] = PROJECT_GITIGNORE) -> bool:
+    """Whether a project's ``.gitignore`` keeps ``rel`` (a project-relative
+    POSIX path) local: :data:`PROJECT_GITIGNORE`, or ``lines``, read by git's
+    rules (:func:`gitignore_matcher`, an#725).
+
+    >>> gitignored("artifacts/probes/shot1/frame.png"), gitignored("scene.md")
+    (True, False)
+    >>> gitignored("artifacts/voice_options/jerry.json.lock")
+    True
+    """
+    return gitignore_matcher(lines)(rel)
 
 
 def _ensure_gitignored(pdir: Path, lines: tuple[str, ...]) -> None:
