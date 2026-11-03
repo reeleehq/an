@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=3f26f144"></script>
+    <script src="../../../_static/documentation_options.js?v=9b5e755d"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.360" />
+  <meta name="docsearch:version" content="0.1.361" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -826,6 +826,20 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#:   and the licence terminates once the user (with affiliates) makes more than</span>
 <span class="c1">#:   USD 1,000,000 in annual revenue; outputs must follow Stability's acceptable</span>
 <span class="c1">#:   use policy. So ``free``, with that cap named wherever it is listed (an#332).</span>
+<span class="c1">#: - OpenAI (``gpt-image`` plates and parts through ``an art generate``, and any</span>
+<span class="c1">#:   output recorded under ``openai``, an#728), read 2026-11-03 through archived</span>
+<span class="c1">#:   copies (openai.com refuses automated reads): the Services Agreement (API</span>
+<span class="c1">#:   use, effective 2026-01-01) §4.1, "to the extent permitted by applicable</span>
+<span class="c1">#:   law", the customer "owns all Output" and OpenAI assigns its rights "if</span>
+<span class="c1">#:   any" (AI-made images may hold no copyright at all), asking no credit;</span>
+<span class="c1">#:   §4.4 "Output may not be unique". But the Terms of Use (effective</span>
+<span class="c1">#:   2026-01-01) forbid presenting output as human-generated, and the Sharing</span>
+<span class="c1">#:   &amp; Publication Policy the agreement names (updated 2022-11-14) asks that</span>
+<span class="c1">#:   shared content say it is AI-generated "in a way no user could reasonably</span>
+<span class="c1">#:   miss": a credit the video owes. So ``attribution`` (the credit discloses</span>
+<span class="c1">#:   AI generation), the stricter reading, pending the maintainer's call</span>
+<span class="c1">#:   (an#742); and the Usage Policies (in force: effective 2025-10-29; the 2026-11-20 version keeps it) forbid using</span>
+<span class="c1">#:   someone's likeness without consent. Named in ``an credits``.</span>
 <span class="n">_STABILITY_TERMS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">LicenseClass</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"stability-community"</span><span class="p">:</span> <span class="s2">"free"</span><span class="p">}</span>
 <span class="n">PROVIDER_TERMS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">LicenseClass</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">"elevenlabs"</span><span class="p">:</span> <span class="p">{</span>
@@ -836,6 +850,7 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"stability"</span><span class="p">:</span> <span class="n">_STABILITY_TERMS</span><span class="p">,</span>
     <span class="s2">"stability-ai"</span><span class="p">:</span> <span class="n">_STABILITY_TERMS</span><span class="p">,</span>
     <span class="s2">"stable-audio"</span><span class="p">:</span> <span class="n">_STABILITY_TERMS</span><span class="p">,</span>
+    <span class="s2">"openai"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"openai-output-owned"</span><span class="p">:</span> <span class="s2">"attribution"</span><span class="p">},</span>
 <span class="p">}</span>
 <span class="c1">#: What a provider-terms code restricts beyond its class, by code: the words a</span>
 <span class="c1">#: credits report prints beside it.</span>
@@ -845,6 +860,10 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"stability-community"</span><span class="p">:</span> <span class="s2">"Stability AI Community License: the licence ends once "</span>
     <span class="s2">"you (with affiliates) make over USD 1,000,000 a year (then an Enterprise "</span>
     <span class="s2">"licence is needed), and use must follow Stability's acceptable use policy"</span><span class="p">,</span>
+    <span class="s2">"openai-output-owned"</span><span class="p">:</span> <span class="s2">"OpenAI output: the video must say it is AI-generated "</span>
+    <span class="s2">"and never present it as human-made; OpenAI assigns whatever rights it has "</span>
+    <span class="s2">"(AI-made images may hold none), it may not be unique, and use must follow "</span>
+    <span class="s2">"OpenAI's usage policies (no one's likeness without consent)"</span><span class="p">,</span>
 <span class="p">}</span>
 
 
@@ -1021,6 +1040,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    'free'</span>
 <span class="sd">    &gt;&gt;&gt; license_class(AssetSource(provider="openai", license="elevenlabs-paid-plan"))</span>
 <span class="sd">    'unknown'</span>
+<span class="sd">    &gt;&gt;&gt; license_class(AssetSource(provider="openai", license="openai-output-owned"))</span>
+<span class="sd">    'attribution'</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">source</span><span class="o">.</span><span class="n">license</span><span class="p">:</span>
         <span class="k">return</span> <span class="s2">"unknown"</span>

@@ -116,6 +116,10 @@ decremented. A genre states the lowest level it needs with
 it supports” (ADR 0001 decision 8) is said without a version pin: `an`’s
 version is assigned by CI at merge, so no PR can name the release it ships in.
 
+A public name a genre reads lands with a level bump and a line below naming
+it (an#724): a release at a level guarantees every name its lines name, unless a
+later line retires it (as 12 retired 1’s shims).
+
 A genre package must also run against an `an` older than this constant:
 it reads `getattr(an.genres, "API_LEVEL", 0)` before calling
 [`require_api_level()`](#an.genres.require_api_level), and raises its own typed error when it is missing.
@@ -151,7 +155,9 @@ Levels (one line each; `tests/test_genre_gate.py` holds the list complete):
 : and `asset_ref_problems` (`(label, message)` pairs) a genre’s validator calls.
 
 11 = a slot’s rest world transform (an#579): `an.stage.rig.rest_world_transforms` and
-: `RestTransform`, the builder’s own rule, for a genre’s placement maths.
+: `RestTransform`, the builder’s own rule, for a genre’s placement maths. Also
+  guaranteed from here (an#724): `an.stage.solve.solve_report`, which came with
+  an#570, merged after 10 was cut (its `SOLVE_EXTENSION` dates from 7).
 
 12 = the P8 import shims are gone (an#321): no `an` path serves a module or name that
 : moved to `cutan`, so a genre package imports its own code from `cutan` only.

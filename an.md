@@ -1,4 +1,4 @@
-> built 2026-11-03 12:01 UTC from 943fb28 (main) · an 0.1.360. Details: build_info.json
+> built 2026-11-03 12:25 UTC from 8fae67d (main) · an 0.1.361. Details: build_info.json
 
 # index.html.md
 
@@ -16640,6 +16640,10 @@ decremented. A genre states the lowest level it needs with
 it supports” (ADR 0001 decision 8) is said without a version pin: `an`’s
 version is assigned by CI at merge, so no PR can name the release it ships in.
 
+A public name a genre reads lands with a level bump and a line below naming
+it (an#724): a release at a level guarantees every name its lines name, unless a
+later line retires it (as 12 retired 1’s shims).
+
 A genre package must also run against an `an` older than this constant:
 it reads `getattr(an.genres, "API_LEVEL", 0)` before calling
 [`require_api_level()`](_autosummary/an.genres.html.md#an.genres.require_api_level), and raises its own typed error when it is missing.
@@ -16675,7 +16679,9 @@ Levels (one line each; `tests/test_genre_gate.py` holds the list complete):
 : and `asset_ref_problems` (`(label, message)` pairs) a genre’s validator calls.
 
 11 = a slot’s rest world transform (an#579): `an.stage.rig.rest_world_transforms` and
-: `RestTransform`, the builder’s own rule, for a genre’s placement maths.
+: `RestTransform`, the builder’s own rule, for a genre’s placement maths. Also
+  guaranteed from here (an#724): `an.stage.solve.solve_report`, which came with
+  an#570, merged after 10 was cut (its `SOLVE_EXTENSION` dates from 7).
 
 12 = the P8 import shims are gone (an#321): no `an` path serves a module or name that
 : moved to `cutan`, so a genre package imports its own code from `cutan` only.
@@ -18933,7 +18939,7 @@ privately but must not publish (an#211). Any code that normalises to one
 starting with `all-rights-reserved` or `private-study` is this class,
 so `"All rights reserved - private study only"` is recognised too.
 
-### an.ir.assets.PROVIDER_TERMS_RESTRICTIONS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'elevenlabs-free-plan': 'ElevenLabs free plan: non-commercial use only, and the video must credit ElevenLabs (elevenlabs.io)', 'stability-community': "Stability AI Community License: the licence ends once you (with affiliates) make over USD 1,000,000 a year (then an Enterprise licence is needed), and use must follow Stability's acceptable use policy"}*
+### an.ir.assets.PROVIDER_TERMS_RESTRICTIONS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'elevenlabs-free-plan': 'ElevenLabs free plan: non-commercial use only, and the video must credit ElevenLabs (elevenlabs.io)', 'openai-output-owned': "OpenAI output: the video must say it is AI-generated and never present it as human-made; OpenAI assigns whatever rights it has (AI-made images may hold none), it may not be unique, and use must follow OpenAI's usage policies (no one's likeness without consent)", 'stability-community': "Stability AI Community License: the licence ends once you (with affiliates) make over USD 1,000,000 a year (then an Enterprise licence is needed), and use must follow Stability's acceptable use policy"}*
 
 the words a
 credits report prints beside it.
@@ -18971,6 +18977,8 @@ A provider’s terms count for what that provider made (`PROVIDER_TERMS`):
 'free'
 >>> license_class(AssetSource(provider="openai", license="elevenlabs-paid-plan"))
 'unknown'
+>>> license_class(AssetSource(provider="openai", license="openai-output-owned"))
+'attribution'
 ```
 
 * **Return type:**
@@ -48422,18 +48430,20 @@ scene: the scene file to read, inside the project (default scene.md; for example
 
 # About this build
 
-This documentation was built on **2026-11-03 12:01 UTC** from commit <a href="https://github.com/reeleehq/an/commit/943fb28009b54aa8160ce369f5f8e473a7e8083a"><code>943fb28</code></a> on branch <code>main</code>, for **an 0.1.360** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-03 12:25 UTC** from commit <a href="https://github.com/reeleehq/an/commit/8fae67d623d35a4af7a864d097c7c087a8992400"><code>8fae67d</code></a> on branch <code>main</code>, for **an 0.1.361** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.1.361) is ahead of the latest release on PyPI (0.1.360): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                    |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/an/commit/943fb28009b54aa8160ce369f5f8e473a7e8083a"><code>943fb28009b54aa8160ce369f5f8e473a7e8083a</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/an/commit/8fae67d623d35a4af7a864d097c7c087a8992400"><code>8fae67d623d35a4af7a864d097c7c087a8992400</code></a> |
 | Branch              | <code>main</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.360</code>                                                                                                                               |
+| Tags at this commit | <code>0.1.361</code>                                                                                                                               |
 | Working tree        | clean                                                                                                                                              |
 | Remote              | <code>https://github.com/reeleehq/an</code>                                                                                                        |
 
@@ -48442,9 +48452,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/an</code>                                                                   |
-| Run          | <a href="https://github.com/reeleehq/an/actions/runs/41630856931">41630856931</a>          |
+| Run          | <a href="https://github.com/reeleehq/an/actions/runs/41632745052">41632745052</a>          |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>288412e12ef7102f03d2e282f88f84b535d1c8c2</code> (in the history of the built commit) |
+| Event commit | <code>bfa499a4b549b6c8cd71d7f6429e898a2f9fbcf0</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -48469,13 +48479,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.360/">0.1.360</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.360/">0.1.360</a>, older than the documented version (0.1.361).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/an && cd an
-git checkout 943fb28009b54aa8160ce369f5f8e473a7e8083a
+git checkout 8fae67d623d35a4af7a864d097c7c087a8992400
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

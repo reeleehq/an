@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=3f26f144"></script>
+    <script src="../_static/documentation_options.js?v=9b5e755d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.360" />
+  <meta name="docsearch:version" content="0.1.361" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -831,6 +831,9 @@ decremented. A genre states the lowest level it needs with
 <a class="reference internal" href="#an.genres.require_api_level" title="an.genres.require_api_level"><code class="xref py py-func docutils literal notranslate"><span class="pre">require_api_level()</span></code></a>, which is how “the genre declares the lowest <code class="docutils literal notranslate"><span class="pre">an</span></code>
 it supports” (ADR 0001 decision 8) is said without a version pin: <code class="docutils literal notranslate"><span class="pre">an</span></code>’s
 version is assigned by CI at merge, so no PR can name the release it ships in.</p>
+<p>A public name a genre reads lands with a level bump and a line below naming
+it (an#724): a release at a level guarantees every name its lines name, unless a
+later line retires it (as 12 retired 1’s shims).</p>
 <p>A genre package must also run against an <code class="docutils literal notranslate"><span class="pre">an</span></code> older than this constant:
 it reads <code class="docutils literal notranslate"><span class="pre">getattr(an.genres,</span> <span class="pre">&quot;API_LEVEL&quot;,</span> <span class="pre">0)</span></code> before calling
 <a class="reference internal" href="#an.genres.require_api_level" title="an.genres.require_api_level"><code class="xref py py-func docutils literal notranslate"><span class="pre">require_api_level()</span></code></a>, and raises its own typed error when it is missing.</p>
@@ -860,7 +863,9 @@ it reads <code class="docutils literal notranslate"><span class="pre">getattr(an
 </dd>
 <dt>10 = the one asset-reference rule (an#552): <code class="docutils literal notranslate"><span class="pre">an.stores._common.asset_references</span></code></dt><dd><p>and <code class="docutils literal notranslate"><span class="pre">asset_ref_problems</span></code> (<code class="docutils literal notranslate"><span class="pre">(label,</span> <span class="pre">message)</span></code> pairs) a genre’s validator calls.</p>
 </dd>
-<dt>11 = a slot’s rest world transform (an#579): <code class="docutils literal notranslate"><span class="pre">an.stage.rig.rest_world_transforms</span></code> and</dt><dd><p><code class="docutils literal notranslate"><span class="pre">RestTransform</span></code>, the builder’s own rule, for a genre’s placement maths.</p>
+<dt>11 = a slot’s rest world transform (an#579): <code class="docutils literal notranslate"><span class="pre">an.stage.rig.rest_world_transforms</span></code> and</dt><dd><p><code class="docutils literal notranslate"><span class="pre">RestTransform</span></code>, the builder’s own rule, for a genre’s placement maths. Also
+guaranteed from here (an#724): <code class="docutils literal notranslate"><span class="pre">an.stage.solve.solve_report</span></code>, which came with
+an#570, merged after 10 was cut (its <code class="docutils literal notranslate"><span class="pre">SOLVE_EXTENSION</span></code> dates from 7).</p>
 </dd>
 <dt>12 = the P8 import shims are gone (an#321): no <code class="docutils literal notranslate"><span class="pre">an</span></code> path serves a module or name that</dt><dd><p>moved to <code class="docutils literal notranslate"><span class="pre">cutan</span></code>, so a genre package imports its own code from <code class="docutils literal notranslate"><span class="pre">cutan</span></code> only.</p>
 </dd>
