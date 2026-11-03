@@ -416,20 +416,28 @@ def test_the_use_command_reads_the_tracks_table_and_names_what_it_lists(tmp_path
 
 def test_a_tracks_table_row_cannot_grant_rights_and_reads_with_a_bom():
     """an#623 review: a row's licence is rebuilt from the library's registry,
-    whatever its `license` cell says, and a column named like a source field
-    (`cost_usd`, `cacheable`, `id`) never sets that field. A table an editor
+    and a column named like a source field (`cost_usd`, `cacheable`, `id`)
+    never sets that field. A forged `license` cell is REFUSED, not overridden
+    (foley's `AcquiredTrack.from_row`, an#731: fail closed). A table an editor
     saved with a byte-order mark reads the same."""
-    from an.music_library import track_from_row, track_row
+    from an.music_library import AcquiredTrack, DroppedColumnsWarning, track_row
+
+    track_from_row = AcquiredTrack.from_row
 
     (track,) = _acquire(["Sneaky Snitch"], Fetcher({_url("Sneaky Snitch"): b"x"}))
-    row = {**track.row(), "license": "CC0-1.0", "cost_usd": "0", "cacheable": "False",
-           "id": "spoofed", "feel": "sneaky"}  # fmt: skip
-    src = asset_source(track_from_row(row))
+    forged = {**track.row(), "license": "CC0-1.0"}
+    for read in (track_from_row, asset_source):  # neither path lets a cell grant rights
+        with pytest.raises(MusicLibraryError, match="licen"):
+            read(forged)
+    row = {**track.row(), "cost_usd": "0", "cacheable": "False", "id": "spoofed",
+           "feel": "sneaky"}  # fmt: skip
+    with pytest.warns(DroppedColumnsWarning):
+        src = asset_source(track_from_row(row))
     assert (src.id, src.license, src.cost_usd, src.cacheable) == (
         "Sneaky Snitch", "cc-by-4.0", None, True,
     )  # fmt: skip
     assert src.model_extra["feel"] == "sneaky"
     text = "\ufeff" + tracks_table([track]).replace("\n", "\r\n")
     assert track_row(text, "Sneaky Snitch")["file"] == track.file
-    with pytest.raises(MusicLibraryError, match="no library 'audionautix'"):
+    with pytest.raises(MusicLibraryError, match="audionautix"):
         track_from_row({**row, "library": "audionautix"})
