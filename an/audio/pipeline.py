@@ -1947,6 +1947,9 @@ def _with_clip_words(tts: TTSProvider, clip: AudioClip) -> AudioClip:
             setattr(
                 clip, field, [(str(t[0]), float(t[1]), float(t[2])) for t in timings]
             )
+    alphabet = getattr(tts, "phone_alphabet_for_clip", None)
+    if clip.phones and clip.phone_alphabet is None and alphabet is not None:
+        clip.phone_alphabet = alphabet(clip)  # the phones' alphabet travels with them (an#726)
     return clip
 
 

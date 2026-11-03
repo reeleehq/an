@@ -1,0 +1,1 @@
+- `AudioClip.phone_alphabet` carries the take's phone alphabet beside its phones, fresh and read back from the audio store (`RecordedTTS.phone_alphabet_for_clip`), so a lip-sync provider guesses only when it is unknown (an#726).

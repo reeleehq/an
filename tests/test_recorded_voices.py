@@ -1030,10 +1030,11 @@ class _Listening(NullLipSync):
     """Records the phones of every clip it is asked to align."""
 
     def __init__(self):
-        self.heard = []
+        self.heard, self.alphabets = [], []
 
     def align(self, audio, transcript):
         self.heard.append(audio.phones)
+        self.alphabets.append(audio.phone_alphabet)
         return super().align(audio, transcript)
 
 
@@ -1056,6 +1057,8 @@ def test_a_takes_phones_reach_the_lip_sync_fresh_and_read_back(tmp_path):
         lipsync = _Listening()
         produce_audio_for_scene(proj.scene, proj.mall, lipsync=lipsync, announce=None)
         first = next(p for p in lipsync.heard if p and p[0][0] == "HH")
+        # the take's alphabet travels with its phones (an#726), fresh and read back
+        assert "arpabet" in lipsync.alphabets, lipsync.alphabets
         assert first[-1] == (
             "N",
             pytest.approx(0.65),

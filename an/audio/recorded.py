@@ -482,6 +482,7 @@ class RecordedTTS:
             transcript=text,
             words=_read_timings(record.get("words")),
             phones=_read_timings(record.get("phones")),
+            phone_alphabet=record.get("phone_alphabet") if record.get("phones") else None,
         )
 
     # -- the pipeline's read-back hook ------------------------------------------
@@ -495,6 +496,12 @@ class RecordedTTS:
         """The stored phones of the take whose bytes ``clip`` carries, or ``None`` (an#491)."""
         record = self._record_for_clip(clip)
         return _read_timings(record.get("phones")) if record else None
+
+    def phone_alphabet_for_clip(self, clip: AudioClip) -> str | None:
+        """The alphabet of the stored phones of the take whose bytes ``clip``
+        carries, or ``None`` (an#726)."""
+        record = self._record_for_clip(clip)
+        return record.get("phone_alphabet") if record and record.get("phones") else None
 
     def _record_for_clip(self, clip: AudioClip) -> Mapping[str, Any] | None:
         """The record of the take whose bytes ``clip`` carries, or ``None``."""
