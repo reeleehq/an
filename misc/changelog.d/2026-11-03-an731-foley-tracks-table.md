@@ -1,1 +1,0 @@
-- `an.music_library` reads tracks tables with foley's public reader (`read_tracks_table`, `LIST_SEPARATOR`) and rebuilds every row, in `asset_source` too, with foley's `AcquiredTrack.from_row`: a forged licence cell is refused, not overridden; `track_from_row` is removed (an#731).
