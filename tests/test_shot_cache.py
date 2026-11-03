@@ -422,6 +422,63 @@ def test_the_keyer_compiles_exactly_what_the_renderer_compiles(tmp_path, monkeyp
     assert s1 is s2 and m1 is m2 and kw1 == kw2
 
 
+def test_the_render_path_and_every_other_compile_take_the_same_arguments(
+    tmp_path, monkeypatch
+):
+    """an#713: :func:`rendered_compile_args` (validate, preview, orchestrate,
+    continuity, the bench) gives the keywords `compiled_document` receives under
+    the `RenderContext` the render builds (`_prepare_shots`), with every scene
+    knob set: a style pack, a step grid, a default easing."""
+    from an.render import _prepare_shots
+    from an.stage import cache_key
+    from an.stage import compile as compile_mod
+    from an.styles import StylePack
+
+    root = init(tmp_path / "p")
+    project = load(root)
+    project.mall["styles"]["noir"] = StylePack(
+        name="noir", roles={"sky": "#000000"}
+    ).model_dump()
+    project.mall["scenes"]["main"] = SceneIR(
+        meta=Meta(
+            fps=_FPS,
+            resolution=Resolution(width=160, height=120),
+            style_pack="noir",
+            step_hz=8.0,
+            default_easing="linear",
+        ),
+        timeline=[
+            _shot("a", 1.0),
+            _shot("b", 2.0).model_copy(update={"step_hz": 12.0}),
+        ],
+    )
+    project = load(root)
+    prep = _prepare_shots(
+        project, tmp_path / "work", fps=None, resolution=None, strict_assets=False,
+        supersample=1, pix_fmt=None, capture=None, step_hz=None,
+    )  # fmt: skip
+
+    received = []
+
+    class _Stop(Exception):
+        pass
+
+    def spy(shot, **kw):
+        received.append(kw)
+        raise _Stop
+
+    monkeypatch.setattr(compile_mod, "compile_shot", spy)
+    for shot in prep.scene.timeline:
+        with pytest.raises(_Stop):
+            cache_key.compiled_document(shot, prep.ctx)
+        meta = project.scene.meta
+        expected = compile_mod.rendered_compile_args(shot, meta, project.mall)
+        assert received.pop() == expected
+        assert expected["style_pack"].name == "noir"
+        assert expected["default_easing"] == "linear"
+    assert [s.step_hz for s in prep.scene.timeline] == [None, 12.0]
+
+
 @pytest.mark.genre("cutout_animation")
 def test_the_project_digest_covers_sidecar_art_not_only_the_mapping(tmp_path):
     root = init(tmp_path / "p")

@@ -501,10 +501,9 @@ def compiled_contract_sha256(fixture: Fixture, *, repo_root: Path) -> str:
     It is the contract of a bench render, which passes no overrides: a render
     given its own ``step_hz``, fps or resolution compiles something else.
     """
-    from an.stage.compile import compile_shot, style_pack_for
+    from an.stage.compile import compile_shot, rendered_compile_args
     from an.stage.serialize import to_dict
     from an.bench.contract import scenes_contract_sha256
-    from an.ir.schema import resolve_step_hz
     from an.project import load
 
     with tempfile.TemporaryDirectory(prefix="an-contract-") as tmp:
@@ -513,7 +512,6 @@ def compiled_contract_sha256(fixture: Fixture, *, repo_root: Path) -> str:
             fixture.prepare(work)
         project = load(work)
         meta = project.scene.meta
-        style_pack = style_pack_for(meta, project.mall.get("styles") or {})
         from an.stage.world import lower_scene  # what the render compiles (ADR 0009)
 
         scene = lower_scene(project.scene, project.mall).scene
@@ -521,14 +519,12 @@ def compiled_contract_sha256(fixture: Fixture, *, repo_root: Path) -> str:
             to_dict(
                 compile_shot(
                     shot,
-                    mall=project.mall,
-                    fps=int(round(meta.fps)),
-                    width=meta.resolution.width,
-                    height=meta.resolution.height,
-                    strict_assets=BENCH_RENDER_KWARGS["strict_assets"],
-                    step_hz=resolve_step_hz(shot, meta.step_hz),
-                    style_pack=style_pack,
-                    default_easing=meta.default_easing,
+                    **rendered_compile_args(
+                        shot,
+                        meta,
+                        project.mall,
+                        strict_assets=BENCH_RENDER_KWARGS["strict_assets"],
+                    ),
                 )
             )
             for shot in scene.timeline

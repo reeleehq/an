@@ -411,8 +411,11 @@ anyone touching the frame path:
   it (`_check_pix_fmt(None)` is the module default at call time). A knob that
   changes pixels and is missing there is a stale-render bug: the old mp4 is
   reused. `tests/test_shot_cache.py` pins `compiled_document` against what
-  `CutoutRenderer.render` passes `compile_shot`; extend `render_knobs` in the
-  same PR as the knob.
+  `CutoutRenderer.render` passes `compile_shot` (both build it with
+  `context_compile_args`), and `rendered_compile_args` against both; a new
+  compile argument goes into `an.stage.compile.compile_args`, the one place
+  they are spelled out (an#713). Extend `render_knobs` in the same PR as the
+  knob.
 - **Python-side render code is in the key automatically**: the `code` part
   digests every module `an.stage.render` reaches (walked from its
   imports; compile-side modules are excluded in `RENDER_PATH_EXCLUDED`, each

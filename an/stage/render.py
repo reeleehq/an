@@ -57,7 +57,7 @@ from an.stage.canvas_capture import (
     canvas_frame_png,
     decode_data_url,
 )
-from an.stage.compile import compile_shot
+from an.stage.compile import compile_args, compile_shot
 from an.stage.runtime_files import runtime_dir
 from an.stage.serialize import to_dict
 from an.stage.text_layout import INLINE_SRC_PREFIX
@@ -271,6 +271,31 @@ def effective_step_hz(shot: Shot, ctx: RenderContext) -> float | None:
     True
     """
     return resolve_step_hz(shot, ctx.step_hz)
+
+
+def context_compile_args(shot: Shot, ctx: RenderContext) -> dict:
+    """:func:`compile_shot`'s keywords for ``shot`` under ``ctx``: what the
+    stage engine compiles (``StageEngine.open``) and what the shot cache keys
+    (:func:`an.stage.cache_key.compiled_document`), so the two cannot drift
+    (an#713). The rules themselves are :func:`an.stage.compile.compile_args`'.
+
+    >>> from pathlib import Path
+    >>> ctx = RenderContext(mall={}, work_dir=Path("."), fps=29.97, step_hz=15.0)
+    >>> args = context_compile_args(Shot(id="s"), ctx)
+    >>> args["fps"], args["step_hz"]
+    (30, 15.0)
+    """
+    return compile_args(
+        shot,
+        mall=ctx.mall,
+        fps=ctx.fps,
+        width=ctx.resolution[0],
+        height=ctx.resolution[1],
+        strict_assets=ctx.strict_assets,
+        scene_step_hz=ctx.step_hz,
+        style_pack=ctx.style_pack,
+        default_easing=ctx.default_easing,
+    )
 
 
 # -----------------------------------------------------------------------------
@@ -834,20 +859,7 @@ class StageEngine:
         capture = _check_capture(ctx.capture)
         from playwright.sync_api import sync_playwright  # noqa: F401  (local: optional dep)
 
-        step_hz = effective_step_hz(shot, ctx)
-        scene_json = compile_shot(
-            shot,
-            mall=ctx.mall,
-            # The document's frame grid is integral; capture and mux keep the
-            # exact rate (see `RenderContext.fps`). Identity for an int rate.
-            fps=int(round(ctx.fps)),
-            width=ctx.resolution[0],
-            height=ctx.resolution[1],
-            strict_assets=ctx.strict_assets,
-            step_hz=step_hz,
-            style_pack=ctx.style_pack,
-            default_easing=ctx.default_easing,
-        )
+        scene_json = compile_shot(shot, **context_compile_args(shot, ctx))
         runtime_target, _ = _stage_runtime(job.workspace, scene_json, mall=ctx.mall)
         with _loaded_page(
             runtime_target,

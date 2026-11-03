@@ -24,12 +24,10 @@ import webbrowser
 from dataclasses import dataclass
 from pathlib import Path
 
-from an.stage.compile import compile_shot, style_pack_for
-from an.ir.schema import resolve_step_hz
+from an.stage.compile import compile_shot, rendered_compile_args
 from an.stage.render import _serve_dir, _stage_scene_assets
 from an.stage.runtime_files import runtime_dir
 from an.stage.serialize import to_dict
-from an.base import DEFAULT_FPS, DEFAULT_RESOLUTION
 from an.ir.sync import DEFAULT_SCENE_FILE, SceneFile, resolve_scene_file
 from an.project import load
 
@@ -196,24 +194,14 @@ def _compile_scene_to(
             "`an render` instead."
         )
 
-    fps = scene.meta.fps or DEFAULT_FPS
-    width = scene.meta.resolution.width or DEFAULT_RESOLUTION[0]
-    height = scene.meta.resolution.height or DEFAULT_RESOLUTION[1]
-
+    # The SAME arguments `an render` compiles with (an#713), the pack
+    # included: without it, a project declaring one previewed in the default
+    # palette and rendered in the pack's, and a scene naming a MISSING pack
+    # previewed happily and only failed at render, skipping the an#33 raise
+    # entirely (an#112 review, H2).
     scene_json = compile_shot(
         shot,
-        mall=project.mall,
-        fps=fps,
-        width=width,
-        height=height,
-        step_hz=resolve_step_hz(shot, scene.meta.step_hz),
-        # The SAME pack `an render` resolves. Without it, a project declaring
-        # one previewed in the default palette and rendered in the pack's —
-        # the author iterating against the wrong picture — and a scene naming a
-        # MISSING pack previewed happily and only failed at render, skipping
-        # the an#33 raise entirely (an#112 review, H2).
-        style_pack=style_pack_for(scene.meta, project.mall.get("styles") or {}),
-        default_easing=scene.meta.default_easing,
+        **rendered_compile_args(shot, scene.meta, project.mall),
     )
     _stage_scene_assets(scene_json, project.mall, runtime_target)
 
