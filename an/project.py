@@ -139,7 +139,7 @@ def _gitignore_line_matcher(line: str) -> Callable[[str], bool]:
     depth = pattern.count("/")
 
     def matches(rel: str) -> bool:
-        parts = _project_relative(rel).split("/")
+        parts = rel.split("/")
         # each folder holding ``rel`` (a matched folder covers its contents), then rel
         for n in range(1, len(parts) + (0 if folders_only else 1)):
             if anchored:
@@ -196,7 +196,12 @@ def gitignore_matcher(lines: Iterable[str] = PROJECT_GITIGNORE) -> Callable[[str
     if isinstance(lines, str):  # one line given bare: its characters are not lines
         raise TypeError(f"lines is an iterable of .gitignore lines, not one str: {lines!r}")
     matchers = _compiled(tuple(lines))
-    return lambda rel: any(m(rel) for m in matchers)
+
+    def covered(rel: str) -> bool:
+        rel = _project_relative(rel)  # once per call, whatever the lines
+        return any(m(rel) for m in matchers)
+
+    return covered
 
 
 def gitignored(rel: str, *, lines: Iterable[str] = PROJECT_GITIGNORE) -> bool:
