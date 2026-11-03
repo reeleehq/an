@@ -1,0 +1,1 @@
+- A take's phone alphabet keys its audio beside its words and phones (the `timings` digest), so a corrected alphabet re-aligns the mouth even on a stamped scene; a take stored without one keeps its key (an#759).

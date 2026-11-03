@@ -1674,3 +1674,28 @@ def test_a_recorded_clip_carries_its_takes_phone_alphabet_or_none(tmp_path):
     clip = tts.synthesize(HELLO, legacy["voice"])
     assert clip.phones and clip.phone_alphabet is None
     assert "phone_alphabet" not in tts.timings_for_clip(clip)
+
+
+def test_a_corrected_phone_alphabet_re_aligns_the_mouth(tmp_path):
+    """an#759: a take's words, phones AND their alphabet key its audio, so a
+    take whose alphabet is corrected (same bytes, same phones) is aligned
+    again, even when the scene is stamped and saved as a render leaves it;
+    an unchanged one is reused."""
+    root = _project(tmp_path)
+    grid = tmp_path / "take.TextGrid"
+    grid.write_text(ALIGNED, encoding="utf-8")
+    import_recordings(root, _take(tmp_path), transcript=grid, license=LICENSE)
+
+    def aligned_alphabets():
+        proj = load(root)
+        lipsync = _Listening()
+        produce_audio_for_scene(proj.scene, proj.mall, lipsync=lipsync, announce=None)
+        proj.mall["scenes"]["main"] = proj.scene  # stamped and saved, as a render does
+        return [a for p, a in zip(lipsync.heard, lipsync.alphabets) if p]
+
+    assert aligned_alphabets() == ["arpabet", "arpabet"]
+    assert aligned_alphabets() == [], "unchanged: the stamped lines are reused"
+    store = load(root).mall["recordings"]
+    for key in list(store):
+        store[key] = {**store[key], "phone_alphabet": "ipa"}
+    assert aligned_alphabets() == ["ipa", "ipa"], "a corrected alphabet re-aligns"

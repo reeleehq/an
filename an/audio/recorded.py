@@ -425,7 +425,8 @@ class RecordedTTS:
     ) -> dict[str, Any]:
         """``{"recording": <digest>}`` of the take this line has — the audio key
         follows the take, so a re-recorded line is new audio. A take with
-        phones adds ``{"timings": <digest>}`` of its words and phones (an#491):
+        phones adds ``{"timings": <digest>}`` of its words, phones (an#491) and
+        their alphabet when stored (an#759):
         the same audio imported again with new timings is new audio to the
         caches, so the lip-sync sees them. (Only then: a take without phones
         keys as before.)
@@ -445,9 +446,13 @@ class RecordedTTS:
         record = found[1]
         options = {RECORDING_OPTION: record["sha256"]}
         if record.get("phones"):
-            options[TIMINGS_OPTION] = hashlib.sha256(
-                json.dumps([record.get("words"), record["phones"]]).encode()
-            ).hexdigest()
+            timed = [record.get("words"), record["phones"]]
+            if record.get("phone_alphabet"):
+                # the alphabet the phones are read in keys the audio too (an#759):
+                # a corrected alphabet re-syncs; a take stored without one keeps
+                # its key
+                timed.append(record["phone_alphabet"])
+            options[TIMINGS_OPTION] = hashlib.sha256(json.dumps(timed).encode()).hexdigest()
         return options
 
     def synthesize(
