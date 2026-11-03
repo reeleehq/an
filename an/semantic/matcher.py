@@ -372,5 +372,3 @@ def as_choice(x: Any, aspect_name: str) -> Choice | None:
                 f"{m.version!r} — freeze its expansion, or update the pin"
             )
     return c
-
-
