@@ -1,0 +1,1 @@
+- Sidecar stores write `meta.json` and `audio.wav` atomically (characters, environments, props, sounds, recordings) through a new `JsonSidecarStore.write_sidecar`, the library checkout writes part files atomically, and `an cache gc` collects the temps a killed write leaves anywhere under an entry folder, naming the entry (an#688).
