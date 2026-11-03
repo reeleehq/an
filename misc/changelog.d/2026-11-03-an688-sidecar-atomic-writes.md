@@ -1,0 +1,1 @@
+- Sidecar stores write `meta.json` and `audio.wav` atomically (characters, environments, props, sounds, recordings), and `an cache gc` collects the temps a killed write leaves in an entry folder (an#688).

@@ -392,12 +392,9 @@ class JsonSidecarStore(MutableMapping):
         return json.loads(meta.read_text(encoding="utf-8"))
 
     def __setitem__(self, key: str, value: dict[str, Any]) -> None:
-        d = self._entry_dir(key)
-        d.mkdir(parents=True, exist_ok=True)
-        (d / self.META_NAME).write_text(
-            json.dumps(value, indent=2, sort_keys=True, default=str) + "\n",
-            encoding="utf-8",
-        )
+        data = json.dumps(value, indent=2, sort_keys=True, default=str) + "\n"
+        # Atomic (an#688): a write killed mid-way keeps the previous meta.json.
+        atomic_write(self.sidecar_path(key, self.META_NAME), data.encode("utf-8"))
 
     def __delitem__(self, key: str) -> None:
         d = self._entry_dir(key)
@@ -419,6 +416,31 @@ class JsonSidecarStore(MutableMapping):
 
     def __len__(self) -> int:
         return sum(1 for _ in self)
+
+    def interrupted_writes(self) -> list[Path]:
+        """The temp files killed writes left in the entry folders (an#688),
+        one level down, where ``meta.json`` and the sidecars are written: what
+        ``an cache gc`` collects. A folder whose first write was killed is no
+        key, but its temp is listed all the same.
+
+        >>> import tempfile
+        >>> with tempfile.TemporaryDirectory() as d:
+        ...     store = JsonSidecarStore(d)
+        ...     store['x'] = {'a': 1}
+        ...     _ = (Path(d) / 'x' / '.meta.json.ab12cd34.tmp').write_bytes(b'{')
+        ...     _ = (Path(d) / 'y').mkdir()
+        ...     _ = (Path(d) / 'y' / '.meta.json.0123abcd.tmp').write_bytes(b'')
+        ...     list(store), [p.name for p in store.interrupted_writes()]
+        (['x'], ['.meta.json.ab12cd34.tmp', '.meta.json.0123abcd.tmp'])
+        """
+        if not self._root.is_dir():
+            return []
+        return [
+            temp
+            for child in sorted(self._root.iterdir())
+            if child.is_dir()
+            for temp in interrupted_writes(child)
+        ]
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}({str(self._root)!r})"
@@ -454,7 +476,8 @@ class AudioSidecarStore(JsonSidecarStore):
         return path.read_bytes()
 
     def write_audio(self, key: str, data: bytes) -> None:
-        self.sidecar_path(key, self.AUDIO_NAME).write_bytes(data)
+        # Atomic (an#688): a write killed mid-way keeps the previous audio.
+        atomic_write(self.sidecar_path(key, self.AUDIO_NAME), data)
 
 
 def art_exists_for(characters_store: Mapping, ref: str) -> Callable[[str], bool] | None:

@@ -189,3 +189,55 @@ def test_a_write_killed_mid_way_leaves_a_temp_interrupted_writes_finds(tmp_path)
         proc.wait()
     (temp,) = store.interrupted_writes()
     assert temp.name.startswith(".k.mp4.") and list(store) == []
+
+
+@pytest.mark.parametrize("write", ["meta", "audio"])
+def test_a_sidecar_write_killed_mid_way_keeps_the_previous_file(tmp_path, write):
+    """``meta.json`` and ``audio.wav`` are written atomically: a process killed
+    mid-write leaves the previous file whole and a temp that
+    ``interrupted_writes`` lists for ``an cache gc`` (an#688)."""
+    import subprocess
+    import sys
+    import time
+
+    from an.stores._common import AudioSidecarStore
+
+    store = AudioSidecarStore(tmp_path)
+    store["x"] = {"v": 1}
+    store.write_audio("x", b"RIFF old take")
+    writer = (
+        "import sys, time\n"
+        "import an.stores._common as c\n"
+        "real = c.atomic_write\n"
+        "def slow(data):\n"
+        "    yield data[:3]\n"
+        "    time.sleep(60)\n"
+        "    yield data[3:]\n"
+        "c.atomic_write = lambda path, data, **kw: real(path, slow(data), **kw)\n"
+        "store = c.AudioSidecarStore(sys.argv[1])\n"
+        "if sys.argv[2] == 'meta':\n"
+        "    store['x'] = {'v': 2, 'pad': 'y' * 1000}\n"
+        "else:\n"
+        "    store.write_audio('x', b'RIFF new take')\n"
+    )
+    import os
+
+    import an
+
+    # the child imports THIS checkout's an, not whichever one is installed
+    env = {**os.environ, "PYTHONPATH": str(Path(an.__file__).parents[1])}
+    proc = subprocess.Popen(
+        [sys.executable, "-c", writer, str(tmp_path), write], env=env
+    )
+    try:
+        deadline = time.monotonic() + 30
+        while not store.interrupted_writes() and time.monotonic() < deadline:
+            time.sleep(0.05)
+    finally:
+        proc.kill()
+        proc.wait()
+    (temp,) = store.interrupted_writes()
+    target = "meta.json" if write == "meta" else "audio.wav"
+    assert temp.parent == tmp_path / "x" and temp.name.startswith(f".{target}.")
+    assert store["x"] == {"v": 1} and store.read_audio("x") == b"RIFF old take"
+    assert list(store) == ["x"]
