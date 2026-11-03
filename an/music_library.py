@@ -236,7 +236,6 @@ def acquire(
     return foley_acquire(library, titles, out=out, config=config, **kwargs)
 
 
-
 def track_row(text: str, title: str) -> dict[str, str]:
     """``title``'s row in the tracks table ``text``.
 
