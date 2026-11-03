@@ -77,6 +77,10 @@ class AudioClip:
     #: recorded take, an#491); ``None`` otherwise. A lip-sync provider that
     #: maps phones to mouth shapes can use them instead of spreading letters.
     phones: list[tuple[str, float, float]] | None = None
+    #: The alphabet ``phones`` are in (``"arpabet"``, ``"ipa"``), as the take's
+    #: record states it (an#637, an#721); ``None`` when unknown, and a lip-sync
+    #: provider then guesses from the labels (an#726).
+    phone_alphabet: str | None = None
 
 
 @runtime_checkable

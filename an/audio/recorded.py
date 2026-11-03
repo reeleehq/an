@@ -482,19 +482,25 @@ class RecordedTTS:
             transcript=text,
             words=_read_timings(record.get("words")),
             phones=_read_timings(record.get("phones")),
+            phone_alphabet=record.get("phone_alphabet") if record.get("phones") else None,
         )
 
     # -- the pipeline's read-back hook ------------------------------------------
 
-    def words_for_clip(self, clip: AudioClip) -> list[WordTiming] | None:
-        """The stored words of the take whose bytes ``clip`` carries, or ``None``."""
+    def timings_for_clip(self, clip: AudioClip) -> dict[str, Any]:
+        """What the take whose bytes ``clip`` carries stored beside its audio:
+        ``words``, ``phones`` (an#491) and the phones' ``phone_alphabet``
+        (an#726), each only when stored; ``{}`` for bytes of no take. One
+        lookup, so the phones and their alphabet come from the same record."""
         record = self._record_for_clip(clip)
-        return _read_timings(record.get("words")) if record else None
-
-    def phones_for_clip(self, clip: AudioClip) -> list[WordTiming] | None:
-        """The stored phones of the take whose bytes ``clip`` carries, or ``None`` (an#491)."""
-        record = self._record_for_clip(clip)
-        return _read_timings(record.get("phones")) if record else None
+        if not record:
+            return {}
+        found: dict[str, Any] = {
+            k: t for k in ("words", "phones") if (t := _read_timings(record.get(k)))
+        }
+        if found.get("phones") and record.get("phone_alphabet"):
+            found["phone_alphabet"] = record["phone_alphabet"]
+        return found
 
     def _record_for_clip(self, clip: AudioClip) -> Mapping[str, Any] | None:
         """The record of the take whose bytes ``clip`` carries, or ``None``."""
