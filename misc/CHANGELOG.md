@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-11-03
+- Voice leveling adopts mixing#85: `GainCappedWarning` is relabelled per voice from its fields, the measurement is `mixing.loudness.group_lufs`, lines at different rates go to mixing per segment (polyphase), retiring `an`'s linear resampler, and the ebur128 meter runs the PATH ffmpeg, never the pip-bundled one (an#699).
 - Sidecar stores write `meta.json` and `audio.wav` atomically (characters, environments, props, sounds, recordings) through a new `JsonSidecarStore.write_sidecar`, the library checkout writes part files atomically, and `an cache gc` collects the temps a killed write leaves anywhere under an entry folder, naming the entry (an#688).
 
 ## 2026-11-01
