@@ -1057,8 +1057,9 @@ def test_a_takes_phones_reach_the_lip_sync_fresh_and_read_back(tmp_path):
         lipsync = _Listening()
         produce_audio_for_scene(proj.scene, proj.mall, lipsync=lipsync, announce=None)
         first = next(p for p in lipsync.heard if p and p[0][0] == "HH")
-        # the take's alphabet travels with its phones (an#726), fresh and read back
-        assert "arpabet" in lipsync.alphabets, lipsync.alphabets
+        # the take's alphabet travels with ITS phones (an#726), fresh and read back
+        paired = dict(zip(map(tuple, (p or () for p in lipsync.heard)), lipsync.alphabets))
+        assert paired[tuple(first)] == "arpabet", paired
         assert first[-1] == (
             "N",
             pytest.approx(0.65),
@@ -1648,3 +1649,28 @@ def test_a_heard_one_word_line_keeps_the_per_line_alignment():
     unheard = [("hello", 0.5, 0.9), ("there", 0.9, 1.3), ("fine", 1.3, 1.6), ("thanks", 1.6, 1.9)]
     with pytest.raises(_RoughTimingUnfit, match="not heard"):
         _rough_line_intervals(lines, unheard, total=6.0, pad_s=0.25, min_coverage=0.0)
+
+
+def test_a_recorded_clip_carries_its_takes_phone_alphabet_or_none(tmp_path):
+    """an#726: the recorded provider's clip carries the alphabet its take's
+    record states beside the phones; a record from before an#637 (phones, no
+    alphabet) gives ``None``, and the read-back hook agrees with synthesize."""
+    from an.audio.recorded import RecordedTTS
+
+    root = _project(tmp_path)
+    grid = tmp_path / "take.TextGrid"
+    grid.write_text(ALIGNED, encoding="utf-8")
+    import_recordings(root, _take(tmp_path), transcript=grid, license=LICENSE)
+    store = load(root).mall["recordings"]
+    (key,) = [k for k in store if store[k]["text"] == HELLO]
+    tts = RecordedTTS(recordings=store)
+    clip = tts.synthesize(HELLO, store[key]["voice"])
+    assert clip.phones and clip.phone_alphabet == "arpabet"
+    assert tts.timings_for_clip(clip)["phone_alphabet"] == "arpabet"
+    legacy = dict(store[key])
+    legacy.pop("phone_alphabet")
+    store[key] = legacy
+    tts = RecordedTTS(recordings=store)
+    clip = tts.synthesize(HELLO, legacy["voice"])
+    assert clip.phones and clip.phone_alphabet is None
+    assert "phone_alphabet" not in tts.timings_for_clip(clip)

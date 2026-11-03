@@ -1933,23 +1933,22 @@ def _load_or_synthesize(
 
 
 def _with_clip_words(tts: TTSProvider, clip: AudioClip) -> AudioClip:
-    """``clip`` with the word timings its provider knows for these bytes
-    (``words_for_clip(clip)``, the ``recorded`` provider: a take imported with a
-    timed transcript), when the clip does not carry them already — so a line
-    read back from the audio store aligns from the same words as a fresh one.
+    """``clip`` with the timings its provider knows for these bytes
+    (``timings_for_clip(clip)``, the ``recorded`` provider: a take imported with
+    a timed transcript): its words, phones (an#491) and their alphabet (an#726),
+    each where the clip does not carry it already — so a line read back from the
+    audio store aligns from the same words and phones as a fresh one.
     """
-    for field in ("words", "phones"):  # phones too (an#491)
-        hook = getattr(tts, f"{field}_for_clip", None)
-        if hook is None or getattr(clip, field, None) is not None:
-            continue
-        timings = hook(clip)
-        if timings:
-            setattr(
-                clip, field, [(str(t[0]), float(t[1]), float(t[2])) for t in timings]
-            )
-    alphabet = getattr(tts, "phone_alphabet_for_clip", None)
-    if clip.phones and clip.phone_alphabet is None and alphabet is not None:
-        clip.phone_alphabet = alphabet(clip)  # the phones' alphabet travels with them (an#726)
+    hook = getattr(tts, "timings_for_clip", None)
+    missing = [f for f in ("words", "phones", "phone_alphabet") if getattr(clip, f) is None]
+    if hook is None or not missing:
+        return clip
+    found = hook(clip)
+    for field in ("words", "phones"):
+        if field in missing and found.get(field):
+            setattr(clip, field, [(str(t[0]), float(t[1]), float(t[2])) for t in found[field]])
+    if "phone_alphabet" in missing and clip.phones and found.get("phones"):
+        clip.phone_alphabet = found.get("phone_alphabet")
     return clip
 
 
