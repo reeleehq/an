@@ -187,7 +187,9 @@ def asset_source(
     the ``author_url`` and whether its terms let
     the bytes be kept as ``cacheable``.
     """
-    if isinstance(track, Mapping):  # a row: rebuilt, so a forged licence cell is refused
+    if isinstance(
+        track, Mapping
+    ):  # a row: rebuilt, so a forged licence cell is refused
         from foley.sources.music_library import AcquiredTrack
 
         track = AcquiredTrack.from_row(track)
