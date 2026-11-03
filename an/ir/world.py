@@ -115,6 +115,9 @@ __all__ = [
     "lower_world",
     "member_of",
     "member_placements",
+    "planes_at_infinity",
+    "far_reason",
+    "stated_plane_frame",
     "pose_look",
     "resolve_viewpoint",
     "stream_instances",
@@ -3175,6 +3178,132 @@ def plane_frame(world: World, member: WorldMember, plane: str) -> str:
     ('far', 'car')
     """
     return (member.planes or {}).get(plane) or member.frame or world.default_frame()
+
+
+#: What a plane listed under ``world.travel.plates.far`` is said to be (an#735).
+FAR_ROLE: str = "far"
+
+
+def stated_plane_frame(
+    world: World, member: WorldMember | None, plane: str
+) -> str | None:
+    """The frame plane ``plane`` of environment ``member`` is SAID to stand in,
+    or ``None`` when nothing says: its own ``planes`` entry, else the member's
+    ``in``; a plane with only a world depth (``depths``) is in the frame a
+    member naming none is in, as the lowering reads it (:func:`plane_frame`).
+
+    >>> from an.ir.schema import World, WorldMember
+    >>> m = WorldMember(kind="environment", id="set", store="environments", ref="e",
+    ...                 planes={"sky": "far"}, depths={"hill": 40.0})
+    >>> [stated_plane_frame(World(), m, p) for p in ("sky", "hill", "road")]
+    ['far', 'world', None]
+    """
+    if member is None:
+        return None
+    frame = (member.planes or {}).get(plane) or member.frame
+    if frame is None and plane in (member.depths or {}):
+        frame = plane_frame(world, member, plane)
+    return frame
+
+
+def far_reason(
+    world: World, path: str, frame: str | None, *, tree: Any = None
+) -> str | None:
+    """Why plane ``path`` (``"<member>/<plane>"``, standing in ``frame``) is at
+    infinity, or ``None`` when it is not (an#735): listed ``far`` under
+    ``world.travel.plates``, or in a frame that is, or hangs from one, coupled
+    ``far`` (by rotation only). ``tree`` is the world's
+    :class:`an.ir.frames.FrameTree`, built when not given; a frame it does
+    not hold says nothing. The rule ``an validate`` checks plates by, and a
+    genre's critic reads (:func:`planes_at_infinity`)."""
+    from an.ir.frames import FrameTree
+
+    travel = world.travel
+    if travel is not None and path in travel.plates.get(FAR_ROLE, ()):
+        return f"listed `{FAR_ROLE}` under world.travel.plates"
+    if frame is None:
+        return None
+    frames = world.all_frames()
+    tree = FrameTree(frames) if tree is None else tree
+    if frame not in tree:
+        return None
+    coupled = next(
+        (n for n in tree.chain(frame) if frames[n].coupling == FAR_ROLE), None
+    )
+    if coupled is None:
+        return None
+    return (
+        f"in frame {frame!r}, coupled `{FAR_ROLE}`"
+        if coupled == frame
+        else f"in frame {frame!r}, under {coupled!r} coupled `{FAR_ROLE}`"
+    )
+
+
+def planes_at_infinity(
+    world: World | None, mall: Mapping[str, Any]
+) -> list[tuple[str, str, str]]:
+    """``[(member id, plane name, why)]``: every plane of the world's
+    environments that is at infinity (an#735), by ``an validate``'s own rule
+    (:func:`far_reason`): listed ``far`` under ``world.travel.plates``, or in a
+    frame coupled ``far``. The planes are read from each environment
+    member's descriptor in ``mall["environments"]``; a listed path is
+    reported even when its descriptor cannot be read. For a genre's critic
+    (cutan's far-plate critic, reeleehq/cutan#177), so the check and the
+    critic share one definition of "far".
+
+    >>> from an.ir.schema import Travel, World
+    >>> w = World(travel=Travel(plates={"far": ["set/sky"]}))
+    >>> planes_at_infinity(w, {})
+    [('set', 'sky', 'listed `far` under world.travel.plates')]
+    """
+    from an.ir.frames import FrameTree
+
+    if world is None:
+        return []
+    tree = FrameTree(world.all_frames())
+    found: dict[str, tuple[str, str, str]] = {}
+    for path in (world.travel.plates.get(FAR_ROLE, ()) if world.travel else ()):
+        member_id, _, plane = path.partition("/")
+        found[path] = (member_id, plane, far_reason(world, path, None, tree=tree) or "")
+    for member, plane in _environment_planes(world, mall):
+        path = f"{member.id}/{plane}"
+        if path in found:
+            continue
+        frame = stated_plane_frame(world, member, plane)
+        why = far_reason(world, path, frame, tree=tree)
+        if why is not None:
+            found[path] = (member.id, plane, why)
+    return list(found.values())
+
+
+def _environment_planes(
+    world: World, mall: Mapping[str, Any]
+) -> list[tuple[WorldMember, str]]:
+    """``(member, plane name)`` for every plane of the world's environment
+    members whose descriptor ``mall["environments"]`` holds and reads; an
+    unreadable one is another check's to report."""
+    from an.stage.environments import (
+        ENVIRONMENT_DOCUMENT_KIND,
+        environment_from_document,
+    )
+
+    store = (mall or {}).get("environments") or {}
+    out = []
+    for member in world.members:
+        if member.kind != "environment":
+            continue
+        try:
+            raw = store[member.ref]
+        except (KeyError, TypeError):
+            continue
+        if not isinstance(raw, dict) or raw.get("kind") != ENVIRONMENT_DOCUMENT_KIND.name:
+            continue
+        try:
+            env = environment_from_document(raw, member)
+        except Exception:  # noqa: BLE001 — a malformed descriptor is another check's
+            continue
+        out += [(member, plane.name) for plane in env.planes]
+    return out
 
 
 def plane_anchor(

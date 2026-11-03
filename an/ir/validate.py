@@ -2898,7 +2898,7 @@ def _core_viewpoint(ctx: ValidationContext) -> None:
     _report_plane_depths(ctx, world, env_store)
     from an.ir.frames import FrameTree
     from an.ir.schema import WORLD_FRAME
-    from an.ir.world import plane_frame, viewpoint_of
+    from an.ir.world import far_reason, stated_plane_frame, viewpoint_of
     from an.stage.environments import (
         ENVIRONMENT_DOCUMENT_KIND,
         environment_from_document,
@@ -2941,25 +2941,11 @@ def _core_viewpoint(ctx: ValidationContext) -> None:
         for plane in env.planes:
             path = f"{entity.id}/{plane.name}"
             role = roles.get(path)
-            frame = (
-                ((member.planes or {}).get(plane.name) or member.frame)
-                if member is not None
-                else None
-            )
-            if (
-                frame is None
-                and member is not None
-                and plane.name in (member.depths or {})
-            ):
-                # a depth says where it is: in the frame a member naming none is in,
-                # as the lowering reads it (`plane_frame`)
-                frame = plane_frame(world, member, plane.name)
+            frame = stated_plane_frame(world, member, plane.name)
             if frame is not None and frame not in tree:
                 continue  # an unknown frame: the schema refuses one as it loads
-            at_infinity = role == "far" or (
-                frame is not None
-                and any(frames[n].coupling == "far" for n in tree.chain(frame))
-            )
+            # the one rule of "at infinity", shared with genres (an#735)
+            at_infinity = far_reason(world, path, frame, tree=tree) is not None
             if role is None and frame is None:
                 if moving_view:
                     ctx.report.add(

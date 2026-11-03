@@ -708,6 +708,29 @@ def test_a_plane_in_a_far_frame_is_pinned_and_one_in_another_moving_frame_is_a_w
     assert not any("'set/rail'" in d for d in found), "rail rides with the camera"
 
 
+def test_planes_at_infinity_names_what_validate_holds_to_far(tmp_path):
+    """an#735: the public rule genres read (cutan's far-plate critic) is the
+    validate check's own: a plane in a frame coupled `far` (or under one) and
+    a plane listed `far` under the travel's plates, with why; a plane riding
+    with the camera or in the world is not at infinity."""
+    from an.ir.schema import Travel
+    from an.ir.world import planes_at_infinity
+
+    project = _env_project(tmp_path)
+    scene = _plates_scene(
+        project, frame="vehicle", planes={"sky": "far", "hill": "world"}
+    )
+    world = scene.world
+    found = planes_at_infinity(world, project.mall)
+    assert [(m, p) for m, p, _ in found] == [("set", "sky")]
+    assert "coupled `far`" in found[0][2]
+    world.travel = Travel(plates={"far": ["set/hill", "gone/plate"]})
+    found = {(m, p): why for m, p, why in planes_at_infinity(world, project.mall)}
+    assert set(found) == {("set", "sky"), ("set", "hill"), ("gone", "plate")}
+    assert "world.travel.plates" in found[("set", "hill")]
+    assert planes_at_infinity(None, project.mall) == []
+
+
 # --- an world show --frames ----------------------------------------------------------------
 
 
