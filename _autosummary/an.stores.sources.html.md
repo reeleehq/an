@@ -18,10 +18,10 @@ key digests, so an edit to the file re-renders the shot.
 
 ### Classes
 
-| [`SourcesStore`](#an.stores.sources.SourcesStore)(root_dir)   | Python scene sources (`.py` bytes) — a Manim scene file per key.   |
-|---------------------------------------------------------------------------|--------------------------------------------------------------------|
+| [`SourcesStore`](#an.stores.sources.SourcesStore)(root_dir, \*[, ensure])   | Python scene sources (`.py` bytes) — a Manim scene file per key.   |
+|-----------------------------------------------------------------------------------------|--------------------------------------------------------------------|
 
-### *class* an.stores.sources.SourcesStore(root_dir)
+### *class* an.stores.sources.SourcesStore(root_dir, , ensure=False)
 
 Bases: `_BlobStore`
 

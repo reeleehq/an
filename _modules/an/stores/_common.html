@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=08de7b2e"></script>
+    <script src="../../../_static/documentation_options.js?v=672f6ffa"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.363" />
+  <meta name="docsearch:version" content="0.1.365" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -994,9 +994,45 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="p">[</span><span class="n">Path</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">_dol_interrupted_writes</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">)]</span>
 
 
+<span class="k">class</span><span class="w"> </span><span class="nc">LazyFolder</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The one folder rule of an's file stores (an#696): the store's folder is</span>
+<span class="sd">    made by its first write, and a missing folder lists as empty, so a mall</span>
+<span class="sd">    over an empty project, or a host scanning many folders, lays out nothing.</span>
+<span class="sd">    ``ensure=True`` makes the folder at once (``an init``).</span>
+
+<span class="sd">    The base of :class:`JsonDirStore`, :class:`JsonSidecarStore` and</span>
+<span class="sd">    ``an.stores.artifacts._BlobStore``, which list their keys through</span>
+<span class="sd">    :meth:`_listed`.</span>
+
+<span class="sd">    &gt;&gt;&gt; import tempfile</span>
+<span class="sd">    &gt;&gt;&gt; d = Path(tempfile.mkdtemp()) / "kept"</span>
+<span class="sd">    &gt;&gt;&gt; folder = LazyFolder(d)</span>
+<span class="sd">    &gt;&gt;&gt; folder._listed("*.json"), d.exists()</span>
+<span class="sd">    ([], False)</span>
+<span class="sd">    &gt;&gt;&gt; _ = LazyFolder(d, ensure=True); d.is_dir()</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">root_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ensure</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">root_dir</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ensure</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_listed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"*"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Path</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""The folder's children matching ``pattern``, sorted: none while the</span>
+<span class="sd">        folder is not there."""</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">pattern</span><span class="p">))</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span> <span class="k">else</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="p">)</span><span class="si">!r}</span><span class="s2">)"</span>
+
+
 <div class="viewcode-block" id="JsonDirStore">
 <a class="viewcode-back" href="../../../_autosummary/an.stores.html#an.stores.JsonDirStore">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">JsonDirStore</span><span class="p">(</span><span class="n">MutableMapping</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">JsonDirStore</span><span class="p">(</span><span class="n">LazyFolder</span><span class="p">,</span> <span class="n">MutableMapping</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""`MutableMapping` of name -&gt; JSON document, stored as ``&lt;name&gt;.json`` files.</span>
 
 <span class="sd">    Backed by the filesystem under ``root_dir``. Keys are the file stems; values</span>
@@ -1005,24 +1041,19 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    :mod:`an.stores` for hosts (an#664): a write is atomic and :meth:`locked`</span>
 <span class="sd">    is the contract for a read, change and write shared with other processes.</span>
 
-<span class="sd">    ``create=False`` leaves the folder to the first write or lock, so a host</span>
-<span class="sd">    can scan many folders through the store without leaving an empty one in</span>
-<span class="sd">    each; a missing folder reads as an empty store.</span>
+<span class="sd">    Its folder follows :class:`LazyFolder`'s rule (an#696): made by the first</span>
+<span class="sd">    write or lock, so a host can scan many folders through the store without</span>
+<span class="sd">    leaving an empty one in each.</span>
 
 <span class="sd">    &gt;&gt;&gt; import tempfile</span>
 <span class="sd">    &gt;&gt;&gt; d = Path(tempfile.mkdtemp()) / "voice_options"</span>
-<span class="sd">    &gt;&gt;&gt; store = JsonDirStore(d, create=False)</span>
+<span class="sd">    &gt;&gt;&gt; store = JsonDirStore(d)</span>
 <span class="sd">    &gt;&gt;&gt; list(store), "jerry" in store, d.exists()</span>
 <span class="sd">    ([], False, False)</span>
 <span class="sd">    &gt;&gt;&gt; store["jerry"] = {"options": []}</span>
 <span class="sd">    &gt;&gt;&gt; list(store), d.exists()</span>
 <span class="sd">    (['jerry'], True)</span>
 <span class="sd">    """</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">root_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">create</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">root_dir</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">create</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
         <span class="k">if</span> <span class="s2">"/"</span> <span class="ow">in</span> <span class="n">key</span> <span class="ow">or</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"."</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">key</span><span class="p">:</span>
@@ -1070,39 +1101,39 @@ window.runMermaid = runMermaid;</script>
         <span class="n">p</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-        <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"*.json"</span><span class="p">)):</span>
+        <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_listed</span><span class="p">(</span><span class="s2">"*.json"</span><span class="p">):</span>
             <span class="k">yield</span> <span class="n">child</span><span class="o">.</span><span class="n">stem</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">)</span>
 
 <div class="viewcode-block" id="JsonDirStore.interrupted_writes">
 <a class="viewcode-back" href="../../../_autosummary/an.stores.html#an.stores.JsonDirStore.interrupted_writes">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">interrupted_writes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Path</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""The temp files killed writes left in this store's folder (an#674)."""</span>
         <span class="k">return</span> <span class="n">interrupted_writes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="p">)</span></div>
-
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="p">)</span><span class="si">!r}</span><span class="s2">)"</span></div>
+</div>
 
 
 
-<span class="k">class</span><span class="w"> </span><span class="nc">JsonSidecarStore</span><span class="p">(</span><span class="n">MutableMapping</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">JsonSidecarStore</span><span class="p">(</span><span class="n">LazyFolder</span><span class="p">,</span> <span class="n">MutableMapping</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""`MutableMapping` of name -&gt; dict, where each entry is a directory containing</span>
 <span class="sd">    ``meta.json`` plus optional binary sidecars.</span>
 
 <span class="sd">    Reading returns the parsed ``meta.json``. Writing replaces ``meta.json``;</span>
 <span class="sd">    sidecars are written separately by the caller, atomically through</span>
 <span class="sd">    :meth:`write_sidecar` (``sidecar_path(key, name)`` is where one lives).</span>
-<span class="sd">    Deleting removes the whole directory.</span>
+<span class="sd">    Deleting removes the whole directory. The store's folder, and an entry's,</span>
+<span class="sd">    follow :class:`LazyFolder`'s rule (an#696): made by the first write, never</span>
+<span class="sd">    by a read.</span>
+
+<span class="sd">    &gt;&gt;&gt; import tempfile</span>
+<span class="sd">    &gt;&gt;&gt; d = Path(tempfile.mkdtemp()) / "props"</span>
+<span class="sd">    &gt;&gt;&gt; store = JsonSidecarStore(d)</span>
+<span class="sd">    &gt;&gt;&gt; list(store), "lamp" in store, store.sidecar_path("lamp", "x.svg").name</span>
+<span class="sd">    ([], False, 'x.svg')</span>
+<span class="sd">    &gt;&gt;&gt; d.exists()</span>
+<span class="sd">    False</span>
 <span class="sd">    """</span>
 
     <span class="n">META_NAME</span> <span class="o">=</span> <span class="s2">"meta.json"</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">root_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">root_dir</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_entry_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
         <span class="k">if</span> <span class="s2">"/"</span> <span class="ow">in</span> <span class="n">key</span> <span class="ow">or</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"."</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">key</span><span class="p">:</span>
@@ -1110,9 +1141,10 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_root</span> <span class="o">/</span> <span class="n">key</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">sidecar_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
-        <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_entry_dir</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-        <span class="n">d</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">d</span> <span class="o">/</span> <span class="n">name</span>
+<span class="w">        </span><span class="sd">"""Where the sidecar ``name`` of ``key`` lives. Pure (an#696): nothing</span>
+<span class="sd">        is made, so a read through it leaves no folder; a caller writing there</span>
+<span class="sd">        makes the parent, as :meth:`write_sidecar` does."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_entry_dir</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">/</span> <span class="n">name</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">write_sidecar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Write the sidecar ``name`` of ``key`` atomically (an#688): a write</span>
@@ -1155,12 +1187,9 @@ window.runMermaid = runMermaid;</script>
         <span class="n">d</span><span class="o">.</span><span class="n">rmdir</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-        <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="o">.</span><span class="n">iterdir</span><span class="p">()):</span>
+        <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_listed</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span> <span class="ow">and</span> <span class="p">(</span><span class="n">child</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">META_NAME</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
                 <span class="k">yield</span> <span class="n">child</span><span class="o">.</span><span class="n">name</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">interrupted_writes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Path</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""The temp files killed writes left in the entry folders and below</span>
@@ -1179,9 +1208,6 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">        (['x'], ['x', 'y'])</span>
 <span class="sd">        """</span>
         <span class="k">return</span> <span class="n">interrupted_writes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="p">)</span><span class="si">!r}</span><span class="s2">)"</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">AudioSidecarStore</span><span class="p">(</span><span class="n">JsonSidecarStore</span><span class="p">):</span>

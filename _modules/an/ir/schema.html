@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=08de7b2e"></script>
+    <script src="../../../_static/documentation_options.js?v=672f6ffa"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.363" />
+  <meta name="docsearch:version" content="0.1.365" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -752,6 +752,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Annotated</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -1232,7 +1233,8 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: How a frame follows its parent: `rigid` takes the parent's whole pose,</span>
 <span class="c1">#: `far` only its rotation (what is at infinity turns with the camera and never</span>
 <span class="c1">#: translates).</span>
-<span class="n">FRAME_COUPLINGS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"rigid"</span><span class="p">,</span> <span class="s2">"far"</span><span class="p">)</span>
+<span class="n">FAR_COUPLING</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"far"</span>
+<span class="n">FRAME_COUPLINGS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"rigid"</span><span class="p">,</span> <span class="n">FAR_COUPLING</span><span class="p">)</span>
 <span class="c1">#: The key an element's frame is written under in a document (`frame` is the</span>
 <span class="c1">#: field; `in` is not a name Python lets a field have).</span>
 <span class="n">FRAME_KEY</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"in"</span>
@@ -1909,7 +1911,24 @@ window.runMermaid = runMermaid;</script>
 
 <span class="c1">#: What a plane under a travel may be declared as: at infinity, or rigid with</span>
 <span class="c1">#: the vehicle the viewpoints are mounted on.</span>
-<span class="n">TRAVEL_PLATE_ROLES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"far"</span><span class="p">,</span> <span class="s2">"vehicle"</span><span class="p">)</span>
+<span class="n">FAR_PLATE_ROLE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"far"</span>
+<span class="n">TRAVEL_PLATE_ROLES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">FAR_PLATE_ROLE</span><span class="p">,</span> <span class="s2">"vehicle"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_plates_under_two_roles</span><span class="p">(</span>
+    <span class="n">plates</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``{path: [role, ...]}`` for each plate path ``plates`` lists under more</span>
+<span class="sd">    than one role (an#735), roles in the order they are listed.</span>
+
+<span class="sd">    &gt;&gt;&gt; _plates_under_two_roles({"far": ["set/sky"], "vehicle": ["set/sky", "set/cab"]})</span>
+<span class="sd">    {'set/sky': ['far', 'vehicle']}</span>
+<span class="sd">    """</span>
+    <span class="n">roles</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">role</span><span class="p">,</span> <span class="n">paths</span> <span class="ow">in</span> <span class="n">plates</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">paths</span><span class="p">):</span>
+            <span class="n">roles</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">role</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">path</span><span class="p">:</span> <span class="n">rs</span> <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">rs</span> <span class="ow">in</span> <span class="n">roles</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">}</span>
 
 
 <div class="viewcode-block" id="Travel">
@@ -1959,6 +1978,16 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="n">unknown</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"travel plates may be </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">TRAVEL_PLATE_ROLES</span><span class="p">)</span><span class="si">}</span><span class="s2">; got </span><span class="si">{</span><span class="n">unknown</span><span class="si">}</span><span class="s2">."</span>
+            <span class="p">)</span>
+        <span class="n">twice</span> <span class="o">=</span> <span class="n">_plates_under_two_roles</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plates</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">twice</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">"a travel plate holds one thing, so it has one role; "</span>
+                <span class="o">+</span> <span class="s2">"; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">!r}</span><span class="s2"> is listed under </span><span class="si">{</span><span class="s1">' and '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">repr</span><span class="p">,</span><span class="w"> </span><span class="n">roles</span><span class="p">))</span><span class="si">}</span><span class="s2">"</span>
+                    <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">roles</span> <span class="ow">in</span> <span class="n">twice</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                <span class="p">)</span>
+                <span class="o">+</span> <span class="s2">". Keep it under the one that says what it holds."</span>
             <span class="p">)</span>
         <span class="n">seen</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">streams</span><span class="p">:</span>

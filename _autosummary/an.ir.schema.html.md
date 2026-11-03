@@ -50,7 +50,7 @@ True
 | [`DFLT_TRAVEL_MAX_ACTIONS`](#an.ir.schema.DFLT_TRAVEL_MAX_ACTIONS)   | The most actions one shot's travel may lower to before the lowering refuses and names the knobs: a 10 s road with three streams is about four thousand; a minute of dense road markings would be fifty thousand, which is a document the runtime pays for on every frame. |
 | [`WORLD_FRAME`](#an.ir.schema.WORLD_FRAME)               | the world itself.                                                                                                                                                                                                                                                         |
 | [`VEHICLE_FRAME`](#an.ir.schema.VEHICLE_FRAME)             | The frame a `travel` with a `speed` is sugar for (viewpoints and members ride it by default; streams stay in the world).                                                                                                                                                  |
-| [`FRAME_COUPLINGS`](#an.ir.schema.FRAME_COUPLINGS)           | `rigid` takes the parent's whole pose, `far` only its rotation (what is at infinity turns with the camera and never translates).                                                                                                                                          |
+| [`FAR_COUPLING`](#an.ir.schema.FAR_COUPLING)              | `rigid` takes the parent's whole pose, `far` only its rotation (what is at infinity turns with the camera and never translates).                                                                                                                                          |
 | [`FRAME_KEY`](#an.ir.schema.FRAME_KEY)                 | The key an element's frame is written under in a document (`frame` is the field; `in` is not a name Python lets a field have).                                                                                                                                            |
 | [`JOINT_TYPES`](#an.ir.schema.JOINT_TYPES)               | The joint types a scene declares.                                                                                                                                                                                                                                         |
 | [`SEGMENT_JOINT_TYPES`](#an.ir.schema.SEGMENT_JOINT_TYPES)       | The types that join a point to a segment (`b` is its start, `end` its end).                                                                                                                                                                                               |
@@ -59,7 +59,7 @@ True
 | [`DFLT_GRAVITY`](#an.ir.schema.DFLT_GRAVITY)              | The pull of gravity a `down` with no number means, in scene px per second² (a 1080-px frame is about 1.1 m of a standing figure, so 980 is earth's g at roughly one pixel per millimetre: the conventional animation default).                                            |
 | [`GRAVITY_DIRECTIONS`](#an.ir.schema.GRAVITY_DIRECTIONS)        | Where each named gravity direction pulls, on the stage's y-down axes.                                                                                                                                                                                                     |
 | [`NO_GRAVITY`](#an.ir.schema.NO_GRAVITY)                | The spellings of no gravity.                                                                                                                                                                                                                                              |
-| [`TRAVEL_PLATE_ROLES`](#an.ir.schema.TRAVEL_PLATE_ROLES)        | at infinity, or rigid with the vehicle the viewpoints are mounted on.                                                                                                                                                                                                     |
+| [`FAR_PLATE_ROLE`](#an.ir.schema.FAR_PLATE_ROLE)            | at infinity, or rigid with the vehicle the viewpoints are mounted on.                                                                                                                                                                                                     |
 | [`DFLT_WORLD_GRAVITY`](#an.ir.schema.DFLT_WORLD_GRAVITY)        | Gravity, world units per second² along +y (down; the world's units are metres): Earth's.                                                                                                                                                                                  |
 | [`DFLT_SWAY_LIMIT_DEG`](#an.ir.schema.DFLT_SWAY_LIMIT_DEG)       | The most a member of a swaying frame leans by default, degrees.                                                                                                                                                                                                           |
 | [`CORE_ACTION_KINDS`](#an.ir.schema.CORE_ACTION_KINDS)         | The `kind` of every action the core defines (the static union members).                                                                                                                                                                                                   |
@@ -726,7 +726,7 @@ comes back unchanged (`strict=False`).
 * **Return type:**
   [`ExtensionAction`](#an.ir.schema.ExtensionAction)
 
-### an.ir.schema.FRAME_COUPLINGS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('rigid', 'far')*
+### an.ir.schema.FAR_COUPLING *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'far'*
 
 `rigid` takes the parent’s whole pose,
 `far` only its rotation (what is at infinity turns with the camera and never
@@ -734,6 +734,14 @@ translates).
 
 * **Type:**
   How a frame follows its parent
+
+### an.ir.schema.FAR_PLATE_ROLE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'far'*
+
+at infinity, or rigid with
+the vehicle the viewpoints are mounted on.
+
+* **Type:**
+  What a plane under a travel may be declared as
 
 ### an.ir.schema.FRAME_KEY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'in'*
 
@@ -1442,14 +1450,6 @@ the world.
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
-
-### an.ir.schema.TRAVEL_PLATE_ROLES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('far', 'vehicle')*
-
-at infinity, or rigid with
-the vehicle the viewpoints are mounted on.
-
-* **Type:**
-  What a plane under a travel may be declared as
 
 ### *class* an.ir.schema.Transition(, kind='cut', duration=0.5, color='#000000', direction='left', time_jump=False, \*\*extra_data)
 

@@ -34,7 +34,24 @@ cuts what is left by more than [`DFLT_STALL_PROGRESS`](#an.kinematics.solver.DFL
 [`DFLT_CONVERGE_CAP`](#an.kinematics.solver.DFLT_CONVERGE_CAP) times `iterations` (an#568). A round that stalls
 is a conflict after all (a grip inside the arm’s length but past its elbow’s
 range converges at first, then sits a pixel short), and what is left after the
-cap is only reported. If not, it is a conflict, settled per
+cap is only reported. A HELD LOOP is judged apart (an#706): a chain between
+two rigid ends whose links are bare (pins only: no range, weld, distance,
+contact, slide, pull or held channel) and whose ends are within its reach
+(an exact test) can hold, and its rigid ends cut it off from every other
+joint, so its failure is slow convergence however slowly it falls
+(Gauss–Seidel’s rate drops with the chain’s length: a 70-link rope’s held
+grip cut its failure to 0.65 at the retry and was given up, taken back, given
+up again). It is given passes while it fails, up to the cap, whatever the
+other joints do, and never weighed in their conflict; at the cap only its own
+residual decides: past [`DFLT_HELD_JUMP`](#an.kinematics.solver.DFLT_HELD_JUMP) it is a jump no frame makes at
+once (its end carried too far) and gives up its grip, which a run of frames
+leads back; short of that it is reported. One more condition, that the loop
+already holds as the frame starts (within [`DFLT_HELD_GAP`](#an.kinematics.solver.DFLT_HELD_GAP)), tells a hold
+from a take: a grip taken back from afar keeps the rule below and is led back
+(an#645) rather than snapped across the gap in one frame, and its frame does
+not pay the cap. The other joints, a tree or a ranged elbow among them, are
+judged by their progress as above; a failure judged not slow is a conflict,
+settled per
 LOOP: the joints that share a cycle through the held bodies with a failing
 one are tried last-declared first, and the first whose loss at least halves
 the failure is given up for the frame (an#641: a rope held at both ends gives
@@ -78,6 +95,8 @@ built on a solve is built on its INPUTS ([`inputs_digest()`](#an.kinematics.solv
 | [`DFLT_REGRIP_SPEED`](#an.kinematics.solver.DFLT_REGRIP_SPEED)      | How fast (scene units per second of film) the free end of a chain is led back to a grip it lost out of reach and that is back within reach, when one frame cannot close the gap (an#645): a 50-link rope 600 units from its end takes it back in about a second.                                                                                                       |
 | [`DFLT_REGRIP_SNAP`](#an.kinematics.solver.DFLT_REGRIP_SNAP)       | A led grip is taken (its pin enforced again) once its gap is this small (scene units): the rejoin the stage's own check calls a snap is over 2.                                                                                                                                                                                                                        |
 | [`DFLT_REGRIP_STRENGTH`](#an.kinematics.solver.DFLT_REGRIP_STRENGTH)   | The strength of that lead (a `Force` pull toward the walking point, which closes no loop a conflict could settle by giving up a link), for bodies of the kinematics' own scale (a link of 10 by 2 units); a caller whose bodies weigh more scales it (the stage: by the led chain's mass, [`regrip_strength_by_mass()`](#an.kinematics.solver.regrip_strength_by_mass)). |
+| [`DFLT_HELD_GAP`](#an.kinematics.solver.DFLT_HELD_GAP)          | A loop counts as HELD as the frame starts (an#706) when each of its joints is at most this far apart (scene units) in the input poses, before the frame's targets move anything: a grip carried this frame was held on the last.                                                                                                                                       |
+| [`DFLT_HELD_JUMP`](#an.kinematics.solver.DFLT_HELD_JUMP)         | A held loop the cap leaves failing gives up its grip only when a joint of it is still more than this apart (scene units): a jump no frame makes at once (its end carried too far), led back over frames (an#645).                                                                                                                                                      |
 | [`DFLT_MAX_DROP_TRIALS`](#an.kinematics.solver.DFLT_MAX_DROP_TRIALS)   | The most trial solves [`solve()`](#an.kinematics.solver.solve) spends looking for the joint to give up in a conflict (each is a full solve of the frame).                                                                                                                                                                                              |
 | [`DFLT_NUDGE`](#an.kinematics.solver.DFLT_NUDGE)             | Radians each free body is turned by on a retry, alternating in sign (see `_nudge`): far below what a frame shows, enough to buckle a straight chain pushed along its length.                                                                                                                                                                                           |
 | [`DFLT_POSITION_QUANTUM`](#an.kinematics.solver.DFLT_POSITION_QUANTUM)  | finer than any render shows.                                                                                                                                                                                                                                                                                                                                           |
@@ -121,7 +140,8 @@ reported (radians; 1e-3 rad is 0.06 degrees).
 
 A failing joint is in conflict when the retry left more than this fraction
 of its failure (residual over tolerance, or range broken over angle
-tolerance): a conflict is what more passes do not fix. Giving a joint up
+tolerance): a conflict is what more passes do not fix. Not asked of a held
+loop the geometry shows can hold (an#706): a long chain converges slower. Giving a joint up
 settles a conflict when it leaves at most this fraction of the failure.
 
 ### an.kinematics.solver.DFLT_CONFLICT_RETRY *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 4*
@@ -151,6 +171,22 @@ are in every cache key built on a solve).
 
 * **Type:**
   Fraction of velocity lost per substep in dynamic mode
+
+### an.kinematics.solver.DFLT_HELD_GAP *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 1.0*
+
+A loop counts as HELD as the frame starts (an#706) when each of its joints
+is at most this far apart (scene units) in the input poses, before the
+frame’s targets move anything: a grip carried this frame was held on the
+last. (The regrip’s [`DFLT_REGRIP_SNAP`](#an.kinematics.solver.DFLT_REGRIP_SNAP) is measured after the targets.)
+
+### an.kinematics.solver.DFLT_HELD_JUMP *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 1.0*
+
+A held loop the cap leaves failing gives up its grip only when a joint of it
+is still more than this apart (scene units): a jump no frame makes at once
+(its end carried too far), led back over frames (an#645). Less is reported,
+as what the cap leaves on a contested frame is: a 70-link rope’s end swept
+at 600 units/s was left 0.254 apart (tolerance 0.25), and with no such
+margin gave its grip up and never took it back.
 
 ### an.kinematics.solver.DFLT_ITERATIONS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 8*
 
@@ -257,7 +293,7 @@ grips back (an#645): the grips the geometry ruled out (or a conflict took
 from a grip the lead had taken back) on the frame before, those being led
 with their gap, those the lead took back, and the frame before’s drops.
 
-### an.kinematics.solver.SOLVER_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '7'*
+### an.kinematics.solver.SOLVER_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '8'*
 
 Bumped whenever the solve can give a different answer for the same inputs
 (a changed projection, order, or default): part of every cache key built
@@ -267,7 +303,9 @@ the first candidate that halves the failure (an#641); 4: a slack chain of more
 than two links held at both ends is seeded on an arc (an#646); 5: a grip lost
 out of reach is led back over several frames (an#645); 6: the stage’s per-frame
 solve leads lost grips back too (an#668); 7: it pulls each lead by the led
-chain’s own mass (an#672).
+chain’s own mass (an#672); 8: a held loop the geometry shows can hold is
+judged apart: kept converging, never given up for its rate or for a conflict
+elsewhere, only for a jump the cap leaves (an#706).
 
 ### *class* an.kinematics.solver.SolveResult(bodies, poses, residuals, unsatisfied, limit_violations, dropped=(), out_of_reach=())
 
@@ -416,7 +454,8 @@ A frame that leaves a joint failing is solved again with `retry` times
 the `iterations` (1: never), again while each round still cuts what is
 left, up to `converge_cap` times the `iterations`; `drop_conflicts`
 then gives up the joints in conflict (a first retry that did not halve the
-failure, or a later one that stalled), last declared first (module docstring);
+failure, or a later one that stalled; a held loop the geometry shows can
+hold is judged by the cap, never by its rate), last declared first (module docstring);
 `False` keeps them all and reports what fails. `seed` is reserved for stochastic drivers and does nothing in this
 version: the solve has no randomness.
 

@@ -9,10 +9,10 @@ by integer index (as a string) for uniformity with the other stores, plus an
 
 ### Classes
 
-| [`DecisionLogStore`](#an.stores.decisions.DecisionLogStore)(log_path)   | Append-only JSONL log keyed by ordinal index (as string).   |
-|-------------------------------------------------------------------------------|-------------------------------------------------------------|
+| [`DecisionLogStore`](#an.stores.decisions.DecisionLogStore)(log_path, \*[, ensure])   | Append-only JSONL log keyed by ordinal index (as string).   |
+|---------------------------------------------------------------------------------------------|-------------------------------------------------------------|
 
-### *class* an.stores.decisions.DecisionLogStore(log_path)
+### *class* an.stores.decisions.DecisionLogStore(log_path, , ensure=False)
 
 Bases: [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)
 

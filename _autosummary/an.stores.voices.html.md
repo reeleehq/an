@@ -7,10 +7,10 @@ display name, optional cloning source ref, and emotion presets.
 
 ### Classes
 
-| [`VoicesStore`](#an.stores.voices.VoicesStore)(root_dir, \*[, create])   | JSON-only voice descriptors.   |
+| [`VoicesStore`](#an.stores.voices.VoicesStore)(root_dir, \*[, ensure])   | JSON-only voice descriptors.   |
 |----------------------------------------------------------------------------------------|--------------------------------|
 
-### *class* an.stores.voices.VoicesStore(root_dir, , create=True)
+### *class* an.stores.voices.VoicesStore(root_dir, , ensure=False)
 
 Bases: [`JsonDirStore`](an.stores.html.md#an.stores.JsonDirStore)
 

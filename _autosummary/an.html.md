@@ -501,10 +501,12 @@ Items held by something for a span (`Weld`); omitted when empty.
 
 Build the standard project mall over `project_dir`.
 
-Pass `ensure=True` to create the per-store directories on disk if they
-don’t exist. `scene_file` picks the scene the `scenes` store holds (an#539;
-`scene.md` by default). Pass keyword overrides to swap in alternate stores (e.g. an
-in-memory `dict` for tests).
+Building it lays out nothing (an#696): every file store makes its folder
+on its first write, a missing one reading as empty. `ensure=True`
+(`an init`) lays out the tree at once: each store’s folder, through the
+store, and the `UNSTORED_FOLDERS`. `scene_file` picks the scene
+the `scenes` store holds (an#539; `scene.md` by default). Pass keyword
+overrides to swap in alternate stores (e.g. an in-memory `dict` for tests).
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`MutableMapping`](https://docs.python.org/3/library/typing.html#typing.MutableMapping)]

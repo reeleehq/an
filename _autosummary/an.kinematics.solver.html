@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=08de7b2e"></script>
+    <script src="../_static/documentation_options.js?v=672f6ffa"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.363" />
+  <meta name="docsearch:version" content="0.1.365" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -670,7 +670,24 @@ cuts what is left by more than <a class="reference internal" href="#an.kinematic
 <a class="reference internal" href="#an.kinematics.solver.DFLT_CONVERGE_CAP" title="an.kinematics.solver.DFLT_CONVERGE_CAP"><code class="xref py py-data docutils literal notranslate"><span class="pre">DFLT_CONVERGE_CAP</span></code></a> times <code class="docutils literal notranslate"><span class="pre">iterations</span></code> (an#568). A round that stalls
 is a conflict after all (a grip inside the arm’s length but past its elbow’s
 range converges at first, then sits a pixel short), and what is left after the
-cap is only reported. If not, it is a conflict, settled per
+cap is only reported. A HELD LOOP is judged apart (an#706): a chain between
+two rigid ends whose links are bare (pins only: no range, weld, distance,
+contact, slide, pull or held channel) and whose ends are within its reach
+(an exact test) can hold, and its rigid ends cut it off from every other
+joint, so its failure is slow convergence however slowly it falls
+(Gauss–Seidel’s rate drops with the chain’s length: a 70-link rope’s held
+grip cut its failure to 0.65 at the retry and was given up, taken back, given
+up again). It is given passes while it fails, up to the cap, whatever the
+other joints do, and never weighed in their conflict; at the cap only its own
+residual decides: past <a class="reference internal" href="#an.kinematics.solver.DFLT_HELD_JUMP" title="an.kinematics.solver.DFLT_HELD_JUMP"><code class="xref py py-data docutils literal notranslate"><span class="pre">DFLT_HELD_JUMP</span></code></a> it is a jump no frame makes at
+once (its end carried too far) and gives up its grip, which a run of frames
+leads back; short of that it is reported. One more condition, that the loop
+already holds as the frame starts (within <a class="reference internal" href="#an.kinematics.solver.DFLT_HELD_GAP" title="an.kinematics.solver.DFLT_HELD_GAP"><code class="xref py py-data docutils literal notranslate"><span class="pre">DFLT_HELD_GAP</span></code></a>), tells a hold
+from a take: a grip taken back from afar keeps the rule below and is led back
+(an#645) rather than snapped across the gap in one frame, and its frame does
+not pay the cap. The other joints, a tree or a ranged elbow among them, are
+judged by their progress as above; a failure judged not slow is a conflict,
+settled per
 LOOP: the joints that share a cycle through the held bodies with a failing
 one are tried last-declared first, and the first whose loss at least halves
 the failure is given up for the frame (an#641: a rope held at both ends gives
@@ -730,6 +747,12 @@ built on a solve is built on its INPUTS (<a class="reference internal" href="#an
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.kinematics.solver.DFLT_REGRIP_STRENGTH" title="an.kinematics.solver.DFLT_REGRIP_STRENGTH"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_REGRIP_STRENGTH</span></code></a></p></td>
 <td><p>The strength of that lead (a <code class="xref py py-class docutils literal notranslate"><span class="pre">Force</span></code> pull toward the walking point, which closes no loop a conflict could settle by giving up a link), for bodies of the kinematics' own scale (a link of 10 by 2 units); a caller whose bodies weigh more scales it (the stage: by the led chain's mass, <a class="reference internal" href="#an.kinematics.solver.regrip_strength_by_mass" title="an.kinematics.solver.regrip_strength_by_mass"><code class="xref py py-func docutils literal notranslate"><span class="pre">regrip_strength_by_mass()</span></code></a>).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.kinematics.solver.DFLT_HELD_GAP" title="an.kinematics.solver.DFLT_HELD_GAP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_HELD_GAP</span></code></a></p></td>
+<td><p>A loop counts as HELD as the frame starts (an#706) when each of its joints is at most this far apart (scene units) in the input poses, before the frame's targets move anything: a grip carried this frame was held on the last.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.kinematics.solver.DFLT_HELD_JUMP" title="an.kinematics.solver.DFLT_HELD_JUMP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_HELD_JUMP</span></code></a></p></td>
+<td><p>A held loop the cap leaves failing gives up its grip only when a joint of it is still more than this apart (scene units): a jump no frame makes at once (its end carried too far), led back over frames (an#645).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.kinematics.solver.DFLT_MAX_DROP_TRIALS" title="an.kinematics.solver.DFLT_MAX_DROP_TRIALS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_MAX_DROP_TRIALS</span></code></a></p></td>
 <td><p>The most trial solves <a class="reference internal" href="#an.kinematics.solver.solve" title="an.kinematics.solver.solve"><code class="xref py py-func docutils literal notranslate"><span class="pre">solve()</span></code></a> spends looking for the joint to give up in a conflict (each is a full solve of the frame).</p></td>
@@ -827,7 +850,8 @@ reported (radians; 1e-3 rad is 0.06 degrees).</p>
 <span class="sig-prename descclassname"><span class="pre">an.kinematics.solver.</span></span><span class="sig-name descname"><span class="pre">DFLT_CONFLICT_PROGRESS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.5</span></span><a class="headerlink" href="#an.kinematics.solver.DFLT_CONFLICT_PROGRESS" title="Link to this definition">#</a></dt>
 <dd><p>A failing joint is in conflict when the retry left more than this fraction
 of its failure (residual over tolerance, or range broken over angle
-tolerance): a conflict is what more passes do not fix. Giving a joint up
+tolerance): a conflict is what more passes do not fix. Not asked of a held
+loop the geometry shows can hold (an#706): a long chain converges slower. Giving a joint up
 settles a conflict when it leaves at most this fraction of the failure.</p>
 </dd></dl>
 
@@ -865,6 +889,26 @@ are in every cache key built on a solve).</p>
 <dd class="field-odd"><p>Fraction of velocity lost per substep in dynamic mode</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.kinematics.solver.DFLT_HELD_GAP">
+<span class="sig-prename descclassname"><span class="pre">an.kinematics.solver.</span></span><span class="sig-name descname"><span class="pre">DFLT_HELD_GAP</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></span><a class="headerlink" href="#an.kinematics.solver.DFLT_HELD_GAP" title="Link to this definition">#</a></dt>
+<dd><p>A loop counts as HELD as the frame starts (an#706) when each of its joints
+is at most this far apart (scene units) in the input poses, before the
+frame’s targets move anything: a grip carried this frame was held on the
+last. (The regrip’s <a class="reference internal" href="#an.kinematics.solver.DFLT_REGRIP_SNAP" title="an.kinematics.solver.DFLT_REGRIP_SNAP"><code class="xref py py-data docutils literal notranslate"><span class="pre">DFLT_REGRIP_SNAP</span></code></a> is measured after the targets.)</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.kinematics.solver.DFLT_HELD_JUMP">
+<span class="sig-prename descclassname"><span class="pre">an.kinematics.solver.</span></span><span class="sig-name descname"><span class="pre">DFLT_HELD_JUMP</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></span><a class="headerlink" href="#an.kinematics.solver.DFLT_HELD_JUMP" title="Link to this definition">#</a></dt>
+<dd><p>A held loop the cap leaves failing gives up its grip only when a joint of it
+is still more than this apart (scene units): a jump no frame makes at once
+(its end carried too far), led back over frames (an#645). Less is reported,
+as what the cap leaves on a contested frame is: a 70-link rope’s end swept
+at 600 units/s was left 0.254 apart (tolerance 0.25), and with no such
+margin gave its grip up and never took it back.</p>
 </dd></dl>
 
 <dl class="py data">
@@ -1009,7 +1053,7 @@ with their gap, those the lead took back, and the frame before’s drops.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.kinematics.solver.SOLVER_VERSION">
-<span class="sig-prename descclassname"><span class="pre">an.kinematics.solver.</span></span><span class="sig-name descname"><span class="pre">SOLVER_VERSION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'7'</span></span><a class="headerlink" href="#an.kinematics.solver.SOLVER_VERSION" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.kinematics.solver.</span></span><span class="sig-name descname"><span class="pre">SOLVER_VERSION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'8'</span></span><a class="headerlink" href="#an.kinematics.solver.SOLVER_VERSION" title="Link to this definition">#</a></dt>
 <dd><p>Bumped whenever the solve can give a different answer for the same inputs
 (a changed projection, order, or default): part of every cache key built
 on this module.
@@ -1018,7 +1062,9 @@ the first candidate that halves the failure (an#641); 4: a slack chain of more
 than two links held at both ends is seeded on an arc (an#646); 5: a grip lost
 out of reach is led back over several frames (an#645); 6: the stage’s per-frame
 solve leads lost grips back too (an#668); 7: it pulls each lead by the led
-chain’s own mass (an#672).</p>
+chain’s own mass (an#672); 8: a held loop the geometry shows can hold is
+judged apart: kept converging, never given up for its rate or for a conflict
+elsewhere, only for a jump the cap leaves (an#706).</p>
 </dd></dl>
 
 <dl class="py class">
@@ -1192,7 +1238,8 @@ A frame that leaves a joint failing is solved again with <code class="docutils l
 the <code class="docutils literal notranslate"><span class="pre">iterations</span></code> (1: never), again while each round still cuts what is
 left, up to <code class="docutils literal notranslate"><span class="pre">converge_cap</span></code> times the <code class="docutils literal notranslate"><span class="pre">iterations</span></code>; <code class="docutils literal notranslate"><span class="pre">drop_conflicts</span></code>
 then gives up the joints in conflict (a first retry that did not halve the
-failure, or a later one that stalled), last declared first (module docstring);
+failure, or a later one that stalled; a held loop the geometry shows can
+hold is judged by the cap, never by its rate), last declared first (module docstring);
 <code class="docutils literal notranslate"><span class="pre">False</span></code> keeps them all and reports what fails. <code class="docutils literal notranslate"><span class="pre">seed</span></code> is reserved for stochastic drivers and does nothing in this
 version: the solve has no randomness.</p>
 <p>A shoulder driven to a point, an upper arm pinned to it, a forearm
@@ -1333,6 +1380,8 @@ this frame are <code class="docutils literal notranslate"><span class="pre">stat
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solver.DFLT_CONFLICT_RETRY"><code class="docutils literal notranslate"><span class="pre">DFLT_CONFLICT_RETRY</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solver.DFLT_CONVERGE_CAP"><code class="docutils literal notranslate"><span class="pre">DFLT_CONVERGE_CAP</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solver.DFLT_DAMPING"><code class="docutils literal notranslate"><span class="pre">DFLT_DAMPING</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solver.DFLT_HELD_GAP"><code class="docutils literal notranslate"><span class="pre">DFLT_HELD_GAP</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solver.DFLT_HELD_JUMP"><code class="docutils literal notranslate"><span class="pre">DFLT_HELD_JUMP</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solver.DFLT_ITERATIONS"><code class="docutils literal notranslate"><span class="pre">DFLT_ITERATIONS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solver.DFLT_MAX_DROP_TRIALS"><code class="docutils literal notranslate"><span class="pre">DFLT_MAX_DROP_TRIALS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solver.DFLT_NUDGE"><code class="docutils literal notranslate"><span class="pre">DFLT_NUDGE</span></code></a></li>

@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=08de7b2e"></script>
+    <script src="../_static/documentation_options.js?v=672f6ffa"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.363" />
+  <meta name="docsearch:version" content="0.1.365" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -704,7 +704,7 @@ refuse by name. The union is never rebuilt at registration.</p></li>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.VEHICLE_FRAME" title="an.ir.schema.VEHICLE_FRAME"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VEHICLE_FRAME</span></code></a></p></td>
 <td><p>The frame a <code class="code docutils literal notranslate"><span class="pre">travel</span></code> with a <code class="code docutils literal notranslate"><span class="pre">speed</span></code> is sugar for (viewpoints and members ride it by default; streams stay in the world).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.FRAME_COUPLINGS" title="an.ir.schema.FRAME_COUPLINGS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FRAME_COUPLINGS</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.FAR_COUPLING" title="an.ir.schema.FAR_COUPLING"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FAR_COUPLING</span></code></a></p></td>
 <td><p><code class="code docutils literal notranslate"><span class="pre">rigid</span></code> takes the parent's whole pose, <code class="code docutils literal notranslate"><span class="pre">far</span></code> only its rotation (what is at infinity turns with the camera and never translates).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.FRAME_KEY" title="an.ir.schema.FRAME_KEY"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FRAME_KEY</span></code></a></p></td>
@@ -731,7 +731,7 @@ refuse by name. The union is never rebuilt at registration.</p></li>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.NO_GRAVITY" title="an.ir.schema.NO_GRAVITY"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NO_GRAVITY</span></code></a></p></td>
 <td><p>The spellings of no gravity.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.TRAVEL_PLATE_ROLES" title="an.ir.schema.TRAVEL_PLATE_ROLES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TRAVEL_PLATE_ROLES</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.FAR_PLATE_ROLE" title="an.ir.schema.FAR_PLATE_ROLE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FAR_PLATE_ROLE</span></code></a></p></td>
 <td><p>at infinity, or rigid with the vehicle the viewpoints are mounted on.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.DFLT_WORLD_GRAVITY" title="an.ir.schema.DFLT_WORLD_GRAVITY"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_WORLD_GRAVITY</span></code></a></p></td>
@@ -1666,14 +1666,26 @@ comes back unchanged (<code class="docutils literal notranslate"><span class="pr
 </dd></dl>
 
 <dl class="py data">
-<dt class="sig sig-object py" id="an.ir.schema.FRAME_COUPLINGS">
-<span class="sig-prename descclassname"><span class="pre">an.ir.schema.</span></span><span class="sig-name descname"><span class="pre">FRAME_COUPLINGS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('rigid',</span> <span class="pre">'far')</span></span><a class="headerlink" href="#an.ir.schema.FRAME_COUPLINGS" title="Link to this definition">#</a></dt>
+<dt class="sig sig-object py" id="an.ir.schema.FAR_COUPLING">
+<span class="sig-prename descclassname"><span class="pre">an.ir.schema.</span></span><span class="sig-name descname"><span class="pre">FAR_COUPLING</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'far'</span></span><a class="headerlink" href="#an.ir.schema.FAR_COUPLING" title="Link to this definition">#</a></dt>
 <dd><p><code class="code docutils literal notranslate"><span class="pre">rigid</span></code> takes the parent’s whole pose,
 <code class="code docutils literal notranslate"><span class="pre">far</span></code> only its rotation (what is at infinity turns with the camera and never
 translates).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>How a frame follows its parent</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.ir.schema.FAR_PLATE_ROLE">
+<span class="sig-prename descclassname"><span class="pre">an.ir.schema.</span></span><span class="sig-name descname"><span class="pre">FAR_PLATE_ROLE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'far'</span></span><a class="headerlink" href="#an.ir.schema.FAR_PLATE_ROLE" title="Link to this definition">#</a></dt>
+<dd><p>at infinity, or rigid with
+the vehicle the viewpoints are mounted on.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>What a plane under a travel may be declared as</p>
 </dd>
 </dl>
 </dd></dl>
@@ -2578,18 +2590,6 @@ the same places at the same film time.</p>
 
 </dd></dl>
 
-<dl class="py data">
-<dt class="sig sig-object py" id="an.ir.schema.TRAVEL_PLATE_ROLES">
-<span class="sig-prename descclassname"><span class="pre">an.ir.schema.</span></span><span class="sig-name descname"><span class="pre">TRAVEL_PLATE_ROLES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('far',</span> <span class="pre">'vehicle')</span></span><a class="headerlink" href="#an.ir.schema.TRAVEL_PLATE_ROLES" title="Link to this definition">#</a></dt>
-<dd><p>at infinity, or rigid with
-the vehicle the viewpoints are mounted on.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>What a plane under a travel may be declared as</p>
-</dd>
-</dl>
-</dd></dl>
-
 <dl class="py class">
 <dt class="sig sig-object py" id="an.ir.schema.Transition">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.schema.</span></span><span class="sig-name descname"><span class="pre">Transition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cut'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'#000000'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'left'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_jump</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">extra_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/schema.html#Transition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.schema.Transition" title="Link to this definition">#</a></dt>
@@ -3241,7 +3241,8 @@ without loading them (<a class="reference internal" href="an.genres.html#an.genr
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.ExtensionAction.resolved"><code class="docutils literal notranslate"><span class="pre">ExtensionAction.resolved()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.FRAME_COUPLINGS"><code class="docutils literal notranslate"><span class="pre">FRAME_COUPLINGS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.FAR_COUPLING"><code class="docutils literal notranslate"><span class="pre">FAR_COUPLING</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.FAR_PLATE_ROLE"><code class="docutils literal notranslate"><span class="pre">FAR_PLATE_ROLE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.FRAME_KEY"><code class="docutils literal notranslate"><span class="pre">FRAME_KEY</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Frame"><code class="docutils literal notranslate"><span class="pre">Frame</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Frame.model_config"><code class="docutils literal notranslate"><span class="pre">Frame.model_config</span></code></a></li>
@@ -3363,7 +3364,6 @@ without loading them (<a class="reference internal" href="an.genres.html#an.genr
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Stream.model_config"><code class="docutils literal notranslate"><span class="pre">Stream.model_config</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.TRAVEL_PLATE_ROLES"><code class="docutils literal notranslate"><span class="pre">TRAVEL_PLATE_ROLES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Transition"><code class="docutils literal notranslate"><span class="pre">Transition</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Transition.direction"><code class="docutils literal notranslate"><span class="pre">Transition.direction</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Transition.model_config"><code class="docutils literal notranslate"><span class="pre">Transition.model_config</span></code></a></li>

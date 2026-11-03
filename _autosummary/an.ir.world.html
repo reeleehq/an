@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=08de7b2e"></script>
+    <script src="../_static/documentation_options.js?v=672f6ffa"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.363" />
+  <meta name="docsearch:version" content="0.1.365" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -719,19 +719,22 @@ move, and a close-up is the same world seen from nearer.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.ir.world.member_placements" title="an.ir.world.member_placements"><code class="xref py py-obj docutils literal notranslate"><span class="pre">member_placements</span></code></a>(world, projection, *, ...)</p></td>
 <td><p>Every member's placement under <code class="docutils literal notranslate"><span class="pre">projection</span></code>: <code class="docutils literal notranslate"><span class="pre">{id:</span> <span class="pre">Placed}</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.pose_look" title="an.ir.world.pose_look"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pose_look</span></code></a>(pose)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.planes_at_infinity" title="an.ir.world.planes_at_infinity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">planes_at_infinity</span></code></a>(world, environments)</p></td>
+<td><p>Every plane of <code class="docutils literal notranslate"><span class="pre">world</span></code> at infinity (an#735), by <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code>'s own rule: listed <code class="docutils literal notranslate"><span class="pre">far</span></code> under <code class="docutils literal notranslate"><span class="pre">world.travel.plates</span></code> (in listing order), then each plane of an environment member in a frame coupled <code class="docutils literal notranslate"><span class="pre">far</span></code> (in member order).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.world.pose_look" title="an.ir.world.pose_look"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pose_look</span></code></a>(pose)</p></td>
 <td><p>The <code class="docutils literal notranslate"><span class="pre">(yaw,</span> <span class="pre">pitch)</span></code> in degrees a pose faces.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.world.resolve_viewpoint" title="an.ir.world.resolve_viewpoint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_viewpoint</span></code></a>(world, viewpoint, *, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.resolve_viewpoint" title="an.ir.world.resolve_viewpoint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_viewpoint</span></code></a>(world, viewpoint, *, ...)</p></td>
 <td><p>The camera a viewpoint is, as a <a class="reference internal" href="#an.ir.world.Projection" title="an.ir.world.Projection"><code class="xref py py-class docutils literal notranslate"><span class="pre">Projection</span></code></a>, in its own frame's units.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.stream_instances" title="an.ir.world.stream_instances"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stream_instances</span></code></a>(stream, travel, *, s_min, s_max)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.world.stream_instances" title="an.ir.world.stream_instances"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stream_instances</span></code></a>(stream, travel, *, s_min, s_max)</p></td>
 <td><p>The instances of <code class="docutils literal notranslate"><span class="pre">stream</span></code> whose position along the travel lies in <code class="docutils literal notranslate"><span class="pre">[s_min,</span> <span class="pre">s_max]</span></code>: <code class="docutils literal notranslate"><span class="pre">[(k,</span> <span class="pre">world</span> <span class="pre">position)]</span></code>, <code class="docutils literal notranslate"><span class="pre">k</span></code> the instance index.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.world.stream_slots" title="an.ir.world.stream_slots"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stream_slots</span></code></a>(stream, travel)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.stream_slots" title="an.ir.world.stream_slots"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stream_slots</span></code></a>(stream, travel)</p></td>
 <td><p>How many entities a stream needs by its depth range: one per instance that can be between <code class="docutils literal notranslate"><span class="pre">near</span></code> and <code class="docutils literal notranslate"><span class="pre">far</span></code> at once, plus one.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.viewpoint_of" title="an.ir.world.viewpoint_of"><code class="xref py py-obj docutils literal notranslate"><span class="pre">viewpoint_of</span></code></a>(world, viewpoint)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.world.viewpoint_of" title="an.ir.world.viewpoint_of"><code class="xref py py-obj docutils literal notranslate"><span class="pre">viewpoint_of</span></code></a>(world, viewpoint)</p></td>
 <td><p>The shot's viewpoint as a model: a name is looked up in the world.</p></td>
 </tr>
 </tbody>
@@ -746,10 +749,13 @@ move, and a close-up is the same world seen from nearer.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.ir.world.Placed" title="an.ir.world.Placed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Placed</span></code></a>(id, at, scale, depth, box, in_frame, via)</p></td>
 <td><p>Where one member lands in a framed shot.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.Projection" title="an.ir.world.Projection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Projection</span></code></a>(at, forward, right, down, focal)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.PlaneAtInfinity" title="an.ir.world.PlaneAtInfinity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PlaneAtInfinity</span></code></a>(member, plane, reason, ...)</p></td>
+<td><p>A plane at infinity, and why (an#735): what <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code> pins to parallax factor 0 and a genre's far-plate critic judges.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.world.Projection" title="an.ir.world.Projection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Projection</span></code></a>(at, forward, right, down, focal)</p></td>
 <td><p>A resolved viewpoint: where the camera is, which way it looks, its lens.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.world.WorldNote" title="an.ir.world.WorldNote"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WorldNote</span></code></a>(shot, index, severity, kind, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.WorldNote" title="an.ir.world.WorldNote"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WorldNote</span></code></a>(shot, index, severity, kind, ...)</p></td>
 <td><p>One thing the lowering did or could not do for one shot, for <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code> (its severity) and <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">world</span> <span class="pre">show</span></code>.</p></td>
 </tr>
 </tbody>
@@ -852,6 +858,38 @@ it (attached without an offset) or it cannot be placed (see <code class="docutil
 <span class="sig-name descname"><span class="pre">via</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><a class="headerlink" href="#an.ir.world.Placed.via" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">world</span></code> (projected), <code class="docutils literal notranslate"><span class="pre">attached</span></code> (from the host’s placement),
 <code class="docutils literal notranslate"><span class="pre">host</span></code> (goes with the host, placed by nothing here), <code class="docutils literal notranslate"><span class="pre">environment</span></code>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.ir.world.PlaneAtInfinity">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.world.</span></span><span class="sig-name descname"><span class="pre">PlaneAtInfinity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">member</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plane</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reason</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coupled_frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ir_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/world.html#PlaneAtInfinity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.world.PlaneAtInfinity" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A plane at infinity, and why (an#735): what <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code> pins to
+parallax factor 0 and a genre’s far-plate critic judges.</p>
+<p><code class="docutils literal notranslate"><span class="pre">member</span></code>/<code class="docutils literal notranslate"><span class="pre">plane</span></code> name it (<code class="docutils literal notranslate"><span class="pre">&quot;&lt;member&gt;/&lt;plane&gt;&quot;</span></code>, as the travel’s
+plates list it); <code class="docutils literal notranslate"><span class="pre">reason</span></code> is <code class="docutils literal notranslate"><span class="pre">&quot;listed&quot;</span></code> (<code class="docutils literal notranslate"><span class="pre">far</span></code> under
+<code class="docutils literal notranslate"><span class="pre">world.travel.plates</span></code>) or <code class="docutils literal notranslate"><span class="pre">&quot;frame&quot;</span></code> (it stands in <code class="docutils literal notranslate"><span class="pre">frame</span></code>, which is,
+or hangs from, <code class="docutils literal notranslate"><span class="pre">coupled_frame</span></code>, coupled <code class="docutils literal notranslate"><span class="pre">far</span></code>); <code class="docutils literal notranslate"><span class="pre">ir_path</span></code> is where a
+finding about it points: the listing (<code class="docutils literal notranslate"><span class="pre">world/travel/plates/far/&lt;k&gt;</span></code>) or
+the world member that puts it in the frame (<code class="docutils literal notranslate"><span class="pre">world/members/&lt;j&gt;</span></code>).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">PlaneAtInfinity</span><span class="p">(</span><span class="s2">"set"</span><span class="p">,</span> <span class="s2">"sky"</span><span class="p">,</span> <span class="s2">"frame"</span><span class="p">,</span> <span class="s2">"horizon"</span><span class="p">,</span> <span class="s2">"far"</span><span class="p">,</span> <span class="s2">"world/members/0"</span><span class="p">)</span><span class="o">.</span><span class="n">why</span>
+<span class="go">"in frame 'horizon', under 'far' coupled `far`"</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="an.ir.world.PlaneAtInfinity.path">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">path</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><a class="headerlink" href="#an.ir.world.PlaneAtInfinity.path" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">&quot;&lt;member&gt;/&lt;plane&gt;&quot;</span></code>, as <code class="docutils literal notranslate"><span class="pre">world.travel.plates</span></code> lists it.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="an.ir.world.PlaneAtInfinity.why">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">why</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><a class="headerlink" href="#an.ir.world.PlaneAtInfinity.why" title="Link to this definition">#</a></dt>
+<dd><p>The reason, in words.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1155,6 +1193,31 @@ motion), which attached members then follow.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.ir.world.planes_at_infinity">
+<span class="sig-prename descclassname"><span class="pre">an.ir.world.</span></span><span class="sig-name descname"><span class="pre">planes_at_infinity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">world</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">environments</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/world.html#planes_at_infinity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.world.planes_at_infinity" title="Link to this definition">#</a></dt>
+<dd><p>Every plane of <code class="docutils literal notranslate"><span class="pre">world</span></code> at infinity (an#735), by <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code>’s own
+rule: listed <code class="docutils literal notranslate"><span class="pre">far</span></code> under <code class="docutils literal notranslate"><span class="pre">world.travel.plates</span></code> (in listing order), then
+each plane of an environment member in a frame coupled <code class="docutils literal notranslate"><span class="pre">far</span></code> (in member
+order). A member’s planes are read from its descriptor in
+<code class="docutils literal notranslate"><span class="pre">environments</span></code> (the environments store); a listed plane is reported
+even when its descriptor cannot be read, and a listed path with no <code class="docutils literal notranslate"><span class="pre">/</span></code>
+is skipped (malformed: another check’s to report). For a genre’s critic
+(cutan’s far-plate critic, reeleehq/cutan#177), so the check and the
+critic share one definition of “far”.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">Travel</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">w</span> <span class="o">=</span> <span class="n">World</span><span class="p">(</span><span class="n">travel</span><span class="o">=</span><span class="n">Travel</span><span class="p">(</span><span class="n">plates</span><span class="o">=</span><span class="p">{</span><span class="s2">"far"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"set/sky"</span><span class="p">,</span> <span class="s2">"oops"</span><span class="p">]}))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[(</span><span class="n">p</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">reason</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">ir_path</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">planes_at_infinity</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="p">{})]</span>
+<span class="go">[('set/sky', 'listed', 'world/travel/plates/far/0')]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="#an.ir.world.PlaneAtInfinity" title="an.ir.world.PlaneAtInfinity"><code class="xref py py-class docutils literal notranslate"><span class="pre">PlaneAtInfinity</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.ir.world.pose_look">
 <span class="sig-prename descclassname"><span class="pre">an.ir.world.</span></span><span class="sig-name descname"><span class="pre">pose_look</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pose</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/world.html#pose_look"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.world.pose_look" title="Link to this definition">#</a></dt>
 <dd><p>The <code class="docutils literal notranslate"><span class="pre">(yaw,</span> <span class="pre">pitch)</span></code> in degrees a pose faces.</p>
@@ -1324,6 +1387,11 @@ nothing relies on it, since each shot compiles alone.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.Placed.via"><code class="docutils literal notranslate"><span class="pre">Placed.via</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.PlaneAtInfinity"><code class="docutils literal notranslate"><span class="pre">PlaneAtInfinity</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.PlaneAtInfinity.path"><code class="docutils literal notranslate"><span class="pre">PlaneAtInfinity.path</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.PlaneAtInfinity.why"><code class="docutils literal notranslate"><span class="pre">PlaneAtInfinity.why</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.Projection"><code class="docutils literal notranslate"><span class="pre">Projection</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.Projection.moved"><code class="docutils literal notranslate"><span class="pre">Projection.moved()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.Projection.project"><code class="docutils literal notranslate"><span class="pre">Projection.project()</span></code></a></li>
@@ -1345,6 +1413,7 @@ nothing relies on it, since each shot compiles alone.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.lower_world"><code class="docutils literal notranslate"><span class="pre">lower_world()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.member_of"><code class="docutils literal notranslate"><span class="pre">member_of()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.member_placements"><code class="docutils literal notranslate"><span class="pre">member_placements()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.planes_at_infinity"><code class="docutils literal notranslate"><span class="pre">planes_at_infinity()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.pose_look"><code class="docutils literal notranslate"><span class="pre">pose_look()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.resolve_viewpoint"><code class="docutils literal notranslate"><span class="pre">resolve_viewpoint()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.stream_instances"><code class="docutils literal notranslate"><span class="pre">stream_instances()</span></code></a></li>

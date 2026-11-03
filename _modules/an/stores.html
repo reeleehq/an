@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=08de7b2e"></script>
+    <script src="../../_static/documentation_options.js?v=672f6ffa"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.363" />
+  <meta name="docsearch:version" content="0.1.365" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -807,7 +807,14 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"DecisionLogStore"</span><span class="p">,</span>
     <span class="s2">"ProjectLock"</span><span class="p">,</span>
     <span class="s2">"build_project_mall"</span><span class="p">,</span>
+    <span class="s2">"UNSTORED_FOLDERS"</span><span class="p">,</span>
 <span class="p">]</span>
+
+
+<span class="c1">#: The folders of a project's tree that no store owns, which ``ensure=True``</span>
+<span class="c1">#: lays out beside the stores' own: ``ir/``, where the scene store writes the</span>
+<span class="c1">#: default scene's IR (the store's root is the project folder itself).</span>
+<span class="n">UNSTORED_FOLDERS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"ir"</span><span class="p">,)</span>
 
 
 <div class="viewcode-block" id="build_project_mall">
@@ -821,84 +828,68 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">MutableMapping</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Build the standard project mall over ``project_dir``.</span>
 
-<span class="sd">    Pass ``ensure=True`` to create the per-store directories on disk if they</span>
-<span class="sd">    don't exist. ``scene_file`` picks the scene the ``scenes`` store holds (an#539;</span>
-<span class="sd">    ``scene.md`` by default). Pass keyword overrides to swap in alternate stores (e.g. an</span>
-<span class="sd">    in-memory `dict` for tests).</span>
+<span class="sd">    Building it lays out nothing (an#696): every file store makes its folder</span>
+<span class="sd">    on its first write, a missing one reading as empty. ``ensure=True``</span>
+<span class="sd">    (``an init``) lays out the tree at once: each store's folder, through the</span>
+<span class="sd">    store, and the :data:`UNSTORED_FOLDERS`. ``scene_file`` picks the scene</span>
+<span class="sd">    the ``scenes`` store holds (an#539; ``scene.md`` by default). Pass keyword</span>
+<span class="sd">    overrides to swap in alternate stores (e.g. an in-memory `dict` for tests).</span>
 <span class="sd">    """</span>
     <span class="n">pdir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">ensure</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">sub</span> <span class="ow">in</span> <span class="p">(</span>
-            <span class="s2">"assets/characters"</span><span class="p">,</span>
-            <span class="s2">"assets/environments"</span><span class="p">,</span>
-            <span class="s2">"assets/props"</span><span class="p">,</span>
-            <span class="s2">"assets/voices"</span><span class="p">,</span>
-            <span class="s2">"assets/styles"</span><span class="p">,</span>
-            <span class="s2">"assets/sounds"</span><span class="p">,</span>
-            <span class="s2">"assets/recordings"</span><span class="p">,</span>
-            <span class="s2">"assets/sources"</span><span class="p">,</span>
-            <span class="s2">"ir"</span><span class="p">,</span>
-            <span class="s2">"artifacts/audio"</span><span class="p">,</span>
-            <span class="s2">"artifacts/visemes"</span><span class="p">,</span>
-            <span class="s2">"artifacts/takes"</span><span class="p">,</span>
-            <span class="s2">"artifacts/shots"</span><span class="p">,</span>
-            <span class="s2">"artifacts/previews"</span><span class="p">,</span>
-            <span class="s2">"artifacts/contact_sheets"</span><span class="p">,</span>
-            <span class="s2">"artifacts/measurements"</span><span class="p">,</span>
-            <span class="s2">"artifacts/pictures"</span><span class="p">,</span>
-            <span class="s2">"artifacts/render_reports"</span><span class="p">,</span>
-            <span class="s2">"output"</span><span class="p">,</span>
-            <span class="s2">".an"</span><span class="p">,</span>
-        <span class="p">):</span>
+        <span class="k">for</span> <span class="n">sub</span> <span class="ow">in</span> <span class="n">UNSTORED_FOLDERS</span><span class="p">:</span>
             <span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="n">sub</span><span class="p">)</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">at</span><span class="p">(</span><span class="n">store_cls</span><span class="p">,</span> <span class="o">*</span><span class="n">parts</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">store_cls</span><span class="p">(</span><span class="n">pdir</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="o">*</span><span class="n">parts</span><span class="p">),</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">)</span>
+
     <span class="n">mall</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">MutableMapping</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">"characters"</span><span class="p">:</span> <span class="n">CharactersStore</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"assets"</span> <span class="o">/</span> <span class="s2">"characters"</span><span class="p">),</span>
-        <span class="s2">"environments"</span><span class="p">:</span> <span class="n">EnvironmentsStore</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"assets"</span> <span class="o">/</span> <span class="s2">"environments"</span><span class="p">),</span>
-        <span class="s2">"props"</span><span class="p">:</span> <span class="n">PropsStore</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"assets"</span> <span class="o">/</span> <span class="s2">"props"</span><span class="p">),</span>
-        <span class="s2">"voices"</span><span class="p">:</span> <span class="n">VoicesStore</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"assets"</span> <span class="o">/</span> <span class="s2">"voices"</span><span class="p">),</span>
-        <span class="s2">"styles"</span><span class="p">:</span> <span class="n">StylesStore</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"assets"</span> <span class="o">/</span> <span class="s2">"styles"</span><span class="p">),</span>
-        <span class="s2">"sounds"</span><span class="p">:</span> <span class="n">SoundsStore</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"assets"</span> <span class="o">/</span> <span class="s2">"sounds"</span><span class="p">),</span>
+        <span class="s2">"characters"</span><span class="p">:</span> <span class="n">at</span><span class="p">(</span><span class="n">CharactersStore</span><span class="p">,</span> <span class="s2">"assets"</span><span class="p">,</span> <span class="s2">"characters"</span><span class="p">),</span>
+        <span class="s2">"environments"</span><span class="p">:</span> <span class="n">at</span><span class="p">(</span><span class="n">EnvironmentsStore</span><span class="p">,</span> <span class="s2">"assets"</span><span class="p">,</span> <span class="s2">"environments"</span><span class="p">),</span>
+        <span class="s2">"props"</span><span class="p">:</span> <span class="n">at</span><span class="p">(</span><span class="n">PropsStore</span><span class="p">,</span> <span class="s2">"assets"</span><span class="p">,</span> <span class="s2">"props"</span><span class="p">),</span>
+        <span class="s2">"voices"</span><span class="p">:</span> <span class="n">at</span><span class="p">(</span><span class="n">VoicesStore</span><span class="p">,</span> <span class="s2">"assets"</span><span class="p">,</span> <span class="s2">"voices"</span><span class="p">),</span>
+        <span class="s2">"styles"</span><span class="p">:</span> <span class="n">at</span><span class="p">(</span><span class="n">StylesStore</span><span class="p">,</span> <span class="s2">"assets"</span><span class="p">,</span> <span class="s2">"styles"</span><span class="p">),</span>
+        <span class="s2">"sounds"</span><span class="p">:</span> <span class="n">at</span><span class="p">(</span><span class="n">SoundsStore</span><span class="p">,</span> <span class="s2">"assets"</span><span class="p">,</span> <span class="s2">"sounds"</span><span class="p">),</span>
         <span class="c1"># A performer's takes of the scene's lines, with their provenance</span>
         <span class="c1"># (`an voices import`, an.audio.recorded): what the `recorded` TTS</span>
         <span class="c1"># provider hands the pipeline instead of synthesizing.</span>
-        <span class="s2">"recordings"</span><span class="p">:</span> <span class="n">RecordingsStore</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"assets"</span> <span class="o">/</span> <span class="s2">"recordings"</span><span class="p">),</span>
+        <span class="s2">"recordings"</span><span class="p">:</span> <span class="n">at</span><span class="p">(</span><span class="n">RecordingsStore</span><span class="p">,</span> <span class="s2">"assets"</span><span class="p">,</span> <span class="s2">"recordings"</span><span class="p">),</span>
         <span class="c1"># Opaque scene sources a whole-shot renderer runs as they are: a Manim</span>
         <span class="c1"># shot's `options.source` is a key here (`assets/sources/&lt;key&gt;.py`).</span>
-        <span class="s2">"sources"</span><span class="p">:</span> <span class="n">SourcesStore</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"assets"</span> <span class="o">/</span> <span class="s2">"sources"</span><span class="p">),</span>
+        <span class="s2">"sources"</span><span class="p">:</span> <span class="n">at</span><span class="p">(</span><span class="n">SourcesStore</span><span class="p">,</span> <span class="s2">"assets"</span><span class="p">,</span> <span class="s2">"sources"</span><span class="p">),</span>
         <span class="s2">"scenes"</span><span class="p">:</span> <span class="n">ScenesStore</span><span class="p">(</span><span class="n">pdir</span><span class="p">,</span> <span class="n">scene_file</span><span class="p">),</span>
-        <span class="s2">"audio"</span><span class="p">:</span> <span class="n">AudioArtifactStore</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"artifacts"</span> <span class="o">/</span> <span class="s2">"audio"</span><span class="p">),</span>
-        <span class="s2">"visemes"</span><span class="p">:</span> <span class="n">VisemeArtifactStore</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"artifacts"</span> <span class="o">/</span> <span class="s2">"visemes"</span><span class="p">),</span>
+        <span class="s2">"audio"</span><span class="p">:</span> <span class="n">at</span><span class="p">(</span><span class="n">AudioArtifactStore</span><span class="p">,</span> <span class="s2">"artifacts"</span><span class="p">,</span> <span class="s2">"audio"</span><span class="p">),</span>
+        <span class="s2">"visemes"</span><span class="p">:</span> <span class="n">at</span><span class="p">(</span><span class="n">VisemeArtifactStore</span><span class="p">,</span> <span class="s2">"artifacts"</span><span class="p">,</span> <span class="s2">"visemes"</span><span class="p">),</span>
         <span class="c1"># Which take of a best-of-N line was kept, and why (an.audio.takes):</span>
         <span class="c1"># the record a re-render trusts instead of re-rolling.</span>
-        <span class="s2">"takes"</span><span class="p">:</span> <span class="n">TakesArtifactStore</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"artifacts"</span> <span class="o">/</span> <span class="s2">"takes"</span><span class="p">),</span>
+        <span class="s2">"takes"</span><span class="p">:</span> <span class="n">at</span><span class="p">(</span><span class="n">TakesArtifactStore</span><span class="p">,</span> <span class="s2">"artifacts"</span><span class="p">,</span> <span class="s2">"takes"</span><span class="p">),</span>
         <span class="c1"># The per-shot mp4 ARCHIVE, keyed by the author's shot id: written on</span>
         <span class="c1"># every render, read by nothing (pillar 11). The cache is below.</span>
-        <span class="s2">"shots"</span><span class="p">:</span> <span class="n">ShotArtifactStore</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"artifacts"</span> <span class="o">/</span> <span class="s2">"shots"</span><span class="p">),</span>
+        <span class="s2">"shots"</span><span class="p">:</span> <span class="n">at</span><span class="p">(</span><span class="n">ShotArtifactStore</span><span class="p">,</span> <span class="s2">"artifacts"</span><span class="p">,</span> <span class="s2">"shots"</span><span class="p">),</span>
         <span class="c1"># The content-keyed shot cache (ADR 0004): a `lacing.ArtifactStore`,</span>
         <span class="c1"># `catalog/&lt;key&gt;.json` + `blobs/&lt;sha256&gt;`. `render_project` reads it.</span>
         <span class="s2">"shot_cache"</span><span class="p">:</span> <span class="n">shot_cache_store</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"artifacts"</span> <span class="o">/</span> <span class="s2">"shot_cache"</span><span class="p">),</span>
         <span class="c1"># Transcripts an earlier step produced, named where a transcript file</span>
         <span class="c1"># is (`artifact:transcripts/&lt;key&gt;`, an#493): a `lacing.ArtifactStore`.</span>
         <span class="s2">"transcripts"</span><span class="p">:</span> <span class="n">transcripts_store</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"artifacts"</span> <span class="o">/</span> <span class="s2">"transcripts"</span><span class="p">),</span>
-        <span class="s2">"previews"</span><span class="p">:</span> <span class="n">PreviewArtifactStore</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"artifacts"</span> <span class="o">/</span> <span class="s2">"previews"</span><span class="p">),</span>
+        <span class="s2">"previews"</span><span class="p">:</span> <span class="n">at</span><span class="p">(</span><span class="n">PreviewArtifactStore</span><span class="p">,</span> <span class="s2">"artifacts"</span><span class="p">,</span> <span class="s2">"previews"</span><span class="p">),</span>
         <span class="c1"># Contact sheets of opaque renders (a Manim shot's settled beats), keyed</span>
         <span class="c1"># by the PNG's sha256 so cached provenance keeps pointing at them.</span>
-        <span class="s2">"contact_sheets"</span><span class="p">:</span> <span class="n">ContactSheetStore</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"artifacts"</span> <span class="o">/</span> <span class="s2">"contact_sheets"</span><span class="p">),</span>
+        <span class="s2">"contact_sheets"</span><span class="p">:</span> <span class="n">at</span><span class="p">(</span><span class="n">ContactSheetStore</span><span class="p">,</span> <span class="s2">"artifacts"</span><span class="p">,</span> <span class="s2">"contact_sheets"</span><span class="p">),</span>
         <span class="c1"># Derived, content-keyed: what a clock-owning renderer measured of its</span>
         <span class="c1"># content (a Manim shot's length) and its raw picture. Never authored</span>
         <span class="c1"># data — the scene keeps what its author wrote (an#279).</span>
-        <span class="s2">"measurements"</span><span class="p">:</span> <span class="n">MeasurementStore</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"artifacts"</span> <span class="o">/</span> <span class="s2">"measurements"</span><span class="p">),</span>
-        <span class="s2">"pictures"</span><span class="p">:</span> <span class="n">PictureStore</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"artifacts"</span> <span class="o">/</span> <span class="s2">"pictures"</span><span class="p">),</span>
+        <span class="s2">"measurements"</span><span class="p">:</span> <span class="n">at</span><span class="p">(</span><span class="n">MeasurementStore</span><span class="p">,</span> <span class="s2">"artifacts"</span><span class="p">,</span> <span class="s2">"measurements"</span><span class="p">),</span>
+        <span class="s2">"pictures"</span><span class="p">:</span> <span class="n">at</span><span class="p">(</span><span class="n">PictureStore</span><span class="p">,</span> <span class="s2">"artifacts"</span><span class="p">,</span> <span class="s2">"pictures"</span><span class="p">),</span>
         <span class="c1"># What each render found, keyed like its output (`render_reports/main.json`).</span>
-        <span class="s2">"render_reports"</span><span class="p">:</span> <span class="n">RenderReportStore</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"artifacts"</span> <span class="o">/</span> <span class="s2">"render_reports"</span><span class="p">),</span>
-        <span class="s2">"output"</span><span class="p">:</span> <span class="n">OutputStore</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"output"</span><span class="p">),</span>
+        <span class="s2">"render_reports"</span><span class="p">:</span> <span class="n">at</span><span class="p">(</span><span class="n">RenderReportStore</span><span class="p">,</span> <span class="s2">"artifacts"</span><span class="p">,</span> <span class="s2">"render_reports"</span><span class="p">),</span>
+        <span class="s2">"output"</span><span class="p">:</span> <span class="n">at</span><span class="p">(</span><span class="n">OutputStore</span><span class="p">,</span> <span class="s2">"output"</span><span class="p">),</span>
         <span class="c1"># The SubRip sidecar of each delivered film (an#175), in the SAME</span>
         <span class="c1"># directory as the mp4 so `output/main.srt` sits beside</span>
         <span class="c1"># `output/main.mp4` — where a player looks for it. The two stores</span>
         <span class="c1"># share a folder but not a key space: each lists only its extension.</span>
-        <span class="s2">"captions"</span><span class="p">:</span> <span class="n">CaptionsStore</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"output"</span><span class="p">),</span>
-        <span class="s2">"decisions"</span><span class="p">:</span> <span class="n">DecisionLogStore</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">".an"</span> <span class="o">/</span> <span class="s2">"decisions.jsonl"</span><span class="p">),</span>
+        <span class="s2">"captions"</span><span class="p">:</span> <span class="n">at</span><span class="p">(</span><span class="n">CaptionsStore</span><span class="p">,</span> <span class="s2">"output"</span><span class="p">),</span>
+        <span class="s2">"decisions"</span><span class="p">:</span> <span class="n">at</span><span class="p">(</span><span class="n">DecisionLogStore</span><span class="p">,</span> <span class="s2">".an"</span><span class="p">,</span> <span class="s2">"decisions.jsonl"</span><span class="p">),</span>
         <span class="c1"># The asset library's lockfile (`assets.lock.json` at the project root,</span>
         <span class="c1"># ADR 0005, an#240): `&lt;store&gt;/&lt;key&gt;` -&gt; the library version checked out</span>
         <span class="c1"># there. The single source of truth for a pin; `an validate` checks the</span>

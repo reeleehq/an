@@ -106,7 +106,7 @@ genre defined in the same process).
 | [`RegistryError`](#an.genres.RegistryError)                                | A registration is malformed or collides with one already made.         |
 | [`UnregisteredKindError`](#an.genres.UnregisteredKindError)(what, name, \*[, ...]) | A document names a kind no loaded genre registered.                    |
 
-### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 16*
+### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 17*
 
 every hook, registry
 field a genre package may rely on. Bumped by each change a
@@ -183,6 +183,15 @@ EntityKind.shot_sizes(entity, mall,
   `through` and `tweens_of`; `an.ir.validate.built_node_paths`, `rig_document`
   and `text_block_ids`; `an.stage.rig.asset_file` (module-level names: those two
   modules have no `__all__`).
+
+17 = one rule of “at infinity” (an#735): 
+
+```
+``
+```
+
+an.ir.world.planes_at_infinity(world,
+: environments)\`\` and its record `PlaneAtInfinity`, for a genre’s far-plate critic.
 
 * **Type:**
   The level of the genre-facing API this `an` provides

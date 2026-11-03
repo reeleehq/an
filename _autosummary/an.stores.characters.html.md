@@ -9,10 +9,10 @@ sidecars under the same directory at e.g. `parts/head.svg`,
 
 ### Classes
 
-| [`CharactersStore`](#an.stores.characters.CharactersStore)(root_dir)   | Per-character directory store.   |
-|------------------------------------------------------------------------------|----------------------------------|
+| [`CharactersStore`](#an.stores.characters.CharactersStore)(root_dir, \*[, ensure])   | Per-character directory store.   |
+|--------------------------------------------------------------------------------------------|----------------------------------|
 
-### *class* an.stores.characters.CharactersStore(root_dir)
+### *class* an.stores.characters.CharactersStore(root_dir, , ensure=False)
 
 Bases: `JsonSidecarStore`
 

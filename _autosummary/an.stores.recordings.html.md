@@ -24,10 +24,10 @@ names the shape).
 
 ### Classes
 
-| [`RecordingsStore`](#an.stores.recordings.RecordingsStore)(root_dir)   | Per-take directory store: `<key>/recording.json` + `<key>/audio.wav`.   |
-|------------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| [`RecordingsStore`](#an.stores.recordings.RecordingsStore)(root_dir, \*[, ensure])   | Per-take directory store: `<key>/recording.json` + `<key>/audio.wav`.   |
+|--------------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
 
-### *class* an.stores.recordings.RecordingsStore(root_dir)
+### *class* an.stores.recordings.RecordingsStore(root_dir, , ensure=False)
 
 Bases: `AudioSidecarStore`
 

@@ -16,10 +16,10 @@ placeholder fallback draws a *person* where a lamp should be.
 
 ### Classes
 
-| [`PropsStore`](#an.stores.props.PropsStore)(root_dir)   | Per-prop directory store.   |
-|-------------------------------------------------------------------------|-----------------------------|
+| [`PropsStore`](#an.stores.props.PropsStore)(root_dir, \*[, ensure])   | Per-prop directory store.   |
+|---------------------------------------------------------------------------------------|-----------------------------|
 
-### *class* an.stores.props.PropsStore(root_dir)
+### *class* an.stores.props.PropsStore(root_dir, , ensure=False)
 
 Bases: `JsonSidecarStore`
 

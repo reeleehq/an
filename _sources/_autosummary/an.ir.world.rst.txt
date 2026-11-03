@@ -25,6 +25,7 @@ an.ir.world
       lower_world
       member_of
       member_placements
+      planes_at_infinity
       pose_look
       resolve_viewpoint
       stream_instances
@@ -37,6 +38,7 @@ an.ir.world
    
       Lowered
       Placed
+      PlaneAtInfinity
       Projection
       WorldNote
    

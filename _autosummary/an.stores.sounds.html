@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=08de7b2e"></script>
+    <script src="../_static/documentation_options.js?v=672f6ffa"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.363" />
+  <meta name="docsearch:version" content="0.1.365" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -649,7 +649,7 @@ caller builds a path by hand (pillar 7). <code class="code docutils literal notr
 <p class="rubric">Classes</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.sounds.SoundsStore" title="an.stores.sounds.SoundsStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SoundsStore</span></code></a>(root_dir)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.sounds.SoundsStore" title="an.stores.sounds.SoundsStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SoundsStore</span></code></a>(root_dir, *[, ensure])</p></td>
 <td><p>Per-sound directory store.</p></td>
 </tr>
 </tbody>
@@ -657,7 +657,7 @@ caller builds a path by hand (pillar 7). <code class="code docutils literal notr
 </div>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.stores.sounds.SoundsStore">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stores.sounds.</span></span><span class="sig-name descname"><span class="pre">SoundsStore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores/sounds.html#SoundsStore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.sounds.SoundsStore" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stores.sounds.</span></span><span class="sig-name descname"><span class="pre">SoundsStore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores/sounds.html#SoundsStore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.sounds.SoundsStore" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">AudioSidecarStore</span></code></p>
 <p>Per-sound directory store.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>

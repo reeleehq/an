@@ -4,6 +4,12 @@ an.stores
 .. automodule:: an.stores
 
    
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      UNSTORED_FOLDERS
+   
    .. rubric:: Functions
 
    .. autosummary::

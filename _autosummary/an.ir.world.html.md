@@ -58,6 +58,7 @@ move, and a close-up is the same world seen from nearer.
 | [`lower_world`](#an.ir.world.lower_world)(scene, \*, extents[, ...])             | The scene with every framed shot's placements derived from the world.                                                                                                                                                                                                                                                                                                           |
 | [`member_of`](#an.ir.world.member_of)(entity, \*\*placement)                   | The world member a shot entity becomes (the inverse of `entity_of()`): its fields as they are, its `stage` dropped (a member is placed by each shot's viewpoint) and its `after` kept, with `placement` (`at`, `height`, ...) where the world stands it.                                                                                                                        |
 | [`member_placements`](#an.ir.world.member_placements)(world, projection, \*, ...)      | Every member's placement under `projection`: `{id: Placed}`.                                                                                                                                                                                                                                                                                                                    |
+| [`planes_at_infinity`](#an.ir.world.planes_at_infinity)(world, environments)            | Every plane of `world` at infinity (an#735), by `an validate`'s own rule: listed `far` under `world.travel.plates` (in listing order), then each plane of an environment member in a frame coupled `far` (in member order).                                                                                                                                                     |
 | [`pose_look`](#an.ir.world.pose_look)(pose)                                    | The `(yaw, pitch)` in degrees a pose faces.                                                                                                                                                                                                                                                                                                                                     |
 | [`resolve_viewpoint`](#an.ir.world.resolve_viewpoint)(world, viewpoint, \*, ...)       | The camera a viewpoint is, as a [`Projection`](#an.ir.world.Projection), in its own frame's units.                                                                                                                                                                                                                                                          |
 | [`stream_instances`](#an.ir.world.stream_instances)(stream, travel, \*, s_min, s_max) | The instances of `stream` whose position along the travel lies in `[s_min, s_max]`: `[(k, world position)]`, `k` the instance index.                                                                                                                                                                                                                                            |
@@ -69,6 +70,7 @@ move, and a close-up is the same world seen from nearer.
 | [`Lowered`](#an.ir.world.Lowered)(scene[, notes, origins, carried])        | The scene as the compiler will see it, the notes to report, and for each framed shot where its lowered entities came from (`origins`: per lowered entity index, the author's entity index, or `None` for one the world added), so a finding on a lowered shot can name the author's line.   |
 |---------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`Placed`](#an.ir.world.Placed)(id, at, scale, depth, box, in_frame, via) | Where one member lands in a framed shot.                                                                                                                                                                                                                                                    |
+| [`PlaneAtInfinity`](#an.ir.world.PlaneAtInfinity)(member, plane, reason, ...)      | A plane at infinity, and why (an#735): what `an validate` pins to parallax factor 0 and a genre's far-plate critic judges.                                                                                                                                                                  |
 | [`Projection`](#an.ir.world.Projection)(at, forward, right, down, focal)      | A resolved viewpoint: where the camera is, which way it looks, its lens.                                                                                                                                                                                                                    |
 | [`WorldNote`](#an.ir.world.WorldNote)(shot, index, severity, kind, ...)      | One thing the lowering did or could not do for one shot, for `an validate` (its severity) and `an world show`.                                                                                                                                                                              |
 
@@ -144,6 +146,33 @@ Why it is not placed by the world, when it is not.
 
 `world` (projected), `attached` (from the host’s placement),
 `host` (goes with the host, placed by nothing here), `environment`.
+
+### *class* an.ir.world.PlaneAtInfinity(member, plane, reason, frame, coupled_frame, ir_path)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A plane at infinity, and why (an#735): what `an validate` pins to
+parallax factor 0 and a genre’s far-plate critic judges.
+
+`member`/`plane` name it (`"<member>/<plane>"`, as the travel’s
+plates list it); `reason` is `"listed"` (`far` under
+`world.travel.plates`) or `"frame"` (it stands in `frame`, which is,
+or hangs from, `coupled_frame`, coupled `far`); `ir_path` is where a
+finding about it points: the listing (`world/travel/plates/far/<k>`) or
+the world member that puts it in the frame (`world/members/<j>`).
+
+```pycon
+>>> PlaneAtInfinity("set", "sky", "frame", "horizon", "far", "world/members/0").why
+"in frame 'horizon', under 'far' coupled `far`"
+```
+
+#### *property* path *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+`"<member>/<plane>"`, as `world.travel.plates` lists it.
+
+#### *property* why *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+The reason, in words.
 
 ### *class* an.ir.world.Projection(at, forward, right, down, focal)
 
@@ -395,6 +424,28 @@ motion), which attached members then follow.
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Placed`](#an.ir.world.Placed)]
+
+### an.ir.world.planes_at_infinity(world, environments)
+
+Every plane of `world` at infinity (an#735), by `an validate`’s own
+rule: listed `far` under `world.travel.plates` (in listing order), then
+each plane of an environment member in a frame coupled `far` (in member
+order). A member’s planes are read from its descriptor in
+`environments` (the environments store); a listed plane is reported
+even when its descriptor cannot be read, and a listed path with no `/`
+is skipped (malformed: another check’s to report). For a genre’s critic
+(cutan’s far-plate critic, reeleehq/cutan#177), so the check and the
+critic share one definition of “far”.
+
+```pycon
+>>> from an.ir.schema import Travel
+>>> w = World(travel=Travel(plates={"far": ["set/sky", "oops"]}))
+>>> [(p.path, p.reason, p.ir_path) for p in planes_at_infinity(w, {})]
+[('set/sky', 'listed', 'world/travel/plates/far/0')]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`PlaneAtInfinity`](#an.ir.world.PlaneAtInfinity)]
 
 ### an.ir.world.pose_look(pose)
 

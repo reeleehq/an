@@ -11,10 +11,10 @@ caller builds a path by hand (pillar 7). `an.sounds` is the typed front door.
 
 ### Classes
 
-| [`SoundsStore`](#an.stores.sounds.SoundsStore)(root_dir)   | Per-sound directory store.   |
-|--------------------------------------------------------------------------|------------------------------|
+| [`SoundsStore`](#an.stores.sounds.SoundsStore)(root_dir, \*[, ensure])   | Per-sound directory store.   |
+|----------------------------------------------------------------------------------------|------------------------------|
 
-### *class* an.stores.sounds.SoundsStore(root_dir)
+### *class* an.stores.sounds.SoundsStore(root_dir, , ensure=False)
 
 Bases: `AudioSidecarStore`
 
