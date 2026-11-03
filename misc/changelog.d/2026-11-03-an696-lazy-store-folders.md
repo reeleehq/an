@@ -1,0 +1,1 @@
+- File stores make their folder on the first write (a missing folder reads as an empty store; `create=True` at once), so `build_project_mall(ensure=False)` lays out none of an's folders; `ensure=True` (`an init`) still lays out the tree; lacing's two stores follow once reeleehq/lacing#155 lands (part of an#696).

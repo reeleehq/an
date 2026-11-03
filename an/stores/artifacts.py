@@ -27,9 +27,10 @@ class _BlobStore(MutableMapping):
 
     EXT: str = "bin"
 
-    def __init__(self, root_dir: str | Path) -> None:
+    def __init__(self, root_dir: str | Path, *, create: bool = False) -> None:
         self._root = Path(root_dir)
-        self._root.mkdir(parents=True, exist_ok=True)
+        if create:  # else the first write makes it; missing reads as empty (an#696)
+            self._root.mkdir(parents=True, exist_ok=True)
 
     def _path(self, key: str) -> Path:
         if "/" in key or key.startswith(".") or not key:

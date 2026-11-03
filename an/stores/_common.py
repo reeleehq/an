@@ -274,13 +274,13 @@ class JsonDirStore(MutableMapping):
     :mod:`an.stores` for hosts (an#664): a write is atomic and :meth:`locked`
     is the contract for a read, change and write shared with other processes.
 
-    ``create=False`` leaves the folder to the first write or lock, so a host
-    can scan many folders through the store without leaving an empty one in
-    each; a missing folder reads as an empty store.
+    Its folder is made by the first write or lock (an#696), so a host can scan
+    many folders through the store without leaving an empty one in each; a
+    missing folder reads as an empty store. ``create=True`` makes it at once.
 
     >>> import tempfile
     >>> d = Path(tempfile.mkdtemp()) / "voice_options"
-    >>> store = JsonDirStore(d, create=False)
+    >>> store = JsonDirStore(d)
     >>> list(store), "jerry" in store, d.exists()
     ([], False, False)
     >>> store["jerry"] = {"options": []}
@@ -288,7 +288,7 @@ class JsonDirStore(MutableMapping):
     (['jerry'], True)
     """
 
-    def __init__(self, root_dir: str | Path, *, create: bool = True) -> None:
+    def __init__(self, root_dir: str | Path, *, create: bool = False) -> None:
         self._root = Path(root_dir)
         if create:
             self._root.mkdir(parents=True, exist_ok=True)
@@ -357,14 +357,23 @@ class JsonSidecarStore(MutableMapping):
     Reading returns the parsed ``meta.json``. Writing replaces ``meta.json``;
     sidecars are written separately by the caller, atomically through
     :meth:`write_sidecar` (``sidecar_path(key, name)`` is where one lives).
-    Deleting removes the whole directory.
+    Deleting removes the whole directory. The store's folder is made by the
+    first write (an#696): a missing folder reads as an empty store, and
+    ``create=True`` makes it at once.
+
+    >>> import tempfile
+    >>> d = Path(tempfile.mkdtemp()) / "props"
+    >>> store = JsonSidecarStore(d)
+    >>> list(store), "lamp" in store, d.exists()
+    ([], False, False)
     """
 
     META_NAME = "meta.json"
 
-    def __init__(self, root_dir: str | Path) -> None:
+    def __init__(self, root_dir: str | Path, *, create: bool = False) -> None:
         self._root = Path(root_dir)
-        self._root.mkdir(parents=True, exist_ok=True)
+        if create:
+            self._root.mkdir(parents=True, exist_ok=True)
 
     def _entry_dir(self, key: str) -> Path:
         if "/" in key or key.startswith(".") or not key:
@@ -417,6 +426,8 @@ class JsonSidecarStore(MutableMapping):
         d.rmdir()
 
     def __iter__(self) -> Iterator[str]:
+        if not self._root.is_dir():
+            return  # not written yet: an empty store (an#696)
         for child in sorted(self._root.iterdir()):
             if child.is_dir() and (child / self.META_NAME).exists():
                 yield child.name
