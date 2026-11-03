@@ -1627,3 +1627,21 @@ def test_json_that_is_not_mfa_s_keeps_its_segments_and_oov_is_not_a_phone():
     unknown = {"alignedWord": "<unk>", "start": 0.5, "end": 0.8,
                "phones": [{"phone": "oov_S", "duration": 0.3}]}  # fmt: skip
     assert _gentle_phones(unknown) == []
+
+
+def test_a_heard_one_word_line_keeps_the_per_line_alignment():
+    """an#716 re-review: a short line the transcriber heard ("No.", 0.08 s)
+    is judged by its padded interval, so it does not switch the whole take to
+    the one-utterance form; an unheard line squeezed between two heard ones
+    still does."""
+    from an.audio.recorded import DFLT_ROUGH_MIN_LINE_S, _rough_line_intervals, _RoughTimingUnfit
+    from an.audio.transcripts import parse_transcript_text
+
+    lines = parse_transcript_text("a: Hello there.\nb: No.\na: Fine thanks.", fmt="plain")
+    heard = [("hello", 0.5, 0.9), ("there", 0.9, 1.3), ("no", 2.5, 2.58),
+             ("fine", 4.0, 4.3), ("thanks", 4.3, 4.7)]  # fmt: skip
+    spans = _rough_line_intervals(lines, heard, total=6.0, pad_s=0.25)
+    assert spans[1].end - spans[1].start >= DFLT_ROUGH_MIN_LINE_S
+    unheard = [("hello", 0.5, 0.9), ("there", 0.9, 1.3), ("fine", 1.3, 1.6), ("thanks", 1.6, 1.9)]
+    with pytest.raises(_RoughTimingUnfit, match="not heard"):
+        _rough_line_intervals(lines, unheard, total=6.0, pad_s=0.25, min_coverage=0.0)

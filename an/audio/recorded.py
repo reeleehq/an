@@ -1357,9 +1357,10 @@ def _rough_line_intervals(
     its neighbour, nor out of ``0..total``): the intervals a line aligner aligns
     each line within (an#716). Each keeps its rough ``words``. Raises
     :class:`_RoughTimingUnfit` when the words cannot be trusted to place every
-    line: fewer than ``min_coverage`` of the lines' words heard, or a line
-    (with no words, or) shorter than ``min_line_s``, which is what a line the
-    transcriber did not hear between two it did becomes.
+    line: fewer than ``min_coverage`` of the lines' words heard, a line with
+    no words, or a line whose PADDED interval is shorter than ``min_line_s``,
+    which is what a line the transcriber did not hear between two it did
+    becomes (a heard one-word line keeps its pad, so it passes).
 
     >>> lines = parse_transcript_text("carl: Hello there.\\nned: Hi.", fmt="plain")
     >>> words = [("hello", 0.5, 0.9), ("there", 0.9, 1.3), ("hi", 2.0, 2.3)]
@@ -1379,12 +1380,17 @@ def _rough_line_intervals(
     for line, toks in zip(lines, per_line):
         said = tuple(heard.words[cursor : cursor + len(toks)])
         cursor += len(toks)
-        if not said or said[-1][2] - said[0][1] < min_line_s:
-            raise _RoughTimingUnfit(
-                f"the line {line.text!r} has no words, or was not heard (under {min_line_s:g} s)"
-            )
+        if not said:
+            raise _RoughTimingUnfit(f"the line {line.text!r} has no words")
         timed.append(replace(line, start=said[0][1], end=said[-1][2], words=said))
     spans = cut_spans(timed, total=total, pad_s=pad_s)
+    # Judged padded: a heard one-word line ("No.", 0.08 s) keeps its pad either
+    # side; an unheard one squeezed between two heard lines has next to none.
+    for seg, (a, b) in zip(timed, spans):
+        if b - a < min_line_s:
+            raise _RoughTimingUnfit(
+                f"the line {seg.text!r} was not heard (its interval is under {min_line_s:g} s)"
+            )
     return [replace(seg, start=a, end=b) for seg, (a, b) in zip(timed, spans)]
 
 
