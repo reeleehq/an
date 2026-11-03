@@ -1,0 +1,1 @@
+- Recorded voices: overlapping speech (two lines at once, beyond 0.05 s) is refused at import naming both lines, never cut through a word, and a speaker with a lines tier of its own is read by its lines beside the others' turns (an#739).

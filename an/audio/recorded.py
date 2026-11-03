@@ -1459,6 +1459,40 @@ def _lines_by_interval(
     ]
 
 
+#: How far one line may run into the next before the two are refused as
+#: overlapping speech (seconds): an aligner's or a transcriber's word edges
+#: meet within a few hundredths, two people talking at once do not (an#739).
+DFLT_OVERLAP_TOLERANCE_S: float = 0.05
+
+
+def _refuse_overlaps(
+    segments: Sequence[TranscriptSegment],
+    *,
+    name: str,
+    tolerance_s: float = DFLT_OVERLAP_TOLERANCE_S,
+) -> None:
+    """Refuse, naming both lines, two consecutive timed segments that overlap
+    by more than ``tolerance_s`` (an#739): speech at once cannot be cut into
+    one take each, and cutting between them would cut a word in two.
+
+    >>> a, b = TranscriptSegment("Hello.", 0.0, 1.0), TranscriptSegment("Yo.", 0.5, 0.8)
+    >>> _refuse_overlaps([a, TranscriptSegment("Yo.", 0.98, 1.4)], name="t.wav")
+    >>> _refuse_overlaps([a, b], name="t.wav")
+    Traceback (most recent call last):
+      ...
+    an.audio.recorded.RecordedVoicesError: t.wav: 'Hello.' (0.00–1.00 s) and 'Yo.' (0.50–0.80 s) overlap: two voices at once cannot be cut into a take each; give them separate files, or fix the transcript's times. Nothing was written.
+    """
+    timed = [s for s in segments if s.timed]
+    for prev, seg in zip(timed, timed[1:]):
+        if seg.start < prev.end - tolerance_s:
+            raise RecordedVoicesError(
+                f"{name}: {prev.text!r} ({prev.start:.2f}–{prev.end:.2f} s) and "
+                f"{seg.text!r} ({seg.start:.2f}–{seg.end:.2f} s) overlap: two voices "
+                "at once cannot be cut into a take each; give them separate files, "
+                "or fix the transcript's times. Nothing was written."
+            )
+
+
 def _speaker_of(
     take: _Take,
     *,
@@ -1868,6 +1902,7 @@ def import_recordings(
             wav=wav,
             rough_timing=rough_timing,
         )
+        _refuse_overlaps(segments, name=path.name)
         spans = cut_spans(segments, total=total)
         previous_end: float | None = None
         for segment, (a, b) in zip(segments, spans):

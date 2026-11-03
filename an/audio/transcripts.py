@@ -843,7 +843,9 @@ def segments_from_tiers(tiers: Tiers) -> list[TranscriptSegment]:
     time-ordered stream, a new segment at each change of speaker, its phones
     that speaker's within the turn (:func:`_turn_segments`). There, a tier
     with no speaker prefix is ignored (it is nobody's), and so is a speaker
-    with no words tier: phones are never read as words (an#491).
+    with no words tier: phones are never read as words (an#491). A speaker
+    with a lines tier of its own (``"<speaker> - utterances"``) is read by its
+    lines, one segment per interval, beside the others' turns (an#739).
 
     >>> segments_from_tiers({"words": [(0.5, 0.9, "hello")], "phones": [(0.5, 0.6, "HH"), (0.6, 0.9, "AH0")]})[0].phones
     (('HH', 0.5, 0.6), ('AH0', 0.6, 0.9))
@@ -851,20 +853,30 @@ def segments_from_tiers(tiers: Tiers) -> list[TranscriptSegment]:
     ...     "carl - words": [(0.0, 0.4, "hi"), (2.0, 2.4, "bye")],
     ...     "ned - words": [(0.5, 0.9, "yo")]})]
     [('carl', 'hi'), ('ned', 'yo'), ('carl', 'bye')]
+    >>> [(s.speaker, s.text) for s in segments_from_tiers({
+    ...     "carl - utterances": [(0.0, 0.5, "Hi there.")],
+    ...     "ned - utterances": [(0.8, 1.5, "Yo.")]})]
+    [('carl', 'Hi there.'), ('ned', 'Yo.')]
     """
     groups = _tiers_by_speaker(tiers)
     speakers = [k for k in groups if k is not None]
     if len(speakers) <= 1:  # one speaker (or none): its tiers, and any unnamed
         return _speaker_segments(tiers, speaker=next(iter(speakers), None))
-    return _turn_segments(
+    # A speaker with a lines tier of its own is read by its lines (an#739);
+    # the others' words are cut into turns.
+    lined = [w for w in speakers if _tier_named(groups[w], _TG_LINE_TIERS)]
+    turns = _turn_segments(
         {
             who: (
                 _speech(groups[who], _tier_named(groups[who], _TG_WORD_TIERS)),
                 _speech(groups[who], _tier_named(groups[who], _TG_PHONE_TIERS)),
             )
             for who in speakers
+            if who not in lined
         }
     )
+    by_lines = [s for who in lined for s in _speaker_segments(groups[who], speaker=who)]
+    return sorted([*by_lines, *turns], key=lambda seg: (seg.start, seg.end))
 
 
 def _turn_segments(

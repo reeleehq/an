@@ -529,7 +529,7 @@ def test_overlapping_cues_are_refused_before_anything_is_written(tmp_path):
         "1\n00:00:01,000 --> 00:00:05,000\ncarl: Hello there, Ned.\n\n"
         "2\n00:00:02,000 --> 00:00:03,000\ncarl: Fine, thanks.\n"
     )
-    with pytest.raises(RecordedVoicesError, match="leaves no audio to cut"):
+    with pytest.raises(RecordedVoicesError, match="overlap"):  # an#739: said before any cut
         import_recordings(
             root,
             _take(tmp_path, seconds=6.0),
@@ -1699,3 +1699,26 @@ def test_a_corrected_phone_alphabet_re_aligns_the_mouth(tmp_path):
     for key in list(store):
         store[key] = {**store[key], "phone_alphabet": "ipa"}
     assert aligned_alphabets() == ["ipa", "ipa"], "a corrected alphabet re-aligns"
+
+
+def test_overlapping_speakers_are_refused_and_per_speaker_lines_are_read():
+    """an#739: two speakers at once cannot be cut into one take each, so an
+    overlap is refused naming both lines (never a word cut in two); and a grid
+    whose speakers each have a lines tier is read by those lines."""
+    from an.audio.recorded import _refuse_overlaps
+    from an.audio.transcripts import segments_from_tiers
+
+    talking_over = segments_from_tiers({
+        "carl - words": [(0.0, 1.0, "hello")], "ned - words": [(0.5, 0.8, "yo")],
+    })  # fmt: skip
+    with pytest.raises(RecordedVoicesError, match="'hello'.*'yo'.*overlap"):
+        _refuse_overlaps(talking_over, name="take.wav")
+    lines = segments_from_tiers({
+        "carl - utterances": [(0.0, 0.5, "Hi there."), (2.0, 2.5, "Bye.")],
+        "carl - words": [(0.0, 0.2, "hi"), (0.2, 0.5, "there"), (2.0, 2.5, "bye")],
+        "ned - utterances": [(0.8, 1.5, "Yo.")],
+    })  # fmt: skip
+    assert [(s.speaker, s.text) for s in lines] == [
+        ("carl", "Hi there."), ("ned", "Yo."), ("carl", "Bye."),
+    ]
+    assert lines[0].words == (("hi", 0.0, 0.2), ("there", 0.2, 0.5))
