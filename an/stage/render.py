@@ -458,9 +458,9 @@ def texture_source(src_rel: str, mall: Mapping[str, Any]) -> tuple[Path | None, 
         return None, "store"
     # A raster src carries its digest as a query (an#211); the file is the
     # path before it.
-    from an.stage.rig import _asset_file
+    from an.stage.rig import asset_file
 
-    source = _asset_file(root, strip_version(src_rel)[len(prefix) :])
+    source = asset_file(root, strip_version(src_rel)[len(prefix) :])
     if source is None:
         return None, "outside"
     if not source.exists():

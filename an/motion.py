@@ -19,7 +19,7 @@ them. This module also holds what every preset is built from: the rest pose
 :func:`as_leaves`.
 
 >>> from an.ir.compose import flatten, sequence
->>> leaves = _tweens(sequence(pop_in("charlie"), hop("charlie"), shake("charlie")))
+>>> leaves = tweens_of(sequence(pop_in("charlie"), hop("charlie"), shake("charlie")))
 >>> [(f.action.target, f.action.property) for f in leaves][:3]
 [('charlie', 'scale_x'), ('charlie', 'scale_y'), ('charlie', 'y')]
 >>> round(leaves[-1].end, 3)
@@ -146,22 +146,22 @@ def __getattr__(name: str):
 Rest = Mapping[str, float]
 
 
-def _rest(rest: Rest | None, prop: str) -> float:
+def rest_value(rest: Rest | None, prop: str) -> float:
     return float((rest or {}).get(prop, _identity()[prop]))
 
 
-def _tweens(action: Action) -> list[FlatAction]:
+def tweens_of(action: Action) -> list[FlatAction]:
     """The flattened TWEENS of ``action`` (the settling ``set``s left out)."""
     return [f for f in flatten(action) if isinstance(f.action, TweenAction)]
 
 
-def _positive(**durations: float) -> None:
+def require_positive(**durations: float) -> None:
     for name, value in durations.items():
         if not value > 0:
             raise ValueError(f"{name} must be positive, got {value!r}")
 
 
-def _settled(target: PathStr, prop: str, value: float, *moves: Action) -> Action:
+def settled(target: PathStr, prop: str, value: float, *moves: Action) -> Action:
     """``moves`` then a ``set`` pinning ``prop`` at ``value`` where they end.
 
     A frame shows the pose at ``i / fps`` and the runtime HOLDS the last pose it
@@ -175,7 +175,7 @@ def _settled(target: PathStr, prop: str, value: float, *moves: Action) -> Action
     return sequence(*moves, set_(target, prop, value))
 
 
-def _through(
+def through(
     target: PathStr,
     prop: str,
     values: list[float],
@@ -188,7 +188,7 @@ def _through(
     Every segment names its ``from``, so the chain never depends on what the
     runtime was holding when it started.
     """
-    return _settled(
+    return settled(
         target,
         prop,
         values[-1],
@@ -199,7 +199,7 @@ def _through(
     )
 
 
-def _alternating(n: int, first: EasingSpec, second: EasingSpec) -> list[EasingSpec]:
+def alternating(n: int, first: EasingSpec, second: EasingSpec) -> list[EasingSpec]:
     return [first if i % 2 == 0 else second for i in range(n)]
 
 
@@ -223,20 +223,20 @@ def pop_in(
     with a ``set`` before it).
 
     >>> [(f.action.property, f.action.from_value, f.action.to_value)
-    ...  for f in _tweens(pop_in("charlie"))]
+    ...  for f in tweens_of(pop_in("charlie"))]
     [('scale_x', 0.0, 1.0), ('scale_y', 0.0, 1.0)]
     """
-    _positive(duration=duration)
+    require_positive(duration=duration)
     return parallel(
         *(
-            _settled(
+            settled(
                 target,
                 p,
-                _rest(rest, p),
+                rest_value(rest, p),
                 tween(
                     target,
                     p,
-                    to=_rest(rest, p),
+                    to=rest_value(rest, p),
                     duration=duration,
                     from_=0.0,
                     easing=easing,
@@ -256,13 +256,13 @@ def hop(
 ) -> Action:
     """Jump up by ``height`` scene pixels and land back where it started.
 
-    >>> [(f.action.from_value, f.action.to_value) for f in _tweens(hop("charlie", height=30))]
+    >>> [(f.action.from_value, f.action.to_value) for f in tweens_of(hop("charlie", height=30))]
     [(0.0, -30.0), (-30.0, 0.0)]
     """
-    _positive(duration=duration)
-    y0 = _rest(rest, "y")
+    require_positive(duration=duration)
+    y0 = rest_value(rest, "y")
     half = duration / 2
-    return _through(
+    return through(
         target,
         "y",
         [y0, y0 - height, y0],
@@ -281,18 +281,18 @@ def shake(
 ) -> Action:
     """Tremble side to side ``cycles`` times and come back to rest (on ``x``).
 
-    >>> [f.action.to_value for f in _tweens(shake("charlie", amplitude=5, cycles=2))]
+    >>> [f.action.to_value for f in tweens_of(shake("charlie", amplitude=5, cycles=2))]
     [5.0, -5.0, 5.0, -5.0, 0.0]
-    >>> [f.action.to_value for f in _tweens(shake("charlie", cycles=1, rest={"x": -110}))]
+    >>> [f.action.to_value for f in tweens_of(shake("charlie", cycles=1, rest={"x": -110}))]
     [-102.0, -118.0, -110.0]
     """
     if cycles < 1:
         raise ValueError(f"shake needs at least one cycle, got {cycles}")
-    _positive(duration=duration)
-    x0 = _rest(rest, "x")
+    require_positive(duration=duration)
+    x0 = rest_value(rest, "x")
     values = [x0] + [x0 + amplitude, x0 - amplitude] * cycles + [x0]
     n = len(values) - 1
-    return _through(
+    return through(
         target,
         "x",
         values,
@@ -304,7 +304,7 @@ def shake(
 _SIDES: dict[str, float] = {"left": -1.0, "right": 1.0}
 
 
-def _side_sign(side: str) -> float:
+def side_sign(side: str) -> float:
     if side not in _SIDES:
         raise ValueError(f"side must be one of {sorted(_SIDES)}, got {side!r}")
     return _SIDES[side]
@@ -321,12 +321,12 @@ def slide_in(
 ) -> Action:
     """Whip in from ``distance`` pixels off to one side, overshoot, and settle.
 
-    >>> [(f.action.from_value, f.action.to_value) for f in _tweens(slide_in("charlie", distance=400))]
+    >>> [(f.action.from_value, f.action.to_value) for f in tweens_of(slide_in("charlie", distance=400))]
     [(-400.0, 0.0)]
     """
-    _positive(duration=duration)
-    x0 = _rest(rest, "x")
-    return _settled(
+    require_positive(duration=duration)
+    x0 = rest_value(rest, "x")
+    return settled(
         target,
         "x",
         x0,
@@ -335,7 +335,7 @@ def slide_in(
             "x",
             to=x0,
             duration=duration,
-            from_=x0 + _side_sign(from_side) * distance,
+            from_=x0 + side_sign(from_side) * distance,
             easing=easing,
         ),
     )
@@ -352,13 +352,13 @@ def slide_out(
 ) -> Action:
     """Exit ``distance`` pixels off to one side, accelerating (an exit).
 
-    >>> [(f.action.from_value, f.action.to_value) for f in _tweens(slide_out("charlie", to_side="left"))]
+    >>> [(f.action.from_value, f.action.to_value) for f in tweens_of(slide_out("charlie", to_side="left"))]
     [(0.0, -600.0)]
     """
-    _positive(duration=duration)
-    x0 = _rest(rest, "x")
-    end = x0 + _side_sign(to_side) * distance
-    return _settled(
+    require_positive(duration=duration)
+    x0 = rest_value(rest, "x")
+    end = x0 + side_sign(to_side) * distance
+    return settled(
         target,
         "x",
         end,
@@ -378,18 +378,18 @@ def squash_stretch(
     Scales about the target's own origin (for the procedural rig, the torso's
     centre). Volume is roughly kept: one axis grows by what the other loses.
 
-    >>> [[round(f.action.to_value, 2) for f in _tweens(squash_stretch("c"))
+    >>> [[round(f.action.to_value, 2) for f in tweens_of(squash_stretch("c"))
     ...   if f.action.property == p] for p in ("scale_x", "scale_y")]
     [[1.2, 0.9, 1.0], [0.8, 1.1, 1.0]]
     """
-    _positive(duration=duration)
-    sx0, sy0 = _rest(rest, "scale_x"), _rest(rest, "scale_y")
+    require_positive(duration=duration)
+    sx0, sy0 = rest_value(rest, "scale_x"), rest_value(rest, "scale_y")
     third = duration / 3
     easings = [DFLT_OUT_EASING, DFLT_OSCILLATION_EASING, DFLT_IN_EASING]
 
     def chain(prop: str, s0: float, sign: float) -> Action:
         values = [s0, s0 * (1 + sign * amount), s0 * (1 - sign * amount / 2), s0]
-        return _through(target, prop, values, durations=[third] * 3, easings=easings)
+        return through(target, prop, values, durations=[third] * 3, easings=easings)
 
     return parallel(chain("scale_x", sx0, 1.0), chain("scale_y", sy0, -1.0))
 
@@ -423,11 +423,11 @@ def crawl(
     >>> sorted((f.action.property, getattr(f.action, "value", None)) for f in leaves
     ...        if isinstance(f.action, SetAction) and f.start == 0)
     [('perspective', 1.0), ('rotation_x', 0.96)]
-    >>> [(f.action.from_value, f.action.to_value, f.end) for f in _tweens(crawl("crawl",
+    >>> [(f.action.from_value, f.action.to_value, f.end) for f in tweens_of(crawl("crawl",
     ...     distance=1000, duration=20, start=-300))]
     [(-300.0, 700.0, 20.0)]
     """
-    _positive(duration=duration)
+    require_positive(duration=duration)
     p0 = float(start) if start is not None else float((rest or {}).get("pivot_y", 0.0))
     plane = [
         set_(target, "rotation_x", float(tilt)),
@@ -448,7 +448,7 @@ def crawl(
     end = p0 + float(distance)
     return parallel(
         *plane,
-        _settled(
+        settled(
             target,
             "pivot_y",
             end,
@@ -599,14 +599,32 @@ __all__ = [
     "OVERSHOOT",
     "PRESETS",
     "PRESET_VERSIONS",
+    "Rest",
+    "alternating",
     "as_leaves",
     "crawl",
     "hop",
     "pop_in",
+    "require_positive",
     "rest_pose",
+    "rest_value",
+    "settled",
     "shake",
+    "side_sign",
     "stage_poses",
     "slide_in",
     "slide_out",
     "squash_stretch",
+    "through",
+    "tweens_of",
 ]
+
+
+#: The private spellings genre packages imported before they were public (API level < 16); removed by an#747.
+_alternating = alternating
+_positive = require_positive
+_rest = rest_value
+_settled = settled
+_side_sign = side_sign
+_through = through
+_tweens = tweens_of

@@ -154,7 +154,11 @@ class GenreError(RegistryError):
 #:     box)``, which the world's framing reads instead of ``SHOT_SIZES``.
 #: 15 = a project's ``.gitignore`` read by git's rules (an#725): ``an.project.gitignored``
 #:     and ``gitignore_matcher``, for a genre that copies a project (cutan's projects store).
-API_LEVEL: int = 15
+#: 16 = names cutan's presets, checks and passes read, public (an#730): ``an.motion``'s
+#:     ``alternating``, ``require_positive``, ``rest_value``, ``settled``, ``side_sign``,
+#:     ``through`` and ``tweens_of``; ``an.ir.validate.built_node_paths``, ``rig_document``
+#:     and ``text_block_ids``; ``an.stage.rig.asset_file``.
+API_LEVEL: int = 16
 
 
 class GenreAPILevelError(GenreError, ImportError):

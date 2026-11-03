@@ -226,7 +226,7 @@ def _has_procedural_rig(kind: str) -> bool:
     return registered is not None and registered.placeholder_on_missing
 
 
-def _rig_document(entity, stores: Mapping[str, Any]) -> dict | None:
+def rig_document(entity, stores: Mapping[str, Any]) -> dict | None:
     """The MIGRATED descriptor behind ``entity``, or ``None``.
 
     Migrated because that is how the compiler reads it: every committed
@@ -627,7 +627,7 @@ def _check_swap_references(
         if prop == "value" and entity_id in text_blocks:
             continue  # a text block's `value`: `_check_text_blocks` owns it (an#342)
         entity = rigs.get(entity_id)
-        desc = _rig_document(entity, stores) if entity is not None else None
+        desc = rig_document(entity, stores) if entity is not None else None
         registered = entity_kind(entity.kind) if entity is not None else None
         swap_checks = registered.swap_checks if registered is not None else None
         if desc is None and entity is not None:
@@ -762,7 +762,7 @@ def _check_action_targets(
 ) -> None:
     """Every `set`/`tween` target must be a node the compiler BUILDS (an#193).
 
-    Resolved against :func:`_built_node_paths` — the compiler's own stage
+    Resolved against :func:`built_node_paths` — the compiler's own stage
     builder, the one a preset `play` is checked against (an#166) — so the rig
     is never restated here; the message is the compiler's
     (:func:`an.stage.compile.unknown_target_message`), with "did you
@@ -822,7 +822,7 @@ def _check_action_targets(
         return
     why = None
     if built is None:
-        built, why = _built_node_paths(shot, stores, resolution=resolution)
+        built, why = built_node_paths(shot, stores, resolution=resolution)
     if built is None and on_unbuilt is not None:
         on_unbuilt(why)
         return
@@ -842,7 +842,7 @@ def _check_action_targets(
             )
 
 
-def _built_node_paths(
+def built_node_paths(
     shot,
     stores: Mapping[str, Any],
     *,
@@ -1021,7 +1021,7 @@ def _check_flat_pan(shot, keys, path: str, report: "ValidationReport", stores) -
         try:
             # MIGRATED, as the compiler reads it — a pre-flight that validates
             # a document differently from the thing it predicts is its own
-            # defect, which is the rule `_rig_document` already follows.
+            # defect, which is the rule `rig_document` already follows.
             env = environment_from_document(raw, entity)
         except Exception:  # noqa: BLE001 — a malformed descriptor is another check's
             continue
@@ -1905,7 +1905,7 @@ def _core_swap_references(ctx: ValidationContext) -> None:
         ctx.path,
         ctx.report,
         ctx.stores,
-        text_blocks=frozenset(_text_ids(ctx)),
+        text_blocks=frozenset(text_block_ids(ctx)),
     )
 
 
@@ -1920,7 +1920,7 @@ def _core_trim_targets(ctx: ValidationContext) -> None:
     _check_trim_targets(ctx.shot, ctx.path, ctx.report, ctx.stores)
 
 
-def _text_ids(ctx: ValidationContext) -> list:
+def text_block_ids(ctx: ValidationContext) -> list:
     """The current shot's text-block entity ids (checked by `_check_text_blocks`,
     once; the target and entity-reference checks skip them)."""
     res = ctx.scene.meta.resolution
@@ -1938,7 +1938,7 @@ def _text_ids(ctx: ValidationContext) -> list:
 
 
 def _core_text_blocks(ctx: ValidationContext) -> None:
-    _text_ids(ctx)
+    text_block_ids(ctx)
 
 
 def _core_stage_after(ctx: ValidationContext) -> None:
@@ -2004,7 +2004,7 @@ def _core_action_targets(ctx: ValidationContext) -> None:
         ctx.report,
         ctx.stores,
         resolution=(res.width or None, res.height or None),
-        skip=frozenset(_text_ids(ctx)),
+        skip=frozenset(text_block_ids(ctx)),
         built=_compiled_node_paths(ctx),
         on_unbuilt=_targets_unchecked(ctx),
     )
@@ -2095,7 +2095,7 @@ def _core_field_kinds(ctx: ValidationContext) -> None:
 
 def _core_entity_refs(ctx: ValidationContext) -> None:
     """Entity references resolve?"""
-    text_ids = _text_ids(ctx)
+    text_ids = text_block_ids(ctx)
     for j, entity in enumerate(ctx.shot.entities):
         if entity.id in text_ids:
             continue
@@ -2127,7 +2127,7 @@ def _check_entity_ref(
     store = mall_stores.get(store_name)
     if store is None:
         return True  # store not supplied → this check did not run
-    doc = _rig_document(entity, mall_stores)
+    doc = rig_document(entity, mall_stores)
     if doc is not None:
         _check_rig_document(
             doc, entity, ir_path, report, raw=store[entity.ref], renderer=renderer
@@ -3469,3 +3469,9 @@ def _sound_duration_problem(sounds: Mapping[str, Any], key: str) -> str | None:
 
 
 _register_core_checks()
+
+
+#: The private spellings genre packages imported before they were public (API level < 16); removed by an#747.
+_built_node_paths = built_node_paths
+_rig_document = rig_document
+_text_ids = text_block_ids
