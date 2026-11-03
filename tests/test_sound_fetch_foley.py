@@ -113,13 +113,37 @@ def test_credits_list_the_three_foley_sounds_with_their_own_rights(tmp_path, fet
         "sounds/door_ai": "free",
     }
     text = report.format()
-    after = text.partition("MUST BE DISPLAYED to ship this video:")[2]
-    owed, _, rest = after.partition("No attribution required")
-    assert '"Door creak" by amy' in owed and "CC BY 4.0" in owed
-    assert "sounds/rain" in rest and "sounds/door_ai" in rest
-    assert "AI-generated with stable-audio-open-1.0" in text
-    assert "USD 1,000,000" in text
     assert "UNVERIFIED" not in text
+    sections = _sections(text)
+    owed = sections["MUST BE DISPLAYED"]
+    assert list(owed) == ["sounds/door"]
+    assert '"Door creak" by amy' in owed["sounds/door"]
+    assert "CC BY 4.0" in owed["sounds/door"]
+    free = sections["No attribution required"]
+    assert set(free) == {"sounds/rain", "sounds/door_ai"}
+    assert "USD 1,000,000" in free["sounds/door_ai"]
+    assert "USD 1,000,000" not in free["sounds/rain"]
+    ai = sections["AI-GENERATED"]
+    assert list(ai) == ["sounds/door_ai"]
+    assert ai["sounds/door_ai"] == (
+        "AI-generated with stable-audio-open-1.0: disclosure recommended; "
+        "not publish-ready, Art. 50 pending: machine_readable_mark, provenance_manifest"
+    )
+    assert [e.asset for e, _ in report.ai_generated] == ["sounds/door_ai"]
+
+
+def _sections(text: str) -> dict[str, dict[str, str]]:
+    """A credits report as ``{section heading's first words: {asset: rest of its line}}``."""
+    sections: dict[str, dict[str, str]] = {}
+    current: dict[str, str] = {}
+    for line in text.splitlines():
+        if line.startswith("  "):
+            asset, _, rest = line.strip().partition(": ")
+            current[asset] = rest
+        elif line:
+            heading = line.split(" (")[0].split(" — ")[0].split(" to ship")[0]
+            current = sections.setdefault(heading.rstrip(":"), {})
+    return sections
 
 
 @pytest.mark.ffmpeg
@@ -133,17 +157,26 @@ def test_a_foley_source_keeps_its_digests_and_disclosure(tmp_path, fetcher, libr
         "foley:sa-7",
     )
     extra = src.model_extra
-    assert extra["archived_sha256"] == library["sa-7"].content_sha256
+    prov = extra["foley_provenance"]
+    assert prov["archived_sha256"] == library["sa-7"].content_sha256
     # the fetched media's digest; the stored cut's is the SoundAsset's
-    assert extra[FILE_SHA256_FIELD] and src.sha256 is None
-    assert extra["ai_disclosure"]["is_ai_generated"] is True
-    assert extra["cut"]["start"] == 0.0
+    assert extra[FILE_SHA256_FIELD] == prov["sha256"] and src.sha256 is None
+    assert prov["flags"]["revenue_cap_usd"] == 1_000_000
+    ai = prov["ai_disclosure"]
+    assert ai["is_ai_generated"] is True and ai["publish_ready"] is False
+    assert ai["pending"] == ["machine_readable_mark", "provenance_manifest"]
+    assert "cut" not in extra  # the whole media was kept
+    cut = add_sound_from_url(
+        mall["sounds"], "short", "foley:fsd-222", fetcher=fetcher, duration=0.1
+    )
+    assert cut.source.model_extra["cut"] == {"start": 0.0, "end": 0.1}
+    assert collect_credits(mall).format().count("of https://freesound.org/s/222/") == 1
 
 
 @pytest.mark.ffmpeg
 def test_a_caller_licence_must_agree_with_the_sources(tmp_path, fetcher):
     sounds = build_project_mall(tmp_path, ensure=True)["sounds"]
-    with pytest.raises(SoundError, match="states license='cc-by-4.0'"):
+    with pytest.raises(SoundError, match="license='cc-by-4.0'.*license='cc0-1.0'"):
         add_sound_from_url(
             sounds, "door", "foley:fsd-222", license="cc0-1.0", fetcher=fetcher
         )
@@ -151,6 +184,8 @@ def test_a_caller_licence_must_agree_with_the_sources(tmp_path, fetcher):
         add_sound_from_url(
             sounds, "door", "foley:fsd-222", provider="me", fetcher=fetcher
         )
+    with pytest.raises(SoundError, match="author='Thor'"):  # an AI clip has no author
+        add_sound_from_url(sounds, "door", "foley:sa-7", author="Thor", fetcher=fetcher)
     agreed = add_sound_from_url(
         sounds, "door", "foley:fsd-222", license="CC-BY-4.0", fetcher=fetcher
     )
@@ -168,6 +203,12 @@ def test_a_by_reference_sound_is_refused_with_foleys_reason(library, fetcher):
         fetcher("foley:api-1")
     with pytest.raises(SoundError, match="foley will not export 'nope'"):
         fetcher("foley:nope")
+
+    def broken(sound_id):
+        raise RuntimeError("transcode failed")
+
+    with pytest.raises(SoundError, match="foley:sa-7.*RuntimeError: transcode failed"):
+        foley_fetcher("foley:sa-7", export=broken)
     with pytest.raises(SoundError, match="not a foley ref"):
         fetcher("https://freesound.org/s/1/")
 

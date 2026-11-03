@@ -139,6 +139,14 @@ class CreditsReport:
         return self.publishable and not self.noncommercial
 
     @property
+    def ai_generated(self) -> list[tuple[CreditEntry, str]]:
+        """``(entry, label)`` for every entry that records an AI disclosure (a
+        foley export, an#729): what its disclosure says (:func:`an.sound_fetch.ai_label`)."""
+        from an.sound_fetch import ai_label
+
+        return [(e, label) for e in self.entries if (label := ai_label(e.source))]
+
+    @property
     def private(self) -> list[CreditEntry]:
         """Entries that may NOT be published: all rights reserved, private
         study only (an#211). A video containing any of them is not shippable,
@@ -177,6 +185,10 @@ class CreditsReport:
             "unverified": [e.asset for e in self.unverified],
             "private_study": [e.asset for e in self.private],
             "non_commercial": [e.asset for e in self.noncommercial],
+            "ai_generated": [
+                {"asset": e.asset, "disclosure": label}
+                for e, label in self.ai_generated
+            ],
             "own_work": [e.asset for e in self.entries if e.own_work],
             "publishable": self.publishable,
             "commercial": self.commercial,
@@ -243,6 +255,10 @@ class CreditsReport:
                     "was recorded — the record is incomplete)"
                 )
                 lines.append(f"  {e.asset}: {text}{_detail(e)}")
+        if ai := self.ai_generated:
+            lines.append("")
+            lines.append(f"AI-GENERATED ({len(ai)}) — what each disclosure asks:")
+            lines += [f"  {e.asset}: {label}" for e, label in ai]
         if self.unverified:
             lines.append("")
             lines.append(
@@ -300,11 +316,11 @@ def _detail(e: CreditEntry) -> str:
         # Audio's revenue cap), on any asset made under them; a non-commercial
         # licence's restriction (an#373).
         out += f" ({restriction})"
-    from an.sound_fetch import ai_label, cut_label
+    from an.sound_fetch import cut_label, notice_label
 
-    if ai := ai_label(e.source):
-        # An AI-generated sound says so, with its model (a foley export, an#729).
-        out += f" — {ai}"
+    if notice := notice_label(e.source):
+        # A notice the licence requires shown verbatim (a foley export, an#729).
+        out += f" — notice required: {notice}"
     if cut := cut_label(e.source):
         # A sound cut from fetched media says which part of which page (an#318).
         out += f" — {cut}"

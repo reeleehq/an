@@ -50,7 +50,7 @@ from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any
 
 from an.ir.assets import AssetSource
-from an.sound_fetch import FILE_SHA256_FIELD
+from an.sound_fetch import file_digest_fields
 
 if TYPE_CHECKING:  # foley loads on first use, never with `import an`
     from foley.sources.music_library import AcquiredTrack
@@ -309,8 +309,7 @@ def add_track_to_sounds(
             "row recorded (changed since it was acquired); rerun `an music add-library`"
         )
     wav = cut_to_wav(audio, start=start, duration=duration, fade_out=fade_out)
-    fields = asset_source(track).model_dump(exclude_none=True)
-    fields[FILE_SHA256_FIELD] = fields.pop("sha256")
+    fields = file_digest_fields(asset_source(track).model_dump(exclude_none=True))
     fields[CUT_FIELD] = cut_record(wav, start=start, fade_out=fade_out)
     return add_sound(
         store, key, wav, source=AssetSource(**fields), description=description
