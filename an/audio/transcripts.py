@@ -760,6 +760,19 @@ def _speech(tiers: Tiers, name: str | None) -> list[WordTiming]:
     return [(t, a, b) for a, b, t in tiers[name] if _is_speech(t)]
 
 
+def _lines(tiers: Tiers, name: str | None) -> list[WordTiming]:
+    """The non-empty intervals of lines tier ``name`` as ``(label, start,
+    end)``; ``[]`` when there is no such tier, or only empty intervals in it
+    (a speaker with an empty lines tier is read by its words, an#739).
+
+    >>> _lines({"utterances": [(0.0, 0.5, " "), (0.5, 1.0, "Hi.")]}, "utterances")
+    [('Hi.', 0.5, 1.0)]
+    """
+    if name is None:
+        return []
+    return [(t, a, b) for a, b, t in tiers[name] if t.strip()]
+
+
 def _within(timings: Sequence[WordTiming], a: float, b: float) -> tuple | None:
     """The timings inside ``[a, b]`` (give or take :data:`_SPAN_EPS_S`), or ``None``."""
     inside = tuple(
@@ -844,8 +857,10 @@ def segments_from_tiers(tiers: Tiers) -> list[TranscriptSegment]:
     that speaker's within the turn (:func:`_turn_segments`). There, a tier
     with no speaker prefix is ignored (it is nobody's), and so is a speaker
     with no words tier: phones are never read as words (an#491). A speaker
-    with a lines tier of its own (``"<speaker> - utterances"``) is read by its
-    lines, one segment per interval, beside the others' turns (an#739).
+    with a lines tier of its own (``"<speaker> - utterances"``, with at least
+    one non-empty interval) is read by its lines, one segment per interval;
+    its lines stand in the stream as turn boundaries, so another speaker's
+    words on either side of one are two turns, not one spanning it (an#739).
 
     >>> segments_from_tiers({"words": [(0.5, 0.9, "hello")], "phones": [(0.5, 0.6, "HH"), (0.6, 0.9, "AH0")]})[0].phones
     (('HH', 0.5, 0.6), ('AH0', 0.6, 0.9))
@@ -857,26 +872,36 @@ def segments_from_tiers(tiers: Tiers) -> list[TranscriptSegment]:
     ...     "carl - utterances": [(0.0, 0.5, "Hi there.")],
     ...     "ned - utterances": [(0.8, 1.5, "Yo.")]})]
     [('carl', 'Hi there.'), ('ned', 'Yo.')]
+    >>> [(s.speaker, s.text) for s in segments_from_tiers({
+    ...     "carl - utterances": [(0.0, 1.0, "Hi."), (3.0, 4.0, "Bye.")],
+    ...     "ned - words": [(1.5, 1.9, "yo"), (5.0, 5.4, "later")]})]
+    [('carl', 'Hi.'), ('ned', 'yo'), ('carl', 'Bye.'), ('ned', 'later')]
     """
     groups = _tiers_by_speaker(tiers)
     speakers = [k for k in groups if k is not None]
     if len(speakers) <= 1:  # one speaker (or none): its tiers, and any unnamed
         return _speaker_segments(tiers, speaker=next(iter(speakers), None))
-    # A speaker with a lines tier of its own is read by its lines (an#739);
-    # the others' words are cut into turns.
-    lined = [w for w in speakers if _tier_named(groups[w], _TG_LINE_TIERS)]
+    # A speaker with lines of its own is read by its lines (an#739); in the
+    # stream they only cut the others' words into turns, and their own turns
+    # are dropped.
+    lines = {
+        w: _lines(groups[w], _tier_named(groups[w], _TG_LINE_TIERS)) for w in speakers
+    }
+    lined = {w for w in speakers if lines[w]}
     turns = _turn_segments(
         {
-            who: (
+            who: (lines[who], [])
+            if who in lined
+            else (
                 _speech(groups[who], _tier_named(groups[who], _TG_WORD_TIERS)),
                 _speech(groups[who], _tier_named(groups[who], _TG_PHONE_TIERS)),
             )
             for who in speakers
-            if who not in lined
         }
     )
     by_lines = [s for who in lined for s in _speaker_segments(groups[who], speaker=who)]
-    return sorted([*by_lines, *turns], key=lambda seg: (seg.start, seg.end))
+    others = [t for t in turns if t.speaker not in lined]
+    return sorted([*by_lines, *others], key=lambda seg: (seg.start, seg.end))
 
 
 def _turn_segments(
@@ -922,12 +947,27 @@ def _turn_segments(
 
 
 def _speaker_segments(tiers: Tiers, *, speaker: str | None) -> list[TranscriptSegment]:
-    """One speaker's tiers → segments (:func:`segments_from_tiers`); a line
-    tier's own ``speaker: text`` wins over ``speaker``."""
+    """One speaker's tiers → segments (:func:`segments_from_tiers`). A lines
+    tier with only empty intervals is no lines tier: the words are read
+    (an#739). An unprefixed lines tier's own ``speaker: text`` wins over
+    ``speaker``; a speaker's own (``"carl - utterances"``) names the speaker,
+    so a colon in its label is text (an#739).
+
+    >>> [(s.speaker, s.text) for s in _speaker_segments(
+    ...     {"carl - utterances": [(0.0, 1.0, "Wait: what?")]}, speaker="carl")]
+    [('carl', 'Wait: what?')]
+    >>> [(s.speaker, s.text) for s in _speaker_segments(
+    ...     {"utterances": [(0.0, 1.0, "ned: Yo.")]}, speaker=None)]
+    [('ned', 'Yo.')]
+    >>> [s.text for s in _speaker_segments(
+    ...     {"utterances": [(0.0, 1.0, "")], "words": [(0.2, 0.5, "hi")]}, speaker=None)]
+    ['hi']
+    """
     if not tiers:
         return []
     phone_tier = _tier_named(tiers, _TG_PHONE_TIERS)
     line_tier = _tier_named(tiers, _TG_LINE_TIERS)
+    lines = _lines(tiers, line_tier)
     # Without a tier named for words, the first tier that is neither the
     # phones nor the lines (a phones tier read as words would put "HH AH0" in
     # the captions, an#491).
@@ -938,7 +978,7 @@ def _speaker_segments(tiers: Tiers, *, speaker: str | None) -> list[TranscriptSe
     phones = _speech(tiers, phone_tier) if phone_tier != word_tier else []
     alphabet = phone_alphabet_of(p[0] for p in phones) if phones else None
 
-    if line_tier is None:
+    if not lines:
         if not words:
             return []
         return [
@@ -952,11 +992,12 @@ def _speaker_segments(tiers: Tiers, *, speaker: str | None) -> list[TranscriptSe
                 phone_alphabet=alphabet,
             )
         ]
+    tier_speaker = _speaker_and_tier(line_tier)[0]
     out = []
-    for a, b, t in tiers[line_tier]:
-        if not t:
-            continue
-        said_by, body = _speaker_and_text(t)
+    for t, a, b in lines:
+        said_by, body = (
+            (tier_speaker, t.strip()) if tier_speaker else _speaker_and_text(t)
+        )
         inside = _within(phones, a, b)
         out.append(
             TranscriptSegment(

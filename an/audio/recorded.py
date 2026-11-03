@@ -1465,19 +1465,46 @@ def _lines_by_interval(
 DFLT_OVERLAP_TOLERANCE_S: float = 0.05
 
 
+#: Who timed a take's lines, by the last part of its kind (:func:`_timed_segments`:
+#: ``'asr'``, ``'srt+asr'``, ``'txt+align'``); any other kind's times are its
+#: transcript's own.
+_TIMED_BY: Mapping[str, str] = {"asr": "the transcriber", "align": "the aligner"}
+
+
+def _overlap_remedy(kind: str, *, tolerance_s: float) -> str:
+    """What to do about two overlapping lines of a take of ``kind``: fix the
+    transcript's times, unless a machine made them (an#739).
+
+    >>> _overlap_remedy("srt", tolerance_s=0.05)
+    "or fix the transcript's times"
+    >>> _overlap_remedy("asr", tolerance_s=0.05)
+    'or, as the transcriber timed them, give a timed transcript (SRT, TextGrid), or raise --overlap-tolerance (0.05 s now)'
+    """
+    timer = _TIMED_BY.get(kind.rpartition("+")[2])
+    if timer is None:
+        return "or fix the transcript's times"
+    return (
+        f"or, as {timer} timed them, give a timed transcript (SRT, TextGrid), "
+        f"or raise --overlap-tolerance ({tolerance_s:g} s now)"
+    )
+
+
 def _refuse_overlaps(
     segments: Sequence[TranscriptSegment],
     *,
     name: str,
+    kind: str = "",
     tolerance_s: float = DFLT_OVERLAP_TOLERANCE_S,
 ) -> None:
     """Refuse, naming both lines, two consecutive timed segments that overlap
     by more than ``tolerance_s`` (an#739): speech at once cannot be cut into
     one take each, and cutting between them would cut a word in two.
+    ``kind`` is how the lines were timed (:func:`_timed_segments`), which
+    says what can be done about it (:func:`_overlap_remedy`).
 
     >>> a, b = TranscriptSegment("Hello.", 0.0, 1.0), TranscriptSegment("Yo.", 0.5, 0.8)
     >>> _refuse_overlaps([a, TranscriptSegment("Yo.", 0.98, 1.4)], name="t.wav")
-    >>> _refuse_overlaps([a, b], name="t.wav")
+    >>> _refuse_overlaps([a, b], name="t.wav", kind="srt")
     Traceback (most recent call last):
       ...
     an.audio.recorded.RecordedVoicesError: t.wav: 'Hello.' (0.00–1.00 s) and 'Yo.' (0.50–0.80 s) overlap: two voices at once cannot be cut into a take each; give them separate files, or fix the transcript's times. Nothing was written.
@@ -1489,7 +1516,7 @@ def _refuse_overlaps(
                 f"{name}: {prev.text!r} ({prev.start:.2f}–{prev.end:.2f} s) and "
                 f"{seg.text!r} ({seg.start:.2f}–{seg.end:.2f} s) overlap: two voices "
                 "at once cannot be cut into a take each; give them separate files, "
-                "or fix the transcript's times. Nothing was written."
+                f"{_overlap_remedy(kind, tolerance_s=tolerance_s)}. Nothing was written."
             )
 
 
@@ -1829,6 +1856,7 @@ def import_recordings(
     diarize: bool = False,
     align: Aligner | None = None,
     rough_timing: bool = True,
+    overlap_tolerance_s: float = DFLT_OVERLAP_TOLERANCE_S,
     match_threshold: float = DFLT_MATCH_THRESHOLD,
     write: bool = True,
     scene_file: Any = DEFAULT_SCENE_FILE,
@@ -1864,6 +1892,9 @@ def import_recordings(
     text as one utterance, which drifts on a long take. With no transcriber
     to run, the import falls back to that one utterance, with a
     :class:`RecordedVoicesWarning`.
+    Two lines of a take overlapping by more than ``overlap_tolerance_s``
+    seconds are refused, naming both (an#739): two voices at once cannot be
+    cut apart.
     ``write=False`` runs everything but writes nothing (a dry run).
     ``scene_file`` imports into another scene of the project
     (``scene.studio.md``, an#554).
@@ -1902,7 +1933,9 @@ def import_recordings(
             wav=wav,
             rough_timing=rough_timing,
         )
-        _refuse_overlaps(segments, name=path.name)
+        _refuse_overlaps(
+            segments, name=path.name, kind=kind, tolerance_s=overlap_tolerance_s
+        )
         spans = cut_spans(segments, total=total)
         previous_end: float | None = None
         for segment, (a, b) in zip(segments, spans):

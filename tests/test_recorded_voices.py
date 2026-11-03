@@ -529,7 +529,9 @@ def test_overlapping_cues_are_refused_before_anything_is_written(tmp_path):
         "1\n00:00:01,000 --> 00:00:05,000\ncarl: Hello there, Ned.\n\n"
         "2\n00:00:02,000 --> 00:00:03,000\ncarl: Fine, thanks.\n"
     )
-    with pytest.raises(RecordedVoicesError, match="overlap"):  # an#739: said before any cut
+    with pytest.raises(
+        RecordedVoicesError, match="overlap"
+    ):  # an#739: said before any cut
         import_recordings(
             root,
             _take(tmp_path, seconds=6.0),
@@ -1058,7 +1060,9 @@ def test_a_takes_phones_reach_the_lip_sync_fresh_and_read_back(tmp_path):
         produce_audio_for_scene(proj.scene, proj.mall, lipsync=lipsync, announce=None)
         first = next(p for p in lipsync.heard if p and p[0][0] == "HH")
         # the take's alphabet travels with ITS phones (an#726), fresh and read back
-        paired = dict(zip(map(tuple, (p or () for p in lipsync.heard)), lipsync.alphabets))
+        paired = dict(
+            zip(map(tuple, (p or () for p in lipsync.heard)), lipsync.alphabets)
+        )
         assert paired[tuple(first)] == "arpabet", paired
         assert first[-1] == (
             "N",
@@ -1304,9 +1308,7 @@ def test_a_line_the_transcriber_did_not_hear_falls_back_to_one_utterance(tmp_pat
     one utterance, with a warning."""
     lines = (HELLO, "Okay.", FINE)
     squeezed = HEARD[:3] + (("fine", 1.5, 2.9), ("thanks", 2.9, 3.3))
-    with pytest.warns(
-        RecordedVoicesWarning, match="'Okay.' was not heard"
-    ):
+    with pytest.warns(RecordedVoicesWarning, match="'Okay.' was not heard"):
         _, align = _import_lines(tmp_path, lines=lines, transcribe=_heard(*squeezed))
     assert align.lines == [] and len(align.heard) == 1
 
@@ -1638,15 +1640,26 @@ def test_a_heard_one_word_line_keeps_the_per_line_alignment():
     is judged by its padded interval, so it does not switch the whole take to
     the one-utterance form; an unheard line squeezed between two heard ones
     still does."""
-    from an.audio.recorded import DFLT_ROUGH_MIN_LINE_S, _rough_line_intervals, _RoughTimingUnfit
+    from an.audio.recorded import (
+        DFLT_ROUGH_MIN_LINE_S,
+        _rough_line_intervals,
+        _RoughTimingUnfit,
+    )
     from an.audio.transcripts import parse_transcript_text
 
-    lines = parse_transcript_text("a: Hello there.\nb: No.\na: Fine thanks.", fmt="plain")
+    lines = parse_transcript_text(
+        "a: Hello there.\nb: No.\na: Fine thanks.", fmt="plain"
+    )
     heard = [("hello", 0.5, 0.9), ("there", 0.9, 1.3), ("no", 2.5, 2.58),
              ("fine", 4.0, 4.3), ("thanks", 4.3, 4.7)]  # fmt: skip
     spans = _rough_line_intervals(lines, heard, total=6.0, pad_s=0.25)
     assert spans[1].end - spans[1].start >= DFLT_ROUGH_MIN_LINE_S
-    unheard = [("hello", 0.5, 0.9), ("there", 0.9, 1.3), ("fine", 1.3, 1.6), ("thanks", 1.6, 1.9)]
+    unheard = [
+        ("hello", 0.5, 0.9),
+        ("there", 0.9, 1.3),
+        ("fine", 1.3, 1.6),
+        ("thanks", 1.6, 1.9),
+    ]
     with pytest.raises(_RoughTimingUnfit, match="not heard"):
         _rough_line_intervals(lines, unheard, total=6.0, pad_s=0.25, min_coverage=0.0)
 
@@ -1719,6 +1732,108 @@ def test_overlapping_speakers_are_refused_and_per_speaker_lines_are_read():
         "ned - utterances": [(0.8, 1.5, "Yo.")],
     })  # fmt: skip
     assert [(s.speaker, s.text) for s in lines] == [
-        ("carl", "Hi there."), ("ned", "Yo."), ("carl", "Bye."),
+        ("carl", "Hi there."),
+        ("ned", "Yo."),
+        ("carl", "Bye."),
     ]
     assert lines[0].words == (("hi", 0.0, 0.2), ("there", 0.2, 0.5))
+
+
+def _conversation(tmp_path, *lines):
+    """A project whose one shot has the ``(speaker, text)`` lines."""
+    root = init(tmp_path / "p")
+    proj = load(root)
+    scene = _scene((), character=False)
+    scene.timeline[0].dialogue = [Dialogue(speaker=w, text=t) for w, t in lines]
+    proj.mall["scenes"]["main"] = scene
+    return root
+
+
+def _import_grid(tmp_path, root, tiers, *, seconds=6.0, bursts=((0.1, 5.5),), **kw):
+    """Import one take timed by a TextGrid of ``tiers``."""
+    grid = tmp_path / "take.TextGrid"
+    grid.write_text(_textgrid(tiers, xmax=seconds), encoding="utf-8")
+    take = _take(tmp_path, seconds=seconds, bursts=bursts)
+    return import_recordings(root, take, transcript=grid, license=LICENSE, **kw)
+
+
+def test_a_lined_speaker_s_lines_cut_an_unlined_speaker_s_words_into_turns(tmp_path):
+    """an#739 review: carl's lines (0-1, 3-4) and ned's words (1.5, 5.0) are
+    four takes; ned's words are not merged into one turn spanning carl's
+    second line (which the import refused as overlapping it)."""
+    lines = [
+        ("carl", "Hi there."),
+        ("ned", "Yo."),
+        ("carl", "Bye now."),
+        ("ned", "Later."),
+    ]
+    root = _conversation(tmp_path, *lines)
+    report = _import_grid(tmp_path, root, {
+        "carl - utterances": [(0.0, 1.0, "Hi there."), (1.0, 3.0, ""),
+                              (3.0, 4.0, "Bye now."), (4.0, 6.0, "")],
+        "ned - words": [(0.0, 1.5, ""), (1.5, 1.9, "yo"), (1.9, 5.0, ""),
+                        (5.0, 5.4, "later"), (5.4, 6.0, "")],
+    })  # fmt: skip
+    assert [(t.speaker, t.text) for t in report.takes] == lines
+
+
+def test_an_empty_lines_tier_keeps_its_speaker_s_words(tmp_path):
+    """an#739 review: a lines tier holding only empty intervals is no lines
+    tier; its speaker is read by its words, not dropped."""
+    lines = [("carl", "Hi there."), ("ned", "Yo Carl."), ("carl", "Bye now.")]
+    root = _conversation(tmp_path, *lines)
+    report = _import_grid(tmp_path, root, {
+        "carl - utterances": [(0.0, 3.0, "")],
+        "carl - words": [(0.1, 0.3, "hi"), (0.3, 0.6, "there"), (2.0, 2.2, "bye"), (2.2, 2.5, "now")],
+        "ned - words": [(0.9, 1.2, "yo"), (1.2, 1.5, "carl")],
+    }, seconds=3.0, bursts=((0.1, 0.6), (0.9, 1.5), (2.0, 2.5)))  # fmt: skip
+    assert [(t.speaker, t.text) for t in report.takes] == lines
+
+
+def test_a_colon_in_a_speaker_s_own_lines_tier_is_text(tmp_path):
+    """an#739 review: in ``"carl - utterances"`` the tier names the speaker;
+    ``"Wait: what?"`` is carl's line, not one said by somebody called Wait."""
+    lines = [("carl", "Wait: what?"), ("ned", "Yo.")]
+    root = _conversation(tmp_path, *lines)
+    report = _import_grid(tmp_path, root, {
+        "carl - utterances": [(0.5, 1.5, "Wait: what?")],
+        "ned - utterances": [(2.0, 2.8, "Yo.")],
+    }, seconds=3.0, bursts=((0.5, 1.5), (2.0, 2.8)))  # fmt: skip
+    assert [(t.speaker, t.text) for t in report.takes] == lines
+
+
+def test_the_overlap_tolerance_is_a_keyword_of_the_import(tmp_path):
+    """an#739 review: 0.08 s of overlap is refused by default (0.05 s) and
+    let through by ``overlap_tolerance_s=0.1``."""
+    lines = [("carl", "Hi there."), ("ned", "Yo Carl.")]
+    tiers = {
+        "carl - utterances": [(0.5, 1.5, "Hi there.")],
+        "ned - utterances": [(1.42, 2.2, "Yo Carl.")],
+    }
+    root = _conversation(tmp_path, *lines)
+    with pytest.raises(RecordedVoicesError, match="fix the transcript's times"):
+        _import_grid(tmp_path, root, tiers, seconds=3.0)
+    report = _import_grid(tmp_path, root, tiers, seconds=3.0, overlap_tolerance_s=0.1)
+    assert [(t.speaker, t.text) for t in report.takes] == lines
+
+
+def test_overlapping_lines_a_transcriber_timed_say_what_can_be_done(tmp_path):
+    """an#739 review: a transcriber's times are no transcript to fix; the
+    refusal says to give a timed transcript or raise the tolerance."""
+    root = _project(tmp_path)
+    heard = [
+        TranscriptSegment(text="Hello there Ned", start=0.5, end=1.5, speaker="spk_0"),
+        TranscriptSegment(text="Fine thanks", start=1.2, end=3.3, speaker="spk_0"),
+    ]
+    with pytest.raises(RecordedVoicesError) as err:
+        import_recordings(
+            root,
+            _take(tmp_path),
+            license=LICENSE,
+            transcribe=lambda p: heard,
+            speakers="spk_0=carl",
+        )
+    message = str(err.value)
+    assert "the transcriber timed them" in message
+    assert "--overlap-tolerance" in message
+    assert "fix the transcript" not in message
