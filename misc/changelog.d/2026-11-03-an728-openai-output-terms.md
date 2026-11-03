@@ -1,0 +1,1 @@
+- `an credits` classes OpenAI image output (`provider="openai"`, `license="openai-output-owned"`, from `an art generate`) as `attribution`: the video must disclose AI generation (OpenAI's Terms of Use and Sharing & Publication Policy), with the remaining terms named; the class is the maintainer's call in an#742 (an#728).

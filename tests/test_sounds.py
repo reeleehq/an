@@ -327,3 +327,25 @@ def test_credits_name_stable_audios_revenue_cap(tmp_path):
               source={"provider": "stability", "license": "stability-community"})
     text = collect_credits(mall).format()
     assert "1,000,000" in text
+
+
+def test_openai_art_owes_an_ai_disclosure_and_its_terms_are_named_in_the_credits(tmp_path):
+    """an#728: what an OpenAI model made (``an art generate``'s plates and
+    parts, recorded ``openai-output-owned``) is classed ``attribution``: the
+    video must say it is AI-generated (an#742 holds the maintainer's call),
+    and the terms left are printed beside it in ``an credits``; another
+    provider's output is not OpenAI's to license. Through the props store,
+    where generated parts land."""
+    from an.ir.assets import AssetSource, license_class
+
+    made = {"provider": "openai", "license": "openai-output-owned",
+            "attribution": "Images generated with OpenAI gpt-image"}  # fmt: skip
+    assert license_class(AssetSource(**made)) == "attribution"
+    assert license_class(AssetSource(provider="fal", license="openai-output-owned")) == "unknown"
+    mall = build_project_mall(tmp_path, ensure=True)
+    mall["props"]["lamp"] = {"name": "lamp", "source": made}
+    report = collect_credits(mall)
+    text = report.format()
+    assert "must say it is AI-generated" in text and "Images generated with OpenAI" in text
+    assert [e.asset for e in report.owed] == ["props/lamp"]
+    assert report.publishable
