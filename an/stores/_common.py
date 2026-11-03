@@ -380,7 +380,15 @@ class JsonSidecarStore(MutableMapping):
         """Write the sidecar ``name`` of ``key`` atomically (an#688): a write
         killed mid-way keeps the previous file, and leaves a temp
         :meth:`interrupted_writes` lists. ``name`` may hold a folder
-        (``parts/arm.svg``), made as needed."""
+        (``parts/arm.svg``), made as needed.
+
+        >>> import tempfile
+        >>> with tempfile.TemporaryDirectory() as d:
+        ...     store = JsonSidecarStore(d)
+        ...     store.write_sidecar('x', 'parts/arm.svg', b'<svg/>')
+        ...     (Path(d) / 'x' / 'parts' / 'arm.svg').read_bytes()
+        b'<svg/>'
+        """
         path = self.sidecar_path(key, name)
         path.parent.mkdir(parents=True, exist_ok=True)
         atomic_write(path, data)

@@ -679,14 +679,18 @@ def _relative_to(path: Path, root: Path | None) -> str:
 
 
 def _remove_if_empty(folder: Path, *, keep: Path | None) -> None:
-    """Remove ``folder`` if empty and not ``keep`` (the store's own): the entry
-    folder of a first write that was killed is no key, only clutter (an#688)."""
-    if keep is None or folder == keep:
+    """Remove ``folder``, and each parent up to ``keep`` (the store's own,
+    never removed), while empty: the entry folder of a first write that was
+    killed is no key, only clutter (an#688). A first write that creates the
+    folder at that very instant fails and is written again."""
+    if keep is None or not folder.is_relative_to(keep):
         return
-    try:
-        folder.rmdir()
-    except OSError:
-        pass  # not empty, or gone: either way, nothing to do
+    while folder != keep:
+        try:
+            folder.rmdir()
+        except OSError:
+            return  # not empty, or gone: either way, nothing more to do
+        folder = folder.parent
 
 
 def _collect_orphans(

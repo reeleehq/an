@@ -1399,6 +1399,7 @@ def test_gc_deletes_the_temps_killed_sidecar_writes_left(tmp_path):
     temps = [
         root / "assets" / "sounds" / "door" / ".audio.wav.ab12cd34.tmp",
         root / "assets" / "characters" / "new" / f".{meta}.0011aabb.tmp",
+        root / "assets" / "props" / "lamp" / "parts" / ".arm.svg.22cc33dd.tmp",
     ]
     (root / "assets" / "sounds" / "door").mkdir(parents=True)
     (root / "assets" / "sounds" / "door" / "meta.json").write_text("{}")
@@ -1410,7 +1411,10 @@ def test_gc_deletes_the_temps_killed_sidecar_writes_left(tmp_path):
     assert set(report.deleted_temps) == {
         "sounds/door/.audio.wav.ab12cd34.tmp",
         f"characters/new/.{meta}.0011aabb.tmp",
+        "props/lamp/parts/.arm.svg.22cc33dd.tmp",
     }
     assert not any(t.exists() for t in temps)
     assert (root / "assets" / "sounds" / "door").is_dir()  # an entry: kept
     assert not (root / "assets" / "characters" / "new").exists()  # no entry: gone
+    assert not (root / "assets" / "props" / "lamp").exists()  # emptied up to the store
+    assert (root / "assets" / "props").is_dir()
