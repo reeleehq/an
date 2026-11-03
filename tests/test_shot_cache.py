@@ -1145,3 +1145,34 @@ def test_record_itself_refuses_frames_unless_asked(tmp_path):
     plan = ShotPlan("a", "cutout", key="k" * 64, inputs={}, needs_frames=True)
     engine.record(plan, _FakeCutoutRender()(None, shot, ctx), render_s=0.1)
     assert "k" * 64 in store and ("k" * 64) + ".frames" not in store
+
+
+def test_prepared_shots_are_the_render_s_compiled_documents_without_drawing(tmp_path):
+    """an#733: `an.render.prepared_shots` gives each shot as the render
+    prepares it, its stage document exactly as the render's engine compiles it
+    (`compiled_document` under the render's context), and its film start, so a
+    verifier reads a render's timelines without drawing a frame."""
+    import json
+
+    from an.render import PreparedShot, _prepare_shots, prepared_shots
+    from an.stage import cache_key
+
+    root = init(tmp_path / "p")
+    project = load(root)
+    project.mall["scenes"]["main"] = SceneIR(
+        meta=Meta(fps=_FPS, resolution=Resolution(width=160, height=120), step_hz=8.0),
+        timeline=[_shot("a", 1.0), _shot("b", 2.0)],
+    )
+    got = prepared_shots(root)
+    assert [type(p) for p in got] == [PreparedShot, PreparedShot]
+    assert [p.shot.id for p in got] == ["a", "b"]
+    assert [p.start for p in got] == [0.0, 1.0]
+    prep = _prepare_shots(
+        load(root), tmp_path / "work", fps=None, resolution=None, strict_assets=False,
+        supersample=1, pix_fmt=None, capture=None, step_hz=None,
+    )  # fmt: skip
+    for p, (shot, _, ctx) in zip(got, prep.shot_renderers):
+        expected = cache_key.compiled_document(shot, ctx)
+        assert json.dumps(p.document.model_dump(mode="json"), sort_keys=True) == json.dumps(
+            expected.model_dump(mode="json"), sort_keys=True
+        )

@@ -1,0 +1,1 @@
+- `an.render.prepared_shots(project, *, fps, resolution, supersample, measure)` compiles every shot exactly as `render` does, without drawing: `PreparedShot(shot, document, start)`, for verifiers that read a render's timelines (an#733).

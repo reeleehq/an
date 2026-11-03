@@ -20,7 +20,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterable
+from typing import Any, Iterable
 
 from an.adapters._base import RenderContext, RenderResult
 from an.assemble import (
@@ -1062,6 +1062,71 @@ class _PreparedShots:
     findings: list = field(default_factory=list)
     #: Cues timed by the picture, as resolved (an#317): ``info`` findings.
     sound_findings: list = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class PreparedShot:
+    """One shot as :func:`render` draws it (an#733): the shot as prepared
+    (settled length, burned captions), its compiled stage document (``None``
+    for a renderer that draws no stage, such as Manim), and where it starts
+    in the film, seconds."""
+
+    shot: Any
+    document: Any
+    start: float
+
+
+def prepared_shots(
+    project: Project | str | Path,
+    *,
+    fps: float | None = None,
+    resolution: tuple[int, int] | None = None,
+    supersample: int = 1,
+    measure: bool = False,
+) -> list[PreparedShot]:
+    """Every shot of ``project`` compiled exactly as :func:`render` compiles it,
+    without drawing (an#733): the preparation ``render`` and ``an probe`` share
+    (:func:`_prepare_shots`: settled lengths, the style pack, ``step_hz``,
+    default easing, burned captions, ``continue:`` shots, the closing
+    transition), then each stage shot's document as the render's engine
+    compiles it (:func:`an.stage.cache_key.compiled_document`). For a verifier
+    that reads a render's timelines (a mouth or body cadence measured apart).
+
+    ``fps``, ``resolution`` and ``supersample`` as ``an render`` takes them;
+    ``measure=True`` lets a clock-owning renderer (Manim) measure a shot whose
+    length is not stored, as a render does (else the stored measurement only).
+    """
+    import tempfile
+
+    from an.assemble import film_timeline
+    from an.stage.cache_key import compiled_document, draws_on_stage
+
+    if not isinstance(project, Project):
+        project = load(project)
+    with tempfile.TemporaryDirectory(prefix="an-prepared-") as work:
+        prep = _prepare_shots(
+            project,
+            Path(work),
+            fps=fps,
+            resolution=resolution,
+            strict_assets=False,
+            supersample=supersample,
+            pix_fmt=None,
+            capture=None,
+            step_hz=None,
+            measure=measure,
+        )
+        laid_out = film_timeline(
+            list(prep.shots), fps=prep.fps, closing=prep.scene.meta.closing_transition
+        )
+        return [
+            PreparedShot(
+                shot=shot,
+                document=compiled_document(shot, ctx) if draws_on_stage(r) else None,
+                start=laid_out.start_seconds(i),
+            )
+            for i, (shot, r, ctx) in enumerate(prep.shot_renderers)
+        ]
 
 
 def _prepare_shots(

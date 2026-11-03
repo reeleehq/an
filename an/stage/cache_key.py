@@ -99,6 +99,22 @@ def _render_module():
     return render
 
 
+#: The engine name of the core's stage (``StageEngine``): a shot it draws has a
+#: compiled document an can read (positions, timelines).
+STAGE_ENGINE_NAME: str = "stage"
+
+
+def draws_on_stage(renderer: Any) -> bool:
+    """Whether ``renderer`` draws its shots on the core's stage, so a shot of
+    it has a :func:`compiled_document` (a Manim shot does not).
+
+    >>> from types import SimpleNamespace as NS
+    >>> draws_on_stage(NS(engine=NS(name="stage"))), draws_on_stage(NS(name="manim"))
+    (True, False)
+    """
+    return getattr(getattr(renderer, "engine", None), "name", None) == STAGE_ENGINE_NAME
+
+
 def compiled_document(shot: Any, ctx: Any) -> Any:
     """The document the stage engine (``StageEngine.open``) will compile for ``shot`` under ``ctx``.
 
