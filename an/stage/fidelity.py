@@ -106,13 +106,13 @@ class PartFidelity:
 
 def _texture_file(root: Path, src: str) -> Path | None:
     """``root/src`` when ``src`` (``<store>/<ref>/<rel>``) stays inside its
-    asset's folder (:func:`an.stage.rig._asset_file`), else ``None``."""
-    from an.stage.rig import _asset_file
+    asset's folder (:func:`an.stage.rig.asset_file`), else ``None``."""
+    from an.stage.rig import asset_file
 
     store, sep, rest = src.partition("/")
     if not sep or not store:
         return None
-    return _asset_file(root / store, rest)
+    return asset_file(root / store, rest)
 
 
 def _walk(node: Any, prefix: str = "") -> Iterator[tuple[str, Any]]:

@@ -1156,13 +1156,13 @@ def art_src(ref: str, rel_path: str, *, art_prefix: str = CHARACTER_ART_PREFIX) 
     return f"{art_prefix}{ref}/{rel_path}"
 
 
-def _asset_file(root: str | Path, ref_and_rel: str) -> Path | None:
+def asset_file(root: str | Path, ref_and_rel: str) -> Path | None:
     """``<store root>/<ref>/<rel>`` when ``rel`` stays inside the asset ``ref``'s
     own folder (:func:`an.stores._common.inside_folder`), else ``None``.
 
-    >>> _asset_file("/store", "maya/parts/head.svg").as_posix()
+    >>> asset_file("/store", "maya/parts/head.svg").as_posix()
     '/store/maya/parts/head.svg'
-    >>> _asset_file("/store", "maya/../other/head.svg") is None, _asset_file("/store", "maya") is None
+    >>> asset_file("/store", "maya/../other/head.svg") is None, asset_file("/store", "maya") is None
     (True, True)
     """
     ref, sep, rel = ref_and_rel.partition("/")
@@ -1218,7 +1218,7 @@ def part_probe(
         # A `path` that leaves the ASSET's folder (`..`, absolute, a link to a
         # sibling asset) is not art the stage may read: absent, never followed
         # (an#483). `src` is `<prefix><ref>/<rel>`; the folder is the ref's.
-        path = _asset_file(base, src[len(prefix) :])
+        path = asset_file(base, src[len(prefix) :])
         if path is None or not path.is_file():
             return False, None
         try:
@@ -1250,7 +1250,7 @@ def raster_digest(
     def digest(src: str) -> str | None:
         if root is None or not is_raster(src) or not src.startswith(art_prefix):
             return None
-        path = _asset_file(root, src[len(art_prefix) :])
+        path = asset_file(root, src[len(art_prefix) :])
         if path is None:
             return None  # outside the asset's folder: the probe calls it absent
         try:
@@ -2094,3 +2094,7 @@ def _swap_key_geometry(
                 "y": dy,
             }
     return out
+
+
+#: The private spellings genre packages imported before they were public (API level < 16); removed by an#747.
+_asset_file = asset_file

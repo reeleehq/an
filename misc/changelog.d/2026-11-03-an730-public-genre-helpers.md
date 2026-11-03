@@ -1,0 +1,1 @@
+- The private helpers cutan imports are public at genre API level 16: `an.motion`'s `alternating`, `require_positive`, `rest_value`, `settled`, `side_sign`, `through`, `tweens_of`; `an.ir.validate.built_node_paths`, `rig_document`, `text_block_ids`; `an.stage.rig.asset_file`; the private spellings stay as aliases until an#747 (an#730).
