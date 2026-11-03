@@ -1940,13 +1940,19 @@ def _with_clip_words(tts: TTSProvider, clip: AudioClip) -> AudioClip:
     audio store aligns from the same words and phones as a fresh one.
     """
     hook = getattr(tts, "timings_for_clip", None)
-    missing = [f for f in ("words", "phones", "phone_alphabet") if getattr(clip, f) is None]
+    missing = [
+        f for f in ("words", "phones", "phone_alphabet") if getattr(clip, f) is None
+    ]
     if hook is None or not missing:
         return clip
     found = hook(clip)
     for field in ("words", "phones"):
         if field in missing and found.get(field):
-            setattr(clip, field, [(str(t[0]), float(t[1]), float(t[2])) for t in found[field]])
+            setattr(
+                clip,
+                field,
+                [(str(t[0]), float(t[1]), float(t[2])) for t in found[field]],
+            )
     if "phone_alphabet" in missing and clip.phones and found.get("phones"):
         clip.phone_alphabet = found.get("phone_alphabet")
     return clip
