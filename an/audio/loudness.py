@@ -427,10 +427,6 @@ def voice_loudness_offset(mall: Mapping[str, Any], voice: str) -> float:
     return float(raw)
 
 
-#: The name genre packages imported before it was public (API level < 13); removed by an#709.
-_offset = voice_loudness_offset
-
-
 def _source(line: Any) -> str:
     """The synthesized audio a line was leveled from (its own when unleveled)."""
     return (line.leveled or {}).get("source") or line.audio_ref

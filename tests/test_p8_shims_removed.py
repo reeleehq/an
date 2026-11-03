@@ -88,3 +88,23 @@ def test_a_genre_that_imports_a_removed_path_is_told_to_upgrade(tmp_path, monkey
     ep = EntryPoint("old", "old_genre_pkg:GENRE", genres.ENTRY_POINT_GROUP)
     with pytest.raises(genres.GenreError, match="upgrade the genre package"):
         genres._resolve(ep)
+
+
+def test_a_genre_that_imports_a_removed_name_is_told_to_upgrade(tmp_path, monkeypatch):
+    """an#709: a removed NAME of an `an` module (a private alias an old cutan
+    imported) raises a plain ImportError, not ModuleNotFoundError; it gets the
+    same upgrade hint."""
+    import sys
+    from importlib.metadata import EntryPoint
+
+    from an import genres
+
+    (tmp_path / "older_genre_pkg.py").write_text(
+        "from an.ir.validate import _rig_scope  # removed by an#709\nGENRE = None\n",
+        encoding="utf-8",
+    )
+    monkeypatch.syspath_prepend(str(tmp_path))
+    sys.modules.pop("older_genre_pkg", None)
+    ep = EntryPoint("older", "older_genre_pkg:GENRE", genres.ENTRY_POINT_GROUP)
+    with pytest.raises(genres.GenreError, match="upgrade the genre package"):
+        genres._resolve(ep)
