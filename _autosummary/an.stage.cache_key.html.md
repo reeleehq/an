@@ -106,9 +106,10 @@ A byte sequence that marks an SVG part drawing text with the MACHINE’s fonts.
 
 The document the stage engine (`StageEngine.open`) will compile for `shot` under `ctx`.
 
-The SAME call, argument for argument — `tests/test_shot_cache.py` pins the
-two against each other, so a knob added to one and not the other fails
-there rather than in a stale render.
+The SAME call, argument for argument: both build their keywords with
+`an.stage.render.context_compile_args` (an#713), and
+`tests/test_shot_cache.py` pins the two against each other, so a knob
+added to one and not the other fails there rather than in a stale render.
 
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)

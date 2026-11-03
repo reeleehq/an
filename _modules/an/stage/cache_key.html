@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=672f6ffa"></script>
+    <script src="../../../_static/documentation_options.js?v=1cb5c24b"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.365" />
+  <meta name="docsearch:version" content="0.1.368" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -818,24 +818,14 @@ window.runMermaid = runMermaid;</script>
 <span class="k">def</span><span class="w"> </span><span class="nf">compiled_document</span><span class="p">(</span><span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""The document the stage engine (``StageEngine.open``) will compile for ``shot`` under ``ctx``.</span>
 
-<span class="sd">    The SAME call, argument for argument — `tests/test_shot_cache.py` pins the</span>
-<span class="sd">    two against each other, so a knob added to one and not the other fails</span>
-<span class="sd">    there rather than in a stale render.</span>
+<span class="sd">    The SAME call, argument for argument: both build their keywords with</span>
+<span class="sd">    ``an.stage.render.context_compile_args`` (an#713), and</span>
+<span class="sd">    `tests/test_shot_cache.py` pins the two against each other, so a knob</span>
+<span class="sd">    added to one and not the other fails there rather than in a stale render.</span>
 <span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.compile</span><span class="w"> </span><span class="kn">import</span> <span class="n">compile_shot</span>
 
-    <span class="n">r</span> <span class="o">=</span> <span class="n">_render_module</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">compile_shot</span><span class="p">(</span>
-        <span class="n">shot</span><span class="p">,</span>
-        <span class="n">mall</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span>
-        <span class="n">fps</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">fps</span><span class="p">)),</span>
-        <span class="n">width</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">resolution</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-        <span class="n">height</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">resolution</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
-        <span class="n">strict_assets</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">strict_assets</span><span class="p">,</span>
-        <span class="n">step_hz</span><span class="o">=</span><span class="n">r</span><span class="o">.</span><span class="n">effective_step_hz</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="p">),</span>
-        <span class="n">style_pack</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">style_pack</span><span class="p">,</span>
-        <span class="n">default_easing</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">default_easing</span><span class="p">,</span>
-    <span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">compile_shot</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="o">**</span><span class="n">_render_module</span><span class="p">()</span><span class="o">.</span><span class="n">context_compile_args</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="p">))</span></div>
 
 
 

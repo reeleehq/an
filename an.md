@@ -1,4 +1,4 @@
-> built 2026-11-03 13:31 UTC from d77e25e (main) · an 0.1.365. Details: build_info.json
+> built 2026-11-03 13:43 UTC from 1ecaef1 (main) · an 0.1.368. Details: build_info.json
 
 # index.html.md
 
@@ -35627,9 +35627,10 @@ A byte sequence that marks an SVG part drawing text with the MACHINE’s fonts.
 
 The document the stage engine (`StageEngine.open`) will compile for `shot` under `ctx`.
 
-The SAME call, argument for argument — `tests/test_shot_cache.py` pins the
-two against each other, so a knob added to one and not the other fails
-there rather than in a stale render.
+The SAME call, argument for argument: both build their keywords with
+`an.stage.render.context_compile_args` (an#713), and
+`tests/test_shot_cache.py` pins the two against each other, so a knob
+added to one and not the other fails there rather than in a stale render.
 
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
@@ -36029,51 +36030,54 @@ mall). It reads only.
 
 ### Module Attributes
 
-| [`RUNTIME_APPLIED_PROPERTIES`](_autosummary/an.stage.compile.html.md#an.stage.compile.RUNTIME_APPLIED_PROPERTIES)   | Every property name the JS runtime's `applyProperty` STATIC switch implements — exactly the numeric transform vocabulary (the rest-value SSOT above).                                                                     |
-|-------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`DFLT_TARGET_SUGGESTIONS`](_autosummary/an.stage.compile.html.md#an.stage.compile.DFLT_TARGET_SUGGESTIONS)      | How many "did you mean" paths an unknown-target message offers.                                                                                                                                                           |
-| [`CAMERA_NODE`](_autosummary/an.stage.compile.html.md#an.stage.compile.CAMERA_NODE)                  | indexed by the runtime, absent from the tree.                                                                                                                                                                             |
-| [`AFTER_BANDS_PRODUCT`](_autosummary/an.stage.compile.html.md#an.stage.compile.AFTER_BANDS_PRODUCT)          | the [`AfterBand`](_autosummary/an.stage.compile.html.md#an.stage.compile.AfterBand) wrappers the scene pass built.                                                                                                                             |
-| [`CAMERA_KEYS_PRODUCT`](_autosummary/an.stage.compile.html.md#an.stage.compile.CAMERA_KEYS_PRODUCT)          | The product key under which the follow pass (an#445) leaves the camera keys it resolved from the compiled motion; the camera and parallax passes read them there instead of `camera_keys(shot)`.                          |
-| [`BOIL_SET`](_autosummary/an.stage.compile.html.md#an.stage.compile.BOIL_SET)                     | the runtime's path registers it as a draw set, `"0"` the static wobble's drawing.                                                                                                                                         |
-| [`STAGE_COMPILE_PASSES`](_autosummary/an.stage.compile.html.md#an.stage.compile.STAGE_COMPILE_PASSES)         | The STAGE's own compile passes, in order.                                                                                                                                                                                 |
-| [`RUNTIME_FIELD_KINDS`](_autosummary/an.stage.compile.html.md#an.stage.compile.RUNTIME_FIELD_KINDS)          | The field kinds `runtime.js` implements (its `FIELD_KINDS` table; a test pins the two).                                                                                                                                   |
-| [`BAND_INFIX`](_autosummary/an.stage.compile.html.md#an.stage.compile.BAND_INFIX)                   | The infix of a container holding a later band of an environment's planes (an#344): `<env>__band_<k>`, `scope=<env>`.                                                                                                      |
-| [`AFTER_INFIX`](_autosummary/an.stage.compile.html.md#an.stage.compile.AFTER_INFIX)                  | The infix of a wrapper carrying a plane's parallax for the entities placed right after it (an#344): `<env>__after_<k>`, `scope=""`.                                                                                       |
-| [`SYNTHETIC_MARK`](_autosummary/an.stage.compile.html.md#an.stage.compile.SYNTHETIC_MARK)               | What a synthetic node's name may contain and an entity id may not (an#344).                                                                                                                                               |
-| [`STAGE_SCENE_BUILDERS`](_autosummary/an.stage.compile.html.md#an.stage.compile.STAGE_SCENE_BUILDERS)         | phase 0 the backdrop, phase 1 the cast.                                                                                                                                                                                   |
-| [`ENVIRONMENT_ART_PREFIX`](_autosummary/an.stage.compile.html.md#an.stage.compile.ENVIRONMENT_ART_PREFIX)       | The `assets.textures` `src` prefix an environment plate is addressed under.                                                                                                                                               |
-| [`PLANE_FILL_SPAN`](_autosummary/an.stage.compile.html.md#an.stage.compile.PLANE_FILL_SPAN)              | A `fill` plane with no declared size covers the canvas at any camera scale — defined beside the schema (`an.stage.environments.PLANE_FILL_SPAN`) so the IR layer's framing check reads the same number, re-exported here. |
-| [`FOREGROUND_SUFFIX`](_autosummary/an.stage.compile.html.md#an.stage.compile.FOREGROUND_SUFFIX)            | Suffix for the container holding an environment's FOREGROUND planes.                                                                                                                                                      |
-| [`STAGE_NODE_SPACE`](_autosummary/an.stage.compile.html.md#an.stage.compile.STAGE_NODE_SPACE)             | The property space every compiled node lives in ([`an.timing.spaces`](_autosummary/an.timing.spaces.html.md#module-an.timing.spaces)).                                                                              |
-| [`PLANE_EDGE_ON_MARGIN`](_autosummary/an.stage.compile.html.md#an.stage.compile.PLANE_EDGE_ON_MARGIN)         | at ±π/2 the runtime draws nothing, and a value past it is almost always DEGREES typed where radians were meant (an#314 review).                                                                                           |
+| [`PackResolver`](_autosummary/an.stage.compile.html.md#an.stage.compile.PackResolver)               | `(meta, styles store) -> StylePack | None`.                                                                                                                                                                               |
+|-----------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`RUNTIME_APPLIED_PROPERTIES`](_autosummary/an.stage.compile.html.md#an.stage.compile.RUNTIME_APPLIED_PROPERTIES) | Every property name the JS runtime's `applyProperty` STATIC switch implements — exactly the numeric transform vocabulary (the rest-value SSOT above).                                                                     |
+| [`DFLT_TARGET_SUGGESTIONS`](_autosummary/an.stage.compile.html.md#an.stage.compile.DFLT_TARGET_SUGGESTIONS)    | How many "did you mean" paths an unknown-target message offers.                                                                                                                                                           |
+| [`CAMERA_NODE`](_autosummary/an.stage.compile.html.md#an.stage.compile.CAMERA_NODE)                | indexed by the runtime, absent from the tree.                                                                                                                                                                             |
+| [`AFTER_BANDS_PRODUCT`](_autosummary/an.stage.compile.html.md#an.stage.compile.AFTER_BANDS_PRODUCT)        | the [`AfterBand`](_autosummary/an.stage.compile.html.md#an.stage.compile.AfterBand) wrappers the scene pass built.                                                                                                                             |
+| [`CAMERA_KEYS_PRODUCT`](_autosummary/an.stage.compile.html.md#an.stage.compile.CAMERA_KEYS_PRODUCT)        | The product key under which the follow pass (an#445) leaves the camera keys it resolved from the compiled motion; the camera and parallax passes read them there instead of `camera_keys(shot)`.                          |
+| [`BOIL_SET`](_autosummary/an.stage.compile.html.md#an.stage.compile.BOIL_SET)                   | the runtime's path registers it as a draw set, `"0"` the static wobble's drawing.                                                                                                                                         |
+| [`STAGE_COMPILE_PASSES`](_autosummary/an.stage.compile.html.md#an.stage.compile.STAGE_COMPILE_PASSES)       | The STAGE's own compile passes, in order.                                                                                                                                                                                 |
+| [`RUNTIME_FIELD_KINDS`](_autosummary/an.stage.compile.html.md#an.stage.compile.RUNTIME_FIELD_KINDS)        | The field kinds `runtime.js` implements (its `FIELD_KINDS` table; a test pins the two).                                                                                                                                   |
+| [`BAND_INFIX`](_autosummary/an.stage.compile.html.md#an.stage.compile.BAND_INFIX)                 | The infix of a container holding a later band of an environment's planes (an#344): `<env>__band_<k>`, `scope=<env>`.                                                                                                      |
+| [`AFTER_INFIX`](_autosummary/an.stage.compile.html.md#an.stage.compile.AFTER_INFIX)                | The infix of a wrapper carrying a plane's parallax for the entities placed right after it (an#344): `<env>__after_<k>`, `scope=""`.                                                                                       |
+| [`SYNTHETIC_MARK`](_autosummary/an.stage.compile.html.md#an.stage.compile.SYNTHETIC_MARK)             | What a synthetic node's name may contain and an entity id may not (an#344).                                                                                                                                               |
+| [`STAGE_SCENE_BUILDERS`](_autosummary/an.stage.compile.html.md#an.stage.compile.STAGE_SCENE_BUILDERS)       | phase 0 the backdrop, phase 1 the cast.                                                                                                                                                                                   |
+| [`ENVIRONMENT_ART_PREFIX`](_autosummary/an.stage.compile.html.md#an.stage.compile.ENVIRONMENT_ART_PREFIX)     | The `assets.textures` `src` prefix an environment plate is addressed under.                                                                                                                                               |
+| [`PLANE_FILL_SPAN`](_autosummary/an.stage.compile.html.md#an.stage.compile.PLANE_FILL_SPAN)            | A `fill` plane with no declared size covers the canvas at any camera scale — defined beside the schema (`an.stage.environments.PLANE_FILL_SPAN`) so the IR layer's framing check reads the same number, re-exported here. |
+| [`FOREGROUND_SUFFIX`](_autosummary/an.stage.compile.html.md#an.stage.compile.FOREGROUND_SUFFIX)          | Suffix for the container holding an environment's FOREGROUND planes.                                                                                                                                                      |
+| [`STAGE_NODE_SPACE`](_autosummary/an.stage.compile.html.md#an.stage.compile.STAGE_NODE_SPACE)           | The property space every compiled node lives in ([`an.timing.spaces`](_autosummary/an.timing.spaces.html.md#module-an.timing.spaces)).                                                                              |
+| [`PLANE_EDGE_ON_MARGIN`](_autosummary/an.stage.compile.html.md#an.stage.compile.PLANE_EDGE_ON_MARGIN)       | at ±π/2 the runtime draws nothing, and a value past it is almost always DEGREES typed where radians were meant (an#314 review).                                                                                           |
 
 ### Functions
 
-| [`after_problems`](_autosummary/an.stage.compile.html.md#an.stage.compile.after_problems)(shot, mall, \*[, planes_known])   | `[(entity index, why)]` for every `stage.after` the compiler would refuse (an#344): an anchor the shot does not have, the entity itself, a cycle.                                                                                                                                                                                                 |
-|---------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`boil_keys`](_autosummary/an.stage.compile.html.md#an.stage.compile.boil_keys)(hz, drawings, duration)                | `(time, drawing)` of a boil: drawing `k mod drawings` from `k / hz`, every step of the shot (an#443).                                                                                                                                                                                                                                             |
-| [`camera_follow_keys`](_autosummary/an.stage.compile.html.md#an.stage.compile.camera_follow_keys)(state)                        | The keys of `state.shot`'s follow camera, one per frame (an#445).                                                                                                                                                                                                                                                                                 |
-| [`camera_keys`](_autosummary/an.stage.compile.html.md#an.stage.compile.camera_keys)(shot, \*, width, height)             | [`an.ir.camera.camera_keys()`](_autosummary/an.ir.camera.html.md#an.ir.camera.camera_keys), with its refusal typed for this adapter.                                                                                                                                                                                                    |
-| [`compile_as_rendered`](_autosummary/an.stage.compile.html.md#an.stage.compile.compile_as_rendered)(shot, scene, mall, \*, fps)  | `shot` compiled as `an render` compiles it: `(document, None)`, `(None, the compile error)`, or `(None, None)` for a shot the stage does not render (an#636, moved from [`an.verify.constraints`](_autosummary/an.verify.constraints.html.md#module-an.verify.constraints)).                                                                     |
-| [`compile_passes_for_stage`](_autosummary/an.stage.compile.html.md#an.stage.compile.compile_passes_for_stage)()                       | The stage's passes and every registered one, in run order (stable by name).                                                                                                                                                                                                                                                                       |
-| [`compile_shot`](_autosummary/an.stage.compile.html.md#an.stage.compile.compile_shot)(shot[, mall, fps, width, ...])      | Compile a single cutout-style `Shot` to its JS-runtime JSON form.                                                                                                                                                                                                                                                                                 |
-| [`duplicate_paths`](_autosummary/an.stage.compile.html.md#an.stage.compile.duplicate_paths)(root[, overlay])                 | Paths the runtime would index twice (its `nodeIndex` is later-wins, so the first node would silently stop answering).                                                                                                                                                                                                                             |
-| [`entity_spaces_of`](_autosummary/an.stage.compile.html.md#an.stage.compile.entity_spaces_of)(shot)                           | `{entity id: space}` for each entity whose kind declares a space other than the kernel default -- what the compiled document records so the default evaluator agrees with validate and compile (an#245).                                                                                                                                          |
-| [`foreground_node_name`](_autosummary/an.stage.compile.html.md#an.stage.compile.foreground_node_name)(entity_id)                  | The node name an environment's foreground planes live under.                                                                                                                                                                                                                                                                                      |
-| [`node_path_suggestions`](_autosummary/an.stage.compile.html.md#an.stage.compile.node_path_suggestions)(target, paths, \*[, n])    | The built node paths a mistyped `target` most plausibly meant.                                                                                                                                                                                                                                                                                    |
-| [`note_raster_rig`](_autosummary/an.stage.compile.html.md#an.stage.compile.note_raster_rig)(entity, desc_data, pack, raster) | Record a rig with raster parts that a colour-setting pack is applied to.                                                                                                                                                                                                                                                                          |
-| [`paint_orders`](_autosummary/an.stage.compile.html.md#an.stage.compile.paint_orders)(keys)                               | The order (back to front) of the entities in `keys` (`{id: [(time, key)]}`, each key in force from its time on, a smaller key painted first) at each time any key changes.                                                                                                                                                                        |
-| [`parse_tint`](_autosummary/an.stage.compile.html.md#an.stage.compile.parse_tint)(value, \*, where)                     | A `#rrggbb` string to three multipliers in 0..1.                                                                                                                                                                                                                                                                                                  |
-| [`plane_parents`](_autosummary/an.stage.compile.html.md#an.stage.compile.plane_parents)(env, entity_id)                    | `{plane name: the node path its channels must target}`.                                                                                                                                                                                                                                                                                           |
-| [`retire_front_spelling`](_autosummary/an.stage.compile.html.md#an.stage.compile.retire_front_spelling)(shot)                      | `shot` with every `<env>__front/<plane>` target spelled `<env>/<plane>`, and the `(old, new)` pairs rewritten.                                                                                                                                                                                                                                    |
-| [`scene_builders`](_autosummary/an.stage.compile.html.md#an.stage.compile.scene_builders)()                                 | `{entity kind: builder}`: the stage's, and every registered one.                                                                                                                                                                                                                                                                                  |
-| [`space_definitions`](_autosummary/an.stage.compile.html.md#an.stage.compile.space_definitions)(entity_spaces)                 | `{space name: definition}` for every space `entity_spaces` names -- what the compiled document embeds as `meta.spaces` so `runtime.js` evaluates each declared entity in its space (an#287).                                                                                                                                                      |
-| [`stage_replacements`](_autosummary/an.stage.compile.html.md#an.stage.compile.stage_replacements)()                             | `{stage pass or builder: the genre replacing it}` -- recorded in the compiled document's `meta.extensions` when non-empty.                                                                                                                                                                                                                        |
-| [`step_times`](_autosummary/an.stage.compile.html.md#an.stage.compile.step_times)(start, duration, step_hz)             | Clip-local times at which a stepped tween updates its pose (an#89).                                                                                                                                                                                                                                                                               |
-| [`style_pack_for`](_autosummary/an.stage.compile.html.md#an.stage.compile.style_pack_for)(scene_meta, styles_store)         | The `StylePack` a scene declares, or `None` (an#112).                                                                                                                                                                                                                                                                                             |
-| [`unknown_target_message`](_autosummary/an.stage.compile.html.md#an.stage.compile.unknown_target_message)(target, paths)            | One sentence saying `target` is not a built node, with suggestions.                                                                                                                                                                                                                                                                               |
-| [`z_index_keys`](_autosummary/an.stage.compile.html.md#an.stage.compile.z_index_keys)(names, keys)                        | Each keyed child's `z_index` from each time it changes (an#634), in one container whose children are `names`: within each run of keyed children (`_keyed_runs()`), at every time a key changes, they take the run's places in key order ([`paint_orders()`](_autosummary/an.stage.compile.html.md#an.stage.compile.paint_orders)); every other child keeps its own place. |
+| [`after_problems`](_autosummary/an.stage.compile.html.md#an.stage.compile.after_problems)(shot, mall, \*[, planes_known])     | `[(entity index, why)]` for every `stage.after` the compiler would refuse (an#344): an anchor the shot does not have, the entity itself, a cycle.                                                                                                                                                                                                 |
+|-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`boil_keys`](_autosummary/an.stage.compile.html.md#an.stage.compile.boil_keys)(hz, drawings, duration)                  | `(time, drawing)` of a boil: drawing `k mod drawings` from `k / hz`, every step of the shot (an#443).                                                                                                                                                                                                                                             |
+| [`camera_follow_keys`](_autosummary/an.stage.compile.html.md#an.stage.compile.camera_follow_keys)(state)                          | The keys of `state.shot`'s follow camera, one per frame (an#445).                                                                                                                                                                                                                                                                                 |
+| [`camera_keys`](_autosummary/an.stage.compile.html.md#an.stage.compile.camera_keys)(shot, \*, width, height)               | [`an.ir.camera.camera_keys()`](_autosummary/an.ir.camera.html.md#an.ir.camera.camera_keys), with its refusal typed for this adapter.                                                                                                                                                                                                    |
+| [`compile_args`](_autosummary/an.stage.compile.html.md#an.stage.compile.compile_args)(shot, \*, mall, fps, width, height)   | [`compile_shot()`](_autosummary/an.stage.compile.html.md#an.stage.compile.compile_shot)'s keywords for `shot` from settled values: the ONE place they are spelled out (an#713).                                                                                                                                                                                           |
+| [`compile_as_rendered`](_autosummary/an.stage.compile.html.md#an.stage.compile.compile_as_rendered)(shot, scene, mall, \*, fps)    | `shot` compiled as `an render` compiles it: `(document, None)`, `(None, the compile error)`, or `(None, None)` for a shot the stage does not render (an#636, moved from [`an.verify.constraints`](_autosummary/an.verify.constraints.html.md#module-an.verify.constraints)).                                                                     |
+| [`compile_passes_for_stage`](_autosummary/an.stage.compile.html.md#an.stage.compile.compile_passes_for_stage)()                         | The stage's passes and every registered one, in run order (stable by name).                                                                                                                                                                                                                                                                       |
+| [`compile_shot`](_autosummary/an.stage.compile.html.md#an.stage.compile.compile_shot)(shot[, mall, fps, width, ...])        | Compile a single cutout-style `Shot` to its JS-runtime JSON form.                                                                                                                                                                                                                                                                                 |
+| [`duplicate_paths`](_autosummary/an.stage.compile.html.md#an.stage.compile.duplicate_paths)(root[, overlay])                   | Paths the runtime would index twice (its `nodeIndex` is later-wins, so the first node would silently stop answering).                                                                                                                                                                                                                             |
+| [`entity_spaces_of`](_autosummary/an.stage.compile.html.md#an.stage.compile.entity_spaces_of)(shot)                             | `{entity id: space}` for each entity whose kind declares a space other than the kernel default -- what the compiled document records so the default evaluator agrees with validate and compile (an#245).                                                                                                                                          |
+| [`foreground_node_name`](_autosummary/an.stage.compile.html.md#an.stage.compile.foreground_node_name)(entity_id)                    | The node name an environment's foreground planes live under.                                                                                                                                                                                                                                                                                      |
+| [`node_path_suggestions`](_autosummary/an.stage.compile.html.md#an.stage.compile.node_path_suggestions)(target, paths, \*[, n])      | The built node paths a mistyped `target` most plausibly meant.                                                                                                                                                                                                                                                                                    |
+| [`note_raster_rig`](_autosummary/an.stage.compile.html.md#an.stage.compile.note_raster_rig)(entity, desc_data, pack, raster)   | Record a rig with raster parts that a colour-setting pack is applied to.                                                                                                                                                                                                                                                                          |
+| [`paint_orders`](_autosummary/an.stage.compile.html.md#an.stage.compile.paint_orders)(keys)                                 | The order (back to front) of the entities in `keys` (`{id: [(time, key)]}`, each key in force from its time on, a smaller key painted first) at each time any key changes.                                                                                                                                                                        |
+| [`parse_tint`](_autosummary/an.stage.compile.html.md#an.stage.compile.parse_tint)(value, \*, where)                       | A `#rrggbb` string to three multipliers in 0..1.                                                                                                                                                                                                                                                                                                  |
+| [`plane_parents`](_autosummary/an.stage.compile.html.md#an.stage.compile.plane_parents)(env, entity_id)                      | `{plane name: the node path its channels must target}`.                                                                                                                                                                                                                                                                                           |
+| [`rendered_compile_args`](_autosummary/an.stage.compile.html.md#an.stage.compile.rendered_compile_args)(shot, meta, mall, \*[, ...]) | [`compile_shot()`](_autosummary/an.stage.compile.html.md#an.stage.compile.compile_shot)'s keywords for `shot` as `an render` compiles it under the scene's `meta` and no overrides (an#713): for every caller outside the render path (validate, the preview, the orchestrator's check, continuity, the bench's contract).                                                |
+| [`retire_front_spelling`](_autosummary/an.stage.compile.html.md#an.stage.compile.retire_front_spelling)(shot)                        | `shot` with every `<env>__front/<plane>` target spelled `<env>/<plane>`, and the `(old, new)` pairs rewritten.                                                                                                                                                                                                                                    |
+| [`scene_builders`](_autosummary/an.stage.compile.html.md#an.stage.compile.scene_builders)()                                   | `{entity kind: builder}`: the stage's, and every registered one.                                                                                                                                                                                                                                                                                  |
+| [`space_definitions`](_autosummary/an.stage.compile.html.md#an.stage.compile.space_definitions)(entity_spaces)                   | `{space name: definition}` for every space `entity_spaces` names -- what the compiled document embeds as `meta.spaces` so `runtime.js` evaluates each declared entity in its space (an#287).                                                                                                                                                      |
+| [`stage_replacements`](_autosummary/an.stage.compile.html.md#an.stage.compile.stage_replacements)()                               | `{stage pass or builder: the genre replacing it}` -- recorded in the compiled document's `meta.extensions` when non-empty.                                                                                                                                                                                                                        |
+| [`step_times`](_autosummary/an.stage.compile.html.md#an.stage.compile.step_times)(start, duration, step_hz)               | Clip-local times at which a stepped tween updates its pose (an#89).                                                                                                                                                                                                                                                                               |
+| [`style_pack_for`](_autosummary/an.stage.compile.html.md#an.stage.compile.style_pack_for)(scene_meta, styles_store)           | The `StylePack` a scene declares, or `None` (an#112).                                                                                                                                                                                                                                                                                             |
+| [`unknown_target_message`](_autosummary/an.stage.compile.html.md#an.stage.compile.unknown_target_message)(target, paths)              | One sentence saying `target` is not a built node, with suggestions.                                                                                                                                                                                                                                                                               |
+| [`z_index_keys`](_autosummary/an.stage.compile.html.md#an.stage.compile.z_index_keys)(names, keys)                          | Each keyed child's `z_index` from each time it changes (an#634), in one container whose children are `names`: within each run of keyed children (`_keyed_runs()`), at every time a key changes, they take the run's places in key order ([`paint_orders()`](_autosummary/an.stage.compile.html.md#an.stage.compile.paint_orders)); every other child keeps its own place. |
 
 ### Classes
 
@@ -36260,6 +36264,16 @@ A `fill` plane with no declared size covers the canvas at any camera scale
 — defined beside the schema (`an.stage.environments.PLANE_FILL_SPAN`) so the IR
 layer’s framing check reads the same number, re-exported here.
 
+### an.stage.compile.PackResolver
+
+`(meta, styles
+store) -> StylePack | None`.
+
+* **Type:**
+  How [`rendered_compile_args()`](_autosummary/an.stage.compile.html.md#an.stage.compile.rendered_compile_args) finds a scene’s pack
+
+alias of `Callable`[[[`Meta`](_autosummary/an.ir.schema.html.md#an.ir.schema.Meta), [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)], `StylePack | None`]
+
 ### an.stage.compile.RUNTIME_APPLIED_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'alpha', 'dash_offset', 'perspective', 'pivot_x', 'pivot_y', 'plane_fade_end', 'plane_fade_start', 'rotation', 'rotation_rad', 'rotation_x', 'scale_x', 'scale_y', 'skew_x', 'skew_y', 'tint_b', 'tint_g', 'tint_r', 'trim_end', 'trim_start', 'x', 'y'})*
 
 Every property name the JS runtime’s `applyProperty` STATIC switch
@@ -36364,6 +36378,27 @@ own boundary contract: every failure out of `compile_shot` is one type.
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`CameraKey`](_autosummary/an.ir.schema.html.md#an.ir.schema.CameraKey)]
+
+### an.stage.compile.compile_args(shot, , mall, fps, width, height, strict_assets=False, scene_step_hz=None, style_pack=None, default_easing=None)
+
+[`compile_shot()`](_autosummary/an.stage.compile.html.md#an.stage.compile.compile_shot)’s keywords for `shot` from settled values: the
+ONE place they are spelled out (an#713). The render path calls it with its
+`RenderContext`’s values (`an.stage.render.context_compile_args`), every
+other caller through [`rendered_compile_args()`](_autosummary/an.stage.compile.html.md#an.stage.compile.rendered_compile_args).
+
+`fps` may be fractional (a camera’s 29.97): the compiled document’s frame
+grid is integral, so it is rounded here, and capture and mux keep the exact
+rate. The step grid is the shot’s over the scene’s
+([`an.ir.schema.resolve_step_hz()`](_autosummary/an.ir.schema.html.md#an.ir.schema.resolve_step_hz)).
+
+```pycon
+>>> args = compile_args(Shot(id="s"), mall={}, fps=29.97, width=8, height=6, scene_step_hz=12.0)
+>>> args["fps"], args["step_hz"], (args["width"], args["height"])
+(30, 12.0, (8, 6))
+```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.stage.compile.compile_as_rendered(shot, scene, mall, , fps)
 
@@ -36556,6 +36591,31 @@ depends on where the environment was cut:
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+### an.stage.compile.rendered_compile_args(shot, meta, mall, \*, fps=None, width=None, height=None, strict_assets=False, resolve_pack=<function style_pack_for>)
+
+[`compile_shot()`](_autosummary/an.stage.compile.html.md#an.stage.compile.compile_shot)’s keywords for `shot` as `an render` compiles
+it under the scene’s `meta` and no overrides (an#713): for every caller
+outside the render path (validate, the preview, the orchestrator’s check,
+continuity, the bench’s contract).
+
+The render’s own defaults: `fps` (`None` = the scene’s, else
+`DEFAULT_FPS`), `width`/`height` (`None` = the scene’s, else
+`DEFAULT_RESOLUTION`), the scene’s step grid and default easing. The pack
+is `resolve_pack(meta, mall["styles"])`: by default
+[`style_pack_for()`](_autosummary/an.stage.compile.html.md#an.stage.compile.style_pack_for), which RAISES on a missing pack (an#33); a caller
+that already holds one passes `lambda *_: pack`.
+
+```pycon
+>>> args = rendered_compile_args(Shot(id="s", step_hz=12.0), Meta(), {})
+>>> args["fps"] == Meta().fps, args["step_hz"], args["style_pack"]
+(True, 12.0, None)
+>>> rendered_compile_args(Shot(id="s"), Meta(), {}, fps=23.976)["fps"]
+24
+```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.stage.compile.retire_front_spelling(shot)
 
@@ -39084,10 +39144,11 @@ facade boundary.
 
 ### Functions
 
-| [`effective_step_hz`](_autosummary/an.stage.render.html.md#an.stage.render.effective_step_hz)(shot, ctx)   | The stepped-timing policy a shot renders under (an#89): the shot's own `step_hz` when it declares one, else the scene's (`ctx.step_hz`), else `None` — smooth.   |
-|---------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`runtime_extensions`](_autosummary/an.stage.render.html.md#an.stage.render.runtime_extensions)()           | The registered genres' runtime code for the stage, as one file's text -- `""` when none is registered (the shipped file stays as it is).                         |
-| [`texture_source`](_autosummary/an.stage.render.html.md#an.stage.render.texture_source)(src_rel, mall)  | Where a texture's bytes are read from: `(path, "")`, or `(None, why)`.                                                                                           |
+| [`context_compile_args`](_autosummary/an.stage.render.html.md#an.stage.render.context_compile_args)(shot, ctx)   | `compile_shot()`'s keywords for `shot` under `ctx`: what the stage engine compiles (`StageEngine.open`) and what the shot cache keys ([`an.stage.cache_key.compiled_document()`](_autosummary/an.stage.cache_key.html.md#an.stage.cache_key.compiled_document)), so the two cannot drift (an#713).   |
+|------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`effective_step_hz`](_autosummary/an.stage.render.html.md#an.stage.render.effective_step_hz)(shot, ctx)      | The stepped-timing policy a shot renders under (an#89): the shot's own `step_hz` when it declares one, else the scene's (`ctx.step_hz`), else `None` — smooth.                                                                                                                                           |
+| [`runtime_extensions`](_autosummary/an.stage.render.html.md#an.stage.render.runtime_extensions)()              | The registered genres' runtime code for the stage, as one file's text -- `""` when none is registered (the shipped file stays as it is).                                                                                                                                                                 |
+| [`texture_source`](_autosummary/an.stage.render.html.md#an.stage.render.texture_source)(src_rel, mall)     | Where a texture's bytes are read from: `(path, "")`, or `(None, why)`.                                                                                                                                                                                                                                   |
 
 ### Classes
 
@@ -39307,6 +39368,24 @@ alias of [`CutoutRenderError`](_autosummary/an.stage.render.html.md#an.stage.ren
 
 The renderer under the engine’s own name (the class is one: see
 [`CutoutRenderer`](_autosummary/an.stage.render.html.md#an.stage.render.CutoutRenderer)), and its error under the same.
+
+### an.stage.render.context_compile_args(shot, ctx)
+
+`compile_shot()`’s keywords for `shot` under `ctx`: what the
+stage engine compiles (`StageEngine.open`) and what the shot cache keys
+([`an.stage.cache_key.compiled_document()`](_autosummary/an.stage.cache_key.html.md#an.stage.cache_key.compiled_document)), so the two cannot drift
+(an#713). The rules themselves are [`an.stage.compile.compile_args()`](_autosummary/an.stage.compile.html.md#an.stage.compile.compile_args)’.
+
+```pycon
+>>> from pathlib import Path
+>>> ctx = RenderContext(mall={}, work_dir=Path("."), fps=29.97, step_hz=15.0)
+>>> args = context_compile_args(Shot(id="s"), ctx)
+>>> args["fps"], args["step_hz"]
+(30, 15.0)
+```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ### an.stage.render.effective_step_hz(shot, ctx)
 
@@ -49008,7 +49087,7 @@ scene: the scene file to read, inside the project (default scene.md; for example
 
 # About this build
 
-This documentation was built on **2026-11-03 13:31 UTC** from commit <a href="https://github.com/reeleehq/an/commit/d77e25eb36a518b0180549ef51ef98f8ce0b6139"><code>d77e25e</code></a> on branch <code>main</code>, for **an 0.1.365** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-03 13:43 UTC** from commit <a href="https://github.com/reeleehq/an/commit/1ecaef1a71fcb89a78960d2a33d7c5942846d795"><code>1ecaef1</code></a> on branch <code>main</code>, for **an 0.1.368** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -49017,9 +49096,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                    |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/an/commit/d77e25eb36a518b0180549ef51ef98f8ce0b6139"><code>d77e25eb36a518b0180549ef51ef98f8ce0b6139</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/an/commit/1ecaef1a71fcb89a78960d2a33d7c5942846d795"><code>1ecaef1a71fcb89a78960d2a33d7c5942846d795</code></a> |
 | Branch              | <code>main</code>                                                                                                                                  |
-| Tags at this commit | none                                                                                                                                               |
+| Tags at this commit | <code>0.1.368</code>                                                                                                                               |
 | Working tree        | clean                                                                                                                                              |
 | Remote              | <code>https://github.com/reeleehq/an</code>                                                                                                        |
 
@@ -49028,9 +49107,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/an</code>                                                                   |
-| Run          | <a href="https://github.com/reeleehq/an/actions/runs/41639519557">41639519557</a>          |
+| Run          | <a href="https://github.com/reeleehq/an/actions/runs/41641245914">41641245914</a>          |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>08bc7082e02e8880afc0e1567aa16ec3f455bd6b</code> (in the history of the built commit) |
+| Event commit | <code>abeee483ec078c1a35c6e319f0c0a8e520214313</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -49055,13 +49134,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.365/">0.1.365</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.368/">0.1.368</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/an && cd an
-git checkout d77e25eb36a518b0180549ef51ef98f8ce0b6139
+git checkout 1ecaef1a71fcb89a78960d2a33d7c5942846d795
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=672f6ffa"></script>
+    <script src="../../../_static/documentation_options.js?v=1cb5c24b"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.365" />
+  <meta name="docsearch:version" content="0.1.368" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -756,6 +756,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Protocol</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">DEFAULT_FPS</span><span class="p">,</span>
     <span class="n">DEFAULT_RESOLUTION</span><span class="p">,</span>
     <span class="n">PAINT_KEYS_OVERRIDE</span><span class="p">,</span>
     <span class="n">paint_key_items</span><span class="p">,</span>
@@ -807,9 +808,11 @@ window.runMermaid = runMermaid;</script>
     <span class="n">CameraKey</span><span class="p">,</span>
     <span class="n">Action</span><span class="p">,</span>
     <span class="n">AssetRef</span><span class="p">,</span>
+    <span class="n">Meta</span><span class="p">,</span>
     <span class="n">SetAction</span><span class="p">,</span>
     <span class="n">Shot</span><span class="p">,</span>
     <span class="n">TweenAction</span><span class="p">,</span>
+    <span class="n">resolve_step_hz</span><span class="p">,</span>
 <span class="p">)</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.serialize</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -903,6 +906,102 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<div class="viewcode-block" id="compile_args">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.compile.html#an.adapters.cutout.compile_args">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">compile_args</span><span class="p">(</span>
+    <span class="n">shot</span><span class="p">:</span> <span class="n">Shot</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">strict_assets</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">scene_step_hz</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">style_pack</span><span class="p">:</span> <span class="s2">"StylePack | None"</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">default_easing</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">""":func:`compile_shot`'s keywords for ``shot`` from settled values: the</span>
+<span class="sd">    ONE place they are spelled out (an#713). The render path calls it with its</span>
+<span class="sd">    `RenderContext`'s values (``an.stage.render.context_compile_args``), every</span>
+<span class="sd">    other caller through :func:`rendered_compile_args`.</span>
+
+<span class="sd">    ``fps`` may be fractional (a camera's 29.97): the compiled document's frame</span>
+<span class="sd">    grid is integral, so it is rounded here, and capture and mux keep the exact</span>
+<span class="sd">    rate. The step grid is the shot's over the scene's</span>
+<span class="sd">    (:func:`an.ir.schema.resolve_step_hz`).</span>
+
+<span class="sd">    &gt;&gt;&gt; args = compile_args(Shot(id="s"), mall={}, fps=29.97, width=8, height=6, scene_step_hz=12.0)</span>
+<span class="sd">    &gt;&gt;&gt; args["fps"], args["step_hz"], (args["width"], args["height"])</span>
+<span class="sd">    (30, 12.0, (8, 6))</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">mall</span><span class="o">=</span><span class="n">mall</span><span class="p">,</span>
+        <span class="n">fps</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">fps</span><span class="p">)),</span>
+        <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span>
+        <span class="n">strict_assets</span><span class="o">=</span><span class="n">strict_assets</span><span class="p">,</span>
+        <span class="n">step_hz</span><span class="o">=</span><span class="n">resolve_step_hz</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">scene_step_hz</span><span class="p">),</span>
+        <span class="n">style_pack</span><span class="o">=</span><span class="n">style_pack</span><span class="p">,</span>
+        <span class="n">default_easing</span><span class="o">=</span><span class="n">default_easing</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="c1">#: How :func:`rendered_compile_args` finds a scene's pack: ``(meta, styles</span>
+<span class="c1">#: store) -&gt; StylePack | None``.</span>
+<span class="n">PackResolver</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Meta</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">],</span> <span class="s2">"StylePack | None"</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="rendered_compile_args">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.compile.html#an.adapters.cutout.rendered_compile_args">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rendered_compile_args</span><span class="p">(</span>
+    <span class="n">shot</span><span class="p">:</span> <span class="n">Shot</span><span class="p">,</span>
+    <span class="n">meta</span><span class="p">:</span> <span class="n">Meta</span><span class="p">,</span>
+    <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">strict_assets</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">resolve_pack</span><span class="p">:</span> <span class="n">PackResolver</span> <span class="o">=</span> <span class="n">style_pack_for</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">""":func:`compile_shot`'s keywords for ``shot`` as ``an render`` compiles</span>
+<span class="sd">    it under the scene's ``meta`` and no overrides (an#713): for every caller</span>
+<span class="sd">    outside the render path (validate, the preview, the orchestrator's check,</span>
+<span class="sd">    continuity, the bench's contract).</span>
+
+<span class="sd">    The render's own defaults: ``fps`` (``None`` = the scene's, else</span>
+<span class="sd">    ``DEFAULT_FPS``), ``width``/``height`` (``None`` = the scene's, else</span>
+<span class="sd">    ``DEFAULT_RESOLUTION``), the scene's step grid and default easing. The pack</span>
+<span class="sd">    is ``resolve_pack(meta, mall["styles"])``: by default</span>
+<span class="sd">    :func:`style_pack_for`, which RAISES on a missing pack (an#33); a caller</span>
+<span class="sd">    that already holds one passes ``lambda *_: pack``.</span>
+
+<span class="sd">    &gt;&gt;&gt; args = rendered_compile_args(Shot(id="s", step_hz=12.0), Meta(), {})</span>
+<span class="sd">    &gt;&gt;&gt; args["fps"] == Meta().fps, args["step_hz"], args["style_pack"]</span>
+<span class="sd">    (True, 12.0, None)</span>
+<span class="sd">    &gt;&gt;&gt; rendered_compile_args(Shot(id="s"), Meta(), {}, fps=23.976)["fps"]</span>
+<span class="sd">    24</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">given_or</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">default</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">default</span> <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">value</span>
+
+    <span class="n">res</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">resolution</span>
+    <span class="k">return</span> <span class="n">compile_args</span><span class="p">(</span>
+        <span class="n">shot</span><span class="p">,</span>
+        <span class="n">mall</span><span class="o">=</span><span class="n">mall</span><span class="p">,</span>
+        <span class="n">fps</span><span class="o">=</span><span class="n">given_or</span><span class="p">(</span><span class="n">fps</span><span class="p">,</span> <span class="n">meta</span><span class="o">.</span><span class="n">fps</span> <span class="ow">or</span> <span class="n">DEFAULT_FPS</span><span class="p">),</span>
+        <span class="n">width</span><span class="o">=</span><span class="n">given_or</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">res</span><span class="o">.</span><span class="n">width</span> <span class="ow">or</span> <span class="n">DEFAULT_RESOLUTION</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+        <span class="n">height</span><span class="o">=</span><span class="n">given_or</span><span class="p">(</span><span class="n">height</span><span class="p">,</span> <span class="n">res</span><span class="o">.</span><span class="n">height</span> <span class="ow">or</span> <span class="n">DEFAULT_RESOLUTION</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+        <span class="n">strict_assets</span><span class="o">=</span><span class="n">strict_assets</span><span class="p">,</span>
+        <span class="n">scene_step_hz</span><span class="o">=</span><span class="n">meta</span><span class="o">.</span><span class="n">step_hz</span><span class="p">,</span>
+        <span class="n">style_pack</span><span class="o">=</span><span class="n">resolve_pack</span><span class="p">(</span><span class="n">meta</span><span class="p">,</span> <span class="p">(</span><span class="n">mall</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"styles"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}),</span>
+        <span class="n">default_easing</span><span class="o">=</span><span class="n">meta</span><span class="o">.</span><span class="n">default_easing</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
 <div class="viewcode-block" id="compile_as_rendered">
 <a class="viewcode-back" href="../../../_autosummary/an.stage.compile.html#an.adapters.cutout.compile_as_rendered">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">compile_as_rendered</span><span class="p">(</span>
@@ -931,26 +1030,21 @@ window.runMermaid = runMermaid;</script>
 
     <span class="k">if</span> <span class="n">shot</span><span class="o">.</span><span class="n">renderer</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">STAGE_RENDERER_NAMES</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">pack</span> <span class="o">=</span> <span class="n">style_pack_for</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span> <span class="p">(</span><span class="n">mall</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"styles"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span>
-    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 - a broken pack is the style check's to report</span>
-        <span class="n">pack</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">res</span> <span class="o">=</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">resolve_step_hz</span>
 
-    <span class="n">step_hz</span> <span class="o">=</span> <span class="n">resolve_step_hz</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">step_hz</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">pack_or_none</span><span class="p">(</span><span class="n">meta</span><span class="p">:</span> <span class="n">Meta</span><span class="p">,</span> <span class="n">styles</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"StylePack | None"</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">style_pack_for</span><span class="p">(</span><span class="n">meta</span><span class="p">,</span> <span class="n">styles</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 - a broken pack is the style check's to report</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
     <span class="k">try</span><span class="p">:</span>
         <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">"ignore"</span><span class="p">)</span>  <span class="c1"># the render's warnings, not validate's</span>
             <span class="n">doc</span> <span class="o">=</span> <span class="n">compile_shot</span><span class="p">(</span>
                 <span class="n">shot</span><span class="p">,</span>
-                <span class="n">mall</span><span class="o">=</span><span class="n">mall</span><span class="p">,</span>
-                <span class="n">fps</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">fps</span><span class="p">)),</span>
-                <span class="n">width</span><span class="o">=</span><span class="n">res</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
-                <span class="n">height</span><span class="o">=</span><span class="n">res</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
-                <span class="n">step_hz</span><span class="o">=</span><span class="n">step_hz</span><span class="p">,</span>
-                <span class="n">default_easing</span><span class="o">=</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">default_easing</span><span class="p">,</span>
-                <span class="n">style_pack</span><span class="o">=</span><span class="n">pack</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">rendered_compile_args</span><span class="p">(</span>
+                    <span class="n">shot</span><span class="p">,</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span> <span class="n">resolve_pack</span><span class="o">=</span><span class="n">pack_or_none</span>
+                <span class="p">),</span>
             <span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 - reported by the check that owns it</span>
         <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="n">e</span>

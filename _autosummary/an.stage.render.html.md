@@ -56,10 +56,11 @@ facade boundary.
 
 ### Functions
 
-| [`effective_step_hz`](#an.stage.render.effective_step_hz)(shot, ctx)   | The stepped-timing policy a shot renders under (an#89): the shot's own `step_hz` when it declares one, else the scene's (`ctx.step_hz`), else `None` — smooth.   |
-|---------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`runtime_extensions`](#an.stage.render.runtime_extensions)()           | The registered genres' runtime code for the stage, as one file's text -- `""` when none is registered (the shipped file stays as it is).                         |
-| [`texture_source`](#an.stage.render.texture_source)(src_rel, mall)  | Where a texture's bytes are read from: `(path, "")`, or `(None, why)`.                                                                                           |
+| [`context_compile_args`](#an.stage.render.context_compile_args)(shot, ctx)   | `compile_shot()`'s keywords for `shot` under `ctx`: what the stage engine compiles (`StageEngine.open`) and what the shot cache keys ([`an.stage.cache_key.compiled_document()`](an.stage.cache_key.html.md#an.stage.cache_key.compiled_document)), so the two cannot drift (an#713).   |
+|------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`effective_step_hz`](#an.stage.render.effective_step_hz)(shot, ctx)      | The stepped-timing policy a shot renders under (an#89): the shot's own `step_hz` when it declares one, else the scene's (`ctx.step_hz`), else `None` — smooth.                                                                                                                                           |
+| [`runtime_extensions`](#an.stage.render.runtime_extensions)()              | The registered genres' runtime code for the stage, as one file's text -- `""` when none is registered (the shipped file stays as it is).                                                                                                                                                                 |
+| [`texture_source`](#an.stage.render.texture_source)(src_rel, mall)     | Where a texture's bytes are read from: `(path, "")`, or `(None, why)`.                                                                                                                                                                                                                                   |
 
 ### Classes
 
@@ -279,6 +280,24 @@ alias of [`CutoutRenderError`](#an.stage.render.CutoutRenderError)
 
 The renderer under the engine’s own name (the class is one: see
 [`CutoutRenderer`](#an.stage.render.CutoutRenderer)), and its error under the same.
+
+### an.stage.render.context_compile_args(shot, ctx)
+
+`compile_shot()`’s keywords for `shot` under `ctx`: what the
+stage engine compiles (`StageEngine.open`) and what the shot cache keys
+([`an.stage.cache_key.compiled_document()`](an.stage.cache_key.html.md#an.stage.cache_key.compiled_document)), so the two cannot drift
+(an#713). The rules themselves are [`an.stage.compile.compile_args()`](an.stage.compile.html.md#an.stage.compile.compile_args)’.
+
+```pycon
+>>> from pathlib import Path
+>>> ctx = RenderContext(mall={}, work_dir=Path("."), fps=29.97, step_hz=15.0)
+>>> args = context_compile_args(Shot(id="s"), ctx)
+>>> args["fps"], args["step_hz"]
+(30, 15.0)
+```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ### an.stage.render.effective_step_hz(shot, ctx)
 

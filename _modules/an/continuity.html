@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=672f6ffa"></script>
+    <script src="../../_static/documentation_options.js?v=1cb5c24b"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.365" />
+  <meta name="docsearch:version" content="0.1.368" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -996,11 +996,10 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">continue_from</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">scene</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">resolve_step_hz</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.sync</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_scene</span> <span class="k">as</span> <span class="n">_read</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.world</span><span class="w"> </span><span class="kn">import</span> <span class="n">viewpoint_key</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.compile</span><span class="w"> </span><span class="kn">import</span> <span class="n">compile_shot</span> <span class="k">as</span> <span class="n">_compile</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.compile</span><span class="w"> </span><span class="kn">import</span> <span class="n">style_pack_for</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.compile</span><span class="w"> </span><span class="kn">import</span> <span class="n">rendered_compile_args</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.world</span><span class="w"> </span><span class="kn">import</span> <span class="n">lower_scene_world</span>
 
     <span class="n">read_scene</span> <span class="o">=</span> <span class="n">read_scene</span> <span class="ow">or</span> <span class="n">_read</span>
@@ -1072,18 +1071,10 @@ window.runMermaid = runMermaid;</script>
             <span class="k">try</span><span class="p">:</span>
                 <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
                     <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">"ignore"</span><span class="p">)</span>  <span class="c1"># the source's compile reports them</span>
+                    <span class="c1"># as the render compiles it, so the end is its last frame</span>
                     <span class="n">compiled</span><span class="p">[(</span><span class="n">src_file</span><span class="p">,</span> <span class="n">j</span><span class="p">)]</span> <span class="o">=</span> <span class="n">compile_shot</span><span class="p">(</span>
                         <span class="n">source</span><span class="p">,</span>
-                        <span class="n">mall</span><span class="o">=</span><span class="n">mall</span><span class="p">,</span>
-                        <span class="n">fps</span><span class="o">=</span><span class="n">rate</span><span class="p">,</span>
-                        <span class="n">width</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">owner</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">width</span><span class="p">),</span>
-                        <span class="n">height</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">owner</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">height</span><span class="p">),</span>
-                        <span class="n">default_easing</span><span class="o">=</span><span class="n">owner</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">default_easing</span><span class="p">,</span>
-                        <span class="c1"># as the render compiles it, so the end is its last frame</span>
-                        <span class="n">step_hz</span><span class="o">=</span><span class="n">resolve_step_hz</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">owner</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">step_hz</span><span class="p">),</span>
-                        <span class="n">style_pack</span><span class="o">=</span><span class="n">style_pack_for</span><span class="p">(</span>
-                            <span class="n">owner</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span> <span class="p">(</span><span class="n">mall</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"styles"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
-                        <span class="p">),</span>
+                        <span class="o">**</span><span class="n">rendered_compile_args</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">owner</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">rate</span><span class="p">),</span>
                     <span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — the source's own error, named here</span>
                 <span class="k">raise</span> <span class="n">ContinuityError</span><span class="p">(</span>

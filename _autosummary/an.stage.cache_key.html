@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=672f6ffa"></script>
+    <script src="../_static/documentation_options.js?v=1cb5c24b"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.365" />
+  <meta name="docsearch:version" content="0.1.368" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -801,9 +801,10 @@ the roots from the registered renderer, and this module is one of them.</p>
 <dt class="sig sig-object py" id="an.stage.cache_key.compiled_document">
 <span class="sig-prename descclassname"><span class="pre">an.stage.cache_key.</span></span><span class="sig-name descname"><span class="pre">compiled_document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/cache_key.html#compiled_document"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.cache_key.compiled_document" title="Link to this definition">#</a></dt>
 <dd><p>The document the stage engine (<code class="docutils literal notranslate"><span class="pre">StageEngine.open</span></code>) will compile for <code class="docutils literal notranslate"><span class="pre">shot</span></code> under <code class="docutils literal notranslate"><span class="pre">ctx</span></code>.</p>
-<p>The SAME call, argument for argument — <code class="code docutils literal notranslate"><span class="pre">tests/test_shot_cache.py</span></code> pins the
-two against each other, so a knob added to one and not the other fails
-there rather than in a stale render.</p>
+<p>The SAME call, argument for argument: both build their keywords with
+<code class="docutils literal notranslate"><span class="pre">an.stage.render.context_compile_args</span></code> (an#713), and
+<code class="code docutils literal notranslate"><span class="pre">tests/test_shot_cache.py</span></code> pins the two against each other, so a knob
+added to one and not the other fails there rather than in a stale render.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>

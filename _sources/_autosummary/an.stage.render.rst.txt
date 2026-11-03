@@ -23,6 +23,7 @@ an.stage.render
 
    .. autosummary::
    
+      context_compile_args
       effective_step_hz
       runtime_extensions
       texture_source
