@@ -1301,7 +1301,7 @@ def test_a_line_the_transcriber_did_not_hear_falls_back_to_one_utterance(tmp_pat
     lines = (HELLO, "Okay.", FINE)
     squeezed = HEARD[:3] + (("fine", 1.5, 2.9), ("thanks", 2.9, 3.3))
     with pytest.warns(
-        RecordedVoicesWarning, match="'Okay.' has no words, or was not heard"
+        RecordedVoicesWarning, match="'Okay.' was not heard"
     ):
         _, align = _import_lines(tmp_path, lines=lines, transcribe=_heard(*squeezed))
     assert align.lines == [] and len(align.heard) == 1
