@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=eedccc62"></script>
+    <script src="../_static/documentation_options.js?v=d9244608"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.391" />
+  <meta name="docsearch:version" content="0.1.392" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -663,7 +663,12 @@ for a declared support but never makes an entity be taken to stand.</p></li>
 entity taken to stand on its floor, as <a class="reference internal" href="#an.stage.support.SupportState" title="an.stage.support.SupportState"><code class="xref py py-class docutils literal notranslate"><span class="pre">SupportState</span></code></a> records per
 instant: each contact’s signed distance to the surface along its normal
 (<a class="reference internal" href="an.stage.surface_line.html#an.stage.surface_line.lowest_on" title="an.stage.surface_line.lowest_on"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.stage.surface_line.lowest_on()</span></code></a>’s sign: positive above, negative
-sunk), with the references that do not resolve returned as <code class="docutils literal notranslate"><span class="pre">(where,</span> <span class="pre">message)</span></code>.</p></li>
+sunk), whether it is a <strong>limb</strong>’s (on a part that is not one of the body’s
+roots), where its foot on the surface lies along it (<code class="docutils literal notranslate"><span class="pre">along</span></code>, in the
+surface’s own frame) and how far that foot <strong>slid</strong> along it since the grid
+instant before while the contact was held there (the <code class="docutils literal notranslate"><span class="pre">skate</span></code> check’s
+measure, an#519 PR 2), with the references that do not resolve returned as
+<code class="docutils literal notranslate"><span class="pre">(where,</span> <span class="pre">message)</span></code>.</p></li>
 </ul>
 <p>A named point (<code class="docutils literal notranslate"><span class="pre">cup&#64;base</span></code>, <code class="docutils literal notranslate"><span class="pre">paul&#64;foot_l</span></code>) is resolved by the solve’s own
 resolver (<a class="reference internal" href="an.stage.solve.html#an.stage.solve.locate_point" title="an.stage.solve.locate_point"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.stage.solve.locate_point()</span></code></a>), so a <code class="docutils literal notranslate"><span class="pre">pin</span></code> and a <code class="docutils literal notranslate"><span class="pre">support</span></code>
@@ -692,6 +697,21 @@ not held to a gap below what a frame shows.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.stage.support.SUPPORT_FLOOR_PX" title="an.stage.support.SUPPORT_FLOOR_PX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SUPPORT_FLOOR_PX</span></code></a></p></td>
 <td><p>the solver's own rejoin blend (<a class="reference internal" href="an.kinematics.solver.html#an.kinematics.solver.DFLT_REJOIN_BLEND_PX" title="an.kinematics.solver.DFLT_REJOIN_BLEND_PX"><code class="xref py py-data docutils literal notranslate"><span class="pre">an.kinematics.solver.DFLT_REJOIN_BLEND_PX</span></code></a>), below which it calls two points joined; a small prop is not held tighter than a joint.</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.support.SKATE_TOLERANCE" title="an.stage.support.SKATE_TOLERANCE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SKATE_TOLERANCE</span></code></a></p></td>
+<td><p>How fast a held contact's foot may move along its surface, in the surface's own frame, as a fraction of the entity's height PER SECOND (24 px/s on a 200 px figure: 1 px a frame at 24 fps, 0.4 px at 60).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.support.SKATE_FLOOR_PX" title="an.stage.support.SKATE_FLOOR_PX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SKATE_FLOOR_PX</span></code></a></p></td>
+<td><p>The least skate speed tolerance, in px per second (half a pixel a frame at 24 fps: a fraction of a small body's height is less).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.support.SKATE_DRIFT_TOLERANCE" title="an.stage.support.SKATE_DRIFT_TOLERANCE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SKATE_DRIFT_TOLERANCE</span></code></a></p></td>
+<td><p>How far a held contact's foot may drift along its surface over one stance (from where it was planted, while it stays held), as a fraction of the entity's height (6 px on a 200 px figure): a slow skate under the speed tolerance still adds up to a foot that is not where it was put down.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.support.SKATE_DRIFT_FLOOR_PX" title="an.stage.support.SKATE_DRIFT_FLOOR_PX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SKATE_DRIFT_FLOOR_PX</span></code></a></p></td>
+<td><p>the support's own floor (<a class="reference internal" href="#an.stage.support.SUPPORT_FLOOR_PX" title="an.stage.support.SUPPORT_FLOOR_PX"><code class="xref py py-data docutils literal notranslate"><span class="pre">SUPPORT_FLOOR_PX</span></code></a>), below which two points are one.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.support.SKATE_LIFT" title="an.stage.support.SKATE_LIFT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SKATE_LIFT</span></code></a></p></td>
+<td><p>A step between two instants whose foot moves along the surface's normal by more than this fraction of how far it moves along the surface is a lift-off or a landing (a foot leaving the floor while still within the support tolerance of it), not a slide: it is not measured for skate.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -701,6 +721,12 @@ not held to a gap below what a frame shows.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.support.support_tolerance" title="an.stage.support.support_tolerance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">support_tolerance</span></code></a>(height, *[, tolerance, floor])</p></td>
 <td><p>How far a contact of an entity <code class="docutils literal notranslate"><span class="pre">height</span></code> px tall may be off its surface: <code class="docutils literal notranslate"><span class="pre">tolerance</span></code> of its height, never under <code class="docutils literal notranslate"><span class="pre">floor</span></code> px.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.support.skate_tolerance" title="an.stage.support.skate_tolerance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">skate_tolerance</span></code></a>(height, *[, tolerance, floor])</p></td>
+<td><p>How fast (px per second) a held contact of an entity <code class="docutils literal notranslate"><span class="pre">height</span></code> px tall may slide along its surface: <code class="docutils literal notranslate"><span class="pre">tolerance</span></code> of its height per second, never under <code class="docutils literal notranslate"><span class="pre">floor</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.support.skate_drift_tolerance" title="an.stage.support.skate_drift_tolerance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">skate_drift_tolerance</span></code></a>(height, *[, ...])</p></td>
+<td><p>How far (px) a held contact of an entity <code class="docutils literal notranslate"><span class="pre">height</span></code> px tall may drift along its surface over one stance: <code class="docutils literal notranslate"><span class="pre">tolerance</span></code> of its height, never under <code class="docutils literal notranslate"><span class="pre">floor</span></code>.</p></td>
+</tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.stage.support.contacts_of" title="an.stage.support.contacts_of"><code class="xref py py-obj docutils literal notranslate"><span class="pre">contacts_of</span></code></a>(entity, mall, *[, rig, ...])</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">entity</span></code>'s contacts, by the chain: the kind's hook, <code class="docutils literal notranslate"><span class="pre">metadata.contacts</span></code>, the rig's <code class="docutils literal notranslate"><span class="pre">origin</span></code> (when a root part's painted bottom rests on it, read in <code class="docutils literal notranslate"><span class="pre">doc</span></code>), else the lowest ink of its root parts: <code class="docutils literal notranslate"><span class="pre">ink</span></code> when <code class="docutils literal notranslate"><span class="pre">doc</span></code> shows a raster whose alpha hull was read, else <code class="docutils literal notranslate"><span class="pre">box</span></code>.</p></td>
 </tr>
@@ -708,7 +734,7 @@ not held to a gap below what a frame shows.</p>
 <td><p>The contacts the chain names on a part of <code class="docutils literal notranslate"><span class="pre">entity</span></code>'s rig (the hook's, else <code class="docutils literal notranslate"><span class="pre">metadata.contacts</span></code>, a root-part fraction put on the first root): what the point resolver (<a class="reference internal" href="an.stage.solve.html#an.stage.solve.locate_point" title="an.stage.solve.locate_point"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.stage.solve.locate_point()</span></code></a>) names after a rig's landmarks, so a joint, a verb or a support may name <code class="docutils literal notranslate"><span class="pre">paul&#64;foot_l</span></code> as it names <code class="docutils literal notranslate"><span class="pre">paul&#64;hand_l</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.stage.support.supports_at" title="an.stage.support.supports_at"><code class="xref py py-obj docutils literal notranslate"><span class="pre">supports_at</span></code></a>(doc, shot, mall, *[, times, ...])</p></td>
-<td><p>Every declared support of <code class="docutils literal notranslate"><span class="pre">shot</span></code> in its compiled document <code class="docutils literal notranslate"><span class="pre">doc</span></code> at every instant of <code class="docutils literal notranslate"><span class="pre">times</span></code> (default: the solve's frame grid, <code class="xref py py-func docutils literal notranslate"><span class="pre">an.stage.solve.frame_times()</span></code>), joined or not; and, with <code class="docutils literal notranslate"><span class="pre">inferred</span></code>, every entity taken to stand on the shot's floor (<code class="docutils literal notranslate"><span class="pre">solve:</span> <span class="pre">{ground:</span> <span class="pre">y}</span></code>) as it opens: its lowest contact within <a class="reference internal" href="#an.stage.support.support_tolerance" title="an.stage.support.support_tolerance"><code class="xref py py-func docutils literal notranslate"><span class="pre">support_tolerance()</span></code></a> (<code class="docutils literal notranslate"><span class="pre">tolerance</span></code> of its height, <code class="docutils literal notranslate"><span class="pre">floor</span></code> px at least) of the floor then, judged at that instant and its rest instants.</p></td>
+<td><p>Every declared support of <code class="docutils literal notranslate"><span class="pre">shot</span></code> in its compiled document <code class="docutils literal notranslate"><span class="pre">doc</span></code> at every instant of <code class="docutils literal notranslate"><span class="pre">times</span></code> (default: the solve's frame grid, <code class="xref py py-func docutils literal notranslate"><span class="pre">an.stage.solve.frame_times()</span></code>), joined or not; and, with <code class="docutils literal notranslate"><span class="pre">inferred</span></code>, every entity taken to stand on the shot's floor (<code class="docutils literal notranslate"><span class="pre">solve:</span> <span class="pre">{ground:</span> <span class="pre">y}</span></code>) as it opens: its lowest contact within <a class="reference internal" href="#an.stage.support.support_tolerance" title="an.stage.support.support_tolerance"><code class="xref py py-func docutils literal notranslate"><span class="pre">support_tolerance()</span></code></a> (<code class="docutils literal notranslate"><span class="pre">tolerance</span></code> of its height, <code class="docutils literal notranslate"><span class="pre">floor</span></code> px at least) of the floor then, measured at that instant and its rest instants (<code class="docutils literal notranslate"><span class="pre">rest_only</span></code>, the <code class="docutils literal notranslate"><span class="pre">support</span></code> check's rule) or at every instant (the <code class="docutils literal notranslate"><span class="pre">skate</span></code> check's, which judges a stance while it moves).</p></td>
 </tr>
 </tbody>
 </table>
@@ -719,7 +745,7 @@ not held to a gap below what a frame shows.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.support.Contacts" title="an.stage.support.Contacts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Contacts</span></code></a>(source, points[, note])</p></td>
 <td><p>An entity's contacts and where the chain found them.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.support.ContactState" title="an.stage.support.ContactState"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ContactState</span></code></a>(name, part, at, above)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.support.ContactState" title="an.stage.support.ContactState"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ContactState</span></code></a>(name, part, at, above[, limb, ...])</p></td>
 <td><p>One contact at one instant.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.support.SupportState" title="an.stage.support.SupportState"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SupportState</span></code></a>(entity, joint, where, frame, t, ...)</p></td>
@@ -742,7 +768,7 @@ not held to a gap below what a frame shows.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.stage.support.ContactState">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stage.support.</span></span><span class="sig-name descname"><span class="pre">ContactState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">part</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">at</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">above</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/support.html#ContactState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.support.ContactState" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stage.support.</span></span><span class="sig-name descname"><span class="pre">ContactState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">part</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">at</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">above</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">along</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/support.html#ContactState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.support.ContactState" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>One contact at one instant.</p>
 <dl class="field-list simple">
@@ -754,15 +780,57 @@ not held to a gap below what a frame shows.</p>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="an.stage.support.ContactState.along">
+<span class="sig-name descname"><span class="pre">along</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0</span></span><a class="headerlink" href="#an.stage.support.ContactState.along" title="Link to this definition">#</a></dt>
+<dd><p>where
+the foot of its normal falls along the surface from a point fixed in it,
+in the surface’s units (a body’s surface: its own units from the
+segment’s first end, so it neither moves nor flips with the body; the
+floor and a stage segment: stage px from the floor’s <code class="docutils literal notranslate"><span class="pre">(0,</span> <span class="pre">y)</span></code> or the
+segment’s <code class="docutils literal notranslate"><span class="pre">a</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Its foot parameter along the surface, in the surface’s own frame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="an.stage.support.ContactState.at">
 <span class="sig-name descname"><span class="pre">at</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.stage.support.ContactState.at" title="Link to this definition">#</a></dt>
 <dd><p>Its stage point (the lowest of its points, for <code class="docutils literal notranslate"><span class="pre">ink</span></code> or <code class="docutils literal notranslate"><span class="pre">box</span></code>).</p>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="an.stage.support.ContactState.limb">
+<span class="sig-name descname"><span class="pre">limb</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#an.stage.support.ContactState.limb" title="Link to this definition">#</a></dt>
+<dd><p>its node is not the entity’s own nor one of its
+root parts (a leg hinged to the body, a hoof), so it moves relative to
+the body and can skate. A body’s own stance point (its <code class="docutils literal notranslate"><span class="pre">origin</span></code>, the
+ink of its roots, a prop’s <code class="docutils literal notranslate"><span class="pre">base</span></code>, a bone on a root part) cannot: a
+body that glides or is pushed slides on it by right.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Whether it is a limb’s</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="an.stage.support.ContactState.part">
 <span class="sig-name descname"><span class="pre">part</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><a class="headerlink" href="#an.stage.support.ContactState.part" title="Link to this definition">#</a></dt>
 <dd><p>The node path that carries it.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.stage.support.ContactState.slid">
+<span class="sig-name descname"><span class="pre">slid</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#an.stage.support.ContactState.slid" title="Link to this definition">#</a></dt>
+<dd><p>How far (stage px, signed along the surface) its foot moved along the
+surface, in the surface’s own frame, since the grid’s previous instant
+(so a body carried by what it stands on does not move); <code class="docutils literal notranslate"><span class="pre">None</span></code> unless
+it was held at both (its support joined, within the support tolerance of
+the surface) and the step was not a lift-off or a landing
+(<a class="reference internal" href="#an.stage.support.SKATE_LIFT" title="an.stage.support.SKATE_LIFT"><code class="xref py py-data docutils literal notranslate"><span class="pre">SKATE_LIFT</span></code></a>).</p>
 </dd></dl>
 
 </dd></dl>
@@ -784,6 +852,52 @@ not held to a gap below what a frame shows.</p>
 <dd><p>Why a kind’s hook gave nothing it could use (it raised), else <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>.</p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.support.SKATE_DRIFT_FLOOR_PX">
+<span class="sig-prename descclassname"><span class="pre">an.stage.support.</span></span><span class="sig-name descname"><span class="pre">SKATE_DRIFT_FLOOR_PX</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2.0</span></span><a class="headerlink" href="#an.stage.support.SKATE_DRIFT_FLOOR_PX" title="Link to this definition">#</a></dt>
+<dd><p>the support’s own floor
+(<a class="reference internal" href="#an.stage.support.SUPPORT_FLOOR_PX" title="an.stage.support.SUPPORT_FLOOR_PX"><code class="xref py py-data docutils literal notranslate"><span class="pre">SUPPORT_FLOOR_PX</span></code></a>), below which two points are one.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The least drift tolerance, in px</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.support.SKATE_DRIFT_TOLERANCE">
+<span class="sig-prename descclassname"><span class="pre">an.stage.support.</span></span><span class="sig-name descname"><span class="pre">SKATE_DRIFT_TOLERANCE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.03</span></span><a class="headerlink" href="#an.stage.support.SKATE_DRIFT_TOLERANCE" title="Link to this definition">#</a></dt>
+<dd><p>How far a held contact’s foot may drift along its surface over one stance
+(from where it was planted, while it stays held), as a fraction of the
+entity’s height (6 px on a 200 px figure): a slow skate under the speed
+tolerance still adds up to a foot that is not where it was put down.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.support.SKATE_FLOOR_PX">
+<span class="sig-prename descclassname"><span class="pre">an.stage.support.</span></span><span class="sig-name descname"><span class="pre">SKATE_FLOOR_PX</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">12.0</span></span><a class="headerlink" href="#an.stage.support.SKATE_FLOOR_PX" title="Link to this definition">#</a></dt>
+<dd><p>The least skate speed tolerance, in px per second (half a pixel a frame at
+24 fps: a fraction of a small body’s height is less).</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.support.SKATE_LIFT">
+<span class="sig-prename descclassname"><span class="pre">an.stage.support.</span></span><span class="sig-name descname"><span class="pre">SKATE_LIFT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.25</span></span><a class="headerlink" href="#an.stage.support.SKATE_LIFT" title="Link to this definition">#</a></dt>
+<dd><p>A step between two instants whose foot moves along the surface’s normal by
+more than this fraction of how far it moves along the surface is a lift-off
+or a landing (a foot leaving the floor while still within the support
+tolerance of it), not a slide: it is not measured for skate.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.support.SKATE_TOLERANCE">
+<span class="sig-prename descclassname"><span class="pre">an.stage.support.</span></span><span class="sig-name descname"><span class="pre">SKATE_TOLERANCE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.12</span></span><a class="headerlink" href="#an.stage.support.SKATE_TOLERANCE" title="Link to this definition">#</a></dt>
+<dd><p>How fast a held contact’s foot may move along its surface, in the surface’s
+own frame, as a fraction of the entity’s height PER SECOND (24 px/s on a
+200 px figure: 1 px a frame at 24 fps, 0.4 px at 60). A speed, so one slide
+gets one verdict at any frame rate or step rate.</p>
 </dd></dl>
 
 <dl class="py data">
@@ -917,6 +1031,40 @@ as it names <code class="docutils literal notranslate"><span class="pre">paul&#6
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.stage.support.skate_drift_tolerance">
+<span class="sig-prename descclassname"><span class="pre">an.stage.support.</span></span><span class="sig-name descname"><span class="pre">skate_drift_tolerance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.03</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">floor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/support.html#skate_drift_tolerance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.support.skate_drift_tolerance" title="Link to this definition">#</a></dt>
+<dd><p>How far (px) a held contact of an entity <code class="docutils literal notranslate"><span class="pre">height</span></code> px tall may drift
+along its surface over one stance: <code class="docutils literal notranslate"><span class="pre">tolerance</span></code> of its height, never under
+<code class="docutils literal notranslate"><span class="pre">floor</span></code>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">skate_drift_tolerance</span><span class="p">(</span><span class="mf">200.0</span><span class="p">),</span> <span class="n">skate_drift_tolerance</span><span class="p">(</span><span class="mf">40.0</span><span class="p">)</span>
+<span class="go">(6.0, 2.0)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.support.skate_tolerance">
+<span class="sig-prename descclassname"><span class="pre">an.stage.support.</span></span><span class="sig-name descname"><span class="pre">skate_tolerance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">floor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">12.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/support.html#skate_tolerance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.support.skate_tolerance" title="Link to this definition">#</a></dt>
+<dd><p>How fast (px per second) a held contact of an entity <code class="docutils literal notranslate"><span class="pre">height</span></code> px tall
+may slide along its surface: <code class="docutils literal notranslate"><span class="pre">tolerance</span></code> of its height per second, never
+under <code class="docutils literal notranslate"><span class="pre">floor</span></code>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">skate_tolerance</span><span class="p">(</span><span class="mf">200.0</span><span class="p">),</span> <span class="n">skate_tolerance</span><span class="p">(</span><span class="mf">40.0</span><span class="p">)</span>
+<span class="go">(24.0, 12.0)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.stage.support.support_tolerance">
 <span class="sig-prename descclassname"><span class="pre">an.stage.support.</span></span><span class="sig-name descname"><span class="pre">support_tolerance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.02</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">floor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/support.html#support_tolerance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.support.support_tolerance" title="Link to this definition">#</a></dt>
 <dd><p>How far a contact of an entity <code class="docutils literal notranslate"><span class="pre">height</span></code> px tall may be off its surface:
@@ -934,16 +1082,24 @@ as it names <code class="docutils literal notranslate"><span class="pre">paul&#6
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.stage.support.supports_at">
-<span class="sig-prename descclassname"><span class="pre">an.stage.support.</span></span><span class="sig-name descname"><span class="pre">supports_at</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">doc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inferred</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.02</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">floor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/support.html#supports_at"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.support.supports_at" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.stage.support.</span></span><span class="sig-name descname"><span class="pre">supports_at</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">doc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inferred</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rest_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.02</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">floor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/support.html#supports_at"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.support.supports_at" title="Link to this definition">#</a></dt>
 <dd><p>Every declared support of <code class="docutils literal notranslate"><span class="pre">shot</span></code> in its compiled document <code class="docutils literal notranslate"><span class="pre">doc</span></code> at
 every instant of <code class="docutils literal notranslate"><span class="pre">times</span></code> (default: the solve’s frame grid,
 <code class="xref py py-func docutils literal notranslate"><span class="pre">an.stage.solve.frame_times()</span></code>), joined or not; and, with
 <code class="docutils literal notranslate"><span class="pre">inferred</span></code>, every entity taken to stand on the shot’s floor
 (<code class="docutils literal notranslate"><span class="pre">solve:</span> <span class="pre">{ground:</span> <span class="pre">y}</span></code>) as it opens: its lowest contact within
 <a class="reference internal" href="#an.stage.support.support_tolerance" title="an.stage.support.support_tolerance"><code class="xref py py-func docutils literal notranslate"><span class="pre">support_tolerance()</span></code></a> (<code class="docutils literal notranslate"><span class="pre">tolerance</span></code> of its height, <code class="docutils literal notranslate"><span class="pre">floor</span></code> px at
-least) of the floor then, judged at that instant and its rest instants.
-Returns the states and <code class="docutils literal notranslate"><span class="pre">(where,</span> <span class="pre">message)</span></code> for each reference that does
-not resolve (no state is made for it).</p>
+least) of the floor then, measured at that instant and its rest instants
+(<code class="docutils literal notranslate"><span class="pre">rest_only</span></code>, the <code class="docutils literal notranslate"><span class="pre">support</span></code> check’s rule) or at every instant (the
+<code class="docutils literal notranslate"><span class="pre">skate</span></code> check’s, which judges a stance while it moves).</p>
+<p>A contact is held at an instant its support is joined and it is within
+that tolerance of the surface; its <code class="docutils literal notranslate"><span class="pre">slid</span></code> is how far (stage px) its foot
+parameter along the surface (<code class="docutils literal notranslate"><span class="pre">along</span></code>, in the surface’s own frame) changed
+since the grid’s previous instant, when it was held at both and its motion
+along the surface’s normal was at most <code class="docutils literal notranslate"><span class="pre">lift</span></code> of that (more is a foot
+leaving or meeting the surface). Returns the states and <code class="docutils literal notranslate"><span class="pre">(where,</span>
+<span class="pre">message)</span></code> for each reference that does not resolve (no state is made for
+it).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="#an.stage.support.SupportState" title="an.stage.support.SupportState"><code class="xref py py-class docutils literal notranslate"><span class="pre">SupportState</span></code></a>], <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]]</span></p>
@@ -1004,14 +1160,22 @@ not resolve (no state is made for it).</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.support.CONTACT_SOURCES"><code class="docutils literal notranslate"><span class="pre">CONTACT_SOURCES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.support.ContactState"><code class="docutils literal notranslate"><span class="pre">ContactState</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.support.ContactState.above"><code class="docutils literal notranslate"><span class="pre">ContactState.above</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.support.ContactState.along"><code class="docutils literal notranslate"><span class="pre">ContactState.along</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.support.ContactState.at"><code class="docutils literal notranslate"><span class="pre">ContactState.at</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.support.ContactState.limb"><code class="docutils literal notranslate"><span class="pre">ContactState.limb</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.support.ContactState.part"><code class="docutils literal notranslate"><span class="pre">ContactState.part</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.support.ContactState.slid"><code class="docutils literal notranslate"><span class="pre">ContactState.slid</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.support.Contacts"><code class="docutils literal notranslate"><span class="pre">Contacts</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.support.Contacts.note"><code class="docutils literal notranslate"><span class="pre">Contacts.note</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.support.SKATE_DRIFT_FLOOR_PX"><code class="docutils literal notranslate"><span class="pre">SKATE_DRIFT_FLOOR_PX</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.support.SKATE_DRIFT_TOLERANCE"><code class="docutils literal notranslate"><span class="pre">SKATE_DRIFT_TOLERANCE</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.support.SKATE_FLOOR_PX"><code class="docutils literal notranslate"><span class="pre">SKATE_FLOOR_PX</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.support.SKATE_LIFT"><code class="docutils literal notranslate"><span class="pre">SKATE_LIFT</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.support.SKATE_TOLERANCE"><code class="docutils literal notranslate"><span class="pre">SKATE_TOLERANCE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.support.SUPPORT_FLOOR_PX"><code class="docutils literal notranslate"><span class="pre">SUPPORT_FLOOR_PX</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.support.SUPPORT_TOLERANCE"><code class="docutils literal notranslate"><span class="pre">SUPPORT_TOLERANCE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.support.SupportState"><code class="docutils literal notranslate"><span class="pre">SupportState</span></code></a><ul class="nav section-nav flex-column">
@@ -1027,6 +1191,8 @@ not resolve (no state is made for it).</p>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.support.contacts_of"><code class="docutils literal notranslate"><span class="pre">contacts_of()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.support.contacts_on_parts"><code class="docutils literal notranslate"><span class="pre">contacts_on_parts()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.support.skate_drift_tolerance"><code class="docutils literal notranslate"><span class="pre">skate_drift_tolerance()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.support.skate_tolerance"><code class="docutils literal notranslate"><span class="pre">skate_tolerance()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.support.support_tolerance"><code class="docutils literal notranslate"><span class="pre">support_tolerance()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.support.supports_at"><code class="docutils literal notranslate"><span class="pre">supports_at()</span></code></a></li>
 </ul>

@@ -96,8 +96,9 @@ The core’s constraints:
 
 ### Functions
 
-| [`av_offset_fault`](#an.verify.constraints.av_offset_fault)(sound_t, cause_t)                  | How a sound at `sound_t` sits against its visible cause at `cause_t` (seconds): `None` inside the window, else `"early"` (sound ahead, past the window), `"late"` (behind), or `"before_cause"` (ahead by more than `CAUSE_TOLERANCE`).                                                                                   |
+| [`gravity_of`](#an.verify.constraints.gravity_of)(ctx)                                    | The style pack's gravity (`None` when it declares none or says `none`): what the `gravity` check holds a flight to, and what makes the `skate` check judge an inferred stance ([`an.verify.support`](an.verify.support.html.md#module-an.verify.support)).                                              |
 |-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`av_offset_fault`](#an.verify.constraints.av_offset_fault)(sound_t, cause_t)                  | How a sound at `sound_t` sits against its visible cause at `cause_t` (seconds): `None` inside the window, else `"early"` (sound ahead, past the window), `"late"` (behind), or `"before_cause"` (ahead by more than `CAUSE_TOLERANCE`).                                                                                   |
 | [`airborne_faults`](#an.verify.constraints.airborne_faults)(ys, dt, \*[, strength])            | What is wrong with a flight sampled as `ys` (screen y, down is positive) every `dt` s: `hover` (level for more than `HOVER_FRAMES`), `straight` (no downward acceleration: not a throw), `not_parabolic` (the acceleration is not constant), `strength` (not the declared pull).                                          |
 | [`move_jerk`](#an.verify.constraints.move_jerk)(values, dt)                              | The log dimensionless jerk `ln(T^5 / A^2 * integral |jerk|^2 dt)` of a move sampled every `dt` s: lower is smoother.                                                                                                                                                                                                      |
 | [`unanticipated`](#an.verify.constraints.unanticipated)(moves, \*, min_move, frames, fps)    | The moves of at least `min_move` with no anticipation: a move of the same channel, the other way, at most half as far, lasting `frames` frames, that ends at the big move's start (to within a frame).                                                                                                                    |
@@ -340,6 +341,15 @@ True
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Discontinuity`](#an.verify.constraints.Discontinuity)]
+
+### an.verify.constraints.gravity_of(ctx)
+
+The style pack’s gravity (`None` when it declares none or says `none`):
+what the `gravity` check holds a flight to, and what makes the `skate`
+check judge an inferred stance ([`an.verify.support`](an.verify.support.html.md#module-an.verify.support)).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.verify.constraints.move_jerk(values, dt)
 

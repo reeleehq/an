@@ -15,6 +15,7 @@ an.verify.constraints
 
    .. autosummary::
    
+      gravity_of
       av_offset_fault
       airborne_faults
       move_jerk

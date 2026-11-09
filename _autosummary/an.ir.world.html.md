@@ -56,6 +56,7 @@ move, and a close-up is the same world seen from nearer.
 | [`frame_poses`](#an.ir.world.frame_poses)(scene, \*[, film_starts])              | Per framed shot, where each frame stands in the world as the shot opens and as it closes (after the shot's own `<frame>:at_*` actions): what `an world show --frames` prints.                                                                                                                                                                                                   |
 | [`has_world`](#an.ir.world.has_world)(scene)                                   | Whether lowering would change anything: a world, or a shot with a viewpoint.                                                                                                                                                                                                                                                                                                    |
 | [`lower_world`](#an.ir.world.lower_world)(scene, \*, extents[, ...])             | The scene with every framed shot's placements derived from the world.                                                                                                                                                                                                                                                                                                           |
+| [`frame_moving_members`](#an.ir.world.frame_moving_members)(scene, index, \*[, ...])      | The positioned members of shot `index`'s world that stand in a frame moving relative to the viewpoint's over the shot (the rule [`lower_world()`](#an.ir.world.lower_world) samples their motion by), or that a `reframe` carries between frames.                                                                                                            |
 | [`member_of`](#an.ir.world.member_of)(entity, \*\*placement)                   | The world member a shot entity becomes (the inverse of `entity_of()`): its fields as they are, its `stage` dropped (a member is placed by each shot's viewpoint) and its `after` kept, with `placement` (`at`, `height`, ...) where the world stands it.                                                                                                                        |
 | [`member_placements`](#an.ir.world.member_placements)(world, projection, \*, ...)      | Every member's placement under `projection`: `{id: Placed}`.                                                                                                                                                                                                                                                                                                                    |
 | [`planes_at_infinity`](#an.ir.world.planes_at_infinity)(world, environments)            | Every plane of `world` at infinity (an#735), by `an validate`'s own rule: listed `far` under `world.travel.plates` (in listing order), then each plane of an environment member in a frame coupled `far` (in member order).                                                                                                                                                     |
@@ -293,6 +294,24 @@ same at any resolution.
 
 * **Return type:**
   [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+### an.ir.world.frame_moving_members(scene, index, , film_start=None)
+
+The positioned members of shot `index`’s world that stand in a frame
+moving relative to the viewpoint’s over the shot (the rule
+[`lower_world()`](#an.ir.world.lower_world) samples their motion by), or that a `reframe`
+carries between frames. Their stage floor does not stay under them, so a
+check measuring against the stage’s floor (`skate` on `ground`,
+an#519) cannot judge them until `World.ground` (an#519 PR 4). Empty for
+a shot no world frames; raises [`WorldError`](#an.ir.world.WorldError) as lowering would.
+
+```pycon
+>>> frame_moving_members(SceneIR(), 0)
+frozenset()
+```
+
+* **Return type:**
+  [`frozenset`](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.ir.world.frame_poses(scene, , film_starts=None)
 

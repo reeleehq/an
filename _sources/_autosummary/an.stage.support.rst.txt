@@ -12,12 +12,19 @@ an.stage.support
       CONTACTS_KEY
       SUPPORT_TOLERANCE
       SUPPORT_FLOOR_PX
+      SKATE_TOLERANCE
+      SKATE_FLOOR_PX
+      SKATE_DRIFT_TOLERANCE
+      SKATE_DRIFT_FLOOR_PX
+      SKATE_LIFT
    
    .. rubric:: Functions
 
    .. autosummary::
    
       support_tolerance
+      skate_tolerance
+      skate_drift_tolerance
       contacts_of
       contacts_on_parts
       supports_at

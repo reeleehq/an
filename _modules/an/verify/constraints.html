@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=eedccc62"></script>
+    <script src="../../../_static/documentation_options.js?v=d9244608"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.391" />
+  <meta name="docsearch:version" content="0.1.392" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -826,6 +826,7 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"RIGIDITY"</span><span class="p">,</span>
     <span class="s2">"MOTION_STYLE"</span><span class="p">,</span>
     <span class="s2">"GRAVITY"</span><span class="p">,</span>
+    <span class="s2">"gravity_of"</span><span class="p">,</span>
     <span class="s2">"CAUSALITY"</span><span class="p">,</span>
     <span class="s2">"av_offset_fault"</span><span class="p">,</span>
     <span class="s2">"airborne_faults"</span><span class="p">,</span>
@@ -2515,8 +2516,12 @@ window.runMermaid = runMermaid;</script>
 <span class="p">}</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_gravity_of</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""The style pack's gravity (``None`` when it declares none or says ``none``)."""</span>
+<div class="viewcode-block" id="gravity_of">
+<a class="viewcode-back" href="../../../_autosummary/an.verify.constraints.html#an.verify.constraints.gravity_of">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">gravity_of</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The style pack's gravity (``None`` when it declares none or says ``none``):</span>
+<span class="sd">    what the ``gravity`` check holds a flight to, and what makes the ``skate``</span>
+<span class="sd">    check judge an inferred stance (:mod:`an.verify.support`)."""</span>
     <span class="n">name</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">style_pack</span>
     <span class="n">styles</span> <span class="o">=</span> <span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">stores</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"styles"</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span> <span class="ow">or</span> <span class="n">styles</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -2530,7 +2535,8 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pack</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span>
         <span class="k">else</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">pack</span><span class="p">,</span> <span class="n">GRAVITY_KEY</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="p">)</span>
-    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">g</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">g</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span></div>
+
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">check_gravity</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -2540,7 +2546,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">entities</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">((</span><span class="n">e</span><span class="o">.</span><span class="n">overrides</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">AIRBORNE_OVERRIDE</span><span class="p">),</span> <span class="n">Mapping</span><span class="p">)</span>
     <span class="p">]</span>
-    <span class="n">gravity</span> <span class="o">=</span> <span class="n">_gravity_of</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span> <span class="k">if</span> <span class="n">flights</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">gravity</span> <span class="o">=</span> <span class="n">gravity_of</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span> <span class="k">if</span> <span class="n">flights</span> <span class="k">else</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">gravity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span>
     <span class="n">doc</span> <span class="o">=</span> <span class="n">compiled_shot</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>

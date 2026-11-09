@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=eedccc62"></script>
+    <script src="../../../_static/documentation_options.js?v=d9244608"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.391" />
+  <meta name="docsearch:version" content="0.1.392" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -736,7 +736,12 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">  entity taken to stand on its floor, as :class:`SupportState` records per</span>
 <span class="sd">  instant: each contact's signed distance to the surface along its normal</span>
 <span class="sd">  (:func:`an.stage.surface_line.lowest_on`'s sign: positive above, negative</span>
-<span class="sd">  sunk), with the references that do not resolve returned as ``(where, message)``.</span>
+<span class="sd">  sunk), whether it is a **limb**'s (on a part that is not one of the body's</span>
+<span class="sd">  roots), where its foot on the surface lies along it (``along``, in the</span>
+<span class="sd">  surface's own frame) and how far that foot **slid** along it since the grid</span>
+<span class="sd">  instant before while the contact was held there (the ``skate`` check's</span>
+<span class="sd">  measure, an#519 PR 2), with the references that do not resolve returned as</span>
+<span class="sd">  ``(where, message)``.</span>
 
 <span class="sd">A named point (``cup@base``, ``paul@foot_l``) is resolved by the solve's own</span>
 <span class="sd">resolver (:func:`an.stage.solve.locate_point`), so a ``pin`` and a ``support``</span>
@@ -773,10 +778,17 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"CONTACTS_KEY"</span><span class="p">,</span>
     <span class="s2">"SUPPORT_TOLERANCE"</span><span class="p">,</span>
     <span class="s2">"SUPPORT_FLOOR_PX"</span><span class="p">,</span>
+    <span class="s2">"SKATE_TOLERANCE"</span><span class="p">,</span>
+    <span class="s2">"SKATE_FLOOR_PX"</span><span class="p">,</span>
+    <span class="s2">"SKATE_DRIFT_TOLERANCE"</span><span class="p">,</span>
+    <span class="s2">"SKATE_DRIFT_FLOOR_PX"</span><span class="p">,</span>
+    <span class="s2">"SKATE_LIFT"</span><span class="p">,</span>
     <span class="s2">"Contacts"</span><span class="p">,</span>
     <span class="s2">"ContactState"</span><span class="p">,</span>
     <span class="s2">"SupportState"</span><span class="p">,</span>
     <span class="s2">"support_tolerance"</span><span class="p">,</span>
+    <span class="s2">"skate_tolerance"</span><span class="p">,</span>
+    <span class="s2">"skate_drift_tolerance"</span><span class="p">,</span>
     <span class="s2">"contacts_of"</span><span class="p">,</span>
     <span class="s2">"contacts_on_parts"</span><span class="p">,</span>
     <span class="s2">"supports_at"</span><span class="p">,</span>
@@ -795,6 +807,29 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: (:data:`an.kinematics.solver.DFLT_REJOIN_BLEND_PX`), below which it calls two</span>
 <span class="c1">#: points joined; a small prop is not held tighter than a joint.</span>
 <span class="n">SUPPORT_FLOOR_PX</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span>
+<span class="c1">#: How fast a held contact's foot may move along its surface, in the surface's</span>
+<span class="c1">#: own frame, as a fraction of the entity's height PER SECOND (24 px/s on a</span>
+<span class="c1">#: 200 px figure: 1 px a frame at 24 fps, 0.4 px at 60). A speed, so one slide</span>
+<span class="c1">#: gets one verdict at any frame rate or step rate.</span>
+<span class="n">SKATE_TOLERANCE</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.12</span>
+<span class="c1">#: The least skate speed tolerance, in px per second (half a pixel a frame at</span>
+<span class="c1">#: 24 fps: a fraction of a small body's height is less).</span>
+<span class="n">SKATE_FLOOR_PX</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">12.0</span>
+<span class="c1">#: How far a held contact's foot may drift along its surface over one stance</span>
+<span class="c1">#: (from where it was planted, while it stays held), as a fraction of the</span>
+<span class="c1">#: entity's height (6 px on a 200 px figure): a slow skate under the speed</span>
+<span class="c1">#: tolerance still adds up to a foot that is not where it was put down.</span>
+<span class="n">SKATE_DRIFT_TOLERANCE</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.03</span>
+<span class="c1">#: The least drift tolerance, in px: the support's own floor</span>
+<span class="c1">#: (:data:`SUPPORT_FLOOR_PX`), below which two points are one.</span>
+<span class="n">SKATE_DRIFT_FLOOR_PX</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span>
+<span class="c1">#: A step between two instants whose foot moves along the surface's normal by</span>
+<span class="c1">#: more than this fraction of how far it moves along the surface is a lift-off</span>
+<span class="c1">#: or a landing (a foot leaving the floor while still within the support</span>
+<span class="c1">#: tolerance of it), not a slide: it is not measured for skate.</span>
+<span class="n">SKATE_LIFT</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.25</span>
+<span class="c1">#: A normal motion (px) below this is none (float noise of the matrices).</span>
+<span class="n">_SAME_PX</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-6</span>
 <span class="c1">#: How close (px, at rest in the entity's own frame) a part's painted bottom</span>
 <span class="c1">#: must come to the rig's ``origin`` for the origin to be where it stands</span>
 <span class="c1">#: (:data:`an.stage.hold.SUPPORT_TOLERANCE_PX`'s rule, an#601).</span>
@@ -816,6 +851,44 @@ window.runMermaid = runMermaid;</script>
 
 <span class="sd">    &gt;&gt;&gt; support_tolerance(500.0), support_tolerance(500.0, tolerance=0.05, floor=30.0)</span>
 <span class="sd">    (10.0, 30.0)</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">tolerance</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">height</span><span class="p">),</span> <span class="n">floor</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="skate_tolerance">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.support.html#an.stage.support.skate_tolerance">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">skate_tolerance</span><span class="p">(</span>
+    <span class="n">height</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">tolerance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">SKATE_TOLERANCE</span><span class="p">,</span>
+    <span class="n">floor</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">SKATE_FLOOR_PX</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""How fast (px per second) a held contact of an entity ``height`` px tall</span>
+<span class="sd">    may slide along its surface: ``tolerance`` of its height per second, never</span>
+<span class="sd">    under ``floor``.</span>
+
+<span class="sd">    &gt;&gt;&gt; skate_tolerance(200.0), skate_tolerance(40.0)</span>
+<span class="sd">    (24.0, 12.0)</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">tolerance</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">height</span><span class="p">),</span> <span class="n">floor</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="skate_drift_tolerance">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.support.html#an.stage.support.skate_drift_tolerance">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">skate_drift_tolerance</span><span class="p">(</span>
+    <span class="n">height</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">tolerance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">SKATE_DRIFT_TOLERANCE</span><span class="p">,</span>
+    <span class="n">floor</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">SKATE_DRIFT_FLOOR_PX</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""How far (px) a held contact of an entity ``height`` px tall may drift</span>
+<span class="sd">    along its surface over one stance: ``tolerance`` of its height, never under</span>
+<span class="sd">    ``floor``.</span>
+
+<span class="sd">    &gt;&gt;&gt; skate_drift_tolerance(200.0), skate_drift_tolerance(40.0)</span>
+<span class="sd">    (6.0, 2.0)</span>
 <span class="sd">    """</span>
     <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">tolerance</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">height</span><span class="p">),</span> <span class="n">floor</span><span class="p">)</span></div>
 
@@ -993,6 +1066,23 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">eid</span> <span class="o">+</span> <span class="s2">"/"</span><span class="p">)</span> <span class="ow">and</span> <span class="n">n</span><span class="o">.</span><span class="n">visual</span><span class="p">]</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_carrying_root_paths</span><span class="p">(</span><span class="n">eid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">rig</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The node paths of ``eid``'s root parts that some joint hangs a part from.</span>
+
+<span class="sd">    &gt;&gt;&gt; from types import SimpleNamespace as NS</span>
+<span class="sd">    &gt;&gt;&gt; rig = NS(bodies={"torso": "torso", "leg_l": "leg_l", "arm": "arm"},</span>
+<span class="sd">    ...          roots=("torso", "leg_l"), joints=(NS(child="arm", parent="torso"),))</span>
+<span class="sd">    &gt;&gt;&gt; sorted(_carrying_root_paths("bob", rig))</span>
+<span class="sd">    ['bob/torso']</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">rig</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">rig</span><span class="p">,</span> <span class="s2">"bodies"</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">frozenset</span><span class="p">()</span>
+    <span class="n">parents</span> <span class="o">=</span> <span class="p">{</span><span class="n">j</span><span class="o">.</span><span class="n">parent</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">rig</span><span class="o">.</span><span class="n">joints</span><span class="p">}</span>
+    <span class="k">return</span> <span class="nb">frozenset</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">eid</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">rig</span><span class="o">.</span><span class="n">bodies</span><span class="p">[</span><span class="n">s</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">rig</span><span class="o">.</span><span class="n">roots</span> <span class="k">if</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">parents</span> <span class="ow">and</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">rig</span><span class="o">.</span><span class="n">bodies</span>
+    <span class="p">)</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_origin_touched</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">entity</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">rig</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">mall</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Whether a root part's painted bottom rests on the entity's origin, at rest</span>
 <span class="sd">    (an#601: a stick's middle or a wheel's hub is where it is held)."""</span>
@@ -1044,7 +1134,27 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: Its stage point (the lowest of its points, for ``ink`` or ``box``).</span>
     <span class="n">at</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
     <span class="c1">#: Its signed distance to the surface along the normal (+ above, - sunk).</span>
-    <span class="n">above</span><span class="p">:</span> <span class="nb">float</span></div>
+    <span class="n">above</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="c1">#: Whether it is a limb's: its node is not the entity's own nor one of its</span>
+    <span class="c1">#: root parts (a leg hinged to the body, a hoof), so it moves relative to</span>
+    <span class="c1">#: the body and can skate. A body's own stance point (its ``origin``, the</span>
+    <span class="c1">#: ink of its roots, a prop's ``base``, a bone on a root part) cannot: a</span>
+    <span class="c1">#: body that glides or is pushed slides on it by right.</span>
+    <span class="n">limb</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="c1">#: Its foot parameter along the surface, in the surface's own frame: where</span>
+    <span class="c1">#: the foot of its normal falls along the surface from a point fixed in it,</span>
+    <span class="c1">#: in the surface's units (a body's surface: its own units from the</span>
+    <span class="c1">#: segment's first end, so it neither moves nor flips with the body; the</span>
+    <span class="c1">#: floor and a stage segment: stage px from the floor's ``(0, y)`` or the</span>
+    <span class="c1">#: segment's ``a``).</span>
+    <span class="n">along</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="c1">#: How far (stage px, signed along the surface) its foot moved along the</span>
+    <span class="c1">#: surface, in the surface's own frame, since the grid's previous instant</span>
+    <span class="c1">#: (so a body carried by what it stands on does not move); ``None`` unless</span>
+    <span class="c1">#: it was held at both (its support joined, within the support tolerance of</span>
+    <span class="c1">#: the surface) and the step was not a lift-off or a landing</span>
+    <span class="c1">#: (:data:`SKATE_LIFT`).</span>
+    <span class="n">slid</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 
 
@@ -1105,6 +1215,19 @@ window.runMermaid = runMermaid;</script>
     <span class="n">points</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span>
 
 
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">_SurfaceAt</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A support's surface at one instant: its stage line, a bounded surface's</span>
+<span class="sd">    ends (``None`` for the floor), and its own frame: ``along(p)`` is a stage</span>
+<span class="sd">    point's foot parameter in the surface's units, ``scale`` the stage px per</span>
+<span class="sd">    unit along it."""</span>
+
+    <span class="n">line</span><span class="p">:</span> <span class="n">Line</span>
+    <span class="n">ends</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="n">along</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="n">scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">_Support</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""A support resolved against the compiled document."""</span>
@@ -1116,11 +1239,14 @@ window.runMermaid = runMermaid;</script>
     <span class="n">contacts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">_Contact</span><span class="p">]</span>
     <span class="n">source</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">named</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
-    <span class="c1">#: ``(the line, the segment's ends or None)`` at an instant, from world matrices.</span>
+    <span class="c1">#: The surface at an instant (:class:`_SurfaceAt`), from world matrices.</span>
     <span class="n">surface</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">surface_paths</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
     <span class="n">events</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
     <span class="n">instants</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># None: every frame</span>
+    <span class="c1">#: The entity's own node and its root parts': a contact on one is the</span>
+    <span class="c1">#: body's stance point, not a limb's (:attr:`ContactState.limb`).</span>
+    <span class="n">body</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">()</span>
 
 
 <div class="viewcode-block" id="supports_at">
@@ -1132,8 +1258,10 @@ window.runMermaid = runMermaid;</script>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">times</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">inferred</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">rest_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">tolerance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">SUPPORT_TOLERANCE</span><span class="p">,</span>
     <span class="n">floor</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">SUPPORT_FLOOR_PX</span><span class="p">,</span>
+    <span class="n">lift</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">SKATE_LIFT</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">SupportState</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]:</span>
 <span class="w">    </span><span class="sd">"""Every declared support of ``shot`` in its compiled document ``doc`` at</span>
 <span class="sd">    every instant of ``times`` (default: the solve's frame grid,</span>
@@ -1141,9 +1269,18 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    ``inferred``, every entity taken to stand on the shot's floor</span>
 <span class="sd">    (``solve: {ground: y}``) as it opens: its lowest contact within</span>
 <span class="sd">    :func:`support_tolerance` (``tolerance`` of its height, ``floor`` px at</span>
-<span class="sd">    least) of the floor then, judged at that instant and its rest instants.</span>
-<span class="sd">    Returns the states and ``(where, message)`` for each reference that does</span>
-<span class="sd">    not resolve (no state is made for it)."""</span>
+<span class="sd">    least) of the floor then, measured at that instant and its rest instants</span>
+<span class="sd">    (``rest_only``, the ``support`` check's rule) or at every instant (the</span>
+<span class="sd">    ``skate`` check's, which judges a stance while it moves).</span>
+
+<span class="sd">    A contact is held at an instant its support is joined and it is within</span>
+<span class="sd">    that tolerance of the surface; its ``slid`` is how far (stage px) its foot</span>
+<span class="sd">    parameter along the surface (``along``, in the surface's own frame) changed</span>
+<span class="sd">    since the grid's previous instant, when it was held at both and its motion</span>
+<span class="sd">    along the surface's normal was at most ``lift`` of that (more is a foot</span>
+<span class="sd">    leaving or meeting the surface). Returns the states and ``(where,</span>
+<span class="sd">    message)`` for each reference that does not resolve (no state is made for</span>
+<span class="sd">    it)."""</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.solve</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
         <span class="n">_node_index</span><span class="p">,</span>
         <span class="n">_world_matrices</span><span class="p">,</span>
@@ -1178,7 +1315,11 @@ window.runMermaid = runMermaid;</script>
         <span class="p">}</span>
         <span class="n">supports</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
             <span class="n">reader</span><span class="o">.</span><span class="n">stances</span><span class="p">(</span>
-                <span class="n">times</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="n">declared_entities</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="n">tolerance</span><span class="p">,</span> <span class="n">floor</span><span class="o">=</span><span class="n">floor</span>
+                <span class="n">times</span><span class="p">,</span>
+                <span class="n">skip</span><span class="o">=</span><span class="n">declared_entities</span><span class="p">,</span>
+                <span class="n">tolerance</span><span class="o">=</span><span class="n">tolerance</span><span class="p">,</span>
+                <span class="n">floor</span><span class="o">=</span><span class="n">floor</span><span class="p">,</span>
+                <span class="n">rest_only</span><span class="o">=</span><span class="n">rest_only</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">supports</span><span class="p">:</span>
@@ -1189,14 +1330,32 @@ window.runMermaid = runMermaid;</script>
         <span class="p">{</span><span class="n">p</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">supports</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">node</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">contacts</span><span class="p">),</span> <span class="o">*</span><span class="n">s</span><span class="o">.</span><span class="n">surface_paths</span><span class="p">)}</span>
     <span class="p">)</span>
     <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">SupportState</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">last</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SupportState</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">times</span><span class="p">):</span>
-        <span class="n">due</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">supports</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">instants</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">instants</span><span class="p">]</span>
+        <span class="n">due</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">supports</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">instants</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">instants</span>
+        <span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">due</span><span class="p">:</span>
             <span class="k">continue</span>
         <span class="n">pose</span> <span class="o">=</span> <span class="n">evaluate_timeline</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
         <span class="n">world</span> <span class="o">=</span> <span class="n">_world_matrices</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">paths</span><span class="p">,</span> <span class="n">pose</span><span class="p">,</span> <span class="n">nodes</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">due</span><span class="p">:</span>
-            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_state</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">world</span><span class="p">,</span> <span class="n">reader</span><span class="o">.</span><span class="n">height</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">entity</span><span class="p">)))</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">due</span><span class="p">:</span>
+            <span class="n">height</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">height</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">entity</span><span class="p">)</span>
+            <span class="n">prev</span> <span class="o">=</span> <span class="n">last</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">state</span> <span class="o">=</span> <span class="n">_state</span><span class="p">(</span>
+                <span class="n">s</span><span class="p">,</span>
+                <span class="n">k</span><span class="p">,</span>
+                <span class="n">t</span><span class="p">,</span>
+                <span class="n">world</span><span class="p">,</span>
+                <span class="n">height</span><span class="p">,</span>
+                <span class="n">tol</span><span class="o">=</span><span class="n">support_tolerance</span><span class="p">(</span><span class="n">height</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="n">tolerance</span><span class="p">,</span> <span class="n">floor</span><span class="o">=</span><span class="n">floor</span><span class="p">),</span>
+                <span class="n">prev</span><span class="o">=</span><span class="n">prev</span> <span class="k">if</span> <span class="n">prev</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">prev</span><span class="o">.</span><span class="n">frame</span> <span class="o">==</span> <span class="n">k</span> <span class="o">-</span> <span class="mi">1</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="n">lift</span><span class="o">=</span><span class="n">lift</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">last</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">state</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">out</span><span class="p">,</span> <span class="n">problems</span></div>
 
 
@@ -1215,16 +1374,48 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_state</span><span class="p">(</span>
-    <span class="n">s</span><span class="p">:</span> <span class="n">_Support</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">world</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">height</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">s</span><span class="p">:</span> <span class="n">_Support</span><span class="p">,</span>
+    <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">world</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">height</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">tol</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">prev</span><span class="p">:</span> <span class="n">SupportState</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">lift</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">SKATE_LIFT</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SupportState</span><span class="p">:</span>
-    <span class="n">line</span><span class="p">,</span> <span class="n">ends</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">surface</span><span class="p">(</span><span class="n">world</span><span class="p">)</span>
+<span class="w">    </span><span class="sd">"""``s`` at frame ``k`` (time ``t``) under ``world``'s matrices; ``prev`` its</span>
+<span class="sd">    state at frame ``k - 1``, when it was measured then, for the slide."""</span>
+    <span class="n">at</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">surface</span><span class="p">(</span><span class="n">world</span><span class="p">)</span>
+    <span class="n">joined</span> <span class="o">=</span> <span class="n">_joined</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">events</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+    <span class="n">before</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">{(</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">part</span><span class="p">):</span> <span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">prev</span><span class="o">.</span><span class="n">contacts</span> <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">above</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">tol</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">prev</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">prev</span><span class="o">.</span><span class="n">joined</span>
+        <span class="k">else</span> <span class="p">{}</span>
+    <span class="p">)</span>
     <span class="n">contacts</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">contacts</span><span class="p">:</span>
-        <span class="n">low</span><span class="p">,</span> <span class="n">gap</span> <span class="o">=</span> <span class="n">lowest_on</span><span class="p">(</span><span class="n">world</span><span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">node</span><span class="p">],</span> <span class="n">c</span><span class="o">.</span><span class="n">points</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">ends</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">_on_segment</span><span class="p">(</span><span class="n">low</span><span class="p">,</span> <span class="o">*</span><span class="n">ends</span><span class="p">):</span>
+        <span class="n">low</span><span class="p">,</span> <span class="n">gap</span> <span class="o">=</span> <span class="n">lowest_on</span><span class="p">(</span><span class="n">world</span><span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">node</span><span class="p">],</span> <span class="n">c</span><span class="o">.</span><span class="n">points</span><span class="p">,</span> <span class="n">at</span><span class="o">.</span><span class="n">line</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">at</span><span class="o">.</span><span class="n">ends</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">_on_segment</span><span class="p">(</span><span class="n">low</span><span class="p">,</span> <span class="o">*</span><span class="n">at</span><span class="o">.</span><span class="n">ends</span><span class="p">):</span>
             <span class="k">continue</span>  <span class="c1"># off a bounded surface's ends: nothing to stand on</span>
+        <span class="n">along</span> <span class="o">=</span> <span class="n">at</span><span class="o">.</span><span class="n">along</span><span class="p">(</span><span class="n">low</span><span class="p">)</span>
+        <span class="n">was</span> <span class="o">=</span> <span class="n">before</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">node</span><span class="p">))</span>
+        <span class="n">slid</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">joined</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">gap</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">tol</span> <span class="ow">and</span> <span class="n">was</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">math</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">along</span><span class="p">):</span>
+            <span class="n">step</span> <span class="o">=</span> <span class="p">(</span><span class="n">along</span> <span class="o">-</span> <span class="n">was</span><span class="o">.</span><span class="n">along</span><span class="p">)</span> <span class="o">*</span> <span class="n">at</span><span class="o">.</span><span class="n">scale</span>
+            <span class="n">rose</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">gap</span> <span class="o">-</span> <span class="n">was</span><span class="o">.</span><span class="n">above</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">rose</span> <span class="o">&lt;=</span> <span class="nb">max</span><span class="p">(</span><span class="n">lift</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span><span class="n">step</span><span class="p">),</span> <span class="n">_SAME_PX</span><span class="p">):</span>  <span class="c1"># else lifting or landing</span>
+                <span class="n">slid</span> <span class="o">=</span> <span class="n">step</span> <span class="o">+</span> <span class="mf">0.0</span>
         <span class="n">contacts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-            <span class="n">ContactState</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">node</span><span class="p">,</span> <span class="p">(</span><span class="n">low</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">low</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">gap</span> <span class="o">+</span> <span class="mf">0.0</span><span class="p">)</span>
+            <span class="n">ContactState</span><span class="p">(</span>
+                <span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">c</span><span class="o">.</span><span class="n">node</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">low</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">low</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.0</span><span class="p">),</span>
+                <span class="n">gap</span> <span class="o">+</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="n">limb</span><span class="o">=</span><span class="n">c</span><span class="o">.</span><span class="n">node</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">body</span><span class="p">,</span>
+                <span class="n">along</span><span class="o">=</span><span class="n">along</span><span class="p">,</span>
+                <span class="n">slid</span><span class="o">=</span><span class="n">slid</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="p">)</span>
     <span class="k">return</span> <span class="n">SupportState</span><span class="p">(</span>
         <span class="n">entity</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">entity</span><span class="p">,</span>
@@ -1232,13 +1423,69 @@ window.runMermaid = runMermaid;</script>
         <span class="n">where</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">where</span><span class="p">,</span>
         <span class="n">frame</span><span class="o">=</span><span class="n">k</span><span class="p">,</span>
         <span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">,</span>
-        <span class="n">surface</span><span class="o">=</span><span class="n">line</span><span class="p">,</span>
+        <span class="n">surface</span><span class="o">=</span><span class="n">at</span><span class="o">.</span><span class="n">line</span><span class="p">,</span>
         <span class="n">surface_ref</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">surface_ref</span><span class="p">,</span>
         <span class="n">contacts</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">contacts</span><span class="p">),</span>
-        <span class="n">joined</span><span class="o">=</span><span class="n">_joined</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">events</span><span class="p">,</span> <span class="n">t</span><span class="p">),</span>
+        <span class="n">joined</span><span class="o">=</span><span class="n">joined</span><span class="p">,</span>
         <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span>
         <span class="n">source</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">source</span><span class="p">,</span>
         <span class="n">named</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">named</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_along</span><span class="p">(</span>
+    <span class="n">p</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">ref</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">axis</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The foot parameter of ``p`` along the unit ``axis``: how far along it the</span>
+<span class="sd">    foot of ``p``'s normal lies from ``ref``.</span>
+
+<span class="sd">    &gt;&gt;&gt; _along((7.0, -3.0), (2.0, 0.0), (1.0, 0.0))</span>
+<span class="sd">    5.0</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">ref</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">axis</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">ref</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">axis</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.0</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_stage_surface</span><span class="p">(</span><span class="n">line</span><span class="p">:</span> <span class="n">Line</span><span class="p">,</span> <span class="n">ends</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_SurfaceAt</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A surface fixed on the stage (the floor, a ``world@`` segment): its frame</span>
+<span class="sd">    is the stage's, from the floor's point or the segment's first end.</span>
+
+<span class="sd">    &gt;&gt;&gt; _stage_surface(((0.0, 200.0), (1.0, 0.0))).along((30.0, 195.0))</span>
+<span class="sd">    30.0</span>
+<span class="sd">    """</span>
+    <span class="n">ref</span> <span class="o">=</span> <span class="n">ends</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">ends</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">_SurfaceAt</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">ends</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">_along</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">ref</span><span class="p">,</span> <span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_body_surface_at</span><span class="p">(</span>
+    <span class="n">m</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">seg</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_SurfaceAt</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A body's surface segment ``seg`` (in its node's frame) under its world</span>
+<span class="sd">    matrix ``m``: the stage line through its ends, and its own frame, a stage</span>
+<span class="sd">    point taken back into the node's frame (``m`` inverted) and projected on</span>
+<span class="sd">    ``seg[1] - seg[0]`` from ``seg[0]``, so the parameter neither moves nor</span>
+<span class="sd">    flips with the body (a mirrored crate keeps its ends where they are).</span>
+
+<span class="sd">    &gt;&gt;&gt; s = _body_surface_at((-1.0, 0.0, 0.0, 1.0, 100.0, 0.0), ((0.0, 0.0), (10.0, 0.0)))</span>
+<span class="sd">    &gt;&gt;&gt; s.ends, s.along((97.0, -2.0)), s.scale</span>
+<span class="sd">    (((100.0, 0.0), (90.0, 0.0)), 3.0, 1.0)</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.solve</span><span class="w"> </span><span class="kn">import</span> <span class="n">_apply</span><span class="p">,</span> <span class="n">_invert</span>
+
+    <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">_apply</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">seg</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">_apply</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">seg</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span> <span class="o">=</span> <span class="n">seg</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">seg</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">seg</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">seg</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">length</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">inv</span> <span class="o">=</span> <span class="n">_invert</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>  <span class="c1"># a body drawn at zero scale has no frame to measure in</span>
+        <span class="n">inv</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">inv</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">length</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_SurfaceAt</span><span class="p">(</span><span class="n">line_through</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">),</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">),</span> <span class="k">lambda</span> <span class="n">_p</span><span class="p">:</span> <span class="n">math</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+    <span class="n">axis</span> <span class="o">=</span> <span class="p">(</span><span class="n">dx</span> <span class="o">/</span> <span class="n">length</span><span class="p">,</span> <span class="n">dy</span> <span class="o">/</span> <span class="n">length</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_SurfaceAt</span><span class="p">(</span>
+        <span class="n">line_through</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">),</span>
+        <span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">_along</span><span class="p">(</span><span class="n">_apply</span><span class="p">(</span><span class="n">inv</span><span class="p">,</span> <span class="n">p</span><span class="p">),</span> <span class="n">seg</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">axis</span><span class="p">),</span>
+        <span class="n">math</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="n">length</span><span class="p">,</span>
     <span class="p">)</span>
 
 
@@ -1374,6 +1621,18 @@ window.runMermaid = runMermaid;</script>
                     <span class="n">ys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_apply</span><span class="p">(</span><span class="n">world</span><span class="p">[</span><span class="n">p</span><span class="p">],</span> <span class="n">c</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_heights</span><span class="p">[</span><span class="n">eid</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">ys</span><span class="p">)</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">ys</span><span class="p">))</span> <span class="k">if</span> <span class="n">ys</span> <span class="k">else</span> <span class="mf">0.0</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heights</span><span class="p">[</span><span class="n">eid</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">body</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">eid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""``eid``'s own node and the root parts that carry it: where a contact</span>
+<span class="sd">        is the body's stance point, not a limb's. A root something hangs from</span>
+<span class="sd">        (a torso) carries the rig; a root nothing hangs from beside it (a</span>
+<span class="sd">        factory character's legs, hung from a slotless ``root`` bone) is a limb.</span>
+<span class="sd">        A rig where no root carries anything (a crate, a cup) is all body."""</span>
+        <span class="n">rig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rig</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+        <span class="n">roots</span> <span class="o">=</span> <span class="n">_root_paths</span><span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="n">rig</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span>
+        <span class="n">carrying</span> <span class="o">=</span> <span class="n">_carrying_root_paths</span><span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="n">rig</span><span class="p">)</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">roots</span> <span class="k">if</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">carrying</span><span class="p">]</span> <span class="ow">or</span> <span class="n">roots</span>
+        <span class="k">return</span> <span class="nb">frozenset</span><span class="p">({</span><span class="n">eid</span><span class="p">,</span> <span class="o">*</span><span class="n">body</span><span class="p">})</span>
 
     <span class="c1"># -- contacts as nodes and points ---------------------------------------</span>
 
@@ -1552,11 +1811,11 @@ window.runMermaid = runMermaid;</script>
         <span class="n">problems</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""``b`` as ``(world -&gt; (line, ends or None), the node paths it reads)``."""</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.solve</span><span class="w"> </span><span class="kn">import</span> <span class="n">WORLD_REF</span><span class="p">,</span> <span class="n">_apply</span><span class="p">,</span> <span class="n">_numbers</span><span class="p">,</span> <span class="n">_slot_path</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.solve</span><span class="w"> </span><span class="kn">import</span> <span class="n">WORLD_REF</span><span class="p">,</span> <span class="n">_numbers</span><span class="p">,</span> <span class="n">_slot_path</span>
 
         <span class="k">if</span> <span class="n">ref</span> <span class="o">==</span> <span class="n">GROUND_SURFACE</span><span class="p">:</span>
-            <span class="n">line</span> <span class="o">=</span> <span class="n">ground_line</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">contacts</span><span class="p">))</span>
-            <span class="k">return</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">_world</span><span class="p">:</span> <span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="kc">None</span><span class="p">)),</span> <span class="p">()</span>
+            <span class="n">floor_at</span> <span class="o">=</span> <span class="n">_stage_surface</span><span class="p">(</span><span class="n">ground_line</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">contacts</span><span class="p">)))</span>
+            <span class="k">return</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">_world</span><span class="p">:</span> <span class="n">floor_at</span><span class="p">),</span> <span class="p">()</span>
         <span class="n">head</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">at</span> <span class="o">=</span> <span class="n">ref</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">"@"</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">head</span> <span class="o">==</span> <span class="n">WORLD_REF</span><span class="p">:</span>
             <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">_numbers</span><span class="p">(</span><span class="n">at</span><span class="p">),</span> <span class="n">_numbers</span><span class="p">((</span><span class="n">end</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">"@"</span><span class="p">)[</span><span class="mi">2</span><span class="p">])</span>
@@ -1568,8 +1827,8 @@ window.runMermaid = runMermaid;</script>
                     <span class="p">)</span>
                 <span class="p">)</span>
                 <span class="k">return</span> <span class="kc">None</span>
-            <span class="n">line</span> <span class="o">=</span> <span class="n">line_through</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
-            <span class="k">return</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">_world</span><span class="p">:</span> <span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">))),</span> <span class="p">()</span>
+            <span class="n">segment_at</span> <span class="o">=</span> <span class="n">_stage_surface</span><span class="p">(</span><span class="n">line_through</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">),</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">))</span>
+            <span class="k">return</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">_world</span><span class="p">:</span> <span class="n">segment_at</span><span class="p">),</span> <span class="p">()</span>
         <span class="n">eid</span> <span class="o">=</span> <span class="n">head</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">eid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">entities</span><span class="p">:</span>
             <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">where</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">eid</span><span class="si">!r}</span><span class="s2"> is not an entity of this shot"</span><span class="p">))</span>
@@ -1601,10 +1860,8 @@ window.runMermaid = runMermaid;</script>
             <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">where</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">seg</span><span class="si">}</span><span class="s2">"</span><span class="p">))</span>
             <span class="k">return</span> <span class="kc">None</span>
 
-        <span class="k">def</span><span class="w"> </span><span class="nf">at_instant</span><span class="p">(</span><span class="n">world</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Line</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-            <span class="n">m</span> <span class="o">=</span> <span class="n">world</span><span class="p">[</span><span class="n">node_path</span><span class="p">]</span>
-            <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">_apply</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">seg</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">_apply</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">seg</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-            <span class="k">return</span> <span class="n">line_through</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">),</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">at_instant</span><span class="p">(</span><span class="n">world</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">_SurfaceAt</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">_body_surface_at</span><span class="p">(</span><span class="n">world</span><span class="p">[</span><span class="n">node_path</span><span class="p">],</span> <span class="n">seg</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">at_instant</span><span class="p">,</span> <span class="p">(</span><span class="n">node_path</span><span class="p">,)</span>
 
@@ -1648,6 +1905,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">named</span><span class="o">=</span><span class="n">named</span><span class="p">,</span>
             <span class="n">surface</span><span class="o">=</span><span class="n">at_instant</span><span class="p">,</span>
             <span class="n">surface_paths</span><span class="o">=</span><span class="n">paths</span><span class="p">,</span>
+            <span class="n">body</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">(</span><span class="n">eid</span><span class="p">),</span>
         <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">stances</span><span class="p">(</span>
@@ -1657,13 +1915,14 @@ window.runMermaid = runMermaid;</script>
         <span class="n">skip</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
         <span class="n">tolerance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">SUPPORT_TOLERANCE</span><span class="p">,</span>
         <span class="n">floor</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">SUPPORT_FLOOR_PX</span><span class="p">,</span>
+        <span class="n">rest_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">_Support</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""The entities taken to stand on the shot's floor as it opens (§2.4 of</span>
 <span class="sd">        the spec): a rig kind, not held by the hold layer, whose contacts are</span>
 <span class="sd">        not a box's corners, its lowest contact within :func:`support_tolerance`</span>
 <span class="sd">        of the floor at the opening instant (one staged on a crate stands on</span>
-<span class="sd">        the crate, not the floor); each judged as it opens and at its rest</span>
-<span class="sd">        instants."""</span>
+<span class="sd">        the crate, not the floor); each measured as it opens and at its rest</span>
+<span class="sd">        instants (``rest_only``), else at every instant."""</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.hold</span><span class="w"> </span><span class="kn">import</span> <span class="n">hold_declarations</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.solve</span><span class="w"> </span><span class="kn">import</span> <span class="n">_apply</span><span class="p">,</span> <span class="n">_is_rig_kind</span>
 
@@ -1674,7 +1933,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">items</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">hold_declarations</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shot</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 - the hold checks report broken holds</span>
             <span class="n">items</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
-        <span class="n">floor_line</span> <span class="o">=</span> <span class="n">ground_line</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">solve</span><span class="o">.</span><span class="n">ground</span><span class="p">))</span>
+        <span class="n">floor_at</span> <span class="o">=</span> <span class="n">_stage_surface</span><span class="p">(</span><span class="n">ground_line</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">solve</span><span class="o">.</span><span class="n">ground</span><span class="p">)))</span>
         <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">skip</span> <span class="ow">or</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">items</span> <span class="ow">or</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
@@ -1704,8 +1963,11 @@ window.runMermaid = runMermaid;</script>
                     <span class="n">surface_ref</span><span class="o">=</span><span class="n">GROUND_SURFACE</span><span class="p">,</span>
                     <span class="n">contacts</span><span class="o">=</span><span class="n">contacts</span><span class="p">,</span>
                     <span class="n">source</span><span class="o">=</span><span class="n">chain</span><span class="o">.</span><span class="n">source</span><span class="p">,</span>
-                    <span class="n">surface</span><span class="o">=</span><span class="k">lambda</span> <span class="n">_world</span><span class="p">,</span> <span class="n">line</span><span class="o">=</span><span class="n">floor_line</span><span class="p">:</span> <span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-                    <span class="n">instants</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rest_frames</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">times</span><span class="p">)),</span>
+                    <span class="n">surface</span><span class="o">=</span><span class="k">lambda</span> <span class="n">_world</span><span class="p">:</span> <span class="n">floor_at</span><span class="p">,</span>
+                    <span class="n">instants</span><span class="o">=</span><span class="p">(</span>
+                        <span class="nb">frozenset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rest_frames</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">times</span><span class="p">))</span> <span class="k">if</span> <span class="n">rest_only</span> <span class="k">else</span> <span class="kc">None</span>
+                    <span class="p">),</span>
+                    <span class="n">body</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">),</span>
                 <span class="p">)</span>
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">out</span>

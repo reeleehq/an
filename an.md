@@ -1,4 +1,4 @@
-> built 2026-11-09 05:53 UTC from 9db4b07 (main) · an 0.1.391. Details: build_info.json
+> built 2026-11-09 06:42 UTC from bb4f957 (main) · an 0.1.392. Details: build_info.json
 
 # index.html.md
 
@@ -25200,6 +25200,7 @@ move, and a close-up is the same world seen from nearer.
 | [`frame_poses`](_autosummary/an.ir.world.html.md#an.ir.world.frame_poses)(scene, \*[, film_starts])              | Per framed shot, where each frame stands in the world as the shot opens and as it closes (after the shot's own `<frame>:at_*` actions): what `an world show --frames` prints.                                                                                                                                                                                                   |
 | [`has_world`](_autosummary/an.ir.world.html.md#an.ir.world.has_world)(scene)                                   | Whether lowering would change anything: a world, or a shot with a viewpoint.                                                                                                                                                                                                                                                                                                    |
 | [`lower_world`](_autosummary/an.ir.world.html.md#an.ir.world.lower_world)(scene, \*, extents[, ...])             | The scene with every framed shot's placements derived from the world.                                                                                                                                                                                                                                                                                                           |
+| [`frame_moving_members`](_autosummary/an.ir.world.html.md#an.ir.world.frame_moving_members)(scene, index, \*[, ...])      | The positioned members of shot `index`'s world that stand in a frame moving relative to the viewpoint's over the shot (the rule [`lower_world()`](_autosummary/an.ir.world.html.md#an.ir.world.lower_world) samples their motion by), or that a `reframe` carries between frames.                                                                                                            |
 | [`member_of`](_autosummary/an.ir.world.html.md#an.ir.world.member_of)(entity, \*\*placement)                   | The world member a shot entity becomes (the inverse of `entity_of()`): its fields as they are, its `stage` dropped (a member is placed by each shot's viewpoint) and its `after` kept, with `placement` (`at`, `height`, ...) where the world stands it.                                                                                                                        |
 | [`member_placements`](_autosummary/an.ir.world.html.md#an.ir.world.member_placements)(world, projection, \*, ...)      | Every member's placement under `projection`: `{id: Placed}`.                                                                                                                                                                                                                                                                                                                    |
 | [`planes_at_infinity`](_autosummary/an.ir.world.html.md#an.ir.world.planes_at_infinity)(world, environments)            | Every plane of `world` at infinity (an#735), by `an validate`'s own rule: listed `far` under `world.travel.plates` (in listing order), then each plane of an environment member in a frame coupled `far` (in member order).                                                                                                                                                     |
@@ -25437,6 +25438,24 @@ same at any resolution.
 
 * **Return type:**
   [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+### an.ir.world.frame_moving_members(scene, index, , film_start=None)
+
+The positioned members of shot `index`’s world that stand in a frame
+moving relative to the viewpoint’s over the shot (the rule
+[`lower_world()`](_autosummary/an.ir.world.html.md#an.ir.world.lower_world) samples their motion by), or that a `reframe`
+carries between frames. Their stage floor does not stay under them, so a
+check measuring against the stage’s floor (`skate` on `ground`,
+an#519) cannot judge them until `World.ground` (an#519 PR 4). Empty for
+a shot no world frames; raises [`WorldError`](_autosummary/an.ir.world.html.md#an.ir.world.WorldError) as lowering would.
+
+```pycon
+>>> frame_moving_members(SceneIR(), 0)
+frozenset()
+```
+
+* **Return type:**
+  [`frozenset`](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.ir.world.frame_poses(scene, , film_starts=None)
 
@@ -42704,7 +42723,12 @@ under the `support` check ([`an.verify.support`](_autosummary/an.verify.support.
   entity taken to stand on its floor, as [`SupportState`](_autosummary/an.stage.support.html.md#an.stage.support.SupportState) records per
   instant: each contact’s signed distance to the surface along its normal
   ([`an.stage.surface_line.lowest_on()`](_autosummary/an.stage.surface_line.html.md#an.stage.surface_line.lowest_on)’s sign: positive above, negative
-  sunk), with the references that do not resolve returned as `(where, message)`.
+  sunk), whether it is a **limb**’s (on a part that is not one of the body’s
+  roots), where its foot on the surface lies along it (`along`, in the
+  surface’s own frame) and how far that foot **slid** along it since the grid
+  instant before while the contact was held there (the `skate` check’s
+  measure, an#519 PR 2), with the references that do not resolve returned as
+  `(where, message)`.
 
 A named point (`cup@base`, `paul@foot_l`) is resolved by the solve’s own
 resolver ([`an.stage.solve.locate_point()`](_autosummary/an.stage.solve.html.md#an.stage.solve.locate_point)), so a `pin` and a `support`
@@ -42723,25 +42747,32 @@ not held to a gap below what a frame shows.
 
 ### Module Attributes
 
-| [`CONTACT_SOURCES`](_autosummary/an.stage.support.html.md#an.stage.support.CONTACT_SOURCES)   | Where an entity's contacts come from, in the order the chain tries them.                                                                                                                                                                                     |
-|--------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`CONTACTS_KEY`](_autosummary/an.stage.support.html.md#an.stage.support.CONTACTS_KEY)      | The descriptor's `metadata` key that names a prop's contacts.                                                                                                                                                                                                |
-| [`SUPPORT_TOLERANCE`](_autosummary/an.stage.support.html.md#an.stage.support.SUPPORT_TOLERANCE) | How far a contact may be off its surface, either way, as a fraction of the entity's height (4 px on a 200 px figure).                                                                                                                                        |
-| [`SUPPORT_FLOOR_PX`](_autosummary/an.stage.support.html.md#an.stage.support.SUPPORT_FLOOR_PX)  | the solver's own rejoin blend ([`an.kinematics.solver.DFLT_REJOIN_BLEND_PX`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_REJOIN_BLEND_PX)), below which it calls two points joined; a small prop is not held tighter than a joint. |
+| [`CONTACT_SOURCES`](_autosummary/an.stage.support.html.md#an.stage.support.CONTACT_SOURCES)       | Where an entity's contacts come from, in the order the chain tries them.                                                                                                                                                                                                                      |
+|------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`CONTACTS_KEY`](_autosummary/an.stage.support.html.md#an.stage.support.CONTACTS_KEY)          | The descriptor's `metadata` key that names a prop's contacts.                                                                                                                                                                                                                                 |
+| [`SUPPORT_TOLERANCE`](_autosummary/an.stage.support.html.md#an.stage.support.SUPPORT_TOLERANCE)     | How far a contact may be off its surface, either way, as a fraction of the entity's height (4 px on a 200 px figure).                                                                                                                                                                         |
+| [`SUPPORT_FLOOR_PX`](_autosummary/an.stage.support.html.md#an.stage.support.SUPPORT_FLOOR_PX)      | the solver's own rejoin blend ([`an.kinematics.solver.DFLT_REJOIN_BLEND_PX`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_REJOIN_BLEND_PX)), below which it calls two points joined; a small prop is not held tighter than a joint.                                  |
+| [`SKATE_TOLERANCE`](_autosummary/an.stage.support.html.md#an.stage.support.SKATE_TOLERANCE)       | How fast a held contact's foot may move along its surface, in the surface's own frame, as a fraction of the entity's height PER SECOND (24 px/s on a 200 px figure: 1 px a frame at 24 fps, 0.4 px at 60).                                                                                    |
+| [`SKATE_FLOOR_PX`](_autosummary/an.stage.support.html.md#an.stage.support.SKATE_FLOOR_PX)        | The least skate speed tolerance, in px per second (half a pixel a frame at 24 fps: a fraction of a small body's height is less).                                                                                                                                                              |
+| [`SKATE_DRIFT_TOLERANCE`](_autosummary/an.stage.support.html.md#an.stage.support.SKATE_DRIFT_TOLERANCE) | How far a held contact's foot may drift along its surface over one stance (from where it was planted, while it stays held), as a fraction of the entity's height (6 px on a 200 px figure): a slow skate under the speed tolerance still adds up to a foot that is not where it was put down. |
+| [`SKATE_DRIFT_FLOOR_PX`](_autosummary/an.stage.support.html.md#an.stage.support.SKATE_DRIFT_FLOOR_PX)  | the support's own floor ([`SUPPORT_FLOOR_PX`](_autosummary/an.stage.support.html.md#an.stage.support.SUPPORT_FLOOR_PX)), below which two points are one.                                                                                                                                                                  |
+| [`SKATE_LIFT`](_autosummary/an.stage.support.html.md#an.stage.support.SKATE_LIFT)            | A step between two instants whose foot moves along the surface's normal by more than this fraction of how far it moves along the surface is a lift-off or a landing (a foot leaving the floor while still within the support tolerance of it), not a slide: it is not measured for skate.     |
 
 ### Functions
 
-| [`support_tolerance`](_autosummary/an.stage.support.html.md#an.stage.support.support_tolerance)(height, \*[, tolerance, floor])   | How far a contact of an entity `height` px tall may be off its surface: `tolerance` of its height, never under `floor` px.                                                                                                                                                                                                                                                                                                                                                                               |
-|------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`contacts_of`](_autosummary/an.stage.support.html.md#an.stage.support.contacts_of)(entity, mall, \*[, rig, ...])           | `entity`'s contacts, by the chain: the kind's hook, `metadata.contacts`, the rig's `origin` (when a root part's painted bottom rests on it, read in `doc`), else the lowest ink of its root parts: `ink` when `doc` shows a raster whose alpha hull was read, else `box`.                                                                                                                                                                                                                                |
-| [`contacts_on_parts`](_autosummary/an.stage.support.html.md#an.stage.support.contacts_on_parts)(entity, desc, \*, rig)            | The contacts the chain names on a part of `entity`'s rig (the hook's, else `metadata.contacts`, a root-part fraction put on the first root): what the point resolver ([`an.stage.solve.locate_point()`](_autosummary/an.stage.solve.html.md#an.stage.solve.locate_point)) names after a rig's landmarks, so a joint, a verb or a support may name `paul@foot_l` as it names `paul@hand_l`.                                                                                                       |
-| [`supports_at`](_autosummary/an.stage.support.html.md#an.stage.support.supports_at)(doc, shot, mall, \*[, times, ...])      | Every declared support of `shot` in its compiled document `doc` at every instant of `times` (default: the solve's frame grid, `an.stage.solve.frame_times()`), joined or not; and, with `inferred`, every entity taken to stand on the shot's floor (`solve: {ground: y}`) as it opens: its lowest contact within [`support_tolerance()`](_autosummary/an.stage.support.html.md#an.stage.support.support_tolerance) (`tolerance` of its height, `floor` px at least) of the floor then, judged at that instant and its rest instants. |
+| [`support_tolerance`](_autosummary/an.stage.support.html.md#an.stage.support.support_tolerance)(height, \*[, tolerance, floor])   | How far a contact of an entity `height` px tall may be off its surface: `tolerance` of its height, never under `floor` px.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+|------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`skate_tolerance`](_autosummary/an.stage.support.html.md#an.stage.support.skate_tolerance)(height, \*[, tolerance, floor])     | How fast (px per second) a held contact of an entity `height` px tall may slide along its surface: `tolerance` of its height per second, never under `floor`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| [`skate_drift_tolerance`](_autosummary/an.stage.support.html.md#an.stage.support.skate_drift_tolerance)(height, \*[, ...])            | How far (px) a held contact of an entity `height` px tall may drift along its surface over one stance: `tolerance` of its height, never under `floor`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| [`contacts_of`](_autosummary/an.stage.support.html.md#an.stage.support.contacts_of)(entity, mall, \*[, rig, ...])           | `entity`'s contacts, by the chain: the kind's hook, `metadata.contacts`, the rig's `origin` (when a root part's painted bottom rests on it, read in `doc`), else the lowest ink of its root parts: `ink` when `doc` shows a raster whose alpha hull was read, else `box`.                                                                                                                                                                                                                                                                                                                                                            |
+| [`contacts_on_parts`](_autosummary/an.stage.support.html.md#an.stage.support.contacts_on_parts)(entity, desc, \*, rig)            | The contacts the chain names on a part of `entity`'s rig (the hook's, else `metadata.contacts`, a root-part fraction put on the first root): what the point resolver ([`an.stage.solve.locate_point()`](_autosummary/an.stage.solve.html.md#an.stage.solve.locate_point)) names after a rig's landmarks, so a joint, a verb or a support may name `paul@foot_l` as it names `paul@hand_l`.                                                                                                                                                                                                                                   |
+| [`supports_at`](_autosummary/an.stage.support.html.md#an.stage.support.supports_at)(doc, shot, mall, \*[, times, ...])      | Every declared support of `shot` in its compiled document `doc` at every instant of `times` (default: the solve's frame grid, `an.stage.solve.frame_times()`), joined or not; and, with `inferred`, every entity taken to stand on the shot's floor (`solve: {ground: y}`) as it opens: its lowest contact within [`support_tolerance()`](_autosummary/an.stage.support.html.md#an.stage.support.support_tolerance) (`tolerance` of its height, `floor` px at least) of the floor then, measured at that instant and its rest instants (`rest_only`, the `support` check's rule) or at every instant (the `skate` check's, which judges a stance while it moves). |
 
 ### Classes
 
 | [`Contacts`](_autosummary/an.stage.support.html.md#an.stage.support.Contacts)(source, points[, note])                  | An entity's contacts and where the chain found them.                        |
 |----------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|
-| [`ContactState`](_autosummary/an.stage.support.html.md#an.stage.support.ContactState)(name, part, at, above)               | One contact at one instant.                                                 |
+| [`ContactState`](_autosummary/an.stage.support.html.md#an.stage.support.ContactState)(name, part, at, above[, limb, ...])  | One contact at one instant.                                                 |
 | [`SupportState`](_autosummary/an.stage.support.html.md#an.stage.support.SupportState)(entity, joint, where, frame, t, ...) | One support (declared, or a stance taken as the shot opens) at one instant. |
 
 ### an.stage.support.CONTACTS_KEY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'contacts'*
@@ -42752,7 +42783,7 @@ The descriptor’s `metadata` key that names a prop’s contacts.
 
 Where an entity’s contacts come from, in the order the chain tries them.
 
-### *class* an.stage.support.ContactState(name, part, at, above)
+### *class* an.stage.support.ContactState(name, part, at, above, limb=False, along=0.0, slid=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -42762,13 +42793,45 @@ One contact at one instant.
 
 Its signed distance to the surface along the normal (+ above, - sunk).
 
+#### along *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.0*
+
+where
+the foot of its normal falls along the surface from a point fixed in it,
+in the surface’s units (a body’s surface: its own units from the
+segment’s first end, so it neither moves nor flips with the body; the
+floor and a stage segment: stage px from the floor’s `(0, y)` or the
+segment’s `a`).
+
+* **Type:**
+  Its foot parameter along the surface, in the surface’s own frame
+
 #### at *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]*
 
 Its stage point (the lowest of its points, for `ink` or `box`).
 
+#### limb *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= False*
+
+its node is not the entity’s own nor one of its
+root parts (a leg hinged to the body, a hoof), so it moves relative to
+the body and can skate. A body’s own stance point (its `origin`, the
+ink of its roots, a prop’s `base`, a bone on a root part) cannot: a
+body that glides or is pushed slides on it by right.
+
+* **Type:**
+  Whether it is a limb’s
+
 #### part *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 The node path that carries it.
+
+#### slid *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+How far (stage px, signed along the surface) its foot moved along the
+surface, in the surface’s own frame, since the grid’s previous instant
+(so a body carried by what it stands on does not move); `None` unless
+it was held at both (its support joined, within the support tolerance of
+the surface) and the step was not a lift-off or a landing
+([`SKATE_LIFT`](_autosummary/an.stage.support.html.md#an.stage.support.SKATE_LIFT)).
 
 ### *class* an.stage.support.Contacts(source, points, note='')
 
@@ -42784,6 +42847,40 @@ An entity’s contacts and where the chain found them.
 #### note *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= ''*
 
 Why a kind’s hook gave nothing it could use (it raised), else `""`.
+
+### an.stage.support.SKATE_DRIFT_FLOOR_PX *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 2.0*
+
+the support’s own floor
+([`SUPPORT_FLOOR_PX`](_autosummary/an.stage.support.html.md#an.stage.support.SUPPORT_FLOOR_PX)), below which two points are one.
+
+* **Type:**
+  The least drift tolerance, in px
+
+### an.stage.support.SKATE_DRIFT_TOLERANCE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.03*
+
+How far a held contact’s foot may drift along its surface over one stance
+(from where it was planted, while it stays held), as a fraction of the
+entity’s height (6 px on a 200 px figure): a slow skate under the speed
+tolerance still adds up to a foot that is not where it was put down.
+
+### an.stage.support.SKATE_FLOOR_PX *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 12.0*
+
+The least skate speed tolerance, in px per second (half a pixel a frame at
+24 fps: a fraction of a small body’s height is less).
+
+### an.stage.support.SKATE_LIFT *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.25*
+
+A step between two instants whose foot moves along the surface’s normal by
+more than this fraction of how far it moves along the surface is a lift-off
+or a landing (a foot leaving the floor while still within the support
+tolerance of it), not a slide: it is not measured for skate.
+
+### an.stage.support.SKATE_TOLERANCE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.12*
+
+How fast a held contact’s foot may move along its surface, in the surface’s
+own frame, as a fraction of the entity’s height PER SECOND (24 px/s on a
+200 px figure: 1 px a frame at 24 fps, 0.4 px at 60). A speed, so one slide
+gets one verdict at any frame rate or step rate.
 
 ### an.stage.support.SUPPORT_FLOOR_PX *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 2.0*
 
@@ -42883,6 +42980,34 @@ as it names `paul@hand_l`.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)]]
 
+### an.stage.support.skate_drift_tolerance(height, , tolerance=0.03, floor=2.0)
+
+How far (px) a held contact of an entity `height` px tall may drift
+along its surface over one stance: `tolerance` of its height, never under
+`floor`.
+
+```pycon
+>>> skate_drift_tolerance(200.0), skate_drift_tolerance(40.0)
+(6.0, 2.0)
+```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+### an.stage.support.skate_tolerance(height, , tolerance=0.12, floor=12.0)
+
+How fast (px per second) a held contact of an entity `height` px tall
+may slide along its surface: `tolerance` of its height per second, never
+under `floor`.
+
+```pycon
+>>> skate_tolerance(200.0), skate_tolerance(40.0)
+(24.0, 12.0)
+```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
 ### an.stage.support.support_tolerance(height, , tolerance=0.02, floor=2.0)
 
 How far a contact of an entity `height` px tall may be off its surface:
@@ -42896,7 +43021,7 @@ How far a contact of an entity `height` px tall may be off its surface:
 * **Return type:**
   [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
-### an.stage.support.supports_at(doc, shot, mall, , times=None, inferred=True, tolerance=0.02, floor=2.0)
+### an.stage.support.supports_at(doc, shot, mall, , times=None, inferred=True, rest_only=True, tolerance=0.02, floor=2.0, lift=0.25)
 
 Every declared support of `shot` in its compiled document `doc` at
 every instant of `times` (default: the solve’s frame grid,
@@ -42904,9 +43029,18 @@ every instant of `times` (default: the solve’s frame grid,
 `inferred`, every entity taken to stand on the shot’s floor
 (`solve: {ground: y}`) as it opens: its lowest contact within
 [`support_tolerance()`](_autosummary/an.stage.support.html.md#an.stage.support.support_tolerance) (`tolerance` of its height, `floor` px at
-least) of the floor then, judged at that instant and its rest instants.
-Returns the states and `(where, message)` for each reference that does
-not resolve (no state is made for it).
+least) of the floor then, measured at that instant and its rest instants
+(`rest_only`, the `support` check’s rule) or at every instant (the
+`skate` check’s, which judges a stance while it moves).
+
+A contact is held at an instant its support is joined and it is within
+that tolerance of the surface; its `slid` is how far (stage px) its foot
+parameter along the surface (`along`, in the surface’s own frame) changed
+since the grid’s previous instant, when it was held at both and its motion
+along the surface’s normal was at most `lift` of that (more is a foot
+leaving or meeting the surface). Returns the states and `(where,
+message)` for each reference that does not resolve (no state is made for
+it).
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`SupportState`](_autosummary/an.stage.support.html.md#an.stage.support.SupportState)], [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]]
@@ -49577,8 +49711,9 @@ The core’s constraints:
 
 ### Functions
 
-| [`av_offset_fault`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.av_offset_fault)(sound_t, cause_t)                  | How a sound at `sound_t` sits against its visible cause at `cause_t` (seconds): `None` inside the window, else `"early"` (sound ahead, past the window), `"late"` (behind), or `"before_cause"` (ahead by more than `CAUSE_TOLERANCE`).                                                                                   |
+| [`gravity_of`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.gravity_of)(ctx)                                    | The style pack's gravity (`None` when it declares none or says `none`): what the `gravity` check holds a flight to, and what makes the `skate` check judge an inferred stance ([`an.verify.support`](_autosummary/an.verify.support.html.md#module-an.verify.support)).                                              |
 |-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`av_offset_fault`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.av_offset_fault)(sound_t, cause_t)                  | How a sound at `sound_t` sits against its visible cause at `cause_t` (seconds): `None` inside the window, else `"early"` (sound ahead, past the window), `"late"` (behind), or `"before_cause"` (ahead by more than `CAUSE_TOLERANCE`).                                                                                   |
 | [`airborne_faults`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.airborne_faults)(ys, dt, \*[, strength])            | What is wrong with a flight sampled as `ys` (screen y, down is positive) every `dt` s: `hover` (level for more than `HOVER_FRAMES`), `straight` (no downward acceleration: not a throw), `not_parabolic` (the acceleration is not constant), `strength` (not the declared pull).                                          |
 | [`move_jerk`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.move_jerk)(values, dt)                              | The log dimensionless jerk `ln(T^5 / A^2 * integral |jerk|^2 dt)` of a move sampled every `dt` s: lower is smoother.                                                                                                                                                                                                      |
 | [`unanticipated`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.unanticipated)(moves, \*, min_move, frames, fps)    | The moves of at least `min_move` with no anticipation: a move of the same channel, the other way, at most half as far, lasting `frames` frames, that ends at the big move's start (to within a frame).                                                                                                                    |
@@ -49821,6 +49956,15 @@ True
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Discontinuity`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.Discontinuity)]
+
+### an.verify.constraints.gravity_of(ctx)
+
+The style pack’s gravity (`None` when it declares none or says `none`):
+what the `gravity` check holds a flight to, and what makes the `skate`
+check judge an inferred stance ([`an.verify.support`](_autosummary/an.verify.support.html.md#module-an.verify.support)).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.verify.constraints.move_jerk(values, dt)
 
@@ -50074,17 +50218,17 @@ object, differing only in what the store returns.
 
 ### Modules
 
-| [`constraints`](_autosummary/an.verify.constraints.html.md#module-an.verify.constraints)     | Constraints: declarative statements a lint checks and a solver may enforce (an#497).         |
-|-----------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
-| [`holds`](_autosummary/an.verify.holds.html.md#module-an.verify.holds)                 | The hold checks: what `an validate` says about a shot's holds (an#502, catalogue A1 and A4). |
-| [`human`](_autosummary/an.verify.human.html.md#module-an.verify.human)                 | HumanInTheLoopVerifier — opens the rendered mp4 and asks for approval.                       |
-| [`joints`](_autosummary/an.verify.joints.html.md#module-an.verify.joints)               | The joint checks: what `an validate` says about a shot's joints (ADR 0008, an#512).          |
-| [`layout`](_autosummary/an.verify.layout.html.md#module-an.verify.layout)               | LayoutLintVerifier — cheap pre-render checks on the IR.                                      |
-| [`media`](_autosummary/an.verify.media.html.md#module-an.verify.media)                 | Media verification helpers — audio + frame quality checks for rendered mp4s.                 |
-| [`media_quality`](_autosummary/an.verify.media_quality.html.md#module-an.verify.media_quality) | MediaQualityVerifier — post-render quality checks on the actual mp4.                         |
-| [`prosody`](_autosummary/an.verify.prosody.html.md#module-an.verify.prosody)             | Prosody measurement: how a recorded voice delivers its words, as numbers a target can check. |
-| [`support`](_autosummary/an.verify.support.html.md#module-an.verify.support)             | The `support` check: a body declared to rest on a surface does (an#519, catalogue A1).       |
-| [`vision`](_autosummary/an.verify.vision.html.md#module-an.verify.vision)               | VisionLMVerifier — Claude vision looks at sampled frames and reports issues.                 |
+| [`constraints`](_autosummary/an.verify.constraints.html.md#module-an.verify.constraints)     | Constraints: declarative statements a lint checks and a solver may enforce (an#497).                                                        |
+|-----------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
+| [`holds`](_autosummary/an.verify.holds.html.md#module-an.verify.holds)                 | The hold checks: what `an validate` says about a shot's holds (an#502, catalogue A1 and A4).                                                |
+| [`human`](_autosummary/an.verify.human.html.md#module-an.verify.human)                 | HumanInTheLoopVerifier — opens the rendered mp4 and asks for approval.                                                                      |
+| [`joints`](_autosummary/an.verify.joints.html.md#module-an.verify.joints)               | The joint checks: what `an validate` says about a shot's joints (ADR 0008, an#512).                                                         |
+| [`layout`](_autosummary/an.verify.layout.html.md#module-an.verify.layout)               | LayoutLintVerifier — cheap pre-render checks on the IR.                                                                                     |
+| [`media`](_autosummary/an.verify.media.html.md#module-an.verify.media)                 | Media verification helpers — audio + frame quality checks for rendered mp4s.                                                                |
+| [`media_quality`](_autosummary/an.verify.media_quality.html.md#module-an.verify.media_quality) | MediaQualityVerifier — post-render quality checks on the actual mp4.                                                                        |
+| [`prosody`](_autosummary/an.verify.prosody.html.md#module-an.verify.prosody)             | Prosody measurement: how a recorded voice delivers its words, as numbers a target can check.                                                |
+| [`support`](_autosummary/an.verify.support.html.md#module-an.verify.support)             | The `support` and `skate` checks: a body declared to rest on a surface does, and its feet do not slide on it (an#519, catalogue A1 and B3). |
+| [`vision`](_autosummary/an.verify.vision.html.md#module-an.verify.vision)               | VisionLMVerifier — Claude vision looks at sampled frames and reports issues.                                                                |
 
 
 # _autosummary/an.verify.human.html.md
@@ -50653,11 +50797,11 @@ an.verify.prosody.ProsodyTargetError: prosody target 'f0_sd_st' must be [low, hi
 
 # an.verify.support
 
-The `support` check: a body declared to rest on a surface does (an#519, catalogue A1).
+The `support` and `skate` checks: a body declared to rest on a surface does, and its feet do not slide on it (an#519, catalogue A1 and B3).
 
-One constraint on the one interface ([`an.verify.constraints.Constraint`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.Constraint)),
+Two constraints on the one interface ([`an.verify.constraints.Constraint`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.Constraint)),
 lint-only (no solver term in v1), over the compiled shot, measured by the pure
-function [`an.stage.support.supports_at()`](_autosummary/an.stage.support.html.md#an.stage.support.supports_at):
+function [`an.stage.support.supports_at()`](_autosummary/an.stage.support.html.md#an.stage.support.supports_at). `support` (order 252):
 
 - a declared `support` joint (`{type: support, a: paul, b: ground}`) whose
   contacts sink into its surface (**penetration**) or whose lowest contact is
@@ -50675,21 +50819,57 @@ Not judged: an unjoined span (`unjoin` suspends the support: it is not a
 flight), an entity’s declared flight (`overrides.airborne`), an item the
 hold layer moves when nothing declares a support on it (`floating_item`’s).
 
+`skate` (order 253, catalogue B3 i): a limb’s contact (one whose node is not
+the entity’s own nor one of its root parts: a foot on a leg hinged to the
+body) **held** on its surface (its support joined, within the support
+tolerance) is foot skate when, between two instants of the grid at which it
+is held, its foot slides along the surface faster than
+[`an.stage.support.skate_tolerance()`](_autosummary/an.stage.support.html.md#an.stage.support.skate_tolerance) (a fraction of the entity’s height
+per SECOND, so one slide gets one verdict at 24 or 60 fps), or when, over one
+stance, it drifts from where it was planted by more than
+[`an.stage.support.skate_drift_tolerance()`](_autosummary/an.stage.support.html.md#an.stage.support.skate_drift_tolerance) (a slow skate adds up). A step
+on a `step_hz` grid is reported per step, not per frame. A step whose foot
+moves along the surface’s normal by more than
+[`an.stage.support.SKATE_LIFT`](_autosummary/an.stage.support.html.md#an.stage.support.SKATE_LIFT) of its slide is a lift-off or a landing,
+not measured. The slide is measured in the surface’s own frame (a body’s
+surface: in the body’s own units from its first end, so a figure standing on
+a pushed or mirrored crate does not skate; the floor: from the stage’s
+origin). An error for a declared support; for an entity taken to stand on
+the floor, a warning, and only under a style pack that declares `gravity`
+(a cartoon style that glides is right by declaration). A body’s own stance
+point (`origin`, the ink of its roots, a prop’s `base`, a bone on a root
+part) never skates: a pushed crate or a gliding figure slides on it by right.
+In a shot a world frames, a member whose frame moves relative to the
+viewpoint’s is not judged on `ground` (the stage floor does not stay under
+it; `World.ground`, an#519 PR 4, measures it): said once as `info`.
+
 ```pycon
 >>> SUPPORT.name, SUPPORT.order, SUPPORT.term is None
 ('support', 252.0, True)
+>>> SKATE.name, SKATE.order, SKATE.term is None
+('skate', 253.0, True)
 ```
 
 ### Module Attributes
 
 | [`SUPPORT_CHECK_ORDER`](_autosummary/an.verify.support.html.md#an.verify.support.SUPPORT_CHECK_ORDER)   | after the joint checks (250), which report broken declarations first, before the hold checks (255).   |
 |------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------|
+| [`SKATE_CHECK_ORDER`](_autosummary/an.verify.support.html.md#an.verify.support.SKATE_CHECK_ORDER)     | just after the support check, whose broken references it does not repeat.                             |
 | [`SUPPORT_CONSTRAINTS`](_autosummary/an.verify.support.html.md#an.verify.support.SUPPORT_CONSTRAINTS)   | The support checks, in the order they run.                                                            |
 
 ### Functions
 
-| [`support_findings`](_autosummary/an.verify.support.html.md#an.verify.support.support_findings)(states, \*, times, shot[, ...])   | `(severity, where, message)` for each span of frames a support does not hold in `states` ([`an.stage.support.supports_at()`](_autosummary/an.stage.support.html.md#an.stage.support.supports_at)'s), the worst distance of the span named; `times` is the grid the states' frames index.   |
-|-----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`support_findings`](_autosummary/an.verify.support.html.md#an.verify.support.support_findings)(states, \*, times, shot[, ...])   | `(severity, where, message)` for each span of frames a support does not hold in `states` ([`an.stage.support.supports_at()`](_autosummary/an.stage.support.html.md#an.stage.support.supports_at)'s), the worst distance of the span named; `times` is the grid the states' frames index.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+|-----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`skate_findings`](_autosummary/an.verify.support.html.md#an.verify.support.skate_findings)(states, \*, times, shot[, ...])     | `(severity, where, message)` for each span over which a limb's contact held on its surface slides along it faster than [`an.stage.support.skate_tolerance()`](_autosummary/an.stage.support.html.md#an.stage.support.skate_tolerance) (`tolerance` of the entity's height per second, default `SKATE_TOLERANCE`; `floor` px/s at least, default `SKATE_FLOOR_PX`), the fastest step of the span named; and for each stance (a run of held steps) with no such span over which it drifts from where it was planted by more than [`an.stage.support.skate_drift_tolerance()`](_autosummary/an.stage.support.html.md#an.stage.support.skate_drift_tolerance) (`drift` of the height, default `SKATE_DRIFT_TOLERANCE`; `drift_floor` px at least, default `SKATE_DRIFT_FLOOR_PX`). |
+
+### an.verify.support.SKATE_CHECK_ORDER *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 253.0*
+
+just after the support check, whose broken
+references it does not repeat.
+
+* **Type:**
+  Where the skate check runs
 
 ### an.verify.support.SUPPORT_CHECK_ORDER *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 252.0*
 
@@ -50699,9 +50879,43 @@ which report broken declarations first, before the hold checks (255).
 * **Type:**
   Where the support check runs within a shot
 
-### an.verify.support.SUPPORT_CONSTRAINTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Constraint](_autosummary/an.verify.constraints.html.md#an.verify.constraints.Constraint), ...]* *= (Constraint(name='support', check=<function check_support>, stage='shot', order=252.0, description='a body declared to rest on a surface neither sinks into it nor floats above it (catalogue A1, an#519)', term=None),)*
+### an.verify.support.SUPPORT_CONSTRAINTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Constraint](_autosummary/an.verify.constraints.html.md#an.verify.constraints.Constraint), ...]* *= (Constraint(name='support', check=<function check_support>, stage='shot', order=252.0, description='a body declared to rest on a surface neither sinks into it nor floats above it (catalogue A1, an#519)', term=None), Constraint(name='skate', check=<function check_skate>, stage='shot', order=253.0, description="a foot held on its surface does not slide along it, measured in the surface's own frame (catalogue B3, an#519)", term=None))*
 
 The support checks, in the order they run.
+
+### an.verify.support.skate_findings(states, , times, shot, step_hz=None, tolerance=None, floor=None, drift=None, drift_floor=None)
+
+`(severity, where, message)` for each span over which a limb’s contact
+held on its surface slides along it faster than
+[`an.stage.support.skate_tolerance()`](_autosummary/an.stage.support.html.md#an.stage.support.skate_tolerance) (`tolerance` of the entity’s
+height per second, default `SKATE_TOLERANCE`; `floor` px/s at
+least, default `SKATE_FLOOR_PX`), the fastest step of the span named;
+and for each stance (a run of held steps) with no such span over which it
+drifts from where it was planted by more than
+[`an.stage.support.skate_drift_tolerance()`](_autosummary/an.stage.support.html.md#an.stage.support.skate_drift_tolerance) (`drift` of the height,
+default `SKATE_DRIFT_TOLERANCE`; `drift_floor` px at least, default
+`SKATE_DRIFT_FLOOR_PX`). `times` is the grid the states’ frames
+index; `step_hz` says it is a step grid, so a step is reported as one
+(a pop on twos is not half of it per frame).
+
+```pycon
+>>> from an.stage.support import ContactState, SupportState
+>>> from types import SimpleNamespace as NS
+>>> def at(k, slid):
+...     foot = ContactState("foot_l", "fig/leg_l", (0.0, 0.0), 0.0, limb=True, slid=slid)
+...     return SupportState("fig", "left", "joints/0", k, k / 10, ((0.0, 0.0), (1.0, 0.0)),
+...         "ground", (foot,), True, 200.0, "metadata")
+>>> [m[:2] for m in skate_findings([at(0, None), at(1, 3.0), at(2, 0.0)],
+...     times=[0.0, 0.1, 0.2], shot=NS(entities=[], duration=1.0))]
+[('error', 'joints/0')]
+>>> [(sev, m.split(" along ")[0]) for sev, _w, m in skate_findings(
+...     [at(k, 0.5 if k else None) for k in range(20)],
+...     times=[k / 10 for k in range(20)], shot=NS(entities=[], duration=2.0))]
+[('error', "`fig`'s `foot_l` drifts 9.5 px")]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 ### an.verify.support.support_findings(states, , times, shot, tolerance=None, floor=None)
 
@@ -51005,7 +51219,7 @@ scene: the scene file to read, inside the project (default scene.md; for example
 
 # About this build
 
-This documentation was built on **2026-11-09 05:53 UTC** from commit <a href="https://github.com/reeleehq/an/commit/9db4b075bebf7a66cee3fab1b6217e35b09325e1"><code>9db4b07</code></a> on branch <code>main</code>, for **an 0.1.391** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-09 06:42 UTC** from commit <a href="https://github.com/reeleehq/an/commit/bb4f9570bfb84e987e190d0d436300354ffbd37b"><code>bb4f957</code></a> on branch <code>main</code>, for **an 0.1.392** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -51014,9 +51228,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                    |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/an/commit/9db4b075bebf7a66cee3fab1b6217e35b09325e1"><code>9db4b075bebf7a66cee3fab1b6217e35b09325e1</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/an/commit/bb4f9570bfb84e987e190d0d436300354ffbd37b"><code>bb4f9570bfb84e987e190d0d436300354ffbd37b</code></a> |
 | Branch              | <code>main</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.391</code>                                                                                                                               |
+| Tags at this commit | <code>0.1.392</code>                                                                                                                               |
 | Working tree        | clean                                                                                                                                              |
 | Remote              | <code>https://github.com/reeleehq/an</code>                                                                                                        |
 
@@ -51025,9 +51239,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/an</code>                                                                   |
-| Run          | <a href="https://github.com/reeleehq/an/actions/runs/42568945008">42568945008</a>          |
+| Run          | <a href="https://github.com/reeleehq/an/actions/runs/42573628690">42573628690</a>          |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>50699e188f5ab09057de87a388ff5e75d7f59a62</code> (in the history of the built commit) |
+| Event commit | <code>223cc947e93d79909d65004066834a9316dab129</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -51052,13 +51266,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.391/">0.1.391</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.392/">0.1.392</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/an && cd an
-git checkout 9db4b075bebf7a66cee3fab1b6217e35b09325e1
+git checkout bb4f9570bfb84e987e190d0d436300354ffbd37b
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

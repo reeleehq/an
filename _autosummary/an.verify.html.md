@@ -90,14 +90,14 @@ object, differing only in what the store returns.
 
 ### Modules
 
-| [`constraints`](an.verify.constraints.html.md#module-an.verify.constraints)     | Constraints: declarative statements a lint checks and a solver may enforce (an#497).         |
-|-----------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
-| [`holds`](an.verify.holds.html.md#module-an.verify.holds)                 | The hold checks: what `an validate` says about a shot's holds (an#502, catalogue A1 and A4). |
-| [`human`](an.verify.human.html.md#module-an.verify.human)                 | HumanInTheLoopVerifier — opens the rendered mp4 and asks for approval.                       |
-| [`joints`](an.verify.joints.html.md#module-an.verify.joints)               | The joint checks: what `an validate` says about a shot's joints (ADR 0008, an#512).          |
-| [`layout`](an.verify.layout.html.md#module-an.verify.layout)               | LayoutLintVerifier — cheap pre-render checks on the IR.                                      |
-| [`media`](an.verify.media.html.md#module-an.verify.media)                 | Media verification helpers — audio + frame quality checks for rendered mp4s.                 |
-| [`media_quality`](an.verify.media_quality.html.md#module-an.verify.media_quality) | MediaQualityVerifier — post-render quality checks on the actual mp4.                         |
-| [`prosody`](an.verify.prosody.html.md#module-an.verify.prosody)             | Prosody measurement: how a recorded voice delivers its words, as numbers a target can check. |
-| [`support`](an.verify.support.html.md#module-an.verify.support)             | The `support` check: a body declared to rest on a surface does (an#519, catalogue A1).       |
-| [`vision`](an.verify.vision.html.md#module-an.verify.vision)               | VisionLMVerifier — Claude vision looks at sampled frames and reports issues.                 |
+| [`constraints`](an.verify.constraints.html.md#module-an.verify.constraints)     | Constraints: declarative statements a lint checks and a solver may enforce (an#497).                                                        |
+|-----------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
+| [`holds`](an.verify.holds.html.md#module-an.verify.holds)                 | The hold checks: what `an validate` says about a shot's holds (an#502, catalogue A1 and A4).                                                |
+| [`human`](an.verify.human.html.md#module-an.verify.human)                 | HumanInTheLoopVerifier — opens the rendered mp4 and asks for approval.                                                                      |
+| [`joints`](an.verify.joints.html.md#module-an.verify.joints)               | The joint checks: what `an validate` says about a shot's joints (ADR 0008, an#512).                                                         |
+| [`layout`](an.verify.layout.html.md#module-an.verify.layout)               | LayoutLintVerifier — cheap pre-render checks on the IR.                                                                                     |
+| [`media`](an.verify.media.html.md#module-an.verify.media)                 | Media verification helpers — audio + frame quality checks for rendered mp4s.                                                                |
+| [`media_quality`](an.verify.media_quality.html.md#module-an.verify.media_quality) | MediaQualityVerifier — post-render quality checks on the actual mp4.                                                                        |
+| [`prosody`](an.verify.prosody.html.md#module-an.verify.prosody)             | Prosody measurement: how a recorded voice delivers its words, as numbers a target can check.                                                |
+| [`support`](an.verify.support.html.md#module-an.verify.support)             | The `support` and `skate` checks: a body declared to rest on a surface does, and its feet do not slide on it (an#519, catalogue A1 and B3). |
+| [`vision`](an.verify.vision.html.md#module-an.verify.vision)               | VisionLMVerifier — Claude vision looks at sampled frames and reports issues.                                                                |

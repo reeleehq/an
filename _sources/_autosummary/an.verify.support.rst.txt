@@ -9,6 +9,7 @@ an.verify.support
    .. autosummary::
    
       SUPPORT_CHECK_ORDER
+      SKATE_CHECK_ORDER
       SUPPORT_CONSTRAINTS
    
    .. rubric:: Functions
@@ -16,4 +17,5 @@ an.verify.support
    .. autosummary::
    
       support_findings
+      skate_findings
    
