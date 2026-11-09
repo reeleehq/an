@@ -112,6 +112,7 @@ __all__ = [
     "RIGIDITY",
     "MOTION_STYLE",
     "GRAVITY",
+    "gravity_of",
     "CAUSALITY",
     "av_offset_fault",
     "airborne_faults",
@@ -1741,8 +1742,10 @@ _FAULT_TEXT: dict[str, str] = {
 }
 
 
-def _gravity_of(ctx: Any) -> dict[str, Any] | None:
-    """The style pack's gravity (``None`` when it declares none or says ``none``)."""
+def gravity_of(ctx: Any) -> dict[str, Any] | None:
+    """The style pack's gravity (``None`` when it declares none or says ``none``):
+    what the ``gravity`` check holds a flight to, and what makes the ``skate``
+    check judge an inferred stance (:mod:`an.verify.support`)."""
     name = ctx.scene.meta.style_pack
     styles = (ctx.stores or {}).get("styles")
     if not name or styles is None:
@@ -1759,6 +1762,8 @@ def _gravity_of(ctx: Any) -> dict[str, Any] | None:
     return dict(g) if isinstance(g, Mapping) else None
 
 
+
+
 def check_gravity(ctx: Any) -> None:
     """The core's ``gravity`` check over the entities that declare a flight."""
     flights = [
@@ -1766,7 +1771,7 @@ def check_gravity(ctx: Any) -> None:
         for e in ctx.shot.entities
         if isinstance((e.overrides or {}).get(AIRBORNE_OVERRIDE), Mapping)
     ]
-    gravity = _gravity_of(ctx) if flights else None
+    gravity = gravity_of(ctx) if flights else None
     if gravity is None:
         return
     doc = compiled_shot(ctx)

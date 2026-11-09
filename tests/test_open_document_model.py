@@ -740,8 +740,9 @@ def test_the_report_order_is_pinned():
         "unknown_body",
         "unreachable_pin",
         "joint_violation",
-        # an#519: the support check, between the joint and hold checks (order 252)
+        # an#519: the support and skate checks, between the joint and hold checks (252, 253)
         "support",
+        "skate",
         # an#502: the hold checks, beside the joint checks (order 255)
         "hold_conflict",
         "unreachable_hold",

@@ -117,6 +117,7 @@ __all__ = [
     "frame_poses",
     "has_world",
     "lower_world",
+    "frame_moving_members",
     "member_of",
     "member_placements",
     "planes_at_infinity",
@@ -2497,6 +2498,53 @@ class Lowered:
 
     def notes_for(self, index: int) -> list[WorldNote]:
         return [n for n in self.notes if n.index == index]
+
+
+def frame_moving_members(
+    scene: SceneIR, index: int, *, film_start: float | None = None
+) -> frozenset[str]:
+    """The positioned members of shot ``index``'s world that stand in a frame
+    moving relative to the viewpoint's over the shot (the rule
+    :func:`lower_world` samples their motion by), or that a ``reframe``
+    carries between frames. Their stage floor does not stay under them, so a
+    check measuring against the stage's floor (``skate`` on ``ground``,
+    an#519) cannot judge them until ``World.ground`` (an#519 PR 4). Empty for
+    a shot no world frames; raises :class:`WorldError` as lowering would.
+
+    >>> frame_moving_members(SceneIR(), 0)
+    frozenset()
+    """
+    if not 0 <= index < len(scene.timeline):
+        return frozenset()
+    shot, world = scene.timeline[index], scene.world
+    if shot.viewpoint is None or world is None:
+        return frozenset()
+    vp = viewpoint_of(world, shot.viewpoint)
+    if vp is None:
+        return frozenset()
+    start = film_start if film_start is not None else _film_starts(scene)[index]
+    frames = world.all_frames()
+    positioned = {m.id: m for m in world.members if m.at is not None}
+    split = _split_frame_actions(
+        shot,
+        default_easing=scene.meta.default_easing,
+        frames=frames,
+        members=positioned,
+    )
+    try:
+        tree = FrameTree(frames, tracks=split.frame_tracks)
+    except FrameError as e:
+        raise WorldError(f"shot {shot.id!r}: {e}") from None
+    vp_frame = vp.frame or world.default_frame()
+    duration = float(shot.duration)
+    moving = set(split.reframes)
+    for mid, member in positioned.items():
+        fx = member.frame or world.default_frame()
+        if fx != vp_frame and not tree.is_static(
+            fx, vp_frame, duration, film_start=start
+        ):
+            moving.add(mid)
+    return frozenset(moving)
 
 
 def _film_starts(scene: SceneIR) -> list[float]:
