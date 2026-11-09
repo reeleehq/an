@@ -780,8 +780,9 @@ def test_the_lead_pulls_in_proportion_to_the_chain_it_drags():
 
 def test_a_pull_never_drags_a_hinge_past_its_range():
     """an#707: a stiff pull (a lead's) toward a point the hand reaches only by
-    bending the elbow past its range leaves the elbow at the edge of its range;
-    the range is re-projected after each pass while anything pulls."""
+    bending the elbow past its range leaves the elbow at the edge of its range
+    and joined, in a run of frames and in pose mode: while anything pulls, the
+    joints are projected last."""
     from an.kinematics import Force
 
     shoulder = Body("shoulder", fixed=True)
@@ -799,4 +800,6 @@ def test_a_pull_never_drags_a_hinge_past_its_range():
     final = {b.name: b for b in r.final}
     bend = math.remainder(final["fore"].rotation - final["upper"].rotation, math.tau)
     assert -1e-3 <= bend <= elbow_max + 1e-3, bend
-    assert r.limit_violations[-1] == ()
+    assert r.limit_violations[-1] == () and r.unsatisfied[-1] == ()  # nor apart
+    posed = solve([shoulder, upper, fore], joints, forces=[pull])  # pose mode too
+    assert posed.limit_violations == () and posed.unsatisfied == ()

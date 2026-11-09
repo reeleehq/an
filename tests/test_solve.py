@@ -670,14 +670,15 @@ def test_the_stage_leads_a_lost_pin_back_and_holds_it_again(tmp_path):
     assert spans and max(s["until"] for s in spans) <= 0.6, spans
 
 
-def _elbow_degrees(doc, t):
-    """The forearm's bend from the upper arm at ``t``, in degrees, as drawn."""
+def _elbow(doc, t):
+    """The forearm's bend from the upper arm at ``t`` (degrees) and how far
+    apart the elbow's two points are (px), as drawn."""
     pose = evaluate_timeline(timeline_from_scene(doc), t)
     up = next(p for p in _paths(doc) if p.endswith("/upper"))
     a0, a1 = (screen_position(doc, up, pose=pose, point=q) for q in ((0.0, 0.0), (80 * K, 0.0)))
     b0, b1 = (screen_position(doc, _fore(doc), pose=pose, point=q) for q in ((0.0, 0.0), HAND))
     turn = math.atan2(b1[1] - b0[1], b1[0] - b0[0]) - math.atan2(a1[1] - a0[1], a1[0] - a0[0])
-    return math.degrees(math.remainder(turn, math.tau))
+    return math.degrees(math.remainder(turn, math.tau)), math.dist(a1, b0)
 
 
 @pytest.mark.parametrize("limits", [(20.0, 100.0), (40.0, 120.0), (60.0, 140.0)])
@@ -685,9 +686,9 @@ def _elbow_degrees(doc, t):
 def test_a_led_arm_keeps_its_elbow_in_range(tmp_path, monkeypatch, limits, stiffer):
     """an#707: the an#668 arm with a narrower elbow range, its hand's pin lost
     out of reach and led back at the stage's stiffness (1x), keeps the elbow
-    in range at every frame and is held again as before (it was dragged up to
-    11 degrees past). At 10x the stiffness, the absolute pull an over-counted
-    chain mass would give (item 2), nothing changes either."""
+    in range and its elbow joined at every frame, and is held again as before
+    (it was dragged up to 11 degrees past). At 10x the stiffness, the absolute
+    pull an over-counted chain mass would give (item 2), nothing changes either."""
     import an.stage.solve as stage_solve
     from an.stage.solve import solve_report
 
@@ -711,9 +712,12 @@ def test_a_led_arm_keeps_its_elbow_in_range(tmp_path, monkeypatch, limits, stiff
         ],
     )  # fmt: skip
     doc = _compile(project, shot)
+    from an.verify.joints import JOINT_TOLERANCE_PX
+
     lo, hi = limits
-    bends = [_elbow_degrees(doc, k / 24) for k in range(49)]
-    assert all(lo - 0.5 <= b <= hi + 0.5 for b in bends), bends
+    elbows = [_elbow(doc, k / 24) for k in range(49)]
+    assert all(lo - 0.5 <= b <= hi + 0.5 for b, _ in elbows), elbows
+    assert max(gap for _, gap in elbows) <= JOINT_TOLERANCE_PX, elbows  # nor apart
     spans = solve_report(doc)["dropped"]
     assert spans and max(s["until"] for s in spans) <= 0.6, spans
 

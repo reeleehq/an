@@ -185,8 +185,8 @@ DFLT_SEGMENT_MARGIN: float = 0.5
 #: chain's own mass (an#672); 8: a held loop the geometry shows can hold is
 #: judged apart: kept converging, never given up for its rate or for a conflict
 #: elsewhere, only for a jump the cap leaves (an#706); 9: while anything pulls,
-#: the hinge ranges are projected again after each pass, so a pull never drags
-#: a joint past its range (an#707).
+#: a frame's passes are followed by as many over the joints alone, so a pull
+#: never drags a joint past its range or apart (an#707).
 SOLVER_VERSION: str = "9"
 #: The most passes a frame whose first retry made progress is given, as a
 #: multiple of ``iterations``: its retry is repeated with ``retry`` times the
@@ -605,7 +605,11 @@ def _rows(
         if ia == ib:
             raise KinematicsError("a pull's two points are on one body")
         rows.append(
-            ("pos", -1, (ia, lxa, lya, ib, lxb, lyb, 0.0, "equal", 1.0 / f.strength))
+            (
+                "pos",
+                _PULL_ROW,
+                (ia, lxa, lya, ib, lxb, lyb, 0.0, "equal", 1.0 / f.strength),
+            )
         )
     return rows
 
@@ -648,6 +652,18 @@ def _push(
         st.th[ib] -= st.inv_i[ib] * dlam * crb
 
 
+#: The joint index a pull's row carries (:func:`_rows`): a pull is no joint.
+_PULL_ROW: int = -1
+
+
+def _pulls_in(rows: list[_Row]) -> bool:
+    """Whether any row is a pull (a :class:`Force` ``toward``). While one acts,
+    a frame's passes are followed by as many over the joints alone (an#707): a
+    pull is a soft driver and yields to every joint, ranges included, so a
+    lead never drags an elbow past its range nor apart at its pin."""
+    return any(kind == "pos" and j == _PULL_ROW for kind, j, _ in rows)
+
+
 def _project(
     st: _State,
     rows: list[_Row],
@@ -655,7 +671,7 @@ def _project(
     h: float,
     *,
     apply: bool,
-    only: str | None = None,
+    skip_pulls: bool = False,
 ) -> list[float]:
     """One pass over the rows, last first: the first-declared joint is
     projected last, so it holds and a conflict shows on the later ones (the
@@ -665,7 +681,7 @@ def _project(
     inv_h2 = 1.0 / (h * h)
     for k in range(len(rows) - 1, -1, -1):
         kind, _j, p = rows[k]
-        if only is not None and kind != only:
+        if skip_pulls and _j == _PULL_ROW:
             continue
         if kind == "pos":
             ia, lxa, lya, ib, lxb, lyb, length, mode, compliance = p
@@ -1273,6 +1289,9 @@ def solve(
             for _ in range(passes):
                 _project(st, rows, lam, 1.0, apply=True)
                 st.restore_held()
+            for _ in range(passes if _pulls_in(rows) else 0):  # the joints last
+                _project(st, rows, lam, 1.0, apply=True, skip_pulls=True)
+                st.restore_held()
             for i in range(1, len(st.x)):
                 st.vx[i] = st.vy[i] = st.om[i] = 0.0
         else:
@@ -1654,7 +1673,7 @@ def _step(
             if i:
                 pushes.append((i, lx, ly, float(f.vector[0]), float(f.vector[1])))
     start_x, start_y, start_th = list(st.x), list(st.y), list(st.th)
-    pulled = any(kind == "pos" and j == -1 for kind, j, _ in rows)
+    pulled = _pulls_in(rows)
     keep = 1.0 - damping
     for s in range(1, substeps + 1):
         px, py, pth = list(st.x), list(st.y), list(st.th)
@@ -1678,8 +1697,9 @@ def _step(
             lam[k] = 0.0
         for _ in range(iterations):
             _project(st, rows, lam, h, apply=True)
-            if pulled:  # a pull never drags a joint past its range (an#707)
-                _project(st, rows, lam, h, apply=True, only="ang")
+            st.restore_held(along)
+        for _ in range(iterations if pulled else 0):  # the joints last (an#707)
+            _project(st, rows, lam, h, apply=True, skip_pulls=True)
             st.restore_held(along)
         for i in range(1, n):
             if st.inv_m[i]:
