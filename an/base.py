@@ -273,7 +273,8 @@ SWAY_OVERRIDE: str = "leans"
 GROUND_OVERRIDE: str = "ground"
 #: At or under this alpha an entity is not seen (a stream slot between its
 #: passes, a fade's end): it cannot jump or swap sides at a cut (an#516), nor
-#: overlap or be drawn through anything at an instant (an#632).
+#: overlap or be drawn through anything at an instant (an#632), nor be held
+#: to its supports or skate at one (an#519).
 UNSEEN_ALPHA: float = 1e-3
 
 #: Keys the CORE records in an entity's ``overrides``: what attaches it, the
