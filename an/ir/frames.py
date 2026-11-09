@@ -37,6 +37,7 @@ and the easing function, nothing else. It is an extraction candidate: previz
 
 from __future__ import annotations
 
+import bisect
 import math
 from dataclasses import dataclass
 from typing import Any, Callable, Mapping, Sequence
@@ -54,6 +55,7 @@ __all__ = [
     "TrackEvent",
     "Vec3",
     "lag_filter",
+    "lag_resample",
     "look_basis",
 ]
 
@@ -262,30 +264,94 @@ def _axes(yaw: float, pitch: float, roll: float) -> Axes | None:
     return right, down, forward
 
 
-def lag_filter(values: Sequence[float], *, lag: float, dt: float) -> list[float]:
+def lag_filter(
+    values: Sequence[float], *, lag: float, dt: float | Sequence[float]
+) -> list[float]:
     """``values`` seen through a first-order filter of time constant ``lag``
     (s), sampled every ``dt``: it starts on the first value and closes
     ``1 - exp(-dt/lag)`` of the gap each step (Cinemachine's damping: the time
     it takes to catch up). ``lag <= 0`` returns them as they are.
 
+    ``dt`` is one step for all, or one per step (``len(values) - 1`` of them)
+    for a grid that is not uniform — a stepped shot's frames and steps
+    interleaved (an#626). Each step is the exact response of the filter to
+    the input held at the step's END value over it, so a grid refined by
+    :func:`lag_resample` lands on the same values.
+
     >>> out = lag_filter([0.0] + [100.0] * 30, lag=0.5, dt=0.1)
     >>> round(out[5], 1)                  # 0.5 s after the step: 1 - 1/e of it
     63.2
+    >>> lag_filter([0.0, 100.0, 100.0], lag=0.5, dt=[0.1, 0.1]) == out[:3]
+    True
     >>> lag_filter([0.0, 1.0], lag=0.5, dt=0.0)
     Traceback (most recent call last):
       ...
     ValueError: lag_filter: the sample step `dt` must be positive (got 0.0).
     """
-    if not dt > 0:
+    uniform = isinstance(dt, (int, float))
+    steps = [dt] if uniform else list(dt)
+    for d in steps:
+        if not d > 0:
+            raise ValueError(
+                f"lag_filter: the sample step `dt` must be positive (got {d!r})."
+            )
+    if not uniform and len(steps) != max(0, len(values) - 1):
         raise ValueError(
-            f"lag_filter: the sample step `dt` must be positive (got {dt!r})."
+            f"lag_filter: {len(steps)} steps `dt` for {len(values)} values; a "
+            "per-step `dt` has one step between each two values."
         )
     if lag <= 0 or not values:
         return list(values)
-    k = 1.0 - math.exp(-dt / lag)
+    gains = [1.0 - math.exp(-d / lag) for d in steps]
+    if uniform:  # one gain for every step, as it always was
+        gains = gains * (len(values) - 1)
     out = [float(values[0])]
-    for v in values[1:]:
+    for v, k in zip(values[1:], gains):
         out.append(out[-1] + k * (v - out[-1]))
+    return out
+
+
+def lag_resample(
+    times: Sequence[float],
+    values: Sequence[float],
+    filtered: Sequence[float],
+    at: Sequence[float],
+    *,
+    lag: float,
+) -> list[float]:
+    """The lagging track :func:`lag_filter` made over ``times`` (its input
+    ``values``, its output ``filtered``), read at the instants ``at`` (an#626).
+
+    At a grid instant, the filtered value itself. Between ``times[k]`` and
+    ``times[k+1]``, the filter's own trajectory there: from ``filtered[k]``
+    toward ``values[k+1]`` (the input it holds over that step), closing
+    ``1 - exp(-(t - times[k])/lag)`` of the gap — which reaches
+    ``filtered[k+1]`` at the step's end, so refining the grid moves nothing
+    on it. Before the first instant, the first value; after the last, the
+    last (the filter's output is not defined beyond its input).
+
+    >>> times, values = [0.0, 0.1, 0.2], [0.0, 100.0, 100.0]
+    >>> lagged = lag_filter(values, lag=0.5, dt=0.1)
+    >>> lag_resample(times, values, lagged, [0.0, 0.1, 0.2], lag=0.5) == lagged
+    True
+    >>> round(lag_resample(times, values, lagged, [0.05], lag=0.5)[0], 3)
+    9.516
+    """
+    if not (lag > 0 and times):
+        raise ValueError(
+            f"lag_resample reads a lagging track: it needs a positive `lag` (got "
+            f"{lag!r}) and at least one instant (got {len(times)})."
+        )
+    out = []
+    for t in at:
+        i = bisect.bisect_right(times, t) - 1
+        if i < 0:
+            out.append(float(filtered[0]))
+        elif times[i] == t or i == len(times) - 1:
+            out.append(float(filtered[i]))
+        else:
+            k = 1.0 - math.exp(-(t - times[i]) / lag)
+            out.append(filtered[i] + k * (values[i + 1] - filtered[i]))
     return out
 
 

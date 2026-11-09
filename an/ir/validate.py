@@ -30,10 +30,11 @@ from an.ir.camera import (
     CameraError,
     camera_keys,
     camera_shake_offsets,
-    dolly_frames,
     follow_overlay,
-    frame_times,
+    is_affine,
+    sample_camera,
 )
+from an.frame_clock import camera_sample_times
 from an.ir.compose import flatten
 from an.ir.migrate import DocumentMigrationError, migrate
 from an.ir.sync import SceneValidationError, scene_from_json_doc
@@ -1068,10 +1069,13 @@ def _check_framing(
     linear term plus ``±canvas/(2·zoom)``, which is convex in it, so the
     worst gap on each side is at a key. Two stated limits: an easing that
     OVERSHOOTS (a cubic Bézier outside [0, 1]) can pass a key, and a gap
-    BETWEEN two plates crossed mid-move is seen only if a key frames it. A
-    rolling camera is checked at its keys, conservatively. A DOLLY is not
-    affine in its travel, so a camera that dollies is checked at every frame
-    (:func:`an.ir.camera.dolly_frames`, an#478).
+    BETWEEN two plates crossed mid-move is seen only if a key frames it.
+    **A camera that is not affine** (:func:`an.ir.camera.is_affine`: it
+    DOLLIES, an#478, or its ROLL changes between keys) is checked at every
+    frame the render draws instead, through the one camera sampler
+    (:func:`an.frame_clock.camera_sample_times` and
+    :func:`an.ir.camera.sample_camera`, an#626) — as the compiler emits a
+    dolly. The rolled frame is still its axis-aligned box, conservatively.
 
     Silent — not "covered" — when it cannot know: no environments store, an
     environment that is not a plane descriptor (a preset draws 4000-pixel
@@ -1119,19 +1123,19 @@ def _check_framing(
 
     if len(keys) < 2:
         keys = [CameraKey()]  # no move: the resting frame
-    # A dolly is not affine in its travel, so its frame is checked at every
-    # frame the render draws, as the compiler emits it (an#478).
+    # A dolly or a changing roll is not affine, so its frame is checked at
+    # every frame the render draws, through the one sampler (an#478, an#626).
     duration = max(0.001, float(shot.duration))
-    keys = dolly_frames(keys, duration=duration, fps=fps)
+    every_frame = camera_sample_times(duration, fps=fps)
+    if not is_affine(keys):
+        keys = sample_camera(keys, every_frame)
     follow = shot.camera.follow if shot.camera is not None else None
     try:
         if follow is not None and shot.camera.keys:
             # A follow's overlay dollies through the planes as a move does
             # (an#625); where it points is only known at compile, so only the
             # travel is checked here, at every frame.
-            for _, travel in follow_overlay(
-                shot.camera.keys, frame_times(duration=duration, fps=fps)
-            ):
+            for _, travel in follow_overlay(shot.camera.keys, list(every_frame.times)):
                 for plane, art in planes:
                     plane_rect(plane, art, camera=(0.0, 0.0), dolly=travel)
         poses = [

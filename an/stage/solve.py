@@ -1464,14 +1464,9 @@ def frame_times(duration: float, *, fps: float, step_hz: float | None) -> list[f
     >>> frame_times(0.25, fps=20, step_hz=10)
     [0.0, 0.1, 0.2, 0.25]
     """
-    duration = max(0.001, float(duration))
-    if step_hz:
-        from an.stage.compile import step_times
+    from an.frame_clock import grid_times  # the one grid rule (an#626)
 
-        return step_times(0.0, duration, step_hz)
-    from an.ir.camera import frame_times as every_frame  # the one frame grid
-
-    return every_frame(duration=duration, fps=fps)
+    return grid_times(max(0.001, float(duration)), fps=fps, step_hz=step_hz)
 
 
 @dataclass
