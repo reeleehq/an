@@ -133,7 +133,7 @@ The `contact` joint's residual is the penetration alone (`_segment_gap(one_sided
 
 - `SUPPORT_TOLERANCE: float = 0.02` of the height, either way (4 px on a 200 px figure), floored at `SUPPORT_FLOOR_PX: float = 2.0`. The tolerance a check applies is `support_tolerance(height) = max(SUPPORT_TOLERANCE * height, SUPPORT_FLOOR_PX)`. The floor is the width of an#636's rejoin blend (`an.kinematics.solver.DFLT_REJOIN_BLEND_PX = 2.0`, mirrored by `an.verify.joints.REJOIN_TOLERANCE_PX`): the gap below which the solver itself treats two points as joined, so a support is not held tighter than a joint.
 - `FLOAT_BAND: float = 0.4` of the height: an inferred stance is not inferred beyond it (the hold layer's `FLOAT_BAND_PX = 80` is the item form); a declared support is held to the support tolerance whatever the gap. (As built in PR 1b: not built. §2.4 infers by the support tolerance, which is tighter, so the band would never bind; inferring by the band took a figure staged on a crate to stand on the floor under it. PR 4's fixture of a member "a few centimetres above the floor" is to be restated against §2.4.)
-- `SKATE_TOLERANCE: float = 0.005` of the height **per frame** (1 px per frame on a 200 px figure; PhysDiff's definition is per adjacent frame pair [catalogue ref. 10]).
+- `SKATE_TOLERANCE: float = 0.005` of the height **per frame** (1 px per frame on a 200 px figure; PhysDiff's definition is per adjacent frame pair [catalogue ref. 10]), floored at `SKATE_FLOOR_PX: float = 0.5` px per frame (as built in PR 2, which gave the floor this section asks every tolerance for its number: half a pixel, a step one frame cannot show; it binds below a 100 px body): `skate_tolerance(height) = max(SKATE_TOLERANCE * height, SKATE_FLOOR_PX)`, beside `support_tolerance` in `an/stage/support.py`. Under a step grid (`step_hz`) the drift between two grid instants is divided by the frames between them, so it stays px per frame.
 
 `an.stage.hold.SUPPORT_TOLERANCE_PX = 1.0` stays: it is for placements the hold layer *derives*, which are exact by construction. It and the check's `SUPPORT_TOLERANCE` (a fraction) and `SUPPORT_FLOOR_PX` (the check's floor; defined in `an/stage/support.py`, which needs them to infer a stance, and re-exported by `an/verify/support.py`) are three names for three things, so no reader confuses them. The numbers above are initial values to be calibrated on the corpus in PR 1b and PR 2 (acceptance: the core corpus stays clean, §7).
 
@@ -163,7 +163,7 @@ A contact is **held** at frame `k` when its support is joined at `t_k` and `|d_c
 
 Severity: **error** for a declared support, **warning** for an inferred stance, and the inferred form runs only under a style pack that declares `gravity` (the `gravity` check's gate, `_gravity_of`, `an/verify/constraints.py:1744`): a cartoon style with no gravity glides by right (catalogue B4's "a style decision and must be declarable"; the puppetry research's "gravity is a style, not a law", `misc/docs/research/puppeteering_2026-10.md` §2).
 
-Exempt: a contact from the fallback chain's `origin`, `ink` or `box` (§3.2 steps 3 and 4) and a prop's `base`: a body that glides on its stance point (the `glide` locomotion method, `cutan/characters/methods.py`, the chain's requirement-free end) has no foot to skate, and a pushed crate slides; skate is about a contact that belongs to a part that moves relative to the body (a leg, a hoof: the hook's contacts). An `airborne` span is exempt.
+Exempt: a contact from the fallback chain's `origin`, `ink` or `box` (§3.2 steps 3 and 4) and a prop's `base`: a body that glides on its stance point (the `glide` locomotion method, `cutan/characters/methods.py`, the chain's requirement-free end) has no foot to skate, and a pushed crate slides; skate is about a contact that belongs to a part that moves relative to the body (a leg, a hoof: the hook's contacts). An `airborne` span is exempt. As built in PR 2, "a prop's `base`" is a rule, not a name: a contact is a **limb's** (`ContactState.limb`, `an.stage.support.LIMB_SOURCES`) when the hook or `metadata.contacts` puts it on a named part (`{foot_l: {slot: leg_l}}`), or when the reference names a bone or a landmark (`paul@hand_l`); a `metadata.contacts` point on the root part's drawing (`{base: [0.5, 1.0]}`) and a fraction `@u,v` are the body's own stance point and never skate. A `World.ground` reference point (§4.2) is PR 4's: until `World.ground` exists, `ground` is `solve.ground` or the member's own floor, whose reference is the stage's `(0, y)`.
 
 Impacts (B3 ii) are **not** in rank 2: `supports_at` records the normal velocity of each contact at a `join` instant so a later `impact` check (velocity reverses or reaches zero within one frame; `cutan.impacts` ground truth as its fixtures) reads this module and adds nothing to it.
 
@@ -188,6 +188,7 @@ class ContactState:
     above: float                   # signed distance to the surface along its normal (+ above, − sunk)
     held: bool                     # joined and |above| <= tolerance
     tangent_speed: float | None    # |change of s_c| (§4.2), px per frame in the surface's frame; None at the first frame or when not held on both sides
+    # as built (PR 2): also `limb: bool` (a part's contact, §5.2: the only kind that skates) and `along: float` (s_c itself)
 
 @dataclass(frozen=True)
 class SupportState:
@@ -200,7 +201,8 @@ class SupportState:
     joined: bool
 
 def contacts_of(entity, mall, *, rig=None) -> dict[str, tuple[str, tuple[float, float] | None]]: ...
-def supports_at(doc, shot, mall, *, times=None, inferred=True) -> tuple[list[SupportState], list[tuple[str, str]]]: ...
+def supports_at(doc, shot, mall, *, times=None, inferred=True, rest_only=True) -> tuple[list[SupportState], list[tuple[str, str]]]: ...
+    # rest_only (as built, PR 2): an inferred stance measured at its rest instants (the support check) or at every instant (skate, §4.3)
     # the states, and (where, message) for each reference that does not resolve (§2.1)
 ```
 
@@ -246,6 +248,8 @@ Acceptance: `an validate` on the fixture says *`figure` floats 10 px above `grou
 Fixtures: the figure's `leg_l` far end declared as `metadata.contacts: {foot_l: …}` on the fixture's leg slot (a two-contact figure) with `{type: support, a: figure@foot_l, b: ground, name: left}`; `figure:x` tweened 40 px over 1 s while standing → one `skate` error span; the same with `unjoin left` over the move → clean; the same with no joint under a pack with `gravity: down 980` → a warning, under a pack without → silent; a prop pushed along the floor by `tween x` with `support a: stick@base` → silent (base is exempt); the figure standing still with `support a: figure@foot_l, b: crate@surface` while the crate is tweened 40 px → silent (its foot parameter from the crate's `surface_l` does not change).
 
 Acceptance: the factory corpus's walks are run through `an validate` and their skate findings written into the PR body as measured numbers (§8 (f)), with the inferred form silent on the corpus as shipped (no corpus pack declares gravity) and the core corpus clean.
+
+As built (`tests/test_skate.py`): the two-contact figure is a `walker` written by the test (the fixture's figure with `metadata.contacts: {foot_l: {slot: leg_l}, foot_r: {slot: leg_r}}`), because `tests/test_support.py` holds the fixture's figure to its `origin`; the slide is 10 px in one frame (40 px over 1 s is 1.7 px per frame, barely over a 290 px figure's 1.5 px tolerance); the pushed prop is `tests/test_support.py`'s `cup` (`a: cup@base` and a bare `a: cup`), since PR 1b did not give the stick a `base`; the crate case is the crate and the walker carried together (silent) against the crate pushed out from under a walker that stays put (an error). The factory walks' numbers cannot be measured in PR 2: until PR 3's hook a factory character's contact is its `origin`, which never skates, so they move to PR 3's acceptance.
 
 **PR 3 (`cutan`): characters' feet.**
 
