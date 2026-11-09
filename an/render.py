@@ -1238,6 +1238,7 @@ def _prepare_shots(
         # under the same art direction by construction.
         style_pack=_style_pack(scene, project),
         default_easing=scene.meta.default_easing,
+        light=scene.meta.light,
     )
 
     from an.measurements import settle_durations, warn_findings

@@ -352,14 +352,14 @@ def _origin_touched(doc: Any, entity: Any, rig: Any, mall: Any) -> bool:
     """Whether a root part's painted bottom rests on the entity's origin, at rest
     (an#601: a stick's middle or a wheel's hub is where it is held)."""
     from an.stage.hold import ink_points
-    from an.stage.solve import _apply, _compose, _invert, _node_index, _world_matrices
+    from an.stage.solve import _apply, _compose, _invert, node_index, world_matrices
 
-    nodes = _node_index(doc)
+    nodes = node_index(doc)
     eid = entity.id
     if eid not in nodes:
         return False
     roots = _root_paths(eid, rig, nodes)
-    rest = _world_matrices(doc, [eid, *roots], None, nodes)
+    rest = world_matrices(doc, [eid, *roots], None, nodes)
     to_entity = _invert(rest[eid])
     for p in roots:
         m = _compose(to_entity, rest[p])
@@ -372,12 +372,12 @@ def _origin_touched(doc: Any, entity: Any, rig: Any, mall: Any) -> bool:
 def _ink_read(doc: Any, entity: Any, rig: Any, mall: Any) -> bool:
     """Whether every root part's ink is a read alpha hull, not its box's corners."""
     from an.stage.hold import _corners, ink_points
-    from an.stage.solve import _local_box, _node_index
+    from an.stage.solve import local_box, node_index
 
-    nodes = _node_index(doc)
+    nodes = node_index(doc)
     roots = _root_paths(entity.id, rig, nodes) if entity.id in nodes else []
     return bool(roots) and all(
-        set(ink_points(doc, nodes[p], mall)) != set(_corners(_local_box(nodes[p])))
+        set(ink_points(doc, nodes[p], mall)) != set(_corners(local_box(nodes[p])))
         for p in roots
     )
 
@@ -550,8 +550,8 @@ def supports_at(
     not resolve (no state is made for it)."""
     from an.base import UNSEEN_ALPHA
     from an.stage.solve import (
-        _node_index,
-        _world_matrices,
+        node_index,
+        world_matrices,
         declarations,
         frame_times,
     )
@@ -559,7 +559,7 @@ def supports_at(
     from an.timing.timeline import evaluate_timeline
 
     mall = mall or {}
-    nodes = _node_index(doc)
+    nodes = node_index(doc)
     if times is None:
         times = frame_times(shot.duration, fps=doc.meta.fps, step_hz=doc.meta.step_hz)
     times = list(times)
@@ -615,7 +615,7 @@ def supports_at(
         due = [(i, s) for i, s in due if seen[s.entity]]
         if not due:
             continue
-        world = _world_matrices(doc, paths, pose, nodes)
+        world = world_matrices(doc, paths, pose, nodes)
         for i, s in due:
             height = reader.height(s.entity)
             prev = last.get(i)
@@ -826,10 +826,10 @@ class _Reader:
 
     def rest(self, path: str) -> Any:
         """A node's rest (declared) stage transform."""
-        from an.stage.solve import _world_matrices
+        from an.stage.solve import world_matrices
 
         if path not in self._rest:
-            self._rest[path] = _world_matrices(self.doc, [path], None, self.nodes)[path]
+            self._rest[path] = world_matrices(self.doc, [path], None, self.nodes)[path]
         return self._rest[path]
 
     def contacts_on_parts(self, eid: str) -> Mapping[str, Any]:
@@ -870,7 +870,7 @@ class _Reader:
 
     def opening(self, paths: Sequence[str]) -> Mapping[str, Any]:
         """World matrices as the shot opens."""
-        from an.stage.solve import _world_matrices
+        from an.stage.solve import world_matrices
         from an.stage.timeline import timeline_from_scene
         from an.timing.timeline import evaluate_timeline
 
@@ -880,13 +880,13 @@ class _Reader:
         missing = [p for p in paths if p not in self._open_world]
         if missing:
             self._open_world.update(
-                _world_matrices(self.doc, missing, self._open_pose, self.nodes)
+                world_matrices(self.doc, missing, self._open_pose, self.nodes)
             )
         return self._open_world
 
     def height(self, eid: str) -> float:
         """The entity's drawn height as the shot opens (px, stage)."""
-        from an.stage.solve import _apply, _local_box
+        from an.stage.solve import _apply, local_box
 
         if eid not in self._heights:
             drawn = [
@@ -897,7 +897,7 @@ class _Reader:
             world = self.opening(drawn)
             ys = []
             for p in drawn:
-                left, top, w, h = _local_box(self.nodes[p])
+                left, top, w, h = local_box(self.nodes[p])
                 for c in (
                     (left, top),
                     (left + w, top),
@@ -965,7 +965,7 @@ class _Reader:
         from an.stage.hold import _corners, ink_points
         from an.stage.solve import (
             WORLD_REF,
-            _local_box,
+            local_box,
             _slot_path,
             locate_point,
             named_point,
@@ -1011,7 +1011,7 @@ class _Reader:
             pts = ink_points(self.doc, self.nodes[part], self.mall)
             source = (
                 "box"
-                if set(pts) == set(_corners(_local_box(self.nodes[part])))
+                if set(pts) == set(_corners(local_box(self.nodes[part])))
                 else "ink"
             )
             return [_Contact(source, part, tuple(pts))], source, ""

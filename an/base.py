@@ -276,10 +276,15 @@ GROUND_OVERRIDE: str = "ground"
 #: overlap or be drawn through anything at an instant (an#632), nor be held
 #: to its supports or skate at one (an#519).
 UNSEEN_ALPHA: float = 1e-3
+#: An entity's ask for a shadow under it (an#519, catalogue D2): ``contact``
+#: (an ellipse where it meets its support) or ``none``; read by the stage's
+#: ``contact_shadows`` pass (:data:`an.stage.shadow.SHADOW_KEY`). Bookkeeping for
+#: the stage, not a field of the entity's asset, so a path or a text block may say it.
+SHADOW_OVERRIDE: str = "shadow"
 
 #: Keys the CORE records in an entity's ``overrides``: what attaches it, the
 #: stream slot it is, what holds it and at what angle, the world's plane
-#: factors. Bookkeeping about the entity, not fields of its asset document, so
+#: factors, the shadow the stage draws under it. Bookkeeping about the entity, not fields of its asset document, so
 #: a resolver that validates overrides against its document (a stroked path,
 #: a text block) leaves them out (an#516); ``tests/test_world.py`` holds the
 #: owners' constants to this set.
@@ -294,6 +299,7 @@ CORE_OVERRIDE_KEYS: frozenset[str] = frozenset(
         BESIDE_HOST_OVERRIDE,
         SWAY_OVERRIDE,
         GROUND_OVERRIDE,
+        SHADOW_OVERRIDE,
     }
 )
 

@@ -407,7 +407,7 @@ def test_a_place_on_the_ground_lands_on_the_world_floor_under_the_carrier(tmp_pa
 
 def test_the_shots_solve_ground_wins_over_the_worlds(tmp_path):
     from an.stage.compile import compile_shot
-    from an.stage.solve import _node_index
+    from an.stage.solve import node_index
     from an.stage.support import _Reader, supports_at
 
     members = [_member("wal", "walker", (0.3, G, 5.0))]
@@ -420,7 +420,7 @@ def test_the_shots_solve_ground_wins_over_the_worlds(tmp_path):
     def reader_and_states(scene):
         shot = _lowered(project, scene).scene.timeline[0]
         doc = compile_shot(shot, project.mall, fps=24, width=640, height=480)
-        reader = _Reader(doc, shot, project.mall, _node_index(doc))
+        reader = _Reader(doc, shot, project.mall, node_index(doc))
         return reader, supports_at(doc, shot, project.mall)[0]
 
     reader, states = reader_and_states(scene)

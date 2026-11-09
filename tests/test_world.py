@@ -1269,6 +1269,7 @@ def test_the_core_override_keys_are_the_owners_constants():
     )
     from an.ir.world import ATTACHED_OVERRIDE, STREAM_OVERRIDE
     from an.stage.hold import AIM_OVERRIDE, ON_OVERRIDE
+    from an.stage.shadow import SHADOW_KEY
 
     owners = {
         ATTACHED_OVERRIDE,
@@ -1280,6 +1281,7 @@ def test_the_core_override_keys_are_the_owners_constants():
         BESIDE_HOST_OVERRIDE,
         SWAY_OVERRIDE,
         GROUND_OVERRIDE,
+        SHADOW_KEY,
     }
     assert owners == set(CORE_OVERRIDE_KEYS)
 

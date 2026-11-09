@@ -209,6 +209,7 @@ def compile_args(
     style_pack: "StylePack | None" = None,
     default_easing: Any = None,
     frame_samples: Sequence[Sequence[float]] | None = None,
+    light: Any = None,
 ) -> dict[str, Any]:
     """:func:`compile_shot`'s keywords for ``shot`` from settled values: the
     ONE place they are spelled out (an#713). The render path calls it with its
@@ -237,6 +238,7 @@ def compile_args(
         default_easing=default_easing,
         frame_samples=frame_samples,
         sample_fps=float(fps) if frame_samples is not None else None,
+        light=light,
     )
 
 
@@ -263,7 +265,7 @@ def rendered_compile_args(
 
     The render's own defaults: ``fps`` (``None`` = the scene's, else
     ``DEFAULT_FPS``), ``width``/``height`` (``None`` = the scene's, else
-    ``DEFAULT_RESOLUTION``), the scene's step grid and default easing. The pack
+    ``DEFAULT_RESOLUTION``), the scene's step grid, default easing and light. The pack
     is ``resolve_pack(meta, mall["styles"])``: by default
     :func:`style_pack_for`, which RAISES on a missing pack (an#33); a caller
     that already holds one passes ``lambda *_: pack``.
@@ -289,6 +291,7 @@ def rendered_compile_args(
         scene_step_hz=meta.step_hz,
         style_pack=resolve_pack(meta, (mall or {}).get("styles") or {}),
         default_easing=meta.default_easing,
+        light=meta.light,
     )
 
 
@@ -903,6 +906,7 @@ def compile_shot(
     default_easing: Any = None,
     frame_samples: Sequence[Sequence[float]] | None = None,
     sample_fps: float | None = None,
+    light: Any = None,
 ) -> CutoutSceneJSON:
     """Compile a single cutout-style `Shot` to its JS-runtime JSON form.
 
@@ -920,6 +924,12 @@ def compile_shot(
     curve of every authored tween that names none (tween > this > the built-in
     ``"ease_in_out"``, :meth:`~an.ir.schema.TweenAction.resolved_easing`).
     ``None`` leaves the document byte-identical to before the knob existed.
+
+    ``light`` (an#519, catalogue D2) is the scene's ``meta.light``
+    (:class:`an.ir.schema.SceneLight`): which way a contact shadow
+    (``shadow: contact``, :mod:`an.stage.shadow`) is cast. It reaches nothing
+    else, so the document of a shot with no shadow is byte-identical with it
+    or without it.
 
     ``expression_provider`` (an#98) is the seam that turns authored
     ``expression`` leaves and dialogue ``[emotion]`` sugar into per-axis
@@ -997,6 +1007,7 @@ def compile_shot(
             else tuple(tuple(float(t) for t in f) for f in frame_samples)
         ),
         sample_fps=sample_fps,
+        light=light,
     )
     replaced = stage_replacements()
     if replaced:
@@ -1031,6 +1042,8 @@ class CompileState:
     frame_samples: tuple[tuple[float, ...], ...] | None = None
     #: The rate ``frame_samples`` were taken at (a camera's 29.97), else ``fps``.
     sample_fps: float | None = None
+    #: The scene's light (``meta.light``, an#519): where a contact shadow is cast.
+    light: Any = None
     textures: dict[str, AssetJSON] = field(default_factory=dict)
     resolutions: list[AssetResolutionJSON] = field(default_factory=list)
     overlay_children: list[NodeJSON] = field(default_factory=list)
@@ -1205,6 +1218,16 @@ def _solve_pass(state: CompileState) -> None:
     from an.stage.solve import solve_pass
 
     solve_pass(state)
+
+
+def _contact_shadows_pass(state: CompileState) -> None:
+    """Contact shadows (an#519, catalogue D2): an ellipse under each supported
+    member that asks for one (``shadow: contact``), after every pass that moves
+    a body (the solve), from where its contacts ARE (:mod:`an.stage.shadow`).
+    A no-op for a shot where none asks."""
+    from an.stage.shadow import contact_shadow_pass
+
+    contact_shadow_pass(state)
 
 
 def _camera_follow_pass(state: CompileState) -> None:
@@ -1603,7 +1626,9 @@ def _paint_keys_pass(state: CompileState) -> None:
     (:func:`an.stage.tree.entity_containers`) whose keyed children
     (``overrides[PAINT_KEYS_OVERRIDE]``) change places, every child gets its
     place as a static ``z_index`` (so the stage sorts that container) and each
-    one that moves a stepped ``z_index`` channel."""
+    one that moves a stepped ``z_index`` channel. A member's contact shadow
+    rides its keys just behind it (:func:`an.stage.shadow.shadow_paint_keys`),
+    so it never ends a run nor is left behind."""
     keys = {
         e.id: e.overrides[PAINT_KEYS_OVERRIDE]
         for e in state.shot.entities
@@ -1611,11 +1636,14 @@ def _paint_keys_pass(state: CompileState) -> None:
     }
     if not keys:
         return
+    from an.stage.shadow import shadow_paint_keys
+
     channels: list[ChannelJSON] = []
     for container in stage_tree.entity_containers(state.scene_root):
         kids = container.children or []
         names = [k.name for k in kids]
-        moves = z_index_keys(names, _beside_their_hosts(names, keys))
+        here = {**keys, **shadow_paint_keys(names, keys)}
+        moves = z_index_keys(names, _beside_their_hosts(names, here))
         if not moves:
             continue
         for i, kid in enumerate(kids):
@@ -1741,6 +1769,12 @@ STAGE_COMPILE_PASSES: tuple[CompilePass, ...] = (
         _solve_pass,
         order=525,
         description="joints kept at every frame: the bodies the joints move (ADR 0008, an#512)",
+    ),
+    CompilePass(
+        "contact_shadows",
+        _contact_shadows_pass,
+        order=540,
+        description="one ellipse per support of a member that asks (an#519, D2)",
     ),
     CompilePass(
         "camera_follow",
