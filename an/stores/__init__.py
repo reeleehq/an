@@ -124,8 +124,8 @@ def build_project_mall(
         for sub in UNSTORED_FOLDERS:
             (pdir / sub).mkdir(parents=True, exist_ok=True)
 
-    def at(store_cls, *parts: str):
-        return store_cls(pdir.joinpath(*parts), ensure=ensure)
+    def at(make_store, *parts: str):
+        return make_store(pdir.joinpath(*parts), ensure=ensure)
 
     mall: dict[str, MutableMapping] = {
         "characters": at(CharactersStore, "assets", "characters"),
@@ -152,10 +152,10 @@ def build_project_mall(
         "shots": at(ShotArtifactStore, "artifacts", "shots"),
         # The content-keyed shot cache (ADR 0004): a `lacing.ArtifactStore`,
         # `catalog/<key>.json` + `blobs/<sha256>`. `render_project` reads it.
-        "shot_cache": shot_cache_store(pdir / "artifacts" / "shot_cache"),
+        "shot_cache": at(shot_cache_store, "artifacts", "shot_cache"),
         # Transcripts an earlier step produced, named where a transcript file
         # is (`artifact:transcripts/<key>`, an#493): a `lacing.ArtifactStore`.
-        "transcripts": transcripts_store(pdir / "artifacts" / "transcripts"),
+        "transcripts": at(transcripts_store, "artifacts", "transcripts"),
         "previews": at(PreviewArtifactStore, "artifacts", "previews"),
         # Contact sheets of opaque renders (a Manim shot's settled beats), keyed
         # by the PNG's sha256 so cached provenance keeps pointing at them.

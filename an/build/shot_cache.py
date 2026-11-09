@@ -149,7 +149,9 @@ def _make_record_type():
 
         shot_key: str = Field(..., description="The key this entry answers.")
         role: Literal["mp4", "frames", "parts", "root"] = "mp4"
-        shot_id: str = Field("", description="The author's id. Informational: never a key.")
+        shot_id: str = Field(
+            "", description="The author's id. Informational: never a key."
+        )
         renderer: str = ""
         inputs: dict[str, str] = Field(default_factory=dict)
         #: ``{"store/key": digest}``: the asset entries the shot read (an#316),
@@ -180,11 +182,17 @@ def shot_artifact_type():
     return _RECORD_TYPE
 
 
-def shot_cache_store(root: str | Path) -> Any:
-    """A filesystem shot cache under ``root``: ``catalog/`` + ``blobs/`` (lacing's layout)."""
+def shot_cache_store(root: str | Path, *, ensure: bool = False) -> Any:
+    """A filesystem shot cache under ``root``: ``catalog/`` + ``blobs/`` (lacing's layout).
+
+    Its folders are made on the first write, a missing one reading as empty
+    (an#696); ``ensure=True`` lays them out at once (``an init``).
+    """
     from lacing import ArtifactStore
 
-    return ArtifactStore.from_directory(root, record_type=shot_artifact_type())
+    return ArtifactStore.from_directory(
+        root, record_type=shot_artifact_type(), create=ensure
+    )
 
 
 def in_memory_shot_cache_store() -> Any:
@@ -355,9 +363,7 @@ def parts_entry_id(key: str, window: Any) -> str:
     >>> parts_entry_id("k" * 64, ShotWindow(frames=30, head=0, tail=4)).endswith(".h0.t4")
     True
     """
-    return (
-        f"{key}{PARTS_INFIX}{parts_code_digest()[:16]}.h{window.head}.t{window.tail}"
-    )
+    return f"{key}{PARTS_INFIX}{parts_code_digest()[:16]}.h{window.head}.t{window.tail}"
 
 
 _PARTS_CODE: list[str] = []
@@ -423,7 +429,9 @@ class IncrementalEngine(Protocol):
         force: bool = False,
     ) -> ShotPlan: ...
 
-    def record(self, plan: ShotPlan, result: "RenderResult", *, render_s: float) -> None: ...
+    def record(
+        self, plan: ShotPlan, result: "RenderResult", *, render_s: float
+    ) -> None: ...
 
     def finish(self) -> BuildReport: ...
 
@@ -531,7 +539,9 @@ class ShotCache:
     def begin(
         self, mall: Mapping[str, Any], *, project_root: Path | None = None
     ) -> None:
-        self._store = self.store if self.store is not None else mall.get(SHOT_CACHE_STORE)
+        self._store = (
+            self.store if self.store is not None else mall.get(SHOT_CACHE_STORE)
+        )
         self._mall = mall if mall is not None else {}
         self._project_root = project_root
         # Digested on first need: a film of recorded-read shots never hashes
@@ -621,7 +631,9 @@ class ShotCache:
             return [key, parts_entry_id(key, window)]
         return [key]
 
-    def record(self, plan: ShotPlan, result: "RenderResult", *, render_s: float) -> None:
+    def record(
+        self, plan: ShotPlan, result: "RenderResult", *, render_s: float
+    ) -> None:
         if plan.key is None or self._store is None:
             self._note(plan, "uncached", render_s=render_s)
             return
@@ -700,7 +712,9 @@ class ShotCache:
             )
             root_id = None
         try:
-            self.report.store_bytes, self.report.store_entries = store_usage(self._store)
+            self.report.store_bytes, self.report.store_entries = store_usage(
+                self._store
+            )
         except Exception:  # noqa: BLE001 — a size is informational
             pass
         return root_id
@@ -818,7 +832,9 @@ class ShotCache:
         self._environments[name] = digest
         return digest
 
-    def _note(self, plan: ShotPlan, status: ShotStatus, *, render_s: float | None = None) -> None:
+    def _note(
+        self, plan: ShotPlan, status: ShotStatus, *, render_s: float | None = None
+    ) -> None:
         i = id(plan)
         if i not in self._order:
             self._order.append(i)
@@ -878,7 +894,9 @@ class ShotCache:
         if plan.needs_frames:
             frames_rec = store.get(plan.key + FRAMES_SUFFIX)
             frames_bytes = (
-                self._verified_blob(frames_rec.asset_id) if frames_rec is not None else None
+                self._verified_blob(frames_rec.asset_id)
+                if frames_rec is not None
+                else None
             )
             if frames_bytes is None:
                 return None, "frames needed for assembly, not cached"
@@ -889,7 +907,9 @@ class ShotCache:
             except Exception as e:  # noqa: BLE001 — unreadable is a miss, said
                 return None, f"unreadable parts entry ({type(e).__name__})"
             parts_bytes = (
-                self._verified_blob(parts_rec.asset_id) if parts_rec is not None else None
+                self._verified_blob(parts_rec.asset_id)
+                if parts_rec is not None
+                else None
             )
             if parts_bytes is None:
                 return None, PARTS_NOT_CACHED
@@ -1012,7 +1032,9 @@ class ShotCache:
             },
         )
 
-    def _save(self, plan: ShotPlan, result: "RenderResult", timings: dict[str, float]) -> None:
+    def _save(
+        self, plan: ShotPlan, result: "RenderResult", timings: dict[str, float]
+    ) -> None:
         store = self._store
         record_type = shot_artifact_type()
 
@@ -1172,9 +1194,7 @@ def explain_change(
     said: list[str] = []
     if assets:
         said.append("asset changed: " + ", ".join(assets))
-    others = [
-        name for name in moved if not (assets and name in FOLLOWS_ASSETS)
-    ]
+    others = [name for name in moved if not (assets and name in FOLLOWS_ASSETS)]
     labels = [
         _code_label(before_code or {}, after_code or {})
         if name == "code"
@@ -1205,7 +1225,9 @@ def _pack_parts(parts: Any, zpath: Path) -> None:
         if parts.body is not None:
             zf.write(parts.body, arcname=PARTS_BODY_MEMBER)
         for j, path in sorted(parts.frames.items()):
-            zf.write(path, arcname=f"{PARTS_FRAMES_DIR}/{DEFAULT_FRAME_PNG_PATTERN % j}")
+            zf.write(
+                path, arcname=f"{PARTS_FRAMES_DIR}/{DEFAULT_FRAME_PNG_PATTERN % j}"
+            )
 
 
 def _unpack_parts(data: bytes, window: Any, out_dir: Path) -> Any:
@@ -1247,10 +1269,13 @@ def store_usage(store: Any) -> tuple[int, int]:
     rootdir = getattr(getattr(store, "blobs", None), "rootdir", None)
     if rootdir is not None:
         total = 0
-        with os.scandir(rootdir) as it:
-            for e in it:
-                if e.is_file(follow_symlinks=False):
-                    total += e.stat(follow_symlinks=False).st_size
+        try:
+            with os.scandir(rootdir) as it:
+                for e in it:
+                    if e.is_file(follow_symlinks=False):
+                        total += e.stat(follow_symlinks=False).st_size
+        except FileNotFoundError:  # made on the first write (an#696)
+            pass
         return total, len(store)
     sizes: dict[str, int] = {}
     n = 0
