@@ -161,7 +161,9 @@ class GenreError(RegistryError):
 #:     modules have no ``__all__``).
 #: 17 = one rule of "at infinity" (an#735): ``an.ir.world.planes_at_infinity(world,
 #:     environments)`` and its record ``PlaneAtInfinity``, for a genre's far-plate critic.
-API_LEVEL: int = 17
+#: 18 = where a rig touches what it stands on (an#519): ``EntityKind.contacts`` (a character's
+#:     feet for the ``support`` joint and check), read by ``an.stage.support.contacts_of``.
+API_LEVEL: int = 18
 
 
 class GenreAPILevelError(GenreError, ImportError):
