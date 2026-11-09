@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=d9244608"></script>
+    <script src="../../../_static/documentation_options.js?v=7d5cc211"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.392" />
+  <meta name="docsearch:version" content="0.1.393" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1190,6 +1190,10 @@ window.runMermaid = runMermaid;</script>
     <span class="n">source</span><span class="p">:</span> <span class="nb">str</span>
     <span class="c1">#: The contact named in the reference, or ``""`` for all of them.</span>
     <span class="n">named</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
+    <span class="c1">#: Whether the surface is the world's floor (``World.ground``) as the</span>
+    <span class="c1">#: camera projects it under the entity, measured along from a point held</span>
+    <span class="c1">#: in the frame the entity stands in (an#519 PR 4), not a stage floor.</span>
+    <span class="n">world_floor</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">inferred</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
@@ -1239,7 +1243,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">contacts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">_Contact</span><span class="p">]</span>
     <span class="n">source</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">named</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
-    <span class="c1">#: The surface at an instant (:class:`_SurfaceAt`), from world matrices.</span>
+    <span class="c1">#: The surface at an instant (:class:`_SurfaceAt`), from world matrices</span>
+    <span class="c1">#: and the time: ``surface(world, t)``.</span>
     <span class="n">surface</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">surface_paths</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
     <span class="n">events</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
@@ -1247,6 +1252,8 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: The entity's own node and its root parts': a contact on one is the</span>
     <span class="c1">#: body's stance point, not a limb's (:attr:`ContactState.limb`).</span>
     <span class="n">body</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">()</span>
+    <span class="c1">#: Measured against the world's floor (:attr:`SupportState.world_floor`).</span>
+    <span class="n">world_floor</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 
 
 <div class="viewcode-block" id="supports_at">
@@ -1278,9 +1285,13 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    parameter along the surface (``along``, in the surface's own frame) changed</span>
 <span class="sd">    since the grid's previous instant, when it was held at both and its motion</span>
 <span class="sd">    along the surface's normal was at most ``lift`` of that (more is a foot</span>
-<span class="sd">    leaving or meeting the surface). Returns the states and ``(where,</span>
-<span class="sd">    message)`` for each reference that does not resolve (no state is made for</span>
-<span class="sd">    it)."""</span>
+<span class="sd">    leaving or meeting the surface). An entity is not measured at an instant</span>
+<span class="sd">    it is not seen (its alpha at most :data:`an.base.UNSEEN_ALPHA`: a member</span>
+<span class="sd">    the world hides outside its on-screen window, a fade's end), the rule the</span>
+<span class="sd">    ``solidity`` check applies, so a slide is never measured across one.</span>
+<span class="sd">    Returns the states and ``(where, message)`` for each reference that does</span>
+<span class="sd">    not resolve (no state is made for it)."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">UNSEEN_ALPHA</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.solve</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
         <span class="n">_node_index</span><span class="p">,</span>
         <span class="n">_world_matrices</span><span class="p">,</span>
@@ -1340,6 +1351,13 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">due</span><span class="p">:</span>
             <span class="k">continue</span>
         <span class="n">pose</span> <span class="o">=</span> <span class="n">evaluate_timeline</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+        <span class="n">seen</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">eid</span><span class="p">:</span> <span class="n">_seen</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">pose</span><span class="p">,</span> <span class="n">eid</span><span class="p">,</span> <span class="n">unseen</span><span class="o">=</span><span class="n">UNSEEN_ALPHA</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">eid</span> <span class="ow">in</span> <span class="p">{</span><span class="n">s</span><span class="o">.</span><span class="n">entity</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">due</span><span class="p">}</span>
+        <span class="p">}</span>
+        <span class="n">due</span> <span class="o">=</span> <span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">due</span> <span class="k">if</span> <span class="n">seen</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">entity</span><span class="p">]]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">due</span><span class="p">:</span>
+            <span class="k">continue</span>
         <span class="n">world</span> <span class="o">=</span> <span class="n">_world_matrices</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">paths</span><span class="p">,</span> <span class="n">pose</span><span class="p">,</span> <span class="n">nodes</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">due</span><span class="p">:</span>
             <span class="n">height</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">height</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">entity</span><span class="p">)</span>
@@ -1358,6 +1376,17 @@ window.runMermaid = runMermaid;</script>
             <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">out</span><span class="p">,</span> <span class="n">problems</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_seen</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">pose</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">eid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">unseen</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether ``eid`` is seen under ``pose`` (its alpha over ``unseen``); an</span>
+<span class="sd">    entity the document does not draw by that id counts as seen."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">entity_alpha</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">entity_alpha</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">pose</span><span class="p">,</span> <span class="n">eid</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">unseen</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_joined</span><span class="p">(</span><span class="n">events</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]],</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
@@ -1386,7 +1415,7 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SupportState</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""``s`` at frame ``k`` (time ``t``) under ``world``'s matrices; ``prev`` its</span>
 <span class="sd">    state at frame ``k - 1``, when it was measured then, for the slide."""</span>
-    <span class="n">at</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">surface</span><span class="p">(</span><span class="n">world</span><span class="p">)</span>
+    <span class="n">at</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">surface</span><span class="p">(</span><span class="n">world</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
     <span class="n">joined</span> <span class="o">=</span> <span class="n">_joined</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">events</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
     <span class="n">before</span> <span class="o">=</span> <span class="p">(</span>
         <span class="p">{(</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">part</span><span class="p">):</span> <span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">prev</span><span class="o">.</span><span class="n">contacts</span> <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">above</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">tol</span><span class="p">}</span>
@@ -1430,6 +1459,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span>
         <span class="n">source</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">source</span><span class="p">,</span>
         <span class="n">named</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">named</span><span class="p">,</span>
+        <span class="n">world_floor</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">world_floor</span><span class="p">,</span>
     <span class="p">)</span>
 
 
@@ -1810,12 +1840,11 @@ window.runMermaid = runMermaid;</script>
         <span class="n">where</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">problems</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""``b`` as ``(world -&gt; (line, ends or None), the node paths it reads)``."""</span>
+<span class="w">        </span><span class="sd">"""``b`` as ``((world, t) -&gt; its surface then, the node paths it reads)``."""</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.solve</span><span class="w"> </span><span class="kn">import</span> <span class="n">WORLD_REF</span><span class="p">,</span> <span class="n">_numbers</span><span class="p">,</span> <span class="n">_slot_path</span>
 
         <span class="k">if</span> <span class="n">ref</span> <span class="o">==</span> <span class="n">GROUND_SURFACE</span><span class="p">:</span>
-            <span class="n">floor_at</span> <span class="o">=</span> <span class="n">_stage_surface</span><span class="p">(</span><span class="n">ground_line</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">contacts</span><span class="p">)))</span>
-            <span class="k">return</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">_world</span><span class="p">:</span> <span class="n">floor_at</span><span class="p">),</span> <span class="p">()</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ground</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">contacts</span><span class="p">)</span>
         <span class="n">head</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">at</span> <span class="o">=</span> <span class="n">ref</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">"@"</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">head</span> <span class="o">==</span> <span class="n">WORLD_REF</span><span class="p">:</span>
             <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">_numbers</span><span class="p">(</span><span class="n">at</span><span class="p">),</span> <span class="n">_numbers</span><span class="p">((</span><span class="n">end</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">"@"</span><span class="p">)[</span><span class="mi">2</span><span class="p">])</span>
@@ -1828,7 +1857,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="p">)</span>
                 <span class="k">return</span> <span class="kc">None</span>
             <span class="n">segment_at</span> <span class="o">=</span> <span class="n">_stage_surface</span><span class="p">(</span><span class="n">line_through</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">),</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">))</span>
-            <span class="k">return</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">_world</span><span class="p">:</span> <span class="n">segment_at</span><span class="p">),</span> <span class="p">()</span>
+            <span class="k">return</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">_world</span><span class="p">,</span> <span class="n">_t</span><span class="p">:</span> <span class="n">segment_at</span><span class="p">),</span> <span class="p">()</span>
         <span class="n">eid</span> <span class="o">=</span> <span class="n">head</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">eid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">entities</span><span class="p">:</span>
             <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">where</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">eid</span><span class="si">!r}</span><span class="s2"> is not an entity of this shot"</span><span class="p">))</span>
@@ -1860,21 +1889,64 @@ window.runMermaid = runMermaid;</script>
             <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">where</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">seg</span><span class="si">}</span><span class="s2">"</span><span class="p">))</span>
             <span class="k">return</span> <span class="kc">None</span>
 
-        <span class="k">def</span><span class="w"> </span><span class="nf">at_instant</span><span class="p">(</span><span class="n">world</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">_SurfaceAt</span><span class="p">:</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">at_instant</span><span class="p">(</span><span class="n">world</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">_t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_SurfaceAt</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">_body_surface_at</span><span class="p">(</span><span class="n">world</span><span class="p">[</span><span class="n">node_path</span><span class="p">],</span> <span class="n">seg</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">at_instant</span><span class="p">,</span> <span class="p">(</span><span class="n">node_path</span><span class="p">,)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">floor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">eid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">contacts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">_Contact</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""The shot's floor line (``solve: {ground: y}``), else where the entity's</span>
-<span class="sd">        contacts are as the shot opens (its own floor)."""</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ground</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">eid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">contacts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">_Contact</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">"""``ground`` for ``eid``, as :meth:`surface` gives a surface: the</span>
+<span class="sd">        shot's floor line (``solve: {ground: y}``); else the world's floor under</span>
+<span class="sd">        the entity (:meth:`world_floor`); else where its contacts are as the</span>
+<span class="sd">        shot opens (its own floor)."""</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.solve</span><span class="w"> </span><span class="kn">import</span> <span class="n">_apply</span>
 
         <span class="n">solve</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">solve</span>
         <span class="k">if</span> <span class="n">solve</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">solve</span><span class="o">.</span><span class="n">ground</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">solve</span><span class="o">.</span><span class="n">ground</span><span class="p">)</span>
+            <span class="n">floor_at</span> <span class="o">=</span> <span class="n">_stage_surface</span><span class="p">(</span><span class="n">ground_line</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">solve</span><span class="o">.</span><span class="n">ground</span><span class="p">)))</span>
+            <span class="k">return</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">_world</span><span class="p">,</span> <span class="n">_t</span><span class="p">:</span> <span class="n">floor_at</span><span class="p">),</span> <span class="p">()</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">world_floor</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">found</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">found</span>
         <span class="n">world</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">opening</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">node</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">contacts</span><span class="p">])</span>
-        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">_apply</span><span class="p">(</span><span class="n">world</span><span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">node</span><span class="p">],</span> <span class="n">p</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">contacts</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">points</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">_apply</span><span class="p">(</span><span class="n">world</span><span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">node</span><span class="p">],</span> <span class="n">p</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">contacts</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">points</span><span class="p">)</span>
+        <span class="n">floor_at</span> <span class="o">=</span> <span class="n">_stage_surface</span><span class="p">(</span><span class="n">ground_line</span><span class="p">(</span><span class="n">y</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">_world</span><span class="p">,</span> <span class="n">_t</span><span class="p">:</span> <span class="n">floor_at</span><span class="p">),</span> <span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">world_floor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">eid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The world's floor under ``eid`` (``overrides.ground``, which the</span>
+<span class="sd">        world's lowering writes when it declares ``ground``,</span>
+<span class="sd">        :func:`an.ir.world.world_ground_at`), as :meth:`surface` gives a</span>
+<span class="sd">        surface: at each instant, the line through its floor point along its</span>
+<span class="sd">        direction, carried from the entity's parent to the stage; a point's</span>
+<span class="sd">        position along it is in world units in the frame the entity stands in</span>
+<span class="sd">        (:meth:`an.ir.world.GroundAt.position`), its scale the stage px per</span>
+<span class="sd">        unit there, so a foot carried by the frame, or by a walk straight in</span>
+<span class="sd">        depth, does not slide. ``None`` when it has none (the mark is read only</span>
+<span class="sd">        on a shot lowered from a world, :func:`an.ir.world.world_ground_mark`)."""</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.world</span><span class="w"> </span><span class="kn">import</span> <span class="n">world_ground_at</span><span class="p">,</span> <span class="n">world_ground_mark</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.solve</span><span class="w"> </span><span class="kn">import</span> <span class="n">_apply</span><span class="p">,</span> <span class="n">_parent_path</span>
+
+        <span class="n">spec</span> <span class="o">=</span> <span class="n">world_ground_mark</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">entities</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">eid</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">spec</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">world_ground_at</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">parent</span> <span class="o">=</span> <span class="n">_parent_path</span><span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">at_instant</span><span class="p">(</span><span class="n">world</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_SurfaceAt</span><span class="p">:</span>
+            <span class="n">g</span> <span class="o">=</span> <span class="n">world_ground_at</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">world</span><span class="p">[</span><span class="n">parent</span><span class="p">]</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="n">_apply</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">at</span><span class="p">)</span>
+            <span class="n">b</span> <span class="o">=</span> <span class="n">_apply</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">g</span><span class="o">.</span><span class="n">along</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">g</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">g</span><span class="o">.</span><span class="n">along</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line_through</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+            <span class="n">per_unit</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">scale</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">sign</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="k">if</span> <span class="n">_along</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="k">else</span> <span class="o">-</span><span class="mf">1.0</span>
+
+            <span class="k">def</span><span class="w"> </span><span class="nf">position</span><span class="p">(</span><span class="n">p</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">g</span><span class="o">.</span><span class="n">lateral</span> <span class="o">+</span> <span class="n">sign</span> <span class="o">*</span> <span class="n">_along</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="n">per_unit</span>
+
+            <span class="k">return</span> <span class="n">_SurfaceAt</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">position</span><span class="p">,</span> <span class="n">per_unit</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">at_instant</span><span class="p">,</span> <span class="p">((</span><span class="n">parent</span><span class="p">,)</span> <span class="k">if</span> <span class="n">parent</span> <span class="k">else</span> <span class="p">())</span>
 
     <span class="c1"># -- what the shot declares, and what stands -----------------------------</span>
 
@@ -1906,7 +1978,18 @@ window.runMermaid = runMermaid;</script>
             <span class="n">surface</span><span class="o">=</span><span class="n">at_instant</span><span class="p">,</span>
             <span class="n">surface_paths</span><span class="o">=</span><span class="n">paths</span><span class="p">,</span>
             <span class="n">body</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">(</span><span class="n">eid</span><span class="p">),</span>
+            <span class="n">world_floor</span><span class="o">=</span><span class="n">dj</span><span class="o">.</span><span class="n">b</span> <span class="o">==</span> <span class="n">GROUND_SURFACE</span>
+            <span class="ow">and</span> <span class="n">dj</span><span class="o">.</span><span class="n">end</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_world_floor</span><span class="p">(</span><span class="n">eid</span><span class="p">),</span>
         <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_world_floor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">eid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Whether ``ground`` for ``eid`` is the world's floor under it: the</span>
+<span class="sd">        shot declares no ``solve.ground`` and the world's lowering gave it one."""</span>
+        <span class="n">solve</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">solve</span>
+        <span class="k">if</span> <span class="n">solve</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">solve</span><span class="o">.</span><span class="n">ground</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">world_floor</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">stances</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -1922,18 +2005,27 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">        not a box's corners, its lowest contact within :func:`support_tolerance`</span>
 <span class="sd">        of the floor at the opening instant (one staged on a crate stands on</span>
 <span class="sd">        the crate, not the floor); each measured as it opens and at its rest</span>
-<span class="sd">        instants (``rest_only``), else at every instant."""</span>
+<span class="sd">        instants (``rest_only``), else at every instant. The floor is the</span>
+<span class="sd">        shot's (``solve: {ground: y}``, :meth:`_level_stance`), else the</span>
+<span class="sd">        world's under the entity (``World.ground``, :meth:`_world_floor_stance`);</span>
+<span class="sd">        an entity with neither has none and is not taken to stand."""</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.hold</span><span class="w"> </span><span class="kn">import</span> <span class="n">hold_declarations</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.solve</span><span class="w"> </span><span class="kn">import</span> <span class="n">_apply</span><span class="p">,</span> <span class="n">_is_rig_kind</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.solve</span><span class="w"> </span><span class="kn">import</span> <span class="n">_is_rig_kind</span>
 
         <span class="n">solve</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">solve</span>
-        <span class="k">if</span> <span class="n">solve</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">solve</span><span class="o">.</span><span class="n">ground</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">level</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">float</span><span class="p">(</span><span class="n">solve</span><span class="o">.</span><span class="n">ground</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">solve</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">solve</span><span class="o">.</span><span class="n">ground</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">level</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">world_floor</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">entities</span>
+        <span class="p">):</span>
             <span class="k">return</span> <span class="p">[]</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">items</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">hold_declarations</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shot</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 - the hold checks report broken holds</span>
             <span class="n">items</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
-        <span class="n">floor_at</span> <span class="o">=</span> <span class="n">_stage_surface</span><span class="p">(</span><span class="n">ground_line</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">solve</span><span class="o">.</span><span class="n">ground</span><span class="p">)))</span>
         <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">skip</span> <span class="ow">or</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">items</span> <span class="ow">or</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
@@ -1947,14 +2039,15 @@ window.runMermaid = runMermaid;</script>
             <span class="k">if</span> <span class="n">resolved</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">resolved</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
                 <span class="k">continue</span>
             <span class="n">contacts</span> <span class="o">=</span> <span class="n">resolved</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">world</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">opening</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">node</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">contacts</span><span class="p">])</span>
-            <span class="n">lowest</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
-                <span class="n">_apply</span><span class="p">(</span><span class="n">world</span><span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">node</span><span class="p">],</span> <span class="n">p</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">contacts</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">points</span>
+            <span class="n">tol</span> <span class="o">=</span> <span class="n">support_tolerance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">),</span> <span class="n">tolerance</span><span class="o">=</span><span class="n">tolerance</span><span class="p">,</span> <span class="n">floor</span><span class="o">=</span><span class="n">floor</span><span class="p">)</span>
+            <span class="n">found</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_level_stance</span><span class="p">(</span><span class="n">contacts</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="n">tol</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">level</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_world_floor_stance</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">contacts</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="n">tol</span><span class="p">)</span>
             <span class="p">)</span>
-            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">solve</span><span class="o">.</span><span class="n">ground</span><span class="p">)</span> <span class="o">-</span> <span class="n">lowest</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">support_tolerance</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">),</span> <span class="n">tolerance</span><span class="o">=</span><span class="n">tolerance</span><span class="p">,</span> <span class="n">floor</span><span class="o">=</span><span class="n">floor</span>
-            <span class="p">):</span>
+            <span class="k">if</span> <span class="n">found</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">continue</span>
+            <span class="n">surface</span><span class="p">,</span> <span class="n">paths</span> <span class="o">=</span> <span class="n">found</span>
             <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                 <span class="n">_Support</span><span class="p">(</span>
                     <span class="n">entity</span><span class="o">=</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
@@ -1963,14 +2056,45 @@ window.runMermaid = runMermaid;</script>
                     <span class="n">surface_ref</span><span class="o">=</span><span class="n">GROUND_SURFACE</span><span class="p">,</span>
                     <span class="n">contacts</span><span class="o">=</span><span class="n">contacts</span><span class="p">,</span>
                     <span class="n">source</span><span class="o">=</span><span class="n">chain</span><span class="o">.</span><span class="n">source</span><span class="p">,</span>
-                    <span class="n">surface</span><span class="o">=</span><span class="k">lambda</span> <span class="n">_world</span><span class="p">:</span> <span class="n">floor_at</span><span class="p">,</span>
+                    <span class="n">surface</span><span class="o">=</span><span class="n">surface</span><span class="p">,</span>
+                    <span class="n">surface_paths</span><span class="o">=</span><span class="n">paths</span><span class="p">,</span>
                     <span class="n">instants</span><span class="o">=</span><span class="p">(</span>
                         <span class="nb">frozenset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rest_frames</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">times</span><span class="p">))</span> <span class="k">if</span> <span class="n">rest_only</span> <span class="k">else</span> <span class="kc">None</span>
                     <span class="p">),</span>
                     <span class="n">body</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">),</span>
+                    <span class="n">world_floor</span><span class="o">=</span><span class="n">level</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">out</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_level_stance</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">contacts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">_Contact</span><span class="p">],</span> <span class="n">y</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tol</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The shot's floor line at stage ``y`` as a surface, when the lowest of</span>
+<span class="sd">        ``contacts`` is within ``tol`` of it as the shot opens; else ``None``."""</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.solve</span><span class="w"> </span><span class="kn">import</span> <span class="n">_apply</span>
+
+        <span class="n">world</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">opening</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">node</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">contacts</span><span class="p">])</span>
+        <span class="n">lowest</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">_apply</span><span class="p">(</span><span class="n">world</span><span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">node</span><span class="p">],</span> <span class="n">p</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">contacts</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">points</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="n">lowest</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">tol</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">floor_at</span> <span class="o">=</span> <span class="n">_stage_surface</span><span class="p">(</span><span class="n">ground_line</span><span class="p">(</span><span class="n">y</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">_world</span><span class="p">,</span> <span class="n">_t</span><span class="p">:</span> <span class="n">floor_at</span><span class="p">),</span> <span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_world_floor_stance</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">eid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">contacts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">_Contact</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">tol</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The world's floor under ``eid`` (:meth:`world_floor`), when it has</span>
+<span class="sd">        one and the lowest of ``contacts`` is within ``tol`` of it as the shot</span>
+<span class="sd">        opens; else ``None``."""</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">world_floor</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">found</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">surface</span><span class="p">,</span> <span class="n">paths</span> <span class="o">=</span> <span class="n">found</span>
+        <span class="n">world</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">opening</span><span class="p">([</span><span class="o">*</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">node</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">contacts</span><span class="p">),</span> <span class="o">*</span><span class="n">paths</span><span class="p">])</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">surface</span><span class="p">(</span><span class="n">world</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span><span class="o">.</span><span class="n">line</span>
+        <span class="n">gap</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">lowest_on</span><span class="p">(</span><span class="n">world</span><span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">node</span><span class="p">],</span> <span class="n">c</span><span class="o">.</span><span class="n">points</span><span class="p">,</span> <span class="n">line</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">contacts</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">found</span> <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">gap</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">tol</span> <span class="k">else</span> <span class="kc">None</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">rest_frames</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">eid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">times</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""The grid frames at which ``eid`` is judged by an inferred stance: the</span>

@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=d9244608"></script>
+    <script src="../../_static/documentation_options.js?v=7d5cc211"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.392" />
+  <meta name="docsearch:version" content="0.1.393" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -785,7 +785,13 @@ window.runMermaid = runMermaid;</script>
             <span class="p">)</span>
             <span class="n">scale</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">" scale </span><span class="si">{</span><span class="n">e</span><span class="p">[</span><span class="s1">'scale'</span><span class="p">]</span><span class="si">:</span><span class="s2">.3g</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">e</span><span class="p">[</span><span class="s2">"scale"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">""</span>
             <span class="n">after</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">" after </span><span class="si">{</span><span class="n">e</span><span class="p">[</span><span class="s1">'after'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">e</span><span class="p">[</span><span class="s2">"after"</span><span class="p">]</span> <span class="k">else</span> <span class="s2">""</span>
-            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">e</span><span class="p">[</span><span class="s1">'kind'</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;12</span><span class="si">}{</span><span class="n">e</span><span class="p">[</span><span class="s1">'id'</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;24</span><span class="si">}{</span><span class="n">at</span><span class="si">}{</span><span class="n">scale</span><span class="si">}{</span><span class="n">after</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">floor</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">" floor y </span><span class="si">{</span><span class="n">e</span><span class="p">[</span><span class="s1">'floor'</span><span class="p">]</span><span class="si">:</span><span class="s2">.4g</span><span class="si">}</span><span class="s2">"</span>
+                <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">" (</span><span class="si">{</span><span class="n">e</span><span class="p">[</span><span class="s1">'floor_keys'</span><span class="p">]</span><span class="si">}</span><span class="s2"> keys)"</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"floor_keys"</span><span class="p">)</span> <span class="k">else</span> <span class="s2">""</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"floor"</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="k">else</span> <span class="s2">""</span>
+            <span class="p">)</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">e</span><span class="p">[</span><span class="s1">'kind'</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;12</span><span class="si">}{</span><span class="n">e</span><span class="p">[</span><span class="s1">'id'</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;24</span><span class="si">}{</span><span class="n">at</span><span class="si">}{</span><span class="n">scale</span><span class="si">}{</span><span class="n">after</span><span class="si">}{</span><span class="n">floor</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  actions: </span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">'actions'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">row</span><span class="p">[</span><span class="s2">"notes"</span><span class="p">]:</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  [</span><span class="si">{</span><span class="n">n</span><span class="p">[</span><span class="s1">'severity'</span><span class="p">]</span><span class="si">}</span><span class="s2">] </span><span class="si">{</span><span class="n">n</span><span class="p">[</span><span class="s1">'entity'</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">n</span><span class="p">[</span><span class="s1">'message'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>

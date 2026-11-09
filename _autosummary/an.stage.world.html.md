@@ -23,7 +23,7 @@ extents, film starts, then [`an.ir.world.lower_world()`](an.ir.world.html.md#an.
 | [`lowered_or_same`](#an.stage.world.lowered_or_same)(scene, mall, \*[, fps])            | The lowered scene, or `scene` itself when it has no world or its world cannot be lowered: for the walks that must see what a framed shot draws (credits, publishability) but are not where a world error is reported (validate is).                                                                                                                                                         |
 | [`member_extents`](#an.stage.world.member_extents)(world, mall, \*, width, height)     | `{id: native box}` for every positioned or attached member and every stream of `world` (environments draw plates, not a box, and are left out).                                                                                                                                                                                                                                             |
 | [`native_box`](#an.stage.world.native_box)(ref, mall, \*, width, height)           | The box `ref`'s art occupies at `stage.scale` 1, `(x0, y0, x1, y1)` in scene pixels relative to its placement point; `None` when it draws nothing that can be measured (an unknown ref drawn as a placeholder is still measured: that is what the shot would show).                                                                                                                         |
-| [`world_report`](#an.stage.world.world_report)(lowered)                              | What `an world show` prints: per framed shot, its entities as the compiler sees them (id, kind, at, scale, after) and the lowering's notes.                                                                                                                                                                                                                                                 |
+| [`world_report`](#an.stage.world.world_report)(lowered)                              | What `an world show` prints: per framed shot, its entities as the compiler sees them (id, kind, at, scale, after, and the floor the world's `ground` puts under it) and the lowering's notes.                                                                                                                                                                                               |
 
 ### an.stage.world.lower_scene(scene, mall, , fps=None, film_starts=None, project_dir=None, continues=True)
 
@@ -114,7 +114,8 @@ ValueError: no shot 'a' in the scene (its shots: [])
 ### an.stage.world.world_report(lowered)
 
 What `an world show` prints: per framed shot, its entities as the
-compiler sees them (id, kind, at, scale, after) and the lowering’s notes.
+compiler sees them (id, kind, at, scale, after, and the floor the world’s
+`ground` puts under it) and the lowering’s notes.
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]

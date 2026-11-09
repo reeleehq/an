@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=d9244608"></script>
+    <script src="../../_static/documentation_options.js?v=7d5cc211"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.392" />
+  <meta name="docsearch:version" content="0.1.393" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -971,9 +971,24 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: (an#504): its ``rotation`` channel is that lean, which the hold layer takes</span>
 <span class="c1">#: out of the angle an item it carries comes to rest at (an#659).</span>
 <span class="n">SWAY_OVERRIDE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"leans"</span>
+<span class="c1">#: The core's record, on each positioned member of a world that declares a</span>
+<span class="c1">#: ``ground`` (an#519), of the floor under it as the camera projects it:</span>
+<span class="c1">#: ``{"at": [x, y], "along": [dx, dy], "scale": s}`` (the floor point under</span>
+<span class="c1">#: its placement point, the floor line's unit direction, and the stage px per</span>
+<span class="c1">#: world unit there), or ``{"keys": [[t, x, y, dx, dy, s, lateral], ...]}``</span>
+<span class="c1">#: for a member the camera sees move (``lateral``: where that floor point is</span>
+<span class="c1">#: along the floor, in world units in the frame the member stands in, from</span>
+<span class="c1">#: where it stood as the shot opens: what skate is measured from). Read by</span>
+<span class="c1">#: :func:`an.ir.world.world_ground_at`; the ``support`` and ``skate`` checks</span>
+<span class="c1">#: and the hold layer's floor read it, only on a shot lowered from a world</span>
+<span class="c1">#: (:func:`an.ir.world.world_ground_mark`). Never an authoring field: the</span>
+<span class="c1">#: lowering replaces or drops one an author wrote on a framed shot (a</span>
+<span class="c1">#: ``ground`` warning), and the compiler refuses it on any other.</span>
+<span class="n">GROUND_OVERRIDE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"ground"</span>
 <span class="c1">#: At or under this alpha an entity is not seen (a stream slot between its</span>
 <span class="c1">#: passes, a fade's end): it cannot jump or swap sides at a cut (an#516), nor</span>
-<span class="c1">#: overlap or be drawn through anything at an instant (an#632).</span>
+<span class="c1">#: overlap or be drawn through anything at an instant (an#632), nor be held</span>
+<span class="c1">#: to its supports or skate at one (an#519).</span>
 <span class="n">UNSEEN_ALPHA</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-3</span>
 
 <span class="c1">#: Keys the CORE records in an entity's ``overrides``: what attaches it, the</span>
@@ -992,6 +1007,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">PAINT_KEYS_OVERRIDE</span><span class="p">,</span>
         <span class="n">BESIDE_HOST_OVERRIDE</span><span class="p">,</span>
         <span class="n">SWAY_OVERRIDE</span><span class="p">,</span>
+        <span class="n">GROUND_OVERRIDE</span><span class="p">,</span>
     <span class="p">}</span>
 <span class="p">)</span>
 

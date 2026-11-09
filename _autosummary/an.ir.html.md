@@ -57,7 +57,7 @@ authoring-time DSL to canonical-form actions.
 | [`Dialogue`](#an.ir.Dialogue)(\*, speaker, text[, voice_ref, ...])     | One line of spoken dialogue.                                                                                                       |
 | [`Camera`](#an.ir.Camera)(\*[, shake, follow, move, keys])           | Camera state for a shot: a named move, or explicit keys.                                                                           |
 | [`Resolution`](#an.ir.Resolution)(\*[, width, height])                   | Pixel dimensions of the rendered output.                                                                                           |
-| [`World`](#an.ir.World)(\*[, members, viewpoints, travel, frames])  | A scene's world: members at positions, the named viewpoints that are its coverage, and its travel (ADR 0009).                      |
+| [`World`](#an.ir.World)(\*[, members, viewpoints, travel, ...])     | A scene's world: members at positions, the named viewpoints that are its coverage, and its travel (ADR 0009).                      |
 | [`WorldMember`](#an.ir.WorldMember)(\*, kind, id, store, ref[, ...])      | An entity of the scene's world: the same reference a shot's entity carries, at a world position with a size (ADR 0009 decision 1). |
 | [`Attachment`](#an.ir.Attachment)(\*, to[, at, scale])                   | A member that goes where another member goes (ADR 0009 decision 1).                                                                |
 | [`Viewpoint`](#an.ir.Viewpoint)(\*[, at, look, look_at, vanish, ...])   | A pinhole camera onto the world, or a composition that resolves to one (ADR 0009 decision 2).                                      |
@@ -713,7 +713,7 @@ The frame this camera is mounted in (document key `in`); its `at` and
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.World(\*, members=<factory>, viewpoints=<factory>, travel=None, frames=<factory>, \*\*extra_data)
+### *class* an.ir.World(\*, members=<factory>, viewpoints=<factory>, travel=None, frames=<factory>, ground=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -759,6 +759,24 @@ travel’s `vehicle` (members ride it) when there is one, else the world.
 
 The frames of reference, `{name: Frame}`; `world` is the implicit
 root and a travel with a `speed` adds `vehicle`.
+
+#### ground *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+the world `y` (down positive, in the `world` frame) of a
+horizontal plane the members stand on (an#519). Lowering projects it
+under each positioned member, at that member’s depth, as the floor line
+the `support` and `skate` checks measure `b: ground` against
+(`overrides.ground`, [`an.base.GROUND_OVERRIDE`](an.base.html.md#an.base.GROUND_OVERRIDE)): each frame’s
+floor as lowered, under where the member stands then, with its place
+along the floor in the frame it stands in, so a passenger standing
+still over the world’s floor (its car moving) does not skate. The line
+is level on the stage (members do not roll with the camera); a member
+whose hand `stage.at` wins gets none. Unset: no floor in the world,
+and `ground` is the shot’s `solve.ground` or where the member
+stands as the shot opens.
+
+* **Type:**
+  The floor
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 

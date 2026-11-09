@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=d9244608"></script>
+    <script src="../_static/documentation_options.js?v=7d5cc211"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.392" />
+  <meta name="docsearch:version" content="0.1.393" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -922,7 +922,7 @@ entity’s height (4 px on a 200 px figure).</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.stage.support.SupportState">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stage.support.</span></span><span class="sig-name descname"><span class="pre">SupportState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">where</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">surface</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">surface_ref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contacts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joined</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">named</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/support.html#SupportState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.support.SupportState" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stage.support.</span></span><span class="sig-name descname"><span class="pre">SupportState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">where</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">surface</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">surface_ref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contacts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joined</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">named</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">world_floor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/support.html#SupportState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.support.SupportState" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>One support (declared, or a stance taken as the shot opens) at one instant.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">SupportState</span><span class="p">(</span><span class="s2">"cup"</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">"entities"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="p">((</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)),</span> <span class="s2">"ground"</span><span class="p">,</span>
@@ -985,6 +985,14 @@ bone, landmark or fraction is <code class="docutils literal notranslate"><span c
 <dt class="sig sig-object py" id="an.stage.support.SupportState.where">
 <span class="sig-name descname"><span class="pre">where</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><a class="headerlink" href="#an.stage.support.SupportState.where" title="Link to this definition">#</a></dt>
 <dd><p>Where it is declared (<code class="docutils literal notranslate"><span class="pre">joints/0</span></code>, <code class="docutils literal notranslate"><span class="pre">entities/1/joints/0</span></code>, …).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.stage.support.SupportState.world_floor">
+<span class="sig-name descname"><span class="pre">world_floor</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#an.stage.support.SupportState.world_floor" title="Link to this definition">#</a></dt>
+<dd><p>Whether the surface is the world’s floor (<code class="docutils literal notranslate"><span class="pre">World.ground</span></code>) as the
+camera projects it under the entity, measured along from a point held
+in the frame the entity stands in (an#519 PR 4), not a stage floor.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1097,9 +1105,12 @@ that tolerance of the surface; its <code class="docutils literal notranslate"><s
 parameter along the surface (<code class="docutils literal notranslate"><span class="pre">along</span></code>, in the surface’s own frame) changed
 since the grid’s previous instant, when it was held at both and its motion
 along the surface’s normal was at most <code class="docutils literal notranslate"><span class="pre">lift</span></code> of that (more is a foot
-leaving or meeting the surface). Returns the states and <code class="docutils literal notranslate"><span class="pre">(where,</span>
-<span class="pre">message)</span></code> for each reference that does not resolve (no state is made for
-it).</p>
+leaving or meeting the surface). An entity is not measured at an instant
+it is not seen (its alpha at most <a class="reference internal" href="an.base.html#an.base.UNSEEN_ALPHA" title="an.base.UNSEEN_ALPHA"><code class="xref py py-data docutils literal notranslate"><span class="pre">an.base.UNSEEN_ALPHA</span></code></a>: a member
+the world hides outside its on-screen window, a fade’s end), the rule the
+<code class="docutils literal notranslate"><span class="pre">solidity</span></code> check applies, so a slide is never measured across one.
+Returns the states and <code class="docutils literal notranslate"><span class="pre">(where,</span> <span class="pre">message)</span></code> for each reference that does
+not resolve (no state is made for it).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="#an.stage.support.SupportState" title="an.stage.support.SupportState"><code class="xref py py-class docutils literal notranslate"><span class="pre">SupportState</span></code></a>], <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]]</span></p>
@@ -1187,6 +1198,7 @@ it).</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.support.SupportState.named"><code class="docutils literal notranslate"><span class="pre">SupportState.named</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.support.SupportState.source"><code class="docutils literal notranslate"><span class="pre">SupportState.source</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.support.SupportState.where"><code class="docutils literal notranslate"><span class="pre">SupportState.where</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.support.SupportState.world_floor"><code class="docutils literal notranslate"><span class="pre">SupportState.world_floor</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.support.contacts_of"><code class="docutils literal notranslate"><span class="pre">contacts_of()</span></code></a></li>

@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=d9244608"></script>
+    <script src="../../../_static/documentation_options.js?v=7d5cc211"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.392" />
+  <meta name="docsearch:version" content="0.1.393" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -762,6 +762,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">BESIDE_HOST_OVERRIDE</span><span class="p">,</span>
     <span class="n">DEFAULT_FPS</span><span class="p">,</span>
     <span class="n">DEFAULT_RESOLUTION</span><span class="p">,</span>
+    <span class="n">GROUND_OVERRIDE</span><span class="p">,</span>
     <span class="n">PAINT_KEYS_OVERRIDE</span><span class="p">,</span>
     <span class="n">RIDER_BEHIND</span><span class="p">,</span>
     <span class="n">RIDER_IN_FRONT</span><span class="p">,</span>
@@ -1713,6 +1714,7 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
     <span class="k">if</span> <span class="n">default_easing</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">_check_default_easing</span><span class="p">(</span><span class="n">default_easing</span><span class="p">)</span>
+    <span class="n">_refuse_unlowered_ground</span><span class="p">(</span><span class="n">shot</span><span class="p">)</span>
     <span class="n">shot</span><span class="p">,</span> <span class="n">retired</span> <span class="o">=</span> <span class="n">retire_front_spelling</span><span class="p">(</span><span class="n">shot</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">retired</span><span class="p">:</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
@@ -3079,6 +3081,33 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="n">at</span> <span class="o">==</span> <span class="n">eid</span><span class="p">:</span>
             <span class="k">del</span> <span class="n">out</span><span class="p">[</span><span class="n">eid</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_refuse_unlowered_ground</span><span class="p">(</span><span class="n">shot</span><span class="p">:</span> <span class="n">Shot</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Refuse a :data:`an.base.GROUND_OVERRIDE` mark on a shot no world lowered</span>
+<span class="sd">    (one with no ``viewpoint``): it is the world's lowering's own record of</span>
+<span class="sd">    the floor under a member (an#519), never an authoring field, and nothing</span>
+<span class="sd">    reads it there (:func:`an.ir.world.world_ground_mark`).</span>
+
+<span class="sd">    &gt;&gt;&gt; from an.ir.schema import AssetRef, Shot</span>
+<span class="sd">    &gt;&gt;&gt; e = AssetRef(kind="prop", id="p", store="props", ref="r", overrides={"ground": 100})</span>
+<span class="sd">    &gt;&gt;&gt; _refuse_unlowered_ground(Shot(id="s", duration=1.0, viewpoint="v", entities=[e]))</span>
+<span class="sd">    &gt;&gt;&gt; _refuse_unlowered_ground(Shot(id="s", duration=1.0, entities=[e]))</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    an.stage.compile.CutoutCompileError: shot 's': ['p'] carry `overrides.ground`, ...</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">shot</span><span class="o">.</span><span class="n">viewpoint</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">marked</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span> <span class="k">if</span> <span class="n">GROUND_OVERRIDE</span> <span class="ow">in</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">overrides</span> <span class="ow">or</span> <span class="p">{})]</span>
+    <span class="k">if</span> <span class="n">marked</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">marked</span><span class="si">}</span><span class="s2"> carry `overrides.</span><span class="si">{</span><span class="n">GROUND_OVERRIDE</span><span class="si">}</span><span class="s2">`, "</span>
+            <span class="s2">"the world's lowering's record of the floor under a member, not an "</span>
+            <span class="s2">"authoring field. Declare the shot's floor as `solve: {ground: y}`, "</span>
+            <span class="s2">"or the world's as `world: {ground: y}` and frame the shot with a "</span>
+            <span class="s2">"`viewpoint`."</span>
+        <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_beside_host_mark</span><span class="p">(</span><span class="n">shot_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">mark</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>

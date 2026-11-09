@@ -46,6 +46,7 @@ move, and a close-up is the same world seen from nearer.
 | [`Extents`](#an.ir.world.Extents)                     | `{member or stream id: Box | None}`, measured by the stage ([`an.stage.world.member_extents()`](an.stage.world.html.md#an.stage.world.member_extents)); the IR layer only reads it. |
 | [`HAND_PLACEMENT_TOLERANCE_PX`](#an.ir.world.HAND_PLACEMENT_TOLERANCE_PX) | A hand `stage.at` this far from the world's placement is "the same" (the cut-continuity tolerance, an#394); farther is a lint warning.                                                                   |
 | [`PERSPECTIVE_TOLERANCE`](#an.ir.world.PERSPECTIVE_TOLERANCE)       | A hand placement whose scale differs from the ground plane's by more than this fraction is out of perspective (catalogue A6).                                                                            |
+| [`MEMBER_FLOOR_ALONG`](#an.ir.world.MEMBER_FLOOR_ALONG)          | The stage direction of a member's floor line.                                                                                                                                                            |
 
 ### Functions
 
@@ -65,15 +66,18 @@ move, and a close-up is the same world seen from nearer.
 | [`stream_instances`](#an.ir.world.stream_instances)(stream, travel, \*, s_min, s_max) | The instances of `stream` whose position along the travel lies in `[s_min, s_max]`: `[(k, world position)]`, `k` the instance index.                                                                                                                                                                                                                                            |
 | [`stream_slots`](#an.ir.world.stream_slots)(stream, travel)                       | How many entities a stream needs by its depth range: one per instance that can be between `near` and `far` at once, plus one.                                                                                                                                                                                                                                                   |
 | [`viewpoint_of`](#an.ir.world.viewpoint_of)(world, viewpoint)                     | The shot's viewpoint as a model: a name is looked up in the world.                                                                                                                                                                                                                                                                                                              |
+| [`world_ground_at`](#an.ir.world.world_ground_at)(spec, t)                           | The floor `spec` (an entity's `overrides.ground`, as the world's lowering writes it) gives at shot time `t`: a member's keys interpolated linearly, held past either end.                                                                                                                                                                                                       |
+| [`world_ground_mark`](#an.ir.world.world_ground_mark)(shot, entity)                    | `entity`'s [`an.base.GROUND_OVERRIDE`](an.base.html.md#an.base.GROUND_OVERRIDE) mark on `shot`, or `None`.                                                                                                                                                                                                                                          |
 
 ### Classes
 
-| [`Lowered`](#an.ir.world.Lowered)(scene[, notes, origins, carried])        | The scene as the compiler will see it, the notes to report, and for each framed shot where its lowered entities came from (`origins`: per lowered entity index, the author's entity index, or `None` for one the world added), so a finding on a lowered shot can name the author's line.   |
-|---------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`Placed`](#an.ir.world.Placed)(id, at, scale, depth, box, in_frame, via) | Where one member lands in a framed shot.                                                                                                                                                                                                                                                    |
-| [`PlaneAtInfinity`](#an.ir.world.PlaneAtInfinity)(member, plane, reason, ...)      | A plane at infinity, and why (an#735): what `an validate` pins to parallax factor 0 and a genre's far-plate critic judges.                                                                                                                                                                  |
-| [`Projection`](#an.ir.world.Projection)(at, forward, right, down, focal)      | A resolved viewpoint: where the camera is, which way it looks, its lens.                                                                                                                                                                                                                    |
-| [`WorldNote`](#an.ir.world.WorldNote)(shot, index, severity, kind, ...)      | One thing the lowering did or could not do for one shot, for `an validate` (its severity) and `an world show`.                                                                                                                                                                              |
+| [`GroundAt`](#an.ir.world.GroundAt)(at, along[, scale, lateral])            | A member's floor at one instant ([`an.base.GROUND_OVERRIDE`](an.base.html.md#an.base.GROUND_OVERRIDE)), in the coordinates of its `stage.at`: the floor point under its placement point (`at`), the floor line's unit direction (`along`), the stage px one world unit along the floor spans there (`scale`: focal over depth), and where that floor point lies along the floor in the frame the member stands in, in world units from where it stood as the shot opens (`lateral`).   |
+|---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`Lowered`](#an.ir.world.Lowered)(scene[, notes, origins, carried])        | The scene as the compiler will see it, the notes to report, and for each framed shot where its lowered entities came from (`origins`: per lowered entity index, the author's entity index, or `None` for one the world added), so a finding on a lowered shot can name the author's line.                                                                                                                                                                                                                          |
+| [`Placed`](#an.ir.world.Placed)(id, at, scale, depth, box, in_frame, via) | Where one member lands in a framed shot.                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| [`PlaneAtInfinity`](#an.ir.world.PlaneAtInfinity)(member, plane, reason, ...)      | A plane at infinity, and why (an#735): what `an validate` pins to parallax factor 0 and a genre's far-plate critic judges.                                                                                                                                                                                                                                                                                                                                                                                         |
+| [`Projection`](#an.ir.world.Projection)(at, forward, right, down, focal)      | A resolved viewpoint: where the camera is, which way it looks, its lens.                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| [`WorldNote`](#an.ir.world.WorldNote)(shot, index, severity, kind, ...)      | One thing the lowering did or could not do for one shot, for `an validate` (its severity) and `an world show`.                                                                                                                                                                                                                                                                                                                                                                                                     |
 
 ### Exceptions
 
@@ -99,6 +103,34 @@ alias of [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`flo
 
 alias of [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), `Box | None`]
 
+### *class* an.ir.world.GroundAt(at, along, scale=1.0, lateral=0.0)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A member’s floor at one instant ([`an.base.GROUND_OVERRIDE`](an.base.html.md#an.base.GROUND_OVERRIDE)), in
+the coordinates of its `stage.at`: the floor point under its placement
+point (`at`), the floor line’s unit direction (`along`), the stage px
+one world unit along the floor spans there (`scale`: focal over depth),
+and where that floor point lies along the floor in the frame the member
+stands in, in world units from where it stood as the shot opens
+(`lateral`). A stage point on the floor is at `lateral + (p - at) ·
+along / scale` world units along it, in the member’s own frame: a foot
+that keeps that number keeps its place on the floor, however the member,
+its frame or the camera carry it across the stage.
+
+#### position(p)
+
+Where stage point `p` lies along the floor, in world units in the
+member’s frame (see the class).
+
+```pycon
+>>> GroundAt((10.0, 50.0), (1.0, 0.0), 2.0, 3.0).position((30.0, 50.0))
+13.0
+```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
 ### an.ir.world.HAND_PLACEMENT_TOLERANCE_PX *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 2.0*
 
 A hand `stage.at` this far from the world’s placement is “the same”
@@ -118,6 +150,14 @@ world added), so a finding on a lowered shot can name the author’s line.
 Per continued shot (an#542), how many actions its `continue:` put
 before the author’s, so a finding’s `actions/<k>` can name the
 author’s line.
+
+### an.ir.world.MEMBER_FLOOR_ALONG *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (1.0, 0.0)*
+
+The stage direction of a member’s floor line. Members are billboards that
+never roll with the camera: an upright figure stands on a level line, so
+under a rolled camera its floor is level too (the horizon’s tilt would put
+its downhill foot into the floor). When members roll, this is the
+horizon’s stage direction.
 
 ### an.ir.world.PERSPECTIVE_TOLERANCE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.15*
 
@@ -300,10 +340,12 @@ same at any resolution.
 The positioned members of shot `index`’s world that stand in a frame
 moving relative to the viewpoint’s over the shot (the rule
 [`lower_world()`](#an.ir.world.lower_world) samples their motion by), or that a `reframe`
-carries between frames. Their stage floor does not stay under them, so a
-check measuring against the stage’s floor (`skate` on `ground`,
-an#519) cannot judge them until `World.ground` (an#519 PR 4). Empty for
-a shot no world frames; raises [`WorldError`](#an.ir.world.WorldError) as lowering would.
+carries between frames. A stage floor does not stay under them, so a
+check measuring against it (`skate` on `solve.ground` or the member’s
+own floor, an#519) cannot judge them; a world that declares `ground`
+gives each its own floor and reference point, keyed as the camera sees it
+(`overrides.ground`, [`world_ground_at()`](#an.ir.world.world_ground_at)). Empty for a shot no world
+frames; raises [`WorldError`](#an.ir.world.WorldError) as lowering would.
 
 ```pycon
 >>> frame_moving_members(SceneIR(), 0)
@@ -559,3 +601,45 @@ an.ir.world.WorldError: shot names viewpoint 'a' but the scene has no `world`
 
 * **Return type:**
   [`Viewpoint`](an.ir.schema.html.md#an.ir.schema.Viewpoint) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.ir.world.world_ground_at(spec, t)
+
+The floor `spec` (an entity’s `overrides.ground`, as the world’s
+lowering writes it) gives at shot time `t`: a member’s keys
+interpolated linearly, held past either end. `None` for a spec that is
+not one of the lowering’s two shapes.
+
+```pycon
+>>> world_ground_at({"at": [3.0, 120.0], "along": [1.0, 0.0], "scale": 60.0}, 0.5)
+GroundAt(at=(3.0, 120.0), along=(1.0, 0.0), scale=60.0, lateral=0.0)
+>>> world_ground_at({"keys": [[0.0, 0.0, 100.0, 1.0, 0.0, 60.0, 0.0],
+...                           [1.0, 0.0, 140.0, 1.0, 0.0, 80.0, 0.5]]}, 0.25)
+GroundAt(at=(0.0, 110.0), along=(1.0, 0.0), scale=65.0, lateral=0.125)
+>>> world_ground_at(240, 1.0), world_ground_at("nonsense", 0.0)
+(None, None)
+```
+
+* **Return type:**
+  [`GroundAt`](#an.ir.world.GroundAt) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.ir.world.world_ground_mark(shot, entity)
+
+`entity`’s [`an.base.GROUND_OVERRIDE`](an.base.html.md#an.base.GROUND_OVERRIDE) mark on `shot`, or
+`None`. It is read only on a shot lowered from a world (one with a
+`viewpoint`): the lowering owns it there ([`lower_world()`](#an.ir.world.lower_world) writes it
+under a world that declares `ground` and drops any other), and the
+compiler refuses it on any other shot, so a hand-written one is never
+taken for the world’s floor.
+
+```pycon
+>>> from an.ir.schema import AssetRef, Shot
+>>> e = AssetRef(kind="prop", id="p", store="props", ref="r",
+...              overrides={"ground": {"at": [0, 60], "along": [1, 0]}})
+>>> world_ground_mark(Shot(id="s", duration=1.0, viewpoint="v"), e)
+{'at': [0, 60], 'along': [1, 0]}
+>>> world_ground_mark(Shot(id="s", duration=1.0), e) is None
+True
+```
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any) | [`None`](https://docs.python.org/3/builtins/constants.html#None)

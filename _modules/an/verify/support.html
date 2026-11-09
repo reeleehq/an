@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=d9244608"></script>
+    <script src="../../../_static/documentation_options.js?v=7d5cc211"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.392" />
+  <meta name="docsearch:version" content="0.1.393" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -725,7 +725,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">  joined, is an **error** span; a reference it cannot resolve is an error too</span>
 <span class="sd">  (the solve never sees a support, so ``unknown_body`` cannot say it);</span>
 <span class="sd">- an entity nothing declares, taken to stand on the shot's floor</span>
-<span class="sd">  (``solve: {ground: y}``) as it opens, is held to it at its rest instants</span>
+<span class="sd">  (``solve: {ground: y}``, else the world's under it, ``World.ground``) as it</span>
+<span class="sd">  opens, is held to it at its rest instants</span>
 <span class="sd">  (between two keys where nothing of it moves), as a **warning**;</span>
 <span class="sd">- ``b: ground`` on a shot with no floor is measured against where the entity</span>
 <span class="sd">  stands as the shot opens, said once as ``info``.</span>
@@ -754,9 +755,14 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">(a cartoon style that glides is right by declaration). A body's own stance</span>
 <span class="sd">point (``origin``, the ink of its roots, a prop's ``base``, a bone on a root</span>
 <span class="sd">part) never skates: a pushed crate or a gliding figure slides on it by right.</span>
-<span class="sd">In a shot a world frames, a member whose frame moves relative to the</span>
-<span class="sd">viewpoint's is not judged on ``ground`` (the stage floor does not stay under</span>
-<span class="sd">it; ``World.ground``, an#519 PR 4, measures it): said once as ``info``.</span>
+<span class="sd">In a shot a world frames, ``ground`` is the world's floor under each member</span>
+<span class="sd">when the world declares one (``World.ground``, an#519 PR 4) and the shot no</span>
+<span class="sd">``solve.ground``: the floor line at the member's depth as the camera projects</span>
+<span class="sd">it, and the slide measured from the member's opening ground point held in the</span>
+<span class="sd">frame it stands in, so a member carried by a moving frame does not skate. A</span>
+<span class="sd">member whose frame moves relative to the viewpoint's and that has no world</span>
+<span class="sd">floor is not judged on ``ground`` (a stage floor does not stay under it):</span>
+<span class="sd">said once as ``info``.</span>
 
 <span class="sd">&gt;&gt;&gt; SUPPORT.name, SUPPORT.order, SUPPORT.term is None</span>
 <span class="sd">('support', 252.0, True)</span>
@@ -832,6 +838,17 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_has_floor</span><span class="p">(</span><span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether the shot has a floor: its own (``solve.ground``), or the world's</span>
+<span class="sd">    under one of its entities (``overrides.ground`` on a shot lowered from a</span>
+<span class="sd">    world, an#519)."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.world</span><span class="w"> </span><span class="kn">import</span> <span class="n">world_ground_mark</span>
+
+    <span class="k">if</span> <span class="n">shot</span><span class="o">.</span><span class="n">solve</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">shot</span><span class="o">.</span><span class="n">solve</span><span class="o">.</span><span class="n">ground</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">world_ground_mark</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_has_level_floor</span><span class="p">(</span><span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">shot</span><span class="o">.</span><span class="n">solve</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">shot</span><span class="o">.</span><span class="n">solve</span><span class="o">.</span><span class="n">ground</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 
 
@@ -847,7 +864,10 @@ window.runMermaid = runMermaid;</script>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_surface_text</span><span class="p">(</span><span class="n">ref</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">ref</span> <span class="o">==</span> <span class="s2">"ground"</span><span class="p">:</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">"`ground` (y </span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">surface</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">)"</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">surface</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">world_floor</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">"`ground` (the world's floor under it, y </span><span class="si">{</span><span class="n">y</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">)"</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"`ground` (y </span><span class="si">{</span><span class="n">y</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">)"</span>
     <span class="k">return</span> <span class="sa">f</span><span class="s2">"`</span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2">`"</span>
 
 
@@ -952,15 +972,26 @@ window.runMermaid = runMermaid;</script>
     <span class="p">)</span>
     <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"penetration"</span><span class="p">:</span>
         <span class="n">contact</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">deepest</span><span class="o">.</span><span class="n">name</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">deepest</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">"contact"</span>
+        <span class="n">fix</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"Raise `</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">entity</span><span class="si">}</span><span class="s2">` (its world `at` y onto `world.ground`, or the tween "</span>
+            <span class="sa">f</span><span class="s2">"on `</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">entity</span><span class="si">}</span><span class="s2">:at_y`), or lower the world's floor (`world: </span><span class="se">{{</span><span class="s2">ground: …</span><span class="se">}}</span><span class="s2">`)"</span>
+            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">world_floor</span>
+            <span class="k">else</span> <span class="sa">f</span><span class="s2">"Raise `</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">entity</span><span class="si">}</span><span class="s2">` (its `stage.at` y or the tween on `</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">entity</span><span class="si">}</span><span class="s2">:y`), "</span>
+            <span class="s2">"or lower the floor (`solve: {ground: …}`)"</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="p">(</span>
             <span class="sa">f</span><span class="s2">"`</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">entity</span><span class="si">}</span><span class="s2">`'s `</span><span class="si">{</span><span class="n">contact</span><span class="si">}</span><span class="s2">` is </span><span class="si">{</span><span class="n">gap</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> px into </span><span class="si">{</span><span class="n">surface</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">when</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">within</span><span class="si">}</span><span class="s2">. "</span>
-            <span class="sa">f</span><span class="s2">"Raise `</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">entity</span><span class="si">}</span><span class="s2">` (its `stage.at` y or the tween on `</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">entity</span><span class="si">}</span><span class="s2">:y`), or "</span>
-            <span class="sa">f</span><span class="s2">"lower the floor (`solve: </span><span class="se">{{</span><span class="s2">ground: …</span><span class="se">}}</span><span class="s2">`).</span><span class="si">{</span><span class="n">box</span><span class="si">}</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">fix</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">box</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
+    <span class="n">put</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"its world `at` y onto `world.ground`, or the tween on `</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">entity</span><span class="si">}</span><span class="s2">:at_y`"</span>
+        <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">world_floor</span>
+        <span class="k">else</span> <span class="sa">f</span><span class="s2">"`overrides: </span><span class="se">{{</span><span class="s2">held_by: </span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">surface_ref</span><span class="si">}</span><span class="se">}}</span><span class="s2">` lays it there"</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="p">(</span>
         <span class="sa">f</span><span class="s2">"`</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">entity</span><span class="si">}</span><span class="s2">` floats </span><span class="si">{</span><span class="n">gap</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> px above </span><span class="si">{</span><span class="n">surface</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">when</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">within</span><span class="si">}</span><span class="s2">: nothing it "</span>
-        <span class="sa">f</span><span class="s2">"stands on reaches it. Put it down (`overrides: </span><span class="se">{{</span><span class="s2">held_by: </span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">surface_ref</span><span class="si">}</span><span class="se">}}</span><span class="s2">` "</span>
-        <span class="sa">f</span><span class="s2">"lays it there), or `unjoin` the support `</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">joint</span><span class="si">}</span><span class="s2">` while it is off it.</span><span class="si">{</span><span class="n">box</span><span class="si">}</span><span class="s2">"</span>
+        <span class="sa">f</span><span class="s2">"stands on reaches it. Put it down (</span><span class="si">{</span><span class="n">put</span><span class="si">}</span><span class="s2">), or `unjoin` the support "</span>
+        <span class="sa">f</span><span class="s2">"`</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">joint</span><span class="si">}</span><span class="s2">` while it is off it.</span><span class="si">{</span><span class="n">box</span><span class="si">}</span><span class="s2">"</span>
     <span class="p">)</span>
 
 
@@ -992,9 +1023,13 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span>
     <span class="k">for</span> <span class="n">where</span><span class="p">,</span> <span class="n">message</span> <span class="ow">in</span> <span class="n">problems</span><span class="p">:</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"error"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">_has_floor</span><span class="p">(</span><span class="n">shot</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">_has_level_floor</span><span class="p">(</span><span class="n">shot</span><span class="p">):</span>
         <span class="n">on_ground</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
-            <span class="p">{</span><span class="n">s</span><span class="o">.</span><span class="n">entity</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">states</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">s</span><span class="o">.</span><span class="n">inferred</span> <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">surface_ref</span> <span class="o">==</span> <span class="s2">"ground"</span><span class="p">}</span>
+            <span class="p">{</span>
+                <span class="n">s</span><span class="o">.</span><span class="n">entity</span>
+                <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">states</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">s</span><span class="o">.</span><span class="n">inferred</span> <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">surface_ref</span> <span class="o">==</span> <span class="s2">"ground"</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">s</span><span class="o">.</span><span class="n">world_floor</span>
+            <span class="p">}</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">on_ground</span><span class="p">:</span>
             <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
@@ -1241,6 +1276,7 @@ window.runMermaid = runMermaid;</script>
         <span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">where</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">entity</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">states</span>
         <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">surface_ref</span> <span class="o">==</span> <span class="n">GROUND_SURFACE</span>
+        <span class="ow">and</span> <span class="ow">not</span> <span class="n">s</span><span class="o">.</span><span class="n">world_floor</span>
         <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">entity</span> <span class="ow">in</span> <span class="n">moving</span>
         <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">limb</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">contacts</span><span class="p">)</span>
     <span class="p">}</span>
@@ -1249,9 +1285,9 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"info"</span><span class="p">,</span>
             <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
             <span class="sa">f</span><span class="s2">"`</span><span class="si">{</span><span class="n">eid</span><span class="si">}</span><span class="s2">`'s feet are not checked for skate on `ground`: the world carries "</span>
-            <span class="s2">"it in a frame that moves relative to the viewpoint, so the stage's floor "</span>
-            <span class="s2">"does not stay under it (`World.ground`, an#519 PR 4, will measure it "</span>
-            <span class="s2">"in its own frame)."</span><span class="p">,</span>
+            <span class="s2">"it in a frame that moves relative to the viewpoint, so a stage floor "</span>
+            <span class="s2">"does not stay under it. Declare the world's floor (`world: {ground: y}`, "</span>
+            <span class="s2">"and no `solve.ground` on the shot) to measure it in its own frame."</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="n">states</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">states</span> <span class="k">if</span> <span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">where</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">entity</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">gated</span><span class="p">]</span>
     <span class="k">for</span> <span class="n">severity</span><span class="p">,</span> <span class="n">where</span><span class="p">,</span> <span class="n">message</span> <span class="ow">in</span> <span class="n">skate_findings</span><span class="p">(</span>

@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=d9244608"></script>
+    <script src="../_static/documentation_options.js?v=7d5cc211"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.392" />
+  <meta name="docsearch:version" content="0.1.393" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -655,7 +655,8 @@ of the entity’s height, at any frame of the solve’s grid at which it is
 joined, is an <strong>error</strong> span; a reference it cannot resolve is an error too
 (the solve never sees a support, so <code class="docutils literal notranslate"><span class="pre">unknown_body</span></code> cannot say it);</p></li>
 <li><p>an entity nothing declares, taken to stand on the shot’s floor
-(<code class="docutils literal notranslate"><span class="pre">solve:</span> <span class="pre">{ground:</span> <span class="pre">y}</span></code>) as it opens, is held to it at its rest instants
+(<code class="docutils literal notranslate"><span class="pre">solve:</span> <span class="pre">{ground:</span> <span class="pre">y}</span></code>, else the world’s under it, <code class="docutils literal notranslate"><span class="pre">World.ground</span></code>) as it
+opens, is held to it at its rest instants
 (between two keys where nothing of it moves), as a <strong>warning</strong>;</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">b:</span> <span class="pre">ground</span></code> on a shot with no floor is measured against where the entity
 stands as the shot opens, said once as <code class="docutils literal notranslate"><span class="pre">info</span></code>.</p></li>
@@ -683,9 +684,14 @@ the floor, a warning, and only under a style pack that declares <code class="doc
 (a cartoon style that glides is right by declaration). A body’s own stance
 point (<code class="docutils literal notranslate"><span class="pre">origin</span></code>, the ink of its roots, a prop’s <code class="docutils literal notranslate"><span class="pre">base</span></code>, a bone on a root
 part) never skates: a pushed crate or a gliding figure slides on it by right.
-In a shot a world frames, a member whose frame moves relative to the
-viewpoint’s is not judged on <code class="docutils literal notranslate"><span class="pre">ground</span></code> (the stage floor does not stay under
-it; <code class="docutils literal notranslate"><span class="pre">World.ground</span></code>, an#519 PR 4, measures it): said once as <code class="docutils literal notranslate"><span class="pre">info</span></code>.</p>
+In a shot a world frames, <code class="docutils literal notranslate"><span class="pre">ground</span></code> is the world’s floor under each member
+when the world declares one (<code class="docutils literal notranslate"><span class="pre">World.ground</span></code>, an#519 PR 4) and the shot no
+<code class="docutils literal notranslate"><span class="pre">solve.ground</span></code>: the floor line at the member’s depth as the camera projects
+it, and the slide measured from the member’s opening ground point held in the
+frame it stands in, so a member carried by a moving frame does not skate. A
+member whose frame moves relative to the viewpoint’s and that has no world
+floor is not judged on <code class="docutils literal notranslate"><span class="pre">ground</span></code> (a stage floor does not stay under it):
+said once as <code class="docutils literal notranslate"><span class="pre">info</span></code>.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">SUPPORT</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">SUPPORT</span><span class="o">.</span><span class="n">order</span><span class="p">,</span> <span class="n">SUPPORT</span><span class="o">.</span><span class="n">term</span> <span class="ow">is</span> <span class="kc">None</span>
 <span class="go">('support', 252.0, True)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">SKATE</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">SKATE</span><span class="o">.</span><span class="n">order</span><span class="p">,</span> <span class="n">SKATE</span><span class="o">.</span><span class="n">term</span> <span class="ow">is</span> <span class="kc">None</span>

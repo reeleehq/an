@@ -125,7 +125,7 @@ True
 | [`VoiceLoudness`](#an.ir.schema.VoiceLoudness)(\*[, target_lufs, peak_db])          | One loudness for every voice of the film (an#315).                                                                                                                                                                                                                                       |
 | [`Weld`](#an.ir.schema.Weld)(\*, item, by[, start, until, offset])         | A held item: `item` stays at `offset` from `by` between `start` and `until` (catalogue A4).                                                                                                                                                                                              |
 | [`WordTimingIR`](#an.ir.schema.WordTimingIR)(\*, text, start, end, \*\*extra_data) | One word of a line and when it was spoken, in seconds from the line's start (like [`VisemeKeyframe`](#an.ir.schema.VisemeKeyframe), never absolute).                                                                                                                      |
-| [`World`](#an.ir.schema.World)(\*[, members, viewpoints, travel, frames])   | A scene's world: members at positions, the named viewpoints that are its coverage, and its travel (ADR 0009).                                                                                                                                                                            |
+| [`World`](#an.ir.schema.World)(\*[, members, viewpoints, travel, ...])      | A scene's world: members at positions, the named viewpoints that are its coverage, and its travel (ADR 0009).                                                                                                                                                                            |
 | [`WorldMember`](#an.ir.schema.WorldMember)(\*, kind, id, store, ref[, ...])       | An entity of the scene's world: the same reference a shot's entity carries, at a world position with a size (ADR 0009 decision 1).                                                                                                                                                       |
 
 ### an.ir.schema.Action
@@ -1769,7 +1769,7 @@ only — `scene.md` never carries it, the way it never carries visemes.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.World(\*, members=<factory>, viewpoints=<factory>, travel=None, frames=<factory>, \*\*extra_data)
+### *class* an.ir.schema.World(\*, members=<factory>, viewpoints=<factory>, travel=None, frames=<factory>, ground=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -1815,6 +1815,24 @@ travel’s `vehicle` (members ride it) when there is one, else the world.
 
 The frames of reference, `{name: Frame}`; `world` is the implicit
 root and a travel with a `speed` adds `vehicle`.
+
+#### ground *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+the world `y` (down positive, in the `world` frame) of a
+horizontal plane the members stand on (an#519). Lowering projects it
+under each positioned member, at that member’s depth, as the floor line
+the `support` and `skate` checks measure `b: ground` against
+(`overrides.ground`, [`an.base.GROUND_OVERRIDE`](an.base.html.md#an.base.GROUND_OVERRIDE)): each frame’s
+floor as lowered, under where the member stands then, with its place
+along the floor in the frame it stands in, so a passenger standing
+still over the world’s floor (its car moving) does not skate. The line
+is level on the stage (members do not roll with the camera); a member
+whose hand `stage.at` wins gets none. Unset: no floor in the world,
+and `ground` is the shot’s `solve.ground` or where the member
+stands as the shot opens.
+
+* **Type:**
+  The floor
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 

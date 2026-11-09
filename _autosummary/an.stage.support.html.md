@@ -194,7 +194,7 @@ points joined; a small prop is not held tighter than a joint.
 How far a contact may be off its surface, either way, as a fraction of the
 entity’s height (4 px on a 200 px figure).
 
-### *class* an.stage.support.SupportState(entity, joint, where, frame, t, surface, surface_ref, contacts, joined, height, source, named='')
+### *class* an.stage.support.SupportState(entity, joint, where, frame, t, surface, surface_ref, contacts, joined, height, source, named='', world_floor=False)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -242,6 +242,12 @@ bone, landmark or fraction is `point`).
 #### where *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 Where it is declared (`joints/0`, `entities/1/joints/0`, …).
+
+#### world_floor *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= False*
+
+Whether the surface is the world’s floor (`World.ground`) as the
+camera projects it under the entity, measured along from a point held
+in the frame the entity stands in (an#519 PR 4), not a stage floor.
 
 ### an.stage.support.contacts_of(entity, mall, , rig=None, descriptor=None, doc=None)
 
@@ -336,9 +342,12 @@ that tolerance of the surface; its `slid` is how far (stage px) its foot
 parameter along the surface (`along`, in the surface’s own frame) changed
 since the grid’s previous instant, when it was held at both and its motion
 along the surface’s normal was at most `lift` of that (more is a foot
-leaving or meeting the surface). Returns the states and `(where,
-message)` for each reference that does not resolve (no state is made for
-it).
+leaving or meeting the surface). An entity is not measured at an instant
+it is not seen (its alpha at most [`an.base.UNSEEN_ALPHA`](an.base.html.md#an.base.UNSEEN_ALPHA): a member
+the world hides outside its on-screen window, a fade’s end), the rule the
+`solidity` check applies, so a slide is never measured across one.
+Returns the states and `(where, message)` for each reference that does
+not resolve (no state is made for it).
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`SupportState`](#an.stage.support.SupportState)], [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]]

@@ -12,6 +12,7 @@ an.ir.world
       Extents
       HAND_PLACEMENT_TOLERANCE_PX
       PERSPECTIVE_TOLERANCE
+      MEMBER_FLOOR_ALONG
    
    .. rubric:: Functions
 
@@ -32,11 +33,14 @@ an.ir.world
       stream_instances
       stream_slots
       viewpoint_of
+      world_ground_at
+      world_ground_mark
    
    .. rubric:: Classes
 
    .. autosummary::
    
+      GroundAt
       Lowered
       Placed
       PlaneAtInfinity

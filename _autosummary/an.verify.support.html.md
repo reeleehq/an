@@ -13,7 +13,8 @@ function [`an.stage.support.supports_at()`](an.stage.support.html.md#an.stage.su
   joined, is an **error** span; a reference it cannot resolve is an error too
   (the solve never sees a support, so `unknown_body` cannot say it);
 - an entity nothing declares, taken to stand on the shot’s floor
-  (`solve: {ground: y}`) as it opens, is held to it at its rest instants
+  (`solve: {ground: y}`, else the world’s under it, `World.ground`) as it
+  opens, is held to it at its rest instants
   (between two keys where nothing of it moves), as a **warning**;
 - `b: ground` on a shot with no floor is measured against where the entity
   stands as the shot opens, said once as `info`.
@@ -42,9 +43,14 @@ the floor, a warning, and only under a style pack that declares `gravity`
 (a cartoon style that glides is right by declaration). A body’s own stance
 point (`origin`, the ink of its roots, a prop’s `base`, a bone on a root
 part) never skates: a pushed crate or a gliding figure slides on it by right.
-In a shot a world frames, a member whose frame moves relative to the
-viewpoint’s is not judged on `ground` (the stage floor does not stay under
-it; `World.ground`, an#519 PR 4, measures it): said once as `info`.
+In a shot a world frames, `ground` is the world’s floor under each member
+when the world declares one (`World.ground`, an#519 PR 4) and the shot no
+`solve.ground`: the floor line at the member’s depth as the camera projects
+it, and the slide measured from the member’s opening ground point held in the
+frame it stands in, so a member carried by a moving frame does not skate. A
+member whose frame moves relative to the viewpoint’s and that has no world
+floor is not judged on `ground` (a stage floor does not stay under it):
+said once as `info`.
 
 ```pycon
 >>> SUPPORT.name, SUPPORT.order, SUPPORT.term is None

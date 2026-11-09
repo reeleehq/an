@@ -1,4 +1,4 @@
-> built 2026-11-09 06:42 UTC from bb4f957 (main) · an 0.1.392. Details: build_info.json
+> built 2026-11-09 07:26 UTC from 39797f4 (main) · an 0.1.393. Details: build_info.json
 
 # index.html.md
 
@@ -7517,41 +7517,42 @@ fraction of a second so the CLI is snappy.
 
 ### Module Attributes
 
-| [`SCHEMA_VERSION`](_autosummary/an.base.html.md#an.base.SCHEMA_VERSION)                     | Current Scene IR schema version.                                                                                                                                                                                                                                                                                                            |
-|-------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`COMPATIBLE_VERSION`](_autosummary/an.base.html.md#an.base.COMPATIBLE_VERSION)                 | Minimum Scene IR version this code can still read without migration.                                                                                                                                                                                                                                                                        |
-| [`DEFAULT_SUPERSAMPLE`](_autosummary/an.base.html.md#an.base.DEFAULT_SUPERSAMPLE)                | Render at this many times the declared resolution, then resolve back with an exact block mean.                                                                                                                                                                                                                                              |
-| [`MP4_FASTSTART_ARGS`](_autosummary/an.base.html.md#an.base.MP4_FASTSTART_ARGS)                 | Put the mp4's `moov` atom in front of `mdat`, so a player can start before the file has finished downloading.                                                                                                                                                                                                                               |
-| [`BT709_SCALE_FILTER`](_autosummary/an.base.html.md#an.base.BT709_SCALE_FILTER)                 | The RGB->YUV conversion `an` performs, stated EXPLICITLY rather than left to the encoder flags to imply.                                                                                                                                                                                                                                    |
-| [`EASING_PRESETS`](_autosummary/an.base.html.md#an.base.EASING_PRESETS)                     | Named easing presets.                                                                                                                                                                                                                                                                                                                       |
-| [`COLOUR_PROPERTY`](_autosummary/an.base.html.md#an.base.COLOUR_PROPERTY)                    | The property names the cutout runtime animates NUMERICALLY.                                                                                                                                                                                                                                                                                 |
-| [`PLANE_REST_VALUES`](_autosummary/an.base.html.md#an.base.PLANE_REST_VALUES)                  | a node targeted with any of them is drawn on a plane tilted away from the camera (`rotation_x`, radians, positive = the top recedes; `perspective`, the eye's distance in frame heights; `plane_fade_start`/`plane_fade_end`, the far fade, scene px up the plane from the hinge, off while the end is `<= 0`).                             |
-| [`TRIM_PROPERTIES`](_autosummary/an.base.html.md#an.base.TRIM_PROPERTIES)                    | The path-only properties inside `TRANSFORM_PROPERTIES` (an#160; the name predates `dash_offset`, an#161): trim and the dash phase.                                                                                                                                                                                                          |
-| [`PLANE_FACTORS_OVERRIDE`](_autosummary/an.base.html.md#an.base.PLANE_FACTORS_OVERRIDE)             | The key the world's lowering records the parallax factors derived from an environment member's `depths` under, in the entity's `overrides` (`{plane name: factor}`, an#503): the compiler reads them where it reads a plane's own `depth`, so a plane at a world depth compiles exactly as one with that factor written by hand.            |
-| [`STREAM_OVERRIDE`](_autosummary/an.base.html.md#an.base.STREAM_OVERRIDE)                    | the id of the stream it draws (`an.ir.world`).                                                                                                                                                                                                                                                                                              |
-| [`PAINT_KEYS_OVERRIDE`](_autosummary/an.base.html.md#an.base.PAINT_KEYS_OVERRIDE)                | The core's record, on each entity a world paints by depth, of its paint key from each time on (`[[time, key]]`, a key sorting farther first, an#634): set when a stream slot is reused, so a slot drawing a farther instance can drop behind nearer ones; the stage compiler orders each run of keyed siblings by them with `z_index` keys. |
-| [`RIDER_IN_FRONT`](_autosummary/an.base.html.md#an.base.RIDER_IN_FRONT)                     | a rider's key is its host's plus `[side, n]` (an#648), in front with `1`, just behind with `-1` (an#678: an attachment the built order put behind its host).                                                                                                                                                                                |
-| [`BESIDE_HOST_OVERRIDE`](_autosummary/an.base.html.md#an.base.BESIDE_HOST_OVERRIDE)               | The core's mark on an attached world member the compiler draws right beside its host, wherever the host is drawn (an#692): `{"host": id, "side": RIDER_BEHIND | RIDER_IN_FRONT}`, the side the built order gave it.                                                                                                                         |
-| [`BASE_PAINT_KEY_LEN`](_autosummary/an.base.html.md#an.base.BASE_PAINT_KEY_LEN)                 | Items in a world entity's own paint key (layer, depth, tiebreak), and in the suffix a rider adds to its host's (side, n).                                                                                                                                                                                                                   |
-| [`SWAY_OVERRIDE`](_autosummary/an.base.html.md#an.base.SWAY_OVERRIDE)                      | The core's mark on an entity the world leans with its frame's acceleration (an#504): its `rotation` channel is that lean, which the hold layer takes out of the angle an item it carries comes to rest at (an#659).                                                                                                                         |
-| [`UNSEEN_ALPHA`](_autosummary/an.base.html.md#an.base.UNSEEN_ALPHA)                       | At or under this alpha an entity is not seen (a stream slot between its passes, a fade's end): it cannot jump or swap sides at a cut (an#516), nor overlap or be drawn through anything at an instant (an#632).                                                                                                                             |
-| [`CORE_OVERRIDE_KEYS`](_autosummary/an.base.html.md#an.base.CORE_OVERRIDE_KEYS)                 | what attaches it, the stream slot it is, what holds it and at what angle, the world's plane factors.                                                                                                                                                                                                                                        |
-| [`PAINT_AFTER_PROPERTY`](_autosummary/an.base.html.md#an.base.PAINT_AFTER_PROPERTY)               | where a node is PAINTED, as the path of the node it paints just after (`""`: where the stage tree puts it).                                                                                                                                                                                                                                 |
-| [`Z_INDEX_PROPERTY`](_autosummary/an.base.html.md#an.base.Z_INDEX_PROPERTY)                   | A node's place among its container's children, switched at its own key (an#634): the stage paints a sorted container's children by it, the static `z_index` of a node made a channel.                                                                                                                                                       |
-| [`ORDER_PROPERTIES`](_autosummary/an.base.html.md#an.base.ORDER_PROPERTIES)                   | The properties the runtime applies itself, outside `TRANSFORM_PROPERTIES` (which it animates): a node's place in the paint order, each switched at its own key.                                                                                                                                                                             |
-| [`SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS`](_autosummary/an.base.html.md#an.base.SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS) | `/` would read as a path segment and `::` is the runtime's pose-key separator.                                                                                                                                                                                                                                                              |
-| [`AUTHORABLE_PROPERTIES`](_autosummary/an.base.html.md#an.base.AUTHORABLE_PROPERTIES)              | a compiled transform channel, or the authored colour spelling the compiler expands.                                                                                                                                                                                                                                                         |
-| [`PathStr`](_autosummary/an.base.html.md#an.base.PathStr)                            | Slash-delimited node path, e.g. `"charlie/head/mouth"`.                                                                                                                                                                                                                                                                                     |
-| [`Seconds`](_autosummary/an.base.html.md#an.base.Seconds)                            | Time in seconds.                                                                                                                                                                                                                                                                                                                            |
-| [`EasingSpec`](_autosummary/an.base.html.md#an.base.EasingSpec)                         | Either an easing preset name or a 4-tuple cubic-Bézier control [cx1,cy1,cx2,cy2].                                                                                                                                                                                                                                                           |
-| [`RendererName`](_autosummary/an.base.html.md#an.base.RendererName)                       | Which renderer draws a shot.                                                                                                                                                                                                                                                                                                                |
-| [`SUPPORTED_RENDERERS`](_autosummary/an.base.html.md#an.base.SUPPORTED_RENDERERS)                | The same vocabulary as [`RendererName`](_autosummary/an.base.html.md#an.base.RendererName), as a runtime tuple — DERIVED from it, because a hand-typed second copy is a second SSOT that drifts on the day a renderer is added and nothing fails.                                                                                                 |
-| [`TRANSITION_KINDS`](_autosummary/an.base.html.md#an.base.TRANSITION_KINDS)                   | The transition kinds a shot may be entered by.                                                                                                                                                                                                                                                                                              |
-| [`WIPE_DIRECTIONS`](_autosummary/an.base.html.md#an.base.WIPE_DIRECTIONS)                    | The ways a `wipe`'s edge can travel across the frame (an#390).                                                                                                                                                                                                                                                                              |
-| [`DEFAULT_TRANSITION_DURATION`](_autosummary/an.base.html.md#an.base.DEFAULT_TRANSITION_DURATION)        | half a second is a conventional editor's default, short enough not to eat a line of dialogue and long enough to read as deliberate.                                                                                                                                                                                                         |
-| [`DEFAULT_TRANSITION_COLOR`](_autosummary/an.base.html.md#an.base.DEFAULT_TRANSITION_COLOR)           | The colour a `fade` passes through when it names none.                                                                                                                                                                                                                                                                                      |
-| [`FILM_AUDIO_SAMPLE_RATE`](_autosummary/an.base.html.md#an.base.FILM_AUDIO_SAMPLE_RATE)             | The film mix's sample rate and channel count.                                                                                                                                                                                                                                                                                               |
-| [`DEFAULT_DUCK_DB`](_autosummary/an.base.html.md#an.base.DEFAULT_DUCK_DB)                    | how far a ducked cue drops under dialogue, and how fast it gets there and comes back.                                                                                                                                                                                                                                                       |
+| [`SCHEMA_VERSION`](_autosummary/an.base.html.md#an.base.SCHEMA_VERSION)                     | Current Scene IR schema version.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+|-------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`COMPATIBLE_VERSION`](_autosummary/an.base.html.md#an.base.COMPATIBLE_VERSION)                 | Minimum Scene IR version this code can still read without migration.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| [`DEFAULT_SUPERSAMPLE`](_autosummary/an.base.html.md#an.base.DEFAULT_SUPERSAMPLE)                | Render at this many times the declared resolution, then resolve back with an exact block mean.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| [`MP4_FASTSTART_ARGS`](_autosummary/an.base.html.md#an.base.MP4_FASTSTART_ARGS)                 | Put the mp4's `moov` atom in front of `mdat`, so a player can start before the file has finished downloading.                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| [`BT709_SCALE_FILTER`](_autosummary/an.base.html.md#an.base.BT709_SCALE_FILTER)                 | The RGB->YUV conversion `an` performs, stated EXPLICITLY rather than left to the encoder flags to imply.                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| [`EASING_PRESETS`](_autosummary/an.base.html.md#an.base.EASING_PRESETS)                     | Named easing presets.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| [`COLOUR_PROPERTY`](_autosummary/an.base.html.md#an.base.COLOUR_PROPERTY)                    | The property names the cutout runtime animates NUMERICALLY.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| [`PLANE_REST_VALUES`](_autosummary/an.base.html.md#an.base.PLANE_REST_VALUES)                  | a node targeted with any of them is drawn on a plane tilted away from the camera (`rotation_x`, radians, positive = the top recedes; `perspective`, the eye's distance in frame heights; `plane_fade_start`/`plane_fade_end`, the far fade, scene px up the plane from the hinge, off while the end is `<= 0`).                                                                                                                                                                                                                                                                      |
+| [`TRIM_PROPERTIES`](_autosummary/an.base.html.md#an.base.TRIM_PROPERTIES)                    | The path-only properties inside `TRANSFORM_PROPERTIES` (an#160; the name predates `dash_offset`, an#161): trim and the dash phase.                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| [`PLANE_FACTORS_OVERRIDE`](_autosummary/an.base.html.md#an.base.PLANE_FACTORS_OVERRIDE)             | The key the world's lowering records the parallax factors derived from an environment member's `depths` under, in the entity's `overrides` (`{plane name: factor}`, an#503): the compiler reads them where it reads a plane's own `depth`, so a plane at a world depth compiles exactly as one with that factor written by hand.                                                                                                                                                                                                                                                     |
+| [`STREAM_OVERRIDE`](_autosummary/an.base.html.md#an.base.STREAM_OVERRIDE)                    | the id of the stream it draws (`an.ir.world`).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| [`PAINT_KEYS_OVERRIDE`](_autosummary/an.base.html.md#an.base.PAINT_KEYS_OVERRIDE)                | The core's record, on each entity a world paints by depth, of its paint key from each time on (`[[time, key]]`, a key sorting farther first, an#634): set when a stream slot is reused, so a slot drawing a farther instance can drop behind nearer ones; the stage compiler orders each run of keyed siblings by them with `z_index` keys.                                                                                                                                                                                                                                          |
+| [`RIDER_IN_FRONT`](_autosummary/an.base.html.md#an.base.RIDER_IN_FRONT)                     | a rider's key is its host's plus `[side, n]` (an#648), in front with `1`, just behind with `-1` (an#678: an attachment the built order put behind its host).                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| [`BESIDE_HOST_OVERRIDE`](_autosummary/an.base.html.md#an.base.BESIDE_HOST_OVERRIDE)               | The core's mark on an attached world member the compiler draws right beside its host, wherever the host is drawn (an#692): `{"host": id, "side": RIDER_BEHIND | RIDER_IN_FRONT}`, the side the built order gave it.                                                                                                                                                                                                                                                                                                                                                                  |
+| [`BASE_PAINT_KEY_LEN`](_autosummary/an.base.html.md#an.base.BASE_PAINT_KEY_LEN)                 | Items in a world entity's own paint key (layer, depth, tiebreak), and in the suffix a rider adds to its host's (side, n).                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| [`SWAY_OVERRIDE`](_autosummary/an.base.html.md#an.base.SWAY_OVERRIDE)                      | The core's mark on an entity the world leans with its frame's acceleration (an#504): its `rotation` channel is that lean, which the hold layer takes out of the angle an item it carries comes to rest at (an#659).                                                                                                                                                                                                                                                                                                                                                                  |
+| [`GROUND_OVERRIDE`](_autosummary/an.base.html.md#an.base.GROUND_OVERRIDE)                    | The core's record, on each positioned member of a world that declares a `ground` (an#519), of the floor under it as the camera projects it: `{"at": [x, y], "along": [dx, dy], "scale": s}` (the floor point under its placement point, the floor line's unit direction, and the stage px per world unit there), or `{"keys": [[t, x, y, dx, dy, s, lateral], ...]}` for a member the camera sees move (`lateral`: where that floor point is along the floor, in world units in the frame the member stands in, from where it stood as the shot opens: what skate is measured from). |
+| [`UNSEEN_ALPHA`](_autosummary/an.base.html.md#an.base.UNSEEN_ALPHA)                       | At or under this alpha an entity is not seen (a stream slot between its passes, a fade's end): it cannot jump or swap sides at a cut (an#516), nor overlap or be drawn through anything at an instant (an#632), nor be held to its supports or skate at one (an#519).                                                                                                                                                                                                                                                                                                                |
+| [`CORE_OVERRIDE_KEYS`](_autosummary/an.base.html.md#an.base.CORE_OVERRIDE_KEYS)                 | what attaches it, the stream slot it is, what holds it and at what angle, the world's plane factors.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| [`PAINT_AFTER_PROPERTY`](_autosummary/an.base.html.md#an.base.PAINT_AFTER_PROPERTY)               | where a node is PAINTED, as the path of the node it paints just after (`""`: where the stage tree puts it).                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| [`Z_INDEX_PROPERTY`](_autosummary/an.base.html.md#an.base.Z_INDEX_PROPERTY)                   | A node's place among its container's children, switched at its own key (an#634): the stage paints a sorted container's children by it, the static `z_index` of a node made a channel.                                                                                                                                                                                                                                                                                                                                                                                                |
+| [`ORDER_PROPERTIES`](_autosummary/an.base.html.md#an.base.ORDER_PROPERTIES)                   | The properties the runtime applies itself, outside `TRANSFORM_PROPERTIES` (which it animates): a node's place in the paint order, each switched at its own key.                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| [`SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS`](_autosummary/an.base.html.md#an.base.SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS) | `/` would read as a path segment and `::` is the runtime's pose-key separator.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| [`AUTHORABLE_PROPERTIES`](_autosummary/an.base.html.md#an.base.AUTHORABLE_PROPERTIES)              | a compiled transform channel, or the authored colour spelling the compiler expands.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| [`PathStr`](_autosummary/an.base.html.md#an.base.PathStr)                            | Slash-delimited node path, e.g. `"charlie/head/mouth"`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| [`Seconds`](_autosummary/an.base.html.md#an.base.Seconds)                            | Time in seconds.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| [`EasingSpec`](_autosummary/an.base.html.md#an.base.EasingSpec)                         | Either an easing preset name or a 4-tuple cubic-Bézier control [cx1,cy1,cx2,cy2].                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| [`RendererName`](_autosummary/an.base.html.md#an.base.RendererName)                       | Which renderer draws a shot.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| [`SUPPORTED_RENDERERS`](_autosummary/an.base.html.md#an.base.SUPPORTED_RENDERERS)                | The same vocabulary as [`RendererName`](_autosummary/an.base.html.md#an.base.RendererName), as a runtime tuple — DERIVED from it, because a hand-typed second copy is a second SSOT that drifts on the day a renderer is added and nothing fails.                                                                                                                                                                                                                                                                                                                                          |
+| [`TRANSITION_KINDS`](_autosummary/an.base.html.md#an.base.TRANSITION_KINDS)                   | The transition kinds a shot may be entered by.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| [`WIPE_DIRECTIONS`](_autosummary/an.base.html.md#an.base.WIPE_DIRECTIONS)                    | The ways a `wipe`'s edge can travel across the frame (an#390).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| [`DEFAULT_TRANSITION_DURATION`](_autosummary/an.base.html.md#an.base.DEFAULT_TRANSITION_DURATION)        | half a second is a conventional editor's default, short enough not to eat a line of dialogue and long enough to read as deliberate.                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| [`DEFAULT_TRANSITION_COLOR`](_autosummary/an.base.html.md#an.base.DEFAULT_TRANSITION_COLOR)           | The colour a `fade` passes through when it names none.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| [`FILM_AUDIO_SAMPLE_RATE`](_autosummary/an.base.html.md#an.base.FILM_AUDIO_SAMPLE_RATE)             | The film mix's sample rate and channel count.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| [`DEFAULT_DUCK_DB`](_autosummary/an.base.html.md#an.base.DEFAULT_DUCK_DB)                    | how far a ducked cue drops under dialogue, and how fast it gets there and comes back.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 
 ### Functions
 
@@ -7667,7 +7668,7 @@ asset-set name (an#62).
 
 Minimum Scene IR version this code can still read without migration.
 
-### an.base.CORE_OVERRIDE_KEYS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'attached', 'beside_host', 'held_by', 'held_rotation', 'leans', 'paint_keys', 'plane_factors', 'stream'})*
+### an.base.CORE_OVERRIDE_KEYS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'attached', 'beside_host', 'ground', 'held_by', 'held_rotation', 'leans', 'paint_keys', 'plane_factors', 'stream'})*
 
 what attaches it, the
 stream slot it is, what holds it and at what angle, the world’s plane
@@ -7734,6 +7735,22 @@ The film mix’s sample rate and channel count. The SAME values the per-shot
 audio mux (`an.stage.render._ffmpeg_add_audio`) writes, so a film
 assembled from sources and one concatenated from shot mp4s carry the same
 audio format.
+
+### an.base.GROUND_OVERRIDE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'ground'*
+
+The core’s record, on each positioned member of a world that declares a
+`ground` (an#519), of the floor under it as the camera projects it:
+`{"at": [x, y], "along": [dx, dy], "scale": s}` (the floor point under
+its placement point, the floor line’s unit direction, and the stage px per
+world unit there), or `{"keys": [[t, x, y, dx, dy, s, lateral], ...]}`
+for a member the camera sees move (`lateral`: where that floor point is
+along the floor, in world units in the frame the member stands in, from
+where it stood as the shot opens: what skate is measured from). Read by
+[`an.ir.world.world_ground_at()`](_autosummary/an.ir.world.html.md#an.ir.world.world_ground_at); the `support` and `skate` checks
+and the hold layer’s floor read it, only on a shot lowered from a world
+([`an.ir.world.world_ground_mark()`](_autosummary/an.ir.world.html.md#an.ir.world.world_ground_mark)). Never an authoring field: the
+lowering replaces or drops one an author wrote on a framed shot (a
+`ground` warning), and the compiler refuses it on any other.
 
 ### an.base.MP4_FASTSTART_ARGS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('-movflags', '+faststart')*
 
@@ -7897,7 +7914,8 @@ draws no path refuses all of them.
 
 At or under this alpha an entity is not seen (a stream slot between its
 passes, a fade’s end): it cannot jump or swap sides at a cut (an#516), nor
-overlap or be drawn through anything at an instant (an#632).
+overlap or be drawn through anything at an instant (an#632), nor be held
+to its supports or skate at one (an#519).
 
 ### an.base.WIPE_DIRECTIONS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('left', 'right', 'up', 'down')*
 
@@ -21307,7 +21325,7 @@ authoring-time DSL to canonical-form actions.
 | [`Dialogue`](_autosummary/an.ir.html.md#an.ir.Dialogue)(\*, speaker, text[, voice_ref, ...])     | One line of spoken dialogue.                                                                                                       |
 | [`Camera`](_autosummary/an.ir.html.md#an.ir.Camera)(\*[, shake, follow, move, keys])           | Camera state for a shot: a named move, or explicit keys.                                                                           |
 | [`Resolution`](_autosummary/an.ir.html.md#an.ir.Resolution)(\*[, width, height])                   | Pixel dimensions of the rendered output.                                                                                           |
-| [`World`](_autosummary/an.ir.html.md#an.ir.World)(\*[, members, viewpoints, travel, frames])  | A scene's world: members at positions, the named viewpoints that are its coverage, and its travel (ADR 0009).                      |
+| [`World`](_autosummary/an.ir.html.md#an.ir.World)(\*[, members, viewpoints, travel, ...])     | A scene's world: members at positions, the named viewpoints that are its coverage, and its travel (ADR 0009).                      |
 | [`WorldMember`](_autosummary/an.ir.html.md#an.ir.WorldMember)(\*, kind, id, store, ref[, ...])      | An entity of the scene's world: the same reference a shot's entity carries, at a world position with a size (ADR 0009 decision 1). |
 | [`Attachment`](_autosummary/an.ir.html.md#an.ir.Attachment)(\*, to[, at, scale])                   | A member that goes where another member goes (ADR 0009 decision 1).                                                                |
 | [`Viewpoint`](_autosummary/an.ir.html.md#an.ir.Viewpoint)(\*[, at, look, look_at, vanish, ...])   | A pinhole camera onto the world, or a composition that resolves to one (ADR 0009 decision 2).                                      |
@@ -21963,7 +21981,7 @@ The frame this camera is mounted in (document key `in`); its `at` and
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.World(\*, members=<factory>, viewpoints=<factory>, travel=None, frames=<factory>, \*\*extra_data)
+### *class* an.ir.World(\*, members=<factory>, viewpoints=<factory>, travel=None, frames=<factory>, ground=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -22009,6 +22027,24 @@ travel’s `vehicle` (members ride it) when there is one, else the world.
 
 The frames of reference, `{name: Frame}`; `world` is the implicit
 root and a travel with a `speed` adds `vehicle`.
+
+#### ground *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+the world `y` (down positive, in the `world` frame) of a
+horizontal plane the members stand on (an#519). Lowering projects it
+under each positioned member, at that member’s depth, as the floor line
+the `support` and `skate` checks measure `b: ground` against
+(`overrides.ground`, [`an.base.GROUND_OVERRIDE`](_autosummary/an.base.html.md#an.base.GROUND_OVERRIDE)): each frame’s
+floor as lowered, under where the member stands then, with its place
+along the floor in the frame it stands in, so a passenger standing
+still over the world’s floor (its car moving) does not skate. The line
+is level on the stage (members do not roll with the camera); a member
+whose hand `stage.at` wins gets none. Unset: no floor in the world,
+and `ground` is the shot’s `solve.ground` or where the member
+stands as the shot opens.
+
+* **Type:**
+  The floor
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 
@@ -22904,7 +22940,7 @@ True
 | [`VoiceLoudness`](_autosummary/an.ir.schema.html.md#an.ir.schema.VoiceLoudness)(\*[, target_lufs, peak_db])          | One loudness for every voice of the film (an#315).                                                                                                                                                                                                                                       |
 | [`Weld`](_autosummary/an.ir.schema.html.md#an.ir.schema.Weld)(\*, item, by[, start, until, offset])         | A held item: `item` stays at `offset` from `by` between `start` and `until` (catalogue A4).                                                                                                                                                                                              |
 | [`WordTimingIR`](_autosummary/an.ir.schema.html.md#an.ir.schema.WordTimingIR)(\*, text, start, end, \*\*extra_data) | One word of a line and when it was spoken, in seconds from the line's start (like [`VisemeKeyframe`](_autosummary/an.ir.schema.html.md#an.ir.schema.VisemeKeyframe), never absolute).                                                                                                                      |
-| [`World`](_autosummary/an.ir.schema.html.md#an.ir.schema.World)(\*[, members, viewpoints, travel, frames])   | A scene's world: members at positions, the named viewpoints that are its coverage, and its travel (ADR 0009).                                                                                                                                                                            |
+| [`World`](_autosummary/an.ir.schema.html.md#an.ir.schema.World)(\*[, members, viewpoints, travel, ...])      | A scene's world: members at positions, the named viewpoints that are its coverage, and its travel (ADR 0009).                                                                                                                                                                            |
 | [`WorldMember`](_autosummary/an.ir.schema.html.md#an.ir.schema.WorldMember)(\*, kind, id, store, ref[, ...])       | An entity of the scene's world: the same reference a shot's entity carries, at a world position with a size (ADR 0009 decision 1).                                                                                                                                                       |
 
 ### an.ir.schema.Action
@@ -24548,7 +24584,7 @@ only — `scene.md` never carries it, the way it never carries visemes.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.World(\*, members=<factory>, viewpoints=<factory>, travel=None, frames=<factory>, \*\*extra_data)
+### *class* an.ir.schema.World(\*, members=<factory>, viewpoints=<factory>, travel=None, frames=<factory>, ground=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -24594,6 +24630,24 @@ travel’s `vehicle` (members ride it) when there is one, else the world.
 
 The frames of reference, `{name: Frame}`; `world` is the implicit
 root and a travel with a `speed` adds `vehicle`.
+
+#### ground *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+the world `y` (down positive, in the `world` frame) of a
+horizontal plane the members stand on (an#519). Lowering projects it
+under each positioned member, at that member’s depth, as the floor line
+the `support` and `skate` checks measure `b: ground` against
+(`overrides.ground`, [`an.base.GROUND_OVERRIDE`](_autosummary/an.base.html.md#an.base.GROUND_OVERRIDE)): each frame’s
+floor as lowered, under where the member stands then, with its place
+along the floor in the frame it stands in, so a passenger standing
+still over the world’s floor (its car moving) does not skate. The line
+is level on the stage (members do not roll with the camera); a member
+whose hand `stage.at` wins gets none. Unset: no floor in the world,
+and `ground` is the shot’s `solve.ground` or where the member
+stands as the shot opens.
+
+* **Type:**
+  The floor
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 
@@ -25190,6 +25244,7 @@ move, and a close-up is the same world seen from nearer.
 | [`Extents`](_autosummary/an.ir.world.html.md#an.ir.world.Extents)                     | `{member or stream id: Box | None}`, measured by the stage ([`an.stage.world.member_extents()`](_autosummary/an.stage.world.html.md#an.stage.world.member_extents)); the IR layer only reads it. |
 | [`HAND_PLACEMENT_TOLERANCE_PX`](_autosummary/an.ir.world.html.md#an.ir.world.HAND_PLACEMENT_TOLERANCE_PX) | A hand `stage.at` this far from the world's placement is "the same" (the cut-continuity tolerance, an#394); farther is a lint warning.                                                                   |
 | [`PERSPECTIVE_TOLERANCE`](_autosummary/an.ir.world.html.md#an.ir.world.PERSPECTIVE_TOLERANCE)       | A hand placement whose scale differs from the ground plane's by more than this fraction is out of perspective (catalogue A6).                                                                            |
+| [`MEMBER_FLOOR_ALONG`](_autosummary/an.ir.world.html.md#an.ir.world.MEMBER_FLOOR_ALONG)          | The stage direction of a member's floor line.                                                                                                                                                            |
 
 ### Functions
 
@@ -25209,15 +25264,18 @@ move, and a close-up is the same world seen from nearer.
 | [`stream_instances`](_autosummary/an.ir.world.html.md#an.ir.world.stream_instances)(stream, travel, \*, s_min, s_max) | The instances of `stream` whose position along the travel lies in `[s_min, s_max]`: `[(k, world position)]`, `k` the instance index.                                                                                                                                                                                                                                            |
 | [`stream_slots`](_autosummary/an.ir.world.html.md#an.ir.world.stream_slots)(stream, travel)                       | How many entities a stream needs by its depth range: one per instance that can be between `near` and `far` at once, plus one.                                                                                                                                                                                                                                                   |
 | [`viewpoint_of`](_autosummary/an.ir.world.html.md#an.ir.world.viewpoint_of)(world, viewpoint)                     | The shot's viewpoint as a model: a name is looked up in the world.                                                                                                                                                                                                                                                                                                              |
+| [`world_ground_at`](_autosummary/an.ir.world.html.md#an.ir.world.world_ground_at)(spec, t)                           | The floor `spec` (an entity's `overrides.ground`, as the world's lowering writes it) gives at shot time `t`: a member's keys interpolated linearly, held past either end.                                                                                                                                                                                                       |
+| [`world_ground_mark`](_autosummary/an.ir.world.html.md#an.ir.world.world_ground_mark)(shot, entity)                    | `entity`'s [`an.base.GROUND_OVERRIDE`](_autosummary/an.base.html.md#an.base.GROUND_OVERRIDE) mark on `shot`, or `None`.                                                                                                                                                                                                                                          |
 
 ### Classes
 
-| [`Lowered`](_autosummary/an.ir.world.html.md#an.ir.world.Lowered)(scene[, notes, origins, carried])        | The scene as the compiler will see it, the notes to report, and for each framed shot where its lowered entities came from (`origins`: per lowered entity index, the author's entity index, or `None` for one the world added), so a finding on a lowered shot can name the author's line.   |
-|---------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`Placed`](_autosummary/an.ir.world.html.md#an.ir.world.Placed)(id, at, scale, depth, box, in_frame, via) | Where one member lands in a framed shot.                                                                                                                                                                                                                                                    |
-| [`PlaneAtInfinity`](_autosummary/an.ir.world.html.md#an.ir.world.PlaneAtInfinity)(member, plane, reason, ...)      | A plane at infinity, and why (an#735): what `an validate` pins to parallax factor 0 and a genre's far-plate critic judges.                                                                                                                                                                  |
-| [`Projection`](_autosummary/an.ir.world.html.md#an.ir.world.Projection)(at, forward, right, down, focal)      | A resolved viewpoint: where the camera is, which way it looks, its lens.                                                                                                                                                                                                                    |
-| [`WorldNote`](_autosummary/an.ir.world.html.md#an.ir.world.WorldNote)(shot, index, severity, kind, ...)      | One thing the lowering did or could not do for one shot, for `an validate` (its severity) and `an world show`.                                                                                                                                                                              |
+| [`GroundAt`](_autosummary/an.ir.world.html.md#an.ir.world.GroundAt)(at, along[, scale, lateral])            | A member's floor at one instant ([`an.base.GROUND_OVERRIDE`](_autosummary/an.base.html.md#an.base.GROUND_OVERRIDE)), in the coordinates of its `stage.at`: the floor point under its placement point (`at`), the floor line's unit direction (`along`), the stage px one world unit along the floor spans there (`scale`: focal over depth), and where that floor point lies along the floor in the frame the member stands in, in world units from where it stood as the shot opens (`lateral`).   |
+|---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`Lowered`](_autosummary/an.ir.world.html.md#an.ir.world.Lowered)(scene[, notes, origins, carried])        | The scene as the compiler will see it, the notes to report, and for each framed shot where its lowered entities came from (`origins`: per lowered entity index, the author's entity index, or `None` for one the world added), so a finding on a lowered shot can name the author's line.                                                                                                                                                                                                                          |
+| [`Placed`](_autosummary/an.ir.world.html.md#an.ir.world.Placed)(id, at, scale, depth, box, in_frame, via) | Where one member lands in a framed shot.                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| [`PlaneAtInfinity`](_autosummary/an.ir.world.html.md#an.ir.world.PlaneAtInfinity)(member, plane, reason, ...)      | A plane at infinity, and why (an#735): what `an validate` pins to parallax factor 0 and a genre's far-plate critic judges.                                                                                                                                                                                                                                                                                                                                                                                         |
+| [`Projection`](_autosummary/an.ir.world.html.md#an.ir.world.Projection)(at, forward, right, down, focal)      | A resolved viewpoint: where the camera is, which way it looks, its lens.                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| [`WorldNote`](_autosummary/an.ir.world.html.md#an.ir.world.WorldNote)(shot, index, severity, kind, ...)      | One thing the lowering did or could not do for one shot, for `an validate` (its severity) and `an world show`.                                                                                                                                                                                                                                                                                                                                                                                                     |
 
 ### Exceptions
 
@@ -25243,6 +25301,34 @@ alias of [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`flo
 
 alias of [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), `Box | None`]
 
+### *class* an.ir.world.GroundAt(at, along, scale=1.0, lateral=0.0)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A member’s floor at one instant ([`an.base.GROUND_OVERRIDE`](_autosummary/an.base.html.md#an.base.GROUND_OVERRIDE)), in
+the coordinates of its `stage.at`: the floor point under its placement
+point (`at`), the floor line’s unit direction (`along`), the stage px
+one world unit along the floor spans there (`scale`: focal over depth),
+and where that floor point lies along the floor in the frame the member
+stands in, in world units from where it stood as the shot opens
+(`lateral`). A stage point on the floor is at `lateral + (p - at) ·
+along / scale` world units along it, in the member’s own frame: a foot
+that keeps that number keeps its place on the floor, however the member,
+its frame or the camera carry it across the stage.
+
+#### position(p)
+
+Where stage point `p` lies along the floor, in world units in the
+member’s frame (see the class).
+
+```pycon
+>>> GroundAt((10.0, 50.0), (1.0, 0.0), 2.0, 3.0).position((30.0, 50.0))
+13.0
+```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
 ### an.ir.world.HAND_PLACEMENT_TOLERANCE_PX *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 2.0*
 
 A hand `stage.at` this far from the world’s placement is “the same”
@@ -25262,6 +25348,14 @@ world added), so a finding on a lowered shot can name the author’s line.
 Per continued shot (an#542), how many actions its `continue:` put
 before the author’s, so a finding’s `actions/<k>` can name the
 author’s line.
+
+### an.ir.world.MEMBER_FLOOR_ALONG *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (1.0, 0.0)*
+
+The stage direction of a member’s floor line. Members are billboards that
+never roll with the camera: an upright figure stands on a level line, so
+under a rolled camera its floor is level too (the horizon’s tilt would put
+its downhill foot into the floor). When members roll, this is the
+horizon’s stage direction.
 
 ### an.ir.world.PERSPECTIVE_TOLERANCE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.15*
 
@@ -25444,10 +25538,12 @@ same at any resolution.
 The positioned members of shot `index`’s world that stand in a frame
 moving relative to the viewpoint’s over the shot (the rule
 [`lower_world()`](_autosummary/an.ir.world.html.md#an.ir.world.lower_world) samples their motion by), or that a `reframe`
-carries between frames. Their stage floor does not stay under them, so a
-check measuring against the stage’s floor (`skate` on `ground`,
-an#519) cannot judge them until `World.ground` (an#519 PR 4). Empty for
-a shot no world frames; raises [`WorldError`](_autosummary/an.ir.world.html.md#an.ir.world.WorldError) as lowering would.
+carries between frames. A stage floor does not stay under them, so a
+check measuring against it (`skate` on `solve.ground` or the member’s
+own floor, an#519) cannot judge them; a world that declares `ground`
+gives each its own floor and reference point, keyed as the camera sees it
+(`overrides.ground`, [`world_ground_at()`](_autosummary/an.ir.world.html.md#an.ir.world.world_ground_at)). Empty for a shot no world
+frames; raises [`WorldError`](_autosummary/an.ir.world.html.md#an.ir.world.WorldError) as lowering would.
 
 ```pycon
 >>> frame_moving_members(SceneIR(), 0)
@@ -25703,6 +25799,48 @@ an.ir.world.WorldError: shot names viewpoint 'a' but the scene has no `world`
 
 * **Return type:**
   [`Viewpoint`](_autosummary/an.ir.schema.html.md#an.ir.schema.Viewpoint) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.ir.world.world_ground_at(spec, t)
+
+The floor `spec` (an entity’s `overrides.ground`, as the world’s
+lowering writes it) gives at shot time `t`: a member’s keys
+interpolated linearly, held past either end. `None` for a spec that is
+not one of the lowering’s two shapes.
+
+```pycon
+>>> world_ground_at({"at": [3.0, 120.0], "along": [1.0, 0.0], "scale": 60.0}, 0.5)
+GroundAt(at=(3.0, 120.0), along=(1.0, 0.0), scale=60.0, lateral=0.0)
+>>> world_ground_at({"keys": [[0.0, 0.0, 100.0, 1.0, 0.0, 60.0, 0.0],
+...                           [1.0, 0.0, 140.0, 1.0, 0.0, 80.0, 0.5]]}, 0.25)
+GroundAt(at=(0.0, 110.0), along=(1.0, 0.0), scale=65.0, lateral=0.125)
+>>> world_ground_at(240, 1.0), world_ground_at("nonsense", 0.0)
+(None, None)
+```
+
+* **Return type:**
+  [`GroundAt`](_autosummary/an.ir.world.html.md#an.ir.world.GroundAt) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.ir.world.world_ground_mark(shot, entity)
+
+`entity`’s [`an.base.GROUND_OVERRIDE`](_autosummary/an.base.html.md#an.base.GROUND_OVERRIDE) mark on `shot`, or
+`None`. It is read only on a shot lowered from a world (one with a
+`viewpoint`): the lowering owns it there ([`lower_world()`](_autosummary/an.ir.world.html.md#an.ir.world.lower_world) writes it
+under a world that declares `ground` and drops any other), and the
+compiler refuses it on any other shot, so a hand-written one is never
+taken for the world’s floor.
+
+```pycon
+>>> from an.ir.schema import AssetRef, Shot
+>>> e = AssetRef(kind="prop", id="p", store="props", ref="r",
+...              overrides={"ground": {"at": [0, 60], "along": [1, 0]}})
+>>> world_ground_mark(Shot(id="s", duration=1.0, viewpoint="v"), e)
+{'at': [0, 60], 'along': [1, 0]}
+>>> world_ground_mark(Shot(id="s", duration=1.0), e) is None
+True
+```
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 
 # _autosummary/an.ir.world_from_shot.html.md
@@ -35989,7 +36127,7 @@ One sentence per camera move, in production terms.
 
 Version of each named camera move (ADR 0003). Bump one when its keys change.
 
-### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions, closing_transition}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.camera.follow', kind='field', version='1', name='shot.camera.follow', title='', description='a camera that follows an entity', usage="camera.follow (optional): {target: <entity id or node path>, axes: x|y|xy, lag: <seconds, optional: the camera trails the target with this time constant>} — the camera tracks the target, keeping it where it stood at the shot's start (a walk across a long set); planes parallax with it. Instead of a move or keys (hold is fine); a shake layers on top.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera.shake', kind='field', version='1', name='shot.camera.shake', title='', description='a jolt of the frame inside the shot', usage='camera.shake (optional): jolts of the frame layered on the move or keys — [{at: s, duration: 0.4, amplitude: 0.015, frequency: 24, decay: true, seed: 0}], amplitude a fraction of the frame height; for an impact, a slam, an explosion. The frame is at rest before \`at\` and after the end; shakes may not overlap or run past the shot.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. On a text block, 'text' swaps a replacement set's string ('texts', unit 'block'; the value is a key) and 'value' is a counter block's number ('counter'; set or tween a number, lowered at compile to the strings the frames show). Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, '#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / plane_fade_start / plane_fade_end tilt the node's plane away from the camera (radians, frame heights, plane px), and then pivot_y slides its content along the plane. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve" | "wipe", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. \\'wipe\\' overlaps the same way, but a hard edge sweeps across the frame in direction (\\'left\\', \\'right\\', \\'up\\' or \\'down\\': the way the edge travels). A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.closing_transition', kind='field', version='1', name='meta.closing_transition', title='', description='how the film ends', usage="meta.closing_transition (optional): how the film ENDS — {kind: 'fade', duration: seconds, color: '#rrggbb'}: the last shot's last duration fades to color (its final frame IS the color) and the sound fades with it; the film's length is unchanged. Omitted (or 'cut') = it ends on its last frame. A dissolve is refused.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
+### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions, closing_transition}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.camera.follow', kind='field', version='1', name='shot.camera.follow', title='', description='a camera that follows an entity', usage="camera.follow (optional): {target: <entity id or node path>, axes: x|y|xy, lag: <seconds, optional: the camera trails the target with this time constant>} — the camera tracks the target, keeping it where it stood at the shot's start (a walk across a long set); planes parallax with it. Instead of a move or keys (hold is fine); a shake layers on top.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera.shake', kind='field', version='1', name='shot.camera.shake', title='', description='a jolt of the frame inside the shot', usage='camera.shake (optional): jolts of the frame layered on the move or keys — [{at: s, duration: 0.4, amplitude: 0.015, frequency: 24, decay: true, seed: 0}], amplitude a fraction of the frame height; for an impact, a slam, an explosion. The frame is at rest before \`at\` and after the end; shakes may not overlap or run past the shot.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. On a text block, 'text' swaps a replacement set's string ('texts', unit 'block'; the value is a key) and 'value' is a counter block's number ('counter'; set or tween a number, lowered at compile to the strings the frames show). Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, '#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / plane_fade_start / plane_fade_end tilt the node's plane away from the camera (radians, frame heights, plane px), and then pivot_y slides its content along the plane. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve" | "wipe", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. \\'wipe\\' overlaps the same way, but a hard edge sweeps across the frame in direction (\\'left\\', \\'right\\', \\'up\\' or \\'down\\': the way the edge travels). A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.closing_transition', kind='field', version='1', name='meta.closing_transition', title='', description='how the film ends', usage="meta.closing_transition (optional): how the film ENDS — {kind: 'fade', duration: seconds, color: '#rrggbb'}: the last shot's last duration fades to color (its final frame IS the color) and the sound fades with it; the film's length is unchanged. Omitted (or 'cut') = it ends on its last frame. A dissolve is refused.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
 
 the core).
 
@@ -42896,7 +43034,7 @@ points joined; a small prop is not held tighter than a joint.
 How far a contact may be off its surface, either way, as a fraction of the
 entity’s height (4 px on a 200 px figure).
 
-### *class* an.stage.support.SupportState(entity, joint, where, frame, t, surface, surface_ref, contacts, joined, height, source, named='')
+### *class* an.stage.support.SupportState(entity, joint, where, frame, t, surface, surface_ref, contacts, joined, height, source, named='', world_floor=False)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -42944,6 +43082,12 @@ bone, landmark or fraction is `point`).
 #### where *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 Where it is declared (`joints/0`, `entities/1/joints/0`, …).
+
+#### world_floor *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= False*
+
+Whether the surface is the world’s floor (`World.ground`) as the
+camera projects it under the entity, measured along from a point held
+in the frame the entity stands in (an#519 PR 4), not a stage floor.
 
 ### an.stage.support.contacts_of(entity, mall, , rig=None, descriptor=None, doc=None)
 
@@ -43038,9 +43182,12 @@ that tolerance of the surface; its `slid` is how far (stage px) its foot
 parameter along the surface (`along`, in the surface’s own frame) changed
 since the grid’s previous instant, when it was held at both and its motion
 along the surface’s normal was at most `lift` of that (more is a foot
-leaving or meeting the surface). Returns the states and `(where,
-message)` for each reference that does not resolve (no state is made for
-it).
+leaving or meeting the surface). An entity is not measured at an instant
+it is not seen (its alpha at most [`an.base.UNSEEN_ALPHA`](_autosummary/an.base.html.md#an.base.UNSEEN_ALPHA): a member
+the world hides outside its on-screen window, a fade’s end), the rule the
+`solidity` check applies, so a slide is never measured across one.
+Returns the states and `(where, message)` for each reference that does
+not resolve (no state is made for it).
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`SupportState`](_autosummary/an.stage.support.html.md#an.stage.support.SupportState)], [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]]
@@ -44808,7 +44955,7 @@ extents, film starts, then [`an.ir.world.lower_world()`](_autosummary/an.ir.worl
 | [`lowered_or_same`](_autosummary/an.stage.world.html.md#an.stage.world.lowered_or_same)(scene, mall, \*[, fps])            | The lowered scene, or `scene` itself when it has no world or its world cannot be lowered: for the walks that must see what a framed shot draws (credits, publishability) but are not where a world error is reported (validate is).                                                                                                                                                         |
 | [`member_extents`](_autosummary/an.stage.world.html.md#an.stage.world.member_extents)(world, mall, \*, width, height)     | `{id: native box}` for every positioned or attached member and every stream of `world` (environments draw plates, not a box, and are left out).                                                                                                                                                                                                                                             |
 | [`native_box`](_autosummary/an.stage.world.html.md#an.stage.world.native_box)(ref, mall, \*, width, height)           | The box `ref`'s art occupies at `stage.scale` 1, `(x0, y0, x1, y1)` in scene pixels relative to its placement point; `None` when it draws nothing that can be measured (an unknown ref drawn as a placeholder is still measured: that is what the shot would show).                                                                                                                         |
-| [`world_report`](_autosummary/an.stage.world.html.md#an.stage.world.world_report)(lowered)                              | What `an world show` prints: per framed shot, its entities as the compiler sees them (id, kind, at, scale, after) and the lowering's notes.                                                                                                                                                                                                                                                 |
+| [`world_report`](_autosummary/an.stage.world.html.md#an.stage.world.world_report)(lowered)                              | What `an world show` prints: per framed shot, its entities as the compiler sees them (id, kind, at, scale, after, and the floor the world's `ground` puts under it) and the lowering's notes.                                                                                                                                                                                               |
 
 ### an.stage.world.lower_scene(scene, mall, , fps=None, film_starts=None, project_dir=None, continues=True)
 
@@ -44899,7 +45046,8 @@ ValueError: no shot 'a' in the scene (its shots: [])
 ### an.stage.world.world_report(lowered)
 
 What `an world show` prints: per framed shot, its entities as the
-compiler sees them (id, kind, at, scale, after) and the lowering’s notes.
+compiler sees them (id, kind, at, scale, after, and the floor the world’s
+`ground` puts under it) and the lowering’s notes.
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
@@ -50810,7 +50958,8 @@ function [`an.stage.support.supports_at()`](_autosummary/an.stage.support.html.m
   joined, is an **error** span; a reference it cannot resolve is an error too
   (the solve never sees a support, so `unknown_body` cannot say it);
 - an entity nothing declares, taken to stand on the shot’s floor
-  (`solve: {ground: y}`) as it opens, is held to it at its rest instants
+  (`solve: {ground: y}`, else the world’s under it, `World.ground`) as it
+  opens, is held to it at its rest instants
   (between two keys where nothing of it moves), as a **warning**;
 - `b: ground` on a shot with no floor is measured against where the entity
   stands as the shot opens, said once as `info`.
@@ -50839,9 +50988,14 @@ the floor, a warning, and only under a style pack that declares `gravity`
 (a cartoon style that glides is right by declaration). A body’s own stance
 point (`origin`, the ink of its roots, a prop’s `base`, a bone on a root
 part) never skates: a pushed crate or a gliding figure slides on it by right.
-In a shot a world frames, a member whose frame moves relative to the
-viewpoint’s is not judged on `ground` (the stage floor does not stay under
-it; `World.ground`, an#519 PR 4, measures it): said once as `info`.
+In a shot a world frames, `ground` is the world’s floor under each member
+when the world declares one (`World.ground`, an#519 PR 4) and the shot no
+`solve.ground`: the floor line at the member’s depth as the camera projects
+it, and the slide measured from the member’s opening ground point held in the
+frame it stands in, so a member carried by a moving frame does not skate. A
+member whose frame moves relative to the viewpoint’s and that has no world
+floor is not judged on `ground` (a stage floor does not stay under it):
+said once as `info`.
 
 ```pycon
 >>> SUPPORT.name, SUPPORT.order, SUPPORT.term is None
@@ -51219,18 +51373,20 @@ scene: the scene file to read, inside the project (default scene.md; for example
 
 # About this build
 
-This documentation was built on **2026-11-09 06:42 UTC** from commit <a href="https://github.com/reeleehq/an/commit/bb4f9570bfb84e987e190d0d436300354ffbd37b"><code>bb4f957</code></a> on branch <code>main</code>, for **an 0.1.392** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-09 07:26 UTC** from commit <a href="https://github.com/reeleehq/an/commit/39797f400cc7051617ff25edb1d9e672c9205442"><code>39797f4</code></a> on branch <code>main</code>, for **an 0.1.393** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.1.393) is ahead of the latest release on PyPI (0.1.392): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                    |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/an/commit/bb4f9570bfb84e987e190d0d436300354ffbd37b"><code>bb4f9570bfb84e987e190d0d436300354ffbd37b</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/an/commit/39797f400cc7051617ff25edb1d9e672c9205442"><code>39797f400cc7051617ff25edb1d9e672c9205442</code></a> |
 | Branch              | <code>main</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.392</code>                                                                                                                               |
+| Tags at this commit | <code>0.1.393</code>                                                                                                                               |
 | Working tree        | clean                                                                                                                                              |
 | Remote              | <code>https://github.com/reeleehq/an</code>                                                                                                        |
 
@@ -51239,9 +51395,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/an</code>                                                                   |
-| Run          | <a href="https://github.com/reeleehq/an/actions/runs/42573628690">42573628690</a>          |
+| Run          | <a href="https://github.com/reeleehq/an/actions/runs/42578417557">42578417557</a>          |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>223cc947e93d79909d65004066834a9316dab129</code> (in the history of the built commit) |
+| Event commit | <code>29892545f627c082e065c529114dee5e948e49ce</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -51266,13 +51422,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.392/">0.1.392</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.392/">0.1.392</a>, older than the documented version (0.1.393).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/an && cd an
-git checkout bb4f9570bfb84e987e190d0d436300354ffbd37b
+git checkout 39797f400cc7051617ff25edb1d9e672c9205442
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
