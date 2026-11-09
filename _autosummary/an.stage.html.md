@@ -89,6 +89,7 @@ is not.
 | [`snapshot`](an.stage.snapshot.html.md#module-an.stage.snapshot)             | Rasterise art files to PNG in the browser the stage already uses (an#347).                                                                  |
 | [`solve`](an.stage.solve.html.md#module-an.stage.solve)                   | The `solve` compile pass: joints kept at every frame (ADR 0008 decision 6, an#512).                                                         |
 | [`surface`](an.stage.surface.html.md#module-an.stage.surface)               | Surface treatments, compiled (an#163 gap 5): outline, paper-gap shadow, glow, grain.                                                        |
+| [`surface_line`](an.stage.surface_line.html.md#module-an.stage.surface_line)     | Surface lines: what a thing stands on, as a line on the stage (an#519).                                                                     |
 | [`text`](an.stage.text.html.md#module-an.stage.text)                     | Words on screen: title cards, labels, and text you can animate word by word.                                                                |
 | [`text_layout`](an.stage.text_layout.html.md#module-an.stage.text_layout)       | A text block, compiled: one node per unit, each an SVG sprite (an#155).                                                                     |
 | [`timeline`](an.stage.timeline.html.md#module-an.stage.timeline)             | Stage timeline helpers: the compiled scene as a `Timeline`, and screen space.                                                               |

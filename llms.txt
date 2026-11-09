@@ -194,6 +194,7 @@
 - [an.stage.snapshot](_autosummary/an.stage.snapshot.html.md): Rasterise art files to PNG in the browser the stage already uses (an#347).
 - [an.stage.solve](_autosummary/an.stage.solve.html.md): The &#96;solve&#96; compile pass: joints kept at every frame (ADR 0008 decision 6, an#512).
 - [an.stage.surface](_autosummary/an.stage.surface.html.md): Surface treatments, compiled (an#163 gap 5): outline, paper-gap shadow, glow, grain.
+- [an.stage.surface_line](_autosummary/an.stage.surface_line.html.md): Surface lines: what a thing stands on, as a line on the stage (an#519).
 - [an.stage.text](_autosummary/an.stage.text.html.md): Words on screen: title cards, labels, and text you can animate word by word.
 - [an.stage.text_layout](_autosummary/an.stage.text_layout.html.md): A text block, compiled: one node per unit, each an SVG sprite (an#155).
 - [an.stage.timeline](_autosummary/an.stage.timeline.html.md): Stage timeline helpers: the compiled scene as a &#96;Timeline&#96;, and screen space.
@@ -239,7 +240,7 @@
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [an.world_cli](_autosummary/an.world_cli.html.md): &#96;an world …&#96;: the scene’s world from the shell (ADR 0009).
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-11-09 04:49 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-11-09 05:00 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
 
 ## Optional
 

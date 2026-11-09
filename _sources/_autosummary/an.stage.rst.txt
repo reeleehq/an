@@ -46,6 +46,7 @@ an.stage
    snapshot
    solve
    surface
+   surface_line
    text
    text_layout
    timeline

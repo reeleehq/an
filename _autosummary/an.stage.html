@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=a9802f29"></script>
+    <script src="../_static/documentation_options.js?v=4aa4487b"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.389" />
+  <meta name="docsearch:version" content="0.1.390" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -518,6 +518,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stage.snapshot.html">an.stage.snapshot</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.solve.html">an.stage.solve</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.surface.html">an.stage.surface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.surface_line.html">an.stage.surface_line</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.text_layout.html">an.stage.text_layout</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.timeline.html">an.stage.timeline</a></li>
@@ -790,19 +791,22 @@ is not.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="an.stage.surface.html#module-an.stage.surface" title="an.stage.surface"><code class="xref py py-obj docutils literal notranslate"><span class="pre">surface</span></code></a></p></td>
 <td><p>Surface treatments, compiled (an#163 gap 5): outline, paper-gap shadow, glow, grain.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.stage.text.html#module-an.stage.text" title="an.stage.text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">text</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.stage.surface_line.html#module-an.stage.surface_line" title="an.stage.surface_line"><code class="xref py py-obj docutils literal notranslate"><span class="pre">surface_line</span></code></a></p></td>
+<td><p>Surface lines: what a thing stands on, as a line on the stage (an#519).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="an.stage.text.html#module-an.stage.text" title="an.stage.text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">text</span></code></a></p></td>
 <td><p>Words on screen: title cards, labels, and text you can animate word by word.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.stage.text_layout.html#module-an.stage.text_layout" title="an.stage.text_layout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">text_layout</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.stage.text_layout.html#module-an.stage.text_layout" title="an.stage.text_layout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">text_layout</span></code></a></p></td>
 <td><p>A text block, compiled: one node per unit, each an SVG sprite (an#155).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.stage.timeline.html#module-an.stage.timeline" title="an.stage.timeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">timeline</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.stage.timeline.html#module-an.stage.timeline" title="an.stage.timeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">timeline</span></code></a></p></td>
 <td><p>Stage timeline helpers: the compiled scene as a <code class="code docutils literal notranslate"><span class="pre">Timeline</span></code>, and screen space.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.stage.tree.html#module-an.stage.tree" title="an.stage.tree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tree</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.stage.tree.html#module-an.stage.tree" title="an.stage.tree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tree</span></code></a></p></td>
 <td><p>The scene tree's paths: the ONE Python statement of how <code class="docutils literal notranslate"><span class="pre">runtime.js</span></code> indexes nodes (an#343).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.stage.world.html#module-an.stage.world" title="an.stage.world"><code class="xref py py-obj docutils literal notranslate"><span class="pre">world</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.stage.world.html#module-an.stage.world" title="an.stage.world"><code class="xref py py-obj docutils literal notranslate"><span class="pre">world</span></code></a></p></td>
 <td><p>The stage's side of the scene world (ADR 0009): measuring a member's extent, and lowering a whole scene for the compiler.</p></td>
 </tr>
 </tbody>
