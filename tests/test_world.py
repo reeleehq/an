@@ -2580,3 +2580,23 @@ def test_the_shot_size_hook_is_genre_code_the_shot_cache_digests():
         assert __name__ in hook_modules()
     finally:
         unregister_owner("demo_shot_sizes")
+
+
+@pytest.mark.parametrize("mark", [{"host": "right"}, "right", {"host": "right", "side": "front"}])
+def test_a_malformed_beside_host_mark_is_a_compile_error_naming_it(tmp_path, mark):
+    """an#692 review: a hand-written ``beside_host`` the compiler cannot read
+    is refused by name, never a bare KeyError."""
+    from an.base import BESIDE_HOST_OVERRIDE
+    from an.stage.compile import CutoutCompileError, compile_shot
+
+    scene = _two_lamps_scene(timeline=[Shot(id="s1", duration=1.0, viewpoint="two")])
+    left, right = scene.world.members
+    scene.world.members = [left, right.model_copy(update={"after": "left"}), _lamp("hat", attached=Attachment(to="right"))]
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    entities = [
+        e.model_copy(update={"overrides": {**(e.overrides or {}), BESIDE_HOST_OVERRIDE: mark}})
+        if e.id == "hat" else e
+        for e in shot.entities
+    ]  # fmt: skip
+    with pytest.raises(CutoutCompileError, match="malformed `beside_host`"):
+        compile_shot(shot.model_copy(update={"entities": entities}), _project(tmp_path).mall)

@@ -47,6 +47,7 @@ from an.base import (
     DEFAULT_RESOLUTION,
     PAINT_KEYS_OVERRIDE,
     RIDER_BEHIND,
+    RIDER_IN_FRONT,
     paint_key_items,
     paint_key_rank,
     rider_host_key,
@@ -2189,8 +2190,9 @@ def _beside_their_hosts_atoms(
         mark = (e.overrides or {}).get(BESIDE_HOST_OVERRIDE)
         if mark is None or e.id in afters or e.id not in placed:
             continue
-        if mark["host"] in placed:
-            out[e.id] = (mark["host"], int(mark["side"]))
+        host, side = _beside_host_mark(shot.id, e.id, mark)
+        if host in placed:
+            out[e.id] = (host, side)
     for eid in list(out):  # an `after` chain is acyclic: a cycle passes a rider
         seen, at = set(), out[eid][0]
         while at is not None and at != eid and at not in seen:
@@ -2199,6 +2201,22 @@ def _beside_their_hosts_atoms(
         if at == eid:
             del out[eid]
     return out
+
+
+def _beside_host_mark(shot_id: str, entity_id: str, mark: Any) -> tuple[str, int]:
+    """``(host, side)`` of a :data:`an.base.BESIDE_HOST_OVERRIDE` mark, or a
+    :class:`CutoutCompileError` naming what is wrong with a malformed one (the
+    world writes it; a hand-written one is read the same way)."""
+    host = mark.get("host") if isinstance(mark, Mapping) else None
+    side = mark.get("side") if isinstance(mark, Mapping) else None
+    if not isinstance(host, str) or side not in (RIDER_BEHIND, RIDER_IN_FRONT):
+        raise CutoutCompileError(
+            f"shot {shot_id!r}: {entity_id!r} has a malformed "
+            f"`{BESIDE_HOST_OVERRIDE}` override {mark!r}: it is "
+            f"{{host: <entity id>, side: {RIDER_BEHIND} (behind) or "
+            f"{RIDER_IN_FRONT} (in front)}}"
+        )
+    return host, int(side)
 
 
 def _compensated_planes(shot: Shot, mall: Mapping[str, Mapping]) -> set[str]:
