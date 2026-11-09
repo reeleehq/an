@@ -458,6 +458,7 @@ def dolly_frames(
     fps: float,
     step_hz: float | None = None,
     frame_samples: Sequence[Sequence[float]] | None = None,
+    sample_fps: float | None = None,
 ) -> list[CameraKey]:
     """``keys`` as one key per instant of the camera sampler when any of them
     dollies (an#478), else ``keys`` unchanged (and a single key, which is no
@@ -481,5 +482,11 @@ def dolly_frames(
     """
     if len(keys) < 2 or not any(k.dolly for k in keys):
         return keys
-    grid = camera_grid(duration, fps=fps, step_hz=step_hz, frame_samples=frame_samples)
+    grid = camera_grid(
+        duration,
+        fps=fps,
+        step_hz=step_hz,
+        frame_samples=frame_samples,
+        sample_fps=sample_fps,
+    )
     return sample_camera(keys, grid)

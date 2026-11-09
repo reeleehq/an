@@ -208,6 +208,7 @@ def camera_grid(
     fps: float,
     step_hz: float | None = None,
     frame_samples: Sequence[Sequence[float]] | None = None,
+    sample_fps: float | None = None,
     merge_eps: float = SAMPLE_MERGE_EPS,
 ) -> CameraGrid:
     """The ONE sampler for a non-affine camera — a follow, a dolly, anything
@@ -227,8 +228,10 @@ def camera_grid(
     exact key instead of between two. An instant within ``merge_eps`` of a
     key already there is that key. ``None`` adds nothing: the keys are
     exactly the frame grid they always were. They must describe THIS shot:
-    one entry per frame (:func:`frame_count`), or a :class:`FrameClockError`
-    — another shot's samples would key the camera at the wrong instants.
+    one entry per frame (:func:`frame_count`) at ``sample_fps``, the rate the
+    render samples at (a camera's 29.97, where the compiled grid's ``fps`` is
+    rounded to 30; ``fps`` when unset), or a :class:`FrameClockError`:
+    another shot's samples would key the camera at the wrong instants.
 
     >>> camera_grid(0.5, fps=4)
     CameraGrid(times=(0.0, 0.25, 0.5), base=(0.0, 0.25, 0.5), easing='linear')
@@ -237,6 +240,8 @@ def camera_grid(
     >>> g = camera_grid(0.5, fps=4, step_hz=3)
     >>> [round(t, 3) for t in g.times], g.easing, g.base == g.times
     ([0.0, 0.25, 0.333, 0.5], 'step', True)
+    >>> len(camera_grid(20.0, fps=30, frame_samples=[(k / 29.97,) for k in range(599)], sample_fps=29.97).times) > 600
+    True
     >>> camera_grid(0.5, fps=4, frame_samples=((0.0,),))
     Traceback (most recent call last):
       ...
@@ -247,11 +252,12 @@ def camera_grid(
         _merge_into(base, step_times(0.0, duration, step_hz), eps=merge_eps)
     times = list(base)
     if frame_samples is not None:
-        frames = frame_count(duration, fps)
+        rate = sample_fps or fps
+        frames = frame_count(duration, rate)
         if len(frame_samples) != frames:
             raise FrameClockError(
                 f"frame_samples describes {len(frame_samples)} frame(s) but a "
-                f"{duration:g} s shot at {fps:g} fps has {frames}: they are "
+                f"{duration:g} s shot at {rate:g} fps has {frames}: they are "
                 "another shot's samples."
             )
         instants = [float(t) for frame in frame_samples for t in frame]

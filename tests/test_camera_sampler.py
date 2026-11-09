@@ -421,3 +421,20 @@ def test_validate_samples_a_rolling_camera_between_its_keys(tmp_path):
     at, frame, roll = float(m.group(1)), int(m.group(2)), float(m.group(3))
     assert 0.0 < at < DURATION  # a frame between the keys
     assert frame == round(at * Meta().fps) and 0.0 < roll < math.pi / 2
+
+
+def test_a_shutter_at_a_fractional_rate_is_counted_at_that_rate(tmp_path):
+    """Re-review of an#626: the compiled grid rounds 29.97 fps to 30, but a
+    29.97 camera's frame clock describes 29.97's frames; ``compile_args``
+    passes the exact rate, so the follow compiles instead of refusing them."""
+    from an.frame_clock import FrameClock
+
+    duration = 20.0
+    shot = _follow().model_copy(update={"duration": duration})
+    samples = FrameClock(fps=29.97, exposure=0.5, samples=2).sample_times(duration)
+    args = compile_args(shot, mall=_dot_mall(tmp_path), fps=29.97, width=320, height=240, frame_samples=samples)
+    assert args["fps"] == 30 and args["sample_fps"] == pytest.approx(29.97)
+    doc = compile_shot(shot, **args)
+    assert doc is not None
+    with pytest.raises(FrameClockError, match="another shot's samples"):
+        compile_shot(shot, **{**args, "sample_fps": None})  # counted at 30: refused

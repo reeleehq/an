@@ -235,6 +235,7 @@ def compile_args(
         style_pack=style_pack,
         default_easing=default_easing,
         frame_samples=frame_samples,
+        sample_fps=float(fps) if frame_samples is not None else None,
     )
 
 
@@ -900,6 +901,7 @@ def compile_shot(
     style_pack: "StylePack | None" = None,
     default_easing: Any = None,
     frame_samples: Sequence[Sequence[float]] | None = None,
+    sample_fps: float | None = None,
 ) -> CutoutSceneJSON:
     """Compile a single cutout-style `Shot` to its JS-runtime JSON form.
 
@@ -910,6 +912,8 @@ def compile_shot(
     on an exact key instead of between two frames' keys. ``None`` (default)
     keys a frame each and leaves the document byte-identical to before the
     knob existed; so does any value for a shot with no such camera.
+    ``sample_fps`` is the rate they were taken at, when ``fps`` (the compiled
+    grid's, integral) rounds it: they are counted at it.
 
     ``default_easing`` (an#166) is the scene's ``meta.default_easing``: the
     curve of every authored tween that names none (tween > this > the built-in
@@ -990,6 +994,7 @@ def compile_shot(
             if frame_samples is None
             else tuple(tuple(float(t) for t in f) for f in frame_samples)
         ),
+        sample_fps=sample_fps,
     )
     replaced = stage_replacements()
     if replaced:
@@ -1022,6 +1027,8 @@ class CompileState:
     expression_provider: Any = None
     #: The render's sample instants per frame (an#626), ``None`` for a frame each.
     frame_samples: tuple[tuple[float, ...], ...] | None = None
+    #: The rate ``frame_samples`` were taken at (a camera's 29.97), else ``fps``.
+    sample_fps: float | None = None
     textures: dict[str, AssetJSON] = field(default_factory=dict)
     resolutions: list[AssetResolutionJSON] = field(default_factory=list)
     overlay_children: list[NodeJSON] = field(default_factory=list)
@@ -1233,6 +1240,7 @@ def _camera_dolly_pass(state: CompileState) -> None:
         fps=state.fps,
         step_hz=_camera_step_hz(state),
         frame_samples=state.frame_samples,
+        sample_fps=state.sample_fps,
     )
     if framed is not keys:
         state.products[CAMERA_KEYS_PRODUCT] = framed
@@ -1281,6 +1289,7 @@ def camera_follow_keys(state: CompileState) -> list[CameraKey]:
         fps=state.fps,
         step_hz=_camera_step_hz(state),
         frame_samples=state.frame_samples,
+        sample_fps=state.sample_fps,
     )
     times = list(grid.times)
     centre = (state.width / 2.0, state.height / 2.0)
