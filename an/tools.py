@@ -447,9 +447,15 @@ def credits(
     """
     from an.credits import credits_for_project
 
-    report = credits_for_project(
-        project_dir, scene_file=scene, revenue_usd=revenue_usd, territory=territory
-    )
+    use = None
+    if revenue_usd is not None or territory is not None:
+        from lacing import Use
+
+        try:
+            use = Use(revenue_usd=revenue_usd, territory=territory)
+        except (TypeError, ValueError) as e:
+            raise SystemExit(f"an credits: {e}") from e
+    report = credits_for_project(project_dir, scene_file=scene, use=use)
     if json_out:
         import json as _json
 

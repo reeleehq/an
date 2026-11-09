@@ -47,9 +47,16 @@ what keeps `an` from shipping unattributed work in the meantime.
 from __future__ import annotations
 
 import re
+from collections.abc import Mapping, Set
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_validator,
+    model_serializer,
+)
 
 __all__ = [
     "AssetSource",
@@ -272,10 +279,13 @@ class AssetSource(BaseModel):
     #: Usage restrictions a licence code cannot carry (a revenue cap, excluded
     #: territories): ``lacing.Restriction`` records, as ``lacing.Rights.restrictions``
     #: (an#743). The licence still classifies the asset; every restriction is
-    #: checked on top (:func:`restriction_breaches`). lacing is imported only
-    #: when one is present, so ``import an`` does not load it; an empty tuple is
-    #: left out of a dump, so a source recorded before the field reads the same.
-    restrictions: tuple[Any, ...] = Field(default=(), exclude_if=lambda v: not v)
+    #: checked on top (:func:`restriction_breaches`). Annotated ``Any`` on
+    #: purpose: lacing is imported only when one is present, so ``import an``
+    #: does not load it, and a ``TYPE_CHECKING``-only import would leave pydantic
+    #: a forward reference it cannot resolve when it builds the model. An empty
+    #: tuple is left out of a dump (:meth:`_omit_empty_restrictions`), so a source
+    #: recorded before the field reads the same.
+    restrictions: tuple[Any, ...] = ()
 
     # --- an's own.
     sha256: str | None = Field(
@@ -291,15 +301,34 @@ class AssetSource(BaseModel):
     @field_validator("restrictions", mode="before")
     @classmethod
     def _as_lacing_restrictions(cls, value: Any) -> tuple[Any, ...]:
+        """A sequence (list, tuple, generator) of ``lacing.Restriction`` records
+        or their dicts; an unordered collection or a mapping is refused, since
+        the order of the restrictions is the order of their reasons."""
+        if value is None:
+            return ()
+        if isinstance(value, (str, bytes, Set, Mapping)) or not hasattr(
+            value, "__iter__"
+        ):
+            raise ValueError(
+                "restrictions must be a list of lacing.Restriction records "
+                f"(an ordered sequence), got {type(value).__name__}"
+            )
+        value = tuple(value)
         if not value:
             return ()
-        if isinstance(value, (str, bytes)) or not hasattr(value, "__iter__"):
-            raise ValueError(
-                "restrictions must be a list of lacing.Restriction records"
-            )
         from lacing import Restriction
 
         return tuple(Restriction.model_validate(r) for r in value)
+
+    @model_serializer(mode="wrap")
+    def _omit_empty_restrictions(self, handler):
+        """Leave ``restrictions`` out of the dump when there are none, so a
+        source recorded before the field dumps (and hashes) as it did, as
+        ``lacing.Rights`` does. Extras and the dump options pass through."""
+        data = handler(self)
+        if isinstance(data, dict) and not data.get("restrictions", ...):
+            data.pop("restrictions", None)
+        return data
 
 
 def normalise_license(code: str) -> str:
@@ -394,30 +423,30 @@ def license_restriction(source: AssetSource) -> str | None:
     )
 
 
-def restriction_breaches(
-    source: AssetSource,
-    *,
-    revenue_usd: int | None = None,
-    territory: str | None = None,
-) -> list[str]:
-    """Why a use breaks each of ``source``'s restrictions, in order; ``[]`` when it meets them (an#743).
+def restriction_breaches(source: AssetSource, use: Any = None) -> list[str]:
+    """Why ``use`` breaks each of ``source``'s restrictions, in order; ``[]`` when it meets them (an#743).
 
-    The use is its annual revenue and its territory (an ISO 3166-1 alpha-2 code,
-    or ``"WORLD"`` for online publishing). Read by lacing
-    (``lacing.restriction_breach``), so it fails closed as lacing documents: an
-    unstated revenue or territory against a restriction that asks about it, and
-    a restriction of a kind nobody knows, are breaches.
+    ``use`` is a ``lacing.Use`` (its annual revenue and its territory, an ISO
+    3166-1 alpha-2 code or ``"WORLD"`` for online publishing); ``None`` is an
+    unstated ``Use()``. Read by lacing (``lacing.restriction_breach``), so it
+    fails closed as lacing documents: an unstated revenue or territory against a
+    restriction that asks about it, and a restriction of a kind nobody knows,
+    are breaches.
 
+    >>> from lacing import Use
     >>> s = AssetSource(provider="foley", license="CC-BY-4.0", restrictions=[
     ...     {"kind": "revenue_cap", "usd": 1_000_000, "terms": "stability-community"}])
-    >>> restriction_breaches(s, revenue_usd=50_000)
+    >>> restriction_breaches(s, Use(revenue_usd=50_000))
     []
     >>> restriction_breaches(s)
     ['stability-community: allowed only below $1,000,000 of revenue (state the revenue)']
     """
     if not source.restrictions:
         return []
-    from lacing import restriction_breach
+    from lacing import Use, restriction_breach
 
-    use = {"revenue_usd": revenue_usd, "territory": territory}
-    return [r for x in source.restrictions if (r := restriction_breach(x, **use))]
+    if use is None:
+        use = Use()
+    elif not isinstance(use, Use):
+        raise TypeError(f"use must be a lacing.Use, got {type(use).__name__}")
+    return [r for x in source.restrictions if (r := restriction_breach(x, use))]
