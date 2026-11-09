@@ -43,6 +43,7 @@ from an.stage.serialize import (
 )
 from an.stage.text import (
     TEXT_SET,
+    HaloPaint,
     TextDescriptor,
     TextLayout,
     TextUnit,
@@ -68,6 +69,10 @@ INLINE_SRC_PREFIX: str = "data:"
 
 _SVG_NS = "http://www.w3.org/2000/svg"
 
+#: The id of a unit texture's halo filter. Each texture is its own SVG
+#: document, so one fixed id never collides.
+HALO_FILTER_ID: str = "halo"
+
 
 def unit_svg(
     d: str,
@@ -76,6 +81,7 @@ def unit_svg(
     color: str,
     stroke_width: float = 0.0,
     stroke_color: str | None = None,
+    halo: HaloPaint | None = None,
 ) -> str:
     """One unit's texture: its contours in a viewBox equal to its frame-pixel box.
 
@@ -89,10 +95,25 @@ def unit_svg(
 
     >>> 'stroke-width="6"' in unit_svg("M0 0Z", (0, 0, 4, 4), color="#fff", stroke_width=3, stroke_color="#000")
     True
+
+    With a halo (an#701) the contours are drawn first of all through a filter
+    (:func:`halo_filter`) that keeps only the glow, so the texture is glow,
+    then outline, then fill:
+
+    >>> from an.stage.text import HaloPaint
+    >>> svg = unit_svg("M0 0Z", (0, 0, 4, 4), color="#fff", halo=HaloPaint("#111111", 0.65, 1, 2.0, 2.0))
+    >>> svg.index('filter="url(#halo)"') < svg.index('fill="#fff"')
+    True
     """
     x0, y0, x1, y1 = box
     w, h = x1 - x0, y1 - y0
     k = TEXT_TEXTURE_OVERSAMPLE
+    glow = (
+        f"{halo_filter(halo, box)}"
+        f'<path fill="#000000" filter="url(#{HALO_FILTER_ID})" d="{d}"/>'
+        if halo is not None
+        else ""
+    )
     outline = (
         f'<path fill="none" stroke="{stroke_color}" stroke-width="{2 * stroke_width:g}" '
         f'stroke-linejoin="round" d="{d}"/>'
@@ -101,7 +122,49 @@ def unit_svg(
     )
     return (
         f'<svg xmlns="{_SVG_NS}" width="{w * k}" height="{h * k}" '
-        f'viewBox="{x0} {y0} {w} {h}">{outline}<path fill="{color}" d="{d}"/></svg>'
+        f'viewBox="{x0} {y0} {w} {h}">{glow}{outline}<path fill="{color}" d="{d}"/></svg>'
+    )
+
+
+def halo_filter(halo: HaloPaint, box: tuple[int, int, int, int]) -> str:
+    """The ``<filter>`` that turns a unit's glyphs into its halo (an#701):
+    tituli's ``glow`` as SVG filter primitives (:data:`HALO_FILTER_PRIMITIVES`).
+
+    The glyphs' alpha (``SourceAlpha``) is dilated by ``spread`` px
+    (``feMorphology``), blurred with a standard deviation of ``blur`` px
+    (``feGaussianBlur``), multiplied by ``gain`` and clipped to opaque
+    (``feComponentTransfer``: a filter result is clamped to [0, 1]), and laid
+    in the halo's colour at its alpha (``feFlood`` + ``feComposite in``). The
+    region is the unit's whole box in user space, which already holds the
+    glow's reach; a zero ``spread`` or ``blur`` leaves its step out.
+    Composited in sRGB, as tituli's Pillow drawing is.
+
+    >>> f = halo_filter(HaloPaint("#111111", 0.65, 0, 1.5, 2.0), (0, 0, 10, 10))
+    >>> "feMorphology" in f, 'stdDeviation="1.5"' in f, 'slope="2"' in f
+    (False, True, True)
+    """
+    x0, y0, x1, y1 = box
+    src = ' in="SourceAlpha"'  # the first step reads the glyphs' alpha
+    steps = []
+    if halo.spread > 0:
+        steps.append(f'<feMorphology{src} operator="dilate" radius="{halo.spread}"/>')
+        src = ""
+    if halo.blur > 0:
+        steps.append(f'<feGaussianBlur{src} stdDeviation="{halo.blur:g}"/>')
+        src = ""
+    steps.append(
+        f'<feComponentTransfer{src} result="glow">'
+        f'<feFuncA type="linear" slope="{halo.gain:g}"/>'
+        "</feComponentTransfer>"
+    )
+    return (
+        f'<defs><filter id="{HALO_FILTER_ID}" filterUnits="userSpaceOnUse" '
+        f'x="{x0}" y="{y0}" width="{x1 - x0}" height="{y1 - y0}" '
+        'color-interpolation-filters="sRGB">'
+        + "".join(steps)
+        + f'<feFlood flood-color="{halo.color}" flood-opacity="{halo.alpha:g}"/>'
+        + '<feComposite in2="glow" operator="in"/>'
+        "</filter></defs>"
     )
 
 
@@ -171,6 +234,7 @@ def _unit_texture(
             color=desc.color,
             stroke_width=desc.stroke_width,
             stroke_color=desc.stroke_color,
+            halo=unit.halo,
         )
     )
     digest = hashlib.sha256(src.encode("ascii")).hexdigest()[:TEXT_ALIAS_DIGEST_LEN]

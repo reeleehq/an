@@ -56,7 +56,7 @@ import math
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Literal, Mapping, Sequence
+from typing import Any, Callable, Literal, Mapping, Sequence
 
 from pydantic import (
     BaseModel,
@@ -79,7 +79,12 @@ __all__ = [
     "TextFontError",
     "TextLayoutError",
     "TextOutlineWarning",
+    "TextHaloWarning",
     "TextUnit",
+    "HaloPaint",
+    "halo_paint",
+    "halo_engine_problem",
+    "HALO_FILTER_PRIMITIVES",
     "TextLayout",
     "FontIdentity",
     "resolve_text",
@@ -148,6 +153,31 @@ _WHITESPACE_NORMALISATION: tuple[tuple[str, str], ...] = (
 #: at the box edge is never clipped.
 UNIT_BOX_PAD_PX: int = 1
 
+#: An 8-bit channel's maximum: a tituli colour's alpha over this is a fraction.
+_ALPHA_MAX: int = 255
+
+#: How far a halo's Gaussian is drawn past its dilation, in standard
+#: deviations: the unit's box grows by ``spread + ceil(this x blur)`` so the
+#: glow is never clipped. tituli's own reach (``tituli.render._BLUR_REACH``).
+HALO_BLUR_REACH: int = 3
+
+#: How far past the ink a halo still visibly covers a NEIGHBOUR's glyphs, in
+#: standard deviations past the dilation: at 2 the default halo's glow is down
+#: to ~3 % (``gain`` 2 x the Gaussian tail 0.023 x ``opacity`` 0.65). What
+#: :class:`TextHaloWarning` measures against.
+HALO_COVER_SIGMAS: float = 2.0
+
+#: The SVG filter primitives a halo is drawn with (an#701), in the order the
+#: unit's texture chains them: what the shot's engine must afford as
+#: ``engine.svg_filter`` keys, or the text is refused at compile.
+HALO_FILTER_PRIMITIVES: tuple[str, ...] = (
+    "feMorphology",
+    "feGaussianBlur",
+    "feComponentTransfer",
+    "feFlood",
+    "feComposite",
+)
+
 _HEX_COLOUR = re.compile(r"#[0-9a-fA-F]{6}")
 
 Layer = Literal["world", "overlay"]
@@ -205,6 +235,70 @@ class Counter(BaseModel):
         return format_number(value, self.format)
 
 
+#: The numeric fields of a tituli ``Halo``, checked here because a dataclass
+#: does not check its own types: a string ``spread`` would fail in a filter.
+_HALO_NUMBERS: tuple[str, ...] = ("spread", "blur", "gain", "opacity")
+
+
+def _as_halo(value: Any) -> Any:
+    """A text block's ``halo`` as a ``tituli.Halo`` (or ``None``), refusing
+    what tituli would not draw: an unknown field, a non-number, a negative
+    size, an opacity outside [0, 1], a colour tituli cannot parse.
+
+    >>> _as_halo(True).spread, _as_halo({"blur": 0.2}).blur, _as_halo(None)
+    (0.03, 0.2, None)
+    >>> _as_halo({"glow": 1})
+    Traceback (most recent call last):
+    ...
+    ValueError: `halo` has no field(s) ['glow']; it takes tituli's Halo fields ['blur', 'color', 'gain', 'opacity', 'spread']
+    """
+    if value is None or value is False:
+        return None
+    import dataclasses
+
+    try:
+        from tituli import Halo, parse_color
+    except ImportError as err:  # a tituli from before Halo (tituli#24)
+        raise TextLayoutError(
+            "`halo` needs tituli >= 0.0.13 (pip install -U tituli)"
+        ) from err
+
+    if value is True:
+        return Halo()
+    if isinstance(value, Halo):
+        fields = dataclasses.asdict(value)
+    elif isinstance(value, Mapping):
+        known = {f.name for f in dataclasses.fields(Halo)}
+        unknown = sorted(set(value) - known)
+        if unknown:
+            raise ValueError(
+                f"`halo` has no field(s) {unknown}; it takes tituli's Halo "
+                f"fields {sorted(known)}"
+            )
+        fields = dict(value)
+    else:
+        raise ValueError(
+            f"`halo` takes true, a mapping of tituli's Halo fields or a "
+            f"tituli.Halo; got {value!r}"
+        )
+    for name in _HALO_NUMBERS:
+        number = fields.get(name, 0.0)
+        if isinstance(number, bool) or not isinstance(number, (int, float)):
+            raise ValueError(f"`halo.{name}` takes a number; got {number!r}")
+        if not math.isfinite(number):
+            raise ValueError(f"`halo.{name}` must be finite; got {number!r}")
+    if isinstance(fields.get("color"), list):  # JSON has no tuples
+        fields["color"] = tuple(fields["color"])
+    if fields.get("color") is not None:
+        try:
+            parse_color(fields["color"])
+        except (ValueError, TypeError) as err:
+            raise ValueError(
+                f"`halo.color` {fields['color']!r} is not a colour tituli reads: {err}"
+            ) from None
+    return Halo(**fields)  # its own checks raise ValueError (negative, opacity)
+
+
 class TextDescriptor(BaseModel):
     """The on-disk text schema, saved as a prop's ``prop.json``.
 
@@ -254,6 +348,33 @@ class TextDescriptor(BaseModel):
     stroke_width: float = Field(default=0.0, ge=0, allow_inf_nan=False)
     #: The outline's ``#rrggbb``; needs ``stroke_width``.
     stroke_color: str = DFLT_TEXT_STROKE_COLOUR
+    #: A soft glow under every unit (an#701): tituli's own ``Halo`` (one
+    #: vocabulary for both packages), given as ``true`` (the default halo), a
+    #: mapping of its fields (``color``, ``spread``, ``blur``, ``gain``,
+    #: ``opacity``; sizes in em) or a ``tituli.Halo``. ``color`` unset is the
+    #: opposite of ``color`` (``tituli.color.ink_for``). Drawn in each unit's
+    #: own texture, under the outline and the fill, with SVG filters the
+    #: shot's engine must afford (``engine.svg_filter``).
+    halo: Any = Field(
+        default=None,
+        json_schema_extra={
+            "anyOf": [
+                {"type": "boolean"},
+                {
+                    "type": "object",
+                    "properties": {
+                        "color": {},
+                        "spread": {"type": "number", "minimum": 0},
+                        "blur": {"type": "number", "minimum": 0},
+                        "gain": {"type": "number", "minimum": 0},
+                        "opacity": {"type": "number", "minimum": 0, "maximum": 1},
+                    },
+                    "additionalProperties": False,
+                },
+                {"type": "null"},
+            ]
+        },
+    )
     #: ``None`` = the embedded face; else a font FILE path (see the module doc).
     font: str | None = None
     #: OpenType features to apply, by tag (an#362): ``["tnum"]`` sets tabular
@@ -289,6 +410,11 @@ class TextDescriptor(BaseModel):
         if not _HEX_COLOUR.fullmatch(color):
             raise ValueError(f"`color` takes a #rrggbb string; got {color!r}")
         return color
+
+    @field_validator("halo", mode="before")
+    @classmethod
+    def _a_tituli_halo(cls, halo):
+        return _as_halo(halo)
 
     @field_validator("text")
     @classmethod
@@ -480,19 +606,79 @@ class FontIdentity:
 
 
 @dataclass(frozen=True)
+class HaloPaint:
+    """A tituli ``Halo`` resolved for one unit: frame pixels and one colour.
+
+    What a unit's texture draws (an#701): the glyphs' alpha dilated by
+    ``spread`` (whole pixels, as tituli rounds it), blurred with a Gaussian
+    of standard deviation ``blur``, multiplied by ``gain`` and clipped to
+    opaque, then laid in ``color`` at ``alpha`` (the halo's ``opacity`` times
+    its colour's own alpha) — tituli's ``glow`` and ``draw_halo``, step for
+    step.
+    """
+
+    color: str
+    alpha: float
+    spread: int
+    blur: float
+    gain: float
+
+    @property
+    def reach(self) -> int:
+        """Whole pixels the glow reaches past the ink: the unit's box grows by it."""
+        return self.spread + math.ceil(HALO_BLUR_REACH * self.blur)
+
+    @property
+    def cover(self) -> float:
+        """Pixels past the ink where the glow still visibly covers another
+        unit's glyphs (:data:`HALO_COVER_SIGMAS`)."""
+        return self.spread + HALO_COVER_SIGMAS * self.blur
+
+
+def halo_paint(halo: Any, *, em: float, ink: str) -> HaloPaint:
+    """``halo`` (a ``tituli.Halo``) at a type size of ``em`` pixels, under
+    glyphs drawn in ``ink``: its em sizes in pixels, its colour (unset = the
+    opposite of the ink, ``tituli.color.ink_for``) and its final alpha.
+
+    >>> from tituli import Halo
+    >>> p = halo_paint(Halo(), em=100, ink="#ffffff")
+    >>> p.color, p.spread, p.blur, p.gain, p.alpha, p.reach
+    ('#111111', 3, 10.0, 2.0, 0.65, 33)
+    >>> halo_paint(Halo(color="#ffd40080", opacity=1.0), em=40, ink="#000000").alpha
+    0.5019607843137255
+    """
+    from tituli import ink_for, parse_color
+    from tituli.color import relative_luminance
+
+    if halo.color is not None:
+        r, g, b, a = parse_color(halo.color)
+    else:
+        r, g, b, a = parse_color(ink_for(luminance=relative_luminance(ink)))
+    return HaloPaint(
+        color=f"#{r:02x}{g:02x}{b:02x}",
+        alpha=halo.opacity * a / _ALPHA_MAX,
+        spread=max(0, round(halo.spread * em)),
+        blur=halo.blur * em,
+        gain=float(halo.gain),
+    )
+
+
+@dataclass(frozen=True)
 class TextUnit:
     """One addressable unit: its node name, its string, its box and its ink.
 
     ``box`` is ``(x0, y0, x1, y1)`` in frame pixels, snapped OUTWARD to whole
     pixels and containing both the layout box and the ink, so the sprite's
     corners sit on the pixel grid and nothing is clipped. ``d`` is the unit's
-    glyph contours as SVG path data in frame pixels.
+    glyph contours as SVG path data in frame pixels. ``halo`` is the glow
+    drawn under it (an#701), ``None`` for none.
     """
 
     name: str
     text: str
     box: tuple[int, int, int, int]
     d: str
+    halo: HaloPaint | None = None
 
     @property
     def size(self) -> tuple[int, int]:
@@ -642,10 +828,15 @@ def _layout_string(
     # tituli sets lines; a block is its lines drawn as ONE unit (below).
     typeset_unit = "line" if desc.unit == BLOCK_UNIT else desc.unit
     lay = block(text, style, float(height), max_width=max_w, unit=typeset_unit)
+    _refuse_plates(desc, lay)
+    if desc.halo is not None:
+        # The block's halo rides on its runs, tituli's own carrier for it
+        # (tituli#19): one place says which glow a unit draws, whether the
+        # document asked for it or the layout came with one (an#682).
+        lay = lay.with_halo(desc.halo)
     runs = [r for r in lay.runs if r.text.strip()]
     if not runs:
         raise TextLayoutError(f"text {desc.name!r} lays out to nothing drawable")
-    _refuse_halos(desc, runs)
     face = runs[0].face
     if desc.font is not None and face.path != request[0]:
         raise TextFontError(
@@ -677,8 +868,6 @@ def _layout_string(
             ) from err
         if outline.bbox is not None:
             inked.append((run, outline))
-    if desc.stroke_width and desc.unit in ("word", "glyph"):
-        _warn_if_outlines_overlap(desc, inked)
     if desc.unit == BLOCK_UNIT:
         # One unit for the whole block: the lines' contours in one path, the
         # union of their boxes (an#341).
@@ -686,12 +875,20 @@ def _layout_string(
     else:
         groups = [[pair] for pair in inked]
     units: list[TextUnit] = []
+    inks = []  # each unit's ink box, parallel to `units`
     for group in groups:
         box = group[0][0].bbox().union(group[0][1].bbox)
+        ink = group[0][1].bbox
         for run, outline in group[1:]:
             box = box.union(run.bbox()).union(outline.bbox)
-        # The outline reaches `stroke_width` past the ink (an#313).
-        pad = UNIT_BOX_PAD_PX + math.ceil(desc.stroke_width)
+            ink = ink.union(outline.bbox)
+        inks.append(ink)
+        halo = _unit_halo(desc, group)
+        # The outline reaches `stroke_width` past the ink (an#313), the
+        # halo its `reach` (an#701); the box holds the further of the two.
+        pad = UNIT_BOX_PAD_PX + math.ceil(
+            max(desc.stroke_width, halo.reach if halo is not None else 0)
+        )
         units.append(
             TextUnit(
                 name=f"{desc.unit}_{len(units)}",
@@ -703,8 +900,31 @@ def _layout_string(
                     math.ceil(box.y1) + pad,
                 ),
                 d=" ".join(outline.d for _, outline in group),
+                halo=halo,
             )
         )
+    if desc.stroke_width:
+        # The outline reaches `stroke_width` past the ink on both sides, so
+        # two units closer than twice that show the later one's over the
+        # earlier one's fill (an#313).
+        _warn_if_underlay_covers(
+            desc,
+            units,
+            inks,
+            reach=lambda unit: 2 * desc.stroke_width,
+            noun="outline",
+            knobs="a thinner `stroke_width`, a larger `size`",
+            category=TextOutlineWarning,
+        )
+    _warn_if_underlay_covers(
+        desc,
+        units,
+        inks,
+        reach=lambda unit: unit.halo.cover if unit.halo is not None else None,
+        noun="halo",
+        knobs="a smaller `halo.spread`/`halo.blur`",
+        category=TextHaloWarning,
+    )
     identity = FontIdentity(
         family=face.family,
         style=face.style,
@@ -721,49 +941,129 @@ def _layout_string(
     )
 
 
-def _refuse_halos(desc: TextDescriptor, runs: Sequence[Any]) -> None:
-    """Refuse runs that carry a tituli ``halo`` (a soft glow under the glyphs,
-    tituli#19): ``an`` draws a run from its glyph contours alone, so the glow
-    would be silently left off the film (an#682). ``an`` never asks for one
-    (``block`` sets none), so this guards against tituli changing its
-    defaults, until ``an`` draws a halo as an underlay (an#701)."""
-    haloed = [r.text for r in runs if getattr(r, "halo", None) is not None]
-    if haloed:
+def _refuse_plates(desc: TextDescriptor, lay: Any) -> None:
+    """Refuse a layout carrying tituli ``plates`` (scrims, boxes, rules drawn
+    under the runs): ``an`` draws a block's units and nothing else, so a
+    plate would be silently left off the film. ``tituli.block`` makes none
+    today; this guards against that changing, the way an#682 guarded halos,
+    until ``an`` draws one (an#701's review)."""
+    plates = tuple(getattr(lay, "plates", ()) or ())
+    if plates:
+        kinds = sorted({getattr(p, "kind", "?") for p in plates})
         raise TextLayoutError(
-            f"text {desc.name!r}: `tituli.block` returned {len(haloed)} run(s) "
-            f"carrying a `halo` ({', '.join(repr(t) for t in haloed[:3])}"
-            f"{', ...' if len(haloed) > 3 else ''}), which `an` never asks for and "
-            "cannot draw yet (an#701): it draws text from glyph outlines and "
-            "would leave the glow off. Did tituli change its defaults?"
+            f"text {desc.name!r}: `tituli.block` returned {len(plates)} plate(s) "
+            f"({', '.join(kinds)}) under the text, which `an` does not draw: it "
+            "would leave the scrim off. Give the block a plate as an environment "
+            "plane or a prop behind it, or a `halo` for legibility over footage."
         )
+
+
+def _unit_halo(desc: TextDescriptor, group: Sequence[Any]) -> HaloPaint | None:
+    """The glow one unit draws: the halo its runs carry (the block's own
+    ``halo``, or one the layout came with — an#682's refusal is lifted for
+    what ``an`` can draw), resolved at the runs' type size.
+
+    A unit is one texture with one underlay, so a ``block`` unit whose lines
+    carry DIFFERENT halos (or some none) is refused, naming them, rather than
+    drawn with one of them."""
+    halos = {getattr(run, "halo", None) for run, _ in group}
+    if len(halos) > 1:
+        lines = [run.text for run, _ in group]
+        raise TextLayoutError(
+            f"text {desc.name!r}: one {desc.unit} unit ({lines[:3]}"
+            f"{', ...' if len(lines) > 3 else ''}) has runs carrying different "
+            "halos, and a unit draws ONE glow under its glyphs. Set one `halo` "
+            "on the block, or use `unit: line` so each line is its own unit."
+        )
+    (halo,) = halos
+    if halo is None:
+        return None
+    run = group[0][0]
+    return halo_paint(halo, em=run.face.size, ink=desc.color)
 
 
 class TextOutlineWarning(UserWarning):
     """A unit's outline is wide enough to cover its neighbour's glyphs."""
 
 
-def _warn_if_outlines_overlap(desc: TextDescriptor, inked: list) -> None:
-    """Each unit is its own texture, so a unit's outline is drawn OVER the
-    fill of the unit before it wherever the two meet (an#313): two units on
-    one line closer than twice ``stroke_width`` show it. Said once, naming
-    the remedies, rather than drawn silently."""
+class TextHaloWarning(UserWarning):
+    """A unit's halo reaches far enough to dim a neighbouring unit's glyphs."""
+
+
+def _warn_if_underlay_covers(
+    desc: TextDescriptor,
+    units: Sequence[TextUnit],
+    inks: Sequence[Any],
+    *,
+    reach: Callable[[TextUnit], float | None],
+    noun: str,
+    knobs: str,
+    category: type[Warning],
+) -> None:
+    """Warn once when a unit's underlay (its outline, an#313, or its halo,
+    an#701) reaches over an EARLIER unit's ink: every unit is its own
+    texture, drawn in order, so a later unit's underlay covers the fill of
+    any unit before it wherever the two meet (tituli draws every underlay
+    first; per-unit alpha rules that out here). Any pair is checked, across
+    and down the page, so a heavy underlay on stacked lines is caught as
+    well as one between neighbours on a line.
+
+    ``reach(unit)`` is how close two inks may come before the unit's
+    underlay shows on the other (``None``: the unit draws none); ``inks``
+    are the units' ink boxes, parallel to ``units``.
+    """
     import warnings
 
-    reach = 2 * desc.stroke_width
-    for (a, oa), (b, ob) in zip(inked, inked[1:]):
-        ink_a, ink_b = oa.bbox, ob.bbox
-        same_line = ink_a.y0 < ink_b.y1 and ink_b.y0 < ink_a.y1
-        if same_line and ink_b.x0 - ink_a.x1 < reach:
-            warnings.warn(
-                f"text {desc.name!r}: a {desc.stroke_width:g} px outline reaches "
-                f"across the gap between {a.text!r} and {b.text!r}, so each "
-                f"{desc.unit}'s outline covers part of the one before it (every "
-                "unit is its own texture). Use a thinner `stroke_width`, a larger "
-                "`size`, or `unit: line`/`block` for a heavy outline.",
-                TextOutlineWarning,
-                stacklevel=4,
-            )
-            return
+    if desc.unit in ("word", "glyph"):
+        regroup = "`unit: line`/`block`"
+    else:
+        regroup = "`unit: block`"
+    for j, (unit_b, ink_b) in enumerate(zip(units, inks)):
+        r = reach(unit_b)
+        if not r:
+            continue
+        for unit_a, ink_a in zip(units[:j], inks[:j]):
+            gap_x = max(ink_a.x0 - ink_b.x1, ink_b.x0 - ink_a.x1)
+            gap_y = max(ink_a.y0 - ink_b.y1, ink_b.y0 - ink_a.y1)
+            if gap_x < r and gap_y < r:
+                warnings.warn(
+                    f"text {desc.name!r}: the {noun} of {unit_b.text!r} covers "
+                    f"part of the one before it, {unit_a.text!r}: their inks are "
+                    f"closer than the {r:.1f} px it reaches, and every "
+                    f"{desc.unit} is its own texture, so a later {desc.unit}'s "
+                    f"{noun} is drawn over an earlier one's glyphs. Use {knobs}, "
+                    f"or {regroup}.",
+                    category,
+                    stacklevel=4,
+                )
+                return
+
+
+def halo_engine_problem(units: Sequence[TextUnit], renderer: str) -> str | None:
+    """What stops ``renderer`` drawing these units' halos, or ``None``.
+
+    A halo is SVG filters in the unit's texture (:data:`HALO_FILTER_PRIMITIVES`);
+    an engine that does not afford them as ``engine.svg_filter`` keys would
+    draw the glyphs with no glow, so the compiler raises on this and ``an
+    validate`` reports it. A renderer that is not registered is left to its
+    own check.
+
+    >>> halo_engine_problem([], "stage") is None
+    True
+    """
+    if not any(u.halo is not None for u in units):
+        return None
+    from an.capabilities.subjects import ENGINE_SVG_FILTER, missing_engine_terms
+
+    lacking = missing_engine_terms(
+        renderer, [f"{ENGINE_SVG_FILTER.name}:{p}" for p in HALO_FILTER_PRIMITIVES]
+    )
+    if not lacking:
+        return None
+    return (
+        f"a text `halo` is drawn with SVG filters ({lacking}), which renderer "
+        f"{renderer!r} does not afford: {ENGINE_SVG_FILTER.remedy}"
+    )
 
 
 def _layout_engine_name(face) -> str:

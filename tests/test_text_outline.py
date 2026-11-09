@@ -39,14 +39,20 @@ def test_without_an_outline_nothing_changes():
     plain = TextDescriptor(name="t", text="hi")
     assert "stroke_width" not in plain.model_dump()
     a = layout_text(plain, width=W, height=H)
-    b = layout_text(TextDescriptor(name="t", text="hi", stroke_width=0.0), width=W, height=H)
+    b = layout_text(
+        TextDescriptor(name="t", text="hi", stroke_width=0.0), width=W, height=H
+    )
     assert a.units == b.units
 
 
 def test_each_unit_box_grows_by_the_outline():
-    plain = layout_text(TextDescriptor(name="t", text="ROME FALLS", size=0.2), width=W, height=H)
+    plain = layout_text(
+        TextDescriptor(name="t", text="ROME FALLS", size=0.2), width=W, height=H
+    )
     outlined = layout_text(
-        TextDescriptor(name="t", text="ROME FALLS", size=0.2, stroke_width=3.5), width=W, height=H
+        TextDescriptor(name="t", text="ROME FALLS", size=0.2, stroke_width=3.5),
+        width=W,
+        height=H,
     )
     for p, o in zip(plain.units, outlined.units):
         assert (o.box[0], o.box[1]) == (p.box[0] - 4, p.box[1] - 4)
@@ -78,14 +84,43 @@ def test_the_outline_is_under_the_fill_in_the_word_s_own_texture():
         assert 'stroke-width="8"' in svg and 'stroke-linejoin="round"' in svg
 
 
-def test_an_outline_that_covers_the_neighbouring_word_is_said():
-    with pytest.warns(TextOutlineWarning, match="covers part of the one before it"):
-        layout_text(TextDescriptor(name="t", text="ROME FALLS", size=0.2, stroke_width=8.0), width=W, height=H)
+@pytest.mark.parametrize("unit", ["word", "line"])
+def test_an_outline_that_covers_the_line_above_is_said(unit):
+    """Stacked lines are neighbours too: the check is the halo's (an#701),
+    any pair of units, across and down the page. Before the two were merged
+    it compared only words side by side on one line, so this went unsaid."""
+    two_lines = {"text": "ROME\nFALLS", "size": 0.2, "unit": unit, "leading": 1.0}
+    with pytest.warns(
+        TextOutlineWarning, match="'FALLS' covers part of the one before it, 'ROME'"
+    ):
+        layout_text(
+            TextDescriptor(name="t", stroke_width=8.0, **two_lines), width=W, height=H
+        )
     with warnings.catch_warnings():
         warnings.simplefilter("error", TextOutlineWarning)
-        layout_text(TextDescriptor(name="t", text="ROME FALLS", size=0.2, stroke_width=4.0), width=W, height=H)
         layout_text(
-            TextDescriptor(name="t", text="ROME FALLS", size=0.2, stroke_width=8.0, unit="line"),
+            TextDescriptor(name="t", stroke_width=4.0, **two_lines), width=W, height=H
+        )
+
+
+def test_an_outline_that_covers_the_neighbouring_word_is_said():
+    with pytest.warns(TextOutlineWarning, match="covers part of the one before it"):
+        layout_text(
+            TextDescriptor(name="t", text="ROME FALLS", size=0.2, stroke_width=8.0),
+            width=W,
+            height=H,
+        )
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", TextOutlineWarning)
+        layout_text(
+            TextDescriptor(name="t", text="ROME FALLS", size=0.2, stroke_width=4.0),
+            width=W,
+            height=H,
+        )
+        layout_text(
+            TextDescriptor(
+                name="t", text="ROME FALLS", size=0.2, stroke_width=8.0, unit="line"
+            ),
             width=W,
             height=H,
         )

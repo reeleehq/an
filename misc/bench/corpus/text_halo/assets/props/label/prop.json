@@ -1,0 +1,10 @@
+{
+  "kind": "TextDescriptor",
+  "schema_version": "0.1.0",
+  "name": "label",
+  "text": "SAND DUNE",
+  "unit": "word",
+  "size": 0.2,
+  "color": "#ffffff",
+  "halo": true
+}

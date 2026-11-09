@@ -17,6 +17,8 @@ stage_pan  planes and the camera's TRANSLATION — parallax at three depths
 text_card  text — overlay words revealed one by one, a world label — under
            the camera's ZOOM and ROLL (the overlay holds still, the world does not)
 text_outline outlined words over a plate, revealed word by word (an#313)
+text_halo  words with a halo (tituli's ``Halo``) over sand, revealed word by
+           word, and a dark caption in a gold halo (an#701)
 text_swap  text content over time — a `texts` replacement set swapped twice,
            right-aligned (an#341)
 text_counter a counter — one block counting 1 to 30, lowered at compile (an#342)
@@ -52,7 +54,7 @@ knobs, the throwaway copy and the browser-free contract hash moved here from
 them. Nothing here imports the stage at module level.
 
 >>> sorted(CORE_FIXTURES)
-['after_plane', 'front_plane', 'path_boil', 'path_draw', 'path_shape', 'path_taper', 'path_wobble', 'rig_chain', 'rig_interleave', 'rig_order', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_outline', 'text_swap', 'transitions']
+['after_plane', 'front_plane', 'path_boil', 'path_draw', 'path_shape', 'path_taper', 'path_wobble', 'rig_chain', 'rig_interleave', 'rig_order', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_halo', 'text_outline', 'text_swap', 'transitions']
 """
 
 from __future__ import annotations
@@ -301,6 +303,24 @@ CORE_FIXTURES: dict[str, Fixture] = {
             "stripe alike. A regression in the outline's width, its order under "
             "the fill, the box growth that keeps it unclipped, or per-word "
             "alpha moves a golden."
+        ),
+    ),
+    "text_halo": Fixture(
+        path=f"{CORPUS_DIRNAME}/text_halo",
+        expect_visual_kinds=frozenset({"rect", "svg_sprite"}),
+        golden_frames=(0.0, 8 / 24),
+        golden_note=(
+            "text with a HALO (an#701, tituli's `Halo`): white words over sand, "
+            "where white alone does not read, with the default halo (a dark "
+            "glow: the opposite of the ink, dilated, blurred, boosted by its "
+            "gain), the second word fading in from 0.125 s; and a dark overlay "
+            "caption in a gold halo (`color`, `spread`, `blur`, `gain`, "
+            "`opacity` set). Frame 0 shows the first word with its glow and NO "
+            "glow where the second word will be (the glow lives in the word's "
+            "own texture, so its alpha hides both); frame 8 shows both words "
+            "ringed. A regression in the filter chain (dilation, blur, gain, "
+            "colour, opacity), its order under the fill, the box growth that "
+            "keeps it unclipped, or per-word alpha moves a golden."
         ),
     ),
     "rig_order": Fixture(
