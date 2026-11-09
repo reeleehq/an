@@ -31,8 +31,24 @@ from an.text import (
 
 W, H = 320, 240
 
-tituli = pytest.importorskip("tituli")
-Halo = tituli.Halo
+#: A halo spelled for parametrize without importing tituli at collection (it
+#: pulls Pillow, an optional dependency, tests/test_browser_gate.py): built
+#: inside the test by :func:`_halo`.
+_TITULI_HALO = "tituli.Halo"
+
+
+def Halo(**fields):
+    """tituli's ``Halo``, imported when a test runs, not when it is collected."""
+    from tituli import Halo as _Halo
+
+    return _Halo(**fields)
+
+
+def _halo(spec):
+    """A parametrize spec as a value: ``(_TITULI_HALO, fields)`` is a ``Halo``."""
+    if isinstance(spec, tuple) and spec[:1] == (_TITULI_HALO,):
+        return Halo(**spec[1])
+    return spec
 
 
 # --- the document ------------------------------------------------------------
@@ -41,15 +57,16 @@ Halo = tituli.Halo
 @pytest.mark.parametrize(
     "halo, expected",
     [
-        (True, Halo()),
-        ({"blur": 0.2, "opacity": 1.0}, Halo(blur=0.2, opacity=1.0)),
-        (Halo(color="#ffd400"), Halo(color="#ffd400")),
-        ({"color": [255, 212, 0]}, Halo(color=(255, 212, 0))),
+        (True, (_TITULI_HALO, {})),
+        ({"blur": 0.2, "opacity": 1.0}, (_TITULI_HALO, {"blur": 0.2, "opacity": 1.0})),
+        ((_TITULI_HALO, {"color": "#ffd400"}), (_TITULI_HALO, {"color": "#ffd400"})),
+        ({"color": [255, 212, 0]}, (_TITULI_HALO, {"color": (255, 212, 0)})),
         (None, None),
         (False, None),
     ],
 )
 def test_halo_is_tituli_s_own_value(halo, expected):
+    halo, expected = _halo(halo), _halo(expected)
     desc = TextDescriptor(name="t", text="hi", halo=halo)
     assert desc.halo == expected
     again = TextDescriptor.model_validate_json(desc.model_dump_json())
@@ -188,6 +205,8 @@ def test_a_replacement_set_draws_a_halo_under_every_key():
 
 
 def _patch_block(monkeypatch, change):
+    import tituli
+
     real_block = tituli.block
 
     def patched(*args, **kwargs):
