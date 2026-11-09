@@ -3,6 +3,9 @@
 AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
+## 2026-11-09
+- **Lazy lacing folders** (an#696): the shot cache and transcripts stores pass `create=ensure` to lacing, so `build_project_mall(empty_dir)` lays out nothing at all; `shot_cache_store` and `transcripts_store` take `ensure`, and `store_usage` reads a missing cache folder as empty.
+
 ## 2026-11-03
 - The private aliases of the genre API level-13 names (`_rig_scope`, `_method`, `_as_choice`, `_offset`) are removed: cutan requires level 14 and imports the public names (an#709).
 - `an.render.prepared_shots(project, *, fps, resolution, supersample, measure, allow_unmeasured, work_dir)` prepares every shot exactly as `render` does, without drawing: `PreparedShots(fps, resolution, shots, findings)` of `PreparedShot(shot, renderer, ctx, start)` with a lazy `document`, for verifiers that read a render's timelines; an unmeasured Manim length is refused (`UnmeasuredLengthError`) unless `allow_unmeasured`; `an probe` prepares through it; `an.stage.draws_on_stage(shot)` is the one stage-shot rule (an#733).

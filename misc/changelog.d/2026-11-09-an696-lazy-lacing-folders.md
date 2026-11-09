@@ -1,1 +1,0 @@
-- **Lazy lacing folders** (an#696): the shot cache and transcripts stores pass `create=ensure` to lacing, so `build_project_mall(empty_dir)` lays out nothing at all; `shot_cache_store` and `transcripts_store` take `ensure`, and `store_usage` reads a missing cache folder as empty.
