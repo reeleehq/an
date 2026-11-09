@@ -1455,23 +1455,22 @@ def resolve_settings(shot: Shot, style_pack: Any, puppet: Puppet) -> Settings:
     )
 
 
-def frame_times(duration: float, *, fps: float, step_hz: float | None) -> list[float]:
-    """The instants the solve runs at: every frame (``k/fps``, the end
-    included), or the shot's step grid under ``step_hz``.
+def frame_times(
+    duration: float, *, fps: float, step_hz: float | None = None
+) -> list[float]:
+    """The instants the solve runs at: a thin wrapper over
+    :func:`an.frame_clock.grid_times` (every frame, or the shot's step grid
+    under ``step_hz``; the one grid rule, an#626) that only floors
+    ``duration`` at 1 ms, as every compile pass does. Kept for its callers.
 
     >>> frame_times(0.1, fps=20, step_hz=None)
     [0.0, 0.05, 0.1]
     >>> frame_times(0.25, fps=20, step_hz=10)
     [0.0, 0.1, 0.2, 0.25]
     """
-    duration = max(0.001, float(duration))
-    if step_hz:
-        from an.stage.compile import step_times
+    from an.frame_clock import grid_times  # the one grid rule (an#626)
 
-        return step_times(0.0, duration, step_hz)
-    from an.ir.camera import frame_times as every_frame  # the one frame grid
-
-    return every_frame(duration=duration, fps=fps)
+    return grid_times(max(0.001, float(duration)), fps=fps, step_hz=step_hz)
 
 
 @dataclass
