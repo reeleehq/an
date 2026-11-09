@@ -284,12 +284,12 @@ def test_a_close_up_is_the_same_world_seen_from_nearer():
     assert cu["left"].at[0] - cu["right"].at[0] == pytest.approx(
         k * (two["left"].at[0] - two["right"].at[0])
     )
-    # the close-up's band (the top 35 % of the lamp) fills 90 % of the frame, on
-    # whichever axis binds first (this lamp is wide for a 4:3 frame: its width)
+    # the close-up's band (the top 35 % of the lamp, at the lamp's aspect: an#732)
+    # fills 90 % of the frame, on whichever axis binds first
     top, bottom, fill = SHOT_SIZES["close_up"]
     band_px, width_px = (
         cu["right"].scale * (bottom - top) * 20.0,
-        cu["right"].scale * 10.0,
+        cu["right"].scale * (bottom - top) * 10.0,
     )
     assert max(band_px / (fill * H), width_px / (fill * W)) == pytest.approx(1.0)
     # and its centre sits at the frame centre
@@ -2311,6 +2311,30 @@ def test_a_keyed_pair_out_of_order_is_explained_by_its_keys():
     assert "where it first shows" not in keyed
     ((_, plain),) = depth_order_problems([ref("a"), ref("b")], times, depths, whole)
     assert "the world orders each member by its depth where it first shows" in plain
+
+
+@pytest.mark.parametrize(
+    "width, height", [(1080.0, 1920.0), (1920.0, 1080.0), (1080.0, 1080.0)]
+)
+def test_every_shot_size_has_its_own_distance_in_any_frame(width, height):
+    """an#732: in a portrait frame the subject's whole width bound every size, so
+    a medium and a close-up got one distance (a jump cut). A size frames its
+    band, so each is nearer than the next wider one, whatever the aspect."""
+    from an.ir.world import resolve_viewpoint
+    from an.verify.constraints import jump_cut_between
+
+    world = _two_lamps_scene().world
+
+    def eye(size):
+        vp = Viewpoint(subject="right", size=size, focal=900.0)
+        return resolve_viewpoint(world, vp, extents=EXTENTS, width=width, height=height)
+
+    gaps = {s: 2.0 - eye(s).at[2] for s in ("wide", "full", "medium", "close_up")}
+    assert gaps["wide"] > gaps["full"] > gaps["medium"] > gaps["close_up"]
+    lamp = [
+        world.members[1].at
+    ]  # the subject's footing, as the jump-cut check reads it
+    assert jump_cut_between(eye("medium"), eye("close_up"), lamp) is None
 
 
 def test_a_kind_s_own_shot_size_band_frames_its_close_up():
