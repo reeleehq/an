@@ -1762,8 +1762,6 @@ def gravity_of(ctx: Any) -> dict[str, Any] | None:
     return dict(g) if isinstance(g, Mapping) else None
 
 
-
-
 def check_gravity(ctx: Any) -> None:
     """The core's ``gravity`` check over the entities that declare a flight."""
     flights = [
