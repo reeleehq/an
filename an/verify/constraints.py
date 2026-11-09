@@ -1762,8 +1762,6 @@ def gravity_of(ctx: Any) -> dict[str, Any] | None:
     return dict(g) if isinstance(g, Mapping) else None
 
 
-#: Its name before it was public (an#519 PR 2 review), kept for callers.
-_gravity_of = gravity_of
 
 
 def check_gravity(ctx: Any) -> None:

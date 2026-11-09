@@ -331,6 +331,23 @@ def _root_paths(eid: str, rig: Any, nodes: Mapping[str, Any]) -> list[str]:
     return [p for p, n in nodes.items() if p.startswith(eid + "/") and n.visual]
 
 
+def _carrying_root_paths(eid: str, rig: Any) -> frozenset[str]:
+    """The node paths of ``eid``'s root parts that some joint hangs a part from.
+
+    >>> from types import SimpleNamespace as NS
+    >>> rig = NS(bodies={"torso": "torso", "leg_l": "leg_l", "arm": "arm"},
+    ...          roots=("torso", "leg_l"), joints=(NS(child="arm", parent="torso"),))
+    >>> sorted(_carrying_root_paths("bob", rig))
+    ['bob/torso']
+    """
+    if rig is None or not getattr(rig, "bodies", None):
+        return frozenset()
+    parents = {j.parent for j in rig.joints}
+    return frozenset(
+        f"{eid}/{rig.bodies[s]}" for s in rig.roots if s in parents and s in rig.bodies
+    )
+
+
 def _origin_touched(doc: Any, entity: Any, rig: Any, mall: Any) -> bool:
     """Whether a root part's painted bottom rests on the entity's origin, at rest
     (an#601: a stick's middle or a wheel's hub is where it is held)."""
@@ -862,9 +879,16 @@ class _Reader:
         return self._heights[eid]
 
     def body(self, eid: str) -> frozenset[str]:
-        """``eid``'s own node and its root parts': where a contact is the body's
-        stance point, not a limb's."""
-        return frozenset({eid, *_root_paths(eid, self.rig(eid), self.nodes)})
+        """``eid``'s own node and the root parts that carry it: where a contact
+        is the body's stance point, not a limb's. A root something hangs from
+        (a torso) carries the rig; a root nothing hangs from beside it (a
+        factory character's legs, hung from a slotless ``root`` bone) is a limb.
+        A rig where no root carries anything (a crate, a cup) is all body."""
+        rig = self.rig(eid)
+        roots = _root_paths(eid, rig, self.nodes)
+        carrying = _carrying_root_paths(eid, rig)
+        body = [p for p in roots if p in carrying] or roots
+        return frozenset({eid, *body})
 
     # -- contacts as nodes and points ---------------------------------------
 

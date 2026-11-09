@@ -42,20 +42,8 @@ GROUND = 200.0
 FRAME = 1 / 24
 
 
-def _hinged_legs(bones: list[dict]) -> list[dict]:
-    """The figure's bones with its legs hinged at the hip to the torso (the
-    torso's bone, at the root's ``(0, -120)``), not roots of the rig."""
-    out = []
-    for bone in bones:
-        if bone["name"] in ("leg_l", "leg_r"):
-            bone = bone | {"parent": "torso", "y": 0.0}
-        out.append(bone)
-    return out
-
-
 WALKER = copy.deepcopy(FIGURE) | {
     "name": "walker",
-    "bones": _hinged_legs(copy.deepcopy(FIGURE["bones"])),
     "metadata": {
         "contacts": {"foot_l": {"slot": "leg_l"}, "foot_r": {"slot": "leg_r"}}
     },
