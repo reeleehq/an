@@ -27,12 +27,20 @@ from an.stage import compile as stage_compile
 from an.stage.compile import CutoutCompileError, compile_shot
 from an.stage.rig import rig_structure
 from an.stage.serialize import to_dict
-from an.stage.solve import SOLVE_CLIP_PREFIX, UnknownBodyError, shot_declares_solve
+from an.stage.solve import (
+    SOLVE_CLIP_PREFIX,
+    SOLVED_POSE_TOLERANCE_PX,
+    UnknownBodyError,
+    shot_declares_solve,
+)
 from an.stage.timeline import evaluate_timeline, screen_position, timeline_from_scene
 from an.stage.tree import walk_children
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "misc" / "bench" / "corpus" / "joint_pin"
+#: How close a held point is drawn to where the solve holds it: the solved
+#: keys' compaction budget (an#636), every frame.
+HELD_PX = SOLVED_POSE_TOLERANCE_PX
 #: The arm's view_box -> scene px factor (345 / 400) and the hand's offset on the forearm.
 K = 345.0 / 400.0
 HAND = (70.0 * K, 0.0)
@@ -210,7 +218,7 @@ def test_the_hand_stays_on_the_grip_while_the_torso_sways(tmp_path, nesting):
         assert emitted == {("upper", "rotation"), ("fore", "rotation")}
     for t in _times(0.5):
         hand, grip = _hand_and_grip(doc, t)
-        assert math.dist(hand, grip) < 1e-3, (t, hand, grip)
+        assert math.dist(hand, grip) <= HELD_PX, (t, hand, grip)
     timeline = timeline_from_scene(doc)
     upper = next(p for p in _paths(doc) if p.endswith("/upper"))
     for t in _times(0.5):
@@ -332,8 +340,8 @@ def test_a_pinned_prop_goes_to_the_hand_and_the_hand_stays_put(tmp_path):
     doc, ref = _compile(project, shot), _compile(project, still)
     for t in _times(0.5):
         hand, grip = _hand_and_grip(doc, t)
-        assert math.dist(hand, grip) < 1e-3
-        assert math.dist(hand, _hand_and_grip(ref, t)[0]) < 1e-3
+        assert math.dist(hand, grip) <= HELD_PX
+        assert math.dist(hand, _hand_and_grip(ref, t)[0]) <= HELD_PX
 
 
 def test_a_bone_named_on_an_entity_with_several_roots_is_a_point_of_its_part(tmp_path):
@@ -384,6 +392,135 @@ def test_a_rejoin_across_a_gap_is_a_snap(tmp_path):
     assert math.dist(*_hand_and_grip(doc, 0.8)) < 0.25  # and was caught again
     (finding,) = _lint(project, shot)
     assert finding[0] == "warning" and "rejoined at 0.62 s" in finding[1]
+
+
+def test_a_small_rejoin_is_blended_shut_and_not_flagged(tmp_path):
+    """an#636: let go for a frame, the hand drifts under 2 px from the grip;
+    rejoined, it is closed over a few frames (each nearer than the last)
+    rather than snapped, and joint_violation says nothing about those frames."""
+    from an.kinematics.solver import DFLT_REJOIN_BLEND_FRAMES
+
+    project = _project(tmp_path)
+    shot = _shot(
+        project,
+        duration=1.0,
+        joints=[
+            {"type": "pin", "a": "puppet/fore@hand", "b": "wheel@grip", "name": "grip"}
+        ],
+        solve={"gravity": "down", "mode": "dynamic"},
+        actions=[unjoin("grip", at=0.1), join("grip", at=0.15)],
+    )
+    doc = _compile(project, shot)
+    (snap,) = doc.meta.extensions["solve"]["snaps"]
+    assert 0.25 < snap["gap"] <= 2.0, snap
+    k0 = round(snap["at"] * 24)
+    gaps = [math.dist(*_hand_and_grip(doc, (k0 + i) / 24)) for i in range(DFLT_REJOIN_BLEND_FRAMES)]
+    assert all(a > b for a, b in zip(gaps, gaps[1:])) and gaps[0] > 0.25, gaps
+    assert gaps[-1] < 0.25, gaps
+    assert _lint(project, shot) == []
+
+
+_GRIP = [{"type": "pin", "a": "puppet/fore@hand", "b": "wheel@grip", "name": "grip"}]
+_DROP = {"gravity": "down", "mode": "dynamic"}
+
+
+def _fight_from(start):
+    """An authored forearm turn from ``start`` on, which pulls the hand off the grip."""
+    return {
+        "kind": "sequence",
+        "children": [
+            {"kind": "delay", "duration": start},
+            {
+                "kind": "tween",
+                "target": "puppet/fore",
+                "property": "rotation",
+                "from_value": 0.5,
+                "to_value": 1.0,
+                "duration": 0.3,
+            },
+        ],
+    }
+
+
+@pytest.mark.parametrize("joint", ["pin", "hinge"])
+def test_a_rejoin_pulled_apart_while_it_closes_is_reported_from_its_first_frame(
+    tmp_path, joint
+):
+    """an#636 review: the frames a rejoin closes over are held to the blend's
+    own shrinking bound, not skipped: a blended pin (``blend`` > 0 in the
+    report) pulled apart by authored motion is reported from the rejoin, and
+    so is a ranged hinge rejoined under 2 px apart, which is never blended."""
+    project = _project(tmp_path)
+    grip = [{**_GRIP[0], "type": joint, **({"limits": [-170, 170]} if joint == "hinge" else {})}]
+    shot = _shot(
+        project,
+        duration=1.0,
+        joints=grip,
+        solve=_DROP,
+        actions=[unjoin("grip", at=0.1), join("grip", at=0.15), _fight_from(0.16)],
+    )
+    (snap,) = _compile(project, shot).meta.extensions["solve"]["snaps"]
+    assert snap["gap"] <= 2.0 and snap["frame"] == 4, snap
+    assert (snap["blend"] > 0) == (joint == "pin"), snap
+    (finding,) = _lint(project, shot)
+    assert finding[0] == "warning" and "does not hold from 0.17 s" in finding[1], finding
+
+
+def test_a_blended_rejoin_at_120_fps_is_not_flagged(tmp_path):
+    """an#636 review: the lint finds the blend's frames by the report's frame
+    index, so a fine grid (where a time rounded to 0.01 s names the wrong
+    frame) raises no false warning."""
+    project = _project(tmp_path)
+    meta = project.scene.meta.model_copy(update={"fps": 120})
+    project.scene = project.scene.model_copy(update={"meta": meta})
+    shot = _shot(
+        project,
+        duration=0.5,
+        joints=_GRIP,
+        solve=_DROP,
+        actions=[unjoin("grip", at=0.12), join("grip", at=0.175)],
+    )
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        doc = compile_shot(shot, project.mall, fps=120, width=320, height=240)
+    (snap,) = doc.meta.extensions["solve"]["snaps"]
+    assert 0.25 < snap["gap"] <= 2.0 and snap["blend"] > 1, snap
+    nearest = min(range(61), key=lambda k: abs(k / 120 - snap["at"]))
+    assert nearest != snap["frame"]  # the rounded time names another frame
+    assert _lint(project, shot) == []
+
+
+@pytest.mark.parametrize(
+    "unjoin_at, join_at, blend",
+    [(0.95, 0.99, 0), (0.9, 0.95, 2)],
+    ids=["on-the-last-frame", "one-frame-before"],
+)
+def test_a_rejoin_near_the_end_of_the_shot_holds_by_its_last_frame(
+    tmp_path, unjoin_at, join_at, blend
+):
+    """an#636 review: a rejoin with fewer frames left than a blend takes closes
+    over the frames left, holding on the shot's last frame; one on the last
+    frame itself snaps shut. Never a shot ending with the joint apart."""
+    project = _project(tmp_path)
+    shot = _shot(
+        project,
+        duration=1.0,
+        joints=_GRIP,
+        solve=_DROP,
+        actions=[unjoin("grip", at=unjoin_at), join("grip", at=join_at)],
+    )
+    doc = _compile(project, shot)
+    (snap,) = doc.meta.extensions["solve"]["snaps"]
+    assert 0.25 < snap["gap"] <= 2.0 and snap["blend"] == blend, snap
+    assert math.dist(*_hand_and_grip(doc, 1.0)) < 0.25
+    assert _lint(project, shot) == []
+
+
+def test_the_lint_and_the_blend_share_one_width():
+    from an.kinematics.solver import DFLT_REJOIN_BLEND_PX
+    from an.verify.joints import REJOIN_TOLERANCE_PX
+
+    assert REJOIN_TOLERANCE_PX == DFLT_REJOIN_BLEND_PX
 
 
 def test_the_solve_honours_the_step_grid(tmp_path):
@@ -448,7 +585,7 @@ def test_a_chain_drawn_child_first_still_follows_its_parent(tmp_path):
         tmp_path, nesting="bones", draw_order={"torso": 2, "upper": 1, "fore": 0}
     )
     doc = _compile(project)
-    assert max(math.dist(*_hand_and_grip(doc, t)) for t in _times(0.5)) < 1e-3
+    assert max(math.dist(*_hand_and_grip(doc, t)) for t in _times(0.5)) <= HELD_PX
 
 
 @pytest.mark.parametrize(
@@ -485,7 +622,7 @@ def test_an_authored_mirror_or_scale_is_solved_at_the_frames_geometry(
     shot = Shot.model_validate(data)
     doc = _compile(project, shot)
     assert not doc.meta.extensions["solve"]["dropped"]
-    assert max(math.dist(*_hand_and_grip(doc, t)) for t in _times(0.5)) < 1e-3
+    assert max(math.dist(*_hand_and_grip(doc, t)) for t in _times(0.5)) <= HELD_PX
     assert _lint(project, shot) == []
 
 
@@ -496,7 +633,7 @@ def test_a_pull_reaches_what_it_can_and_is_never_a_violation(tmp_path):
     assert (
         doc.meta.extensions["solve"]["mode"] == "pose"
     )  # a pull is a goal, not a string
-    assert max(math.dist(*_hand_and_grip(doc, t)) for t in _times(0.5)) < 1e-3
+    assert max(math.dist(*_hand_and_grip(doc, t)) for t in _times(0.5)) <= HELD_PX
     far = _shot(project, actions=[pull("puppet/fore@hand", "world@300,-300")])
     assert _lint(project, reachable) == [] and _lint(project, far) == []
 
@@ -756,12 +893,12 @@ def test_solved_keys_are_compacted_where_the_solve_is_already_straight(
     tmp_path, monkeypatch
 ):
     """an#636 (item 2): a dynamic shot's solved channels drop the keys that
-    linear interpolation already reproduces within `SOLVED_KEY_TOLERANCE_PX`
-    (a still or evenly moving stretch), and the drawn hand is where the
-    uncompacted document puts it at every frame, within that tolerance summed
-    down the arm's chain (√2 for the root's x and y, one per rotating body)."""
+    linear interpolation already reproduces within each channel's share of
+    `SOLVED_POSE_TOLERANCE_PX` (curved stretches too, measured at every frame),
+    and the drawn hand is where the uncompacted document puts it at every
+    frame, within that budget; the grip still holds."""
     import an.stage.solve as solve
-    from an.stage.solve import SOLVE_CLIP_PREFIX, SOLVED_KEY_TOLERANCE_PX
+    from an.stage.solve import SOLVE_CLIP_PREFIX, SOLVED_POSE_TOLERANCE_PX
 
     project = _project(tmp_path)
     shot = _shot(
@@ -791,5 +928,43 @@ def test_solved_keys_are_compacted_where_the_solve_is_already_straight(
     assert keys(compact) < keys(full) / 2, (keys(compact), keys(full))
     for t in _times(2.0):
         a, b = _hand_and_grip(compact, t)[0], _hand_and_grip(full, t)[0]
-        chain = math.sqrt(2.0) + 3  # torso, upper arm, forearm
-        assert math.dist(a, b) <= chain * SOLVED_KEY_TOLERANCE_PX, (t, a, b)
+        assert math.dist(a, b) <= SOLVED_POSE_TOLERANCE_PX, (t, a, b)
+    # every joint's two ends move at most the budget each: its gap with them
+    stores = {"props": project.mall["props"], "environments": project.mall["environments"]}
+    gaps = [solve.joint_residuals(doc, shot, stores)[2] for doc in (compact, full)]
+    for at_c, at_f in zip(*gaps):
+        assert all(c <= f + 2 * SOLVED_POSE_TOLERANCE_PX + 1e-9 for c, f in zip(at_c, at_f))
+
+
+def test_the_solve_itself_holds_the_grip_to_a_thousandth(tmp_path, monkeypatch):
+    """The solver's own accuracy, apart from the keys' compaction budget
+    (an#636): uncompacted, the hand is on the grip within 1e-3 px."""
+    import an.stage.solve as solve
+
+    monkeypatch.setattr(
+        solve, "compact_keys", lambda times, values, **kw: list(range(len(values)))
+    )
+    doc = _compile(_project(tmp_path))
+    assert max(math.dist(*_hand_and_grip(doc, t)) for t in _times(0.5)) < 1e-3
+
+
+def test_an_animated_scale_is_in_the_compaction_budget(tmp_path):
+    """an#636 review: a scale an action tweens up is counted, so compacting
+    the solved keys still moves no point more than the budget."""
+    import an.stage.solve as solve
+    from an.stage.solve import SOLVED_POSE_TOLERANCE_PX
+
+    project = _project(tmp_path)
+    grow = {"kind": "tween", "target": "puppet", "property": "scale_x",
+            "from_value": 1.0, "to_value": 6.0, "duration": 0.5, "start": 0.0}  # fmt: skip
+    shot = _shot(project, actions=[grow, {**grow, "property": "scale_y"}])
+    compact = _compile(project, shot)
+    real = solve.compact_keys
+    try:
+        solve.compact_keys = lambda times, values, **kw: list(range(len(values)))
+        full = _compile(project, shot)
+    finally:
+        solve.compact_keys = real
+    for t in _times(0.5):
+        a, b = _hand_and_grip(compact, t)[0], _hand_and_grip(full, t)[0]
+        assert math.dist(a, b) <= SOLVED_POSE_TOLERANCE_PX, (t, a, b)

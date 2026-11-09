@@ -148,6 +148,13 @@ DFLT_REGRIP_SNAP: float = 1.0
 #: bodies weigh more scales it (the stage: by the led chain's mass, :func:`regrip_strength_by_mass`).
 #: Too stiff, it drags a chain past a range it cannot keep (an#568's elbow).
 DFLT_REGRIP_STRENGTH: float = 1e6
+#: A joint rejoined at most this far apart (px, after the solve's tolerance) is
+#: closed over :data:`DFLT_REJOIN_BLEND_FRAMES` frames rather than snapped
+#: shut in one (an#636: owner decision 9 on an#497, "lint at 2 px, blend
+#: below"; ``an.verify.joints.REJOIN_TOLERANCE_PX`` flags a wider one).
+DFLT_REJOIN_BLEND_PX: float = 2.0
+#: Over how many frames such a rejoin closes (the last one holds the joint).
+DFLT_REJOIN_BLEND_FRAMES: int = 4
 #: A loop counts as HELD as the frame starts (an#706) when each of its joints
 #: is at most this far apart (scene units) in the input poses, before the
 #: frame's targets move anything: a grip carried this frame was held on the
@@ -186,8 +193,9 @@ DFLT_SEGMENT_MARGIN: float = 0.5
 #: judged apart: kept converging, never given up for its rate or for a conflict
 #: elsewhere, only for a jump the cap leaves (an#706); 9: while anything pulls,
 #: a frame's passes are followed by as many over the joints alone, so a pull
-#: never drags a joint past its range or apart (an#707).
-SOLVER_VERSION: str = "9"
+#: never drags a joint past its range or apart (an#707); 10: a pin the caller
+#: rejoins under 2 apart closes over a few frames instead of in one (an#636).
+SOLVER_VERSION: str = "10"
 #: The most passes a frame whose first retry made progress is given, as a
 #: multiple of ``iterations``: its retry is repeated with ``retry`` times the
 #: passes while each round still makes progress (an#568). On 300 random
@@ -284,9 +292,10 @@ class FramesResult:
     and ``limit_violations`` are per frame; ``snaps`` lists every joint that
     is enforced again after a frame it was not (the caller rejoined it, or a
     conflict had dropped it) as ``(frame, joint index, distance)``, the gap
-    it closes in one frame (the caller decides whether to blend or to refuse
-    it; in dynamic mode a large gap yanks the bodies it joins); ``final`` is the last frame's bodies, ready to continue the
-    run; ``dropped`` the joints each frame gave up in a conflict."""
+    it closes (in one frame, unless the caller's rejoin is blended:
+    :class:`RejoinBlends`; in dynamic mode a large gap yanks the bodies it
+    joins); ``final`` is the last frame's bodies, ready to continue the run;
+    ``dropped`` the joints each frame gave up in a conflict."""
 
     bodies: tuple[str, ...]
     poses: np.ndarray
@@ -1755,14 +1764,18 @@ def solve_frames(
     gravity: Gravity | None = None,
     regrip_speed: float | None = DFLT_REGRIP_SPEED,
     regrip_strength: float | Callable[[float], float] = DFLT_REGRIP_STRENGTH,
+    rejoin_blend_frames: int = DFLT_REJOIN_BLEND_FRAMES,
+    rejoin_blend_px: float = DFLT_REJOIN_BLEND_PX,
     **options: Any,
 ) -> FramesResult:
     """``frames`` solves in a row, each starting from the last: the caller's
     time dimension. ``targets_at(k)`` (or ``targets_at[k]``) gives frame
     ``k``'s targets; ``joints_at(k)`` its joints (the same list with
     ``joined`` flags flipped is how a joint is unjoined and rejoined). Hinge
-    and weld rests are fixed from the starting poses. ``options`` go to
-    :func:`solve`.
+    and weld rests are fixed from the starting poses. A pin rejoined within
+    ``rejoin_blend_px`` (scene units) closes over ``rejoin_blend_frames``
+    frames, or the frames left before the last (:class:`RejoinBlends`; 1
+    snaps it shut). ``options`` go to :func:`solve`.
 
     A part unjoined falls, and is caught where it is when rejoined:
 
@@ -1790,6 +1803,13 @@ def solve_frames(
     tolerance = options.get("tolerance", DFLT_TOLERANCE)
     step = (regrip_speed or 0.0) * dt if dt is not None else 0.0
     regrip = Regrip()
+    blending = RejoinBlends(
+        frames=rejoin_blend_frames,
+        tolerance=tolerance,
+        within=rejoin_blend_px,
+        last=frames - 1,
+    )
+    asked_before = [j.joined for j in base]
     for k in range(frames):
         frame_joints = base
         if joints_at is not None:
@@ -1804,6 +1824,10 @@ def solve_frames(
             for j, joint in enumerate(frame_joints)
             if joint.joined and not enforced_before[j]
         ]
+        # The caller's rejoins blend, not a grip a conflict or the lead gave up.
+        authored = [(j, gap) for j, gap in reengaged if not asked_before[j]]
+        asked_before = [joint.joined for joint in frame_joints]
+        frame_joints = blending.frame(k, frame_joints, authored)
         if targets_at is None:
             targets = None
         elif callable(targets_at):
@@ -1874,6 +1898,120 @@ class Regrip:
     walking: dict[int, float] = field(default_factory=dict)
     regained: set[int] = field(default_factory=set)
     dropped: set[int] = field(default_factory=set)
+
+
+def blends(joint: Joint) -> bool:
+    """Whether a rejoin of ``joint`` can be blended shut (an#636): a pin, or a
+    hinge with no range (a ranged hinge, a weld, a distance snap shut).
+
+    >>> blends(Pin(Point("a", 0.5, 0.5), Point("b", 0.5, 0.5)))
+    True
+    """
+    return isinstance(joint, Pin) or (isinstance(joint, Hinge) and joint.limits is None)
+
+
+def rejoin_blend(
+    joint: Joint,
+    gap: float,
+    since: int,
+    *,
+    frames: int = DFLT_REJOIN_BLEND_FRAMES,
+    within: float = DFLT_REJOIN_BLEND_PX,
+) -> Joint:
+    """``joint`` as it holds ``since`` frames after it was rejoined ``gap``
+    apart (0: the frame it rejoins). A joint that :func:`blends`, rejoined at
+    most ``within`` apart, holds its two points at most a shrinking distance
+    apart, ``gap`` less a ``1 / frames`` share each frame, and is the joint
+    itself from the last of ``frames`` on (an#636). Anything else, and a wider
+    gap (the lint's to flag), is the joint itself: it snaps shut.
+
+    >>> pin = Pin(Point("a", 0.5, 0.5), Point("b", 0.5, 0.5))
+    >>> [round(getattr(rejoin_blend(pin, 1.6, k), "length", 0.0), 2) for k in range(5)]
+    [1.2, 0.8, 0.4, 0.0, 0.0]
+    >>> rejoin_blend(pin, 1.6, 3) is pin, rejoin_blend(pin, 5.0, 0) is pin
+    (True, True)
+    """
+    if not blends(joint) or not joint.joined or gap > within or since >= frames - 1:
+        return joint
+    return Distance(
+        joint.a,
+        joint.b,
+        length=gap * (1.0 - (since + 1) / frames),
+        mode="at_most",
+        compliance=joint.compliance,
+    )
+
+
+@dataclass
+class RejoinBlends:
+    """The rejoins a run of frames is closing (an#636): ``{joint: (frame it
+    rejoined, its gap, frames it closes over)}``, each given to
+    :func:`rejoin_blend` until it holds. ``within`` is the blend's width
+    (scene units; a wider rejoin snaps). A rejoin too near the run's ``last``
+    frame (its index; ``None``: unbounded) to close over ``frames`` closes
+    over the frames left, holding on the last one; on the last frame itself it
+    snaps. ``started`` records, per rejoin ``(frame, joint)``, how many frames
+    it closes over (0: it snapped).
+
+    >>> pin = Pin(Point("a", 0.5, 0.5), Point("b", 0.5, 0.5))
+    >>> blends = RejoinBlends()
+    >>> [type(j).__name__ for j in blends.frame(0, [pin], [(0, 1.6)])]
+    ['Distance']
+    >>> [type(blends.frame(k, [pin], [])[0]).__name__ for k in (1, 2, 3)]
+    ['Distance', 'Distance', 'Pin']
+    >>> late = RejoinBlends(last=9)
+    >>> [type(late.frame(k, [pin], [(0, 1.6)] if k == 8 else [])[0]).__name__ for k in (8, 9)]
+    ['Distance', 'Pin']
+    >>> _ = late.frame(9, [pin], [(0, 1.6)])
+    >>> late.started
+    {(8, 0): 2, (9, 0): 0}
+    """
+
+    frames: int = DFLT_REJOIN_BLEND_FRAMES
+    #: A gap at most this wide is closed by the frame itself: nothing to blend.
+    tolerance: float = DFLT_TOLERANCE
+    within: float = DFLT_REJOIN_BLEND_PX
+    last: int | None = None
+    open: dict[int, tuple[int, float, int]] = field(default_factory=dict)
+    started: dict[tuple[int, int], int] = field(default_factory=dict)
+
+    def frame(
+        self,
+        k: int,
+        joints: Sequence[Joint],
+        reengaged: Sequence[tuple[int, float]],
+    ) -> list[Joint]:
+        """Frame ``k``'s ``joints``, each rejoin being closed blended; a rejoin
+        of ``reengaged`` (``(joint, gap)``) opens one."""
+        left = self.frames if self.last is None else self.last - k + 1
+        for j, gap in reengaged:
+            n = min(self.frames, left)
+            closing = (
+                n > 1 and self.tolerance < gap <= self.within and blends(joints[j])
+            )
+            self.started[(k, j)] = n if closing else 0
+            if closing:
+                self.open[j] = (k, gap, n)
+            else:
+                self.open.pop(j, None)
+        out = [
+            rejoin_blend(
+                jt,
+                self.open[j][1],
+                k - self.open[j][0],
+                frames=self.open[j][2],
+                within=self.within,
+            )
+            if j in self.open
+            else jt
+            for j, jt in enumerate(joints)
+        ]
+        self.open = {
+            j: (k0, gap, n)
+            for j, (k0, gap, n) in self.open.items()
+            if joints[j].joined and k - k0 < n - 1
+        }
+        return out
 
 
 def regrip_strength_by_mass(chain_mass: float, *, per_mass: float) -> float:

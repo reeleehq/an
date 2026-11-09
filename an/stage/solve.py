@@ -103,16 +103,43 @@ REACH_SOURCE: str = "reach"
 SAME_VALUE: dict[str, float] = {"x": 1e-5, "y": 1e-5, "rotation": 1e-6}
 #: The same, for a held item's scale (a factor).
 SAME_SCALE: float = 1e-6
-#: How far each solved channel's emitted keys may stray from the solve at any
-#: frame, in px (an#636); a rotation's is this at the puppet's whole reach
-#: (every body's box end to end). The errors add along a chain: a point moves
-#: at most this × (√2 for the root's x and y + one per rotating body above
-#: it) × its scale, a few thousandths of a px, far under the joints' own
-#: tolerance (:data:`an.verify.joints.JOINT_TOLERANCE_PX`, 0.25). At this
-#: tolerance only stretches that are already straight (still, or moving
-#: evenly) lose their keys; curved motion keeps them (compacting it within the
-#: joint budget is the rest of an#636).
-SOLVED_KEY_TOLERANCE_PX: float = 1e-3
+#: How far any point of a solved body may stray from the solve at any frame
+#: once its keys are compacted (px, an#636): a fifth of the joints' own
+#: tolerance (:data:`an.verify.joints.JOINT_TOLERANCE_PX`, 0.25), so a joint's
+#: two ends together move at most 0.1 px and a joint the solve holds still
+#: holds. Each channel's keys are compacted at the share of it its place in a
+#: chain allows (:func:`solved_key_tolerances`), the error measured at every
+#: frame (:func:`compact_keys`), so curved motion is compacted too.
+SOLVED_POSE_TOLERANCE_PX: float = 0.05
+
+
+def solved_key_tolerances(
+    puppet: Any, *, budget: float = SOLVED_POSE_TOLERANCE_PX, scale: float = 1.0
+) -> dict[str, float]:
+    """``{channel: tolerance}`` for compacting ``puppet``'s solved keys so no
+    point of any body strays more than ``budget`` px from the solve (an#636).
+
+    The errors add along a chain: a point moves at most ``tolerance`` × (√2 for
+    the root's x and y, plus one per rotating body down to it) × its scale, a
+    rotation's tolerance being the positional one over the puppet's whole
+    reach (every body's box end to end, its lever at most). So each channel
+    gets ``budget`` over the longest chain's count, at the largest scale:
+    ``scale``, the largest any body or its parent is drawn at over the shot
+    (an authored scale animates it), else the rest pose's.
+    """
+    bodies = list(puppet.bodies.values())
+
+    def chain(b: Any) -> int:
+        n, cursor = 1, b.parent_body
+        while cursor is not None and n <= len(bodies):
+            n, cursor = n + 1, puppet.bodies[cursor].parent_body
+        return n
+
+    longest = max((chain(b) for b in bodies), default=1)
+    scale = max([1.0, scale] + [max(abs(b.sx), abs(b.sy)) for b in bodies])
+    reach = max(1.0, sum(math.hypot(b.box[2], b.box[3]) for b in bodies))
+    position = budget / ((math.sqrt(2.0) + longest) * scale)
+    return {"x": position, "y": position, "rotation": position / reach}
 
 
 def compact_keys(
@@ -523,6 +550,19 @@ Geometry = tuple[float, float, bool, bool]
 def _geometry_at(m: Affine, local_scale_x: float) -> Geometry:
     _theta, sx, sy, mirrored = _decompose(m)
     return (sx, sy, mirrored, local_scale_x < 0)
+
+
+def _drawn_scale(geometry: Geometry, local_sx: float, local_sy: float) -> float:
+    """The largest scale a body's channels are drawn at in a frame: its own
+    world scale, and its parent's (its x and y are the parent's units), which
+    is the world scale over its own local one.
+
+    >>> _drawn_scale((1.5, 1.5, False, False), 0.5, 0.5)
+    3.0
+    """
+    sx, sy = abs(geometry[0]), abs(geometry[1])
+    parent = [w / abs(own) for w, own in ((sx, local_sx), (sy, local_sy)) if own]
+    return max([sx, sy, *parent])
 
 
 def _flip_point(p: Any, flips: Mapping[str, bool]) -> Any:
@@ -1457,6 +1497,12 @@ class Run:
     #: per frame: the grips being led back (lost out of reach, walked back a
     #: step a frame, an#645); the report marks a dropped span that was (an#672)
     led: list[tuple[int, ...]] = field(default_factory=list)
+    #: per rejoin ``(frame, joint)`` of ``snaps``: how many frames it is
+    #: closed over (0: snapped shut in one; an#636, :class:`RejoinBlends`)
+    blends: dict[tuple[int, int], int] = field(default_factory=dict)
+    #: The largest scale any body, or the node it hangs from, is drawn at over
+    #: the run (an#636): what a solved channel's error is multiplied by.
+    max_scale: float = 1.0
     digest: str = ""
 
 
@@ -1516,6 +1562,7 @@ def run_solve(
     from an.kinematics.solver import (
         DFLT_REGRIP_SPEED,
         Regrip,
+        RejoinBlends,
         regrip_strength_by_mass,
         solve_regripping,
     )
@@ -1545,6 +1592,8 @@ def run_solve(
     joined_before: list[bool] | None = None
     frames_inputs: list[Any] = []
     regrip = Regrip()
+    blending = RejoinBlends(last=len(times) - 1)
+    run.blends = blending.started
     for k, t in enumerate(times):
         pose = evaluate_timeline(timeline, t)
         world = _world_matrices(doc, [*order, *extra_paths], pose, nodes)
@@ -1564,6 +1613,9 @@ def run_solve(
             )
             local_now[path] = (tr.x, tr.y, tr.rotation)
             geometry[path] = _geometry_at(world[path], tr.scale_x)
+            run.max_scale = max(
+                run.max_scale, _drawn_scale(geometry[path], tr.scale_x, tr.scale_y)
+            )
         run.local.append(local_now)
         run.geometry.append(geometry)
         flips = {p: geometry[p][2] != puppet.bodies[p].mirrored for p in order}
@@ -1687,9 +1739,14 @@ def run_solve(
             # A joint the AUTHOR joins again (a `join`, a verb's span opening),
             # not one a conflict gave up for a frame: that one is refused, and
             # unreachable_pin or joint_violation says so.
-            for j, (was, now) in enumerate(zip(joined_before, joined_now)):
-                if now and not was:
-                    run.snaps.append((k, j, _gap(current, joints[j])))
+            rejoined = [
+                (j, _gap(current, joints[j]))
+                for j, (was, now) in enumerate(zip(joined_before, joined_now))
+                if now and not was
+            ]
+            run.snaps += [(k, j, gap) for j, gap in rejoined]
+            # One within a blend's width closes over a few frames (an#636).
+            joints = blending.frame(k, joints, rejoined)
         options = dict(
             targets=targets or None,
             gravity=settings.gravity,
@@ -1975,14 +2032,7 @@ def _emit(
     clips: dict[str, list[Any]] = {}
     emitted: set[tuple[str, str]] = set()
     index = {prop: i for i, prop in enumerate(SOLVED_CHANNELS)}
-    reach = max(
-        1.0, sum(math.hypot(b.box[2], b.box[3]) for b in puppet.bodies.values())
-    )
-    tolerance = {
-        "x": SOLVED_KEY_TOLERANCE_PX,
-        "y": SOLVED_KEY_TOLERANCE_PX,
-        "rotation": SOLVED_KEY_TOLERANCE_PX / reach,
-    }
+    tolerance = solved_key_tolerances(puppet, scale=run.max_scale)
 
     def keyframes(vs: Sequence[float], prop: str) -> list[Any]:
         kept = compact_keys(
@@ -2175,7 +2225,13 @@ def _report(
         },
         "dropped": dropped,
         "snaps": [
-            {"joint": j, "at": r2(run.times[k]), "gap": r2(g)}
+            {
+                "joint": j,
+                "at": r2(run.times[k]),
+                "gap": r2(g),
+                "frame": k,
+                "blend": run.blends.get((k, j), 0),
+            }
             for k, j, g in run.snaps
             if puppet.rows[j].source != REACH_SOURCE  # a reach starts where the hand is
         ],
