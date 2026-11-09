@@ -47,6 +47,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Collection, Literal, Mapping, Sequence
 
 from an.base import (
+    BESIDE_HOST_OVERRIDE,
     PAINT_KEYS_OVERRIDE,
     PLANE_FACTORS_OVERRIDE,
     RIDER_BEHIND,
@@ -1762,38 +1763,6 @@ def _attachment_riders(
     return out
 
 
-def _placed_beside_after_riders(
-    ordered: list[tuple[Any, AssetRef, int | None]],
-    riders: Mapping[str, _Rider],
-    *,
-    entity_ids: Collection[str],
-) -> list[tuple[Any, AssetRef, int | None]]:
-    """``ordered`` with each attachment whose host the author placed ``after``
-    another entity placed there too, on its side of the host (an#692): the
-    compiler draws an ``after`` entity right after its anchor, wherever it was
-    listed, so an attachment left at its own place would be drawn apart from
-    its host. Behind the host it is placed after the host's anchor, listed
-    before the host (riders of one anchor keep the entities' order); in front,
-    after the host itself. One that names its own ``after`` keeps it.
-    """
-    built = {e.id: e for _, e, _ in ordered}
-
-    def anchor_of(eid: str) -> str | None:
-        stage = built[eid].stage
-        return stage.after if stage is not None and stage.after in entity_ids else None
-
-    out = []
-    for key, e, j in ordered:
-        r = riders.get(e.id)
-        anchor = anchor_of(r.host) if r is not None and r.host in built else None
-        if anchor is not None and (e.stage is None or e.stage.after is None):
-            after = anchor if r.side == RIDER_BEHIND else r.host
-            stage = (e.stage or StagePlacement()).model_copy(update={"after": after})
-            e = e.model_copy(update={"stage": stage})
-        out.append((key, e, j))
-    return out
-
-
 def _with_paint_keys(
     ordered: list[tuple[tuple[float, float, float], AssetRef, int | None]],
     pass_keys: Mapping[str, Sequence[tuple[float, tuple[float, float, float]]]],
@@ -1817,10 +1786,12 @@ def _with_paint_keys(
     :func:`_attachment_riders`) rides its host the same way, on the side of
     it the built order gave it (:data:`an.base.RIDER_BEHIND` when built before
     it), and is built right beside it: painted with its host at every frame,
-    however the host or anything around it moves (an#678), also when the host
-    itself rides another entity's keys: every rider is sorted by its opening
-    rider key, so an attachment of an ``after`` rider sits on its side of it
-    (an#692)."""
+    however the host or anything around it moves (an#678). Where the host is
+    drawn away from its built place (placed ``after`` an entity or a plane),
+    the compiler draws the attachment beside it (:data:`an.base.BESIDE_HOST_OVERRIDE`,
+    an#692). Riders of one host on one side are ordered by their built place
+    (``n``): ``after`` riders first, then attachments, so the keys agree with
+    the order the compiler draws them in."""
     if not any(len(ks) > 1 for ks in pass_keys.values()):
         return ordered
     after = {
@@ -1829,28 +1800,29 @@ def _with_paint_keys(
     hosts = {eid: a for eid, a in after.items() if a in entity_ids}
     attached = attached or {}
     hosts.update((eid, r.host) for eid, r in attached.items())
-    # An attachment's `n` follows the built order, past every `after` rider's.
-    first = len(hosts)
+    # A rider's `n` is its built place, an attachment's past every `after`
+    # rider's: the compiler draws riders of one anchor in the built order.
+    place = {e.id: i for i, (_, e, _) in enumerate(ordered)}
+    first = len(ordered)
 
     keys = {
         e.id: [[t, list(k)] for t, k in pass_keys.get(e.id) or [(0.0, key)]]
         for key, e, _ in ordered
         if e.id not in hosts
     }
-    riders = set(hosts)
     riding = True
     while riding:  # a chain of `after`s rides from its first keyed entity
         riding = False
-        for n, (eid, host) in enumerate(sorted(hosts.items())):
+        for eid, host in list(hosts.items()):
             if host in keys and eid in members:
                 r = attached.get(eid)
-                at, m = (r.side, first + r.place) if r else (RIDER_IN_FRONT, n)
+                at, m = (r.side, first + r.place) if r else (RIDER_IN_FRONT, place[eid])
                 keys[eid] = [[t, rider_key(k, side=at, n=m)] for t, k in keys[host]]
                 del hosts[eid]
                 riding = True
     built = [
         (
-            tuple(keys[e.id][0][1]) if e.id in riders and e.id in keys else key,
+            tuple(keys[e.id][0][1]) if e.id in attached and e.id in keys else key,
             e.model_copy(
                 update={
                     "overrides": {
@@ -1865,9 +1837,7 @@ def _with_paint_keys(
         )
         for key, e, j in ordered
     ]
-    # A rider (an attachment, an `after` member) by its host's opening key, so
-    # a rider's own attachments land on their side of it (an#692).
-    built.sort(key=lambda item: paint_key_rank(item[0]))
+    built.sort(key=lambda item: paint_key_rank(item[0]))  # an attachment by its host
     return built
 
 
@@ -3144,7 +3114,17 @@ def _lower_shot(
         members=members.keys(),
         attached=riders,
     )
-    ordered = _placed_beside_after_riders(ordered, riders, entity_ids=entity_ids)
+    ordered = [  # drawn beside its host wherever the host is drawn (an#692)
+        (
+            key,
+            _marked(e, BESIDE_HOST_OVERRIDE, {"host": r.host, "side": r.side})
+            if (r := riders.get(e.id)) is not None
+            and (e.stage is None or e.stage.after is None)
+            else e,
+            j,
+        )
+        for key, e, j in ordered
+    ]
     if sightings:
         _depth_order_notes(
             [e for _, e, _ in ordered],

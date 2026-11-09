@@ -66,6 +66,10 @@
           -20.0
          ],
          "scale": 0.5
+        },
+        "beside_host": {
+         "host": "right",
+         "side": 1
         }
        },
        "stage": {
@@ -117,6 +121,10 @@
           -20.0
          ],
          "scale": 0.5
+        },
+        "beside_host": {
+         "host": "right",
+         "side": 1
         }
        },
        "stage": {
@@ -182,6 +190,10 @@
           -20.0
          ],
          "scale": 0.5
+        },
+        "beside_host": {
+         "host": "right",
+         "side": 1
         }
        },
        "stage": {
