@@ -22,8 +22,8 @@ from __future__ import annotations
 import random
 from typing import Callable, Sequence
 
-from an.frame_clock import CameraGrid, camera_sample_times
-from an.frame_clock import frame_times as _frame_times
+from an.frame_clock import CameraGrid, camera_grid
+from an.frame_clock import frame_times  # noqa: F401  (an alias of the one frame grid rule, an#626)
 from an.ir.schema import Camera, CameraKey, Shot
 
 __all__ = [
@@ -380,16 +380,6 @@ def plane_dolly_scale(factor: float, dolly: float, *, plane: str = "") -> float:
     return dolly_growth(factor, dolly) / dolly_growth(1.0, dolly)
 
 
-def frame_times(*, duration: float, fps: float) -> list[float]:
-    """The time of every frame the render draws, the shot's end included
-    (:func:`an.frame_clock.frame_times`, the one frame grid).
-
-    >>> frame_times(duration=0.5, fps=4)
-    [0.0, 0.25, 0.5]
-    """
-    return _frame_times(duration, fps=fps)
-
-
 def is_affine(keys: list[CameraKey]) -> bool:
     """Whether the frame ``keys`` show is checkable at the keys alone (an#626).
 
@@ -436,9 +426,9 @@ def sample_camera(keys: list[CameraKey], grid: CameraGrid) -> list[CameraKey]:
     ``zoom`` multiplied by the character plane's dolly growth (exactly ``1``
     without a dolly), so the root zooms as a pinhole camera does.
 
-    >>> from an.frame_clock import camera_sample_times
+    >>> from an.frame_clock import camera_grid
     >>> keys = [CameraKey(at=0.0), CameraKey(at=1.0, rotation=0.4)]
-    >>> [(k.at, round(k.rotation, 2), k.easing) for k in sample_camera(keys, camera_sample_times(1.0, fps=2))]
+    >>> [(k.at, round(k.rotation, 2), k.easing) for k in sample_camera(keys, camera_grid(1.0, fps=2))]
     [(0.0, 0.0, 'linear'), (0.5, 0.2, 'linear'), (1.0, 0.4, 'linear')]
     """
     from an.timing import evaluate_channel
@@ -476,7 +466,7 @@ def dolly_frames(
     A dolly's growth is not linear in its travel, so a key list that eases
     ``dolly`` cannot be eased in ``zoom`` too: each key is the camera
     evaluated there (:func:`sample_camera`), at every instant of
-    :func:`an.frame_clock.camera_sample_times` — every frame, every step of a
+    :func:`an.frame_clock.camera_grid` — every frame, every step of a
     stepped shot (step-eased, so a step is a cut), and every instant the
     render samples (``frame_samples``, a shutter's sub-frame ones, an#626) —
     so it is exact wherever the render looks.
@@ -484,13 +474,12 @@ def dolly_frames(
     >>> frames = dolly_frames(CAMERA_MOVES["dolly_in"](1.0), duration=1.0, fps=4)
     >>> [(k.at, round(k.zoom, 3), round(k.dolly, 3)) for k in frames][::2]
     [(0.0, 1.0, 0.0), (0.5, 1.111, 0.1), (1.0, 1.25, 0.2)]
-    >>> shutter = dolly_frames(CAMERA_MOVES["dolly_in"](1.0), duration=1.0, fps=4, frame_samples=[[0.1]])
+    >>> samples = [[0.0, 0.1], [0.25], [0.5], [0.75]]  # one entry per frame
+    >>> shutter = dolly_frames(CAMERA_MOVES["dolly_in"](1.0), duration=1.0, fps=4, frame_samples=samples)
     >>> [k.at for k in shutter][:3]
     [0.0, 0.1, 0.25]
     """
     if len(keys) < 2 or not any(k.dolly for k in keys):
         return keys
-    grid = camera_sample_times(
-        duration, fps=fps, step_hz=step_hz, frame_samples=frame_samples
-    )
+    grid = camera_grid(duration, fps=fps, step_hz=step_hz, frame_samples=frame_samples)
     return sample_camera(keys, grid)

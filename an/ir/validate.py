@@ -34,7 +34,7 @@ from an.ir.camera import (
     is_affine,
     sample_camera,
 )
-from an.frame_clock import camera_sample_times
+from an.frame_clock import camera_grid
 from an.ir.compose import flatten
 from an.ir.migrate import DocumentMigrationError, migrate
 from an.ir.sync import SceneValidationError, scene_from_json_doc
@@ -1073,7 +1073,7 @@ def _check_framing(
     **A camera that is not affine** (:func:`an.ir.camera.is_affine`: it
     DOLLIES, an#478, or its ROLL changes between keys) is checked at every
     frame the render draws instead, through the one camera sampler
-    (:func:`an.frame_clock.camera_sample_times` and
+    (:func:`an.frame_clock.camera_grid` and
     :func:`an.ir.camera.sample_camera`, an#626) — as the compiler emits a
     dolly. The rolled frame is still its axis-aligned box, conservatively.
 
@@ -1126,8 +1126,9 @@ def _check_framing(
     # A dolly or a changing roll is not affine, so its frame is checked at
     # every frame the render draws, through the one sampler (an#478, an#626).
     duration = max(0.001, float(shot.duration))
-    every_frame = camera_sample_times(duration, fps=fps)
-    if not is_affine(keys):
+    every_frame = camera_grid(duration, fps=fps)
+    sampled = not is_affine(keys)
+    if sampled:
         keys = sample_camera(keys, every_frame)
     follow = shot.camera.follow if shot.camera is not None else None
     try:
@@ -1177,12 +1178,20 @@ def _check_framing(
             )
             if gap
         ]
-        pose = (
-            f"the camera key at {float(key.at):g}s (x {float(key.x):g}, "
-            f"y {float(key.y):g}, zoom {float(key.zoom):g})"
-            if shot.camera is not None and len(keys) > 1
-            else "the resting frame"
-        )
+        if shot.camera is None or len(keys) < 2:
+            pose = "the resting frame"
+        elif sampled:  # an instant the sampler chose, not a key the author wrote
+            pose = (
+                f"the camera at {float(key.at):g}s (frame "
+                f"{round(float(key.at) * fps)}: x {float(key.x):g}, "
+                f"y {float(key.y):g}, zoom {float(key.zoom):g}, "
+                f"roll {float(key.rotation):g} rad)"
+            )
+        else:
+            pose = (
+                f"the camera key at {float(key.at):g}s (x {float(key.x):g}, "
+                f"y {float(key.y):g}, zoom {float(key.zoom):g})"
+            )
         report.add(
             "warning",
             f"{path}/camera" if shot.camera is not None else f"{path}/entities",

@@ -17,7 +17,7 @@ from an.frame_clock import (
     CameraGrid,
     FrameClock,
     FrameClockError,
-    camera_sample_times,
+    camera_grid,
     frame_times,
     grid_times,
 )
@@ -43,34 +43,53 @@ SHUTTER = FrameClock(fps=FPS, exposure=0.5, samples=4).sample_times(DURATION)
 
 
 def test_the_default_grid_is_every_frame_linearly():
-    grid = camera_sample_times(DURATION, fps=FPS)
-    assert list(grid.times) == frame_times(DURATION, fps=FPS) == list(grid.grid)
+    grid = camera_grid(DURATION, fps=FPS)
+    assert list(grid.times) == frame_times(DURATION, fps=FPS) == list(grid.base)
     assert grid.easing == "linear" and not grid.stepped
 
 
 def test_every_shutter_instant_is_a_key_and_the_frames_stay():
-    grid = camera_sample_times(DURATION, fps=FPS, frame_samples=SHUTTER)
+    grid = camera_grid(DURATION, fps=FPS, frame_samples=SHUTTER)
     assert set(frame_times(DURATION, fps=FPS)) <= set(grid.times)
     assert {t for frame in SHUTTER for t in frame} <= set(grid.times)
     assert list(grid.times) == sorted(set(grid.times))
-    assert grid.grid == tuple(frame_times(DURATION, fps=FPS))
+    assert grid.base == tuple(frame_times(DURATION, fps=FPS))
 
 
-def test_samples_are_clipped_merged_and_refused_when_not_finite():
-    grid = camera_sample_times(
-        1.0, fps=4, frame_samples=[[-0.5, 0.0, 0.25 + 1e-12], [2.0]]
+def test_the_sampler_alone_clips_merges_and_refuses_bad_samples():
+    """A direct unit test of `camera_grid`: no render reaches the clipping
+    (`check_frame_samples` refuses an instant outside the shot before a
+    compile), so it only guards the sampler's own contract."""
+    grid = camera_grid(
+        1.0, fps=4, frame_samples=[[-0.5, 0.0, 0.25 + 1e-12], [0.5], [0.75], [2.0]]
     )
     assert grid.times == (0.0, 0.25, 0.5, 0.75, 1.0)  # clipped onto 0 and 1, merged
     with pytest.raises(FrameClockError, match="non-finite"):
-        camera_sample_times(1.0, fps=4, frame_samples=[[math.nan]])
+        camera_grid(1.0, fps=4, frame_samples=[[math.nan], [0.25], [0.5], [0.75]])
+
+
+def test_another_shots_frame_samples_are_refused(tmp_path):
+    """Samples for a shot of another length would key the camera at the
+    wrong instants: refused, by the sampler and so by every compile."""
+    with pytest.raises(FrameClockError, match="24 frame"):
+        camera_grid(1.0, fps=FPS, frame_samples=SHUTTER)
+    with pytest.raises(FrameClockError, match="another shot's samples"):
+        compile_shot(
+            _follow(),
+            mall=_dot_mall(tmp_path),
+            fps=FPS,
+            width=W,
+            height=H,
+            frame_samples=SHUTTER[:-1],
+        )
 
 
 def test_a_stepped_grid_is_every_frame_and_every_step_step_eased():
-    grid = camera_sample_times(1.0, fps=12, step_hz=5)
+    grid = camera_grid(1.0, fps=12, step_hz=5)
     steps = grid_times(1.0, fps=12, step_hz=5)
     assert set(frame_times(1.0, fps=12)) <= set(grid.times)
     assert all(any(abs(s - t) < 1e-9 for t in grid.times) for s in steps)
-    assert grid.easing == "step" and grid.grid == grid.times
+    assert grid.easing == "step" and grid.base == grid.times
     assert isinstance(grid, CameraGrid)
 
 
@@ -228,11 +247,28 @@ def test_a_stepped_follow_holds_between_steps(tmp_path, step_hz):
     # keyed at every frame and every step instant
     times = [t for t, *_ in keys]
     assert set(frame_times(DURATION, fps=FPS)) <= set(times)
-    # with a shutter too
-    doc = compile_shot(
-        _follow(lag=0.3), mall=mall, step_hz=step_hz, frame_samples=SHUTTER, **kw
+    # lagging, with a shutter too: still step-eased, and at every frame and
+    # step instant exactly the lagging follow compiled without the shutter,
+    # which is the lag filter run over the unlagged stepped follow there
+    from an.ir.frames import lag_filter
+
+    lagged = _camera_keys(
+        compile_shot(
+            _follow(lag=0.3), mall=mall, step_hz=step_hz, frame_samples=SHUTTER, **kw
+        )
+    )["pivot_x"]
+    assert {e for *_, e in lagged[:-1]} == {"step"}
+    plain = _camera_keys(
+        compile_shot(_follow(lag=0.3), mall=mall, step_hz=step_hz, **kw)
     )
-    assert {e for *_, e in _camera_keys(doc)["pivot_x"][:-1]} == {"step"}
+    base = list(camera_grid(DURATION, fps=FPS, step_hz=step_hz).base)
+    assert [t for t, *_ in plain["pivot_x"]] == base
+    assert [k for k in lagged if k[0] in set(base)] == plain["pivot_x"]
+    unlagged = dict((t, v) for t, v, _ in keys)
+    on_frames = base == frame_times(DURATION, fps=FPS)
+    dt = 1.0 / FPS if on_frames else [b - a for a, b in zip(base, base[1:])]
+    want = lag_filter([unlagged[t] for t in base], lag=0.3, dt=dt)
+    assert [v for _, v, _ in plain["pivot_x"]] == pytest.approx(want, abs=1e-9)
 
 
 # --- a dolly ----------------------------------------------------------------------
@@ -376,5 +412,12 @@ def test_validate_samples_a_rolling_camera_between_its_keys(tmp_path):
     assert found, "a rolling camera was checked at its keys only"
     import re
 
-    at = float(re.search(r"camera key at ([0-9.e-]+)s", found[0].description).group(1))
+    # a sampled instant, named as one (not "the camera key"), with its roll
+    m = re.search(
+        r"the camera at ([0-9.e-]+)s \(frame (\d+): .* roll ([0-9.e-]+) rad\)",
+        found[0].description,
+    )
+    assert m, found[0].description
+    at, frame, roll = float(m.group(1)), int(m.group(2)), float(m.group(3))
     assert 0.0 < at < DURATION  # a frame between the keys
+    assert frame == round(at * Meta().fps) and 0.0 < roll < math.pi / 2

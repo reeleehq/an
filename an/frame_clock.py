@@ -19,7 +19,7 @@ It also owns the GRIDS a shot is laid onto, the pure rules every layer shares
 (the IR's camera, the stage's compiler and solve): :func:`frame_times` (every
 frame, the end included), :func:`step_times` (a stepped shot's pose grid,
 an#89), :func:`grid_times` (one or the other, the solve's grid) and
-:func:`camera_sample_times` (an#626), the instants a camera the runtime cannot
+:func:`camera_grid` (an#626), the instants a camera the runtime cannot
 evaluate itself — a follow, a dolly — is keyed at so that every instant the
 render samples, a shutter's sub-frame ones included, lands on an exact key.
 
@@ -65,7 +65,7 @@ __all__ = [
     "CapturedFrame",
     "FrameClock",
     "FrameClockError",
-    "camera_sample_times",
+    "camera_grid",
     "frame_count",
     "frame_times",
     "grid_times",
@@ -117,6 +117,10 @@ def frame_count(duration: float, fps: float) -> int:
 def frame_times(duration: float, *, fps: float) -> list[float]:
     """The time of every frame a ``duration`` render draws, the end included
     (``k / fps``, the renderer's own expression, capped at ``duration``).
+
+    THE frame grid rule (an#626). ``an.ir.camera.frame_times`` is this very
+    function re-exported, and ``an.stage.solve.frame_times`` a thin wrapper
+    over :func:`grid_times`; neither restates it.
 
     >>> frame_times(0.5, fps=4)
     [0.0, 0.25, 0.5]
@@ -183,22 +187,22 @@ class CameraGrid:
 
     ``times``: the key instants, sorted. ``easing``: the keys' easing —
     ``"linear"`` on ones, ``"step"`` on a stepped shot (the camera holds
-    between keys as a stepped tween holds between poses). ``grid``: the
+    between keys as a stepped tween holds between poses). ``base``: the
     grid the camera is COMPUTED on — every frame, and every step instant on a
     stepped shot — before the render's sample instants are added (a follow's
     lag runs over it); ``times`` is a superset of it.
     """
 
     times: tuple[float, ...]
+    base: tuple[float, ...]
     easing: CameraEasing
-    grid: tuple[float, ...]
 
     @property
     def stepped(self) -> bool:
         return self.easing == "step"
 
 
-def camera_sample_times(
+def camera_grid(
     duration: float,
     *,
     fps: float,
@@ -222,21 +226,34 @@ def camera_sample_times(
     jittered capture's — clipped to ``[0, duration]``, so each lands on an
     exact key instead of between two. An instant within ``merge_eps`` of a
     key already there is that key. ``None`` adds nothing: the keys are
-    exactly the frame grid they always were.
+    exactly the frame grid they always were. They must describe THIS shot:
+    one entry per frame (:func:`frame_count`), or a :class:`FrameClockError`
+    — another shot's samples would key the camera at the wrong instants.
 
-    >>> camera_sample_times(0.5, fps=4)
-    CameraGrid(times=(0.0, 0.25, 0.5), easing='linear', grid=(0.0, 0.25, 0.5))
-    >>> camera_sample_times(0.5, fps=4, frame_samples=((0.0,), (0.3, 0.6))).times
+    >>> camera_grid(0.5, fps=4)
+    CameraGrid(times=(0.0, 0.25, 0.5), base=(0.0, 0.25, 0.5), easing='linear')
+    >>> camera_grid(0.5, fps=4, frame_samples=((0.0,), (0.3, 0.6))).times
     (0.0, 0.25, 0.3, 0.5)
-    >>> g = camera_sample_times(0.5, fps=4, step_hz=3)
-    >>> [round(t, 3) for t in g.times], g.easing, g.grid == g.times
+    >>> g = camera_grid(0.5, fps=4, step_hz=3)
+    >>> [round(t, 3) for t in g.times], g.easing, g.base == g.times
     ([0.0, 0.25, 0.333, 0.5], 'step', True)
+    >>> camera_grid(0.5, fps=4, frame_samples=((0.0,),))
+    Traceback (most recent call last):
+      ...
+    an.frame_clock.FrameClockError: frame_samples describes 1 frame(s) but a 0.5 s shot at 4 fps has 2: they are another shot's samples.
     """
-    grid = frame_times(duration, fps=fps)
+    base = frame_times(duration, fps=fps)
     if step_hz:
-        _merge_into(grid, step_times(0.0, duration, step_hz), eps=merge_eps)
-    times = list(grid)
+        _merge_into(base, step_times(0.0, duration, step_hz), eps=merge_eps)
+    times = list(base)
     if frame_samples is not None:
+        frames = frame_count(duration, fps)
+        if len(frame_samples) != frames:
+            raise FrameClockError(
+                f"frame_samples describes {len(frame_samples)} frame(s) but a "
+                f"{duration:g} s shot at {fps:g} fps has {frames}: they are "
+                "another shot's samples."
+            )
         instants = [float(t) for frame in frame_samples for t in frame]
         bad = [t for t in instants if not math.isfinite(t)]
         if bad:
@@ -249,8 +266,8 @@ def camera_sample_times(
         )
     return CameraGrid(
         times=tuple(times),
+        base=tuple(base),
         easing="step" if step_hz else "linear",
-        grid=tuple(grid),
     )
 
 

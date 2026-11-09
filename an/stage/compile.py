@@ -130,7 +130,11 @@ from an.ir.camera import (
     dolly_growth,
     follow_overlay,
 )
-from an.frame_clock import camera_sample_times, step_times  # the grid rules (an#626)
+from an.frame_clock import (  # the grid rules (an#626)
+    camera_grid,
+    frame_times,
+    step_times,
+)
 from an.ir.migrate import DocumentKind, migrate
 from an.stage.environments import PLANE_FILL_SPAN as _PLANE_FILL_SPAN
 from an.stage.environments import (
@@ -902,7 +906,7 @@ def compile_shot(
     ``frame_samples`` (an#626) are the scene instants the render samples, per
     frame (``RenderContext.frame_samples``: a shutter's sub-frame ones). A
     camera the compiler keys itself — a follow, a dolly — is keyed at each of
-    them too (:func:`an.frame_clock.camera_sample_times`), so a sample lands
+    them too (:func:`an.frame_clock.camera_grid`), so a sample lands
     on an exact key instead of between two frames' keys. ``None`` (default)
     keys a frame each and leaves the document byte-identical to before the
     knob existed; so does any value for a shot with no such camera.
@@ -1203,7 +1207,7 @@ def _camera_follow_pass(state: CompileState) -> None:
     target's position composed up its chain (`screen_position`, with no camera
     yet, so it is the scene position). The camera keeps the target where it
     stood at the shot's start: one key per instant of
-    :func:`an.frame_clock.camera_sample_times` — every frame (linear), every
+    :func:`an.frame_clock.camera_grid` — every frame (linear), every
     step too on a stepped shot (step-eased), and every instant the render
     samples (an#626) — so it is exact wherever the render looks."""
     camera = state.shot.camera
@@ -1216,7 +1220,7 @@ def _camera_follow_pass(state: CompileState) -> None:
 
 def _camera_dolly_pass(state: CompileState) -> None:
     """A dollying camera (an#478): its keys, one per instant of
-    :func:`an.frame_clock.camera_sample_times` (:func:`dolly_frames`), so the
+    :func:`an.frame_clock.camera_grid` (:func:`dolly_frames`), so the
     root's zoom is the character plane's pinhole growth wherever the render
     samples and the parallax pass grows each plane by its own. A camera with
     no ``dolly`` is left exactly as it was."""
@@ -1252,7 +1256,7 @@ def _camera_step_hz(state: CompileState) -> float | None:
 
 def camera_follow_keys(state: CompileState) -> list[CameraKey]:
     """The keys of ``state.shot``'s follow camera (an#445), one per instant
-    of :func:`an.frame_clock.camera_sample_times` under the shot's step grid
+    of :func:`an.frame_clock.camera_grid` under the shot's step grid
     and the render's sample instants (an#626).
 
     A ``lag`` (an#504) is filtered over the camera's own grid (every frame,
@@ -1272,7 +1276,7 @@ def camera_follow_keys(state: CompileState) -> list[CameraKey]:
     timeline = timeline_from_scene(doc)
     duration = max(0.001, float(state.shot.duration))
     # One sampler with the dolly pass's (`dolly_frames`): the keys stay exact.
-    grid = camera_sample_times(
+    grid = camera_grid(
         duration,
         fps=state.fps,
         step_hz=_camera_step_hz(state),
@@ -1297,13 +1301,14 @@ def camera_follow_keys(state: CompileState) -> list[CameraKey]:
     if not follow.lag:
         positions = target_at(times)
     else:
-        base = list(grid.grid)
+        base = list(grid.base)
         raw = target_at(base)
-        # On ones, the uniform frame step the follow always used (to the bit);
-        # on a stepped shot, the grid's own steps (frames and steps interleave).
-        dt = (
-            [b - a for a, b in zip(base, base[1:])] if grid.stepped else 1.0 / state.fps
-        )
+        # One dt rule: whenever the base grid IS the frame grid (on ones, or
+        # steps that fall on frames, as on twos), the uniform frame step the
+        # follow always used, to the bit; else the grid's own steps (frames and
+        # steps interleave), which `b - a` would only match up to float noise.
+        on_frames = base == frame_times(duration, fps=state.fps)
+        dt = 1.0 / state.fps if on_frames else [b - a for a, b in zip(base, base[1:])]
         tracks = []
         for axis in (0, 1):
             values = [p[axis] for p in raw]
