@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=8a131c26"></script>
+    <script src="../../../_static/documentation_options.js?v=bdeb964c"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.381" />
+  <meta name="docsearch:version" content="0.1.382" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -732,7 +732,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Protocol</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">runtime_checkable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Protocol</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">runtime_checkable</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.tts</span><span class="w"> </span><span class="kn">import</span> <span class="n">AudioClip</span>
 
@@ -798,6 +798,33 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<span class="c1">#: The optional class attribute a :class:`LipSyncProvider` sets to re-key the</span>
+<span class="c1">#: tracks it cached when how it aligns changes (an#727): its ``name`` is a</span>
+<span class="c1">#: persisted identifier and cannot change. Absent (or ``None``), the key is the</span>
+<span class="c1">#: name alone, as before.</span>
+<span class="n">CACHE_VERSION_ATTR</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"cache_version"</span>
+
+
+<div class="viewcode-block" id="lipsync_cache_id">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.lipsync.html#an.audio.lipsync_cache_id">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">lipsync_cache_id</span><span class="p">(</span><span class="n">provider</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What a provider puts in a viseme track's content key</span>
+<span class="sd">    (:func:`an.audio.pipeline.viseme_key`): its ``name``, and its</span>
+<span class="sd">    :data:`CACHE_VERSION_ATTR` when it states one.</span>
+
+<span class="sd">    &gt;&gt;&gt; class Offline:</span>
+<span class="sd">    ...     name = "offline"</span>
+<span class="sd">    &gt;&gt;&gt; lipsync_cache_id(Offline())</span>
+<span class="sd">    'offline'</span>
+<span class="sd">    &gt;&gt;&gt; Offline.cache_version = "phones-1"</span>
+<span class="sd">    &gt;&gt;&gt; lipsync_cache_id(Offline())</span>
+<span class="sd">    'offline@phones-1'</span>
+<span class="sd">    """</span>
+    <span class="n">version</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">provider</span><span class="p">,</span> <span class="n">CACHE_VERSION_ATTR</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">provider</span><span class="o">.</span><span class="n">name</span> <span class="k">if</span> <span class="n">version</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">provider</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">@</span><span class="si">{</span><span class="n">version</span><span class="si">}</span><span class="s2">"</span></div>
+
+
+
 <div class="viewcode-block" id="WordTimingProvider">
 <a class="viewcode-back" href="../../../_autosummary/an.audio.lipsync.html#an.audio.WordTimingProvider">[docs]</a>
 <span class="nd">@runtime_checkable</span>
@@ -857,8 +884,14 @@ window.runMermaid = runMermaid;</script>
 
 <span class="c1"># --- shared word-timings → visemes conversion ----------------------------</span>
 
-<span class="n">_DEFAULT_REST_VISEME</span> <span class="o">=</span> <span class="s2">"X"</span>
-<span class="n">_DEFAULT_MIN_WORD_GAP_FOR_REST</span> <span class="o">=</span> <span class="mf">0.20</span>  <span class="c1"># seconds</span>
+<span class="c1">#: The Rhubarb convention's constants, owned here for the word rule and the</span>
+<span class="c1">#: phone rule alike (:mod:`an.audio.phones`, an#727): the rest (closed) shape,</span>
+<span class="c1">#: the shape of a letter no table knows, and the pause that closes the mouth.</span>
+<span class="n">REST_VISEME</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"X"</span>
+<span class="n">DEFAULT_LETTER_VISEME</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"C"</span>
+<span class="n">MIN_GAP_FOR_REST_S</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.20</span>  <span class="c1"># seconds</span>
+<span class="n">_DEFAULT_REST_VISEME</span> <span class="o">=</span> <span class="n">REST_VISEME</span>
+<span class="n">_DEFAULT_MIN_WORD_GAP_FOR_REST</span> <span class="o">=</span> <span class="n">MIN_GAP_FOR_REST_S</span>
 <span class="c1">#: How long after a word ends its closing rest lands (a gap's, or the line's tail).</span>
 <span class="n">_REST_AFTER_WORD_S</span> <span class="o">=</span> <span class="mf">0.05</span>  <span class="c1"># seconds</span>
 
@@ -907,7 +940,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">raw_word</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">ch</span><span class="o">.</span><span class="n">isalpha</span><span class="p">():</span>
                 <span class="k">continue</span>
-            <span class="n">code</span> <span class="o">=</span> <span class="n">char_to_viseme</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="s2">"C"</span><span class="p">)</span>
+            <span class="n">code</span> <span class="o">=</span> <span class="n">char_to_viseme</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">DEFAULT_LETTER_VISEME</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">code</span> <span class="o">==</span> <span class="n">previous</span><span class="p">:</span>
                 <span class="k">continue</span>
             <span class="n">previous</span> <span class="o">=</span> <span class="n">code</span>

@@ -1,0 +1,26 @@
+an.audio.phones
+===============
+
+.. automodule:: an.audio.phones
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      PhoneToViseme
+      ARPABET_TO_VISEME
+      IPA_TO_VISEME
+      NO_INTENSITY
+      TAKES_NEXT_SHAPE
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      clip_timings
+      phone_alphabet
+      phone_viseme
+      phones_to_visemes
+      phones_track
+   

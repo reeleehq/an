@@ -20,18 +20,24 @@ without external services.
 
 ### Functions
 
-| [`list_voices`](#an.audio.list_voices)(provider, \*[, api_key, search, make])   | The voices `provider` offers, as rows (an#712): `browse_voices()` through [`VoiceMeta.as_row()`](#an.audio.VoiceMeta.as_row).                                                                          |
-|-------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`word_timings_to_visemes`](#an.audio.word_timings_to_visemes)(words, \*, ...[, ...])       | Distribute viseme keyframes across word boundaries.                                                                                                                                                                     |
-| [`import_recordings`](#an.audio.import_recordings)(project, audio, \*[, ...])         | Import a performer's recording(s) as the voice of their lines (an#490).                                                                                                                                                 |
-| [`default_tts`](#an.audio.default_tts)()                                        | The default TTS provider: `OfflineTTS`.                                                                                                                                                                                 |
-| [`default_lipsync`](#an.audio.default_lipsync)()                                    | The default lip-sync provider: the loaded genre's `offline` one (the deterministic char-to-viseme provider of `cutan`), else [`NullLipSync`](an.audio.lipsync.html.md#an.audio.lipsync.NullLipSync). |
-| [`produce_audio_for_dialogue`](#an.audio.produce_audio_for_dialogue)(dialogue[, mall, ...])    | Synthesize audio + visemes for one dialogue line.                                                                                                                                                                       |
-| [`produce_audio_for_scene`](#an.audio.produce_audio_for_scene)(scene[, mall, tts, ...])     | Walk every dialogue line, synthesize, and stamp viseme tracks back.                                                                                                                                                     |
-| [`make_tts`](#an.audio.make_tts)(name, \*[, mall, api_key])                  | Instantiate a TTS provider by name.                                                                                                                                                                                     |
-| [`make_lipsync`](#an.audio.make_lipsync)(name, \*[, language])                   | Instantiate a LipSync provider by name.                                                                                                                                                                                 |
-| [`known_tts_names`](#an.audio.known_tts_names)()                                    | Return the registered TTS provider names.                                                                                                                                                                               |
-| [`known_lipsync_names`](#an.audio.known_lipsync_names)()                                | Return the registered LipSync provider names.                                                                                                                                                                           |
+| [`list_voices`](#an.audio.list_voices)(provider, \*[, api_key, search, make])   | The voices `provider` offers, as rows (an#712): `browse_voices()` through [`VoiceMeta.as_row()`](#an.audio.VoiceMeta.as_row).                                                                                                           |
+|-------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`word_timings_to_visemes`](#an.audio.word_timings_to_visemes)(words, \*, ...[, ...])       | Distribute viseme keyframes across word boundaries.                                                                                                                                                                                                      |
+| [`lipsync_cache_id`](#an.audio.lipsync_cache_id)(provider)                           | What a provider puts in a viseme track's content key ([`an.audio.pipeline.viseme_key()`](an.audio.pipeline.html.md#an.audio.pipeline.viseme_key)): its `name`, and its `CACHE_VERSION_ATTR` when it states one.                        |
+| [`clip_timings`](#an.audio.clip_timings)(audio, field)                           | `audio`'s `words` or `phones` as a list of `(label, start_s, end_s)`; `None` when it has none (or its `an` predates the field).                                                                                                                          |
+| [`phone_alphabet`](#an.audio.phone_alphabet)(phones)                               | `"arpabet"` when every phone is ARPAbet as aligners write it (ASCII, one case throughout, each in `an`'s `ARPABET_PHONES` once its stress digit is dropped), else `"ipa"`.                                                                               |
+| [`phone_viseme`](#an.audio.phone_viseme)(phone, \*[, alphabet])                  | The Rhubarb shape of one phone in `alphabet`; `REST_VISEME` for a silence; `None` for a phone the table does not know.                                                                                                                                   |
+| [`phones_to_visemes`](#an.audio.phones_to_visemes)(phones, \*, total_duration)        | A viseme track from phone timings: each phone's shape at its start (in the clip's [`phone_alphabet()`](#an.audio.phone_alphabet)), the mouth closed at a silence, at a pause longer than `min_gap_for_rest` and after the last sound. |
+| [`phones_track`](#an.audio.phones_track)(audio, \*[, phone_to_viseme, ...])      | The mouth track of a clip whose phones are timed (`AudioClip.phones`, a take timed by a forced aligner, an#491), carrying the clip's words too; `None` when it has no phones, or one `phone_to_viseme` does not know.                                    |
+| [`import_recordings`](#an.audio.import_recordings)(project, audio, \*[, ...])         | Import a performer's recording(s) as the voice of their lines (an#490).                                                                                                                                                                                  |
+| [`default_tts`](#an.audio.default_tts)()                                        | The default TTS provider: `OfflineTTS`.                                                                                                                                                                                                                  |
+| [`default_lipsync`](#an.audio.default_lipsync)()                                    | The default lip-sync provider: the loaded genre's `offline` one (the deterministic char-to-viseme provider of `cutan`), else [`NullLipSync`](an.audio.lipsync.html.md#an.audio.lipsync.NullLipSync).                                  |
+| [`produce_audio_for_dialogue`](#an.audio.produce_audio_for_dialogue)(dialogue[, mall, ...])    | Synthesize audio + visemes for one dialogue line.                                                                                                                                                                                                        |
+| [`produce_audio_for_scene`](#an.audio.produce_audio_for_scene)(scene[, mall, tts, ...])     | Walk every dialogue line, synthesize, and stamp viseme tracks back.                                                                                                                                                                                      |
+| [`make_tts`](#an.audio.make_tts)(name, \*[, mall, api_key])                  | Instantiate a TTS provider by name.                                                                                                                                                                                                                      |
+| [`make_lipsync`](#an.audio.make_lipsync)(name, \*[, language])                   | Instantiate a LipSync provider by name.                                                                                                                                                                                                                  |
+| [`known_tts_names`](#an.audio.known_tts_names)()                                    | Return the registered TTS provider names.                                                                                                                                                                                                                |
+| [`known_lipsync_names`](#an.audio.known_lipsync_names)()                                | Return the registered LipSync provider names.                                                                                                                                                                                                            |
 
 ### Classes
 
@@ -430,6 +436,21 @@ Return the word timings for `audio`.
 * **Return type:**
   [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
+### an.audio.clip_timings(audio, field)
+
+`audio`’s `words` or `phones` as a list of `(label, start_s, end_s)`;
+`None` when it has none (or its `an` predates the field).
+
+```pycon
+>>> clip_timings(AudioClip(duration=1.0, phones=[("M", 0, 0.1)]), "phones")
+[('M', 0.0, 0.1)]
+>>> clip_timings(AudioClip(duration=1.0), "phones") is None
+True
+```
+
+* **Return type:**
+  [`Optional`](https://docs.python.org/3/library/typing.html#typing.Optional)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]]
+
 ### an.audio.default_lipsync()
 
 The default lip-sync provider: the loaded genre’s `offline` one (the
@@ -508,6 +529,25 @@ Return the registered TTS provider names.
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
+### an.audio.lipsync_cache_id(provider)
+
+What a provider puts in a viseme track’s content key
+([`an.audio.pipeline.viseme_key()`](an.audio.pipeline.html.md#an.audio.pipeline.viseme_key)): its `name`, and its
+`CACHE_VERSION_ATTR` when it states one.
+
+```pycon
+>>> class Offline:
+...     name = "offline"
+>>> lipsync_cache_id(Offline())
+'offline'
+>>> Offline.cache_version = "phones-1"
+>>> lipsync_cache_id(Offline())
+'offline@phones-1'
+```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.audio.list_voices(provider, \*, api_key=None, search=None, make=<function make_tts>)
 
 The voices `provider` offers, as rows (an#712): `browse_voices()`
@@ -563,6 +603,88 @@ list of known options.
 
 * **Return type:**
   [`TTSProvider`](an.audio.tts.html.md#an.audio.tts.TTSProvider)
+
+### an.audio.phone_alphabet(phones)
+
+`"arpabet"` when every phone is ARPAbet as aligners write it (ASCII, one
+case throughout, each in `an`’s `ARPABET_PHONES` once its stress digit is
+dropped), else `"ipa"`. Decided per clip: a SAMPA `V` (the vowel of
+*love*) beside a lowercase `l` is not ARPAbet `V`. The rule is `an`’s
+([`phone_alphabet_of()`](an.audio.transcripts.html.md#an.audio.transcripts.phone_alphabet_of)), which says `None` where
+it cannot tell; this lip-sync reads that as IPA.
+
+```pycon
+>>> phone_alphabet(["HH", "AH0", "L"]), phone_alphabet(["hh", "ah0"])
+('arpabet', 'arpabet')
+>>> phone_alphabet(["l", "V", "v"]), phone_alphabet(["h", "ə", "l"])
+('ipa', 'ipa')
+```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.audio.phone_viseme(phone, , alphabet='arpabet')
+
+The Rhubarb shape of one phone in `alphabet`; `REST_VISEME` for a
+silence; `None` for a phone the table does not know.
+
+```pycon
+>>> phone_viseme("AA1"), phone_viseme("M"), phone_viseme("sil"), phone_viseme("Q9")
+('D', 'A', 'X', None)
+>>> [phone_viseme(p, alphabet="ipa") for p in ("tʃ", "iː", "əw", "ʘ")]
+['B', 'B', 'F', None]
+```
+
+* **Return type:**
+  [`Optional`](https://docs.python.org/3/library/typing.html#typing.Optional)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+### an.audio.phones_to_visemes(phones, \*, total_duration, words=(), phone_to_viseme=<function phone_viseme>, char_to_viseme=None, rest_viseme='X', min_gap_for_rest=0.2, alphabet=None, intensity_of={}, takes_next_shape=frozenset({'HH', 'h', 'ɦ'}))
+
+A viseme track from phone timings: each phone’s shape at its start (in the
+clip’s [`phone_alphabet()`](#an.audio.phone_alphabet)), the mouth closed at a silence, at a pause
+longer than `min_gap_for_rest` and after the last sound. A word of `words`
+with no phone under it is spoken by its letters (`char_to_viseme`).
+
+`alphabet` is the take’s recorded one (`AudioClip.phone_alphabet`); with
+none, the clip’s labels decide ([`phone_alphabet()`](#an.audio.phone_alphabet)).
+
+`intensity_of` maps a phone (its base: stress and modifiers dropped) to the
+`Viseme.intensity` of its cue, so a genre’s co-articulation can let a
+vowel’s `B` beat a tongue-only consonant’s (cutan#157). A phone of
+`takes_next_shape` (`HH`) shows the shape of the next spoken phone, kept
+as its own only at the end.
+
+`None` when a phone is one `phone_to_viseme` does not know: a phone set
+this table was not written for is better spread by its words than guessed.
+
+```pycon
+>>> phones_to_visemes([("ʘ", 0.0, 0.1)], total_duration=1.0) is None
+True
+>>> [(v.time, v.code) for v in phones_to_visemes(
+...     [("M", 0.0, 0.1), ("AA1", 0.1, 0.3), ("P", 0.6, 0.7)], total_duration=0.7)]
+[(0.0, 'X'), (0.0, 'A'), (0.1, 'D'), (0.3, 'X'), (0.6, 'A'), (0.7, 'X')]
+```
+
+* **Return type:**
+  [`Optional`](https://docs.python.org/3/library/typing.html#typing.Optional)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Viseme`](an.audio.lipsync.html.md#an.audio.lipsync.Viseme)]]
+
+### an.audio.phones_track(audio, \*, phone_to_viseme=<function phone_viseme>, char_to_viseme=None, rest_viseme='X', convention='rhubarb', intensity_of={})
+
+The mouth track of a clip whose phones are timed (`AudioClip.phones`, a
+take timed by a forced aligner, an#491), carrying the clip’s words too;
+`None` when it has no phones, or one `phone_to_viseme` does not know.
+
+```pycon
+>>> clip = AudioClip(duration=0.5, phones=[("M", 0.1, 0.2)], words=[("m", 0.1, 0.2)])
+>>> track = phones_track(clip)
+>>> [v.code for v in track.visemes], track.words
+(['X', 'A', 'X', 'X'], [('m', 0.1, 0.2)])
+>>> phones_track(AudioClip(duration=0.5)) is None
+True
+```
+
+* **Return type:**
+  [`Optional`](https://docs.python.org/3/library/typing.html#typing.Optional)[[`VisemeTrack`](an.audio.lipsync.html.md#an.audio.lipsync.VisemeTrack)]
 
 ### an.audio.produce_audio_for_dialogue(dialogue, mall=None, \*, tts=None, lipsync=None, effects=None, voice_id=None, takes=<object object>, take_scorer=<function make_take_scorer>)
 
@@ -680,6 +802,7 @@ audio’s actual length.
 | [`loudness`](an.audio.loudness.html.md#module-an.audio.loudness)             | Voice loudness: one integrated loudness for every voice of a film (an#315).                                                                                    |
 | [`mac_say_tts`](an.audio.mac_say_tts.html.md#module-an.audio.mac_say_tts)       | MacSayTTS — audible offline speech via macOS's built-in `say` command.                                                                                         |
 | [`offline_tts`](an.audio.offline_tts.html.md#module-an.audio.offline_tts)       | OfflineTTS — produces silent audio of plausible duration.                                                                                                      |
+| [`phones`](an.audio.phones.html.md#module-an.audio.phones)                 | Phones to mouth shapes: an aligner's phone timings as a Rhubarb viseme track (an#727).                                                                         |
 | [`pipeline`](an.audio.pipeline.html.md#module-an.audio.pipeline)             | Audio pipeline orchestration: dialogue → audio → visemes → IR mutation.                                                                                        |
 | [`providers`](an.audio.providers.html.md#module-an.audio.providers)           | Provider factory: name → concrete TTS/LipSync provider instance.                                                                                               |
 | [`recorded`](an.audio.recorded.html.md#module-an.audio.recorded)             | Recorded voices: a performer's takes as the voice of a character (an#490).                                                                                     |

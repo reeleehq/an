@@ -10,6 +10,12 @@ an.audio
    
       list_voices
       word_timings_to_visemes
+      lipsync_cache_id
+      clip_timings
+      phone_alphabet
+      phone_viseme
+      phones_to_visemes
+      phones_track
       import_recordings
       default_tts
       default_lipsync
@@ -51,6 +57,7 @@ an.audio
    loudness
    mac_say_tts
    offline_tts
+   phones
    pipeline
    providers
    recorded

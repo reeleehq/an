@@ -18,13 +18,16 @@ Two protocols live here:
 
 ### Module Attributes
 
-| [`WordTiming`](#an.audio.lipsync.WordTiming)   | One word's slice in time.   |
-|---------------------------------------------------------------|-----------------------------|
+| [`WordTiming`](#an.audio.lipsync.WordTiming)         | One word's slice in time.                                                                                                                                                                                                                                                                        |
+|---------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`CACHE_VERSION_ATTR`](#an.audio.lipsync.CACHE_VERSION_ATTR) | The optional class attribute a [`LipSyncProvider`](#an.audio.lipsync.LipSyncProvider) sets to re-key the tracks it cached when how it aligns changes (an#727): its `name` is a persisted identifier and cannot change.                                                                 |
+| [`REST_VISEME`](#an.audio.lipsync.REST_VISEME)        | The Rhubarb convention's constants, owned here for the word rule and the phone rule alike ([`an.audio.phones`](an.audio.phones.html.md#module-an.audio.phones), an#727): the rest (closed) shape, the shape of a letter no table knows, and the pause that closes the mouth. |
 
 ### Functions
 
-| [`word_timings_to_visemes`](#an.audio.lipsync.word_timings_to_visemes)(words, \*, ...[, ...])   | Distribute viseme keyframes across word boundaries.   |
-|---------------------------------------------------------------------------------------------------|-------------------------------------------------------|
+| [`lipsync_cache_id`](#an.audio.lipsync.lipsync_cache_id)(provider)                     | What a provider puts in a viseme track's content key ([`an.audio.pipeline.viseme_key()`](an.audio.pipeline.html.md#an.audio.pipeline.viseme_key)): its `name`, and its [`CACHE_VERSION_ATTR`](#an.audio.lipsync.CACHE_VERSION_ATTR) when it states one.   |
+|-------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`word_timings_to_visemes`](#an.audio.lipsync.word_timings_to_visemes)(words, \*, ...[, ...]) | Distribute viseme keyframes across word boundaries.                                                                                                                                                                                                                                |
 
 ### Classes
 
@@ -34,6 +37,13 @@ Two protocols live here:
 | [`Viseme`](#an.audio.lipsync.Viseme)(time, code[, intensity])                   | A single mouth-shape keyframe.                                           |
 | [`VisemeTrack`](#an.audio.lipsync.VisemeTrack)([visemes, convention, duration, ...]) | Aligned viseme sequence produced by a LipSyncProvider.                   |
 | [`WordTimingProvider`](#an.audio.lipsync.WordTimingProvider)(\*args, \*\*kwargs)            | Audio → `[(word, start_s, end_s), ...]`.                                 |
+
+### an.audio.lipsync.CACHE_VERSION_ATTR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'cache_version'*
+
+The optional class attribute a [`LipSyncProvider`](#an.audio.lipsync.LipSyncProvider) sets to re-key the
+tracks it cached when how it aligns changes (an#727): its `name` is a
+persisted identifier and cannot change. Absent (or `None`), the key is the
+name alone, as before.
 
 ### *class* an.audio.lipsync.LipSyncProvider(\*args, \*\*kwargs)
 
@@ -77,6 +87,12 @@ of the cache keys may run it in memory (an#311).
 * **Type:**
   The same request gives the same track, and nothing is billed
 
+### an.audio.lipsync.REST_VISEME *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'X'*
+
+The Rhubarb convention’s constants, owned here for the word rule and the
+phone rule alike ([`an.audio.phones`](an.audio.phones.html.md#module-an.audio.phones), an#727): the rest (closed) shape,
+the shape of a letter no table knows, and the pause that closes the mouth.
+
 ### *class* an.audio.lipsync.Viseme(time, code, intensity=1.0)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
@@ -119,6 +135,25 @@ Return the word timings for `audio`.
 
 * **Return type:**
   [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
+
+### an.audio.lipsync.lipsync_cache_id(provider)
+
+What a provider puts in a viseme track’s content key
+([`an.audio.pipeline.viseme_key()`](an.audio.pipeline.html.md#an.audio.pipeline.viseme_key)): its `name`, and its
+[`CACHE_VERSION_ATTR`](#an.audio.lipsync.CACHE_VERSION_ATTR) when it states one.
+
+```pycon
+>>> class Offline:
+...     name = "offline"
+>>> lipsync_cache_id(Offline())
+'offline'
+>>> Offline.cache_version = "phones-1"
+>>> lipsync_cache_id(Offline())
+'offline@phones-1'
+```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.audio.lipsync.word_timings_to_visemes(words, , total_duration, char_to_viseme, rest_viseme='X', min_gap_for_rest=0.2)
 

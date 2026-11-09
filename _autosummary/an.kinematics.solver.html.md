@@ -293,7 +293,7 @@ grips back (an#645): the grips the geometry ruled out (or a conflict took
 from a grip the lead had taken back) on the frame before, those being led
 with their gap, those the lead took back, and the frame before’s drops.
 
-### an.kinematics.solver.SOLVER_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '8'*
+### an.kinematics.solver.SOLVER_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '9'*
 
 Bumped whenever the solve can give a different answer for the same inputs
 (a changed projection, order, or default): part of every cache key built
@@ -305,7 +305,9 @@ out of reach is led back over several frames (an#645); 6: the stage’s per-fram
 solve leads lost grips back too (an#668); 7: it pulls each lead by the led
 chain’s own mass (an#672); 8: a held loop the geometry shows can hold is
 judged apart: kept converging, never given up for its rate or for a conflict
-elsewhere, only for a jump the cap leaves (an#706).
+elsewhere, only for a jump the cap leaves (an#706); 9: while anything pulls,
+a frame’s passes are followed by as many over the joints alone, so a pull
+never drags a joint past its range or apart (an#707).
 
 ### *class* an.kinematics.solver.SolveResult(bodies, poses, residuals, unsatisfied, limit_violations, dropped=(), out_of_reach=())
 

@@ -38,6 +38,7 @@
 - [an.audio.loudness](_autosummary/an.audio.loudness.html.md): Voice loudness: one integrated loudness for every voice of a film (an#315).
 - [an.audio.mac_say_tts](_autosummary/an.audio.mac_say_tts.html.md): MacSayTTS — audible offline speech via macOS’s built-in &#96;say&#96; command.
 - [an.audio.offline_tts](_autosummary/an.audio.offline_tts.html.md): OfflineTTS — produces silent audio of plausible duration. No network, no keys.
+- [an.audio.phones](_autosummary/an.audio.phones.html.md): Phones to mouth shapes: an aligner’s phone timings as a Rhubarb viseme track (an#727).
 - [an.audio.pipeline](_autosummary/an.audio.pipeline.html.md): Audio pipeline orchestration: dialogue → audio → visemes → IR mutation.
 - [an.audio.providers](_autosummary/an.audio.providers.html.md): Provider factory: name → concrete TTS/LipSync provider instance.
 - [an.audio.recorded](_autosummary/an.audio.recorded.html.md): Recorded voices: a performer’s takes as the voice of a character (an#490).
@@ -238,7 +239,7 @@
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [an.world_cli](_autosummary/an.world_cli.html.md): &#96;an world …&#96;: the scene’s world from the shell (ADR 0009).
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-11-09 02:44 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-11-09 02:57 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
 
 ## Optional
 

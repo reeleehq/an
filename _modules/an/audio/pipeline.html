@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=8a131c26"></script>
+    <script src="../../../_static/documentation_options.js?v=bdeb964c"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.381" />
+  <meta name="docsearch:version" content="0.1.382" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -749,7 +749,13 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.effects</span><span class="w"> </span><span class="kn">import</span> <span class="n">EFFECT_SAMPLE_RATE</span><span class="p">,</span> <span class="n">apply_voice_effects</span><span class="p">,</span> <span class="n">voice_effects</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.lipsync</span><span class="w"> </span><span class="kn">import</span> <span class="n">LipSyncProvider</span><span class="p">,</span> <span class="n">NullLipSync</span><span class="p">,</span> <span class="n">Viseme</span><span class="p">,</span> <span class="n">VisemeTrack</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.lipsync</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">LipSyncProvider</span><span class="p">,</span>
+    <span class="n">NullLipSync</span><span class="p">,</span>
+    <span class="n">Viseme</span><span class="p">,</span>
+    <span class="n">VisemeTrack</span><span class="p">,</span>
+    <span class="n">lipsync_cache_id</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.offline_tts</span><span class="w"> </span><span class="kn">import</span> <span class="n">OfflineTTS</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.takes</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">REROLL_HINT</span><span class="p">,</span>
@@ -1108,7 +1114,7 @@ window.runMermaid = runMermaid;</script>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">audio_clip</span> <span class="o">=</span> <span class="n">_load_or_choose_take</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">req</span><span class="p">)</span>
         <span class="n">fresh</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">fresh_audio</span>
-    <span class="n">viseme_cache_key</span> <span class="o">=</span> <span class="n">viseme_key</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">cache_key</span><span class="p">,</span> <span class="n">lipsync</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">req</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+    <span class="n">viseme_cache_key</span> <span class="o">=</span> <span class="n">viseme_key</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">cache_key</span><span class="p">,</span> <span class="n">lipsync_cache_id</span><span class="p">(</span><span class="n">lipsync</span><span class="p">),</span> <span class="n">req</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
     <span class="n">track</span> <span class="o">=</span> <span class="n">_load_or_align</span><span class="p">(</span>
         <span class="n">lipsync</span><span class="p">,</span> <span class="n">audio_clip</span><span class="p">,</span> <span class="n">req</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">viseme_cache_key</span><span class="p">,</span> <span class="n">fresh_audio</span><span class="o">=</span><span class="n">fresh</span>
     <span class="p">)</span>
@@ -1214,7 +1220,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">spoken</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">voice_id</span><span class="p">,</span> <span class="n">req</span><span class="o">.</span><span class="n">tts</span><span class="p">))</span>
             <span class="n">expected_audio_ref</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">cache_key</span>  <span class="c1"># None: a best-of-N choice to make</span>
             <span class="n">expected_viseme_ref</span> <span class="o">=</span> <span class="n">viseme_key</span><span class="p">(</span>
-                <span class="n">expected_audio_ref</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">,</span> <span class="n">lipsync</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">line</span><span class="o">.</span><span class="n">text</span>
+                <span class="n">expected_audio_ref</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">,</span> <span class="n">lipsync_cache_id</span><span class="p">(</span><span class="n">lipsync</span><span class="p">),</span> <span class="n">line</span><span class="o">.</span><span class="n">text</span>
             <span class="p">)</span>
             <span class="n">already_done</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="n">expected_audio_ref</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
@@ -1299,7 +1305,9 @@ window.runMermaid = runMermaid;</script>
         <span class="n">line</span><span class="o">.</span><span class="n">word_timings</span> <span class="o">=</span> <span class="n">_to_ir_word_timings</span><span class="p">(</span><span class="n">track</span><span class="p">)</span>
         <span class="n">line</span><span class="o">.</span><span class="n">audio_ref</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">cache_key</span>
         <span class="n">line</span><span class="o">.</span><span class="n">leveled</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># leveled again below, from this audio</span>
-        <span class="n">line</span><span class="o">.</span><span class="n">viseme_ref</span> <span class="o">=</span> <span class="n">viseme_key</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">cache_key</span><span class="p">,</span> <span class="n">lipsync</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="n">line</span><span class="o">.</span><span class="n">viseme_ref</span> <span class="o">=</span> <span class="n">viseme_key</span><span class="p">(</span>
+            <span class="n">req</span><span class="o">.</span><span class="n">cache_key</span><span class="p">,</span> <span class="n">lipsync_cache_id</span><span class="p">(</span><span class="n">lipsync</span><span class="p">),</span> <span class="n">line</span><span class="o">.</span><span class="n">text</span>
+        <span class="p">)</span>
     <span class="c1"># The spread is measured only when lines were (re)made: a warm render pays</span>
     <span class="c1"># no ffmpeg pass for it, and says it once rather than on every render.</span>
     <span class="n">_voice_loudness</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="n">overruns</span> <span class="ow">and</span> <span class="nb">bool</span><span class="p">(</span><span class="n">pending</span><span class="p">))</span>

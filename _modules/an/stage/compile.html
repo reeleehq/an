@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=8a131c26"></script>
+    <script src="../../../_static/documentation_options.js?v=bdeb964c"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.381" />
+  <meta name="docsearch:version" content="0.1.382" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -759,9 +759,12 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Protocol</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">BESIDE_HOST_OVERRIDE</span><span class="p">,</span>
     <span class="n">DEFAULT_FPS</span><span class="p">,</span>
     <span class="n">DEFAULT_RESOLUTION</span><span class="p">,</span>
     <span class="n">PAINT_KEYS_OVERRIDE</span><span class="p">,</span>
+    <span class="n">RIDER_BEHIND</span><span class="p">,</span>
+    <span class="n">RIDER_IN_FRONT</span><span class="p">,</span>
     <span class="n">paint_key_items</span><span class="p">,</span>
     <span class="n">paint_key_rank</span><span class="p">,</span>
     <span class="n">rider_host_key</span><span class="p">,</span>
@@ -2813,7 +2816,11 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    placed entity root, in today's order (backdrop planes, the cast in entity</span>
 <span class="sd">    order, the foreground planes). An entity placed after an anchor is taken</span>
 <span class="sd">    out and drawn right after it, followed by whatever is placed after IT;</span>
-<span class="sd">    several after one anchor keep ``shot.entities`` order. Then runs of one</span>
+<span class="sd">    several after one anchor keep ``shot.entities`` order. An attached member</span>
+<span class="sd">    the world marks (:data:`an.base.BESIDE_HOST_OVERRIDE`, an#692) is drawn</span>
+<span class="sd">    right beside its host wherever the host is drawn, behind it or in front</span>
+<span class="sd">    of it (after what is placed after the host), several on one side in</span>
+<span class="sd">    ``shot.entities`` order (:func:`_beside_their_hosts_atoms`). Then runs of one</span>
 <span class="sd">    environment's planes are packed into containers, the first named for the</span>
 <span class="sd">    environment, the next ``&lt;env&gt;__band_&lt;k&gt;`` with ``scope=&lt;env&gt;`` so every</span>
 <span class="sd">    plane stays ``&lt;env&gt;/&lt;plane&gt;``; and entities placed right after a plane</span>
@@ -2860,18 +2867,35 @@ window.runMermaid = runMermaid;</script>
     <span class="k">for</span> <span class="n">kind</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">atoms</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"entity"</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">afters</span><span class="p">:</span>
             <span class="n">followers</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">afters</span><span class="p">[</span><span class="n">name</span><span class="p">],</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">kind</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">node</span><span class="p">))</span>
-    <span class="n">base</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">atoms</span> <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"entity"</span> <span class="ow">and</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">afters</span><span class="p">)]</span>
+    <span class="n">riders</span> <span class="o">=</span> <span class="n">_beside_their_hosts_atoms</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">afters</span><span class="p">,</span> <span class="n">placed</span><span class="o">=</span><span class="n">placed</span><span class="p">)</span>
+    <span class="n">behind</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">NodeJSON</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">in_front</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">NodeJSON</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">kind</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">atoms</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"entity"</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">riders</span><span class="p">:</span>
+            <span class="n">host</span><span class="p">,</span> <span class="n">side</span> <span class="o">=</span> <span class="n">riders</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+            <span class="n">sides</span> <span class="o">=</span> <span class="n">behind</span> <span class="k">if</span> <span class="n">side</span> <span class="o">==</span> <span class="n">RIDER_BEHIND</span> <span class="k">else</span> <span class="n">in_front</span>
+            <span class="n">sides</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">kind</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">node</span><span class="p">))</span>
+    <span class="n">base</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">a</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">atoms</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"entity"</span> <span class="ow">and</span> <span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">afters</span> <span class="ow">or</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">riders</span><span class="p">))</span>
+    <span class="p">]</span>
 
     <span class="c1"># (atom, the plane it rides: "env/plane" | None)</span>
     <span class="n">ordered</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">NodeJSON</span><span class="p">],</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">emit</span><span class="p">(</span><span class="n">atom</span><span class="p">,</span> <span class="n">rides</span><span class="p">):</span>
-        <span class="n">ordered</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">atom</span><span class="p">,</span> <span class="n">rides</span><span class="p">))</span>
         <span class="n">kind</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">node</span> <span class="o">=</span> <span class="n">atom</span>
+        <span class="n">mine</span> <span class="o">=</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"entity"</span>  <span class="c1"># only an entity has riders (an#692)</span>
+        <span class="k">for</span> <span class="n">rider</span> <span class="ow">in</span> <span class="n">behind</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">())</span> <span class="k">if</span> <span class="n">mine</span> <span class="k">else</span> <span class="p">():</span>
+            <span class="n">emit</span><span class="p">(</span><span class="n">rider</span><span class="p">,</span> <span class="n">rides</span><span class="p">)</span>  <span class="c1"># in its host's wrapper, if it has one</span>
+        <span class="n">ordered</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">atom</span><span class="p">,</span> <span class="n">rides</span><span class="p">))</span>
         <span class="c1"># A plane's anchor is its path, `&lt;env&gt;/&lt;plane&gt;`, in every band.</span>
         <span class="n">key</span> <span class="o">=</span> <span class="n">stage_tree</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"plane"</span> <span class="k">else</span> <span class="n">name</span>
         <span class="k">for</span> <span class="n">follower</span> <span class="ow">in</span> <span class="n">followers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">()):</span>
             <span class="n">emit</span><span class="p">(</span><span class="n">follower</span><span class="p">,</span> <span class="n">key</span> <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"plane"</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">rider</span> <span class="ow">in</span> <span class="n">in_front</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">())</span> <span class="k">if</span> <span class="n">mine</span> <span class="k">else</span> <span class="p">():</span>
+            <span class="n">emit</span><span class="p">(</span><span class="n">rider</span><span class="p">,</span> <span class="n">rides</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">base</span><span class="p">:</span>
         <span class="n">emit</span><span class="p">(</span><span class="n">atom</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
@@ -2925,6 +2949,60 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="n">bands</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">bands</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">AfterBand</span><span class="p">(</span><span class="n">wrapper</span><span class="o">=</span><span class="n">out</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">environment</span><span class="o">=</span><span class="n">env</span><span class="p">,</span> <span class="n">plane</span><span class="o">=</span><span class="n">plane</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_beside_their_hosts_atoms</span><span class="p">(</span>
+    <span class="n">shot</span><span class="p">:</span> <span class="n">Shot</span><span class="p">,</span> <span class="n">afters</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">placed</span><span class="p">:</span> <span class="n">Collection</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``{entity: (host, side)}`` for each entity of ``shot`` the world marked</span>
+<span class="sd">    to be drawn beside its host (:data:`an.base.BESIDE_HOST_OVERRIDE`, an#692),</span>
+<span class="sd">    both drawn in the scene (``placed``). Not one that names its own ``after``</span>
+<span class="sd">    (``afters``), nor one whose host is drawn, through ``after`` or its own</span>
+<span class="sd">    host, relative to that entity itself (the author's ``right.after: hat``,</span>
+<span class="sd">    ``hat`` on ``right``): that one keeps its own place, as the author's</span>
+<span class="sd">    ``after`` already draws it beside its host.</span>
+
+<span class="sd">    &gt;&gt;&gt; from an.ir.schema import AssetRef, Shot</span>
+<span class="sd">    &gt;&gt;&gt; def prop(id, host=None):</span>
+<span class="sd">    ...     mark = {BESIDE_HOST_OVERRIDE: {"host": host, "side": -1}} if host else None</span>
+<span class="sd">    ...     return AssetRef(kind="prop", id=id, store="props", ref="r", overrides=mark)</span>
+<span class="sd">    &gt;&gt;&gt; shot = Shot(id="s", duration=1.0, entities=[</span>
+<span class="sd">    ...     prop("hat", "right"), prop("cap", "x"), prop("right"), prop("x")])</span>
+<span class="sd">    &gt;&gt;&gt; _beside_their_hosts_atoms(shot, {"x": "cap"}, placed={"hat", "cap", "right", "x"})</span>
+<span class="sd">    {'hat': ('right', -1)}</span>
+<span class="sd">    """</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">:</span>
+        <span class="n">mark</span> <span class="o">=</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">overrides</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">BESIDE_HOST_OVERRIDE</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mark</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">afters</span> <span class="ow">or</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">placed</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">host</span><span class="p">,</span> <span class="n">side</span> <span class="o">=</span> <span class="n">_beside_host_mark</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">mark</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">host</span> <span class="ow">in</span> <span class="n">placed</span><span class="p">:</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">side</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">eid</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">out</span><span class="p">):</span>  <span class="c1"># an `after` chain is acyclic: a cycle passes a rider</span>
+        <span class="n">seen</span><span class="p">,</span> <span class="n">at</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(),</span> <span class="n">out</span><span class="p">[</span><span class="n">eid</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">while</span> <span class="n">at</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">at</span> <span class="o">!=</span> <span class="n">eid</span> <span class="ow">and</span> <span class="n">at</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+            <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">at</span><span class="p">)</span>
+            <span class="n">at</span> <span class="o">=</span> <span class="n">afters</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">at</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="n">at</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">at</span> <span class="ow">in</span> <span class="n">out</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">at</span> <span class="o">==</span> <span class="n">eid</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">out</span><span class="p">[</span><span class="n">eid</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_beside_host_mark</span><span class="p">(</span><span class="n">shot_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">mark</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``(host, side)`` of a :data:`an.base.BESIDE_HOST_OVERRIDE` mark, or a</span>
+<span class="sd">    :class:`CutoutCompileError` naming what is wrong with a malformed one (the</span>
+<span class="sd">    world writes it; a hand-written one is read the same way)."""</span>
+    <span class="n">host</span> <span class="o">=</span> <span class="n">mark</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"host"</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mark</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">side</span> <span class="o">=</span> <span class="n">mark</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"side"</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mark</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="n">side</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">RIDER_BEHIND</span><span class="p">,</span> <span class="n">RIDER_IN_FRONT</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot_id</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">entity_id</span><span class="si">!r}</span><span class="s2"> has a malformed "</span>
+            <span class="sa">f</span><span class="s2">"`</span><span class="si">{</span><span class="n">BESIDE_HOST_OVERRIDE</span><span class="si">}</span><span class="s2">` override </span><span class="si">{</span><span class="n">mark</span><span class="si">!r}</span><span class="s2">: it is "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="se">{{</span><span class="s2">host: &lt;entity id&gt;, side: </span><span class="si">{</span><span class="n">RIDER_BEHIND</span><span class="si">}</span><span class="s2"> (behind) or "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">RIDER_IN_FRONT</span><span class="si">}</span><span class="s2"> (in front)</span><span class="se">}}</span><span class="s2">"</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">host</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">side</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_compensated_planes</span><span class="p">(</span><span class="n">shot</span><span class="p">:</span> <span class="n">Shot</span><span class="p">,</span> <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>

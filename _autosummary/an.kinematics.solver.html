@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=8a131c26"></script>
+    <script src="../_static/documentation_options.js?v=bdeb964c"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.381" />
+  <meta name="docsearch:version" content="0.1.382" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -336,6 +336,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.loudness.html">an.audio.loudness</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.mac_say_tts.html">an.audio.mac_say_tts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.offline_tts.html">an.audio.offline_tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.phones.html">an.audio.phones</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.pipeline.html">an.audio.pipeline</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.recorded.html">an.audio.recorded</a></li>
@@ -1053,7 +1054,7 @@ with their gap, those the lead took back, and the frame before’s drops.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.kinematics.solver.SOLVER_VERSION">
-<span class="sig-prename descclassname"><span class="pre">an.kinematics.solver.</span></span><span class="sig-name descname"><span class="pre">SOLVER_VERSION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'8'</span></span><a class="headerlink" href="#an.kinematics.solver.SOLVER_VERSION" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.kinematics.solver.</span></span><span class="sig-name descname"><span class="pre">SOLVER_VERSION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'9'</span></span><a class="headerlink" href="#an.kinematics.solver.SOLVER_VERSION" title="Link to this definition">#</a></dt>
 <dd><p>Bumped whenever the solve can give a different answer for the same inputs
 (a changed projection, order, or default): part of every cache key built
 on this module.
@@ -1064,7 +1065,9 @@ out of reach is led back over several frames (an#645); 6: the stage’s per-fram
 solve leads lost grips back too (an#668); 7: it pulls each lead by the led
 chain’s own mass (an#672); 8: a held loop the geometry shows can hold is
 judged apart: kept converging, never given up for its rate or for a conflict
-elsewhere, only for a jump the cap leaves (an#706).</p>
+elsewhere, only for a jump the cap leaves (an#706); 9: while anything pulls,
+a frame’s passes are followed by as many over the joints alone, so a pull
+never drags a joint past its range or apart (an#707).</p>
 </dd></dl>
 
 <dl class="py class">

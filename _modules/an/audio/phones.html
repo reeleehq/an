@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="alternate" type="text/markdown" href="phones.html.md">
+<link rel="describedby" href="../../../llms.txt" type="text/markdown">
+    <title>an.audio.phones &#8212; an</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx_autodoc_typehints.css?v=057ac668" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/epythet.css?v=c64280fc" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
+
+    <script src="../../../_static/documentation_options.js?v=bdeb964c"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=fd10adb8"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+
+
+
+
+const initStyles = () => {
+    const defaultStyle = document.createElement('style');
+    defaultStyle.textContent = "pre.mermaid {\n    /* Same as .mermaid-container > pre */\n    display: block;\n    width: 100%;\n}\n\npre.mermaid > svg {\n    /* Same as .mermaid-container > pre > svg */\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}";
+    document.head.appendChild(defaultStyle);
+
+    const fullscreenStyle = document.createElement('style');
+    fullscreenStyle.textContent = ".mermaid-container {\n    position: relative;\n    display: flex;\n    flex-direction: row;\n    width: 100%;\n}\n\n.mermaid-container > pre {\n    display: block;\n    width: 100%;\n}\n\n.mermaid-container > pre > svg {\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}\n\n.mermaid-fullscreen-btn {\n    position: absolute;\n    width: 28px;\n    height: 28px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.3);\n    border-radius: 4px;\n    cursor: pointer;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    transition: all 0.2s;\n    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);\n    font-size: 14px;\n    line-height: 1;\n    padding: 0;\n    color: #333;\n}\n\n.mermaid-fullscreen-btn:hover {\n    opacity: 100% !important;\n    background: rgba(255, 255, 255, 1);\n    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-btn.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.3);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-btn.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal {\n    display: none;\n    position: fixed !important;\n    top: 0 !important;\n    left: 0 !important;\n    width: 95vw;\n    height: 100vh;\n    background: rgba(255, 255, 255, 0.98);\n    z-index: 9999;\n    padding: 20px;\n    overflow: auto;\n}\n\n.mermaid-fullscreen-modal.dark-theme {\n    background: rgba(0, 0, 0, 0.98);\n}\n\n.mermaid-fullscreen-modal.active {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen {\n    position: relative;\n    width: 95vw;\n    height: 90vh;\n    max-width: 95vw;\n    max-height: 90vh;\n    background: white;\n    border-radius: 8px;\n    padding: 20px;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);\n    overflow: auto;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen.dark-theme {\n    background: #1a1a1a;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);\n}\n\n.mermaid-container-fullscreen pre.mermaid {\n    width: 100%;\n    height: 100%;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen .mermaid svg {\n    height: 100% !important;\n    width: 100% !important;\n    cursor: grab;\n}\n\n.mermaid-fullscreen-close {\n    position: fixed !important;\n    top: 20px !important;\n    right: 20px !important;\n    width: 40px;\n    height: 40px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.2);\n    border-radius: 50%;\n    cursor: pointer;\n    z-index: 10000;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);\n    transition: all 0.2s;\n    font-size: 24px;\n    line-height: 1;\n    color: #333;\n}\n\n.mermaid-fullscreen-close:hover {\n    background: white;\n    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-close.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.2);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-close.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal .mermaid-fullscreen-btn {\n    display: none !important;\n}";
+    document.head.appendChild(fullscreenStyle);
+}
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    // We use a set of heuristics:
+    // 1. Check for common dark mode classes or attributes
+    // 2. Check computed background color brightness
+    if (document.documentElement.classList.contains('dark') ||
+        document.documentElement.getAttribute('data-theme') === 'dark' ||
+        document.body.classList.contains('dark') ||
+        document.body.getAttribute('data-theme') === 'dark') {
+        // console.log("Dark theme detected via class/attribute");
+        return true;
+    }
+    if (document.documentElement.classList.contains('light') ||
+        document.documentElement.getAttribute('data-theme') === 'light' ||
+        document.body.classList.contains('light') ||
+        document.body.getAttribute('data-theme') === 'light') {
+        // console.log("Light theme detected via class/attribute");
+        return false;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // console.log("Dark theme detected via prefers-color-scheme");
+        return true;
+    }
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        // console.log("Background color brightness:", brightness);
+        return brightness < 128;
+    }
+    // console.log("No dark or light theme detected, defaulting to light theme");
+    return false;
+};
+
+let darkTheme = isDarkTheme();
+let modal = null;
+let modalContent = null;
+let previousScrollOffset = [window.scrollX, window.scrollY];
+let _lazyObserver = null;
+let _renderQueue = Promise.resolve();
+let closeModal = () => {};
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal?.classList.contains('active')) {
+        closeModal();
+    }
+});
+
+// Apply d3 zoom to each SVG. Idempotent: an SVG already wrapped is skipped,
+// so this is safe to call both for the initial batch and for diagrams that
+// render lazily once they become visible.
+const addZoomToSvgs = (svgs) => {
+    svgs.each(function() {
+        if (this.getAttribute('data-zoom-applied') === 'true') return;
+        var svg = d3.select(this);
+        svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+        var inner = svg.select("g");
+        var zoom = d3.zoom().on("zoom", function(event) {
+            inner.attr("transform", event.transform);
+        });
+        svg.call(zoom);
+        this.setAttribute('data-zoom-applied', 'true');
+    });
+};
+
+const runMermaid = async (rerun) => {
+    console.log("Running mermaid diagrams, rerun =", rerun);
+    // clear all existing mermaid charts
+    let all_mermaids = document.querySelectorAll(".mermaid");
+
+    if (rerun) {
+        // Disconnect any previous lazy rendering observer
+        if (_lazyObserver) {
+            _lazyObserver.disconnect();
+            _lazyObserver = null;
+        }
+
+        all_mermaids.forEach((el) => {
+            el.removeAttribute('data-mermaid-deferred');
+            el.removeAttribute('data-mermaid-render-failed');
+            if(!el.hasAttribute("data-original-code")) {
+                // store original code
+                // console.log(`Storing original code for first run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+            if(el.getAttribute("data-processed") === "true") {
+                // remove and restore original
+                el.removeAttribute("data-processed");
+                // console.log(`Restoring original code for re-run: `, el.getAttribute('data-original-code'));
+                el.innerHTML = el.getAttribute('data-original-code');
+            } else {
+                // store original code
+                // console.log(`Storing original code for re-run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+        });
+
+        // Separate visible and hidden elements. Mermaid's layout engine measures
+        // text dimensions via the DOM, which fails for elements hidden by a parent
+        // (e.g., Reveal.js non-active slides, sphinx-design unopened tabs),
+        // producing broken SVGs. Render visible elements now, defer hidden ones.
+        const visible = [];
+        const hidden = [];
+        all_mermaids.forEach((el) => {
+            // offsetParent is null for display:none ancestors.
+            // getClientRects().length > 0 catches position:fixed elements
+            // (which also have null offsetParent but are still visible).
+            if (el.offsetParent !== null || el.getClientRects().length > 0) {
+                visible.push(el);
+            } else {
+                hidden.push(el);
+                el.setAttribute('data-mermaid-deferred', 'true');
+            }
+        });
+
+        if (visible.length > 0) {
+            try {
+                await mermaid.run({ nodes: visible });
+            } catch (e) {
+                console.error("Mermaid rendering failed:", e);
+            }
+        }
+
+        // Lazily render hidden elements when they become visible.
+        // Uses a promise chain (_renderQueue) to serialize rendering,
+        // since IntersectionObserver may report multiple entries at once
+        // and mermaid.run() is not safe to call concurrently.
+        if (hidden.length > 0) {
+            if (typeof IntersectionObserver === 'undefined') {
+                console.warn("IntersectionObserver not available; hidden mermaid diagrams will not render.");
+            } else {
+                _renderQueue = Promise.resolve();
+                _lazyObserver = new IntersectionObserver((entries) => {
+                    for (const entry of entries) {
+                        if (entry.isIntersecting && entry.target.getAttribute("data-processed") !== "true") {
+                            _lazyObserver.unobserve(entry.target);
+                            const el = entry.target;
+                            _renderQueue = _renderQueue.then(async () => {
+                                try {
+                                    await mermaid.run({ nodes: [el] });
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    // Apply zoom to the now-rendered diagram, matching
+                                    // the decoration visible diagrams receive.
+                                    if (false) {
+                                        addZoomToSvgs(d3.selectAll("").select(function() {
+                                            return this.querySelector("svg");
+                                        }));
+                                    }
+                                } catch (e) {
+                                    console.error("Mermaid deferred rendering failed:", e);
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    el.setAttribute('data-mermaid-render-failed', 'true');
+                                }
+                            });
+                        }
+                    }
+                });
+                hidden.forEach((el) => _lazyObserver.observe(el));
+            }
+        }
+    }
+
+    all_mermaids = document.querySelectorAll(".mermaid");
+    // Exclude deferred (hidden) and render-failed elements from completion checks
+    const mermaids_active = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])");
+    const mermaids_processed = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])[data-processed='true']");
+
+    if (false) {
+        const mermaids_to_add_zoom = 0 === -1 ? mermaids_active.length : 0;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("").select(function() {
+                return this.querySelector("svg");
+            });
+            // Wait until every active (visible) diagram has rendered. Deferred
+            // diagrams are excluded, so a fixed d3_node_count that counts a
+            // hidden diagram no longer loops forever waiting for its SVG.
+            if(mermaids_active.length !== mermaids_processed.length) {
+                setTimeout(() => runMermaid(false), 200);
+                return;
+            }
+            addZoomToSvgs(svgs);
+        }
+    } else if(mermaids_active.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(() => runMermaid(false), 200);
+        return;
+    }
+
+    // Stop here if not adding fullscreen capability
+    if (!true) return;
+
+    if (modal !== null ) {
+        // Destroy existing modal
+        modal.remove();
+        modal = null;
+        modalContent = null;
+    }
+
+    modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            // Already processed, adjust button class if needed
+            const existingBtn = mermaidDiv.parentNode.querySelector('.mermaid-fullscreen-btn');
+            if (existingBtn) {
+                existingBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+            }
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = "\u26f6";
+        fullscreenBtn.style.opacity = "50%";
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scrollX, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.display = 'block';
+
+                if (false) {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+        container.appendChild(fullscreenBtn);
+    });
+};
+
+
+
+const load = async () => {
+    initStyles();
+
+
+    await runMermaid(true);
+
+    const reRunIfThemeChanges = async () => {
+        const newDarkTheme = isDarkTheme();
+        if (newDarkTheme !== darkTheme) {
+            darkTheme = newDarkTheme;
+            console.log("Theme change detected, re-running mermaid with", darkTheme ? "dark" : "default", "theme");
+            await mermaid.initialize(
+                {...{"startOnLoad": false},
+                ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+                }
+            );
+            await runMermaid(true);
+        }
+    };
+
+    // Update theme classes when theme changes
+    const themeObserver = new MutationObserver(reRunIfThemeChanges);
+    themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+};
+
+
+
+
+
+console.log("Initializing mermaid with", darkTheme ? "dark" : "default", "theme");
+mermaid.initialize(
+    {...{"startOnLoad": false},
+    ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+    }
+);
+
+window.addEventListener("load", load);
+window.runMermaid = runMermaid;</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/an/audio/phones';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.382" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation" aria-expanded="false" aria-controls="pst-primary-sidebar-modal">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">an</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal" tabindex="-1"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-house"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">an.audio.phones</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for an.audio.phones</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""Phones to mouth shapes: an aligner's phone timings as a Rhubarb viseme track (an#727).</span>
+
+<span class="sd">The phone counterpart of :func:`an.audio.lipsync.word_timings_to_visemes`, in the</span>
+<span class="sd">core beside it: the Rhubarb convention is the core's, so a lip-sync provider of</span>
+<span class="sd">any genre maps phones the same way (moved from ``cutan.audio.phones``).</span>
+
+<span class="sd">A recorded take imported with a forced aligner's output carries its phones,</span>
+<span class="sd">``AudioClip.phones``: ``(phone, start_s, end_s)`` from the clip's start (an#491),</span>
+<span class="sd">in ARPAbet (MFA's English models: ``HH``, ``AH0``) or IPA (``mfa:ipa``: ``h``,</span>
+<span class="sd">``ə``). The take's record states which (``AudioClip.phone_alphabet``, an#721) and</span>
+<span class="sd">that wins; a clip without it has the alphabet decided once per clip from its</span>
+<span class="sd">labels (:func:`phone_alphabet`).</span>
+
+<span class="sd">:func:`phones_track` is what a lip-sync provider calls: the clip's track from its</span>
+<span class="sd">phones, or ``None`` to align some other way. A word the aligner could not</span>
+<span class="sd">phonetise (MFA writes ``spn`` under a name it does not know, and ``an`` drops it)</span>
+<span class="sd">has no phones under it; it is spoken by its letters spread over its own span,</span>
+<span class="sd">as in the word-timing rule (``an.audio.lipsync.word_timings_to_visemes``),</span>
+<span class="sd">though its rests land at the phone rule's times (when the last sound ends).</span>
+
+<span class="sd">&gt;&gt;&gt; [(v.time, v.code) for v in phones_to_visemes(</span>
+<span class="sd">...     [("HH", 0.1, 0.2), ("AH0", 0.2, 0.3), ("L", 0.3, 0.4), ("OW1", 0.4, 0.6)],</span>
+<span class="sd">...     total_duration=1.0,</span>
+<span class="sd">... )]</span>
+<span class="sd">[(0.0, 'X'), (0.1, 'C'), (0.3, 'H'), (0.4, 'F'), (0.6, 'X'), (1.0, 'X')]</span>
+<span class="sd">"""</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">unicodedata</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.lipsync</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">DEFAULT_LETTER_VISEME</span><span class="p">,</span>
+    <span class="n">MIN_GAP_FOR_REST_S</span><span class="p">,</span>
+    <span class="n">REST_VISEME</span><span class="p">,</span>
+    <span class="n">Viseme</span><span class="p">,</span>
+    <span class="n">VisemeTrack</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.transcripts</span><span class="w"> </span><span class="kn">import</span> <span class="n">phone_alphabet_of</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.tts</span><span class="w"> </span><span class="kn">import</span> <span class="n">AudioClip</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"ARPABET_TO_VISEME"</span><span class="p">,</span>
+    <span class="s2">"IPA_TO_VISEME"</span><span class="p">,</span>
+    <span class="s2">"NO_INTENSITY"</span><span class="p">,</span>
+    <span class="s2">"PhoneToViseme"</span><span class="p">,</span>
+    <span class="s2">"REST_VISEME"</span><span class="p">,</span>
+    <span class="s2">"TAKES_NEXT_SHAPE"</span><span class="p">,</span>
+    <span class="s2">"clip_timings"</span><span class="p">,</span>
+    <span class="s2">"phone_alphabet"</span><span class="p">,</span>
+    <span class="s2">"phone_viseme"</span><span class="p">,</span>
+    <span class="s2">"phones_to_visemes"</span><span class="p">,</span>
+    <span class="s2">"phones_track"</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="c1">#: ``(label, start_s, end_s)``, as ``AudioClip.phones`` and ``.words`` hold them.</span>
+<span class="n">Timing</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
+<span class="c1">#: ``(shape, start_s, end_s[, intensity])``: a mouth shape over a span.</span>
+<span class="n">Segment</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
+<span class="c1">#: ``phone_to_viseme(phone, *, alphabet)``: a Rhubarb shape, or ``None`` when</span>
+<span class="c1">#: unknown (``alphabet`` is the clip's, :func:`phone_alphabet`). Silences never</span>
+<span class="c1">#: reach it: they are the rest shape.</span>
+<span class="n">PhoneToViseme</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span>
+
+<span class="c1">#: Silence and noise labels, should a clip carry them (``an`` drops these when it</span>
+<span class="c1">#: reads a TextGrid: ``an.audio.transcripts``' silence labels).</span>
+<span class="n">SILENCES</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">""</span><span class="p">,</span> <span class="s2">"sil"</span><span class="p">,</span> <span class="s2">"sp"</span><span class="p">,</span> <span class="s2">"spn"</span><span class="p">,</span> <span class="s2">"oov"</span><span class="p">})</span>
+
+<span class="c1"># Rhubarb's shapes: A closed (P B M), B clenched teeth (most consonants, EE),</span>
+<span class="c1"># C open (EH, AE, AH), D wide (AA), E slightly rounded (AO, ER), F puckered (UW,</span>
+<span class="c1"># OW, W), G teeth on lip (F V), H tongue raised (L).</span>
+
+<span class="c1">#: ARPAbet (stress digits removed) to a Rhubarb shape.</span>
+<span class="n">ARPABET_TO_VISEME</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># vowels</span>
+    <span class="s2">"AA"</span><span class="p">:</span> <span class="s2">"D"</span><span class="p">,</span> <span class="s2">"AE"</span><span class="p">:</span> <span class="s2">"C"</span><span class="p">,</span> <span class="s2">"AH"</span><span class="p">:</span> <span class="s2">"C"</span><span class="p">,</span> <span class="s2">"AO"</span><span class="p">:</span> <span class="s2">"E"</span><span class="p">,</span> <span class="s2">"AW"</span><span class="p">:</span> <span class="s2">"D"</span><span class="p">,</span> <span class="s2">"AY"</span><span class="p">:</span> <span class="s2">"D"</span><span class="p">,</span>
+    <span class="s2">"EH"</span><span class="p">:</span> <span class="s2">"C"</span><span class="p">,</span> <span class="s2">"ER"</span><span class="p">:</span> <span class="s2">"E"</span><span class="p">,</span> <span class="s2">"EY"</span><span class="p">:</span> <span class="s2">"C"</span><span class="p">,</span> <span class="s2">"IH"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"IY"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"OW"</span><span class="p">:</span> <span class="s2">"F"</span><span class="p">,</span>
+    <span class="s2">"OY"</span><span class="p">:</span> <span class="s2">"E"</span><span class="p">,</span> <span class="s2">"UH"</span><span class="p">:</span> <span class="s2">"F"</span><span class="p">,</span> <span class="s2">"UW"</span><span class="p">:</span> <span class="s2">"F"</span><span class="p">,</span>
+    <span class="c1"># consonants</span>
+    <span class="s2">"P"</span><span class="p">:</span> <span class="s2">"A"</span><span class="p">,</span> <span class="s2">"B"</span><span class="p">:</span> <span class="s2">"A"</span><span class="p">,</span> <span class="s2">"M"</span><span class="p">:</span> <span class="s2">"A"</span><span class="p">,</span>
+    <span class="s2">"F"</span><span class="p">:</span> <span class="s2">"G"</span><span class="p">,</span> <span class="s2">"V"</span><span class="p">:</span> <span class="s2">"G"</span><span class="p">,</span>
+    <span class="s2">"L"</span><span class="p">:</span> <span class="s2">"H"</span><span class="p">,</span>
+    <span class="s2">"W"</span><span class="p">:</span> <span class="s2">"F"</span><span class="p">,</span>
+    <span class="s2">"HH"</span><span class="p">:</span> <span class="s2">"C"</span><span class="p">,</span>
+    <span class="s2">"CH"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"JH"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"SH"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"ZH"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"TH"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"DH"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span>
+    <span class="s2">"D"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"T"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"N"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"S"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"Z"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"R"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span>
+    <span class="s2">"K"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"G"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"NG"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"Y"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span>
+<span class="p">}</span>  <span class="c1"># fmt: skip</span>
+
+<span class="c1">#: IPA (diacritics, length and stress marks removed) to a Rhubarb shape. A</span>
+<span class="c1">#: phone not in it is read by its first symbol (``aj`` as ``a``, ``tʃ`` as ``t``).</span>
+<span class="n">IPA_TO_VISEME</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># vowels</span>
+    <span class="s2">"a"</span><span class="p">:</span> <span class="s2">"D"</span><span class="p">,</span> <span class="s2">"ɑ"</span><span class="p">:</span> <span class="s2">"D"</span><span class="p">,</span> <span class="s2">"ɒ"</span><span class="p">:</span> <span class="s2">"D"</span><span class="p">,</span>
+    <span class="s2">"æ"</span><span class="p">:</span> <span class="s2">"C"</span><span class="p">,</span> <span class="s2">"ɛ"</span><span class="p">:</span> <span class="s2">"C"</span><span class="p">,</span> <span class="s2">"e"</span><span class="p">:</span> <span class="s2">"C"</span><span class="p">,</span> <span class="s2">"ə"</span><span class="p">:</span> <span class="s2">"C"</span><span class="p">,</span> <span class="s2">"ʌ"</span><span class="p">:</span> <span class="s2">"C"</span><span class="p">,</span> <span class="s2">"ɐ"</span><span class="p">:</span> <span class="s2">"C"</span><span class="p">,</span>
+    <span class="s2">"ɜ"</span><span class="p">:</span> <span class="s2">"E"</span><span class="p">,</span> <span class="s2">"ɝ"</span><span class="p">:</span> <span class="s2">"E"</span><span class="p">,</span> <span class="s2">"ɚ"</span><span class="p">:</span> <span class="s2">"E"</span><span class="p">,</span> <span class="s2">"ɔ"</span><span class="p">:</span> <span class="s2">"E"</span><span class="p">,</span>
+    <span class="s2">"o"</span><span class="p">:</span> <span class="s2">"F"</span><span class="p">,</span> <span class="s2">"u"</span><span class="p">:</span> <span class="s2">"F"</span><span class="p">,</span> <span class="s2">"ʊ"</span><span class="p">:</span> <span class="s2">"F"</span><span class="p">,</span> <span class="s2">"ʉ"</span><span class="p">:</span> <span class="s2">"F"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">:</span> <span class="s2">"F"</span><span class="p">,</span> <span class="s2">"əw"</span><span class="p">:</span> <span class="s2">"F"</span><span class="p">,</span> <span class="s2">"əʊ"</span><span class="p">:</span> <span class="s2">"F"</span><span class="p">,</span>
+    <span class="s2">"i"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"ɪ"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span>
+    <span class="c1"># consonants</span>
+    <span class="s2">"p"</span><span class="p">:</span> <span class="s2">"A"</span><span class="p">,</span> <span class="s2">"b"</span><span class="p">:</span> <span class="s2">"A"</span><span class="p">,</span> <span class="s2">"m"</span><span class="p">:</span> <span class="s2">"A"</span><span class="p">,</span>
+    <span class="s2">"f"</span><span class="p">:</span> <span class="s2">"G"</span><span class="p">,</span> <span class="s2">"v"</span><span class="p">:</span> <span class="s2">"G"</span><span class="p">,</span> <span class="s2">"ɱ"</span><span class="p">:</span> <span class="s2">"G"</span><span class="p">,</span>
+    <span class="s2">"l"</span><span class="p">:</span> <span class="s2">"H"</span><span class="p">,</span> <span class="s2">"ɫ"</span><span class="p">:</span> <span class="s2">"H"</span><span class="p">,</span> <span class="s2">"ʎ"</span><span class="p">:</span> <span class="s2">"H"</span><span class="p">,</span>
+    <span class="s2">"w"</span><span class="p">:</span> <span class="s2">"F"</span><span class="p">,</span>
+    <span class="s2">"h"</span><span class="p">:</span> <span class="s2">"C"</span><span class="p">,</span>
+    <span class="s2">"θ"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"ð"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"t"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"d"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"s"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"z"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"n"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span>
+    <span class="s2">"ɾ"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"ɹ"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"r"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"ʃ"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"ʒ"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"k"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"ɡ"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span>
+    <span class="s2">"g"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"ŋ"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"j"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"c"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"ɟ"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"ç"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"ɲ"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span>
+    <span class="s2">"ʔ"</span><span class="p">:</span> <span class="s2">"B"</span><span class="p">,</span>
+<span class="p">}</span>  <span class="c1"># fmt: skip</span>
+
+<span class="c1">#: The alphabets a take's record may state; anything else is guessed from the labels.</span>
+<span class="n">_ALPHABETS</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"arpabet"</span><span class="p">,</span> <span class="s2">"ipa"</span><span class="p">})</span>
+
+<span class="c1">#: How strongly a phone's shape holds against its neighbours (``Viseme.intensity``),</span>
+<span class="c1">#: keyed by the phone's base (ARPAbet upper case, IPA as written); a phone not</span>
+<span class="c1">#: listed is 1.0. Which phones weigh less is a genre's art direction (cutan's</span>
+<span class="c1">#: tongue-only consonants, cutan#157), passed as ``intensity_of``.</span>
+<span class="c1">#: The default: every cue at full intensity.</span>
+<span class="n">NO_INTENSITY</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="c1">#: The phones that take the shape of the phone after them: ``HH`` is a breath</span>
+<span class="c1">#: before the vowel (Rhubarb draws it so), not a mouth shape of its own.</span>
+<span class="n">TAKES_NEXT_SHAPE</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"HH"</span><span class="p">,</span> <span class="s2">"h"</span><span class="p">,</span> <span class="s2">"ɦ"</span><span class="p">})</span>
+
+<span class="c1">#: Marks an IPA phone may carry that do not change its mouth shape.</span>
+<span class="n">_IPA_MODIFIERS</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span><span class="s2">"ːˑˈˌʲʰʷˠˤ"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_is_silence</span><span class="p">(</span><span class="n">phone</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">phone</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">SILENCES</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_arpabet_base</span><span class="p">(</span><span class="n">phone</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">phone</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">"012"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_ipa_base</span><span class="p">(</span><span class="n">phone</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="n">ch</span>
+        <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">unicodedata</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="s2">"NFD"</span><span class="p">,</span> <span class="n">phone</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ch</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_IPA_MODIFIERS</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">unicodedata</span><span class="o">.</span><span class="n">combining</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="phone_alphabet">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.phones.html#an.audio.phone_alphabet">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">phone_alphabet</span><span class="p">(</span><span class="n">phones</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``"arpabet"`` when every phone is ARPAbet as aligners write it (ASCII, one</span>
+<span class="sd">    case throughout, each in ``an``'s ``ARPABET_PHONES`` once its stress digit is</span>
+<span class="sd">    dropped), else ``"ipa"``. Decided per clip: a SAMPA ``V`` (the vowel of</span>
+<span class="sd">    *love*) beside a lowercase ``l`` is not ARPAbet ``V``. The rule is ``an``'s</span>
+<span class="sd">    (:func:`~an.audio.transcripts.phone_alphabet_of`), which says ``None`` where</span>
+<span class="sd">    it cannot tell; this lip-sync reads that as IPA.</span>
+
+<span class="sd">    &gt;&gt;&gt; phone_alphabet(["HH", "AH0", "L"]), phone_alphabet(["hh", "ah0"])</span>
+<span class="sd">    ('arpabet', 'arpabet')</span>
+<span class="sd">    &gt;&gt;&gt; phone_alphabet(["l", "V", "v"]), phone_alphabet(["h", "ə", "l"])</span>
+<span class="sd">    ('ipa', 'ipa')</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">phone_alphabet_of</span><span class="p">(</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">phones</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_silence</span><span class="p">(</span><span class="n">p</span><span class="p">))</span> <span class="ow">or</span> <span class="s2">"ipa"</span></div>
+
+
+
+<div class="viewcode-block" id="phone_viseme">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.phones.html#an.audio.phone_viseme">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">phone_viseme</span><span class="p">(</span><span class="n">phone</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">alphabet</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"arpabet"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The Rhubarb shape of one phone in ``alphabet``; :data:`REST_VISEME` for a</span>
+<span class="sd">    silence; ``None`` for a phone the table does not know.</span>
+
+<span class="sd">    &gt;&gt;&gt; phone_viseme("AA1"), phone_viseme("M"), phone_viseme("sil"), phone_viseme("Q9")</span>
+<span class="sd">    ('D', 'A', 'X', None)</span>
+<span class="sd">    &gt;&gt;&gt; [phone_viseme(p, alphabet="ipa") for p in ("tʃ", "iː", "əw", "ʘ")]</span>
+<span class="sd">    ['B', 'B', 'F', None]</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">_is_silence</span><span class="p">(</span><span class="n">phone</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">REST_VISEME</span>
+    <span class="k">if</span> <span class="n">alphabet</span> <span class="o">==</span> <span class="s2">"arpabet"</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ARPABET_TO_VISEME</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">_arpabet_base</span><span class="p">(</span><span class="n">phone</span><span class="p">))</span>
+    <span class="n">base</span> <span class="o">=</span> <span class="n">_ipa_base</span><span class="p">(</span><span class="n">phone</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">IPA_TO_VISEME</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">base</span><span class="p">)</span> <span class="ow">or</span> <span class="n">IPA_TO_VISEME</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">base</span><span class="p">[:</span><span class="mi">1</span><span class="p">])</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_letter_segments</span><span class="p">(</span><span class="n">word</span><span class="p">:</span> <span class="n">Timing</span><span class="p">,</span> <span class="n">char_to_viseme</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Timing</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""A word's letters as ``(shape, start, end)`` spread evenly over its span</span>
+<span class="sd">    (repeated shapes merged): the word-timing rule, for a word with no phones."""</span>
+    <span class="n">text</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">word</span>
+    <span class="n">codes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">text</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="n">char_to_viseme</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">DEFAULT_LETTER_VISEME</span><span class="p">)</span> <span class="k">if</span> <span class="n">ch</span><span class="o">.</span><span class="n">isalpha</span><span class="p">()</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">code</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">codes</span> <span class="ow">or</span> <span class="n">codes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">code</span><span class="p">):</span>
+            <span class="n">codes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+    <span class="n">step</span> <span class="o">=</span> <span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">codes</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[(</span><span class="n">c</span><span class="p">,</span> <span class="n">start</span> <span class="o">+</span> <span class="n">i</span> <span class="o">*</span> <span class="n">step</span><span class="p">,</span> <span class="n">start</span> <span class="o">+</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">step</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">codes</span><span class="p">)]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_phone_base</span><span class="p">(</span><span class="n">phone</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">alphabet</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The phone without its stress digit (ARPAbet, upper case) or modifiers (IPA)."""</span>
+    <span class="k">return</span> <span class="n">_arpabet_base</span><span class="p">(</span><span class="n">phone</span><span class="p">)</span> <span class="k">if</span> <span class="n">alphabet</span> <span class="o">==</span> <span class="s2">"arpabet"</span> <span class="k">else</span> <span class="n">_ipa_base</span><span class="p">(</span><span class="n">phone</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_keyframes</span><span class="p">(</span>
+    <span class="n">segments</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Segment</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">total_duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">rest_viseme</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">min_gap_for_rest</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Viseme</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Rest at 0; a keyframe where the shape changes, at a segment's start; rest</span>
+<span class="sd">    after a pause longer than ``min_gap_for_rest`` and after the last segment;</span>
+<span class="sd">    rest at ``total_duration``. Times clamped to ``[0, total_duration]``."""</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">total_duration</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">clamp</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="n">end</span><span class="p">))</span>
+
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[</span><span class="n">Viseme</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">code</span><span class="o">=</span><span class="n">rest_viseme</span><span class="p">)]</span>
+    <span class="n">previous</span><span class="p">,</span> <span class="n">prev_end</span> <span class="o">=</span> <span class="n">rest_viseme</span><span class="p">,</span> <span class="mf">0.0</span>
+    <span class="k">for</span> <span class="n">code</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="o">*</span><span class="n">weight</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">segments</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+        <span class="n">start</span><span class="p">,</span> <span class="n">stop</span> <span class="o">=</span> <span class="n">clamp</span><span class="p">(</span><span class="n">start</span><span class="p">),</span> <span class="n">clamp</span><span class="p">(</span><span class="n">stop</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">start</span> <span class="o">-</span> <span class="n">prev_end</span> <span class="o">&gt;</span> <span class="n">min_gap_for_rest</span> <span class="ow">and</span> <span class="n">previous</span> <span class="o">!=</span> <span class="n">rest_viseme</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Viseme</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="n">prev_end</span><span class="p">,</span> <span class="n">code</span><span class="o">=</span><span class="n">rest_viseme</span><span class="p">))</span>
+            <span class="n">previous</span> <span class="o">=</span> <span class="n">rest_viseme</span>
+        <span class="n">strength</span> <span class="o">=</span> <span class="p">(</span><span class="n">weight</span> <span class="ow">or</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">code</span> <span class="o">!=</span> <span class="n">previous</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Viseme</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">code</span><span class="o">=</span><span class="n">code</span><span class="p">,</span> <span class="n">intensity</span><span class="o">=</span><span class="n">strength</span><span class="p">))</span>
+            <span class="n">previous</span> <span class="o">=</span> <span class="n">code</span>
+        <span class="k">elif</span> <span class="n">code</span> <span class="o">!=</span> <span class="n">rest_viseme</span> <span class="ow">and</span> <span class="n">strength</span> <span class="o">&gt;</span> <span class="n">out</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">intensity</span><span class="p">:</span>
+            <span class="n">out</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">Viseme</span><span class="p">(</span>
+                <span class="n">time</span><span class="o">=</span><span class="n">out</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">time</span><span class="p">,</span> <span class="n">code</span><span class="o">=</span><span class="n">code</span><span class="p">,</span> <span class="n">intensity</span><span class="o">=</span><span class="n">strength</span>
+            <span class="p">)</span>  <span class="c1"># one cue for both phones: the stronger one's</span>
+        <span class="n">prev_end</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">prev_end</span><span class="p">,</span> <span class="n">stop</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">previous</span> <span class="o">!=</span> <span class="n">rest_viseme</span> <span class="ow">and</span> <span class="n">prev_end</span> <span class="o">&lt;</span> <span class="n">end</span><span class="p">:</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Viseme</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="n">prev_end</span><span class="p">,</span> <span class="n">code</span><span class="o">=</span><span class="n">rest_viseme</span><span class="p">))</span>
+    <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Viseme</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="n">end</span><span class="p">,</span> <span class="n">code</span><span class="o">=</span><span class="n">rest_viseme</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<div class="viewcode-block" id="phones_to_visemes">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.phones.html#an.audio.phones_to_visemes">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">phones_to_visemes</span><span class="p">(</span>
+    <span class="n">phones</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Timing</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">total_duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">words</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Timing</span><span class="p">]</span> <span class="o">=</span> <span class="p">(),</span>
+    <span class="n">phone_to_viseme</span><span class="p">:</span> <span class="n">PhoneToViseme</span> <span class="o">=</span> <span class="n">phone_viseme</span><span class="p">,</span>
+    <span class="n">char_to_viseme</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">rest_viseme</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">REST_VISEME</span><span class="p">,</span>
+    <span class="n">min_gap_for_rest</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">MIN_GAP_FOR_REST_S</span><span class="p">,</span>
+    <span class="n">alphabet</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">intensity_of</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">NO_INTENSITY</span><span class="p">,</span>
+    <span class="n">takes_next_shape</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">TAKES_NEXT_SHAPE</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">Viseme</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""A viseme track from phone timings: each phone's shape at its start (in the</span>
+<span class="sd">    clip's :func:`phone_alphabet`), the mouth closed at a silence, at a pause</span>
+<span class="sd">    longer than ``min_gap_for_rest`` and after the last sound. A word of ``words``</span>
+<span class="sd">    with no phone under it is spoken by its letters (``char_to_viseme``).</span>
+
+<span class="sd">    ``alphabet`` is the take's recorded one (``AudioClip.phone_alphabet``); with</span>
+<span class="sd">    none, the clip's labels decide (:func:`phone_alphabet`).</span>
+
+<span class="sd">    ``intensity_of`` maps a phone (its base: stress and modifiers dropped) to the</span>
+<span class="sd">    ``Viseme.intensity`` of its cue, so a genre's co-articulation can let a</span>
+<span class="sd">    vowel's ``B`` beat a tongue-only consonant's (cutan#157). A phone of</span>
+<span class="sd">    ``takes_next_shape`` (``HH``) shows the shape of the next spoken phone, kept</span>
+<span class="sd">    as its own only at the end.</span>
+
+<span class="sd">    ``None`` when a phone is one ``phone_to_viseme`` does not know: a phone set</span>
+<span class="sd">    this table was not written for is better spread by its words than guessed.</span>
+
+<span class="sd">    &gt;&gt;&gt; phones_to_visemes([("ʘ", 0.0, 0.1)], total_duration=1.0) is None</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; [(v.time, v.code) for v in phones_to_visemes(</span>
+<span class="sd">    ...     [("M", 0.0, 0.1), ("AA1", 0.1, 0.3), ("P", 0.6, 0.7)], total_duration=0.7)]</span>
+<span class="sd">    [(0.0, 'X'), (0.0, 'A'), (0.1, 'D'), (0.3, 'X'), (0.6, 'A'), (0.7, 'X')]</span>
+<span class="sd">    """</span>
+    <span class="n">phones</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">phones</span><span class="p">)</span>
+    <span class="n">alphabet</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="nb">str</span><span class="p">(</span><span class="n">alphabet</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">alphabet</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">_ALPHABETS</span>
+        <span class="k">else</span> <span class="n">phone_alphabet</span><span class="p">(</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">phones</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">segments</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Segment</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">phone</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span> <span class="ow">in</span> <span class="n">phones</span><span class="p">:</span>
+        <span class="n">silent</span> <span class="o">=</span> <span class="n">_is_silence</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">phone</span><span class="p">))</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="n">rest_viseme</span> <span class="k">if</span> <span class="n">silent</span> <span class="k">else</span> <span class="n">phone_to_viseme</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">phone</span><span class="p">),</span> <span class="n">alphabet</span><span class="o">=</span><span class="n">alphabet</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">code</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">base</span> <span class="o">=</span> <span class="n">_phone_base</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">phone</span><span class="p">),</span> <span class="n">alphabet</span><span class="p">)</span>
+        <span class="n">weight</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="k">if</span> <span class="n">silent</span> <span class="k">else</span> <span class="n">intensity_of</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="n">segments</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">code</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">start</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">stop</span><span class="p">),</span> <span class="n">weight</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">phones</span><span class="p">))):</span>  <span class="c1"># reversed: a run of HH takes the last one's</span>
+        <span class="n">phone</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">phones</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">_phone_base</span><span class="p">(</span><span class="n">phone</span><span class="p">,</span> <span class="n">alphabet</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">takes_next_shape</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="c1"># the next phone, if it follows at once: across a silence the breath is its own</span>
+        <span class="n">following</span> <span class="o">=</span> <span class="n">phones</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">phones</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">following</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">_is_silence</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">following</span><span class="p">)):</span>
+            <span class="n">segments</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">segments</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="o">*</span><span class="n">segments</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">:])</span>
+    <span class="n">spoken</span> <span class="o">=</span> <span class="p">[(</span><span class="n">s</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">phones</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_silence</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">))]</span>
+    <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">words</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">word</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">word</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span>
+            <span class="n">word</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">s</span> <span class="o">+</span> <span class="n">e</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">&lt;=</span> <span class="n">word</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">spoken</span>
+        <span class="p">):</span>
+            <span class="n">segments</span> <span class="o">+=</span> <span class="n">_letter_segments</span><span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="n">char_to_viseme</span> <span class="ow">or</span> <span class="p">{})</span>
+    <span class="k">return</span> <span class="n">_keyframes</span><span class="p">(</span>
+        <span class="n">segments</span><span class="p">,</span>
+        <span class="n">total_duration</span><span class="o">=</span><span class="n">total_duration</span><span class="p">,</span>
+        <span class="n">rest_viseme</span><span class="o">=</span><span class="n">rest_viseme</span><span class="p">,</span>
+        <span class="n">min_gap_for_rest</span><span class="o">=</span><span class="n">min_gap_for_rest</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="clip_timings">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.phones.html#an.audio.clip_timings">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">clip_timings</span><span class="p">(</span><span class="n">audio</span><span class="p">:</span> <span class="n">AudioClip</span><span class="p">,</span> <span class="n">field</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">Timing</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``audio``'s ``words`` or ``phones`` as a list of ``(label, start_s, end_s)``;</span>
+<span class="sd">    ``None`` when it has none (or its ``an`` predates the field).</span>
+
+<span class="sd">    &gt;&gt;&gt; clip_timings(AudioClip(duration=1.0, phones=[("M", 0, 0.1)]), "phones")</span>
+<span class="sd">    [('M', 0.0, 0.1)]</span>
+<span class="sd">    &gt;&gt;&gt; clip_timings(AudioClip(duration=1.0), "phones") is None</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="n">timings</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">audio</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">timings</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="p">[(</span><span class="nb">str</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">timings</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="phones_track">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.phones.html#an.audio.phones_track">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">phones_track</span><span class="p">(</span>
+    <span class="n">audio</span><span class="p">:</span> <span class="n">AudioClip</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">phone_to_viseme</span><span class="p">:</span> <span class="n">PhoneToViseme</span> <span class="o">=</span> <span class="n">phone_viseme</span><span class="p">,</span>
+    <span class="n">char_to_viseme</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">rest_viseme</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">REST_VISEME</span><span class="p">,</span>
+    <span class="n">convention</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"rhubarb"</span><span class="p">,</span>
+    <span class="n">intensity_of</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">NO_INTENSITY</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">VisemeTrack</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The mouth track of a clip whose phones are timed (``AudioClip.phones``, a</span>
+<span class="sd">    take timed by a forced aligner, an#491), carrying the clip's words too;</span>
+<span class="sd">    ``None`` when it has no phones, or one ``phone_to_viseme`` does not know.</span>
+
+<span class="sd">    &gt;&gt;&gt; clip = AudioClip(duration=0.5, phones=[("M", 0.1, 0.2)], words=[("m", 0.1, 0.2)])</span>
+<span class="sd">    &gt;&gt;&gt; track = phones_track(clip)</span>
+<span class="sd">    &gt;&gt;&gt; [v.code for v in track.visemes], track.words</span>
+<span class="sd">    (['X', 'A', 'X', 'X'], [('m', 0.1, 0.2)])</span>
+<span class="sd">    &gt;&gt;&gt; phones_track(AudioClip(duration=0.5)) is None</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="n">phones</span> <span class="o">=</span> <span class="n">clip_timings</span><span class="p">(</span><span class="n">audio</span><span class="p">,</span> <span class="s2">"phones"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">phones</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">words</span> <span class="o">=</span> <span class="n">clip_timings</span><span class="p">(</span><span class="n">audio</span><span class="p">,</span> <span class="s2">"words"</span><span class="p">)</span>
+    <span class="n">visemes</span> <span class="o">=</span> <span class="n">phones_to_visemes</span><span class="p">(</span>
+        <span class="n">phones</span><span class="p">,</span>
+        <span class="n">total_duration</span><span class="o">=</span><span class="n">audio</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span>
+        <span class="n">words</span><span class="o">=</span><span class="n">words</span> <span class="ow">or</span> <span class="p">(),</span>
+        <span class="n">phone_to_viseme</span><span class="o">=</span><span class="n">phone_to_viseme</span><span class="p">,</span>
+        <span class="n">char_to_viseme</span><span class="o">=</span><span class="n">char_to_viseme</span><span class="p">,</span>
+        <span class="n">rest_viseme</span><span class="o">=</span><span class="n">rest_viseme</span><span class="p">,</span>
+        <span class="n">alphabet</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">audio</span><span class="p">,</span> <span class="s2">"phone_alphabet"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="n">intensity_of</span><span class="o">=</span><span class="n">intensity_of</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">visemes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">VisemeTrack</span><span class="p">(</span>
+        <span class="n">visemes</span><span class="o">=</span><span class="n">visemes</span><span class="p">,</span> <span class="n">convention</span><span class="o">=</span><span class="n">convention</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">audio</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span> <span class="n">words</span><span class="o">=</span><span class="n">words</span>
+    <span class="p">)</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.24.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

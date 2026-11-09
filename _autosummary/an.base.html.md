@@ -26,6 +26,7 @@ fraction of a second so the CLI is snappy.
 | [`STREAM_OVERRIDE`](#an.base.STREAM_OVERRIDE)                    | the id of the stream it draws (`an.ir.world`).                                                                                                                                                                                                                                                                                              |
 | [`PAINT_KEYS_OVERRIDE`](#an.base.PAINT_KEYS_OVERRIDE)                | The core's record, on each entity a world paints by depth, of its paint key from each time on (`[[time, key]]`, a key sorting farther first, an#634): set when a stream slot is reused, so a slot drawing a farther instance can drop behind nearer ones; the stage compiler orders each run of keyed siblings by them with `z_index` keys. |
 | [`RIDER_IN_FRONT`](#an.base.RIDER_IN_FRONT)                     | a rider's key is its host's plus `[side, n]` (an#648), in front with `1`, just behind with `-1` (an#678: an attachment the built order put behind its host).                                                                                                                                                                                |
+| [`BESIDE_HOST_OVERRIDE`](#an.base.BESIDE_HOST_OVERRIDE)               | The core's mark on an attached world member the compiler draws right beside its host, wherever the host is drawn (an#692): `{"host": id, "side": RIDER_BEHIND | RIDER_IN_FRONT}`, the side the built order gave it.                                                                                                                         |
 | [`BASE_PAINT_KEY_LEN`](#an.base.BASE_PAINT_KEY_LEN)                 | Items in a world entity's own paint key (layer, depth, tiebreak), and in the suffix a rider adds to its host's (side, n).                                                                                                                                                                                                                   |
 | [`SWAY_OVERRIDE`](#an.base.SWAY_OVERRIDE)                      | The core's mark on an entity the world leans with its frame's acceleration (an#504): its `rotation` channel is that lean, which the hold layer takes out of the angle an item it carries comes to rest at (an#659).                                                                                                                         |
 | [`UNSEEN_ALPHA`](#an.base.UNSEEN_ALPHA)                       | At or under this alpha an entity is not seen (a stream slot between its passes, a fade's end): it cannot jump or swap sides at a cut (an#516), nor overlap or be drawn through anything at an instant (an#632).                                                                                                                             |
@@ -71,6 +72,15 @@ the two sets is exactly `tint`, and a test pins that rather than trusting it.
 
 Items in a world entity’s own paint key (layer, depth, tiebreak), and in
 the suffix a rider adds to its host’s (side, n).
+
+### an.base.BESIDE_HOST_OVERRIDE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'beside_host'*
+
+The core’s mark on an attached world member the compiler draws right
+beside its host, wherever the host is drawn (an#692): `{"host": id,
+"side": RIDER_BEHIND | RIDER_IN_FRONT}`, the side the built order gave
+it. The host may be drawn away from its built place (placed `after` an
+entity or a plane); several riders on one side keep their built order. An
+entity that names its own `stage.after` keeps it instead.
 
 ### an.base.BT709_SCALE_FILTER *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'scale=out_range=tv:out_color_matrix=bt709'*
 
@@ -152,7 +162,7 @@ asset-set name (an#62).
 
 Minimum Scene IR version this code can still read without migration.
 
-### an.base.CORE_OVERRIDE_KEYS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'attached', 'held_by', 'held_rotation', 'leans', 'paint_keys', 'plane_factors', 'stream'})*
+### an.base.CORE_OVERRIDE_KEYS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'attached', 'beside_host', 'held_by', 'held_rotation', 'leans', 'paint_keys', 'plane_factors', 'stream'})*
 
 what attaches it, the
 stream slot it is, what holds it and at what angle, the world’s plane

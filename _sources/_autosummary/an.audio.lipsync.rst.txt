@@ -9,11 +9,14 @@ an.audio.lipsync
    .. autosummary::
    
       WordTiming
+      CACHE_VERSION_ATTR
+      REST_VISEME
    
    .. rubric:: Functions
 
    .. autosummary::
    
+      lipsync_cache_id
       word_timings_to_visemes
    
    .. rubric:: Classes

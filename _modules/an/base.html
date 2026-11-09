@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=8a131c26"></script>
+    <script src="../../_static/documentation_options.js?v=bdeb964c"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.381" />
+  <meta name="docsearch:version" content="0.1.382" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -956,6 +956,13 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: suffix: it compares against the ``0`` it appends to every key.</span>
 <span class="n">RIDER_IN_FRONT</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="n">RIDER_BEHIND</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+<span class="c1">#: The core's mark on an attached world member the compiler draws right</span>
+<span class="c1">#: beside its host, wherever the host is drawn (an#692): ``{"host": id,</span>
+<span class="c1">#: "side": RIDER_BEHIND | RIDER_IN_FRONT}``, the side the built order gave</span>
+<span class="c1">#: it. The host may be drawn away from its built place (placed ``after`` an</span>
+<span class="c1">#: entity or a plane); several riders on one side keep their built order. An</span>
+<span class="c1">#: entity that names its own ``stage.after`` keeps it instead.</span>
+<span class="n">BESIDE_HOST_OVERRIDE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"beside_host"</span>
 <span class="c1">#: Items in a world entity's own paint key (layer, depth, tiebreak), and in</span>
 <span class="c1">#: the suffix a rider adds to its host's (side, n).</span>
 <span class="n">BASE_PAINT_KEY_LEN</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>
@@ -983,6 +990,7 @@ window.runMermaid = runMermaid;</script>
         <span class="s2">"held_rotation"</span><span class="p">,</span>
         <span class="n">PLANE_FACTORS_OVERRIDE</span><span class="p">,</span>
         <span class="n">PAINT_KEYS_OVERRIDE</span><span class="p">,</span>
+        <span class="n">BESIDE_HOST_OVERRIDE</span><span class="p">,</span>
         <span class="n">SWAY_OVERRIDE</span><span class="p">,</span>
     <span class="p">}</span>
 <span class="p">)</span>

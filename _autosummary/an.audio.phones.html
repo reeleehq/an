@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<link rel="alternate" type="text/markdown" href="an.audio.phones.html.md">
+<link rel="describedby" href="../llms.txt" type="text/markdown">
+<link rel="alternate" type="text/markdown" href="an.audio.phones.html.md">
+<link rel="describedby" href="llms.txt">
+    <title>an.audio.phones &#8212; an</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx_autodoc_typehints.css?v=057ac668" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/epythet.css?v=c64280fc" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
+
+    <script src="../_static/documentation_options.js?v=bdeb964c"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=fd10adb8"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_autosummary/an.audio.phones';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="an.audio.pipeline" href="an.audio.pipeline.html" />
+    <link rel="prev" title="an.audio.offline_tts" href="an.audio.offline_tts.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.382" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation" aria-expanded="false" aria-controls="pst-primary-sidebar-modal">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">an</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page" aria-expanded="false" aria-controls="pst-secondary-sidebar-modal">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal" tabindex="-1"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button type="button" id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="an.html">an</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.adapters.html">an.adapters</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.cutout.html">an.adapters.cutout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.manim_adapter.html">an.adapters.manim_adapter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.remotion_adapter.html">an.adapters.remotion_adapter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.whiteboard.html">an.adapters.whiteboard</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.assemble.html">an.assemble</a></li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="an.audio.html">an.audio</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="an.audio.cli.html">an.audio.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.effects.html">an.audio.effects</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.elevenlabs_tts.html">an.audio.elevenlabs_tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.lipsync.html">an.audio.lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.loudness.html">an.audio.loudness</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.mac_say_tts.html">an.audio.mac_say_tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.offline_tts.html">an.audio.offline_tts</a></li>
+<li class="toctree-l3 current active"><a aria-current="page" class="current reference internal" href="#">an.audio.phones</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.pipeline.html">an.audio.pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.recorded.html">an.audio.recorded</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.shared_mixing.html">an.audio.shared_mixing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.takes.html">an.audio.takes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.transcripts.html">an.audio.transcripts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.voice_design.html">an.audio.voice_design</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.voice_listing.html">an.audio.voice_listing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.voices.html">an.audio.voices</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.base.html">an.base</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.bench.html">an.bench</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.capture.html">an.bench.capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.compare.html">an.bench.compare</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.contract.html">an.bench.contract</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.core_corpus.html">an.bench.core_corpus</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.corpus.html">an.bench.corpus</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.environment.html">an.bench.environment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.golden.html">an.bench.golden</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.imageio.html">an.bench.imageio</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.ledger.html">an.bench.ledger</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.masks.html">an.bench.masks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.metrics.html">an.bench.metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.mutants.html">an.bench.mutants</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.mutations.html">an.bench.mutations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.palette.html">an.bench.palette</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.paths.html">an.bench.paths</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.png.html">an.bench.png</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.registry.html">an.bench.registry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.run.html">an.bench.run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.stage.html">an.bench.stage</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.build.html">an.build</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.build.cli.html">an.build.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.build.derived.html">an.build.derived</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.build.gc.html">an.build.gc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.build.keys.html">an.build.keys</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.build.reads.html">an.build.reads</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.build.shot_cache.html">an.build.shot_cache</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.capabilities.html">an.capabilities</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.capabilities.subjects.html">an.capabilities.subjects</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.captions.html">an.captions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.cli_status.html">an.cli_status</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.conftest.html">an.conftest</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.continuity.html">an.continuity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.credits.html">an.credits</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.data.html">an.data</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.data.cutout_runtime.html">an.data.cutout_runtime</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.determinism.html">an.determinism</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.engines.html">an.engines</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.capture.html">an.engines.capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.conformance.html">an.engines.conformance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.frame_stage.html">an.engines.frame_stage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.protocol.html">an.engines.protocol</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.environments.html">an.environments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.formats.html">an.formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.frame_clock.html">an.frame_clock</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.genres.html">an.genres</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.genres.registry.html">an.genres.registry</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.ir.html">an.ir</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.assets.html">an.ir.assets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.camera.html">an.ir.camera</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.compose.html">an.ir.compose</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.frames.html">an.ir.frames</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.holds.html">an.ir.holds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.joints.html">an.ir.joints</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.schema.html">an.ir.schema</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.validate.html">an.ir.validate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.world.html">an.ir.world</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.world_from_shot.html">an.ir.world_from_shot</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.iterate.html">an.iterate</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.kinematics.html">an.kinematics</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.kinematics.bodies.html">an.kinematics.bodies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.kinematics.chains.html">an.kinematics.chains</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.kinematics.joints.html">an.kinematics.joints</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.kinematics.solver.html">an.kinematics.solver</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.library.html">an.library</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.library.affordances.html">an.library.affordances</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.api.html">an.library.api</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.cli.html">an.library.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.federation.html">an.library.federation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.floor.html">an.library.floor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.ids.html">an.library.ids</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.kinds.html">an.library.kinds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.kits.html">an.library.kits</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.lock.html">an.library.lock</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.registry.html">an.library.registry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.rights.html">an.library.rights</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.root.html">an.library.root</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.sheets.html">an.library.sheets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.stores.html">an.library.stores</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.live_api.html">an.live_api</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.mcp.html">an.mcp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.mcp.server.html">an.mcp.server</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.mcp.tools.html">an.mcp.tools</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.measurements.html">an.measurements</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.media.html">an.media</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.media.frames.html">an.media.frames</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.gif.html">an.media.gif</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.grid.html">an.media.grid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.mp4.html">an.media.mp4</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.shutter.html">an.media.shutter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.sinks.html">an.media.sinks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.supersample.html">an.media.supersample</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.motion.html">an.motion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.music_cli.html">an.music_cli</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.music_library.html">an.music_library</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.orchestrate.html">an.orchestrate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.paint.html">an.paint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.paths.html">an.paths</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.preview.html">an.preview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.probe.html">an.probe</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.project.html">an.project</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.props.html">an.props</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.props_cli.html">an.props_cli</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.raster.html">an.raster</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.render.html">an.render</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.semantic.html">an.semantic</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.describe.html">an.semantic.describe</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.digest.html">an.semantic.digest</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.docs.html">an.semantic.docs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.export.html">an.semantic.export</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.matcher.html">an.semantic.matcher</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.prompt.html">an.semantic.prompt</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.registry.html">an.semantic.registry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.seeds.html">an.semantic.seeds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.views.html">an.semantic.views</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.sound_anchors.html">an.sound_anchors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.sound_fetch.html">an.sound_fetch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.sounds.html">an.sounds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.sounds_cli.html">an.sounds_cli</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.stage.html">an.stage</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.cache_key.html">an.stage.cache_key</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.canvas_capture.html">an.stage.canvas_capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.compile.html">an.stage.compile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.counters.html">an.stage.counters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.easing.html">an.stage.easing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.environments.html">an.stage.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.fidelity.html">an.stage.fidelity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.gradients.html">an.stage.gradients</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.hold.html">an.stage.hold</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.path_geometry.html">an.stage.path_geometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.path_wobble.html">an.stage.path_wobble</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.paths.html">an.stage.paths</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.preview.html">an.stage.preview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.prop_validate.html">an.stage.prop_validate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.props.html">an.stage.props</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.raster.html">an.stage.raster</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.render.html">an.stage.render</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.rig.html">an.stage.rig</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime.html">an.stage.runtime</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime_files.html">an.stage.runtime_files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.serialize.html">an.stage.serialize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.snapshot.html">an.stage.snapshot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.solve.html">an.stage.solve</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.surface.html">an.stage.surface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text_layout.html">an.stage.text_layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.timeline.html">an.stage.timeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.tree.html">an.stage.tree</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.world.html">an.stage.world</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.artifacts.html">an.stores.artifacts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.decisions.html">an.stores.decisions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.environments.html">an.stores.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.library_lock.html">an.stores.library_lock</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.props.html">an.stores.props</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.recordings.html">an.stores.recordings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.scenes.html">an.stores.scenes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.sounds.html">an.stores.sounds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.sources.html">an.stores.sources</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.styles.html">an.stores.styles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.transcripts.html">an.stores.transcripts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.voices.html">an.stores.voices</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.styles.html">an.styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.text.html">an.text</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.timing.html">an.timing</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.address.html">an.timing.address</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.channel.html">an.timing.channel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.clip.html">an.timing.clip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.contract.html">an.timing.contract</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.easing.html">an.timing.easing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.flat.html">an.timing.flat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.kinds.html">an.timing.kinds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.spaces.html">an.timing.spaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.timeline.html">an.timing.timeline</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.tools.html">an.tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.util.html">an.util</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.verify.html">an.verify</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.constraints.html">an.verify.constraints</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.holds.html">an.verify.holds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.human.html">an.verify.human</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.joints.html">an.verify.joints</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.layout.html">an.verify.layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.media.html">an.verify.media</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.media_quality.html">an.verify.media_quality</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.prosody.html">an.verify.prosody</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.vision.html">an.verify.vision</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.world_cli.html">an.world_cli</a></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-house"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../api.html" class="nav-link">API reference</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="an.html" class="nav-link">an</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="an.audio.html" class="nav-link">an.audio</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">an.audio.phones</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-an.audio.phones">
+<span id="an-audio-phones"></span><h1>an.audio.phones<a class="headerlink" href="#module-an.audio.phones" title="Link to this heading">#</a></h1>
+<p>Phones to mouth shapes: an aligner’s phone timings as a Rhubarb viseme track (an#727).</p>
+<p>The phone counterpart of <a class="reference internal" href="an.audio.lipsync.html#an.audio.lipsync.word_timings_to_visemes" title="an.audio.lipsync.word_timings_to_visemes"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.audio.lipsync.word_timings_to_visemes()</span></code></a>, in the
+core beside it: the Rhubarb convention is the core’s, so a lip-sync provider of
+any genre maps phones the same way (moved from <code class="docutils literal notranslate"><span class="pre">cutan.audio.phones</span></code>).</p>
+<p>A recorded take imported with a forced aligner’s output carries its phones,
+<code class="docutils literal notranslate"><span class="pre">AudioClip.phones</span></code>: <code class="docutils literal notranslate"><span class="pre">(phone,</span> <span class="pre">start_s,</span> <span class="pre">end_s)</span></code> from the clip’s start (an#491),
+in ARPAbet (MFA’s English models: <code class="docutils literal notranslate"><span class="pre">HH</span></code>, <code class="docutils literal notranslate"><span class="pre">AH0</span></code>) or IPA (<code class="docutils literal notranslate"><span class="pre">mfa:ipa</span></code>: <code class="docutils literal notranslate"><span class="pre">h</span></code>,
+<code class="docutils literal notranslate"><span class="pre">ə</span></code>). The take’s record states which (<code class="docutils literal notranslate"><span class="pre">AudioClip.phone_alphabet</span></code>, an#721) and
+that wins; a clip without it has the alphabet decided once per clip from its
+labels (<a class="reference internal" href="#an.audio.phones.phone_alphabet" title="an.audio.phones.phone_alphabet"><code class="xref py py-func docutils literal notranslate"><span class="pre">phone_alphabet()</span></code></a>).</p>
+<p><a class="reference internal" href="#an.audio.phones.phones_track" title="an.audio.phones.phones_track"><code class="xref py py-func docutils literal notranslate"><span class="pre">phones_track()</span></code></a> is what a lip-sync provider calls: the clip’s track from its
+phones, or <code class="docutils literal notranslate"><span class="pre">None</span></code> to align some other way. A word the aligner could not
+phonetise (MFA writes <code class="docutils literal notranslate"><span class="pre">spn</span></code> under a name it does not know, and <code class="docutils literal notranslate"><span class="pre">an</span></code> drops it)
+has no phones under it; it is spoken by its letters spread over its own span,
+as in the word-timing rule (<code class="docutils literal notranslate"><span class="pre">an.audio.lipsync.word_timings_to_visemes</span></code>),
+though its rests land at the phone rule’s times (when the last sound ends).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[(</span><span class="n">v</span><span class="o">.</span><span class="n">time</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">code</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">phones_to_visemes</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="p">[(</span><span class="s2">"HH"</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">),</span> <span class="p">(</span><span class="s2">"AH0"</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">),</span> <span class="p">(</span><span class="s2">"L"</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">),</span> <span class="p">(</span><span class="s2">"OW1"</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">)],</span>
+<span class="gp">... </span>    <span class="n">total_duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+<span class="gp">... </span><span class="p">)]</span>
+<span class="go">[(0.0, 'X'), (0.1, 'C'), (0.3, 'H'), (0.4, 'F'), (0.6, 'X'), (1.0, 'X')]</span>
+</pre></div>
+</div>
+<p class="rubric">Module Attributes</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.phones.PhoneToViseme" title="an.audio.phones.PhoneToViseme"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PhoneToViseme</span></code></a></p></td>
+<td><p>a Rhubarb shape, or <code class="docutils literal notranslate"><span class="pre">None</span></code> when unknown (<code class="docutils literal notranslate"><span class="pre">alphabet</span></code> is the clip's, <a class="reference internal" href="#an.audio.phones.phone_alphabet" title="an.audio.phones.phone_alphabet"><code class="xref py py-func docutils literal notranslate"><span class="pre">phone_alphabet()</span></code></a>).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.phones.ARPABET_TO_VISEME" title="an.audio.phones.ARPABET_TO_VISEME"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ARPABET_TO_VISEME</span></code></a></p></td>
+<td><p>ARPAbet (stress digits removed) to a Rhubarb shape.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.phones.IPA_TO_VISEME" title="an.audio.phones.IPA_TO_VISEME"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IPA_TO_VISEME</span></code></a></p></td>
+<td><p>IPA (diacritics, length and stress marks removed) to a Rhubarb shape.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.phones.NO_INTENSITY" title="an.audio.phones.NO_INTENSITY"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NO_INTENSITY</span></code></a></p></td>
+<td><p>How strongly a phone's shape holds against its neighbours (<code class="docutils literal notranslate"><span class="pre">Viseme.intensity</span></code>), keyed by the phone's base (ARPAbet upper case, IPA as written); a phone not listed is 1.0.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.phones.TAKES_NEXT_SHAPE" title="an.audio.phones.TAKES_NEXT_SHAPE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TAKES_NEXT_SHAPE</span></code></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">HH</span></code> is a breath before the vowel (Rhubarb draws it so), not a mouth shape of its own.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Functions</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.phones.clip_timings" title="an.audio.phones.clip_timings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clip_timings</span></code></a>(audio, field)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">audio</span></code>'s <code class="docutils literal notranslate"><span class="pre">words</span></code> or <code class="docutils literal notranslate"><span class="pre">phones</span></code> as a list of <code class="docutils literal notranslate"><span class="pre">(label,</span> <span class="pre">start_s,</span> <span class="pre">end_s)</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> when it has none (or its <code class="docutils literal notranslate"><span class="pre">an</span></code> predates the field).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.phones.phone_alphabet" title="an.audio.phones.phone_alphabet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">phone_alphabet</span></code></a>(phones)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;arpabet&quot;</span></code> when every phone is ARPAbet as aligners write it (ASCII, one case throughout, each in <code class="docutils literal notranslate"><span class="pre">an</span></code>'s <code class="docutils literal notranslate"><span class="pre">ARPABET_PHONES</span></code> once its stress digit is dropped), else <code class="docutils literal notranslate"><span class="pre">&quot;ipa&quot;</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.phones.phone_viseme" title="an.audio.phones.phone_viseme"><code class="xref py py-obj docutils literal notranslate"><span class="pre">phone_viseme</span></code></a>(phone, *[, alphabet])</p></td>
+<td><p>The Rhubarb shape of one phone in <code class="docutils literal notranslate"><span class="pre">alphabet</span></code>; <code class="xref py py-data docutils literal notranslate"><span class="pre">REST_VISEME</span></code> for a silence; <code class="docutils literal notranslate"><span class="pre">None</span></code> for a phone the table does not know.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.phones.phones_to_visemes" title="an.audio.phones.phones_to_visemes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">phones_to_visemes</span></code></a>(phones, *, total_duration)</p></td>
+<td><p>A viseme track from phone timings: each phone's shape at its start (in the clip's <a class="reference internal" href="#an.audio.phones.phone_alphabet" title="an.audio.phones.phone_alphabet"><code class="xref py py-func docutils literal notranslate"><span class="pre">phone_alphabet()</span></code></a>), the mouth closed at a silence, at a pause longer than <code class="docutils literal notranslate"><span class="pre">min_gap_for_rest</span></code> and after the last sound.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.phones.phones_track" title="an.audio.phones.phones_track"><code class="xref py py-obj docutils literal notranslate"><span class="pre">phones_track</span></code></a>(audio, *[, phone_to_viseme, ...])</p></td>
+<td><p>The mouth track of a clip whose phones are timed (<code class="docutils literal notranslate"><span class="pre">AudioClip.phones</span></code>, a take timed by a forced aligner, an#491), carrying the clip's words too; <code class="docutils literal notranslate"><span class="pre">None</span></code> when it has no phones, or one <code class="docutils literal notranslate"><span class="pre">phone_to_viseme</span></code> does not know.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py data">
+<dt class="sig sig-object py" id="an.audio.phones.ARPABET_TO_VISEME">
+<span class="sig-prename descclassname"><span class="pre">an.audio.phones.</span></span><span class="sig-name descname"><span class="pre">ARPABET_TO_VISEME</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'AA':</span> <span class="pre">'D',</span> <span class="pre">'AE':</span> <span class="pre">'C',</span> <span class="pre">'AH':</span> <span class="pre">'C',</span> <span class="pre">'AO':</span> <span class="pre">'E',</span> <span class="pre">'AW':</span> <span class="pre">'D',</span> <span class="pre">'AY':</span> <span class="pre">'D',</span> <span class="pre">'B':</span> <span class="pre">'A',</span> <span class="pre">'CH':</span> <span class="pre">'B',</span> <span class="pre">'D':</span> <span class="pre">'B',</span> <span class="pre">'DH':</span> <span class="pre">'B',</span> <span class="pre">'EH':</span> <span class="pre">'C',</span> <span class="pre">'ER':</span> <span class="pre">'E',</span> <span class="pre">'EY':</span> <span class="pre">'C',</span> <span class="pre">'F':</span> <span class="pre">'G',</span> <span class="pre">'G':</span> <span class="pre">'B',</span> <span class="pre">'HH':</span> <span class="pre">'C',</span> <span class="pre">'IH':</span> <span class="pre">'B',</span> <span class="pre">'IY':</span> <span class="pre">'B',</span> <span class="pre">'JH':</span> <span class="pre">'B',</span> <span class="pre">'K':</span> <span class="pre">'B',</span> <span class="pre">'L':</span> <span class="pre">'H',</span> <span class="pre">'M':</span> <span class="pre">'A',</span> <span class="pre">'N':</span> <span class="pre">'B',</span> <span class="pre">'NG':</span> <span class="pre">'B',</span> <span class="pre">'OW':</span> <span class="pre">'F',</span> <span class="pre">'OY':</span> <span class="pre">'E',</span> <span class="pre">'P':</span> <span class="pre">'A',</span> <span class="pre">'R':</span> <span class="pre">'B',</span> <span class="pre">'S':</span> <span class="pre">'B',</span> <span class="pre">'SH':</span> <span class="pre">'B',</span> <span class="pre">'T':</span> <span class="pre">'B',</span> <span class="pre">'TH':</span> <span class="pre">'B',</span> <span class="pre">'UH':</span> <span class="pre">'F',</span> <span class="pre">'UW':</span> <span class="pre">'F',</span> <span class="pre">'V':</span> <span class="pre">'G',</span> <span class="pre">'W':</span> <span class="pre">'F',</span> <span class="pre">'Y':</span> <span class="pre">'B',</span> <span class="pre">'Z':</span> <span class="pre">'B',</span> <span class="pre">'ZH':</span> <span class="pre">'B'}</span></span><a class="headerlink" href="#an.audio.phones.ARPABET_TO_VISEME" title="Link to this definition">#</a></dt>
+<dd><p>ARPAbet (stress digits removed) to a Rhubarb shape.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.audio.phones.IPA_TO_VISEME">
+<span class="sig-prename descclassname"><span class="pre">an.audio.phones.</span></span><span class="sig-name descname"><span class="pre">IPA_TO_VISEME</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'a':</span> <span class="pre">'D',</span> <span class="pre">'b':</span> <span class="pre">'A',</span> <span class="pre">'c':</span> <span class="pre">'B',</span> <span class="pre">'d':</span> <span class="pre">'B',</span> <span class="pre">'e':</span> <span class="pre">'C',</span> <span class="pre">'f':</span> <span class="pre">'G',</span> <span class="pre">'g':</span> <span class="pre">'B',</span> <span class="pre">'h':</span> <span class="pre">'C',</span> <span class="pre">'i':</span> <span class="pre">'B',</span> <span class="pre">'j':</span> <span class="pre">'B',</span> <span class="pre">'k':</span> <span class="pre">'B',</span> <span class="pre">'l':</span> <span class="pre">'H',</span> <span class="pre">'m':</span> <span class="pre">'A',</span> <span class="pre">'n':</span> <span class="pre">'B',</span> <span class="pre">'o':</span> <span class="pre">'F',</span> <span class="pre">'p':</span> <span class="pre">'A',</span> <span class="pre">'r':</span> <span class="pre">'B',</span> <span class="pre">'s':</span> <span class="pre">'B',</span> <span class="pre">'t':</span> <span class="pre">'B',</span> <span class="pre">'u':</span> <span class="pre">'F',</span> <span class="pre">'v':</span> <span class="pre">'G',</span> <span class="pre">'w':</span> <span class="pre">'F',</span> <span class="pre">'y':</span> <span class="pre">'F',</span> <span class="pre">'z':</span> <span class="pre">'B',</span> <span class="pre">'æ':</span> <span class="pre">'C',</span> <span class="pre">'ç':</span> <span class="pre">'B',</span> <span class="pre">'ð':</span> <span class="pre">'B',</span> <span class="pre">'ŋ':</span> <span class="pre">'B',</span> <span class="pre">'ɐ':</span> <span class="pre">'C',</span> <span class="pre">'ɑ':</span> <span class="pre">'D',</span> <span class="pre">'ɒ':</span> <span class="pre">'D',</span> <span class="pre">'ɔ':</span> <span class="pre">'E',</span> <span class="pre">'ə':</span> <span class="pre">'C',</span> <span class="pre">'əw':</span> <span class="pre">'F',</span> <span class="pre">'əʊ':</span> <span class="pre">'F',</span> <span class="pre">'ɚ':</span> <span class="pre">'E',</span> <span class="pre">'ɛ':</span> <span class="pre">'C',</span> <span class="pre">'ɜ':</span> <span class="pre">'E',</span> <span class="pre">'ɝ':</span> <span class="pre">'E',</span> <span class="pre">'ɟ':</span> <span class="pre">'B',</span> <span class="pre">'ɡ':</span> <span class="pre">'B',</span> <span class="pre">'ɪ':</span> <span class="pre">'B',</span> <span class="pre">'ɫ':</span> <span class="pre">'H',</span> <span class="pre">'ɱ':</span> <span class="pre">'G',</span> <span class="pre">'ɲ':</span> <span class="pre">'B',</span> <span class="pre">'ɹ':</span> <span class="pre">'B',</span> <span class="pre">'ɾ':</span> <span class="pre">'B',</span> <span class="pre">'ʃ':</span> <span class="pre">'B',</span> <span class="pre">'ʉ':</span> <span class="pre">'F',</span> <span class="pre">'ʊ':</span> <span class="pre">'F',</span> <span class="pre">'ʌ':</span> <span class="pre">'C',</span> <span class="pre">'ʎ':</span> <span class="pre">'H',</span> <span class="pre">'ʒ':</span> <span class="pre">'B',</span> <span class="pre">'ʔ':</span> <span class="pre">'B',</span> <span class="pre">'θ':</span> <span class="pre">'B'}</span></span><a class="headerlink" href="#an.audio.phones.IPA_TO_VISEME" title="Link to this definition">#</a></dt>
+<dd><p>IPA (diacritics, length and stress marks removed) to a Rhubarb shape. A
+phone not in it is read by its first symbol (<code class="docutils literal notranslate"><span class="pre">aj</span></code> as <code class="docutils literal notranslate"><span class="pre">a</span></code>, <code class="docutils literal notranslate"><span class="pre">tʃ</span></code> as <code class="docutils literal notranslate"><span class="pre">t</span></code>).</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.audio.phones.NO_INTENSITY">
+<span class="sig-prename descclassname"><span class="pre">an.audio.phones.</span></span><span class="sig-name descname"><span class="pre">NO_INTENSITY</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.15)"><span class="pre">Mapping</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span><a class="headerlink" href="#an.audio.phones.NO_INTENSITY" title="Link to this definition">#</a></dt>
+<dd><p>How strongly a phone’s shape holds against its neighbours (<code class="docutils literal notranslate"><span class="pre">Viseme.intensity</span></code>),
+keyed by the phone’s base (ARPAbet upper case, IPA as written); a phone not
+listed is 1.0. Which phones weigh less is a genre’s art direction (cutan’s
+tongue-only consonants, cutan#157), passed as <code class="docutils literal notranslate"><span class="pre">intensity_of</span></code>.
+The default: every cue at full intensity.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.audio.phones.PhoneToViseme">
+<span class="sig-prename descclassname"><span class="pre">an.audio.phones.</span></span><span class="sig-name descname"><span class="pre">PhoneToViseme</span></span><a class="headerlink" href="#an.audio.phones.PhoneToViseme" title="Link to this definition">#</a></dt>
+<dd><p>a Rhubarb shape, or <code class="docutils literal notranslate"><span class="pre">None</span></code> when
+unknown (<code class="docutils literal notranslate"><span class="pre">alphabet</span></code> is the clip’s, <a class="reference internal" href="#an.audio.phones.phone_alphabet" title="an.audio.phones.phone_alphabet"><code class="xref py py-func docutils literal notranslate"><span class="pre">phone_alphabet()</span></code></a>). Silences never
+reach it: they are the rest shape.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">phone_to_viseme(phone,</span> <span class="pre">*,</span> <span class="pre">alphabet)</span></code></p>
+</dd>
+</dl>
+<p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code>[[…], <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>]</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.audio.phones.TAKES_NEXT_SHAPE">
+<span class="sig-prename descclassname"><span class="pre">an.audio.phones.</span></span><span class="sig-name descname"><span class="pre">TAKES_NEXT_SHAPE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.15)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'HH',</span> <span class="pre">'h',</span> <span class="pre">'ɦ'})</span></span><a class="headerlink" href="#an.audio.phones.TAKES_NEXT_SHAPE" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">HH</span></code> is a breath
+before the vowel (Rhubarb draws it so), not a mouth shape of its own.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The phones that take the shape of the phone after them</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.phones.clip_timings">
+<span class="sig-prename descclassname"><span class="pre">an.audio.phones.</span></span><span class="sig-name descname"><span class="pre">clip_timings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">audio</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/phones.html#clip_timings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.phones.clip_timings" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">audio</span></code>’s <code class="docutils literal notranslate"><span class="pre">words</span></code> or <code class="docutils literal notranslate"><span class="pre">phones</span></code> as a list of <code class="docutils literal notranslate"><span class="pre">(label,</span> <span class="pre">start_s,</span> <span class="pre">end_s)</span></code>;
+<code class="docutils literal notranslate"><span class="pre">None</span></code> when it has none (or its <code class="docutils literal notranslate"><span class="pre">an</span></code> predates the field).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">clip_timings</span><span class="p">(</span><span class="n">AudioClip</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">phones</span><span class="o">=</span><span class="p">[(</span><span class="s2">"M"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)]),</span> <span class="s2">"phones"</span><span class="p">)</span>
+<span class="go">[('M', 0.0, 0.1)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">clip_timings</span><span class="p">(</span><span class="n">AudioClip</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">),</span> <span class="s2">"phones"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]]]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.phones.phone_alphabet">
+<span class="sig-prename descclassname"><span class="pre">an.audio.phones.</span></span><span class="sig-name descname"><span class="pre">phone_alphabet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phones</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/phones.html#phone_alphabet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.phones.phone_alphabet" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">&quot;arpabet&quot;</span></code> when every phone is ARPAbet as aligners write it (ASCII, one
+case throughout, each in <code class="docutils literal notranslate"><span class="pre">an</span></code>’s <code class="docutils literal notranslate"><span class="pre">ARPABET_PHONES</span></code> once its stress digit is
+dropped), else <code class="docutils literal notranslate"><span class="pre">&quot;ipa&quot;</span></code>. Decided per clip: a SAMPA <code class="docutils literal notranslate"><span class="pre">V</span></code> (the vowel of
+<em>love</em>) beside a lowercase <code class="docutils literal notranslate"><span class="pre">l</span></code> is not ARPAbet <code class="docutils literal notranslate"><span class="pre">V</span></code>. The rule is <code class="docutils literal notranslate"><span class="pre">an</span></code>’s
+(<a class="reference internal" href="an.audio.transcripts.html#an.audio.transcripts.phone_alphabet_of" title="an.audio.transcripts.phone_alphabet_of"><code class="xref py py-func docutils literal notranslate"><span class="pre">phone_alphabet_of()</span></code></a>), which says <code class="docutils literal notranslate"><span class="pre">None</span></code> where
+it cannot tell; this lip-sync reads that as IPA.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">phone_alphabet</span><span class="p">([</span><span class="s2">"HH"</span><span class="p">,</span> <span class="s2">"AH0"</span><span class="p">,</span> <span class="s2">"L"</span><span class="p">]),</span> <span class="n">phone_alphabet</span><span class="p">([</span><span class="s2">"hh"</span><span class="p">,</span> <span class="s2">"ah0"</span><span class="p">])</span>
+<span class="go">('arpabet', 'arpabet')</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">phone_alphabet</span><span class="p">([</span><span class="s2">"l"</span><span class="p">,</span> <span class="s2">"V"</span><span class="p">,</span> <span class="s2">"v"</span><span class="p">]),</span> <span class="n">phone_alphabet</span><span class="p">([</span><span class="s2">"h"</span><span class="p">,</span> <span class="s2">"ə"</span><span class="p">,</span> <span class="s2">"l"</span><span class="p">])</span>
+<span class="go">('ipa', 'ipa')</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.phones.phone_viseme">
+<span class="sig-prename descclassname"><span class="pre">an.audio.phones.</span></span><span class="sig-name descname"><span class="pre">phone_viseme</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phone</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphabet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'arpabet'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/phones.html#phone_viseme"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.phones.phone_viseme" title="Link to this definition">#</a></dt>
+<dd><p>The Rhubarb shape of one phone in <code class="docutils literal notranslate"><span class="pre">alphabet</span></code>; <code class="xref py py-data docutils literal notranslate"><span class="pre">REST_VISEME</span></code> for a
+silence; <code class="docutils literal notranslate"><span class="pre">None</span></code> for a phone the table does not know.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">phone_viseme</span><span class="p">(</span><span class="s2">"AA1"</span><span class="p">),</span> <span class="n">phone_viseme</span><span class="p">(</span><span class="s2">"M"</span><span class="p">),</span> <span class="n">phone_viseme</span><span class="p">(</span><span class="s2">"sil"</span><span class="p">),</span> <span class="n">phone_viseme</span><span class="p">(</span><span class="s2">"Q9"</span><span class="p">)</span>
+<span class="go">('D', 'A', 'X', None)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">phone_viseme</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">alphabet</span><span class="o">=</span><span class="s2">"ipa"</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"tʃ"</span><span class="p">,</span> <span class="s2">"iː"</span><span class="p">,</span> <span class="s2">"əw"</span><span class="p">,</span> <span class="s2">"ʘ"</span><span class="p">)]</span>
+<span class="go">['B', 'B', 'F', None]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.phones.phones_to_visemes">
+<span class="sig-prename descclassname"><span class="pre">an.audio.phones.</span></span><span class="sig-name descname"><span class="pre">phones_to_visemes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phones</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">words</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phone_to_viseme</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">phone_viseme&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">char_to_viseme</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rest_viseme</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'X'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_gap_for_rest</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphabet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intensity_of</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">takes_next_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">frozenset({'HH'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'h'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'ɦ'})</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/phones.html#phones_to_visemes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.phones.phones_to_visemes" title="Link to this definition">#</a></dt>
+<dd><p>A viseme track from phone timings: each phone’s shape at its start (in the
+clip’s <a class="reference internal" href="#an.audio.phones.phone_alphabet" title="an.audio.phones.phone_alphabet"><code class="xref py py-func docutils literal notranslate"><span class="pre">phone_alphabet()</span></code></a>), the mouth closed at a silence, at a pause
+longer than <code class="docutils literal notranslate"><span class="pre">min_gap_for_rest</span></code> and after the last sound. A word of <code class="docutils literal notranslate"><span class="pre">words</span></code>
+with no phone under it is spoken by its letters (<code class="docutils literal notranslate"><span class="pre">char_to_viseme</span></code>).</p>
+<p><code class="docutils literal notranslate"><span class="pre">alphabet</span></code> is the take’s recorded one (<code class="docutils literal notranslate"><span class="pre">AudioClip.phone_alphabet</span></code>); with
+none, the clip’s labels decide (<a class="reference internal" href="#an.audio.phones.phone_alphabet" title="an.audio.phones.phone_alphabet"><code class="xref py py-func docutils literal notranslate"><span class="pre">phone_alphabet()</span></code></a>).</p>
+<p><code class="docutils literal notranslate"><span class="pre">intensity_of</span></code> maps a phone (its base: stress and modifiers dropped) to the
+<code class="docutils literal notranslate"><span class="pre">Viseme.intensity</span></code> of its cue, so a genre’s co-articulation can let a
+vowel’s <code class="docutils literal notranslate"><span class="pre">B</span></code> beat a tongue-only consonant’s (cutan#157). A phone of
+<code class="docutils literal notranslate"><span class="pre">takes_next_shape</span></code> (<code class="docutils literal notranslate"><span class="pre">HH</span></code>) shows the shape of the next spoken phone, kept
+as its own only at the end.</p>
+<p><code class="docutils literal notranslate"><span class="pre">None</span></code> when a phone is one <code class="docutils literal notranslate"><span class="pre">phone_to_viseme</span></code> does not know: a phone set
+this table was not written for is better spread by its words than guessed.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">phones_to_visemes</span><span class="p">([(</span><span class="s2">"ʘ"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)],</span> <span class="n">total_duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[(</span><span class="n">v</span><span class="o">.</span><span class="n">time</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">code</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">phones_to_visemes</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="p">[(</span><span class="s2">"M"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">),</span> <span class="p">(</span><span class="s2">"AA1"</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">),</span> <span class="p">(</span><span class="s2">"P"</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">)],</span> <span class="n">total_duration</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)]</span>
+<span class="go">[(0.0, 'X'), (0.0, 'A'), (0.1, 'D'), (0.3, 'X'), (0.6, 'A'), (0.7, 'X')]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="an.audio.lipsync.html#an.audio.lipsync.Viseme" title="an.audio.lipsync.Viseme"><code class="xref py py-class docutils literal notranslate"><span class="pre">Viseme</span></code></a>]]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.phones.phones_track">
+<span class="sig-prename descclassname"><span class="pre">an.audio.phones.</span></span><span class="sig-name descname"><span class="pre">phones_track</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">audio</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phone_to_viseme</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">phone_viseme&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">char_to_viseme</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rest_viseme</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'X'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convention</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rhubarb'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intensity_of</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/phones.html#phones_track"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.phones.phones_track" title="Link to this definition">#</a></dt>
+<dd><p>The mouth track of a clip whose phones are timed (<code class="docutils literal notranslate"><span class="pre">AudioClip.phones</span></code>, a
+take timed by a forced aligner, an#491), carrying the clip’s words too;
+<code class="docutils literal notranslate"><span class="pre">None</span></code> when it has no phones, or one <code class="docutils literal notranslate"><span class="pre">phone_to_viseme</span></code> does not know.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">clip</span> <span class="o">=</span> <span class="n">AudioClip</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">phones</span><span class="o">=</span><span class="p">[(</span><span class="s2">"M"</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">)],</span> <span class="n">words</span><span class="o">=</span><span class="p">[(</span><span class="s2">"m"</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">track</span> <span class="o">=</span> <span class="n">phones_track</span><span class="p">(</span><span class="n">clip</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">code</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">track</span><span class="o">.</span><span class="n">visemes</span><span class="p">],</span> <span class="n">track</span><span class="o">.</span><span class="n">words</span>
+<span class="go">(['X', 'A', 'X', 'X'], [('m', 0.1, 0.2)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">phones_track</span><span class="p">(</span><span class="n">AudioClip</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="mf">0.5</span><span class="p">))</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference internal" href="an.audio.lipsync.html#an.audio.lipsync.VisemeTrack" title="an.audio.lipsync.VisemeTrack"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisemeTrack</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="an.audio.offline_tts.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">an.audio.offline_tts</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="an.audio.pipeline.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">an.audio.pipeline</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal" tabindex="-1"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.phones.ARPABET_TO_VISEME"><code class="docutils literal notranslate"><span class="pre">ARPABET_TO_VISEME</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.phones.IPA_TO_VISEME"><code class="docutils literal notranslate"><span class="pre">IPA_TO_VISEME</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.phones.NO_INTENSITY"><code class="docutils literal notranslate"><span class="pre">NO_INTENSITY</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.phones.PhoneToViseme"><code class="docutils literal notranslate"><span class="pre">PhoneToViseme</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.phones.TAKES_NEXT_SHAPE"><code class="docutils literal notranslate"><span class="pre">TAKES_NEXT_SHAPE</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.phones.clip_timings"><code class="docutils literal notranslate"><span class="pre">clip_timings()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.phones.phone_alphabet"><code class="docutils literal notranslate"><span class="pre">phone_alphabet()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.phones.phone_viseme"><code class="docutils literal notranslate"><span class="pre">phone_viseme()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.phones.phones_to_visemes"><code class="docutils literal notranslate"><span class="pre">phones_to_visemes()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.phones.phones_track"><code class="docutils literal notranslate"><span class="pre">phones_track()</span></code></a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/_autosummary/an.audio.phones.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.24.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

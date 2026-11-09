@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=8a131c26"></script>
+    <script src="../_static/documentation_options.js?v=bdeb964c"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.381" />
+  <meta name="docsearch:version" content="0.1.382" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -336,6 +336,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.loudness.html">an.audio.loudness</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.mac_say_tts.html">an.audio.mac_say_tts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.offline_tts.html">an.audio.offline_tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.phones.html">an.audio.phones</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.pipeline.html">an.audio.pipeline</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.recorded.html">an.audio.recorded</a></li>
@@ -660,6 +661,24 @@ without external services.</p>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.audio.word_timings_to_visemes" title="an.audio.word_timings_to_visemes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">word_timings_to_visemes</span></code></a>(words, *, ...[, ...])</p></td>
 <td><p>Distribute viseme keyframes across word boundaries.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.lipsync_cache_id" title="an.audio.lipsync_cache_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lipsync_cache_id</span></code></a>(provider)</p></td>
+<td><p>What a provider puts in a viseme track's content key (<a class="reference internal" href="an.audio.pipeline.html#an.audio.pipeline.viseme_key" title="an.audio.pipeline.viseme_key"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.audio.pipeline.viseme_key()</span></code></a>): its <code class="docutils literal notranslate"><span class="pre">name</span></code>, and its <code class="xref py py-data docutils literal notranslate"><span class="pre">CACHE_VERSION_ATTR</span></code> when it states one.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.clip_timings" title="an.audio.clip_timings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clip_timings</span></code></a>(audio, field)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">audio</span></code>'s <code class="docutils literal notranslate"><span class="pre">words</span></code> or <code class="docutils literal notranslate"><span class="pre">phones</span></code> as a list of <code class="docutils literal notranslate"><span class="pre">(label,</span> <span class="pre">start_s,</span> <span class="pre">end_s)</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> when it has none (or its <code class="docutils literal notranslate"><span class="pre">an</span></code> predates the field).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.phone_alphabet" title="an.audio.phone_alphabet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">phone_alphabet</span></code></a>(phones)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;arpabet&quot;</span></code> when every phone is ARPAbet as aligners write it (ASCII, one case throughout, each in <code class="docutils literal notranslate"><span class="pre">an</span></code>'s <code class="docutils literal notranslate"><span class="pre">ARPABET_PHONES</span></code> once its stress digit is dropped), else <code class="docutils literal notranslate"><span class="pre">&quot;ipa&quot;</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.phone_viseme" title="an.audio.phone_viseme"><code class="xref py py-obj docutils literal notranslate"><span class="pre">phone_viseme</span></code></a>(phone, *[, alphabet])</p></td>
+<td><p>The Rhubarb shape of one phone in <code class="docutils literal notranslate"><span class="pre">alphabet</span></code>; <code class="xref py py-data docutils literal notranslate"><span class="pre">REST_VISEME</span></code> for a silence; <code class="docutils literal notranslate"><span class="pre">None</span></code> for a phone the table does not know.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.phones_to_visemes" title="an.audio.phones_to_visemes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">phones_to_visemes</span></code></a>(phones, *, total_duration)</p></td>
+<td><p>A viseme track from phone timings: each phone's shape at its start (in the clip's <a class="reference internal" href="#an.audio.phone_alphabet" title="an.audio.phone_alphabet"><code class="xref py py-func docutils literal notranslate"><span class="pre">phone_alphabet()</span></code></a>), the mouth closed at a silence, at a pause longer than <code class="docutils literal notranslate"><span class="pre">min_gap_for_rest</span></code> and after the last sound.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.phones_track" title="an.audio.phones_track"><code class="xref py py-obj docutils literal notranslate"><span class="pre">phones_track</span></code></a>(audio, *[, phone_to_viseme, ...])</p></td>
+<td><p>The mouth track of a clip whose phones are timed (<code class="docutils literal notranslate"><span class="pre">AudioClip.phones</span></code>, a take timed by a forced aligner, an#491), carrying the clip's words too; <code class="docutils literal notranslate"><span class="pre">None</span></code> when it has no phones, or one <code class="docutils literal notranslate"><span class="pre">phone_to_viseme</span></code> does not know.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.import_recordings" title="an.audio.import_recordings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">import_recordings</span></code></a>(project, audio, *[, ...])</p></td>
 <td><p>Import a performer's recording(s) as the voice of their lines (an#490).</p></td>
@@ -1220,6 +1239,24 @@ fine and represent silence the lipsync provider should rest through.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.audio.clip_timings">
+<span class="sig-prename descclassname"><span class="pre">an.audio.</span></span><span class="sig-name descname"><span class="pre">clip_timings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">audio</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/phones.html#clip_timings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.clip_timings" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">audio</span></code>’s <code class="docutils literal notranslate"><span class="pre">words</span></code> or <code class="docutils literal notranslate"><span class="pre">phones</span></code> as a list of <code class="docutils literal notranslate"><span class="pre">(label,</span> <span class="pre">start_s,</span> <span class="pre">end_s)</span></code>;
+<code class="docutils literal notranslate"><span class="pre">None</span></code> when it has none (or its <code class="docutils literal notranslate"><span class="pre">an</span></code> predates the field).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">clip_timings</span><span class="p">(</span><span class="n">AudioClip</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">phones</span><span class="o">=</span><span class="p">[(</span><span class="s2">"M"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)]),</span> <span class="s2">"phones"</span><span class="p">)</span>
+<span class="go">[('M', 0.0, 0.1)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">clip_timings</span><span class="p">(</span><span class="n">AudioClip</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">),</span> <span class="s2">"phones"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]]]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.audio.default_lipsync">
 <span class="sig-prename descclassname"><span class="pre">an.audio.</span></span><span class="sig-name descname"><span class="pre">default_lipsync</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/pipeline.html#default_lipsync"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.default_lipsync" title="Link to this definition">#</a></dt>
 <dd><p>The default lip-sync provider: the loaded genre’s <code class="docutils literal notranslate"><span class="pre">offline</span></code> one (the
@@ -1314,6 +1351,28 @@ cut apart.
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.audio.lipsync_cache_id">
+<span class="sig-prename descclassname"><span class="pre">an.audio.</span></span><span class="sig-name descname"><span class="pre">lipsync_cache_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">provider</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/lipsync.html#lipsync_cache_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.lipsync_cache_id" title="Link to this definition">#</a></dt>
+<dd><p>What a provider puts in a viseme track’s content key
+(<a class="reference internal" href="an.audio.pipeline.html#an.audio.pipeline.viseme_key" title="an.audio.pipeline.viseme_key"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.audio.pipeline.viseme_key()</span></code></a>): its <code class="docutils literal notranslate"><span class="pre">name</span></code>, and its
+<code class="xref py py-data docutils literal notranslate"><span class="pre">CACHE_VERSION_ATTR</span></code> when it states one.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">Offline</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">name</span> <span class="o">=</span> <span class="s2">"offline"</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lipsync_cache_id</span><span class="p">(</span><span class="n">Offline</span><span class="p">())</span>
+<span class="go">'offline'</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Offline</span><span class="o">.</span><span class="n">cache_version</span> <span class="o">=</span> <span class="s2">"phones-1"</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lipsync_cache_id</span><span class="p">(</span><span class="n">Offline</span><span class="p">())</span>
+<span class="go">'offline@phones-1'</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.audio.list_voices">
 <span class="sig-prename descclassname"><span class="pre">an.audio.</span></span><span class="sig-name descname"><span class="pre">list_voices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">provider</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">make</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">make_tts&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/voice_listing.html#list_voices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.list_voices" title="Link to this definition">#</a></dt>
 <dd><p>The voices <code class="docutils literal notranslate"><span class="pre">provider</span></code> offers, as rows (an#712): <code class="xref py py-func docutils literal notranslate"><span class="pre">browse_voices()</span></code>
@@ -1371,6 +1430,97 @@ list of known options.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.audio.tts.html#an.audio.tts.TTSProvider" title="an.audio.tts.TTSProvider"><code class="xref py py-class docutils literal notranslate"><span class="pre">TTSProvider</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.phone_alphabet">
+<span class="sig-prename descclassname"><span class="pre">an.audio.</span></span><span class="sig-name descname"><span class="pre">phone_alphabet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phones</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/phones.html#phone_alphabet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.phone_alphabet" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">&quot;arpabet&quot;</span></code> when every phone is ARPAbet as aligners write it (ASCII, one
+case throughout, each in <code class="docutils literal notranslate"><span class="pre">an</span></code>’s <code class="docutils literal notranslate"><span class="pre">ARPABET_PHONES</span></code> once its stress digit is
+dropped), else <code class="docutils literal notranslate"><span class="pre">&quot;ipa&quot;</span></code>. Decided per clip: a SAMPA <code class="docutils literal notranslate"><span class="pre">V</span></code> (the vowel of
+<em>love</em>) beside a lowercase <code class="docutils literal notranslate"><span class="pre">l</span></code> is not ARPAbet <code class="docutils literal notranslate"><span class="pre">V</span></code>. The rule is <code class="docutils literal notranslate"><span class="pre">an</span></code>’s
+(<a class="reference internal" href="an.audio.transcripts.html#an.audio.transcripts.phone_alphabet_of" title="an.audio.transcripts.phone_alphabet_of"><code class="xref py py-func docutils literal notranslate"><span class="pre">phone_alphabet_of()</span></code></a>), which says <code class="docutils literal notranslate"><span class="pre">None</span></code> where
+it cannot tell; this lip-sync reads that as IPA.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">phone_alphabet</span><span class="p">([</span><span class="s2">"HH"</span><span class="p">,</span> <span class="s2">"AH0"</span><span class="p">,</span> <span class="s2">"L"</span><span class="p">]),</span> <span class="n">phone_alphabet</span><span class="p">([</span><span class="s2">"hh"</span><span class="p">,</span> <span class="s2">"ah0"</span><span class="p">])</span>
+<span class="go">('arpabet', 'arpabet')</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">phone_alphabet</span><span class="p">([</span><span class="s2">"l"</span><span class="p">,</span> <span class="s2">"V"</span><span class="p">,</span> <span class="s2">"v"</span><span class="p">]),</span> <span class="n">phone_alphabet</span><span class="p">([</span><span class="s2">"h"</span><span class="p">,</span> <span class="s2">"ə"</span><span class="p">,</span> <span class="s2">"l"</span><span class="p">])</span>
+<span class="go">('ipa', 'ipa')</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.phone_viseme">
+<span class="sig-prename descclassname"><span class="pre">an.audio.</span></span><span class="sig-name descname"><span class="pre">phone_viseme</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phone</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphabet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'arpabet'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/phones.html#phone_viseme"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.phone_viseme" title="Link to this definition">#</a></dt>
+<dd><p>The Rhubarb shape of one phone in <code class="docutils literal notranslate"><span class="pre">alphabet</span></code>; <code class="xref py py-data docutils literal notranslate"><span class="pre">REST_VISEME</span></code> for a
+silence; <code class="docutils literal notranslate"><span class="pre">None</span></code> for a phone the table does not know.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">phone_viseme</span><span class="p">(</span><span class="s2">"AA1"</span><span class="p">),</span> <span class="n">phone_viseme</span><span class="p">(</span><span class="s2">"M"</span><span class="p">),</span> <span class="n">phone_viseme</span><span class="p">(</span><span class="s2">"sil"</span><span class="p">),</span> <span class="n">phone_viseme</span><span class="p">(</span><span class="s2">"Q9"</span><span class="p">)</span>
+<span class="go">('D', 'A', 'X', None)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">phone_viseme</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">alphabet</span><span class="o">=</span><span class="s2">"ipa"</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"tʃ"</span><span class="p">,</span> <span class="s2">"iː"</span><span class="p">,</span> <span class="s2">"əw"</span><span class="p">,</span> <span class="s2">"ʘ"</span><span class="p">)]</span>
+<span class="go">['B', 'B', 'F', None]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.phones_to_visemes">
+<span class="sig-prename descclassname"><span class="pre">an.audio.</span></span><span class="sig-name descname"><span class="pre">phones_to_visemes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phones</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">words</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phone_to_viseme</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">phone_viseme&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">char_to_viseme</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rest_viseme</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'X'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_gap_for_rest</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphabet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intensity_of</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">takes_next_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">frozenset({'HH'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'h'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'ɦ'})</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/phones.html#phones_to_visemes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.phones_to_visemes" title="Link to this definition">#</a></dt>
+<dd><p>A viseme track from phone timings: each phone’s shape at its start (in the
+clip’s <a class="reference internal" href="#an.audio.phone_alphabet" title="an.audio.phone_alphabet"><code class="xref py py-func docutils literal notranslate"><span class="pre">phone_alphabet()</span></code></a>), the mouth closed at a silence, at a pause
+longer than <code class="docutils literal notranslate"><span class="pre">min_gap_for_rest</span></code> and after the last sound. A word of <code class="docutils literal notranslate"><span class="pre">words</span></code>
+with no phone under it is spoken by its letters (<code class="docutils literal notranslate"><span class="pre">char_to_viseme</span></code>).</p>
+<p><code class="docutils literal notranslate"><span class="pre">alphabet</span></code> is the take’s recorded one (<code class="docutils literal notranslate"><span class="pre">AudioClip.phone_alphabet</span></code>); with
+none, the clip’s labels decide (<a class="reference internal" href="#an.audio.phone_alphabet" title="an.audio.phone_alphabet"><code class="xref py py-func docutils literal notranslate"><span class="pre">phone_alphabet()</span></code></a>).</p>
+<p><code class="docutils literal notranslate"><span class="pre">intensity_of</span></code> maps a phone (its base: stress and modifiers dropped) to the
+<code class="docutils literal notranslate"><span class="pre">Viseme.intensity</span></code> of its cue, so a genre’s co-articulation can let a
+vowel’s <code class="docutils literal notranslate"><span class="pre">B</span></code> beat a tongue-only consonant’s (cutan#157). A phone of
+<code class="docutils literal notranslate"><span class="pre">takes_next_shape</span></code> (<code class="docutils literal notranslate"><span class="pre">HH</span></code>) shows the shape of the next spoken phone, kept
+as its own only at the end.</p>
+<p><code class="docutils literal notranslate"><span class="pre">None</span></code> when a phone is one <code class="docutils literal notranslate"><span class="pre">phone_to_viseme</span></code> does not know: a phone set
+this table was not written for is better spread by its words than guessed.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">phones_to_visemes</span><span class="p">([(</span><span class="s2">"ʘ"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)],</span> <span class="n">total_duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[(</span><span class="n">v</span><span class="o">.</span><span class="n">time</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">code</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">phones_to_visemes</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="p">[(</span><span class="s2">"M"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">),</span> <span class="p">(</span><span class="s2">"AA1"</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">),</span> <span class="p">(</span><span class="s2">"P"</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">)],</span> <span class="n">total_duration</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)]</span>
+<span class="go">[(0.0, 'X'), (0.0, 'A'), (0.1, 'D'), (0.3, 'X'), (0.6, 'A'), (0.7, 'X')]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="an.audio.lipsync.html#an.audio.lipsync.Viseme" title="an.audio.lipsync.Viseme"><code class="xref py py-class docutils literal notranslate"><span class="pre">Viseme</span></code></a>]]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.phones_track">
+<span class="sig-prename descclassname"><span class="pre">an.audio.</span></span><span class="sig-name descname"><span class="pre">phones_track</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">audio</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phone_to_viseme</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">phone_viseme&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">char_to_viseme</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rest_viseme</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'X'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convention</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rhubarb'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intensity_of</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/phones.html#phones_track"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.phones_track" title="Link to this definition">#</a></dt>
+<dd><p>The mouth track of a clip whose phones are timed (<code class="docutils literal notranslate"><span class="pre">AudioClip.phones</span></code>, a
+take timed by a forced aligner, an#491), carrying the clip’s words too;
+<code class="docutils literal notranslate"><span class="pre">None</span></code> when it has no phones, or one <code class="docutils literal notranslate"><span class="pre">phone_to_viseme</span></code> does not know.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">clip</span> <span class="o">=</span> <span class="n">AudioClip</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">phones</span><span class="o">=</span><span class="p">[(</span><span class="s2">"M"</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">)],</span> <span class="n">words</span><span class="o">=</span><span class="p">[(</span><span class="s2">"m"</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">track</span> <span class="o">=</span> <span class="n">phones_track</span><span class="p">(</span><span class="n">clip</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">code</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">track</span><span class="o">.</span><span class="n">visemes</span><span class="p">],</span> <span class="n">track</span><span class="o">.</span><span class="n">words</span>
+<span class="go">(['X', 'A', 'X', 'X'], [('m', 0.1, 0.2)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">phones_track</span><span class="p">(</span><span class="n">AudioClip</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="mf">0.5</span><span class="p">))</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference internal" href="an.audio.lipsync.html#an.audio.lipsync.VisemeTrack" title="an.audio.lipsync.VisemeTrack"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisemeTrack</span></code></a>]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1505,34 +1655,37 @@ audio’s actual length.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="an.audio.offline_tts.html#module-an.audio.offline_tts" title="an.audio.offline_tts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">offline_tts</span></code></a></p></td>
 <td><p>OfflineTTS — produces silent audio of plausible duration.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.audio.pipeline.html#module-an.audio.pipeline" title="an.audio.pipeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pipeline</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.audio.phones.html#module-an.audio.phones" title="an.audio.phones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">phones</span></code></a></p></td>
+<td><p>Phones to mouth shapes: an aligner's phone timings as a Rhubarb viseme track (an#727).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.pipeline.html#module-an.audio.pipeline" title="an.audio.pipeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pipeline</span></code></a></p></td>
 <td><p>Audio pipeline orchestration: dialogue → audio → visemes → IR mutation.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.providers.html#module-an.audio.providers" title="an.audio.providers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">providers</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.audio.providers.html#module-an.audio.providers" title="an.audio.providers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">providers</span></code></a></p></td>
 <td><p>Provider factory: name → concrete TTS/LipSync provider instance.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.audio.recorded.html#module-an.audio.recorded" title="an.audio.recorded"><code class="xref py py-obj docutils literal notranslate"><span class="pre">recorded</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.recorded.html#module-an.audio.recorded" title="an.audio.recorded"><code class="xref py py-obj docutils literal notranslate"><span class="pre">recorded</span></code></a></p></td>
 <td><p>Recorded voices: a performer's takes as the voice of a character (an#490).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.shared_mixing.html#module-an.audio.shared_mixing" title="an.audio.shared_mixing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shared_mixing</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.audio.shared_mixing.html#module-an.audio.shared_mixing" title="an.audio.shared_mixing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shared_mixing</span></code></a></p></td>
 <td><p>The fleet's shared audio component, <code class="xref py py-mod docutils literal notranslate"><span class="pre">mixing</span></code>, as <code class="docutils literal notranslate"><span class="pre">an</span></code> imports it.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.audio.takes.html#module-an.audio.takes" title="an.audio.takes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">takes</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.takes.html#module-an.audio.takes" title="an.audio.takes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">takes</span></code></a></p></td>
 <td><p>Best-of-N takes: re-roll a line, score every take, keep the best, record the choice.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.transcripts.html#module-an.audio.transcripts" title="an.audio.transcripts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transcripts</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.audio.transcripts.html#module-an.audio.transcripts" title="an.audio.transcripts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transcripts</span></code></a></p></td>
 <td><p>Transcripts as INPUT: SRT, WebVTT, Praat TextGrid, word-timed JSON and plain text read into timed segments, and a known text matched to a transcriber's words.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.audio.tts.html#module-an.audio.tts" title="an.audio.tts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tts</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.tts.html#module-an.audio.tts" title="an.audio.tts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tts</span></code></a></p></td>
 <td><p>TTS provider protocol + supporting dataclasses.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.voice_design.html#module-an.audio.voice_design" title="an.audio.voice_design"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voice_design</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.audio.voice_design.html#module-an.audio.voice_design" title="an.audio.voice_design"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voice_design</span></code></a></p></td>
 <td><p>Design a project's voices from their written notes, then let the writer choose.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.audio.voice_listing.html#module-an.audio.voice_listing" title="an.audio.voice_listing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voice_listing</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.voice_listing.html#module-an.audio.voice_listing" title="an.audio.voice_listing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voice_listing</span></code></a></p></td>
 <td><p>The voices a TTS provider offers, as rows a host can show and filter (an#712).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.voices.html#module-an.audio.voices" title="an.audio.voices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voices</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.audio.voices.html#module-an.audio.voices" title="an.audio.voices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voices</span></code></a></p></td>
 <td><p>Which voice speaks a dialogue line: the character → voice binding (an#194).</p></td>
 </tr>
 </tbody>
@@ -1647,14 +1800,20 @@ audio’s actual length.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.WordTimingProvider.words_for"><code class="docutils literal notranslate"><span class="pre">WordTimingProvider.words_for()</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.clip_timings"><code class="docutils literal notranslate"><span class="pre">clip_timings()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.default_lipsync"><code class="docutils literal notranslate"><span class="pre">default_lipsync()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.default_tts"><code class="docutils literal notranslate"><span class="pre">default_tts()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.import_recordings"><code class="docutils literal notranslate"><span class="pre">import_recordings()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.known_lipsync_names"><code class="docutils literal notranslate"><span class="pre">known_lipsync_names()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.known_tts_names"><code class="docutils literal notranslate"><span class="pre">known_tts_names()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.lipsync_cache_id"><code class="docutils literal notranslate"><span class="pre">lipsync_cache_id()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.list_voices"><code class="docutils literal notranslate"><span class="pre">list_voices()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.make_lipsync"><code class="docutils literal notranslate"><span class="pre">make_lipsync()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.make_tts"><code class="docutils literal notranslate"><span class="pre">make_tts()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.phone_alphabet"><code class="docutils literal notranslate"><span class="pre">phone_alphabet()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.phone_viseme"><code class="docutils literal notranslate"><span class="pre">phone_viseme()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.phones_to_visemes"><code class="docutils literal notranslate"><span class="pre">phones_to_visemes()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.phones_track"><code class="docutils literal notranslate"><span class="pre">phones_track()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.produce_audio_for_dialogue"><code class="docutils literal notranslate"><span class="pre">produce_audio_for_dialogue()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.produce_audio_for_scene"><code class="docutils literal notranslate"><span class="pre">produce_audio_for_scene()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.word_timings_to_visemes"><code class="docutils literal notranslate"><span class="pre">word_timings_to_visemes()</span></code></a></li>

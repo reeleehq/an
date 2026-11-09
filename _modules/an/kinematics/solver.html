@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=8a131c26"></script>
+    <script src="../../../_static/documentation_options.js?v=bdeb964c"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.381" />
+  <meta name="docsearch:version" content="0.1.382" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -898,8 +898,10 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: solve leads lost grips back too (an#668); 7: it pulls each lead by the led</span>
 <span class="c1">#: chain's own mass (an#672); 8: a held loop the geometry shows can hold is</span>
 <span class="c1">#: judged apart: kept converging, never given up for its rate or for a conflict</span>
-<span class="c1">#: elsewhere, only for a jump the cap leaves (an#706).</span>
-<span class="n">SOLVER_VERSION</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"8"</span>
+<span class="c1">#: elsewhere, only for a jump the cap leaves (an#706); 9: while anything pulls,</span>
+<span class="c1">#: a frame's passes are followed by as many over the joints alone, so a pull</span>
+<span class="c1">#: never drags a joint past its range or apart (an#707).</span>
+<span class="n">SOLVER_VERSION</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"9"</span>
 <span class="c1">#: The most passes a frame whose first retry made progress is given, as a</span>
 <span class="c1">#: multiple of ``iterations``: its retry is repeated with ``retry`` times the</span>
 <span class="c1">#: passes while each round still makes progress (an#568). On 300 random</span>
@@ -1329,7 +1331,11 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="n">ia</span> <span class="o">==</span> <span class="n">ib</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">KinematicsError</span><span class="p">(</span><span class="s2">"a pull's two points are on one body"</span><span class="p">)</span>
         <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-            <span class="p">(</span><span class="s2">"pos"</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="n">ia</span><span class="p">,</span> <span class="n">lxa</span><span class="p">,</span> <span class="n">lya</span><span class="p">,</span> <span class="n">ib</span><span class="p">,</span> <span class="n">lxb</span><span class="p">,</span> <span class="n">lyb</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">"equal"</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">f</span><span class="o">.</span><span class="n">strength</span><span class="p">))</span>
+            <span class="p">(</span>
+                <span class="s2">"pos"</span><span class="p">,</span>
+                <span class="n">_PULL_ROW</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">ia</span><span class="p">,</span> <span class="n">lxa</span><span class="p">,</span> <span class="n">lya</span><span class="p">,</span> <span class="n">ib</span><span class="p">,</span> <span class="n">lxb</span><span class="p">,</span> <span class="n">lyb</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">"equal"</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">f</span><span class="o">.</span><span class="n">strength</span><span class="p">),</span>
+            <span class="p">)</span>
         <span class="p">)</span>
     <span class="k">return</span> <span class="n">rows</span>
 
@@ -1372,8 +1378,26 @@ window.runMermaid = runMermaid;</script>
         <span class="n">st</span><span class="o">.</span><span class="n">th</span><span class="p">[</span><span class="n">ib</span><span class="p">]</span> <span class="o">-=</span> <span class="n">st</span><span class="o">.</span><span class="n">inv_i</span><span class="p">[</span><span class="n">ib</span><span class="p">]</span> <span class="o">*</span> <span class="n">dlam</span> <span class="o">*</span> <span class="n">crb</span>
 
 
+<span class="c1">#: The joint index a pull's row carries (:func:`_rows`): a pull is no joint.</span>
+<span class="n">_PULL_ROW</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_pulls_in</span><span class="p">(</span><span class="n">rows</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">_Row</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether any row is a pull (a :class:`Force` ``toward``). While one acts,</span>
+<span class="sd">    a frame's passes are followed by as many over the joints alone (an#707): a</span>
+<span class="sd">    pull is a soft driver and yields to every joint, ranges included, so a</span>
+<span class="sd">    lead never drags an elbow past its range nor apart at its pin."""</span>
+    <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"pos"</span> <span class="ow">and</span> <span class="n">j</span> <span class="o">==</span> <span class="n">_PULL_ROW</span> <span class="k">for</span> <span class="n">kind</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">)</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_project</span><span class="p">(</span>
-    <span class="n">st</span><span class="p">:</span> <span class="n">_State</span><span class="p">,</span> <span class="n">rows</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">_Row</span><span class="p">],</span> <span class="n">lam</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">h</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">apply</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">st</span><span class="p">:</span> <span class="n">_State</span><span class="p">,</span>
+    <span class="n">rows</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">_Row</span><span class="p">],</span>
+    <span class="n">lam</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+    <span class="n">h</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">apply</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">skip_pulls</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""One pass over the rows, last first: the first-declared joint is</span>
 <span class="sd">    projected last, so it holds and a conflict shows on the later ones (the</span>
@@ -1383,6 +1407,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">inv_h2</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">h</span> <span class="o">*</span> <span class="n">h</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
         <span class="n">kind</span><span class="p">,</span> <span class="n">_j</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="n">rows</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">skip_pulls</span> <span class="ow">and</span> <span class="n">_j</span> <span class="o">==</span> <span class="n">_PULL_ROW</span><span class="p">:</span>
+            <span class="k">continue</span>
         <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"pos"</span><span class="p">:</span>
             <span class="n">ia</span><span class="p">,</span> <span class="n">lxa</span><span class="p">,</span> <span class="n">lya</span><span class="p">,</span> <span class="n">ib</span><span class="p">,</span> <span class="n">lxb</span><span class="p">,</span> <span class="n">lyb</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">compliance</span> <span class="o">=</span> <span class="n">p</span>
             <span class="n">ax</span><span class="p">,</span> <span class="n">ay</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">world</span><span class="p">(</span><span class="n">ia</span><span class="p">,</span> <span class="n">lxa</span><span class="p">,</span> <span class="n">lya</span><span class="p">)</span>
@@ -1991,6 +2017,9 @@ window.runMermaid = runMermaid;</script>
             <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">passes</span><span class="p">):</span>
                 <span class="n">_project</span><span class="p">(</span><span class="n">st</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">lam</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">apply</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                 <span class="n">st</span><span class="o">.</span><span class="n">restore_held</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">passes</span> <span class="k">if</span> <span class="n">_pulls_in</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span> <span class="k">else</span> <span class="mi">0</span><span class="p">):</span>  <span class="c1"># the joints last</span>
+                <span class="n">_project</span><span class="p">(</span><span class="n">st</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">lam</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">apply</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">skip_pulls</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">st</span><span class="o">.</span><span class="n">restore_held</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">x</span><span class="p">)):</span>
                 <span class="n">st</span><span class="o">.</span><span class="n">vx</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">vy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">om</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
         <span class="k">else</span><span class="p">:</span>
@@ -2373,6 +2402,7 @@ window.runMermaid = runMermaid;</script>
             <span class="k">if</span> <span class="n">i</span><span class="p">:</span>
                 <span class="n">pushes</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">i</span><span class="p">,</span> <span class="n">lx</span><span class="p">,</span> <span class="n">ly</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">vector</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">vector</span><span class="p">[</span><span class="mi">1</span><span class="p">])))</span>
     <span class="n">start_x</span><span class="p">,</span> <span class="n">start_y</span><span class="p">,</span> <span class="n">start_th</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">x</span><span class="p">),</span> <span class="nb">list</span><span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">y</span><span class="p">),</span> <span class="nb">list</span><span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">th</span><span class="p">)</span>
+    <span class="n">pulled</span> <span class="o">=</span> <span class="n">_pulls_in</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
     <span class="n">keep</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">damping</span>
     <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">substeps</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
         <span class="n">px</span><span class="p">,</span> <span class="n">py</span><span class="p">,</span> <span class="n">pth</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">x</span><span class="p">),</span> <span class="nb">list</span><span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">y</span><span class="p">),</span> <span class="nb">list</span><span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">th</span><span class="p">)</span>
@@ -2396,6 +2426,9 @@ window.runMermaid = runMermaid;</script>
             <span class="n">lam</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
         <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">iterations</span><span class="p">):</span>
             <span class="n">_project</span><span class="p">(</span><span class="n">st</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">lam</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">apply</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">restore_held</span><span class="p">(</span><span class="n">along</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">iterations</span> <span class="k">if</span> <span class="n">pulled</span> <span class="k">else</span> <span class="mi">0</span><span class="p">):</span>  <span class="c1"># the joints last (an#707)</span>
+            <span class="n">_project</span><span class="p">(</span><span class="n">st</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">lam</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">apply</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">skip_pulls</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">st</span><span class="o">.</span><span class="n">restore_held</span><span class="p">(</span><span class="n">along</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">st</span><span class="o">.</span><span class="n">inv_m</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
