@@ -27,12 +27,20 @@ from an.stage import compile as stage_compile
 from an.stage.compile import CutoutCompileError, compile_shot
 from an.stage.rig import rig_structure
 from an.stage.serialize import to_dict
-from an.stage.solve import SOLVE_CLIP_PREFIX, UnknownBodyError, shot_declares_solve
+from an.stage.solve import (
+    SOLVE_CLIP_PREFIX,
+    SOLVED_POSE_TOLERANCE_PX,
+    UnknownBodyError,
+    shot_declares_solve,
+)
 from an.stage.timeline import evaluate_timeline, screen_position, timeline_from_scene
 from an.stage.tree import walk_children
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "misc" / "bench" / "corpus" / "joint_pin"
+#: How close a held point is drawn to where the solve holds it: the solved
+#: keys' compaction budget (an#636), every frame.
+HELD_PX = SOLVED_POSE_TOLERANCE_PX
 #: The arm's view_box -> scene px factor (345 / 400) and the hand's offset on the forearm.
 K = 345.0 / 400.0
 HAND = (70.0 * K, 0.0)
@@ -210,7 +218,7 @@ def test_the_hand_stays_on_the_grip_while_the_torso_sways(tmp_path, nesting):
         assert emitted == {("upper", "rotation"), ("fore", "rotation")}
     for t in _times(0.5):
         hand, grip = _hand_and_grip(doc, t)
-        assert math.dist(hand, grip) < 1e-3, (t, hand, grip)
+        assert math.dist(hand, grip) <= HELD_PX, (t, hand, grip)
     timeline = timeline_from_scene(doc)
     upper = next(p for p in _paths(doc) if p.endswith("/upper"))
     for t in _times(0.5):
@@ -332,8 +340,8 @@ def test_a_pinned_prop_goes_to_the_hand_and_the_hand_stays_put(tmp_path):
     doc, ref = _compile(project, shot), _compile(project, still)
     for t in _times(0.5):
         hand, grip = _hand_and_grip(doc, t)
-        assert math.dist(hand, grip) < 1e-3
-        assert math.dist(hand, _hand_and_grip(ref, t)[0]) < 1e-3
+        assert math.dist(hand, grip) <= HELD_PX
+        assert math.dist(hand, _hand_and_grip(ref, t)[0]) <= HELD_PX
 
 
 def test_a_bone_named_on_an_entity_with_several_roots_is_a_point_of_its_part(tmp_path):
@@ -481,7 +489,7 @@ def test_a_chain_drawn_child_first_still_follows_its_parent(tmp_path):
         tmp_path, nesting="bones", draw_order={"torso": 2, "upper": 1, "fore": 0}
     )
     doc = _compile(project)
-    assert max(math.dist(*_hand_and_grip(doc, t)) for t in _times(0.5)) < 1e-3
+    assert max(math.dist(*_hand_and_grip(doc, t)) for t in _times(0.5)) <= HELD_PX
 
 
 @pytest.mark.parametrize(
@@ -518,7 +526,7 @@ def test_an_authored_mirror_or_scale_is_solved_at_the_frames_geometry(
     shot = Shot.model_validate(data)
     doc = _compile(project, shot)
     assert not doc.meta.extensions["solve"]["dropped"]
-    assert max(math.dist(*_hand_and_grip(doc, t)) for t in _times(0.5)) < 1e-3
+    assert max(math.dist(*_hand_and_grip(doc, t)) for t in _times(0.5)) <= HELD_PX
     assert _lint(project, shot) == []
 
 
@@ -529,7 +537,7 @@ def test_a_pull_reaches_what_it_can_and_is_never_a_violation(tmp_path):
     assert (
         doc.meta.extensions["solve"]["mode"] == "pose"
     )  # a pull is a goal, not a string
-    assert max(math.dist(*_hand_and_grip(doc, t)) for t in _times(0.5)) < 1e-3
+    assert max(math.dist(*_hand_and_grip(doc, t)) for t in _times(0.5)) <= HELD_PX
     far = _shot(project, actions=[pull("puppet/fore@hand", "world@300,-300")])
     assert _lint(project, reachable) == [] and _lint(project, far) == []
 
