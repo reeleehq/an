@@ -146,8 +146,14 @@ class NullLipSync:
 
 # --- shared word-timings → visemes conversion ----------------------------
 
-_DEFAULT_REST_VISEME = "X"
-_DEFAULT_MIN_WORD_GAP_FOR_REST = 0.20  # seconds
+#: The Rhubarb convention's constants, owned here for the word rule and the
+#: phone rule alike (:mod:`an.audio.phones`, an#727): the rest (closed) shape,
+#: the shape of a letter no table knows, and the pause that closes the mouth.
+REST_VISEME: str = "X"
+DEFAULT_LETTER_VISEME: str = "C"
+MIN_GAP_FOR_REST_S: float = 0.20  # seconds
+_DEFAULT_REST_VISEME = REST_VISEME
+_DEFAULT_MIN_WORD_GAP_FOR_REST = MIN_GAP_FOR_REST_S
 #: How long after a word ends its closing rest lands (a gap's, or the line's tail).
 _REST_AFTER_WORD_S = 0.05  # seconds
 
@@ -194,7 +200,7 @@ def word_timings_to_visemes(
         for ch in raw_word.lower().strip():
             if not ch.isalpha():
                 continue
-            code = char_to_viseme.get(ch, "C")
+            code = char_to_viseme.get(ch, DEFAULT_LETTER_VISEME)
             if code == previous:
                 continue
             previous = code

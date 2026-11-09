@@ -14,8 +14,9 @@ labels (:func:`phone_alphabet`).
 :func:`phones_track` is what a lip-sync provider calls: the clip's track from its
 phones, or ``None`` to align some other way. A word the aligner could not
 phonetise (MFA writes ``spn`` under a name it does not know, and ``an`` drops it)
-has no phones under it; it is spoken by its letters over its own span, as the
-word-timing rule does (``an.audio.lipsync.word_timings_to_visemes``).
+has no phones under it; it is spoken by its letters spread over its own span,
+as in the word-timing rule (``an.audio.lipsync.word_timings_to_visemes``),
+though its rests land at the phone rule's times (when the last sound ends).
 
 >>> [(v.time, v.code) for v in phones_to_visemes(
 ...     [("HH", 0.1, 0.2), ("AH0", 0.2, 0.3), ("L", 0.3, 0.4), ("OW1", 0.4, 0.6)],
@@ -29,7 +30,13 @@ from __future__ import annotations
 import unicodedata
 from typing import Callable, Iterable, Mapping, Optional, Sequence
 
-from an.audio.lipsync import Viseme, VisemeTrack
+from an.audio.lipsync import (
+    DEFAULT_LETTER_VISEME,
+    MIN_GAP_FOR_REST_S,
+    REST_VISEME,
+    Viseme,
+    VisemeTrack,
+)
 from an.audio.transcripts import phone_alphabet_of
 from an.audio.tts import AudioClip
 
@@ -55,14 +62,6 @@ Segment = tuple[str, float, float] | tuple[str, float, float, float]
 #: unknown (``alphabet`` is the clip's, :func:`phone_alphabet`). Silences never
 #: reach it: they are the rest shape.
 PhoneToViseme = Callable[..., Optional[str]]
-
-REST_VISEME: str = "X"
-#: The letter shape a word's unknown letter takes (the word-timing rule's).
-DEFAULT_LETTER_VISEME: str = "C"
-
-#: A pause between two phones longer than this closes the mouth (seconds): the
-#: word-timing rule's value (``an.audio.lipsync``'s minimum word gap for a rest).
-MIN_GAP_FOR_REST_S: float = 0.20
 
 #: Silence and noise labels, should a clip carry them (``an`` drops these when it
 #: reads a TextGrid: ``an.audio.transcripts``' silence labels).
