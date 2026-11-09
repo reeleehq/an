@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-11-09
+- **Shot sizes in a portrait frame** (an#732): a viewpoint fits the subject's band at the box's own aspect (`an.ir.world._band_box`), not the whole box's width, so a medium and a close-up get different distances in a tall frame (no jump cut); full and wide are unchanged. A partial size may now crop the subject's sides (a head as wide as the body); per-kind band extents are the follow-up.
 - **Lazy lacing folders** (an#696): the shot cache and transcripts stores pass `create=ensure` to lacing, so `build_project_mall(empty_dir)` lays out nothing at all; `shot_cache_store` and `transcripts_store` take `ensure`, and `store_usage` reads a missing cache folder as empty.
 
 ## 2026-11-03
