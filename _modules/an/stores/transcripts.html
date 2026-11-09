@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=9060b1cd"></script>
+    <script src="../../../_static/documentation_options.js?v=787a120f"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.377" />
+  <meta name="docsearch:version" content="0.1.378" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -807,11 +807,15 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="transcripts_store">
 <a class="viewcode-back" href="../../../_autosummary/an.stores.transcripts.html#an.stores.transcripts.transcripts_store">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">transcripts_store</span><span class="p">(</span><span class="n">root</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""A filesystem transcripts store under ``root`` (lacing's layout)."""</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">transcripts_store</span><span class="p">(</span><span class="n">root</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ensure</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A filesystem transcripts store under ``root`` (lacing's layout).</span>
+
+<span class="sd">    Its folders are made on the first write, a missing one reading as empty</span>
+<span class="sd">    (an#696); ``ensure=True`` lays them out at once (``an init``).</span>
+<span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">lacing</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArtifactStore</span>
 
-    <span class="k">return</span> <span class="n">ArtifactStore</span><span class="o">.</span><span class="n">from_directory</span><span class="p">(</span><span class="n">root</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">ArtifactStore</span><span class="o">.</span><span class="n">from_directory</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="n">ensure</span><span class="p">)</span></div>
 
 
 

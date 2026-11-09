@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=9060b1cd"></script>
+    <script src="../_static/documentation_options.js?v=787a120f"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.377" />
+  <meta name="docsearch:version" content="0.1.378" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -721,7 +721,7 @@ unreachable entries is a separate, explicit command: <code class="docutils liter
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.build.shot_cache.shot_artifact_type" title="an.build.shot_cache.shot_artifact_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shot_artifact_type</span></code></a>()</p></td>
 <td><p>The record type (<code class="code docutils literal notranslate"><span class="pre">lacing.Artifact</span></code> subclass), built on first use.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.build.shot_cache.shot_cache_store" title="an.build.shot_cache.shot_cache_store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shot_cache_store</span></code></a>(root)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.build.shot_cache.shot_cache_store" title="an.build.shot_cache.shot_cache_store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shot_cache_store</span></code></a>(root, *[, ensure])</p></td>
 <td><p>A filesystem shot cache under <code class="docutils literal notranslate"><span class="pre">root</span></code>: <code class="docutils literal notranslate"><span class="pre">catalog/</span></code> + <code class="docutils literal notranslate"><span class="pre">blobs/</span></code> (lacing's layout).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.build.shot_cache.store_usage" title="an.build.shot_cache.store_usage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">store_usage</span></code></a>(store)</p></td>
@@ -1173,8 +1173,10 @@ projects sharing one cache store keep a root each (<code class="docutils literal
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.build.shot_cache.shot_cache_store">
-<span class="sig-prename descclassname"><span class="pre">an.build.shot_cache.</span></span><span class="sig-name descname"><span class="pre">shot_cache_store</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/shot_cache.html#shot_cache_store"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.shot_cache.shot_cache_store" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.build.shot_cache.</span></span><span class="sig-name descname"><span class="pre">shot_cache_store</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/shot_cache.html#shot_cache_store"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.shot_cache.shot_cache_store" title="Link to this definition">#</a></dt>
 <dd><p>A filesystem shot cache under <code class="docutils literal notranslate"><span class="pre">root</span></code>: <code class="docutils literal notranslate"><span class="pre">catalog/</span></code> + <code class="docutils literal notranslate"><span class="pre">blobs/</span></code> (lacing’s layout).</p>
+<p>Its folders are made on the first write, a missing one reading as empty
+(an#696); <code class="docutils literal notranslate"><span class="pre">ensure=True</span></code> lays them out at once (<code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">init</span></code>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>

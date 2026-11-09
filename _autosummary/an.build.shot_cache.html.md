@@ -63,7 +63,7 @@ unreachable entries is a separate, explicit command: `an cache gc`
 | [`parts_entry_id`](#an.build.shot_cache.parts_entry_id)(key, window)                      | The catalog id of the parts entry of shot `key` for `window`.                                                                                    |
 | [`resolve_incremental`](#an.build.shot_cache.resolve_incremental)(incremental)                 | `incremental=` → an engine, or `None` for "render every shot cold".                                                                              |
 | [`shot_artifact_type`](#an.build.shot_cache.shot_artifact_type)()                             | The record type (`lacing.Artifact` subclass), built on first use.                                                                                |
-| [`shot_cache_store`](#an.build.shot_cache.shot_cache_store)(root)                           | A filesystem shot cache under `root`: `catalog/` + `blobs/` (lacing's layout).                                                                   |
+| [`shot_cache_store`](#an.build.shot_cache.shot_cache_store)(root, \*[, ensure])             | A filesystem shot cache under `root`: `catalog/` + `blobs/` (lacing's layout).                                                                   |
 | [`store_usage`](#an.build.shot_cache.store_usage)(store)                               | `(bytes, entries)` of a shot cache store: every blob byte on disk (or, off disk, every distinct blob its records name) and its catalog entries.  |
 
 ### Classes
@@ -411,9 +411,12 @@ True
 
 The record type (`lacing.Artifact` subclass), built on first use.
 
-### an.build.shot_cache.shot_cache_store(root)
+### an.build.shot_cache.shot_cache_store(root, , ensure=False)
 
 A filesystem shot cache under `root`: `catalog/` + `blobs/` (lacing’s layout).
+
+Its folders are made on the first write, a missing one reading as empty
+(an#696); `ensure=True` lays them out at once (`an init`).
 
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)

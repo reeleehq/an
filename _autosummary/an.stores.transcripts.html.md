@@ -46,7 +46,7 @@ refusals into the [`TranscriptLinkError`](#an.stores.transcripts.TranscriptLinkE
 | [`orphan_transcript_blobs`](#an.stores.transcripts.orphan_transcript_blobs)(store, \*[, named])     | The transcript contents of `store` that no catalog record and nothing in `named` (the pins a take's provenance records, an#607) names: what re-recording a key left behind.                                                                                                  |
 | [`pin_of`](#an.stores.transcripts.pin_of)(reference)                               | The content digest a recorded reference pins (`<store>/<key>@<sha256>`, read by `lacing.ArtifactRef` with or without its `artifact:` prefix); `None` when it pins none or is not a reference.                                                                                |
 | [`record_transcript`](#an.stores.transcripts.record_transcript)(store, key, text, \*[, ...])  | Keep `text` (a transcript, or a `Path` to one; its format detected, a file's suffix first, unless `fmt` says) in `store` under `key`; return its `lacing.Artifact`.                                                                                                          |
-| [`transcripts_store`](#an.stores.transcripts.transcripts_store)(root)                         | A filesystem transcripts store under `root` (lacing's layout).                                                                                                                                                                                                               |
+| [`transcripts_store`](#an.stores.transcripts.transcripts_store)(root, \*[, ensure])           | A filesystem transcripts store under `root` (lacing's layout).                                                                                                                                                                                                               |
 
 ### Classes
 
@@ -180,9 +180,12 @@ sha256 of what it was made from (a recording).
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
-### an.stores.transcripts.transcripts_store(root)
+### an.stores.transcripts.transcripts_store(root, , ensure=False)
 
 A filesystem transcripts store under `root` (lacing’s layout).
+
+Its folders are made on the first write, a missing one reading as empty
+(an#696); `ensure=True` lays them out at once (`an init`).
 
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)

@@ -45,7 +45,7 @@ True
 | [`registered_shot_keyers`](#an.build.registered_shot_keyers)()                           | The renderer names that have a keyer.                                                                                                                            |
 | [`resolve_incremental`](#an.build.resolve_incremental)(incremental)                   | `incremental=` → an engine, or `None` for "render every shot cold".                                                                                              |
 | [`shot_artifact_type`](#an.build.shot_artifact_type)()                               | The record type (`lacing.Artifact` subclass), built on first use.                                                                                                |
-| [`shot_cache_store`](#an.build.shot_cache_store)(root)                             | A filesystem shot cache under `root`: `catalog/` + `blobs/` (lacing's layout).                                                                                   |
+| [`shot_cache_store`](#an.build.shot_cache_store)(root, \*[, ensure])               | A filesystem shot cache under `root`: `catalog/` + `blobs/` (lacing's layout).                                                                                   |
 | [`shot_keyer_for`](#an.build.shot_keyer_for)(renderer)                           | The keyer that describes `renderer` (an instance, or a name), or `None`.                                                                                         |
 
 ### Classes
@@ -465,9 +465,12 @@ True
 
 The record type (`lacing.Artifact` subclass), built on first use.
 
-### an.build.shot_cache_store(root)
+### an.build.shot_cache_store(root, , ensure=False)
 
 A filesystem shot cache under `root`: `catalog/` + `blobs/` (lacing’s layout).
+
+Its folders are made on the first write, a missing one reading as empty
+(an#696); `ensure=True` lays them out at once (`an init`).
 
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)

@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=9060b1cd"></script>
+    <script src="../../_static/documentation_options.js?v=787a120f"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.377" />
+  <meta name="docsearch:version" content="0.1.378" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -840,8 +840,8 @@ window.runMermaid = runMermaid;</script>
         <span class="k">for</span> <span class="n">sub</span> <span class="ow">in</span> <span class="n">UNSTORED_FOLDERS</span><span class="p">:</span>
             <span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="n">sub</span><span class="p">)</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">at</span><span class="p">(</span><span class="n">store_cls</span><span class="p">,</span> <span class="o">*</span><span class="n">parts</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">store_cls</span><span class="p">(</span><span class="n">pdir</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="o">*</span><span class="n">parts</span><span class="p">),</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">at</span><span class="p">(</span><span class="n">make_store</span><span class="p">,</span> <span class="o">*</span><span class="n">parts</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">make_store</span><span class="p">(</span><span class="n">pdir</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="o">*</span><span class="n">parts</span><span class="p">),</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">)</span>
 
     <span class="n">mall</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">MutableMapping</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">"characters"</span><span class="p">:</span> <span class="n">at</span><span class="p">(</span><span class="n">CharactersStore</span><span class="p">,</span> <span class="s2">"assets"</span><span class="p">,</span> <span class="s2">"characters"</span><span class="p">),</span>
@@ -868,10 +868,10 @@ window.runMermaid = runMermaid;</script>
         <span class="s2">"shots"</span><span class="p">:</span> <span class="n">at</span><span class="p">(</span><span class="n">ShotArtifactStore</span><span class="p">,</span> <span class="s2">"artifacts"</span><span class="p">,</span> <span class="s2">"shots"</span><span class="p">),</span>
         <span class="c1"># The content-keyed shot cache (ADR 0004): a `lacing.ArtifactStore`,</span>
         <span class="c1"># `catalog/&lt;key&gt;.json` + `blobs/&lt;sha256&gt;`. `render_project` reads it.</span>
-        <span class="s2">"shot_cache"</span><span class="p">:</span> <span class="n">shot_cache_store</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"artifacts"</span> <span class="o">/</span> <span class="s2">"shot_cache"</span><span class="p">),</span>
+        <span class="s2">"shot_cache"</span><span class="p">:</span> <span class="n">at</span><span class="p">(</span><span class="n">shot_cache_store</span><span class="p">,</span> <span class="s2">"artifacts"</span><span class="p">,</span> <span class="s2">"shot_cache"</span><span class="p">),</span>
         <span class="c1"># Transcripts an earlier step produced, named where a transcript file</span>
         <span class="c1"># is (`artifact:transcripts/&lt;key&gt;`, an#493): a `lacing.ArtifactStore`.</span>
-        <span class="s2">"transcripts"</span><span class="p">:</span> <span class="n">transcripts_store</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"artifacts"</span> <span class="o">/</span> <span class="s2">"transcripts"</span><span class="p">),</span>
+        <span class="s2">"transcripts"</span><span class="p">:</span> <span class="n">at</span><span class="p">(</span><span class="n">transcripts_store</span><span class="p">,</span> <span class="s2">"artifacts"</span><span class="p">,</span> <span class="s2">"transcripts"</span><span class="p">),</span>
         <span class="s2">"previews"</span><span class="p">:</span> <span class="n">at</span><span class="p">(</span><span class="n">PreviewArtifactStore</span><span class="p">,</span> <span class="s2">"artifacts"</span><span class="p">,</span> <span class="s2">"previews"</span><span class="p">),</span>
         <span class="c1"># Contact sheets of opaque renders (a Manim shot's settled beats), keyed</span>
         <span class="c1"># by the PNG's sha256 so cached provenance keeps pointing at them.</span>

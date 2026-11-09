@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=9060b1cd"></script>
+    <script src="../../../_static/documentation_options.js?v=787a120f"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.377" />
+  <meta name="docsearch:version" content="0.1.378" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -866,7 +866,9 @@ window.runMermaid = runMermaid;</script>
 
         <span class="n">shot_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">"The key this entry answers."</span><span class="p">)</span>
         <span class="n">role</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"mp4"</span><span class="p">,</span> <span class="s2">"frames"</span><span class="p">,</span> <span class="s2">"parts"</span><span class="p">,</span> <span class="s2">"root"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"mp4"</span>
-        <span class="n">shot_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">"The author's id. Informational: never a key."</span><span class="p">)</span>
+        <span class="n">shot_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+            <span class="s2">""</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">"The author's id. Informational: never a key."</span>
+        <span class="p">)</span>
         <span class="n">renderer</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
         <span class="n">inputs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
         <span class="c1">#: ``{"store/key": digest}``: the asset entries the shot read (an#316),</span>
@@ -902,11 +904,17 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="shot_cache_store">
 <a class="viewcode-back" href="../../../_autosummary/an.build.shot_cache.html#an.build.shot_cache_store">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">shot_cache_store</span><span class="p">(</span><span class="n">root</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""A filesystem shot cache under ``root``: ``catalog/`` + ``blobs/`` (lacing's layout)."""</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">shot_cache_store</span><span class="p">(</span><span class="n">root</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ensure</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A filesystem shot cache under ``root``: ``catalog/`` + ``blobs/`` (lacing's layout).</span>
+
+<span class="sd">    Its folders are made on the first write, a missing one reading as empty</span>
+<span class="sd">    (an#696); ``ensure=True`` lays them out at once (``an init``).</span>
+<span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">lacing</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArtifactStore</span>
 
-    <span class="k">return</span> <span class="n">ArtifactStore</span><span class="o">.</span><span class="n">from_directory</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">record_type</span><span class="o">=</span><span class="n">shot_artifact_type</span><span class="p">())</span></div>
+    <span class="k">return</span> <span class="n">ArtifactStore</span><span class="o">.</span><span class="n">from_directory</span><span class="p">(</span>
+        <span class="n">root</span><span class="p">,</span> <span class="n">record_type</span><span class="o">=</span><span class="n">shot_artifact_type</span><span class="p">(),</span> <span class="n">create</span><span class="o">=</span><span class="n">ensure</span>
+    <span class="p">)</span></div>
 
 
 
@@ -1107,9 +1115,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    &gt;&gt;&gt; parts_entry_id("k" * 64, ShotWindow(frames=30, head=0, tail=4)).endswith(".h0.t4")</span>
 <span class="sd">    True</span>
 <span class="sd">    """</span>
-    <span class="k">return</span> <span class="p">(</span>
-        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">key</span><span class="si">}{</span><span class="n">PARTS_INFIX</span><span class="si">}{</span><span class="n">parts_code_digest</span><span class="p">()[:</span><span class="mi">16</span><span class="p">]</span><span class="si">}</span><span class="s2">.h</span><span class="si">{</span><span class="n">window</span><span class="o">.</span><span class="n">head</span><span class="si">}</span><span class="s2">.t</span><span class="si">{</span><span class="n">window</span><span class="o">.</span><span class="n">tail</span><span class="si">}</span><span class="s2">"</span>
-    <span class="p">)</span></div>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">key</span><span class="si">}{</span><span class="n">PARTS_INFIX</span><span class="si">}{</span><span class="n">parts_code_digest</span><span class="p">()[:</span><span class="mi">16</span><span class="p">]</span><span class="si">}</span><span class="s2">.h</span><span class="si">{</span><span class="n">window</span><span class="o">.</span><span class="n">head</span><span class="si">}</span><span class="s2">.t</span><span class="si">{</span><span class="n">window</span><span class="o">.</span><span class="n">tail</span><span class="si">}</span><span class="s2">"</span></div>
 
 
 
@@ -1178,7 +1184,9 @@ window.runMermaid = runMermaid;</script>
         <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ShotPlan</span><span class="p">:</span> <span class="o">...</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">record</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plan</span><span class="p">:</span> <span class="n">ShotPlan</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="s2">"RenderResult"</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">render_s</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">record</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">plan</span><span class="p">:</span> <span class="n">ShotPlan</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="s2">"RenderResult"</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">render_s</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">finish</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BuildReport</span><span class="p">:</span> <span class="o">...</span></div>
 
@@ -1292,7 +1300,9 @@ window.runMermaid = runMermaid;</script>
     <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">project_root</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_store</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">store</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">store</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">SHOT_CACHE_STORE</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_store</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">store</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">store</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">SHOT_CACHE_STORE</span><span class="p">)</span>
+        <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_mall</span> <span class="o">=</span> <span class="n">mall</span> <span class="k">if</span> <span class="n">mall</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_project_root</span> <span class="o">=</span> <span class="n">project_root</span>
         <span class="c1"># Digested on first need: a film of recorded-read shots never hashes</span>
@@ -1388,7 +1398,9 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="p">[</span><span class="n">key</span><span class="p">]</span></div>
 
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">record</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plan</span><span class="p">:</span> <span class="n">ShotPlan</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="s2">"RenderResult"</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">render_s</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">record</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">plan</span><span class="p">:</span> <span class="n">ShotPlan</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="s2">"RenderResult"</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">render_s</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">plan</span><span class="o">.</span><span class="n">key</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_store</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_note</span><span class="p">(</span><span class="n">plan</span><span class="p">,</span> <span class="s2">"uncached"</span><span class="p">,</span> <span class="n">render_s</span><span class="o">=</span><span class="n">render_s</span><span class="p">)</span>
             <span class="k">return</span>
@@ -1472,7 +1484,9 @@ window.runMermaid = runMermaid;</script>
             <span class="p">)</span>
             <span class="n">root_id</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">store_bytes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">store_entries</span> <span class="o">=</span> <span class="n">store_usage</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">store_bytes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">store_entries</span> <span class="o">=</span> <span class="n">store_usage</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_store</span>
+            <span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — a size is informational</span>
             <span class="k">pass</span>
         <span class="k">return</span> <span class="n">root_id</span></div>
@@ -1591,7 +1605,9 @@ window.runMermaid = runMermaid;</script>
         <span class="bp">self</span><span class="o">.</span><span class="n">_environments</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">digest</span>
         <span class="k">return</span> <span class="n">digest</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_note</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plan</span><span class="p">:</span> <span class="n">ShotPlan</span><span class="p">,</span> <span class="n">status</span><span class="p">:</span> <span class="n">ShotStatus</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">render_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_note</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">plan</span><span class="p">:</span> <span class="n">ShotPlan</span><span class="p">,</span> <span class="n">status</span><span class="p">:</span> <span class="n">ShotStatus</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">render_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">i</span> <span class="o">=</span> <span class="nb">id</span><span class="p">(</span><span class="n">plan</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_order</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_order</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
@@ -1651,7 +1667,9 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="n">plan</span><span class="o">.</span><span class="n">needs_frames</span><span class="p">:</span>
             <span class="n">frames_rec</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">key</span> <span class="o">+</span> <span class="n">FRAMES_SUFFIX</span><span class="p">)</span>
             <span class="n">frames_bytes</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_verified_blob</span><span class="p">(</span><span class="n">frames_rec</span><span class="o">.</span><span class="n">asset_id</span><span class="p">)</span> <span class="k">if</span> <span class="n">frames_rec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_verified_blob</span><span class="p">(</span><span class="n">frames_rec</span><span class="o">.</span><span class="n">asset_id</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">frames_rec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="k">else</span> <span class="kc">None</span>
             <span class="p">)</span>
             <span class="k">if</span> <span class="n">frames_bytes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">"frames needed for assembly, not cached"</span>
@@ -1662,7 +1680,9 @@ window.runMermaid = runMermaid;</script>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — unreadable is a miss, said</span>
                 <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"unreadable parts entry (</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">)"</span>
             <span class="n">parts_bytes</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_verified_blob</span><span class="p">(</span><span class="n">parts_rec</span><span class="o">.</span><span class="n">asset_id</span><span class="p">)</span> <span class="k">if</span> <span class="n">parts_rec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_verified_blob</span><span class="p">(</span><span class="n">parts_rec</span><span class="o">.</span><span class="n">asset_id</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">parts_rec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="k">else</span> <span class="kc">None</span>
             <span class="p">)</span>
             <span class="k">if</span> <span class="n">parts_bytes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="n">PARTS_NOT_CACHED</span>
@@ -1785,7 +1805,9 @@ window.runMermaid = runMermaid;</script>
             <span class="p">},</span>
         <span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plan</span><span class="p">:</span> <span class="n">ShotPlan</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="s2">"RenderResult"</span><span class="p">,</span> <span class="n">timings</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_save</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">plan</span><span class="p">:</span> <span class="n">ShotPlan</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="s2">"RenderResult"</span><span class="p">,</span> <span class="n">timings</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">store</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_store</span>
         <span class="n">record_type</span> <span class="o">=</span> <span class="n">shot_artifact_type</span><span class="p">()</span>
 
@@ -1948,9 +1970,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">said</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="n">assets</span><span class="p">:</span>
         <span class="n">said</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"asset changed: "</span> <span class="o">+</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">assets</span><span class="p">))</span>
-    <span class="n">others</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">moved</span> <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">assets</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">FOLLOWS_ASSETS</span><span class="p">)</span>
-    <span class="p">]</span>
+    <span class="n">others</span> <span class="o">=</span> <span class="p">[</span><span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">moved</span> <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">assets</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">FOLLOWS_ASSETS</span><span class="p">)]</span>
     <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">_code_label</span><span class="p">(</span><span class="n">before_code</span> <span class="ow">or</span> <span class="p">{},</span> <span class="n">after_code</span> <span class="ow">or</span> <span class="p">{})</span>
         <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">"code"</span>
@@ -1985,7 +2005,9 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="n">parts</span><span class="o">.</span><span class="n">body</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">zf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">parts</span><span class="o">.</span><span class="n">body</span><span class="p">,</span> <span class="n">arcname</span><span class="o">=</span><span class="n">PARTS_BODY_MEMBER</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">path</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">parts</span><span class="o">.</span><span class="n">frames</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
-            <span class="n">zf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">arcname</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">PARTS_FRAMES_DIR</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">DEFAULT_FRAME_PNG_PATTERN</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">j</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">zf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+                <span class="n">path</span><span class="p">,</span> <span class="n">arcname</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">PARTS_FRAMES_DIR</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">DEFAULT_FRAME_PNG_PATTERN</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">j</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_unpack_parts</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">window</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
@@ -2029,10 +2051,13 @@ window.runMermaid = runMermaid;</script>
     <span class="n">rootdir</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="s2">"blobs"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="s2">"rootdir"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">rootdir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">total</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">with</span> <span class="n">os</span><span class="o">.</span><span class="n">scandir</span><span class="p">(</span><span class="n">rootdir</span><span class="p">)</span> <span class="k">as</span> <span class="n">it</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">it</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">is_file</span><span class="p">(</span><span class="n">follow_symlinks</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-                    <span class="n">total</span> <span class="o">+=</span> <span class="n">e</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">follow_symlinks</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">st_size</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">os</span><span class="o">.</span><span class="n">scandir</span><span class="p">(</span><span class="n">rootdir</span><span class="p">)</span> <span class="k">as</span> <span class="n">it</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">it</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">is_file</span><span class="p">(</span><span class="n">follow_symlinks</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+                        <span class="n">total</span> <span class="o">+=</span> <span class="n">e</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">follow_symlinks</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">st_size</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>  <span class="c1"># made on the first write (an#696)</span>
+            <span class="k">pass</span>
         <span class="k">return</span> <span class="n">total</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">store</span><span class="p">)</span>
     <span class="n">sizes</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span>
