@@ -88,6 +88,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
+from functools import lru_cache
 from typing import Any, Callable, Iterator, Mapping
 
 from an.base import STREAM_OVERRIDE, UNSEEN_ALPHA, Z_INDEX_PROPERTY
@@ -1940,6 +1941,13 @@ _SIDE_PROBE: float = 10.0
 #: light belongs to the set, so a side is read before the camera, and a roll
 #: turns the set's shading and its light alike.
 ORIENTATION_PROPERTIES: frozenset[str] = frozenset({"scale_x", "scale_y", "rotation"})
+#: How closely the light check pins down when a side starts facing the light:
+#: it bisects the pose (a function of time alone) down to this, finer than the
+#: hundredth of a second its warning prints (an#719).
+LIGHT_ONSET_TOLERANCE_S: float = 1e-3
+#: A side probe shorter than this (px on the set) has no direction: the art is
+#: squashed flat (a mirror tween passing through zero), and says nothing.
+_FLAT_PROBE_PX: float = 1e-9
 
 
 def shading_disagrees(
@@ -1983,9 +1991,9 @@ def check_light(ctx: Any) -> None:
     """The core's ``light`` check (catalogue D1): every drawn member whose art
     says which side it is shaded on agrees with the scene's one light, read
     where that side faces on the set (its own and every parent's mirror and
-    rotation, before the camera) as the shot opens and at every change of its
-    orientation (an#719): one warning per member, at the first time it faces
-    the light. Declarations only; a shot the stage does not draw, or that does
+    rotation, before the camera) as the shot opens, at every key of its
+    orientation and on every frame where it moves (an#719): one warning per
+    member, saying when it starts facing the light. Declarations only; a shot the stage does not draw, or that does
     not compile, is not judged."""
     light = ctx.scene.meta.light
     if light is None:
@@ -2012,21 +2020,13 @@ def check_light(ctx: Any) -> None:
         judged.append((e, side))
     if not judged:
         return
-    facing = _sides_on_set(ctx, judged)
-    if facing is None:
+    onsets = _light_onsets(ctx, judged, light.vector)
+    if onsets is None:
         return
     for e, side in judged:
-        found = next(
-            (
-                (t, implied)
-                for t, on_set in facing.get(e.id, ())
-                if (implied := shading_disagrees(on_set, light.vector))
-            ),
-            None,
-        )
-        if found is None:
+        if e.id not in onsets:
             continue
-        t, implied = found
+        t, implied = onsets[e.id]
         when = f" from {t:.2f} s" if t > SAME_INSTANT_S else ""
         ctx.report.add(
             "warning",
@@ -2038,60 +2038,142 @@ def check_light(ctx: Any) -> None:
         )
 
 
-def _sides_on_set(
-    ctx: Any, judged: list[tuple[Any, str]]
-) -> dict[str, list[tuple[float, tuple[float, float]]]] | None:
-    """``{entity id: [(t, where its shaded side faces on the set)]}``, from the
-    compiled shot through every transform above the art but the camera, at the
-    shot's start and at each time an orientation channel of the art or of a
-    node above it has a key (:func:`an.timing.timeline.key_times`), with the
-    midpoint between consecutive times (a turn and back between two keys);
-    ``None`` when the shot does not compile."""
+def _light_onsets(
+    ctx: Any, judged: list[tuple[Any, str]], light: tuple[float, float]
+) -> dict[str, tuple[float, tuple[str, ...]]] | None:
+    """``{entity id: (when its shaded side first faces the light, the sides the
+    light implies)}`` for the members that ever do, read on the compiled shot
+    through every transform above the art but the camera; ``None`` when the
+    shot does not compile.
+
+    Sampled at :func:`_orientation_times`; the first sample facing the light is
+    bisected back toward the last one that did not, to
+    :data:`LIGHT_ONSET_TOLERANCE_S`, so the time is when the side turns, not
+    when it was sampled."""
     doc = compiled_shot(ctx)
     if doc is None:
         return None
-    from an.stage.timeline import (
-        _node_chain,
-        evaluate_timeline,
-        screen_position,
-        timeline_from_scene,
-    )
-    from an.timing.timeline import key_times
+    from an.stage.timeline import _node_chain, timeline_from_scene
+    from an.timing.timeline import cut_timeline, evaluate_timeline
 
-    paths = {}
+    chains = {}
     for e, side in judged:
         try:
             chain = [p for _n, p in _node_chain(doc.scene, e.id)[1:]]
         except Exception:  # noqa: BLE001 - not drawn on the stage
             continue
         if chain:
-            paths[e.id] = chain
-    above = {p for chain in paths.values() for p in chain}
-    timeline = timeline_from_scene(doc)
-    duration = float(doc.timeline.duration)
-    keys = key_times(
-        timeline, keys=lambda t, prop: t in above and prop in ORIENTATION_PROPERTIES
+            chains[e.id] = (chain, side)
+    above = {p for chain, _side in chains.values() for p in chain}
+    timeline = cut_timeline(
+        timeline_from_scene(doc), where=lambda target, _prop: target in above
     )
-    times = sorted({0.0, *(t for t in keys if 0.0 <= t <= duration)})
-    times = sorted({*times, *((a + b) / 2.0 for a, b in zip(times, times[1:]))})
-    out: dict[str, list[tuple[float, tuple[float, float]]]] = {}
-    for t in times:
-        pose = evaluate_timeline(timeline, t)
-        for e, side in judged:
-            if e.id not in paths:
-                continue
-            path, (sx, sy) = paths[e.id][-1], SHADED_SIDES[side]
-            x0, y0 = screen_position(doc, path, pose=pose, camera=False)
-            x1, y1 = screen_position(
-                doc,
-                path,
-                pose=pose,
-                point=(_SIDE_PROBE * sx, _SIDE_PROBE * sy),
-                camera=False,
-            )
-            if math.hypot(x1 - x0, y1 - y0) > 1e-9:
-                out.setdefault(e.id, []).append((t, (x1 - x0, y1 - y0)))
+    times = _orientation_times(
+        timeline, above, duration=float(doc.timeline.duration), fps=_fps(ctx)
+    )
+
+    @lru_cache(maxsize=None)
+    def pose_at(t: float) -> Any:  # one evaluation per instant, shared by the members
+        return evaluate_timeline(timeline, t)
+
+    def facing(eid: str, t: float) -> tuple[str, ...]:
+        chain, side = chains[eid]
+        on_set = _side_on_set(doc, pose_at(t), chain[-1], side=side)
+        return () if on_set is None else shading_disagrees(on_set, light)
+
+    out = {}
+    for eid in chains:
+        before = None
+        for t in times:
+            if implied := facing(eid, t):
+                if before is not None:
+                    t = _first_true(
+                        lambda u: bool(facing(eid, u)),
+                        before,
+                        t,
+                        tolerance=LIGHT_ONSET_TOLERANCE_S,
+                    )
+                out[eid] = (t, implied)
+                break
+            before = t
     return out
+
+
+def _orientation_times(
+    timeline: Any, paths: Any, *, duration: float, fps: float
+) -> list[float]:
+    """When to read the sides of the nodes at ``paths`` over ``[0, duration]``:
+    the start, every key of an orientation channel
+    (:data:`ORIENTATION_PROPERTIES`) of one of them
+    (:func:`an.timing.timeline.key_times`), and, between two consecutive keys
+    where one of those channels moves, every frame of the ``fps`` grid and the
+    midpoint.
+
+    Between two consecutive keys each such channel is inside one easing segment:
+    it holds (a step, or two equal keys), and the sides cannot turn, or it moves,
+    and a turn can come and go between the keys (0 to 4 pi ends where it began;
+    an overshooting easing passes its end value). What the film shows of a move
+    is its frames, so reading every frame sees every turn the film shows; the
+    midpoint covers an interval no frame falls in. An interval moves when the
+    orientation at its thirds is not its value at its start (a step's segment
+    keeps the value it leaves)."""
+    from an.timing.timeline import evaluate_timeline, key_times
+
+    def orients(target: str, prop: str) -> bool:
+        return target in paths and prop in ORIENTATION_PROPERTIES
+
+    def orientation(t: float) -> dict:
+        return {k: v for k, v in evaluate_timeline(timeline, t).items() if orients(*k)}
+
+    keys = sorted(
+        {0.0, *(t for t in key_times(timeline, where=orients) if 0.0 <= t <= duration)}
+    )
+    times = set(keys)
+    for a, b in zip(keys, keys[1:]):
+        at_a = orientation(a)
+        if all(orientation(a + (b - a) * i / 3.0) == at_a for i in (1, 2)):
+            continue
+        first, last = math.floor(a * fps) + 1, math.ceil(b * fps) - 1
+        times.update(f / fps for f in range(first, last + 1) if a < f / fps < b)
+        times.add((a + b) / 2.0)
+    return sorted(times)
+
+
+def _side_on_set(
+    doc: Any, pose: Any, path: str, *, side: str
+) -> tuple[float, float] | None:
+    """Where ``side`` of the art at ``path`` faces on the set in ``pose``:
+    every transform above it but the camera's (the light belongs to the set);
+    ``None`` when the art is squashed flat (no direction)."""
+    from an.stage.timeline import screen_position
+
+    sx, sy = SHADED_SIDES[side]
+    x0, y0 = screen_position(doc, path, pose=pose, camera=False)
+    x1, y1 = screen_position(
+        doc, path, pose=pose, point=(_SIDE_PROBE * sx, _SIDE_PROBE * sy), camera=False
+    )
+    if math.hypot(x1 - x0, y1 - y0) <= _FLAT_PROBE_PX:
+        return None
+    return (x1 - x0, y1 - y0)
+
+
+def _first_true(
+    holds: Callable[[float], bool], lo: float, hi: float, *, tolerance: float
+) -> float:
+    """The earliest time in ``(lo, hi]`` found to satisfy ``holds``, which fails
+    at ``lo`` and holds at ``hi``, bisected until the two are within
+    ``tolerance``: a crossing, to within ``tolerance`` after it.
+
+    >>> round(_first_true(lambda t: t > 0.3, 0.0, 1.0, tolerance=1e-3), 2)
+    0.3
+    """
+    while hi - lo > tolerance:
+        mid = (lo + hi) / 2.0
+        if holds(mid):
+            hi = mid
+        else:
+            lo = mid
+    return hi
 
 
 LIGHT = Constraint(

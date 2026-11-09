@@ -956,16 +956,61 @@ def test_a_flip_partway_through_the_shot_is_read_when_it_happens(tmp_path):
     assert " from " not in msg.split("(light")[0]
 
 
-def test_a_turn_and_back_between_two_keys_is_seen(tmp_path):
-    """A whole turn ends where it began, but faces the other way halfway."""
+def _onset(msg: str) -> float:
+    """The time a light warning says the side starts facing the light."""
+    import re
+
+    return float(re.search(r" from (\d+\.\d+) s", msg).group(1))
+
+
+def _tweened(tmp_path, prop, to, *, side="right", from_=0.0, easing="linear"):
+    """The light warnings of the lamp tweening ``prop`` from ``from_`` to ``to``
+    over 0.5 s, lit from the left."""
     from an.ir.compose import tween
 
-    spin = [tween("lamp", "rotation", 2.0 * math.pi, 0.5, from_=0.0, easing="linear")]
-    (msg,) = _lit(
-        tmp_path, light={"direction": [-1, 0]}, side="right",
-        actions=[a.model_dump(by_alias=True) for a in spin],
+    move = tween("lamp", prop, to, 0.5, from_=from_, easing=easing)
+    return _lit(
+        tmp_path,
+        light={"direction": [-1, 0]},
+        side=side,
+        actions=[move.model_dump(by_alias=True)],
     )
-    assert "from 0.25 s" in msg
+
+
+#: The printed onset is to the hundredth of a second.
+_PRINTED_S = 0.01
+
+
+def test_a_turn_between_two_keys_is_dated_when_the_side_turns(tmp_path):
+    """an#719 review: a whole turn ends where it began but faces the other way
+    on the way; the warning says when the side crosses into the light's
+    quadrant (an eighth of the turn, 45 degrees), not when it was sampled."""
+    (msg,) = _tweened(tmp_path, "rotation", 2.0 * math.pi)
+    assert _onset(msg) == pytest.approx(0.0625, abs=_PRINTED_S)
+
+
+def test_two_whole_turns_between_two_keys_are_seen(tmp_path):
+    """an#719 review: 0 to 4 pi faces the start's way at the keys and at their
+    midpoint; only the frames between show the turns."""
+    (msg,) = _tweened(tmp_path, "rotation", 4.0 * math.pi)
+    assert _onset(msg) == pytest.approx(0.03125, abs=_PRINTED_S)
+
+
+def test_an_overshooting_easing_that_passes_the_light_is_seen(tmp_path):
+    """an#719 review: a turn to 38 degrees stays out of the light at its keys
+    and midpoint, but a back-out curve (peaking at 1.25) carries it past 45."""
+    back_out = [0.05, 2.0, 0.15, 1.0]
+    to = math.radians(38.0)
+    (msg,) = _tweened(tmp_path, "rotation", to, easing=back_out)
+    assert 0.0 < _onset(msg) < 0.25
+    assert _tweened(tmp_path / "linear", "rotation", to) == []
+
+
+def test_a_mirror_tween_is_dated_when_it_passes_through_flat(tmp_path):
+    """an#719 review: scale_x 1 to -1 squashes the art flat at 0.25 s (no
+    direction there) and faces the light just after."""
+    (msg,) = _tweened(tmp_path, "scale_x", -1.0, from_=1.0)
+    assert _onset(msg) == pytest.approx(0.25, abs=_PRINTED_S)
 
 
 def test_the_side_is_read_before_the_camera_so_a_roll_turns_both(tmp_path):

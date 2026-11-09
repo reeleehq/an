@@ -777,33 +777,12 @@ def _an_cases() -> list[dict]:
 
 
 def _clip_boundaries(doc: dict) -> Iterable[float]:
-    animations = doc["animations"]
-    for track in doc["timeline"]["tracks"]:
-        for p in track["clips"]:
-            anim = animations[p["animation_id"]]
-            speed = p.get("speed", 1.0)
-            natural = p.get("duration") or anim["duration"]
-            start = p.get("start_time", 0.0)
-            end = start + natural / speed
-            yield start
-            yield end
-            key_times = {k["time"] for ch in anim["channels"] for k in ch["keyframes"]}
-            cycle = anim["duration"]
-            periods = (
-                1
-                if anim.get("loop_mode", "once") == "once"
-                else math.ceil(natural / cycle) + 1
-            )
-            for n in range(periods):
-                for k in key_times:
-                    local = n * cycle + (
-                        cycle - k
-                        if anim.get("loop_mode") == "ping_pong" and n % 2
-                        else k
-                    )
-                    at = start + local / speed
-                    if start <= at <= end:
-                        yield at
+    """Every clip's start and end and every key through its speed and loops:
+    the kernel's own :func:`an.timing.timeline.key_times` over the document
+    (an#719), so the vectors sample where the evaluator changes course."""
+    from an.timing.timeline import key_times, timeline_from_compiled
+
+    return key_times(timeline_from_compiled(doc))
 
 
 def sample_times(doc: dict, extra: Iterable[float] = ()) -> list[float]:
