@@ -1295,12 +1295,13 @@ def _ground_at(ctx: _Ctx, run: Run, k: int, entity: str | None) -> float | None:
 def _world_floor_y(ctx: _Ctx, entity: str, k: int) -> float | None:
     """The stage ``y`` of the world's floor under ``entity`` at frame ``k``
     (``overrides.ground``, :func:`an.ir.world.world_ground_at`: written by the
-    world's lowering when it declares ``ground``, an#519), or ``None``."""
-    from an.base import GROUND_OVERRIDE
-    from an.ir.world import world_ground_at
+    world's lowering when it declares ``ground``, an#519, and read only on a
+    shot lowered from a world: :func:`an.ir.world.world_ground_mark`), or
+    ``None``."""
+    from an.ir.world import world_ground_at, world_ground_mark
 
     found = next((e for e in ctx.shot.entities if e.id == entity), None)
-    spec = (found.overrides or {}).get(GROUND_OVERRIDE) if found is not None else None
+    spec = world_ground_mark(ctx.shot, found)
     if spec is None:
         return None
     floor = world_ground_at(spec, ctx.times[k])

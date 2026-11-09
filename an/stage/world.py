@@ -460,15 +460,14 @@ def _film_starts(scene: SceneIR, *, fps: float | None) -> list[float] | None:
     return [laid_out.start_seconds(i) for i in range(len(scene.timeline))]
 
 
-def _floor_row(entity: Any) -> dict[str, Any]:
+def _floor_row(shot: Any, entity: Any) -> dict[str, Any]:
     """``{"floor": y, "floor_keys": n}`` for an entity the world's ``ground``
     puts a floor under (an#519): the floor's stage ``y`` under it as the shot
     opens, and how many keys it has when the camera sees it move; empty for
     one with none, so a world without ``ground`` reports as before."""
-    from an.base import GROUND_OVERRIDE
-    from an.ir.world import world_ground_at
+    from an.ir.world import world_ground_at, world_ground_mark
 
-    spec = (entity.overrides or {}).get(GROUND_OVERRIDE)
+    spec = world_ground_mark(shot, entity)
     floor = world_ground_at(spec, 0.0) if spec is not None else None
     if floor is None:
         return {}
@@ -501,7 +500,7 @@ def world_report(lowered: Lowered) -> list[dict[str, Any]]:
                         else None,
                         "scale": e.stage.scale if e.stage is not None else None,
                         "after": e.stage.after if e.stage is not None else None,
-                        **_floor_row(e),
+                        **_floor_row(shot, e),
                     }
                     for e in shot.entities
                 ],

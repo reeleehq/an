@@ -125,12 +125,13 @@ def _declares_support(shot: Any, stores: Any) -> bool:
 
 def _has_floor(shot: Any) -> bool:
     """Whether the shot has a floor: its own (``solve.ground``), or the world's
-    under one of its entities (``overrides.ground``, an#519)."""
-    from an.base import GROUND_OVERRIDE
+    under one of its entities (``overrides.ground`` on a shot lowered from a
+    world, an#519)."""
+    from an.ir.world import world_ground_mark
 
     if shot.solve is not None and shot.solve.ground is not None:
         return True
-    return any(GROUND_OVERRIDE in (e.overrides or {}) for e in shot.entities)
+    return any(world_ground_mark(shot, e) is not None for e in shot.entities)
 
 
 def _has_level_floor(shot: Any) -> bool:

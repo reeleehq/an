@@ -542,9 +542,13 @@ def supports_at(
     parameter along the surface (``along``, in the surface's own frame) changed
     since the grid's previous instant, when it was held at both and its motion
     along the surface's normal was at most ``lift`` of that (more is a foot
-    leaving or meeting the surface). Returns the states and ``(where,
-    message)`` for each reference that does not resolve (no state is made for
-    it)."""
+    leaving or meeting the surface). An entity is not measured at an instant
+    it is not seen (its alpha at most :data:`an.base.UNSEEN_ALPHA`: a member
+    the world hides outside its on-screen window, a fade's end), the rule the
+    ``solidity`` check applies, so a slide is never measured across one.
+    Returns the states and ``(where, message)`` for each reference that does
+    not resolve (no state is made for it)."""
+    from an.base import UNSEEN_ALPHA
     from an.stage.solve import (
         _node_index,
         _world_matrices,
@@ -604,6 +608,13 @@ def supports_at(
         if not due:
             continue
         pose = evaluate_timeline(timeline, t)
+        seen = {
+            eid: _seen(doc, pose, eid, unseen=UNSEEN_ALPHA)
+            for eid in {s.entity for _, s in due}
+        }
+        due = [(i, s) for i, s in due if seen[s.entity]]
+        if not due:
+            continue
         world = _world_matrices(doc, paths, pose, nodes)
         for i, s in due:
             height = reader.height(s.entity)
@@ -621,6 +632,17 @@ def supports_at(
             last[i] = state
             out.append(state)
     return out, problems
+
+
+def _seen(doc: Any, pose: Any, eid: str, *, unseen: float) -> bool:
+    """Whether ``eid`` is seen under ``pose`` (its alpha over ``unseen``); an
+    entity the document does not draw by that id counts as seen."""
+    from an.stage.timeline import entity_alpha
+
+    try:
+        return entity_alpha(doc, pose, eid) > unseen
+    except KeyError:
+        return True
 
 
 def _joined(events: Sequence[tuple[float, bool]], t: float) -> bool:
@@ -1156,15 +1178,12 @@ class _Reader:
         position along it is in world units in the frame the entity stands in
         (:meth:`an.ir.world.GroundAt.position`), its scale the stage px per
         unit there, so a foot carried by the frame, or by a walk straight in
-        depth, does not slide. ``None`` when it has none."""
-        from an.base import GROUND_OVERRIDE
-        from an.ir.world import world_ground_at
+        depth, does not slide. ``None`` when it has none (the mark is read only
+        on a shot lowered from a world, :func:`an.ir.world.world_ground_mark`)."""
+        from an.ir.world import world_ground_at, world_ground_mark
         from an.stage.solve import _apply, _parent_path
 
-        entity = self.entities.get(eid)
-        spec = ((entity.overrides or {}) if entity is not None else {}).get(
-            GROUND_OVERRIDE
-        )
+        spec = world_ground_mark(self.shot, self.entities.get(eid))
         if spec is None or world_ground_at(spec, 0.0) is None:
             return None
         parent = _parent_path(eid, self.nodes)
@@ -1243,32 +1262,29 @@ class _Reader:
         of the floor at the opening instant (one staged on a crate stands on
         the crate, not the floor); each measured as it opens and at its rest
         instants (``rest_only``), else at every instant. The floor is the
-        shot's (``solve: {ground: y}``), else the world's under the entity
-        (``World.ground``, :meth:`world_floor`); an entity with neither has
-        none and is not taken to stand."""
+        shot's (``solve: {ground: y}``, :meth:`_level_stance`), else the
+        world's under the entity (``World.ground``, :meth:`_world_floor_stance`);
+        an entity with neither has none and is not taken to stand."""
         from an.stage.hold import hold_declarations
-        from an.stage.solve import _apply, _is_rig_kind
+        from an.stage.solve import _is_rig_kind
 
         solve = self.shot.solve
-        level = solve is not None and solve.ground is not None
-        floors = {
-            e.id: found
-            for e in self.shot.entities
-            if not level and (found := self.world_floor(e.id)) is not None
-        }
-        if not level and not floors:
+        level = (
+            float(solve.ground)
+            if solve is not None and solve.ground is not None
+            else None
+        )
+        if level is None and not any(
+            self.world_floor(e.id) is not None for e in self.shot.entities
+        ):
             return []
         try:
             items = set(hold_declarations(self.shot).items)
         except Exception:  # noqa: BLE001 - the hold checks report broken holds
             items = set()
-        if level:
-            floor_at = _stage_surface(ground_line(float(solve.ground)))
         out = []
         for e in self.shot.entities:
             if e.id in skip or e.id in items or e.id not in self.nodes:
-                continue
-            if not level and e.id not in floors:
                 continue
             if not _is_rig_kind(e) or _descriptor_of(e, self.mall) is None:
                 continue
@@ -1280,21 +1296,14 @@ class _Reader:
                 continue
             contacts = resolved[0]
             tol = support_tolerance(self.height(e.id), tolerance=tolerance, floor=floor)
-            if level:
-                world = self.opening([c.node for c in contacts])
-                lowest = max(
-                    _apply(world[c.node], p)[1] for c in contacts for p in c.points
-                )
-                if abs(float(solve.ground) - lowest) > tol:
-                    continue
-                surface, paths = (lambda _world, _t: floor_at), ()
-            else:
-                surface, paths = floors[e.id]
-                world = self.opening([*(c.node for c in contacts), *paths])
-                line = surface(world, 0.0).line
-                gap = min(lowest_on(world[c.node], c.points, line)[1] for c in contacts)
-                if abs(gap) > tol:
-                    continue
+            found = (
+                self._level_stance(contacts, level, tol=tol)
+                if level is not None
+                else self._world_floor_stance(e.id, contacts, tol=tol)
+            )
+            if found is None:
+                continue
+            surface, paths = found
             out.append(
                 _Support(
                     entity=e.id,
@@ -1309,10 +1318,39 @@ class _Reader:
                         frozenset(self.rest_frames(e.id, times)) if rest_only else None
                     ),
                     body=self.body(e.id),
-                    world_floor=not level,
+                    world_floor=level is None,
                 )
             )
         return out
+
+    def _level_stance(
+        self, contacts: list[_Contact], y: float, *, tol: float
+    ) -> tuple[Any, tuple[str, ...]] | None:
+        """The shot's floor line at stage ``y`` as a surface, when the lowest of
+        ``contacts`` is within ``tol`` of it as the shot opens; else ``None``."""
+        from an.stage.solve import _apply
+
+        world = self.opening([c.node for c in contacts])
+        lowest = max(_apply(world[c.node], p)[1] for c in contacts for p in c.points)
+        if abs(y - lowest) > tol:
+            return None
+        floor_at = _stage_surface(ground_line(y))
+        return (lambda _world, _t: floor_at), ()
+
+    def _world_floor_stance(
+        self, eid: str, contacts: list[_Contact], *, tol: float
+    ) -> tuple[Any, tuple[str, ...]] | None:
+        """The world's floor under ``eid`` (:meth:`world_floor`), when it has
+        one and the lowest of ``contacts`` is within ``tol`` of it as the shot
+        opens; else ``None``."""
+        found = self.world_floor(eid)
+        if found is None:
+            return None
+        surface, paths = found
+        world = self.opening([*(c.node for c in contacts), *paths])
+        line = surface(world, 0.0).line
+        gap = min(lowest_on(world[c.node], c.points, line)[1] for c in contacts)
+        return found if abs(gap) <= tol else None
 
     def rest_frames(self, eid: str, times: Sequence[float]) -> list[int]:
         """The grid frames at which ``eid`` is judged by an inferred stance: the

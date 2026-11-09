@@ -266,7 +266,10 @@ SWAY_OVERRIDE: str = "leans"
 #: along the floor, in world units in the frame the member stands in, from
 #: where it stood as the shot opens: what skate is measured from). Read by
 #: :func:`an.ir.world.world_ground_at`; the ``support`` and ``skate`` checks
-#: and the hold layer's floor read it.
+#: and the hold layer's floor read it, only on a shot lowered from a world
+#: (:func:`an.ir.world.world_ground_mark`). Never an authoring field: the
+#: lowering replaces or drops one an author wrote on a framed shot (a
+#: ``ground`` warning), and the compiler refuses it on any other.
 GROUND_OVERRIDE: str = "ground"
 #: At or under this alpha an entity is not seen (a stream slot between its
 #: passes, a fade's end): it cannot jump or swap sides at a cut (an#516), nor

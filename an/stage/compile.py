@@ -45,6 +45,7 @@ from an.base import (
     BESIDE_HOST_OVERRIDE,
     DEFAULT_FPS,
     DEFAULT_RESOLUTION,
+    GROUND_OVERRIDE,
     PAINT_KEYS_OVERRIDE,
     RIDER_BEHIND,
     RIDER_IN_FRONT,
@@ -967,6 +968,7 @@ def compile_shot(
         )
     if default_easing is not None:
         _check_default_easing(default_easing)
+    _refuse_unlowered_ground(shot)
     shot, retired = retire_front_spelling(shot)
     if retired:
         warnings.warn(
@@ -2293,6 +2295,33 @@ def _beside_their_hosts_atoms(
         if at == eid:
             del out[eid]
     return out
+
+
+def _refuse_unlowered_ground(shot: Shot) -> None:
+    """Refuse a :data:`an.base.GROUND_OVERRIDE` mark on a shot no world lowered
+    (one with no ``viewpoint``): it is the world's lowering's own record of
+    the floor under a member (an#519), never an authoring field, and nothing
+    reads it there (:func:`an.ir.world.world_ground_mark`).
+
+    >>> from an.ir.schema import AssetRef, Shot
+    >>> e = AssetRef(kind="prop", id="p", store="props", ref="r", overrides={"ground": 100})
+    >>> _refuse_unlowered_ground(Shot(id="s", duration=1.0, viewpoint="v", entities=[e]))
+    >>> _refuse_unlowered_ground(Shot(id="s", duration=1.0, entities=[e]))
+    Traceback (most recent call last):
+    ...
+    an.stage.compile.CutoutCompileError: shot 's': ['p'] carry `overrides.ground`, ...
+    """
+    if shot.viewpoint is not None:
+        return
+    marked = [e.id for e in shot.entities if GROUND_OVERRIDE in (e.overrides or {})]
+    if marked:
+        raise CutoutCompileError(
+            f"shot {shot.id!r}: {marked} carry `overrides.{GROUND_OVERRIDE}`, "
+            "the world's lowering's record of the floor under a member, not an "
+            "authoring field. Declare the shot's floor as `solve: {ground: y}`, "
+            "or the world's as `world: {ground: y}` and frame the shot with a "
+            "`viewpoint`."
+        )
 
 
 def _beside_host_mark(shot_id: str, entity_id: str, mark: Any) -> tuple[str, int]:

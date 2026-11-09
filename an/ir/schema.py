@@ -1446,9 +1446,14 @@ class World(_IRModel):
     #: horizontal plane the members stand on (an#519). Lowering projects it
     #: under each positioned member, at that member's depth, as the floor line
     #: the ``support`` and ``skate`` checks measure ``b: ground`` against
-    #: (``overrides.ground``, :data:`an.base.GROUND_OVERRIDE`). Unset: no
-    #: floor in the world, and ``ground`` is the shot's ``solve.ground`` or
-    #: where the member stands as the shot opens.
+    #: (``overrides.ground``, :data:`an.base.GROUND_OVERRIDE`): each frame's
+    #: floor as lowered, under where the member stands then, with its place
+    #: along the floor in the frame it stands in, so a passenger standing
+    #: still over the world's floor (its car moving) does not skate. The line
+    #: is level on the stage (members do not roll with the camera); a member
+    #: whose hand ``stage.at`` wins gets none. Unset: no floor in the world,
+    #: and ``ground`` is the shot's ``solve.ground`` or where the member
+    #: stands as the shot opens.
     ground: float | None = None
 
     def all_frames(self) -> dict[str, Frame]:
