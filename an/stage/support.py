@@ -19,11 +19,12 @@ under the ``support`` check (:mod:`an.verify.support`):
   entity taken to stand on its floor, as :class:`SupportState` records per
   instant: each contact's signed distance to the surface along its normal
   (:func:`an.stage.surface_line.lowest_on`'s sign: positive above, negative
-  sunk), whether it is **held** (joined and on the surface), and its
-  **tangent speed**: how far its foot on the surface moved along it since the
-  frame before, measured from a point fixed in the surface (the ``skate``
-  check's measure, an#519 PR 2), with the references that do not resolve
-  returned as ``(where, message)``.
+  sunk), whether it is a **limb**'s (on a part that is not one of the body's
+  roots), where its foot on the surface lies along it (``along``, in the
+  surface's own frame) and how far that foot **slid** along it since the grid
+  instant before while the contact was held there (the ``skate`` check's
+  measure, an#519 PR 2), with the references that do not resolve returned as
+  ``(where, message)``.
 
 A named point (``cup@base``, ``paul@foot_l``) is resolved by the solve's own
 resolver (:func:`an.stage.solve.locate_point`), so a ``pin`` and a ``support``
@@ -57,17 +58,20 @@ from an.stage.surface_line import (
 
 __all__ = [
     "CONTACT_SOURCES",
-    "LIMB_SOURCES",
     "CONTACTS_KEY",
     "SUPPORT_TOLERANCE",
     "SUPPORT_FLOOR_PX",
     "SKATE_TOLERANCE",
     "SKATE_FLOOR_PX",
+    "SKATE_DRIFT_TOLERANCE",
+    "SKATE_DRIFT_FLOOR_PX",
+    "SKATE_LIFT",
     "Contacts",
     "ContactState",
     "SupportState",
     "support_tolerance",
     "skate_tolerance",
+    "skate_drift_tolerance",
     "contacts_of",
     "contacts_on_parts",
     "supports_at",
@@ -75,13 +79,6 @@ __all__ = [
 
 #: Where an entity's contacts come from, in the order the chain tries them.
 CONTACT_SOURCES: tuple[str, ...] = ("hook", "metadata", "origin", "ink", "box")
-#: The sources whose contacts may be a limb's (a contact on a named part: the
-#: kind's hook, or ``metadata.contacts`` naming a ``slot``): only those can
-#: skate. The rest of the chain (``origin``, ``ink``, ``box``) and a
-#: ``metadata`` contact on the root part's drawing (a prop's ``base``) are the
-#: body's own stance point, which a body that glides or is pushed slides on
-#: by right (spec §5.2).
-LIMB_SOURCES: tuple[str, ...] = ("hook", "metadata")
 #: The descriptor's ``metadata`` key that names a prop's contacts.
 CONTACTS_KEY: str = "contacts"
 #: The descriptor field holding art facts (``metadata.shaded_side``, ``.contacts``).
@@ -93,13 +90,29 @@ SUPPORT_TOLERANCE: float = 0.02
 #: (:data:`an.kinematics.solver.DFLT_REJOIN_BLEND_PX`), below which it calls two
 #: points joined; a small prop is not held tighter than a joint.
 SUPPORT_FLOOR_PX: float = 2.0
-#: How far a held contact's foot may move along its surface per frame, in the
-#: surface's own frame, as a fraction of the entity's height (1 px per frame on
-#: a 200 px figure; PhysDiff's foot skate is per adjacent frame pair).
-SKATE_TOLERANCE: float = 0.005
-#: The least skate tolerance, in px per frame: half a pixel, a step a frame
-#: cannot show on its own (a fraction of a small body's height is less).
-SKATE_FLOOR_PX: float = 0.5
+#: How fast a held contact's foot may move along its surface, in the surface's
+#: own frame, as a fraction of the entity's height PER SECOND (24 px/s on a
+#: 200 px figure: 1 px a frame at 24 fps, 0.4 px at 60). A speed, so one slide
+#: gets one verdict at any frame rate or step rate.
+SKATE_TOLERANCE: float = 0.12
+#: The least skate speed tolerance, in px per second (half a pixel a frame at
+#: 24 fps: a fraction of a small body's height is less).
+SKATE_FLOOR_PX: float = 12.0
+#: How far a held contact's foot may drift along its surface over one stance
+#: (from where it was planted, while it stays held), as a fraction of the
+#: entity's height (6 px on a 200 px figure): a slow skate under the speed
+#: tolerance still adds up to a foot that is not where it was put down.
+SKATE_DRIFT_TOLERANCE: float = 0.03
+#: The least drift tolerance, in px: the support's own floor
+#: (:data:`SUPPORT_FLOOR_PX`), below which two points are one.
+SKATE_DRIFT_FLOOR_PX: float = 2.0
+#: A step between two instants whose foot moves along the surface's normal by
+#: more than this fraction of how far it moves along the surface is a lift-off
+#: or a landing (a foot leaving the floor while still within the support
+#: tolerance of it), not a slide: it is not measured for skate.
+SKATE_LIFT: float = 0.25
+#: A normal motion (px) below this is none (float noise of the matrices).
+_SAME_PX: float = 1e-6
 #: How close (px, at rest in the entity's own frame) a part's painted bottom
 #: must come to the rig's ``origin`` for the origin to be where it stands
 #: (:data:`an.stage.hold.SUPPORT_TOLERANCE_PX`'s rule, an#601).
@@ -129,23 +142,30 @@ def skate_tolerance(
     tolerance: float = SKATE_TOLERANCE,
     floor: float = SKATE_FLOOR_PX,
 ) -> float:
-    """How far (px per frame) a held contact of an entity ``height`` px tall may
-    slide along its surface: ``tolerance`` of its height, never under ``floor``.
+    """How fast (px per second) a held contact of an entity ``height`` px tall
+    may slide along its surface: ``tolerance`` of its height per second, never
+    under ``floor``.
 
     >>> skate_tolerance(200.0), skate_tolerance(40.0)
-    (1.0, 0.5)
+    (24.0, 12.0)
     """
     return max(tolerance * float(height), floor)
 
 
-def _is_limb(source: str, slot: str) -> bool:
-    """Whether a contact of the chain belongs to a named part (a leg, a hoof):
-    one that moves relative to the body, so it can skate.
+def skate_drift_tolerance(
+    height: float,
+    *,
+    tolerance: float = SKATE_DRIFT_TOLERANCE,
+    floor: float = SKATE_DRIFT_FLOOR_PX,
+) -> float:
+    """How far (px) a held contact of an entity ``height`` px tall may drift
+    along its surface over one stance: ``tolerance`` of its height, never under
+    ``floor``.
 
-    >>> _is_limb("metadata", "leg_l"), _is_limb("metadata", ""), _is_limb("origin", "")
-    (True, False, False)
+    >>> skate_drift_tolerance(200.0), skate_drift_tolerance(40.0)
+    (6.0, 2.0)
     """
-    return source in LIMB_SOURCES and bool(slot)
+    return max(tolerance * float(height), floor)
 
 
 # -----------------------------------------------------------------------------
@@ -361,20 +381,26 @@ class ContactState:
     at: tuple[float, float]
     #: Its signed distance to the surface along the normal (+ above, - sunk).
     above: float
-    #: Whether it belongs to a part that moves relative to the body (a leg:
-    #: :data:`LIMB_SOURCES` naming a slot, or a bone or landmark named in the
-    #: reference), so it can skate; a body's own stance point cannot.
+    #: Whether it is a limb's: its node is not the entity's own nor one of its
+    #: root parts (a leg hinged to the body, a hoof), so it moves relative to
+    #: the body and can skate. A body's own stance point (its ``origin``, the
+    #: ink of its roots, a prop's ``base``, a bone on a root part) cannot: a
+    #: body that glides or is pushed slides on it by right.
     limb: bool = False
-    #: Its foot parameter along the surface: where the foot of its normal falls
-    #: on the line, from a point fixed in the surface (a body's first surface
-    #: end, a stage segment's ``b``, the floor's ``(0, y)``), along its direction.
+    #: Its foot parameter along the surface, in the surface's own frame: where
+    #: the foot of its normal falls along the surface from a point fixed in it,
+    #: in the surface's units (a body's surface: its own units from the
+    #: segment's first end, so it neither moves nor flips with the body; the
+    #: floor and a stage segment: stage px from the floor's ``(0, y)`` or the
+    #: segment's ``a``).
     along: float = 0.0
-    #: Its support is joined and it is within the support tolerance of the surface.
-    held: bool = False
-    #: How far (px per frame) ``along`` changed since the grid's previous frame,
-    #: in the surface's own frame (so a body carried by what it stands on does
-    #: not move); ``None`` at the first frame or unless held at both.
-    tangent_speed: float | None = None
+    #: How far (stage px, signed along the surface) its foot moved along the
+    #: surface, in the surface's own frame, since the grid's previous instant
+    #: (so a body carried by what it stands on does not move); ``None`` unless
+    #: it was held at both (its support joined, within the support tolerance of
+    #: the surface) and the step was not a lift-off or a landing
+    #: (:data:`SKATE_LIFT`).
+    slid: float | None = None
 
 
 @dataclass(frozen=True)
@@ -429,7 +455,19 @@ class _Contact:
     name: str
     node: str
     points: tuple[tuple[float, float], ...]
-    limb: bool = False
+
+
+@dataclass(frozen=True)
+class _SurfaceAt:
+    """A support's surface at one instant: its stage line, a bounded surface's
+    ends (``None`` for the floor), and its own frame: ``along(p)`` is a stage
+    point's foot parameter in the surface's units, ``scale`` the stage px per
+    unit along it."""
+
+    line: Line
+    ends: tuple[tuple[float, float], tuple[float, float]] | None
+    along: Any
+    scale: float = 1.0
 
 
 @dataclass
@@ -443,11 +481,14 @@ class _Support:
     contacts: list[_Contact]
     source: str
     named: str = ""
-    #: ``(the line, the segment's ends or None)`` at an instant, from world matrices.
+    #: The surface at an instant (:class:`_SurfaceAt`), from world matrices.
     surface: Any = None
     surface_paths: tuple[str, ...] = ()
     events: list[tuple[float, bool]] = field(default_factory=list)
     instants: frozenset[int] | None = None  # None: every frame
+    #: The entity's own node and its root parts': a contact on one is the
+    #: body's stance point, not a limb's (:attr:`ContactState.limb`).
+    body: frozenset[str] = frozenset()
 
 
 def supports_at(
@@ -460,6 +501,7 @@ def supports_at(
     rest_only: bool = True,
     tolerance: float = SUPPORT_TOLERANCE,
     floor: float = SUPPORT_FLOOR_PX,
+    lift: float = SKATE_LIFT,
 ) -> tuple[list[SupportState], list[tuple[str, str]]]:
     """Every declared support of ``shot`` in its compiled document ``doc`` at
     every instant of ``times`` (default: the solve's frame grid,
@@ -471,13 +513,14 @@ def supports_at(
     (``rest_only``, the ``support`` check's rule) or at every instant (the
     ``skate`` check's, which judges a stance while it moves).
 
-    Each contact is ``held`` at an instant its support is joined and it is
-    within that tolerance of the surface, and its ``tangent_speed`` is the
-    change of its foot parameter along the surface (``along``, from a point
-    fixed in the surface) since the grid's previous instant, per frame of
-    ``doc.meta.fps``, when it was held at both. Returns the states and
-    ``(where, message)`` for each reference that does not resolve (no state is
-    made for it)."""
+    A contact is held at an instant its support is joined and it is within
+    that tolerance of the surface; its ``slid`` is how far (stage px) its foot
+    parameter along the surface (``along``, in the surface's own frame) changed
+    since the grid's previous instant, when it was held at both and its motion
+    along the surface's normal was at most ``lift`` of that (more is a foot
+    leaving or meeting the surface). Returns the states and ``(where,
+    message)`` for each reference that does not resolve (no state is made for
+    it)."""
     from an.stage.solve import (
         _node_index,
         _world_matrices,
@@ -526,7 +569,6 @@ def supports_at(
     paths = sorted(
         {p for s in supports for p in (*(c.node for c in s.contacts), *s.surface_paths)}
     )
-    fps = float(doc.meta.fps)
     out: list[SupportState] = []
     last: dict[int, SupportState] = {}
     for k, t in enumerate(times):
@@ -550,7 +592,7 @@ def supports_at(
                 height,
                 tol=support_tolerance(height, tolerance=tolerance, floor=floor),
                 prev=prev if prev is not None and prev.frame == k - 1 else None,
-                fps=fps,
+                lift=lift,
             )
             last[i] = state
             out.append(state)
@@ -579,44 +621,39 @@ def _state(
     *,
     tol: float,
     prev: SupportState | None,
-    fps: float,
+    lift: float = SKATE_LIFT,
 ) -> SupportState:
     """``s`` at frame ``k`` (time ``t``) under ``world``'s matrices; ``prev`` its
-    state at frame ``k - 1``, when it was measured then, for the tangent speed."""
-    line, ends = s.surface(world)
+    state at frame ``k - 1``, when it was measured then, for the slide."""
+    at = s.surface(world)
     joined = _joined(s.events, t)
-    # a point fixed in the surface's own frame: a body's (or a segment's) first
-    # end moves and tilts with it; the floor's point is the stage's
-    ref = ends[0] if ends is not None else line[0]
     before = (
-        {(c.name, c.part): c for c in prev.contacts if c.held}
-        if prev is not None
+        {(c.name, c.part): c for c in prev.contacts if abs(c.above) <= tol}
+        if prev is not None and prev.joined
         else {}
     )
-    frames = (t - prev.t) * fps if prev is not None else 0.0
     contacts = []
     for c in s.contacts:
-        low, gap = lowest_on(world[c.node], c.points, line)
-        if ends is not None and not _on_segment(low, *ends):
+        low, gap = lowest_on(world[c.node], c.points, at.line)
+        if at.ends is not None and not _on_segment(low, *at.ends):
             continue  # off a bounded surface's ends: nothing to stand on
-        along = _along(low, line, ref)
-        held = joined and abs(gap) <= tol
+        along = at.along(low)
         was = before.get((c.name, c.node))
-        speed = (
-            abs(along - was.along) / frames
-            if held and was is not None and frames > 0
-            else None
-        )
+        slid = None
+        if joined and abs(gap) <= tol and was is not None and math.isfinite(along):
+            step = (along - was.along) * at.scale
+            rose = abs(gap - was.above)
+            if rose <= max(lift * abs(step), _SAME_PX):  # else lifting or landing
+                slid = step + 0.0
         contacts.append(
             ContactState(
                 c.name,
                 c.node,
                 (low[0] + 0.0, low[1] + 0.0),
                 gap + 0.0,
-                limb=c.limb,
+                limb=c.node not in s.body,
                 along=along,
-                held=held,
-                tangent_speed=speed,
+                slid=slid,
             )
         )
     return SupportState(
@@ -625,7 +662,7 @@ def _state(
         where=s.where,
         frame=k,
         t=t,
-        surface=line,
+        surface=at.line,
         surface_ref=s.surface_ref,
         contacts=tuple(contacts),
         joined=joined,
@@ -635,15 +672,60 @@ def _state(
     )
 
 
-def _along(p: tuple[float, float], line: Line, ref: tuple[float, float]) -> float:
-    """The foot parameter of ``p`` on ``line``: how far along its direction the
+def _along(
+    p: tuple[float, float], ref: tuple[float, float], axis: tuple[float, float]
+) -> float:
+    """The foot parameter of ``p`` along the unit ``axis``: how far along it the
     foot of ``p``'s normal lies from ``ref``.
 
-    >>> _along((7.0, -3.0), ((0.0, 0.0), (1.0, 0.0)), (2.0, 0.0))
+    >>> _along((7.0, -3.0), (2.0, 0.0), (1.0, 0.0))
     5.0
     """
-    (dx, dy) = line[1]
-    return (p[0] - ref[0]) * dx + (p[1] - ref[1]) * dy + 0.0
+    return (p[0] - ref[0]) * axis[0] + (p[1] - ref[1]) * axis[1] + 0.0
+
+
+def _stage_surface(line: Line, ends: Any = None) -> _SurfaceAt:
+    """A surface fixed on the stage (the floor, a ``world@`` segment): its frame
+    is the stage's, from the floor's point or the segment's first end.
+
+    >>> _stage_surface(((0.0, 200.0), (1.0, 0.0))).along((30.0, 195.0))
+    30.0
+    """
+    ref = ends[0] if ends is not None else line[0]
+    return _SurfaceAt(line, ends, lambda p: _along(p, ref, line[1]))
+
+
+def _body_surface_at(
+    m: Any, seg: tuple[tuple[float, float], tuple[float, float]]
+) -> _SurfaceAt:
+    """A body's surface segment ``seg`` (in its node's frame) under its world
+    matrix ``m``: the stage line through its ends, and its own frame, a stage
+    point taken back into the node's frame (``m`` inverted) and projected on
+    ``seg[1] - seg[0]`` from ``seg[0]``, so the parameter neither moves nor
+    flips with the body (a mirrored crate keeps its ends where they are).
+
+    >>> s = _body_surface_at((-1.0, 0.0, 0.0, 1.0, 100.0, 0.0), ((0.0, 0.0), (10.0, 0.0)))
+    >>> s.ends, s.along((97.0, -2.0)), s.scale
+    (((100.0, 0.0), (90.0, 0.0)), 3.0, 1.0)
+    """
+    from an.stage.solve import _apply, _invert
+
+    a, b = _apply(m, seg[0]), _apply(m, seg[1])
+    dx, dy = seg[1][0] - seg[0][0], seg[1][1] - seg[0][1]
+    length = math.hypot(dx, dy)
+    try:
+        inv = _invert(m)
+    except ValueError:  # a body drawn at zero scale has no frame to measure in
+        inv = None
+    if inv is None or length == 0:
+        return _SurfaceAt(line_through(a, b), (a, b), lambda _p: math.nan)
+    axis = (dx / length, dy / length)
+    return _SurfaceAt(
+        line_through(a, b),
+        (a, b),
+        lambda p: _along(_apply(inv, p), seg[0], axis),
+        math.hypot(b[0] - a[0], b[1] - a[1]) / length,
+    )
 
 
 def _on_segment(
@@ -779,13 +861,17 @@ class _Reader:
             self._heights[eid] = (max(ys) - min(ys)) if ys else 0.0
         return self._heights[eid]
 
+    def body(self, eid: str) -> frozenset[str]:
+        """``eid``'s own node and its root parts': where a contact is the body's
+        stance point, not a limb's."""
+        return frozenset({eid, *_root_paths(eid, self.rig(eid), self.nodes)})
+
     # -- contacts as nodes and points ---------------------------------------
 
     def _resolve_point(
         self, eid: str, slot: str, point: Any, *, name: str, source: str = "point"
     ) -> list[_Contact] | str:
-        """A ``(slot, point)`` of the chain as contacts, or why it cannot be;
-        a limb's (:func:`_is_limb`) when ``source`` gives it on a named part."""
+        """A ``(slot, point)`` of the chain as contacts, or why it cannot be."""
         from an.stage.hold import ink_points
         from an.stage.solve import contact_point
 
@@ -812,12 +898,7 @@ class _Reader:
         if node_path not in self.nodes:
             return f"{name!r} names part {slot!r}, which {eid!r} does not draw"
         return [
-            _Contact(
-                name,
-                node_path,
-                (contact_point(self.nodes[node_path], point),),
-                limb=_is_limb(source, slot),
-            )
+            _Contact(name, node_path, (contact_point(self.nodes[node_path], point),))
         ]
 
     def contacts_named(
@@ -831,7 +912,6 @@ class _Reader:
         from an.stage.solve import (
             WORLD_REF,
             _local_box,
-            _numbers,
             _slot_path,
             locate_point,
             named_point,
@@ -908,16 +988,10 @@ class _Reader:
             problems.append((where, found))
             return None
         named = named_point(self.scope, eid, at)
-        if named is not None and named[0] == "contact":
-            source = chain.source
-            limb = _is_limb(source, chain.points.get(at, ("", None))[0])
-        else:  # a bone or a landmark is a part's point; a fraction, the body's
-            source, limb = "point", _numbers(at) is None
-        return (
-            [_Contact(at, found.node, (found.on_node(self.rest),), limb=limb)],
-            source,
-            at,
+        source = (
+            chain.source if named is not None and named[0] == "contact" else "point"
         )
+        return [_Contact(at, found.node, (found.on_node(self.rest),))], source, at
 
     def _names_nothing(self, eid: str, at: str) -> bool:
         """Whether ``eid@at`` is no fraction, bone, landmark or contact on a part."""
@@ -969,11 +1043,11 @@ class _Reader:
         problems: list,
     ) -> tuple[Any, tuple[str, ...]] | None:
         """``b`` as ``(world -> (line, ends or None), the node paths it reads)``."""
-        from an.stage.solve import WORLD_REF, _apply, _numbers, _slot_path
+        from an.stage.solve import WORLD_REF, _numbers, _slot_path
 
         if ref == GROUND_SURFACE:
-            line = ground_line(self.floor(entity, contacts))
-            return (lambda _world: (line, None)), ()
+            floor_at = _stage_surface(ground_line(self.floor(entity, contacts)))
+            return (lambda _world: floor_at), ()
         head, _, at = ref.partition("@")
         if head == WORLD_REF:
             a, b = _numbers(at), _numbers((end or "").partition("@")[2])
@@ -985,8 +1059,8 @@ class _Reader:
                     )
                 )
                 return None
-            line = line_through(a, b)
-            return (lambda _world: (line, (a, b))), ()
+            segment_at = _stage_surface(line_through(a, b), (a, b))
+            return (lambda _world: segment_at), ()
         eid = head.split("/", 1)[0]
         if eid not in self.entities:
             problems.append((where, f"{ref!r}: {eid!r} is not an entity of this shot"))
@@ -1018,10 +1092,8 @@ class _Reader:
             problems.append((where, f"{ref!r}: {seg}"))
             return None
 
-        def at_instant(world: Mapping[str, Any]) -> tuple[Line, Any]:
-            m = world[node_path]
-            a, b = _apply(m, seg[0]), _apply(m, seg[1])
-            return line_through(a, b), (a, b)
+        def at_instant(world: Mapping[str, Any]) -> _SurfaceAt:
+            return _body_surface_at(world[node_path], seg)
 
         return at_instant, (node_path,)
 
@@ -1065,6 +1137,7 @@ class _Reader:
             named=named,
             surface=at_instant,
             surface_paths=paths,
+            body=self.body(eid),
         )
 
     def stances(
@@ -1092,7 +1165,7 @@ class _Reader:
             items = set(hold_declarations(self.shot).items)
         except Exception:  # noqa: BLE001 - the hold checks report broken holds
             items = set()
-        floor_line = ground_line(float(solve.ground))
+        floor_at = _stage_surface(ground_line(float(solve.ground)))
         out = []
         for e in self.shot.entities:
             if e.id in skip or e.id in items or e.id not in self.nodes:
@@ -1122,10 +1195,11 @@ class _Reader:
                     surface_ref=GROUND_SURFACE,
                     contacts=contacts,
                     source=chain.source,
-                    surface=lambda _world, line=floor_line: (line, None),
+                    surface=lambda _world: floor_at,
                     instants=(
                         frozenset(self.rest_frames(e.id, times)) if rest_only else None
                     ),
+                    body=self.body(e.id),
                 )
             )
         return out

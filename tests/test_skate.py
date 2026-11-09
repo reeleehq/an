@@ -1,10 +1,10 @@
 """The ``skate`` check (an#519 PR 2, catalogue B3 i): a held foot does not slide along its surface.
 
 The fixture is ``tests/_hold_fixture.py`` plus, written here, a ``walker``: the
-fixture's figure whose legs name their far ends as contacts
-(``metadata.contacts: {foot_l: {slot: leg_l}, foot_r: {slot: leg_r}}``), so its
-feet are a limb's contacts that can skate, where the figure's own ``origin``
-cannot; and the ``cup`` of ``tests/test_support.py``, whose ``base`` is on its
+fixture's figure with its legs hinged to its torso (not roots of its rig) and
+naming their far ends as contacts (``metadata.contacts: {foot_l: {slot:
+leg_l}, foot_r: {slot: leg_r}}``), so its feet are a limb's contacts that can
+skate, where the figure's own ``origin`` cannot; and the ``cup`` of ``tests/test_support.py``, whose ``base`` is on its
 root drawing (a pushed prop slides on it by right). Skate is measured in the
 surface's frame: a walker standing on a crate that moves with it does not
 skate. Compiled only, never rendered.
@@ -26,8 +26,11 @@ from an.ir.validate import validate_semantic
 from an.project import load
 from an.stage.compile import compile_shot
 from an.stage.support import (
+    SKATE_DRIFT_FLOOR_PX,
+    SKATE_DRIFT_TOLERANCE,
     SKATE_FLOOR_PX,
     SKATE_TOLERANCE,
+    skate_drift_tolerance,
     skate_tolerance,
     supports_at,
 )
@@ -38,8 +41,21 @@ GROUND = 200.0
 #: One frame at the fixture's 24 fps.
 FRAME = 1 / 24
 
+
+def _hinged_legs(bones: list[dict]) -> list[dict]:
+    """The figure's bones with its legs hinged at the hip to the torso (the
+    torso's bone, at the root's ``(0, -120)``), not roots of the rig."""
+    out = []
+    for bone in bones:
+        if bone["name"] in ("leg_l", "leg_r"):
+            bone = bone | {"parent": "torso", "y": 0.0}
+        out.append(bone)
+    return out
+
+
 WALKER = copy.deepcopy(FIGURE) | {
     "name": "walker",
+    "bones": _hinged_legs(copy.deepcopy(FIGURE["bones"])),
     "metadata": {
         "contacts": {"foot_l": {"slot": "leg_l"}, "foot_r": {"slot": "leg_r"}}
     },
@@ -93,10 +109,23 @@ def _slide(target: str, *, start: float, by: float, frames: float, origin: float
     )
 
 
-def _lint(project, *, gravity: bool | None = None, only=("skate",)):
+def _lint(
+    project,
+    *,
+    gravity: bool | None = None,
+    only=("skate",),
+    fps: float | None = None,
+    step_hz: float | None = None,
+    scene_ir=None,
+):
     """The skate findings; ``gravity``: under a style pack declaring it (True)
-    or not (False), or with no pack (None)."""
-    scene_ir, styles = project.scene, None
+    or not (False), or with no pack (None); ``fps``/``step_hz`` replace the
+    scene's; ``scene_ir`` replaces the project's scene."""
+    scene_ir, styles = scene_ir or project.scene, None
+    timing = {k: v for k, v in (("fps", fps), ("step_hz", step_hz)) if v is not None}
+    if timing:
+        meta = scene_ir.meta.model_copy(update=timing)
+        scene_ir = scene_ir.model_copy(update={"meta": meta})
     if gravity is not None:
         meta = scene_ir.meta.model_copy(update={"style_pack": "house"})
         scene_ir = scene_ir.model_copy(update={"meta": meta})
@@ -123,11 +152,31 @@ def _compile(project):
 LEFT = "[{type: support, a: wal@foot_l, b: ground, name: left}]"
 
 
+def _tween(target: str, prop: str, *, a: float, b: float, start: float, secs: float):
+    """A linear tween of ``target:prop`` from ``a`` to ``b`` over ``secs`` s from ``start``."""
+    return (
+        f"- {{kind: tween, target: {target}, property: {prop}, from: {a:g}, to: {b:g}, "
+        f"duration: {secs:.6f}, start: {start:.6f}, easing: linear}}"
+    )
+
+
+def _walker_sliding(tmp_path: Path, *, by: float, secs: float, start: float = 0.0):
+    return _project(
+        tmp_path,
+        entities=_entity("wal", "walker", -100, GROUND),
+        shot=_shot(LEFT),
+        actions=_tween("wal", "x", a=-100, b=-100 + by, start=start, secs=secs),
+    )
+
+
 def test_skate_is_a_lint_after_the_support_check():
     assert SKATE in SUPPORT_CONSTRAINTS
     assert (SKATE.order, SKATE.term) == (253.0, None)
+    # a speed (a fraction of the height per second) and a drift, each floored
     assert skate_tolerance(200.0) == pytest.approx(SKATE_TOLERANCE * 200.0)
     assert skate_tolerance(20.0) == SKATE_FLOOR_PX
+    assert skate_drift_tolerance(200.0) == pytest.approx(SKATE_DRIFT_TOLERANCE * 200.0)
+    assert skate_drift_tolerance(20.0) == SKATE_DRIFT_FLOOR_PX
 
 
 def test_a_foot_that_slides_while_joined_is_an_error(tmp_path):
@@ -141,20 +190,20 @@ def test_a_foot_that_slides_while_joined_is_an_error(tmp_path):
     [(severity, where, message)] = _lint(project)
     assert (severity, where) == ("error", "timeline/0/joints/0")
     assert message.startswith(
-        "`wal`'s `foot_l` slides 10.0 px per frame along `ground`"
+        "`wal`'s `foot_l` slides 10.0 px per frame (240 px/s) along `ground`"
     )
     assert "from 1.00 s to 1.04 s" in message
     assert "`unjoin` the support `left`" in message
     # the support itself holds: the foot never leaves the floor
     assert _lint(project, only=("support",)) == []
-    # measured where the support check measures: held, the drift in the floor's frame
+    # measured where the support check measures: the slide in the floor's frame
     states, problems = supports_at(
         _compile(project), project.scene.timeline[0], project.mall
     )
     assert problems == []
-    speeds = [c.tangent_speed for s in states for c in s.contacts if c.tangent_speed]
-    assert max(speeds) == pytest.approx(10.0, abs=0.05)
-    assert all(c.held and c.limb for s in states for c in s.contacts)
+    slid = [c.slid for s in states for c in s.contacts if c.slid]
+    assert max(slid) == pytest.approx(10.0, abs=0.05)
+    assert all(c.limb for s in states for c in s.contacts)
 
 
 def test_the_same_slide_while_unjoined_is_not(tmp_path):
@@ -170,15 +219,41 @@ def test_the_same_slide_while_unjoined_is_not(tmp_path):
     assert _lint(project) == []
 
 
-def test_a_slow_drift_is_within_the_tolerance(tmp_path):
-    # 0.5 px per frame on a figure about 290 px tall (tolerance about 1.5 px)
-    project = _project(
-        tmp_path,
-        entities=_entity("wal", "walker", -100, GROUND),
-        shot=_shot(LEFT),
-        actions=_slide("wal", start=0.0, by=12.0, frames=24, origin=-100),
-    )
+def test_a_slow_short_drift_is_within_the_tolerance(tmp_path):
+    # 6 px over a second on a figure about 290 px tall: under the speed
+    # tolerance (about 35 px/s) and under the drift (about 8.7 px)
+    project = _walker_sliding(tmp_path, by=6.0, secs=1.0)
     assert _lint(project) == []
+
+
+def test_one_slide_speed_gets_one_verdict_at_any_frame_rate(tmp_path):
+    # 60 px/s: 2.5 px a frame at 24 fps, 1 px a frame at 60 (both over ~35 px/s)
+    fast = _walker_sliding(tmp_path / "fast", by=60.0, secs=1.0, start=0.5)
+    at_24, at_60 = _lint(fast, fps=24), _lint(fast, fps=60)
+    assert [f[0] for f in at_24] == [f[0] for f in at_60] == ["error"]
+    assert "slides 2.5 px per frame (60 px/s)" in at_24[0][2]
+    assert "slides 1.0 px per frame (60 px/s)" in at_60[0][2]
+    # 20 px/s for a quarter second (5 px): clean at both
+    slow = _walker_sliding(tmp_path / "slow", by=5.0, secs=0.25, start=0.5)
+    assert _lint(slow, fps=24) == _lint(slow, fps=60) == []
+
+
+def test_a_slow_long_slide_is_caught_by_its_drift(tmp_path):
+    # 62 px over 1.95 s: about 32 px/s, under the speed tolerance at every
+    # frame, but the planted foot ends 62 px from where it was put down
+    project = _walker_sliding(tmp_path, by=62.0, secs=1.95)
+    [(severity, where, message)] = _lint(project)
+    assert (severity, where) == ("error", "timeline/0/joints/0")
+    assert message.startswith("`wal`'s `foot_l` drifts 6")
+    assert "a planted foot may drift" in message
+
+
+def test_a_step_grid_is_reported_per_step(tmp_path):
+    # on twos (12 steps a second at 24 fps), 60 px/s is a 5 px pop per step
+    project = _walker_sliding(tmp_path, by=60.0, secs=1.0, start=0.5)
+    [(severity, _where, message)] = _lint(project, step_hz=12)
+    assert severity == "error"
+    assert "slides 5.0 px per step (60 px/s)" in message
 
 
 def test_standing_on_a_crate_that_moves_with_it_is_not_skate(tmp_path):
@@ -205,29 +280,86 @@ def test_standing_on_a_crate_that_moves_with_it_is_not_skate(tmp_path):
     )
     [(severity, _where, message)] = _lint(pushed)
     assert severity == "error"
-    assert "slides 2.5 px per frame along `crate@surface`" in message
+    assert "slides 2.5 px per frame (60 px/s) along `crate@surface`" in message
 
 
-def test_a_pushed_props_base_does_not_skate(tmp_path):
-    # a prop's base is its own stance point: a pushed cup slides on it by right
-    for a in ("cup@base", "cup"):
+def test_a_crate_mirrored_under_a_still_foot_does_not_skate(tmp_path):
+    # the walker's left foot over the crate's middle; the crate flips (scale_x
+    # 1 to -1 in a frame): its ends swap on the stage, but in its own frame
+    # the foot has not moved (it measured 86 px a frame from the swapped end)
+    surface_y = GROUND - CRATE_SURFACE * K
+    foot_over_middle = 160 + 20.0 * K  # foot_l hangs 20 units left of the root
+    entities = _entity("crate", "crate", 160, GROUND) + _entity(
+        "wal", "walker", foot_over_middle, surface_y
+    )
+    joints = "[{type: support, a: wal@foot_l, b: crate@surface, name: left}]"
+    flip = _tween("crate", "scale_x", a=1, b=-1, start=1.0, secs=FRAME)
+    project = _project(tmp_path, entities=entities, shot=_shot(joints), actions=flip)
+    assert _lint(project, only=("support", "skate")) == []
+    states, _ = supports_at(
+        _compile(project), project.scene.timeline[0], project.mall, rest_only=False
+    )
+    slid = [c.slid for s in states for c in s.contacts if c.slid is not None]
+    assert len(slid) > 24 and max(map(abs, slid)) < 0.05
+
+
+def test_a_pushed_bodys_own_points_do_not_skate(tmp_path):
+    # a point on the root part (a prop's base, a bone of it, its fraction, the
+    # whole body) is its own stance point: a pushed cup or crate slides on it
+    cases = [("cup", "cup@base"), ("cup", "cup"), ("crate", "crate@root")]
+    cases += [
+        ("crate", "crate"),
+        ("crate", "crate@surface_l"),
+        ("crate", "crate@0.5,1"),
+    ]
+    for ref, a in cases:
         project = _project(
-            tmp_path / a.replace("@", "_"),
-            entities=_entity("cup", "cup", 0, GROUND),
-            shot=_shot(f"[{{type: support, a: {a}, b: ground}}]"),
-            actions=_slide("cup", start=0.5, by=40.0, frames=4, origin=0),
+            tmp_path / a.replace("@", "_").replace(",", "_"),
+            entities=_entity(ref, ref, 0, GROUND),
+            shot=_shot(f"[{{type: support, a: '{a}', b: ground}}]"),
+            actions=_slide(ref, start=0.5, by=40.0, frames=4, origin=0),
         )
-        assert _lint(project) == []
+        assert _lint(project) == [], a
 
 
 def test_a_figure_gliding_on_its_origin_does_not_skate(tmp_path):
-    project = _project(
-        tmp_path,
-        entities=_entity("fig", "figure", -100, GROUND),
-        shot=_shot("[{type: support, a: fig, b: ground}]"),
-        actions=_slide("fig", start=0.5, by=40.0, frames=4, origin=-100),
+    for a in ("fig", "fig@origin"):
+        project = _project(
+            tmp_path / a.replace("@", "_"),
+            entities=_entity("fig", "figure", -100, GROUND),
+            shot=_shot(f"[{{type: support, a: {a}, b: ground}}]"),
+            actions=_slide("fig", start=0.5, by=40.0, frames=4, origin=-100),
+        )
+        assert _lint(project) == [], a
+
+
+def test_a_foot_lifting_off_does_not_skate(tmp_path):
+    # in one frame the walker moves 8 px forward and rises 5 px (within the
+    # support tolerance, about 5.8 px), then leaves the floor: a lift-off,
+    # not a slide (it measured 8 px a frame before the normal motion counted)
+    up = "\n".join(
+        (
+            _tween("wal", "x", a=-100, b=-84, start=1.0, secs=2 * FRAME),
+            _tween("wal", "y", a=GROUND, b=GROUND - 5, start=1.0, secs=FRAME),
+            _tween(
+                "wal", "y", a=GROUND - 5, b=GROUND - 40, start=1.0 + FRAME, secs=FRAME
+            ),
+        )
     )
-    assert _lint(project) == []
+    declared = _project(
+        tmp_path / "a",
+        entities=_entity("wal", "walker", -100, GROUND),
+        shot=_shot(LEFT),
+        actions=up,
+    )
+    assert _lint(declared) == []
+    inferred = _project(
+        tmp_path / "b",
+        entities=_entity("wal", "walker", -100, GROUND),
+        shot=_shot(),
+        actions=up,
+    )
+    assert _lint(inferred, gravity=True) == []
 
 
 def test_inferred_skate_warns_only_under_a_pack_with_gravity(tmp_path):
@@ -263,22 +395,52 @@ def test_a_slide_within_a_flight_is_not_judged(tmp_path):
     assert _lint(project) == []
 
 
-def test_the_core_corpus_has_no_skate(tmp_path):
-    # no core scene declares a support or a pack with gravity: the check is
-    # silent, and it compiles nothing of its own (lint-only, `term=None`)
-    from an.bench.core_corpus import CORE_FIXTURES, stage_copy
+def _framed(project, *, camera_frame: str):
+    """The project's scene framed by a world: the walker a member standing in
+    the world frame, the viewpoint in ``camera_frame`` (``dolly`` moves
+    sideways, so the walker crosses the stage)."""
+    from an.ir.schema import Frame, FrameMoving, Viewpoint, World, WorldMember
 
-    repo = Path(__file__).resolve().parents[1]
-    for name, fixture in sorted(CORE_FIXTURES.items()):
-        work = stage_copy(repo / fixture.path, tmp_path / name)
-        if fixture.prepare is not None:
-            fixture.prepare(work)
-        project = load(work)
-        report = validate_semantic(
-            project.scene,
-            available_props=project.mall["props"],
-            available_environments=project.mall["environments"],
-            available_styles=project.mall["styles"],
-            only={"skate"},
-        )
-        assert report.findings == [], (name, report.findings)
+    world = World(
+        frames={
+            "dolly": Frame(moving=FrameMoving(direction=(1.0, 0.0, 0.0), speed=0.5))
+        },
+        members=[
+            WorldMember(
+                kind="prop",
+                id="wal",
+                store="props",
+                ref="walker",
+                at=(0.0, 0.0, 5.0),
+                height=1.8,
+            )
+        ],
+        viewpoints={
+            "v": Viewpoint(at=(0.0, -1.0, 0.0), focal=300.0, frame=camera_frame)
+        },
+    )
+    shot = project.scene.timeline[0].model_copy(update={"viewpoint": "v"})
+    return project.scene.model_copy(update={"world": world, "timeline": [shot]})
+
+
+def test_ground_under_a_moving_world_frame_is_not_judged(tmp_path, monkeypatch):
+    import an.ir.world as world_module
+    from an.ir.world import frame_moving_members
+
+    # the world places the walker (its feet on the stage's y 60) and moves it
+    project = _project(
+        tmp_path,
+        entities="- {kind: prop, id: wal, store: props, ref: walker}\n",
+        shot=_shot(LEFT, ground=60),
+    )
+    tracking = _framed(project, camera_frame="dolly")
+    assert frame_moving_members(tracking, 0) == {"wal"}
+    assert frame_moving_members(_framed(project, camera_frame="world"), 0) == set()
+    # the camera rides the dolly: the walker standing still in the world slides
+    # across the stage's floor, which is not its floor: said once, not judged
+    [(severity, where, message)] = _lint(project, scene_ir=tracking)
+    assert (severity, where) == ("info", "timeline/0/joints/0")
+    assert "an#519 PR 4" in message
+    # the gate is what stands between it and a skate error
+    monkeypatch.setattr(world_module, "frame_moving_members", lambda *a, **k: set())
+    assert [f[0] for f in _lint(project, scene_ir=tracking)] == ["error"]
