@@ -48,6 +48,7 @@ from typing import Any, Callable, Collection, Literal, Mapping, Sequence
 
 from an.base import (
     BESIDE_HOST_OVERRIDE,
+    GROUND_OVERRIDE,
     PAINT_KEYS_OVERRIDE,
     PLANE_FACTORS_OVERRIDE,
     RIDER_BEHIND,
@@ -102,6 +103,8 @@ from an.timing.easing import apply_easing
 __all__ = [
     "Box",
     "Extents",
+    "GROUND_KEY_TOLERANCE_PX",
+    "GroundAt",
     "HAND_PLACEMENT_TOLERANCE_PX",
     "HAND_SCALE_TOLERANCE",
     "PERSPECTIVE_TOLERANCE",
@@ -126,6 +129,7 @@ __all__ = [
     "stream_instances",
     "stream_slots",
     "viewpoint_of",
+    "world_ground_at",
 ]
 
 #: A member's native extent: ``(x0, y0, x1, y1)`` in its art's pixels at
@@ -2506,10 +2510,12 @@ def frame_moving_members(
     """The positioned members of shot ``index``'s world that stand in a frame
     moving relative to the viewpoint's over the shot (the rule
     :func:`lower_world` samples their motion by), or that a ``reframe``
-    carries between frames. Their stage floor does not stay under them, so a
-    check measuring against the stage's floor (``skate`` on ``ground``,
-    an#519) cannot judge them until ``World.ground`` (an#519 PR 4). Empty for
-    a shot no world frames; raises :class:`WorldError` as lowering would.
+    carries between frames. A stage floor does not stay under them, so a
+    check measuring against it (``skate`` on ``solve.ground`` or the member's
+    own floor, an#519) cannot judge them; a world that declares ``ground``
+    gives each its own floor and reference point, keyed as the camera sees it
+    (``overrides.ground``, :func:`world_ground_at`). Empty for a shot no world
+    frames; raises :class:`WorldError` as lowering would.
 
     >>> frame_moving_members(SceneIR(), 0)
     frozenset()
@@ -2595,6 +2601,203 @@ def _perspective_note(
         "the row's distance below the horizon). Set `stage.scale` to that, or "
         "drop `stage.at` to let the world place it.",
     )
+
+
+# --- the floor (an#519 PR 4) ---------------------------------------------------
+
+#: How far (stage px) a member's sampled floor may stray from the straight line
+#: between two of its keys before another key is kept (the floor of a member
+#: the camera sees move is keyed per frame, then thinned to this).
+GROUND_KEY_TOLERANCE_PX: float = 0.05
+#: The same for the floor line's unit direction (a component of it), and for
+#: its scale (a fraction of it).
+GROUND_DIRECTION_TOLERANCE: float = 1e-4
+
+
+@dataclass(frozen=True)
+class GroundAt:
+    """A member's floor at one instant (:data:`an.base.GROUND_OVERRIDE`), in
+    the coordinates of its ``stage.at``: the floor point under its placement
+    point (``at``), the floor line's unit direction (``along``), the stage px
+    one world unit along the floor spans there (``scale``: focal over depth),
+    and where that floor point lies along the floor in the frame the member
+    stands in, in world units from where it stood as the shot opens
+    (``lateral``). A stage point on the floor is at ``lateral + (p - at) ·
+    along / scale`` world units along it, in the member's own frame: a foot
+    that keeps that number keeps its place on the floor, however the member,
+    its frame or the camera carry it across the stage."""
+
+    at: tuple[float, float]
+    along: tuple[float, float]
+    scale: float = 1.0
+    lateral: float = 0.0
+
+    def position(self, p: tuple[float, float]) -> float:
+        """Where stage point ``p`` lies along the floor, in world units in the
+        member's frame (see the class).
+
+        >>> GroundAt((10.0, 50.0), (1.0, 0.0), 2.0, 3.0).position((30.0, 50.0))
+        13.0
+        """
+        off = (p[0] - self.at[0]) * self.along[0] + (p[1] - self.at[1]) * self.along[1]
+        return self.lateral + off / self.scale
+
+
+def world_ground_at(spec: Any, t: float) -> GroundAt | None:
+    """The floor ``spec`` (an entity's ``overrides.ground``) gives at shot time
+    ``t``: a member's keys interpolated linearly, held past either end. A
+    plain number is a level floor at that stage ``y``. ``None`` for a spec
+    that says nothing readable.
+
+    >>> world_ground_at({"at": [3.0, 120.0], "along": [1.0, 0.0], "scale": 60.0}, 0.5)
+    GroundAt(at=(3.0, 120.0), along=(1.0, 0.0), scale=60.0, lateral=0.0)
+    >>> world_ground_at({"keys": [[0.0, 0.0, 100.0, 1.0, 0.0, 60.0, 0.0],
+    ...                           [1.0, 0.0, 140.0, 1.0, 0.0, 80.0, 0.5]]}, 0.25)
+    GroundAt(at=(0.0, 110.0), along=(1.0, 0.0), scale=65.0, lateral=0.125)
+    >>> world_ground_at(240, 1.0).at, world_ground_at("nonsense", 0.0)
+    ((0.0, 240.0), None)
+    """
+    try:
+        if isinstance(spec, (int, float)) and not isinstance(spec, bool):
+            return GroundAt((0.0, float(spec)), (1.0, 0.0))
+        if not isinstance(spec, Mapping):
+            return None
+        keys = spec.get("keys")
+        if keys is None:
+            at, along = spec["at"], spec["along"]
+            row = [
+                float(at[0]),
+                float(at[1]),
+                float(along[0]),
+                float(along[1]),
+                float(spec.get("scale", 1.0)),
+                float(spec.get("lateral", 0.0)),
+            ]
+        else:
+            rows = [[float(v) for v in r] for r in keys]
+            if not rows or any(len(r) != 7 for r in rows):
+                return None
+            j = bisect.bisect_right([r[0] for r in rows], t)
+            if j == 0 or j == len(rows):
+                row = rows[0 if j == 0 else -1][1:]
+            else:
+                a, b = rows[j - 1], rows[j]
+                span = b[0] - a[0]
+                w = (t - a[0]) / span if span > 0 else 1.0
+                row = [x + (y - x) * w for x, y in zip(a[1:], b[1:])]
+    except (KeyError, IndexError, TypeError, ValueError):
+        return None
+    n = math.hypot(row[2], row[3])
+    if n == 0 or row[4] <= 0:
+        return None
+    return GroundAt((row[0], row[1]), (row[2] / n, row[3] / n), row[4], row[5])
+
+
+def _floor_level(eye: Projection) -> tuple[Point3, tuple[float, float]]:
+    """The world direction of the floor's lines that keep their depth (level,
+    square to the camera's look), and its stage direction (the horizon's: level
+    unless the camera rolls), turned to run left to right.
+
+    >>> eye = Projection((0.0, 0.0, 0.0), (0.0, 0.0, 1.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0), 100.0)
+    >>> _floor_level(eye)
+    ((1.0, 0.0, -0.0), (1.0, 0.0))
+    >>> rolled = Projection((0.0, 0.0, 0.0), *_basis(0.0, 0.0, 90.0), focal=100.0)
+    >>> [round(abs(v), 6) for v in _floor_level(rolled)[1]]   # the horizon stands upright
+    [0.0, 1.0]
+    """
+    fx, _, fz = eye.forward
+    n = math.hypot(fx, fz)
+    level = (fz / n, 0.0, -fx / n) if n > _MIN_DEPTH else eye.right
+    dx, dy = _dot(level, eye.right), _dot(level, eye.down)
+    if dx < 0 or (dx == 0 and dy > 0):
+        level, dx, dy = _mul(level, -1.0), -dx, -dy
+    m = math.hypot(dx, dy) or 1.0
+    return level, (dx / m + 0.0, dy / m + 0.0)
+
+
+def _thin_keys(rows: list[list[float]]) -> list[list[float]]:
+    """``rows`` (``[t, x, y, dx, dy, scale, lateral]``, by time) without the
+    ones the straight line between their kept neighbours gives within the
+    tolerances (:data:`GROUND_KEY_TOLERANCE_PX` on the stage, so the lateral
+    in world units times its scale; :data:`GROUND_DIRECTION_TOLERANCE` on the
+    direction and, as a fraction, on the scale).
+
+    >>> rows = [[t, 10.0 * t, 5.0, 1.0, 0.0, 60.0, 0.0] for t in (0.0, 0.5, 1.0)]
+    >>> [r[0] for r in _thin_keys(rows)]
+    [0.0, 1.0]
+    """
+    if len(rows) <= 2:
+        return rows
+
+    def off(row: list[float], want: list[float]) -> bool:
+        px, rel = GROUND_KEY_TOLERANCE_PX, GROUND_DIRECTION_TOLERANCE
+        return (
+            abs(row[1] - want[1]) > px
+            or abs(row[2] - want[2]) > px
+            or abs(row[3] - want[3]) > rel
+            or abs(row[4] - want[4]) > rel
+            or abs(row[5] - want[5]) > rel * row[5]
+            or abs(row[6] - want[6]) * row[5] > px
+        )
+
+    def fits(a: list[float], b: list[float], mids: list[list[float]]) -> bool:
+        span = b[0] - a[0]
+        for m in mids:
+            w = (m[0] - a[0]) / span if span > 0 else 1.0
+            if off(m, [x + (y - x) * w for x, y in zip(a, b)]):
+                return False
+        return True
+
+    kept, start = [rows[0]], 0
+    for j in range(2, len(rows)):
+        if not fits(rows[start], rows[j], rows[start + 1 : j]):
+            start = j - 1
+            kept.append(rows[start])
+    kept.append(rows[-1])
+    return kept
+
+
+def _member_ground(
+    ctx: _FrameCtx,
+    frame: str,
+    point_at: Callable[[float], Point3],
+    *,
+    ground: float,
+    times: Sequence[float],
+    near: float,
+) -> dict[str, Any] | None:
+    """The floor under a member standing in ``frame`` at ``point_at(t)`` (in
+    that frame's units): the world's ``ground`` plane projected at the
+    member's depth (:class:`GroundAt`, written as
+    :data:`an.base.GROUND_OVERRIDE`), at ``times[0]`` alone when ``times``
+    has one instant, else keyed at each and thinned. Its ``lateral`` is
+    measured in ``frame`` from the ground point under the member as the shot
+    opens, so a member carried by its frame, or walking straight in depth,
+    keeps its feet where they are along the floor. ``None`` when the camera
+    never sees that ground point in front of it."""
+    focal = ctx.projection.focal
+    pose0 = ctx.pose(frame, 0.0)
+    w0 = pose0.apply(point_at(0.0))
+    held = pose0.unapply((w0[0], ground, w0[2]))
+    rows: list[list[float]] = []
+    for t in times:
+        eye, pose = ctx.eye_at(t), ctx.pose(frame, t)
+        w = pose.apply(point_at(t))
+        under = (w[0], ground, w[2])
+        rx, ry, depth = eye.view(under)
+        if depth <= near:
+            continue  # behind the camera: nothing it sees to stand on
+        level, (dx, dy) = _floor_level(eye)
+        lateral = _dot(_sub(pose.unapply(under), held), pose.inverse().rotate(level))
+        rows.append(
+            [t, focal * rx / depth, focal * ry / depth, dx, dy, focal / depth, lateral]
+        )
+    if not rows:
+        return None
+    if len(times) == 1:
+        _, x, y, dx, dy, scale, _lateral = rows[0]
+        return {"at": [x, y], "along": [dx, dy], "scale": scale}
+    return {"keys": _thin_keys(rows)}
 
 
 def _lower_shot(
@@ -3188,6 +3391,30 @@ def _lower_shot(
             ],
             note=note,
         )
+    if world.ground is not None:  # the floor under each member (an#519)
+        floors: dict[str, dict[str, Any] | None] = {}
+        for _, e, _ in ordered:
+            member = positioned.get(e.id)
+            if member is None or member.kind == "environment" or _is_slot(e):
+                continue
+            course = courses.get(e.id)
+            tracks = split.member_tracks.get(e.id)
+            floors[e.id] = _member_ground(
+                ctx,
+                WORLD_FRAME if course is not None else frame_of[e.id],
+                course.world_at
+                if course is not None
+                else (lambda t, m=member, tr=tracks: _member_point(m, tr, t)),
+                ground=float(world.ground),
+                times=grid if e.id in moving else [0.0],
+                near=near,
+            )
+        ordered = [
+            (key, _marked(e, GROUND_OVERRIDE, floor), j)
+            if (floor := floors.get(e.id)) is not None
+            else (key, e, j)
+            for key, e, j in ordered
+        ]
     entities = [e for e, _ in envs] + [e for _, e, _ in ordered]
     origins = [j for _, j in envs] + [j for _, _, j in ordered]
     from an.stage.world import UNDRAWN_KINDS

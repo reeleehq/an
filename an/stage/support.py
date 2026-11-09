@@ -450,6 +450,10 @@ class SupportState:
     source: str
     #: The contact named in the reference, or ``""`` for all of them.
     named: str = ""
+    #: Whether the surface is the world's floor (``World.ground``) as the
+    #: camera projects it under the entity, measured along from a point held
+    #: in the frame the entity stands in (an#519 PR 4), not a stage floor.
+    world_floor: bool = False
 
     @property
     def inferred(self) -> bool:
@@ -498,7 +502,8 @@ class _Support:
     contacts: list[_Contact]
     source: str
     named: str = ""
-    #: The surface at an instant (:class:`_SurfaceAt`), from world matrices.
+    #: The surface at an instant (:class:`_SurfaceAt`), from world matrices
+    #: and the time: ``surface(world, t)``.
     surface: Any = None
     surface_paths: tuple[str, ...] = ()
     events: list[tuple[float, bool]] = field(default_factory=list)
@@ -506,6 +511,8 @@ class _Support:
     #: The entity's own node and its root parts': a contact on one is the
     #: body's stance point, not a limb's (:attr:`ContactState.limb`).
     body: frozenset[str] = frozenset()
+    #: Measured against the world's floor (:attr:`SupportState.world_floor`).
+    world_floor: bool = False
 
 
 def supports_at(
@@ -642,7 +649,7 @@ def _state(
 ) -> SupportState:
     """``s`` at frame ``k`` (time ``t``) under ``world``'s matrices; ``prev`` its
     state at frame ``k - 1``, when it was measured then, for the slide."""
-    at = s.surface(world)
+    at = s.surface(world, t)
     joined = _joined(s.events, t)
     before = (
         {(c.name, c.part): c for c in prev.contacts if abs(c.above) <= tol}
@@ -686,6 +693,7 @@ def _state(
         height=height,
         source=s.source,
         named=s.named,
+        world_floor=s.world_floor,
     )
 
 
@@ -1066,12 +1074,11 @@ class _Reader:
         where: str,
         problems: list,
     ) -> tuple[Any, tuple[str, ...]] | None:
-        """``b`` as ``(world -> (line, ends or None), the node paths it reads)``."""
+        """``b`` as ``((world, t) -> its surface then, the node paths it reads)``."""
         from an.stage.solve import WORLD_REF, _numbers, _slot_path
 
         if ref == GROUND_SURFACE:
-            floor_at = _stage_surface(ground_line(self.floor(entity, contacts)))
-            return (lambda _world: floor_at), ()
+            return self.ground(entity, contacts)
         head, _, at = ref.partition("@")
         if head == WORLD_REF:
             a, b = _numbers(at), _numbers((end or "").partition("@")[2])
@@ -1084,7 +1091,7 @@ class _Reader:
                 )
                 return None
             segment_at = _stage_surface(line_through(a, b), (a, b))
-            return (lambda _world: segment_at), ()
+            return (lambda _world, _t: segment_at), ()
         eid = head.split("/", 1)[0]
         if eid not in self.entities:
             problems.append((where, f"{ref!r}: {eid!r} is not an entity of this shot"))
@@ -1116,21 +1123,67 @@ class _Reader:
             problems.append((where, f"{ref!r}: {seg}"))
             return None
 
-        def at_instant(world: Mapping[str, Any]) -> _SurfaceAt:
+        def at_instant(world: Mapping[str, Any], _t: float) -> _SurfaceAt:
             return _body_surface_at(world[node_path], seg)
 
         return at_instant, (node_path,)
 
-    def floor(self, eid: str, contacts: list[_Contact]) -> float:
-        """The shot's floor line (``solve: {ground: y}``), else where the entity's
-        contacts are as the shot opens (its own floor)."""
+    def ground(self, eid: str, contacts: list[_Contact]) -> tuple[Any, tuple[str, ...]]:
+        """``ground`` for ``eid``, as :meth:`surface` gives a surface: the
+        shot's floor line (``solve: {ground: y}``); else the world's floor under
+        the entity (:meth:`world_floor`); else where its contacts are as the
+        shot opens (its own floor)."""
         from an.stage.solve import _apply
 
         solve = self.shot.solve
         if solve is not None and solve.ground is not None:
-            return float(solve.ground)
+            floor_at = _stage_surface(ground_line(float(solve.ground)))
+            return (lambda _world, _t: floor_at), ()
+        found = self.world_floor(eid)
+        if found is not None:
+            return found
         world = self.opening([c.node for c in contacts])
-        return max(_apply(world[c.node], p)[1] for c in contacts for p in c.points)
+        y = max(_apply(world[c.node], p)[1] for c in contacts for p in c.points)
+        floor_at = _stage_surface(ground_line(y))
+        return (lambda _world, _t: floor_at), ()
+
+    def world_floor(self, eid: str) -> tuple[Any, tuple[str, ...]] | None:
+        """The world's floor under ``eid`` (``overrides.ground``, which the
+        world's lowering writes when it declares ``ground``,
+        :func:`an.ir.world.world_ground_at`), as :meth:`surface` gives a
+        surface: at each instant, the line through its floor point along its
+        direction, carried from the entity's parent to the stage; a point's
+        position along it is in world units in the frame the entity stands in
+        (:meth:`an.ir.world.GroundAt.position`), its scale the stage px per
+        unit there, so a foot carried by the frame, or by a walk straight in
+        depth, does not slide. ``None`` when it has none."""
+        from an.base import GROUND_OVERRIDE
+        from an.ir.world import world_ground_at
+        from an.stage.solve import _apply, _parent_path
+
+        entity = self.entities.get(eid)
+        spec = ((entity.overrides or {}) if entity is not None else {}).get(
+            GROUND_OVERRIDE
+        )
+        if spec is None or world_ground_at(spec, 0.0) is None:
+            return None
+        parent = _parent_path(eid, self.nodes)
+
+        def at_instant(world: Mapping[str, Any], t: float) -> _SurfaceAt:
+            g = world_ground_at(spec, t)
+            m = world[parent]
+            a = _apply(m, g.at)
+            b = _apply(m, (g.at[0] + g.along[0], g.at[1] + g.along[1]))
+            line = line_through(a, b)
+            per_unit = g.scale * math.hypot(b[0] - a[0], b[1] - a[1])
+            sign = 1.0 if _along(b, a, line[1]) >= 0 else -1.0
+
+            def position(p: tuple[float, float]) -> float:
+                return g.lateral + sign * _along(p, a, line[1]) / per_unit
+
+            return _SurfaceAt(line, None, position, per_unit)
+
+        return at_instant, ((parent,) if parent else ())
 
     # -- what the shot declares, and what stands -----------------------------
 
@@ -1162,7 +1215,18 @@ class _Reader:
             surface=at_instant,
             surface_paths=paths,
             body=self.body(eid),
+            world_floor=dj.b == GROUND_SURFACE
+            and dj.end is None
+            and self.on_world_floor(eid),
         )
+
+    def on_world_floor(self, eid: str) -> bool:
+        """Whether ``ground`` for ``eid`` is the world's floor under it: the
+        shot declares no ``solve.ground`` and the world's lowering gave it one."""
+        solve = self.shot.solve
+        if solve is not None and solve.ground is not None:
+            return False
+        return self.world_floor(eid) is not None
 
     def stances(
         self,
@@ -1178,21 +1242,33 @@ class _Reader:
         not a box's corners, its lowest contact within :func:`support_tolerance`
         of the floor at the opening instant (one staged on a crate stands on
         the crate, not the floor); each measured as it opens and at its rest
-        instants (``rest_only``), else at every instant."""
+        instants (``rest_only``), else at every instant. The floor is the
+        shot's (``solve: {ground: y}``), else the world's under the entity
+        (``World.ground``, :meth:`world_floor`); an entity with neither has
+        none and is not taken to stand."""
         from an.stage.hold import hold_declarations
         from an.stage.solve import _apply, _is_rig_kind
 
         solve = self.shot.solve
-        if solve is None or solve.ground is None:
+        level = solve is not None and solve.ground is not None
+        floors = {
+            e.id: found
+            for e in self.shot.entities
+            if not level and (found := self.world_floor(e.id)) is not None
+        }
+        if not level and not floors:
             return []
         try:
             items = set(hold_declarations(self.shot).items)
         except Exception:  # noqa: BLE001 - the hold checks report broken holds
             items = set()
-        floor_at = _stage_surface(ground_line(float(solve.ground)))
+        if level:
+            floor_at = _stage_surface(ground_line(float(solve.ground)))
         out = []
         for e in self.shot.entities:
             if e.id in skip or e.id in items or e.id not in self.nodes:
+                continue
+            if not level and e.id not in floors:
                 continue
             if not _is_rig_kind(e) or _descriptor_of(e, self.mall) is None:
                 continue
@@ -1203,14 +1279,22 @@ class _Reader:
             if resolved is None or not resolved[0]:
                 continue
             contacts = resolved[0]
-            world = self.opening([c.node for c in contacts])
-            lowest = max(
-                _apply(world[c.node], p)[1] for c in contacts for p in c.points
-            )
-            if abs(float(solve.ground) - lowest) > support_tolerance(
-                self.height(e.id), tolerance=tolerance, floor=floor
-            ):
-                continue
+            tol = support_tolerance(self.height(e.id), tolerance=tolerance, floor=floor)
+            if level:
+                world = self.opening([c.node for c in contacts])
+                lowest = max(
+                    _apply(world[c.node], p)[1] for c in contacts for p in c.points
+                )
+                if abs(float(solve.ground) - lowest) > tol:
+                    continue
+                surface, paths = (lambda _world, _t: floor_at), ()
+            else:
+                surface, paths = floors[e.id]
+                world = self.opening([*(c.node for c in contacts), *paths])
+                line = surface(world, 0.0).line
+                gap = min(lowest_on(world[c.node], c.points, line)[1] for c in contacts)
+                if abs(gap) > tol:
+                    continue
             out.append(
                 _Support(
                     entity=e.id,
@@ -1219,11 +1303,13 @@ class _Reader:
                     surface_ref=GROUND_SURFACE,
                     contacts=contacts,
                     source=chain.source,
-                    surface=lambda _world: floor_at,
+                    surface=surface,
+                    surface_paths=paths,
                     instants=(
                         frozenset(self.rest_frames(e.id, times)) if rest_only else None
                     ),
                     body=self.body(e.id),
+                    world_floor=not level,
                 )
             )
         return out

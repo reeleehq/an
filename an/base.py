@@ -257,6 +257,17 @@ RIDER_SUFFIX_LEN: int = 2
 #: (an#504): its ``rotation`` channel is that lean, which the hold layer takes
 #: out of the angle an item it carries comes to rest at (an#659).
 SWAY_OVERRIDE: str = "leans"
+#: The core's record, on each positioned member of a world that declares a
+#: ``ground`` (an#519), of the floor under it as the camera projects it:
+#: ``{"at": [x, y], "along": [dx, dy], "scale": s}`` (the floor point under
+#: its placement point, the floor line's unit direction, and the stage px per
+#: world unit there), or ``{"keys": [[t, x, y, dx, dy, s, lateral], ...]}``
+#: for a member the camera sees move (``lateral``: where that floor point is
+#: along the floor, in world units in the frame the member stands in, from
+#: where it stood as the shot opens: what skate is measured from). Read by
+#: :func:`an.ir.world.world_ground_at`; the ``support`` and ``skate`` checks
+#: and the hold layer's floor read it.
+GROUND_OVERRIDE: str = "ground"
 #: At or under this alpha an entity is not seen (a stream slot between its
 #: passes, a fade's end): it cannot jump or swap sides at a cut (an#516), nor
 #: overlap or be drawn through anything at an instant (an#632).
@@ -278,6 +289,7 @@ CORE_OVERRIDE_KEYS: frozenset[str] = frozenset(
         PAINT_KEYS_OVERRIDE,
         BESIDE_HOST_OVERRIDE,
         SWAY_OVERRIDE,
+        GROUND_OVERRIDE,
     }
 )
 
