@@ -242,6 +242,13 @@ PAINT_KEYS_OVERRIDE: str = "paint_keys"
 #: suffix: it compares against the ``0`` it appends to every key.
 RIDER_IN_FRONT: int = 1
 RIDER_BEHIND: int = -1
+#: The core's mark on an attached world member the compiler draws right
+#: beside its host, wherever the host is drawn (an#692): ``{"host": id,
+#: "side": RIDER_BEHIND | RIDER_IN_FRONT}``, the side the built order gave
+#: it. The host may be drawn away from its built place (placed ``after`` an
+#: entity or a plane); several riders on one side keep their built order. An
+#: entity that names its own ``stage.after`` keeps it instead.
+BESIDE_HOST_OVERRIDE: str = "beside_host"
 #: Items in a world entity's own paint key (layer, depth, tiebreak), and in
 #: the suffix a rider adds to its host's (side, n).
 BASE_PAINT_KEY_LEN: int = 3
@@ -269,6 +276,7 @@ CORE_OVERRIDE_KEYS: frozenset[str] = frozenset(
         "held_rotation",
         PLANE_FACTORS_OVERRIDE,
         PAINT_KEYS_OVERRIDE,
+        BESIDE_HOST_OVERRIDE,
         SWAY_OVERRIDE,
     }
 )

@@ -47,6 +47,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Collection, Literal, Mapping, Sequence
 
 from an.base import (
+    BESIDE_HOST_OVERRIDE,
     PAINT_KEYS_OVERRIDE,
     PLANE_FACTORS_OVERRIDE,
     RIDER_BEHIND,
@@ -1785,8 +1786,12 @@ def _with_paint_keys(
     :func:`_attachment_riders`) rides its host the same way, on the side of
     it the built order gave it (:data:`an.base.RIDER_BEHIND` when built before
     it), and is built right beside it: painted with its host at every frame,
-    however the host or anything around it moves (an#678). Not yet when the
-    host itself rides another entity's keys (an#692)."""
+    however the host or anything around it moves (an#678). Where the host is
+    drawn away from its built place (placed ``after`` an entity or a plane),
+    the compiler draws the attachment beside it (:data:`an.base.BESIDE_HOST_OVERRIDE`,
+    an#692). Riders of one host on one side are ordered by their built place
+    (``n``): ``after`` riders first, then attachments, so the keys agree with
+    the order the compiler draws them in."""
     if not any(len(ks) > 1 for ks in pass_keys.values()):
         return ordered
     after = {
@@ -1795,8 +1800,10 @@ def _with_paint_keys(
     hosts = {eid: a for eid, a in after.items() if a in entity_ids}
     attached = attached or {}
     hosts.update((eid, r.host) for eid, r in attached.items())
-    # An attachment's `n` follows the built order, past every `after` rider's.
-    first = len(hosts)
+    # A rider's `n` is its built place, an attachment's past every `after`
+    # rider's: the compiler draws riders of one anchor in the built order.
+    place = {e.id: i for i, (_, e, _) in enumerate(ordered)}
+    first = len(ordered)
 
     keys = {
         e.id: [[t, list(k)] for t, k in pass_keys.get(e.id) or [(0.0, key)]]
@@ -1806,10 +1813,10 @@ def _with_paint_keys(
     riding = True
     while riding:  # a chain of `after`s rides from its first keyed entity
         riding = False
-        for n, (eid, host) in enumerate(sorted(hosts.items())):
+        for eid, host in list(hosts.items()):
             if host in keys and eid in members:
                 r = attached.get(eid)
-                at, m = (r.side, first + r.place) if r else (RIDER_IN_FRONT, n)
+                at, m = (r.side, first + r.place) if r else (RIDER_IN_FRONT, place[eid])
                 keys[eid] = [[t, rider_key(k, side=at, n=m)] for t, k in keys[host]]
                 del hosts[eid]
                 riding = True
@@ -3107,6 +3114,17 @@ def _lower_shot(
         members=members.keys(),
         attached=riders,
     )
+    ordered = [  # drawn beside its host wherever the host is drawn (an#692)
+        (
+            key,
+            _marked(e, BESIDE_HOST_OVERRIDE, {"host": r.host, "side": r.side})
+            if (r := riders.get(e.id)) is not None
+            and (e.stage is None or e.stage.after is None)
+            else e,
+            j,
+        )
+        for key, e, j in ordered
+    ]
     if sightings:
         _depth_order_notes(
             [e for _, e, _ in ordered],

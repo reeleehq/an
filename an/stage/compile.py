@@ -42,9 +42,12 @@ from pathlib import Path
 from typing import Any, Callable, Protocol
 
 from an.base import (
+    BESIDE_HOST_OVERRIDE,
     DEFAULT_FPS,
     DEFAULT_RESOLUTION,
     PAINT_KEYS_OVERRIDE,
+    RIDER_BEHIND,
+    RIDER_IN_FRONT,
     paint_key_items,
     paint_key_rank,
     rider_host_key,
@@ -2027,7 +2030,11 @@ def _place_after(
     placed entity root, in today's order (backdrop planes, the cast in entity
     order, the foreground planes). An entity placed after an anchor is taken
     out and drawn right after it, followed by whatever is placed after IT;
-    several after one anchor keep ``shot.entities`` order. Then runs of one
+    several after one anchor keep ``shot.entities`` order. An attached member
+    the world marks (:data:`an.base.BESIDE_HOST_OVERRIDE`, an#692) is drawn
+    right beside its host wherever the host is drawn, behind it or in front
+    of it (after what is placed after the host), several on one side in
+    ``shot.entities`` order (:func:`_beside_their_hosts_atoms`). Then runs of one
     environment's planes are packed into containers, the first named for the
     environment, the next ``<env>__band_<k>`` with ``scope=<env>`` so every
     plane stays ``<env>/<plane>``; and entities placed right after a plane
@@ -2074,18 +2081,35 @@ def _place_after(
     for kind, name, node in atoms:
         if kind == "entity" and name in afters:
             followers.setdefault(afters[name], []).append((kind, name, node))
-    base = [a for a in atoms if not (a[0] == "entity" and a[1] in afters)]
+    riders = _beside_their_hosts_atoms(shot, afters, placed=placed)
+    behind: dict[str, list[tuple[str, str, NodeJSON]]] = {}
+    in_front: dict[str, list[tuple[str, str, NodeJSON]]] = {}
+    for kind, name, node in atoms:
+        if kind == "entity" and name in riders:
+            host, side = riders[name]
+            sides = behind if side == RIDER_BEHIND else in_front
+            sides.setdefault(host, []).append((kind, name, node))
+    base = [
+        a
+        for a in atoms
+        if not (a[0] == "entity" and (a[1] in afters or a[1] in riders))
+    ]
 
     # (atom, the plane it rides: "env/plane" | None)
     ordered: list[tuple[tuple[str, str, NodeJSON], str | None]] = []
 
     def emit(atom, rides):
-        ordered.append((atom, rides))
         kind, name, node = atom
+        mine = kind == "entity"  # only an entity has riders (an#692)
+        for rider in behind.get(name, ()) if mine else ():
+            emit(rider, rides)  # in its host's wrapper, if it has one
+        ordered.append((atom, rides))
         # A plane's anchor is its path, `<env>/<plane>`, in every band.
         key = stage_tree.join(name, node.name) if kind == "plane" else name
         for follower in followers.get(key, ()):
             emit(follower, key if kind == "plane" else None)
+        for rider in in_front.get(name, ()) if mine else ():
+            emit(rider, rides)
 
     for atom in base:
         emit(atom, None)
@@ -2139,6 +2163,60 @@ def _place_after(
         if bands is not None:
             bands.append(AfterBand(wrapper=out[-1].name, environment=env, plane=plane))
     return out
+
+
+def _beside_their_hosts_atoms(
+    shot: Shot, afters: Mapping[str, str], *, placed: Collection[str]
+) -> dict[str, tuple[str, int]]:
+    """``{entity: (host, side)}`` for each entity of ``shot`` the world marked
+    to be drawn beside its host (:data:`an.base.BESIDE_HOST_OVERRIDE`, an#692),
+    both drawn in the scene (``placed``). Not one that names its own ``after``
+    (``afters``), nor one whose host is drawn, through ``after`` or its own
+    host, relative to that entity itself (the author's ``right.after: hat``,
+    ``hat`` on ``right``): that one keeps its own place, as the author's
+    ``after`` already draws it beside its host.
+
+    >>> from an.ir.schema import AssetRef, Shot
+    >>> def prop(id, host=None):
+    ...     mark = {BESIDE_HOST_OVERRIDE: {"host": host, "side": -1}} if host else None
+    ...     return AssetRef(kind="prop", id=id, store="props", ref="r", overrides=mark)
+    >>> shot = Shot(id="s", duration=1.0, entities=[
+    ...     prop("hat", "right"), prop("cap", "x"), prop("right"), prop("x")])
+    >>> _beside_their_hosts_atoms(shot, {"x": "cap"}, placed={"hat", "cap", "right", "x"})
+    {'hat': ('right', -1)}
+    """
+    out: dict[str, tuple[str, int]] = {}
+    for e in shot.entities:
+        mark = (e.overrides or {}).get(BESIDE_HOST_OVERRIDE)
+        if mark is None or e.id in afters or e.id not in placed:
+            continue
+        host, side = _beside_host_mark(shot.id, e.id, mark)
+        if host in placed:
+            out[e.id] = (host, side)
+    for eid in list(out):  # an `after` chain is acyclic: a cycle passes a rider
+        seen, at = set(), out[eid][0]
+        while at is not None and at != eid and at not in seen:
+            seen.add(at)
+            at = afters.get(at) or (out[at][0] if at in out else None)
+        if at == eid:
+            del out[eid]
+    return out
+
+
+def _beside_host_mark(shot_id: str, entity_id: str, mark: Any) -> tuple[str, int]:
+    """``(host, side)`` of a :data:`an.base.BESIDE_HOST_OVERRIDE` mark, or a
+    :class:`CutoutCompileError` naming what is wrong with a malformed one (the
+    world writes it; a hand-written one is read the same way)."""
+    host = mark.get("host") if isinstance(mark, Mapping) else None
+    side = mark.get("side") if isinstance(mark, Mapping) else None
+    if not isinstance(host, str) or side not in (RIDER_BEHIND, RIDER_IN_FRONT):
+        raise CutoutCompileError(
+            f"shot {shot_id!r}: {entity_id!r} has a malformed "
+            f"`{BESIDE_HOST_OVERRIDE}` override {mark!r}: it is "
+            f"{{host: <entity id>, side: {RIDER_BEHIND} (behind) or "
+            f"{RIDER_IN_FRONT} (in front)}}"
+        )
+    return host, int(side)
 
 
 def _compensated_planes(shot: Shot, mall: Mapping[str, Mapping]) -> set[str]:
