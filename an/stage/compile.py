@@ -3316,7 +3316,7 @@ def _build_text_block(
     fonts: dict[str, str],
     width: int,
     height: int,
-    renderer: str | None = None,
+    renderer: str,
 ) -> tuple[NodeJSON, str]:
     """A text block (an#155): its node, and the layer it belongs to.
 

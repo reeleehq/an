@@ -72,6 +72,17 @@ def test_the_document_refuses_a_halo_tituli_would_not_draw(halo, needle):
         TextDescriptor(name="t", text="hi", halo=halo)
 
 
+def test_a_tituli_from_before_halo_is_named(monkeypatch):
+    """An older tituli has no ``Halo``: the bare ImportError becomes the
+    typed refusal naming the version needed."""
+    import sys
+    import types
+
+    monkeypatch.setitem(sys.modules, "tituli", types.ModuleType("tituli"))
+    with pytest.raises(ValueError, match=r"needs tituli >= 0\.0\.13"):
+        TextDescriptor(name="t", text="hi", halo=True)
+
+
 def test_without_a_halo_nothing_changes():
     plain = TextDescriptor(name="t", text="hi")
     assert "halo" not in plain.model_dump()

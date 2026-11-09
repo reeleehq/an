@@ -56,8 +56,8 @@ dependencies = [
     # needs for glyph contours; it is tituli's `outlines` extra, declared here
     # BY NAME rather than as `tituli[outlines]` because the licence perimeter
     # reads requirement names and drops extras — an extra would be a
-    # dependency it never looked at. Needs tituli >= 0.0.7 (`run_outline`,
-    # `EMBEDDED`); unversioned per the local-package convention.
+    # dependency it never looked at. Needs tituli >= 0.0.13 (`run_outline`,
+    # `EMBEDDED`, `Halo`); unversioned per the local-package convention.
     "tituli",
     "fonttools",
     # The shot cache's data model (ADR 0004 decision 4, an#242): entries are

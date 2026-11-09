@@ -56,7 +56,7 @@ import math
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Literal, Mapping, Sequence
+from typing import Any, Callable, Literal, Mapping, Sequence
 
 from pydantic import (
     BaseModel,
@@ -256,7 +256,12 @@ def _as_halo(value: Any) -> Any:
         return None
     import dataclasses
 
-    from tituli import Halo, parse_color
+    try:
+        from tituli import Halo, parse_color
+    except ImportError as err:  # a tituli from before Halo (tituli#24)
+        raise TextLayoutError(
+            "`halo` needs tituli >= 0.0.13 (pip install -U tituli)"
+        ) from err
 
     if value is True:
         return Halo()
@@ -863,8 +868,6 @@ def _layout_string(
             ) from err
         if outline.bbox is not None:
             inked.append((run, outline))
-    if desc.stroke_width and desc.unit in ("word", "glyph"):
-        _warn_if_outlines_overlap(desc, inked)
     if desc.unit == BLOCK_UNIT:
         # One unit for the whole block: the lines' contours in one path, the
         # union of their boxes (an#341).
@@ -872,10 +875,14 @@ def _layout_string(
     else:
         groups = [[pair] for pair in inked]
     units: list[TextUnit] = []
+    inks = []  # each unit's ink box, parallel to `units`
     for group in groups:
         box = group[0][0].bbox().union(group[0][1].bbox)
+        ink = group[0][1].bbox
         for run, outline in group[1:]:
             box = box.union(run.bbox()).union(outline.bbox)
+            ink = ink.union(outline.bbox)
+        inks.append(ink)
         halo = _unit_halo(desc, group)
         # The outline reaches `stroke_width` past the ink (an#313), the
         # halo its `reach` (an#701); the box holds the further of the two.
@@ -896,7 +903,28 @@ def _layout_string(
                 halo=halo,
             )
         )
-    _warn_if_halos_cover(desc, groups, units)
+    if desc.stroke_width:
+        # The outline reaches `stroke_width` past the ink on both sides, so
+        # two units closer than twice that show the later one's over the
+        # earlier one's fill (an#313).
+        _warn_if_underlay_covers(
+            desc,
+            units,
+            inks,
+            reach=lambda unit: 2 * desc.stroke_width,
+            noun="outline",
+            knobs="a thinner `stroke_width`, a larger `size`",
+            category=TextOutlineWarning,
+        )
+    _warn_if_underlay_covers(
+        desc,
+        units,
+        inks,
+        reach=lambda unit: unit.halo.cover if unit.halo is not None else None,
+        noun="halo",
+        knobs="a smaller `halo.spread`/`halo.blur`",
+        category=TextHaloWarning,
+    )
     identity = FontIdentity(
         family=face.family,
         style=face.style,
@@ -958,71 +986,60 @@ class TextOutlineWarning(UserWarning):
     """A unit's outline is wide enough to cover its neighbour's glyphs."""
 
 
-def _warn_if_outlines_overlap(desc: TextDescriptor, inked: list) -> None:
-    """Each unit is its own texture, so a unit's outline is drawn OVER the
-    fill of the unit before it wherever the two meet (an#313): two units on
-    one line closer than twice ``stroke_width`` show it. Said once, naming
-    the remedies, rather than drawn silently."""
-    import warnings
-
-    reach = 2 * desc.stroke_width
-    for (a, oa), (b, ob) in zip(inked, inked[1:]):
-        ink_a, ink_b = oa.bbox, ob.bbox
-        same_line = ink_a.y0 < ink_b.y1 and ink_b.y0 < ink_a.y1
-        if same_line and ink_b.x0 - ink_a.x1 < reach:
-            warnings.warn(
-                f"text {desc.name!r}: a {desc.stroke_width:g} px outline reaches "
-                f"across the gap between {a.text!r} and {b.text!r}, so each "
-                f"{desc.unit}'s outline covers part of the one before it (every "
-                "unit is its own texture). Use a thinner `stroke_width`, a larger "
-                "`size`, or `unit: line`/`block` for a heavy outline.",
-                TextOutlineWarning,
-                stacklevel=4,
-            )
-            return
-
-
 class TextHaloWarning(UserWarning):
     """A unit's halo reaches far enough to dim a neighbouring unit's glyphs."""
 
 
-def _warn_if_halos_cover(
-    desc: TextDescriptor, groups: Sequence[Any], units: Sequence[TextUnit]
+def _warn_if_underlay_covers(
+    desc: TextDescriptor,
+    units: Sequence[TextUnit],
+    inks: Sequence[Any],
+    *,
+    reach: Callable[[TextUnit], float | None],
+    noun: str,
+    knobs: str,
+    category: type[Warning],
 ) -> None:
-    """Each unit is its own texture, so a unit's halo is drawn OVER every
-    earlier unit's fill wherever it reaches (an#701) — tituli draws every
-    halo first and every text after, which per-unit alpha rules out here (the
-    an#313 trade). Two units whose inks are closer than the glow's visible
-    ``cover`` show it; said once, naming the remedies."""
+    """Warn once when a unit's underlay (its outline, an#313, or its halo,
+    an#701) reaches over an EARLIER unit's ink: every unit is its own
+    texture, drawn in order, so a later unit's underlay covers the fill of
+    any unit before it wherever the two meet (tituli draws every underlay
+    first; per-unit alpha rules that out here). Any pair is checked, across
+    and down the page, so a heavy underlay on stacked lines is caught as
+    well as one between neighbours on a line.
+
+    ``reach(unit)`` is how close two inks may come before the unit's
+    underlay shows on the other (``None``: the unit draws none); ``inks``
+    are the units' ink boxes, parallel to ``units``.
+    """
     import warnings
 
-    inks = []
-    for group in groups:
-        ink = group[0][1].bbox
-        for _, outline in group[1:]:
-            ink = ink.union(outline.bbox)
-        inks.append(ink)
+    if desc.unit in ("word", "glyph"):
+        regroup = "`unit: line`/`block`"
+    else:
+        regroup = "`unit: block`"
     for j, (unit_b, ink_b) in enumerate(zip(units, inks)):
-        if unit_b.halo is None:
+        r = reach(unit_b)
+        if not r:
             continue
-        cover = unit_b.halo.cover
         for unit_a, ink_a in zip(units[:j], inks[:j]):
             gap_x = max(ink_a.x0 - ink_b.x1, ink_b.x0 - ink_a.x1)
             gap_y = max(ink_a.y0 - ink_b.y1, ink_b.y0 - ink_a.y1)
-            if gap_x < cover and gap_y < cover:
+            if gap_x < r and gap_y < r:
                 warnings.warn(
-                    f"text {desc.name!r}: the halo of {unit_b.text!r} reaches "
-                    f"{cover:.1f} px past its ink, over {unit_a.text!r} (every "
-                    f"{desc.unit} is its own texture, so a later unit's glow is "
-                    "drawn over an earlier one's glyphs). Use a smaller "
-                    "`halo.spread`/`halo.blur`, or `unit: line`/`block`.",
-                    TextHaloWarning,
+                    f"text {desc.name!r}: the {noun} of {unit_b.text!r} covers "
+                    f"part of the one before it, {unit_a.text!r}: their inks are "
+                    f"closer than the {r:.1f} px it reaches, and every "
+                    f"{desc.unit} is its own texture, so a later {desc.unit}'s "
+                    f"{noun} is drawn over an earlier one's glyphs. Use {knobs}, "
+                    f"or {regroup}.",
+                    category,
                     stacklevel=4,
                 )
                 return
 
 
-def halo_engine_problem(units: Sequence[TextUnit], renderer: str | None) -> str | None:
+def halo_engine_problem(units: Sequence[TextUnit], renderer: str) -> str | None:
     """What stops ``renderer`` drawing these units' halos, or ``None``.
 
     A halo is SVG filters in the unit's texture (:data:`HALO_FILTER_PRIMITIVES`);
@@ -1034,7 +1051,7 @@ def halo_engine_problem(units: Sequence[TextUnit], renderer: str | None) -> str 
     >>> halo_engine_problem([], "stage") is None
     True
     """
-    if renderer is None or not any(u.halo is not None for u in units):
+    if not any(u.halo is not None for u in units):
         return None
     from an.capabilities.subjects import ENGINE_SVG_FILTER, missing_engine_terms
 
