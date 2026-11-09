@@ -242,7 +242,12 @@ class Verb:
 @dataclass
 class Declarations:
     """Every joint and verb a shot declares, in solver order (structure first),
-    and what it holds (:class:`an.stage.hold.HoldDeclarations`)."""
+    and what it holds (:class:`an.stage.hold.HoldDeclarations`).
+
+    A ``support`` joint (an#519) is a lint's declaration, never the solve's:
+    it goes to ``supports``, a ``join``/``unjoin`` of one to ``support_verbs``,
+    and neither makes the declarations non-``empty``, so a shot declaring only
+    supports runs no solve and compiles as if it declared nothing."""
 
     joints: list[DeclaredJoint] = field(default_factory=list)
     verbs: list[Verb] = field(default_factory=list)
@@ -250,6 +255,10 @@ class Declarations:
     problems: list[tuple[str, str]] = field(default_factory=list)
     #: The hold verbs and ``held_by`` overrides (:mod:`an.stage.hold`), or ``None``.
     holds: Any = None
+    #: The ``support`` joints (:mod:`an.stage.support` reads them; the solve does not).
+    supports: list[DeclaredJoint] = field(default_factory=list)
+    #: The ``join``/``unjoin`` verbs naming a support.
+    support_verbs: list[Verb] = field(default_factory=list)
 
     @property
     def empty(self) -> bool:
@@ -292,12 +301,16 @@ def solve_knobs(shot: Shot) -> dict[str, Any]:
     from an.stage.hold import HOLD_VERSION
 
     own = shot.solve
+
+    def solved(joints: Sequence[JointSpec]) -> list[dict[str, Any]]:
+        # a support (an#519) is a lint's declaration: it changes no pixel
+        return [
+            j.model_dump(mode="json") for j in joints if j.type != SUPPORT_JOINT_TYPE
+        ]
+
     declared = {
-        "joints": [j.model_dump(mode="json") for j in shot.joints],
-        "entities": [
-            [e.id, [j.model_dump(mode="json") for j in e.joints], e.overrides]
-            for e in shot.entities
-        ],
+        "joints": solved(shot.joints),
+        "entities": [[e.id, solved(e.joints), e.overrides] for e in shot.entities],
         "solve": own.model_dump(mode="json") if own is not None else None,
     }
     return {
@@ -317,13 +330,37 @@ def solve_knobs(shot: Shot) -> dict[str, Any]:
 
 
 def _has_verb(shot: Shot) -> bool:
+    """Whether ``shot`` has a verb the solve acts on: a ``join``/``unjoin`` of a
+    support (an#519) is the ``support`` check's, not the solve's."""
     from an.ir.compose import iter_actions
     from an.ir.joints import JOINT_ACTION_KINDS
 
+    supports = _support_ids(shot)
     return any(
         getattr(node, "kind", None) in JOINT_ACTION_KINDS
+        and not (
+            node.kind in ("join", "unjoin") and getattr(node, "joint", None) in supports
+        )
         for action in shot.actions
         for node in iter_actions(action)
+    )
+
+
+#: The joint type the solve never lowers (an#519): a lint's declaration.
+SUPPORT_JOINT_TYPE: str = "support"
+
+
+def _support_ids(shot: Shot) -> frozenset[str]:
+    """The ids of the supports the shot and its entities declare, less any that
+    also names a joint the solve lowers (a verb on it is the solve's).
+
+    >>> _support_ids(Shot(id="s", joints=[{"type": "support", "a": "cup", "b": "ground"}]))
+    frozenset({'cup'})
+    """
+    specs = [*shot.joints, *(j for e in shot.entities for j in e.joints)]
+    solved = {j.id for j in specs if j.type != SUPPORT_JOINT_TYPE}
+    return frozenset(
+        j.id for j in specs if j.type == SUPPORT_JOINT_TYPE and j.id not in solved
     )
 
 
@@ -384,33 +421,47 @@ def declarations(
                     (where, f"{entity.ref!r} declares a joint that does not read: {e}")
                 )
                 continue
-            out.joints.append(_declared(spec, entity.id, where=where))
+            _route(out, _declared(spec, entity.id, where=where))
         for k, spec in enumerate(entity.joints):
-            out.joints.append(
-                _declared(spec, entity.id, where=f"entities/{i}/joints/{k}")
-            )
+            _route(out, _declared(spec, entity.id, where=f"entities/{i}/joints/{k}"))
     for k, spec in enumerate(shot.joints):
-        out.joints.append(
+        _route(
+            out,
             DeclaredJoint(
                 spec=spec, a=spec.a, b=spec.b, end=spec.end, where=f"joints/{k}"
-            )
+            ),
         )
     if verbs:
         from an.ir.compose import flatten
         from an.ir.joints import JOINT_ACTION_KINDS
 
+        solved = {dj.spec.id for dj in out.joints}
+        supports = {dj.spec.id for dj in out.supports} - solved
         for k, action in enumerate(shot.actions):
             for flat in flatten(action, play_extent=play_extent):
                 if getattr(flat.action, "kind", None) in JOINT_ACTION_KINDS:
-                    out.verbs.append(
-                        Verb(flat.action, flat.start, flat.end, where=f"actions/{k}")
-                    )
+                    verb = Verb(flat.action, flat.start, flat.end, where=f"actions/{k}")
+                    if (
+                        flat.action.kind in ("join", "unjoin")
+                        and flat.action.joint in supports
+                    ):
+                        out.support_verbs.append(verb)
+                    else:
+                        out.verbs.append(verb)
     if verbs or any(e.overrides and "held_by" in e.overrides for e in shot.entities):
         from an.stage.hold import hold_declarations
 
         holds = hold_declarations(shot, play_extent=play_extent)
         out.holds = None if holds.empty else holds
     return out
+
+
+def _route(out: Declarations, dj: DeclaredJoint) -> None:
+    """A declared joint to the solve's list, or a support to the lint's."""
+    if dj.spec.type == SUPPORT_JOINT_TYPE:
+        out.supports.append(dj)
+    else:
+        out.joints.append(dj)
 
 
 def _declared(spec: JointSpec, entity_id: str, *, where: str) -> DeclaredJoint:
@@ -910,23 +961,34 @@ def build_puppet(
 
     def landmarks_of(eid: str) -> Mapping[str, Any]:
         """The named points a genre declares for ``eid``'s rig beyond its bones
-        (:attr:`an.genres.EntityKind.landmarks`: a character's hands)."""
+        (:attr:`an.genres.EntityKind.landmarks`: a character's hands), then its
+        contacts on a part (:func:`an.stage.support.contacts_of`, an#519: a
+        character's feet, a prop's ``metadata.contacts``); a landmark wins."""
         if eid not in landmark_cache:
             from an.genres.registry import entity_kind
+            from an.stage.support import contacts_on_parts
 
             kind = entity_kind(entities[eid].kind)
             hook = getattr(kind, "landmarks", None) if kind is not None else None
-            found: Mapping[str, Any] = {}
-            if hook is not None and rigs.get(eid) is not None:
+            found: dict[str, Any] = {}
+            rig = rigs.get(eid)
+            desc = None
+            if rig is not None:
                 desc = (
                     (getattr(vocab, "descriptors", None) or {}).get(eid)
                     if vocab is not None
                     else None
                 ) or _descriptor(entities[eid], mall)
+            if hook is not None and rig is not None:
                 try:
                     found = dict(hook(desc) or {}) if desc is not None else {}
                 except Exception:  # noqa: BLE001 - a genre that cannot say names nothing
                     found = {}
+            if rig is not None and desc is not None:
+                for name, point in contacts_on_parts(
+                    entities[eid], desc, rig=rig
+                ).items():
+                    found.setdefault(name, point)
             landmark_cache[eid] = found
         return landmark_cache[eid]
 
@@ -1213,7 +1275,9 @@ def build_puppet(
                 verb=action.kind,
             )
         )
-    ids = {row.id for row in rows}
+    # A support's id is a joint of the shot (an#519), though the solve builds
+    # no row for it: a join/unjoin naming one is the support check's.
+    ids = {row.id for row in rows} | {dj.spec.id for dj in decl.supports}
     for jid in events:
         if jid not in ids:
             problems.append(

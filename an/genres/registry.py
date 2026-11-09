@@ -202,6 +202,17 @@ class EntityKind:
     shot_sizes: (
         Callable[[Any, Any, Any], Mapping[str, tuple[float, float]] | None] | None
     ) = None
+    #: ``(descriptor) -> {name: (slot, point)}``: the named points of this
+    #: kind's rigs that touch what the rig stands on (catalogue A1, an#519): a
+    #: character's ``foot_l`` is the far end of its left leg. The same shape as
+    #: ``landmarks``: ``point`` is ``(u, v)``, a fraction of that slot's
+    #: drawing, or ``None`` for the slot's far end from its pivot. A bone or a
+    #: landmark of that name wins. ``None``, or an empty answer: the kind names
+    #: none, and the core derives one (:func:`an.stage.support.contacts_of`).
+    #: Since ``an.genres.API_LEVEL`` 18.
+    contacts: (
+        Callable[[Any], Mapping[str, tuple[str, tuple[float, float] | None]]] | None
+    ) = None
 
 
 #: When a check runs: once before the shots, once per shot, once after them.
