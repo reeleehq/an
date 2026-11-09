@@ -1,0 +1,1 @@
+- **Phones to mouth shapes in the core** (an#727): `an.audio.phones` (ARPAbet and IPA tables, `phone_alphabet`, `phone_viseme`, `phones_to_visemes`, `phones_track`) moves from cutan beside `word_timings_to_visemes`; a lip-sync provider's optional `cache_version` re-keys its cached tracks (`lipsync_cache_id`) without renaming it, and a provider stating none keeps every key it had.

@@ -35,7 +35,13 @@ from pathlib import Path
 from typing import Any
 
 from an.audio.effects import EFFECT_SAMPLE_RATE, apply_voice_effects, voice_effects
-from an.audio.lipsync import LipSyncProvider, NullLipSync, Viseme, VisemeTrack
+from an.audio.lipsync import (
+    LipSyncProvider,
+    NullLipSync,
+    Viseme,
+    VisemeTrack,
+    lipsync_cache_id,
+)
 from an.audio.offline_tts import OfflineTTS
 from an.audio.takes import (
     REROLL_HINT,
@@ -355,7 +361,7 @@ def _produce_line(
     else:
         audio_clip = _load_or_choose_take(mall, req)
         fresh = req.fresh_audio
-    viseme_cache_key = viseme_key(req.cache_key, lipsync.name, req.text)
+    viseme_cache_key = viseme_key(req.cache_key, lipsync_cache_id(lipsync), req.text)
     track = _load_or_align(
         lipsync, audio_clip, req.text, mall, viseme_cache_key, fresh_audio=fresh
     )
@@ -459,7 +465,7 @@ def produce_audio_for_scene(
             spoken.append((voice_id, req.tts))
             expected_audio_ref = req.cache_key  # None: a best-of-N choice to make
             expected_viseme_ref = viseme_key(
-                expected_audio_ref or "", lipsync.name, line.text
+                expected_audio_ref or "", lipsync_cache_id(lipsync), line.text
             )
             already_done = (
                 expected_audio_ref is not None
@@ -544,7 +550,9 @@ def produce_audio_for_scene(
         line.word_timings = _to_ir_word_timings(track)
         line.audio_ref = req.cache_key
         line.leveled = None  # leveled again below, from this audio
-        line.viseme_ref = viseme_key(req.cache_key, lipsync.name, line.text)
+        line.viseme_ref = viseme_key(
+            req.cache_key, lipsync_cache_id(lipsync), line.text
+        )
     # The spread is measured only when lines were (re)made: a warm render pays
     # no ffmpeg pass for it, and says it once rather than on every render.
     _voice_loudness(scene, mall, report=overruns and bool(pending))

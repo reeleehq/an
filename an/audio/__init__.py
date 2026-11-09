@@ -25,7 +25,16 @@ from an.audio.lipsync import (
     WordTiming,
     WordTimingProvider,
     NullLipSync,
+    lipsync_cache_id,
     word_timings_to_visemes,
+)
+from an.audio.phones import (
+    PhoneToViseme,
+    clip_timings,
+    phone_alphabet,
+    phone_viseme,
+    phones_to_visemes,
+    phones_track,
 )
 from an.audio.offline_tts import OfflineTTS
 from an.audio.recorded import RecordedTTS, import_recordings
@@ -58,6 +67,13 @@ __all__ = [
     "WordTimingProvider",
     "NullLipSync",
     "word_timings_to_visemes",
+    "lipsync_cache_id",
+    "PhoneToViseme",
+    "clip_timings",
+    "phone_alphabet",
+    "phone_viseme",
+    "phones_to_visemes",
+    "phones_track",
     "OfflineTTS",
     "RecordedTTS",
     "import_recordings",

@@ -553,3 +553,18 @@ def test_an_unreadable_sidecar_is_never_trusted(render_project_with):
     _, line, _, _ = render(tts, words)
     assert words.calls == 2 and tts.calls == 1
     assert json.loads(project.mall["visemes"][line.viseme_ref])["audio_sha256"]
+
+
+def test_a_providers_cache_version_realigns_once_and_never_resynthesizes():
+    """an#727: a lip-sync provider whose alignment changed states a new
+    ``cache_version``: its cached tracks are re-keyed, so each line is aligned
+    once more on the audio it already has (never re-synthesized), and the
+    version it states then holds."""
+    tts, words, mall = _UnrepeatableTTS(), _Words(), _mall()
+    first = _line(_run(_scene(), mall, tts, words)).model_copy(deep=True)
+    words.cache_version = "phones-1"
+    again = _line(_run(_scene(), mall, tts, words))
+    assert (tts.calls, words.calls) == (1, 2)
+    assert again.audio_ref == first.audio_ref and again.viseme_ref != first.viseme_ref
+    _run(_scene(), mall, tts, words)
+    assert (tts.calls, words.calls) == (1, 2)  # warm under the new version
