@@ -103,16 +103,41 @@ REACH_SOURCE: str = "reach"
 SAME_VALUE: dict[str, float] = {"x": 1e-5, "y": 1e-5, "rotation": 1e-6}
 #: The same, for a held item's scale (a factor).
 SAME_SCALE: float = 1e-6
-#: How far each solved channel's emitted keys may stray from the solve at any
-#: frame, in px (an#636); a rotation's is this at the puppet's whole reach
-#: (every body's box end to end). The errors add along a chain: a point moves
-#: at most this × (√2 for the root's x and y + one per rotating body above
-#: it) × its scale, a few thousandths of a px, far under the joints' own
-#: tolerance (:data:`an.verify.joints.JOINT_TOLERANCE_PX`, 0.25). At this
-#: tolerance only stretches that are already straight (still, or moving
-#: evenly) lose their keys; curved motion keeps them (compacting it within the
-#: joint budget is the rest of an#636).
-SOLVED_KEY_TOLERANCE_PX: float = 1e-3
+#: How far any point of a solved body may stray from the solve at any frame
+#: once its keys are compacted (px, an#636): a fifth of the joints' own
+#: tolerance (:data:`an.verify.joints.JOINT_TOLERANCE_PX`, 0.25), so a joint's
+#: two ends together move at most 0.1 px and a joint the solve holds still
+#: holds. Each channel's keys are compacted at the share of it its place in a
+#: chain allows (:func:`solved_key_tolerances`), the error measured at every
+#: frame (:func:`compact_keys`), so curved motion is compacted too.
+SOLVED_POSE_TOLERANCE_PX: float = 0.05
+
+
+def solved_key_tolerances(
+    puppet: Any, *, budget: float = SOLVED_POSE_TOLERANCE_PX
+) -> dict[str, float]:
+    """``{channel: tolerance}`` for compacting ``puppet``'s solved keys so no
+    point of any body strays more than ``budget`` px from the solve (an#636).
+
+    The errors add along a chain: a point moves at most ``tolerance`` × (√2 for
+    the root's x and y, plus one per rotating body down to it) × its scale, a
+    rotation's tolerance being the positional one over the puppet's whole
+    reach (every body's box end to end, its lever at most). So each channel
+    gets ``budget`` over the longest chain's count, at the largest scale.
+    """
+    bodies = list(puppet.bodies.values())
+
+    def chain(b: Any) -> int:
+        n, cursor = 1, b.parent_body
+        while cursor is not None and n <= len(bodies):
+            n, cursor = n + 1, puppet.bodies[cursor].parent_body
+        return n
+
+    longest = max((chain(b) for b in bodies), default=1)
+    scale = max([1.0] + [max(abs(b.sx), abs(b.sy)) for b in bodies])
+    reach = max(1.0, sum(math.hypot(b.box[2], b.box[3]) for b in bodies))
+    position = budget / ((math.sqrt(2.0) + longest) * scale)
+    return {"x": position, "y": position, "rotation": position / reach}
 
 
 def compact_keys(
@@ -1982,14 +2007,7 @@ def _emit(
     clips: dict[str, list[Any]] = {}
     emitted: set[tuple[str, str]] = set()
     index = {prop: i for i, prop in enumerate(SOLVED_CHANNELS)}
-    reach = max(
-        1.0, sum(math.hypot(b.box[2], b.box[3]) for b in puppet.bodies.values())
-    )
-    tolerance = {
-        "x": SOLVED_KEY_TOLERANCE_PX,
-        "y": SOLVED_KEY_TOLERANCE_PX,
-        "rotation": SOLVED_KEY_TOLERANCE_PX / reach,
-    }
+    tolerance = solved_key_tolerances(puppet)
 
     def keyframes(vs: Sequence[float], prop: str) -> list[Any]:
         kept = compact_keys(

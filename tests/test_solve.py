@@ -789,12 +789,12 @@ def test_solved_keys_are_compacted_where_the_solve_is_already_straight(
     tmp_path, monkeypatch
 ):
     """an#636 (item 2): a dynamic shot's solved channels drop the keys that
-    linear interpolation already reproduces within `SOLVED_KEY_TOLERANCE_PX`
-    (a still or evenly moving stretch), and the drawn hand is where the
-    uncompacted document puts it at every frame, within that tolerance summed
-    down the arm's chain (√2 for the root's x and y, one per rotating body)."""
+    linear interpolation already reproduces within each channel's share of
+    `SOLVED_POSE_TOLERANCE_PX` (curved stretches too, measured at every frame),
+    and the drawn hand is where the uncompacted document puts it at every
+    frame, within that budget; the grip still holds."""
     import an.stage.solve as solve
-    from an.stage.solve import SOLVE_CLIP_PREFIX, SOLVED_KEY_TOLERANCE_PX
+    from an.stage.solve import SOLVE_CLIP_PREFIX, SOLVED_POSE_TOLERANCE_PX
 
     project = _project(tmp_path)
     shot = _shot(
@@ -824,5 +824,9 @@ def test_solved_keys_are_compacted_where_the_solve_is_already_straight(
     assert keys(compact) < keys(full) / 2, (keys(compact), keys(full))
     for t in _times(2.0):
         a, b = _hand_and_grip(compact, t)[0], _hand_and_grip(full, t)[0]
-        chain = math.sqrt(2.0) + 3  # torso, upper arm, forearm
-        assert math.dist(a, b) <= chain * SOLVED_KEY_TOLERANCE_PX, (t, a, b)
+        assert math.dist(a, b) <= SOLVED_POSE_TOLERANCE_PX, (t, a, b)
+    # every joint's two ends move at most the budget each: its gap with them
+    stores = {"props": project.mall["props"], "environments": project.mall["environments"]}
+    gaps = [solve.joint_residuals(doc, shot, stores)[2] for doc in (compact, full)]
+    for at_c, at_f in zip(*gaps):
+        assert all(c <= f + 2 * SOLVED_POSE_TOLERANCE_PX + 1e-9 for c, f in zip(at_c, at_f))
