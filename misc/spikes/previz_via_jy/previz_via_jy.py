@@ -188,7 +188,10 @@ def property_space(info: Mapping[str, Any], *, name: str = "previz.view"):
 
     return PropertySpace(
         name,
-        tuple(FieldDecl(path, kind_from_spec(spec)) for path, spec in info["space"].items()),
+        tuple(
+            FieldDecl(path, kind_from_spec(spec))
+            for path, spec in info["space"].items()
+        ),
     )
 
 
@@ -214,7 +217,11 @@ def lower_reel(info: Mapping[str, Any]):
     for path in view_paths(info):
         keys = []
         for seg in segments:
-            src = states[seg["from"]] if seg["kind"] == "transition" else states[seg["to"]]
+            src = (
+                states[seg["from"]]
+                if seg["kind"] == "transition"
+                else states[seg["to"]]
+            )
             easing = (seg.get("transition") or {}).get("timing", "linear")
             keys.append(Keyframe(seg["start"], _get_path(src, path), easing=easing))
         keys.append(Keyframe(info["duration"], _get_path(states[-1], path)))
@@ -232,7 +239,9 @@ def pose_to_state(pose: Mapping[Any, Any]) -> dict[str, Any]:
     return state
 
 
-def state_to_pose(state: Mapping[str, Any], paths: Sequence[str]) -> dict[tuple[str, str], Any]:
+def state_to_pose(
+    state: Mapping[str, Any], paths: Sequence[str]
+) -> dict[tuple[str, str], Any]:
     return {(VIEW_TARGET, p): _get_path(state, p) for p in paths}
 
 
@@ -360,7 +369,9 @@ def part_a(previz_dir: Path, sequence: Mapping[str, Any], fps: float) -> dict[st
         t2 = time.perf_counter()
         for i in range(LATENCY_SAMPLES):
             rt.statesAt([i / LATENCY_SAMPLES * info["duration"]])
-        out["single_state_roundtrip_ms"] = (time.perf_counter() - t2) / LATENCY_SAMPLES * 1e3
+        out["single_state_roundtrip_ms"] = (
+            (time.perf_counter() - t2) / LATENCY_SAMPLES * 1e3
+        )
         n = max(1, round(info["duration"] * fps))
         times = [i / fps for i in range(n)]
         t3 = time.perf_counter()
@@ -377,7 +388,9 @@ def part_a(previz_dir: Path, sequence: Mapping[str, Any], fps: float) -> dict[st
     return out
 
 
-def kernel_agreement(info: Mapping[str, Any], previz_states: Sequence[Any], times: Sequence[float]):
+def kernel_agreement(
+    info: Mapping[str, Any], previz_states: Sequence[Any], times: Sequence[float]
+):
     """The core's evaluation of the LOWERED reel against previz's own, at every time."""
     from an.timing.timeline import evaluate_timeline
 
@@ -422,7 +435,9 @@ def render_shot(previz_dir: Path, sequence, drive: str, out_dir: Path, *, fps, s
         "profile": engine.last_profile,
         "affordances": engine_affordances(renderer),
         "provenance_engine_keys": {
-            k: v for k, v in result.provenance.items() if k.startswith("previz") or k == "engine"
+            k: v
+            for k, v in result.provenance.items()
+            if k.startswith("previz") or k == "engine"
         },
     }
 
@@ -477,7 +492,9 @@ _PAGE_DRAW = """async (times) => {
 }"""
 
 
-def page_probe(previz_dir: Path, sequence, times: Sequence[float], out_dir: Path, *, size):
+def page_probe(
+    previz_dir: Path, sequence, times: Sequence[float], out_dir: Path, *, size
+):
     """previz's dist in a Playwright page (where a DOM/WebGL engine must live): timing and parity."""
     from playwright.sync_api import sync_playwright
 
@@ -488,7 +505,9 @@ def page_probe(previz_dir: Path, sequence, times: Sequence[float], out_dir: Path
         browser = p.chromium.launch()
         page = browser.new_page()
         page.goto(base + "/package.json")  # same origin as the modules
-        duration = page.evaluate(_PAGE_SETUP, [base, dict(sequence), w, h, DEMO_SUPERSAMPLE])
+        duration = page.evaluate(
+            _PAGE_SETUP, [base, dict(sequence), w, h, DEMO_SUPERSAMPLE]
+        )
         setup_s = time.perf_counter() - t0
         t1 = time.perf_counter()
         b64s = page.evaluate(_PAGE_DRAW, list(times))
@@ -510,15 +529,26 @@ def page_probe(previz_dir: Path, sequence, times: Sequence[float], out_dir: Path
 def main(argv: Sequence[str] | None = None) -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--previz", type=Path, default=_default_previz_dir())
-    ap.add_argument("--sequence", type=Path, default=None, help="default: <previz>/examples/orbit.json")
-    ap.add_argument("--out", type=Path, default=Path(tempfile.gettempdir()) / "previz_via_jy")
+    ap.add_argument(
+        "--sequence",
+        type=Path,
+        default=None,
+        help="default: <previz>/examples/orbit.json",
+    )
+    ap.add_argument(
+        "--out", type=Path, default=Path(tempfile.gettempdir()) / "previz_via_jy"
+    )
     ap.add_argument("--fps", type=float, default=DFLT_FPS)
     ap.add_argument("--width", type=int, default=DFLT_WIDTH)
     ap.add_argument("--height", type=int, default=DFLT_HEIGHT)
-    ap.add_argument("--skip-page", action="store_true", help="skip the Playwright probe")
+    ap.add_argument(
+        "--skip-page", action="store_true", help="skip the Playwright probe"
+    )
     args = ap.parse_args(argv)
     if args.previz is None or not (args.previz / "dist" / "index.js").exists():
-        raise SystemExit(f"need a BUILT previz checkout (dist/index.js); got --previz {args.previz}")
+        raise SystemExit(
+            f"need a BUILT previz checkout (dist/index.js); got --previz {args.previz}"
+        )
     seq_path = args.sequence or args.previz / "examples" / "orbit.json"
     sequence = json.loads(seq_path.read_text())
     args.out.mkdir(parents=True, exist_ok=True)
@@ -533,7 +563,12 @@ def main(argv: Sequence[str] | None = None) -> None:
 
     print("== kernel agreement: an.timing on the lowered reel vs previz's reel.at")
     n = max(1, round(info["duration"] * args.fps))
-    dense = sorted({*(i / args.fps for i in range(n + 1)), *(i * info["duration"] / 997 for i in range(998))})
+    dense = sorted(
+        {
+            *(i / args.fps for i in range(n + 1)),
+            *(i * info["duration"] / 997 for i in range(998)),
+        }
+    )
     with previz_runtime(args.previz) as rt:
         rt.load(dict(sequence), 8, 8, 1)
         previz_states = rt.statesAt(dense)
@@ -548,7 +583,9 @@ def main(argv: Sequence[str] | None = None) -> None:
     print("== (b) shots through frame_stage_renderer")
     shots = {}
     for drive in drives:
-        shots[drive] = render_shot(args.previz, sequence, drive, args.out, fps=args.fps, size=size)
+        shots[drive] = render_shot(
+            args.previz, sequence, drive, args.out, fps=args.fps, size=size
+        )
         s = shots[drive]
         print(
             f"{drive}: {s['frames']} frames, {s['render_s']:.2f} s "
@@ -560,9 +597,12 @@ def main(argv: Sequence[str] | None = None) -> None:
     same = "state" in shots and frames_identical(
         shots["time"]["frame_manifest"], shots["state"]["frame_manifest"]
     )
-    print(f"time-driven and state-driven frames pixel-identical: {same if 'state' in shots else 'n/a'}")
+    print(
+        f"time-driven and state-driven frames pixel-identical: {same if 'state' in shots else 'n/a'}"
+    )
     report["shots"] = {
-        d: {k: v for k, v in s.items() if k != "frame_manifest"} for d, s in shots.items()
+        d: {k: v for k, v in s.items() if k != "frame_manifest"}
+        for d, s in shots.items()
     }
     report["drives_identical"] = same
     report["report_frames"] = [
@@ -573,9 +613,11 @@ def main(argv: Sequence[str] | None = None) -> None:
 
     if not args.skip_page:
         print("== (b') page-side: previz dist in a Playwright page")
-        times = [i / args.fps for i in REPORT_FRAMES]
+        manifest = shots["time"]["frame_manifest"]
+        sampled = [i for i in REPORT_FRAMES if i < len(manifest)]
+        times = [i / args.fps for i in sampled]
         pg = page_probe(args.previz, sequence, times, args.out / "page", size=size)
-        node_frames = [shots["time"]["frame_manifest"][i] for i in REPORT_FRAMES]
+        node_frames = [manifest[i] for i in sampled]
         pg["identical_to_node"] = frames_identical(pg["frames"], node_frames)
         print(json.dumps(pg, indent=2, default=str))
         report["page"] = pg

@@ -56,7 +56,7 @@ The frame cost is the demo engine's software rasteriser, the same in Node and in
   - **time-driven**: `frame(t)`, `frames(requests)` (batched, one round trip per 8 frames) and `state(t)`. previz evaluates its own reel. `describe` gives `seekable / time / {batch, readback, provenance}`.
   - **state-driven**: `timeline` (the lowered reel), `space`, `render(state)` and `render_states(states)`. The core evaluates, previz only draws. `describe` gives `seekable / state / {batch, provenance}`.
   The two shots' 108 decoded frames are **pixel-identical**.
-- **(b') Page-side.** previz's `dist/core/compile.js` and `dist/engines/demo/index.js` load into a Playwright page by dynamic `import()` from a same-origin static server, with no bundling and no import map (neither module imports `zod`). Frames drawn there and read back through a canvas are pixel-identical to Node's.
+- **(b') Page-side.** previz's `dist/core/compile.js` and `dist/engines/demo/index.js` load into a Playwright page by dynamic `import()` from a same-origin static server, with no bundling and no import map (neither module imports `zod`). Frames drawn there and read back through a canvas are pixel-identical to Node's, at the 4 sampled frames the spike compares.
 - **(c) Capabilities.** With `view_spaces = ("orbit3d",)`, `an.capabilities.subjects.engine_affordances(renderer)` reports `{'engine.render': {'keys': ['previz']}, 'space.orbit3d': {}}`. Provenance carries the engine's own facts (`previz_drive`, `previz_engine`, `previz_node`) beside the core's, with no clash.
 
 ## What did not work, or needed a workaround
