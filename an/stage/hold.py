@@ -91,7 +91,7 @@ from an.stage.solve import (
     _compose,
     _decompose,
     _invert,
-    _local_box,
+    local_box,
     _numbers,
     _pivot,
     _wrap,
@@ -503,7 +503,7 @@ def ink_points(
     >>> ink_points(None, NodeJSON(name="n", visual=VisualJSON(width=10, height=20)), None)
     [(-5.0, -10.0), (5.0, -10.0), (-5.0, 10.0), (5.0, 10.0)]
     """
-    box = _local_box(node)
+    box = local_box(node)
     corners = _corners(box)
     v = node.visual
     if v is None or doc is None or mall is None or not (v.width and v.height):
@@ -711,14 +711,14 @@ def _anchors_in(
 ) -> dict[str, tuple[float, float]]:
     """A rig's bones as points in node ``frame``'s own coordinates, at rest
     (the entity's own when ``frame`` is the entity)."""
-    from an.stage.solve import _world_matrices
+    from an.stage.solve import world_matrices
 
     owners = {
         bone: eid if a.on is None else f"{eid}/{rig.bodies.get(a.on, a.on)}"
         for bone, a in rig.anchors.items()
     }
     paths = sorted({eid, frame, *(p for p in owners.values() if p in nodes)})
-    rest = _world_matrices(doc, paths, None, nodes)
+    rest = world_matrices(doc, paths, None, nodes)
     inv = _invert(rest[frame])
     out: dict[str, tuple[float, float]] = {}
     for bone, anchor in rig.anchors.items():
@@ -738,12 +738,12 @@ def _item_info(
     item: str,
     vocab: Any,
 ) -> ItemInfo | None:
-    from an.stage.solve import _parent_path, _rig_of, _world_matrices
+    from an.stage.solve import _parent_path, _rig_of, world_matrices
 
     if item not in nodes:
         return None
     paths = [p for p in nodes if p == item or p.startswith(item + "/")]
-    rest = _world_matrices(doc, paths, None, nodes)
+    rest = world_matrices(doc, paths, None, nodes)
     inv = _invert(rest[item])
     corners: list[tuple[float, float]] = []
     for p in paths:
@@ -753,7 +753,7 @@ def _item_info(
         local = _compose(inv, rest[p])
         corners.extend(_apply(local, c) for c in ink_points(doc, node, mall))
     if not corners:
-        corners = _corners(_local_box(nodes[item]))
+        corners = _corners(local_box(nodes[item]))
     xs, ys = [c[0] for c in corners], [c[1] for c in corners]
     box = (min(xs), min(ys), max(xs) - min(xs), max(ys) - min(ys))
     centre = (box[0] + box[2] / 2.0, box[1] + box[3] / 2.0)

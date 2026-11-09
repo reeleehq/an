@@ -1,4 +1,4 @@
-"""Contact shadows (an#519 rank 16, catalogue D2): an ellipse at each contact, offset from the light.
+"""Contact shadows (an#519 rank 16, catalogue D2): one ellipse per support, spanning its contacts, offset from the light.
 
 A member that says ``shadow: contact`` gets a synthetic ``<id>__shadow`` node
 from the ``contact_shadows`` compile pass (:mod:`an.stage.shadow`), on its
@@ -262,6 +262,180 @@ def test_on_a_world_floor_the_shadow_lies_on_the_projected_floor(tmp_path):
     assert x == pytest.approx(floor.at[0], abs=2.0)
 
 
+def _paint_order(doc, t):
+    """The scene root's children in the order they are painted at ``t``."""
+    from an.base import Z_INDEX_PROPERTY
+
+    pose = evaluate_timeline(timeline_from_scene(doc), t)
+    z = {
+        n.name: (pose.get((n.name, Z_INDEX_PROPERTY), n.z_index), i)
+        for i, n in enumerate(doc.scene.children)
+    }
+    return sorted(z, key=z.get)
+
+
+@pytest.mark.parametrize("shadowed", [("a",), ("b",), ("a", "b")])
+def test_a_shadow_rides_its_member_when_the_world_reorders_it_by_depth(
+    tmp_path, shadowed
+):
+    """an#634 review: ``a`` walks away from the camera (depth 3 to 8) past
+    ``b`` (depth 5). The world keys both by depth; each shadow rides its
+    member's keys just behind it, so the pair is still reordered (both get
+    ``z_index`` keys: an unkeyed shadow between them used to end the run) and
+    every shadow is painted right under its member at every frame."""
+    from tests.test_world_ground import G, _member, _world
+
+    from an.base import Z_INDEX_PROPERTY
+    from an.stage.world import lower_scene
+
+    def listed(eid):
+        extra = SHADOW if eid in shadowed else ""
+        return f"- {{kind: prop, id: {eid}, store: props, ref: walker{extra}}}\n"
+
+    supports = ", ".join(f"{{type: support, a: {e}, b: ground}}" for e in shadowed)
+    project, scene = _world(
+        tmp_path,
+        [_member("a", "walker", (-0.3, G, 3.0)), _member("b", "walker", (0.3, G, 5.0))],
+        joints=f"[{supports}]",
+        entities=listed("a") + listed("b"),
+        actions="- {kind: tween, target: a, property: at_z, from: 3.0, to: 8.0, duration: 2.0, easing: linear}",
+    )
+    shot = lower_scene(scene, project.mall).scene.timeline[0]
+    doc = _compile(project, shot=shot)
+    keyed = {
+        c.target
+        for clip in doc.animations.values()
+        for c in clip.channels
+        if c.property == Z_INDEX_PROPERTY
+    }
+    assert {"a", "b"} <= keyed
+    orders = set()
+    for frame in range(48):
+        order = _paint_order(doc, frame / 24 + 0.01)
+        for eid in shadowed:
+            assert order.index(f"{eid}__shadow") == order.index(eid) - 1, (frame, order)
+        orders.add(order.index("a") < order.index("b"))
+    assert orders == {True, False}  # they did swap
+
+
+def test_the_world_paint_keys_of_a_shadow_ride_behind_its_member():
+    from an.base import paint_key_rank
+    from an.stage.shadow import shadow_paint_keys
+
+    keys = {"cup": [(0.0, [1.0, -5.0, 0.0])], "rider": [(0.0, [1.0, -5.0, 0.0, -1, 0])]}
+    names = ["cup__shadow", "cup__shadow_1", "rider", "cup"]
+    mine = shadow_paint_keys(names, keys)
+    ranks = [paint_key_rank(({**keys, **mine})[n][0][1]) for n in names]
+    assert ranks == sorted(ranks)  # both shadows, then the rider, then the cup
+
+
+def test_a_tilted_surface_tilts_its_shadow(tmp_path):
+    """A cup on ``crate@surface``, the crate turned: the shadow turns with the
+    surface (its ``rotation`` the crate's, sign included) and lies on the
+    surface's line, computed here from the crate's own geometry."""
+    import math
+
+    from tests._hold_fixture import CRATE_SURFACE, K
+
+    top = GROUND - CRATE_SURFACE * K
+    for turn in (0.2, -0.2):
+        project = _project(
+            tmp_path / str(turn),
+            entities=_entity("crate", "crate", 160, GROUND)
+            + _entity("cup", "cup", 160, top, SHADOW),
+            shot=_shot("[{type: support, a: cup, b: crate@surface}]"),
+            actions=f"- {{kind: set, target: crate, property: rotation, value: {turn}, at: 0}}",
+        )
+        node = _node(_compile(project), "cup__shadow")
+        assert node.transform.rotation == pytest.approx(turn, abs=1e-6)
+        c, s = math.cos(turn), math.sin(turn)
+        (ax, ay), (bx, by) = [
+            (160 + c * dx - s * dy, GROUND + s * dx + c * dy)
+            for dx, dy in ((-50 * K, -CRATE_SURFACE * K), (50 * K, -CRATE_SURFACE * K))
+        ]
+        x, y = node.transform.x, node.transform.y
+        off_line = ((x - ax) * (by - ay) - (y - ay) * (bx - ax)) / math.hypot(
+            bx - ax, by - ay
+        )
+        assert off_line == pytest.approx(0.0, abs=1e-4), turn
+        assert ax < x < bx
+
+
+def test_a_support_with_two_contacts_casts_one_ellipse_spanning_them(tmp_path):
+    from an.project import load
+    from an.stage.shadow import CONTACT_SHADOW_MARGIN
+    from an.stage.support import supports_at
+
+    desc = _prop(
+        "bench",
+        w=80,
+        h=20,
+        origin=False,
+        metadata={"contacts": {"left": [0.0, 1.0], "right": [1.0, 1.0]}},
+    )
+    project = _project(
+        tmp_path,
+        entities=_entity("bench", "bench", 30, GROUND, SHADOW),
+        shot=_shot("[{type: support, a: bench, b: ground}]"),
+    )
+    bench = project.root / "assets" / "props" / "bench"
+    (bench / "parts").mkdir(parents=True)
+    (bench / "prop.json").write_text(json.dumps(desc), encoding="utf-8")
+    (bench / "parts" / "body.svg").write_text(_svg(80, 20), encoding="utf-8")
+    project = load(project.root)
+    doc = _compile(project)
+    assert [n for n in _names(doc) if "__shadow" in n] == ["bench__shadow"]
+    (state,) = supports_at(doc, project.scene.timeline[0], project.mall, times=[0.0])[0]
+    left, right = sorted(c.at[0] for c in state.contacts)
+    assert right - left > 50  # two contacts, far apart
+    node = _node(doc, "bench__shadow")
+    assert node.transform.x == pytest.approx((left + right) / 2, abs=1e-5)
+    assert (
+        node.visual.width >= right - left + CONTACT_SHADOW_MARGIN * state.height - 1e-6
+    )
+
+
+# --- overrides and clip ids -----------------------------------------------------------
+
+
+def test_a_path_entity_may_ask_for_a_shadow(tmp_path):
+    """``shadow`` is a core override key (:data:`an.base.CORE_OVERRIDE_KEYS`): a
+    stroked path's resolver does not refuse it as a field of its document, and
+    the path standing on the floor gets its shadow."""
+    from an.paths import PathDescriptor
+
+    project = _project(
+        tmp_path,
+        entities=_entity("rope", "rope", 0, GROUND, SHADOW),
+        shot=_shot("[{type: support, a: rope, b: ground}]"),
+    )
+    project.mall["props"]["rope"] = PathDescriptor(
+        name="rope", points=[(-40, 0), (0, -30), (40, 0)]
+    ).model_dump(mode="json")
+    doc = _compile(project)
+    assert {"rope", "rope__shadow"} <= set(_names(doc))
+
+
+def test_a_taken_clip_id_gets_a_fresh_one():
+    from types import SimpleNamespace as NS
+
+    from an.stage.shadow import SHADOW_CLIP_PREFIX, _add_shadow_clip, _Shadow
+
+    moving = _Shadow("cup", "cup__shadow", {"x": [0.0, 5.0], **{
+        p: [1.0, 1.0] for p in ("y", "rotation", "scale_x", "scale_y", "alpha")
+    }}, 10.0, 2.0)  # fmt: skip
+    taken = f"{SHADOW_CLIP_PREFIX}cup__shadow"
+    state = NS(
+        animations={taken: object()},
+        tracks=[],
+        shot=NS(id="s", duration=1.0),
+        step_hz=None,
+    )
+    _add_shadow_clip(state, moving, times=[0.0, 1.0])
+    assert f"{taken}~2" in state.animations
+    assert state.tracks[0].clips[0].animation_id == f"{taken}~2"
+
+
 # --- in pixels ----------------------------------------------------------------------
 
 
@@ -306,6 +480,10 @@ def test_in_pixels_the_shadow_lies_under_the_cup_cast_away_from_the_light(
     assert right > left + 2, (
         f"not cast away from the light (left {left}, right {right})"
     )
+    # its centre where the compiled document puts it (cast right by its lean)
+    x = _at(_compile(project, light=UPPER_LEFT), 0.0)[0]
+    centre = (min(cols) + max(cols) + 1) / 2  # pixel k covers [k, k + 1)
+    assert centre == pytest.approx(cx + x, abs=1.5), (centre, cx + x)
     assert not any(shadow(px[x, floor - 20]) for x in range(cx - 10, cx + 11)), (
         "the shadow is painted over the cup"
     )

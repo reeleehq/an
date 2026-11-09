@@ -289,7 +289,7 @@ def findings_record(
 
 def render_context_for(project: Any, **overrides: Any) -> "RenderContext":
     """The context a measurement is looked up in for ``project``'s scene, at its
-    declared fps and size (what ``an render`` uses without overrides)."""
+    declared fps, size and light (what ``an render`` uses without overrides)."""
     from an.adapters._base import RenderContext
     from an.base import DEFAULT_FPS, DEFAULT_RESOLUTION
 
@@ -302,6 +302,7 @@ def render_context_for(project: Any, **overrides: Any) -> "RenderContext":
             meta.resolution.width or DEFAULT_RESOLUTION[0],
             meta.resolution.height or DEFAULT_RESOLUTION[1],
         ),
+        "light": meta.light,
     }
     kwargs.update(overrides)
     return RenderContext(**kwargs)

@@ -4,8 +4,10 @@ A member that says ``shadow: contact`` (its entity's ``overrides.shadow``, or
 ``metadata.shadow`` in its store document, next to ``shaded_side`` and
 ``contacts``; the entity's own wins) gets, for each of its supports (a
 declared ``support`` joint, or the stance it is taken to have on the shot's
-floor, :func:`an.stage.support.supports_at`), a flattened ellipse on the
-surface at its contact, painted just under it. It is a compile-pass product (a
+floor, :func:`an.stage.support.supports_at`), one flattened ellipse on the
+surface spanning its contacts, painted just under it (and under what rides
+just behind it; in a world that reorders it by depth, its shadow rides its
+paint keys, :func:`shadow_paint_keys`). It is a compile-pass product (a
 synthetic node ``<entity>__shadow``, like the stage's ``__band`` containers),
 never authored:
 
@@ -45,10 +47,12 @@ from __future__ import annotations
 
 import math
 import warnings
+from collections import Counter
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any
 
+from an.base import SHADOW_OVERRIDE
 from an.stage.compile import CutoutCompileError, CutoutCompileWarning
 
 __all__ = [
@@ -73,12 +77,15 @@ __all__ = [
     "light_lean",
     "contact_shadow_pose",
     "shadow_node_name",
+    "shadow_owner",
+    "shadow_paint_keys",
     "contact_shadow_pass",
 ]
 
-#: The declaration's key: the entity's ``overrides`` or its store document's ``metadata``.
-SHADOW_KEY: str = "shadow"
-#: A flattened ellipse at each contact (built).
+#: The declaration's key: the entity's ``overrides`` (a core override key,
+#: :data:`an.base.SHADOW_OVERRIDE`) or its store document's ``metadata``.
+SHADOW_KEY: str = SHADOW_OVERRIDE
+#: A flattened ellipse per support, spanning its contacts (built).
 CONTACT_SHADOW: str = "contact"
 #: A skewed silhouette along the light (catalogue D2's second form; not built).
 CAST_SHADOW: str = "cast"
@@ -177,8 +184,8 @@ def shadow_of(entity: Any, desc: Any = None) -> str | None:
         raise CastShadowNotBuiltError(
             f"{getattr(entity, 'id', entity)!r} asks for `shadow: cast` (a skewed "
             "silhouette along the light, catalogue D2), which is not built yet: "
-            f"only `shadow: {CONTACT_SHADOW}` is (an ellipse at each contact, offset "
-            f"from the light). Say `shadow: {CONTACT_SHADOW}`, or follow the cast "
+            f"only `shadow: {CONTACT_SHADOW}` is (one ellipse per support, spanning "
+            f"its contacts, offset from the light). Say `shadow: {CONTACT_SHADOW}`, or follow the cast "
             f"shadow's follow-up at {CAST_SHADOW_FOLLOW_UP}."
         )
     if value != CONTACT_SHADOW:
@@ -347,7 +354,7 @@ def _opening_widths(
 ) -> dict[str, float]:
     """Each entity's drawn width as the shot opens (px, stage): the span in
     ``x`` of its drawn nodes' boxes, as the support's height is in ``y``."""
-    from an.stage.solve import _apply, _local_box, _world_matrices
+    from an.stage.solve import _apply, local_box, world_matrices
     from an.timing.timeline import evaluate_timeline
 
     pose = evaluate_timeline(timeline, 0.0)
@@ -358,11 +365,11 @@ def _opening_widths(
             for p, n in nodes.items()
             if (p == eid or p.startswith(eid + "/")) and n.visual is not None
         ]
-        world = _world_matrices(doc, drawn, pose, nodes)
+        world = world_matrices(doc, drawn, pose, nodes)
         xs = [
             _apply(world[p], (left + dx, top + dy))[0]
             for p in drawn
-            for left, top, w, h in (_local_box(nodes[p]),)
+            for left, top, w, h in (local_box(nodes[p]),)
             for dx, dy in ((0.0, 0.0), (w, 0.0), (0.0, h), (w, h))
         ]
         out[eid] = (max(xs) - min(xs)) if xs else 0.0
@@ -389,204 +396,392 @@ def _filled(values: list[Any], fallback: Any) -> list[Any]:
     return out
 
 
+@dataclass(frozen=True)
+class _Shadow:
+    """One shadow node the pass places: its ``name``, its channels' value at
+    every frame of the grid (``values``), and its ellipse's ``width`` and
+    ``height`` (px) at full size."""
+
+    member: str
+    name: str
+    values: dict[str, list[float]]
+    width: float
+    height: float
+
+
 def contact_shadow_pass(state: Any) -> None:
     """The ``contact_shadows`` compile pass (catalogue D2): a shadow node under
-    each supported member that asks for one, keyed every frame of the shot's
-    grid where it moves. A no-op (byte-identical) when no member asks."""
+    each supported member that asks for one, one per support (spanning its
+    contacts), keyed every frame of the shot's grid where it moves. A no-op
+    (byte-identical) when no member asks."""
     asked = _asked(state)
     if not asked:
         return
-    from an.base import UNSEEN_ALPHA
     from an.stage.compile import _assemble_document, _rebuild_vocabulary
-    from an.stage.solve import _node_index, _world_matrices, frame_times
+    from an.stage.solve import frame_times
+
+    doc = _assemble_document(state, background="#000000")
+    times = frame_times(state.shot.duration, fps=state.fps, step_hz=state.step_hz)
+    series = _support_series(state, asked, doc=doc, times=times)
+    if not series:
+        return
+    shadows = _shadow_values(
+        series, getattr(state, "light", None), doc=doc, times=times
+    )
+    if not shadows:
+        return
+    _place(state, shadows, times=times)
+    _rebuild_vocabulary(state)
+
+
+def _support_series(
+    state: Any, asked: Mapping[str, str], *, doc: Any, times: Sequence[float]
+) -> dict[tuple[str, str], dict[int, Any]]:
+    """``{(entity, support): {frame: SupportState}}`` for every member in
+    ``asked``, over the grid ``times``; a member nothing supports is said, by
+    name, to draw none."""
     from an.stage.support import supports_at
-    from an.stage.timeline import entity_alpha, timeline_from_scene
-    from an.timing.timeline import evaluate_timeline
 
     shot = state.shot
-    doc = _assemble_document(state, background="#000000")
-    times = frame_times(shot.duration, fps=state.fps, step_hz=state.step_hz)
     states, _problems = supports_at(doc, shot, state.mall, times=times, rest_only=False)
     series: dict[tuple[str, str], dict[int, Any]] = {}
     for s in states:
         if s.entity in asked:
             series.setdefault((s.entity, s.where), {})[s.frame] = s
+    supported = {e for e, _ in series}
     for eid in asked:
-        if not any(e == eid for e, _ in series):
+        if eid not in supported:
             warnings.warn(
                 f"shot {shot.id!r}: {eid!r} asks for a contact shadow (`shadow: "
                 f"{CONTACT_SHADOW}`) but nothing supports it, so none is drawn: "
                 "declare a `support` joint, or a floor it stands on (`solve: "
                 "{ground: y}`, a world's `ground`).",
                 CutoutCompileWarning,
-                stacklevel=2,
+                stacklevel=3,
             )
-    if not series:
-        return
-    nodes = _node_index(doc)
-    timeline = timeline_from_scene(doc)
-    light = getattr(state, "light", None)
-    vector = light.vector if light is not None else None
-    elevation = getattr(light, "elevation", None)
-    entities = sorted({e for e, _ in series})
-    breadth = _opening_widths(doc, nodes, entities, timeline)
+    return series
+
+
+def _member_frames(
+    doc: Any,
+    nodes: Mapping[str, Any],
+    entities: Sequence[str],
+    timeline: Any,
+    times: Sequence[float],
+) -> dict[str, list[tuple[float, float]]]:
+    """``{entity: [(alpha, growth)]}`` at each of ``times``: its alpha, and its
+    node's scale relative to the shot's opening (a member the world brings
+    nearer grows, and so does its shadow)."""
+    from an.stage.solve import world_matrices
+    from an.stage.timeline import entity_alpha
+    from an.timing.timeline import evaluate_timeline
+
     opening: dict[str, float] = {}
-    per_entity: dict[str, list[tuple[float, float]]] = {e: [] for e in entities}
+    out: dict[str, list[tuple[float, float]]] = {e: [] for e in entities}
     for t in times:
         pose = evaluate_timeline(timeline, t)
-        world = _world_matrices(doc, entities, pose, nodes)
+        world = world_matrices(doc, entities, pose, nodes)
         for eid in entities:
             try:
                 alpha = entity_alpha(doc, pose, eid)
             except KeyError:
                 alpha = 1.0
             scale = _scale(world[eid])
-            opening.setdefault(eid, scale)
-            per_entity[eid].append((alpha, scale))
-    built: dict[str, list[tuple[str, dict[str, list[float]], float, float]]] = {}
-    for (eid, where), by_frame in series.items():
-        first = next(iter(by_frame.values()))
-        poses: list[ShadowPose | None] = []
-        for i in range(len(times)):
-            s = by_frame.get(i)
-            alpha, scale = per_entity[eid][i]
-            if s is None or alpha <= UNSEEN_ALPHA:
-                poses.append(None)
-                continue
-            grown = scale / opening[eid] if opening[eid] > 0 else 1.0
-            p = contact_shadow_pose(
-                s,
-                height=s.height * grown,
-                least=_least(s.height, breadth[eid]) * grown,
-                light=vector,
-                elevation=elevation,
-            )
-            if p is not None:
-                p = ShadowPose(
-                    p.x, p.y, p.rotation, p.width, p.alpha * min(1.0, alpha), p.shrink
-                )
-            poses.append(p)
+            first = opening.setdefault(eid, scale)
+            out[eid].append((alpha, scale / first if first > 0 else 1.0))
+    return out
+
+
+def _shadow_values(
+    series: Mapping[tuple[str, str], Mapping[int, Any]],
+    light: Any,
+    *,
+    doc: Any,
+    times: Sequence[float],
+) -> dict[str, list[_Shadow]]:
+    """``{entity: [shadow]}``: each support's shadow (``series``, from
+    :func:`_support_series`) under ``light`` (a :class:`an.ir.schema.SceneLight`,
+    or ``None``), its channels' values at every frame of ``times``; a shadow
+    never seen at any frame is left out."""
+    from an.stage.solve import node_index
+    from an.stage.timeline import timeline_from_scene
+
+    nodes = node_index(doc)
+    timeline = timeline_from_scene(doc)
+    vector = light.vector if light is not None else None
+    elevation = getattr(light, "elevation", None)
+    entities = sorted({e for e, _ in series})
+    breadth = _opening_widths(doc, nodes, entities, timeline)
+    frames = _member_frames(doc, nodes, entities, timeline, times)
+    out: dict[str, list[_Shadow]] = {}
+    for (eid, _where), by_frame in series.items():
+        poses = _series_poses(
+            by_frame,
+            frames[eid],
+            breadth=breadth[eid],
+            light=vector,
+            elevation=elevation,
+        )
         if not any(p is not None and p.alpha > 0 for p in poses):
             continue
-        base = max(p.width for p in poses if p is not None)
-        thick = CONTACT_SHADOW_FLATTEN * _least(first.height, breadth[eid])
-        shown = [
-            None
-            if p is None
-            else {
-                "x": p.x,
-                "y": p.y,
-                "rotation": p.rotation,
-                "scale_x": p.width / base * p.shrink,
-                "scale_y": p.shrink,
-                "alpha": p.alpha,
-            }
-            for p in poses
-        ]
-        held = _filled(shown, None)  # a hidden frame holds the place, at alpha 0
-        values = {prop: [_q(h[prop]) for h in held] for prop in SHADOW_CHANNELS}
-        values["alpha"] = [0.0 if s is None else _q(s["alpha"]) for s in shown]
-        mine = built.setdefault(eid, [])
-        mine.append((shadow_node_name(eid, len(mine)), values, base, thick))
-    if not built:
-        return
-    _place(state, built, times=times)
-    _rebuild_vocabulary(state)
+        first = next(iter(by_frame.values()))
+        mine = out.setdefault(eid, [])
+        mine.append(
+            _shadow_track(
+                eid,
+                shadow_node_name(eid, len(mine)),
+                poses,
+                thick=CONTACT_SHADOW_FLATTEN * _least(first.height, breadth[eid]),
+            )
+        )
+    return out
+
+
+def _series_poses(
+    by_frame: Mapping[int, Any],
+    frames: Sequence[tuple[float, float]],
+    *,
+    breadth: float,
+    light: Sequence[float] | None,
+    elevation: float | None,
+) -> list[ShadowPose | None]:
+    """One support's shadow at each frame (``None`` where it measured nothing
+    or its member is not seen), times the member's own alpha."""
+    from an.base import UNSEEN_ALPHA
+
+    poses: list[ShadowPose | None] = []
+    for i, (alpha, grown) in enumerate(frames):
+        s = by_frame.get(i)
+        if s is None or alpha <= UNSEEN_ALPHA:
+            poses.append(None)
+            continue
+        p = contact_shadow_pose(
+            s,
+            height=s.height * grown,
+            least=_least(s.height, breadth) * grown,
+            light=light,
+            elevation=elevation,
+        )
+        if p is not None:
+            p = replace(p, alpha=p.alpha * min(1.0, alpha))
+        poses.append(p)
+    return poses
+
+
+def _shadow_track(
+    member: str, name: str, poses: Sequence[ShadowPose | None], *, thick: float
+) -> _Shadow:
+    """The shadow node ``name`` of ``member`` from its ``poses``: an ellipse as
+    wide as its widest pose, each frame's width and shrink a scale of it; a
+    frame with no pose holds the nearest one's place, at alpha 0."""
+    base = max(p.width for p in poses if p is not None)
+    shown = [
+        None
+        if p is None
+        else {
+            "x": p.x,
+            "y": p.y,
+            "rotation": p.rotation,
+            "scale_x": p.width / base * p.shrink,
+            "scale_y": p.shrink,
+            "alpha": p.alpha,
+        }
+        for p in poses
+    ]
+    held = _filled(shown, None)
+    values = {prop: [_q(h[prop]) for h in held] for prop in SHADOW_CHANNELS}
+    values["alpha"] = [0.0 if s is None else _q(s["alpha"]) for s in shown]
+    return _Shadow(member, name, values, base, thick)
 
 
 def _q(value: float) -> float:
     return round(value / _QUANTUM) * _QUANTUM + 0.0
 
 
+# -----------------------------------------------------------------------------
+# Placing the nodes, and their paint keys
+# -----------------------------------------------------------------------------
+
+
+def shadow_owner(name: str) -> tuple[str, int] | None:
+    """``(entity, k)`` of the shadow node ``name`` (:func:`shadow_node_name`),
+    ``None`` for any other node.
+
+    >>> shadow_owner("cup__shadow"), shadow_owner("cup__shadow_2"), shadow_owner("cup")
+    (('cup', 0), ('cup', 2), None)
+    >>> shadow_owner("cup__shadow_x"), shadow_owner("__shadow")
+    (None, None)
+    """
+    head, sep, tail = name.rpartition(SHADOW_INFIX)
+    if not sep or not head:
+        return None
+    if not tail:
+        return head, 0
+    k = tail[1:]
+    return (head, int(k)) if tail[0] == "_" and k.isdigit() and int(k) > 0 else None
+
+
+def shadow_paint_keys(
+    names: Sequence[str], keys: Mapping[str, Sequence[tuple[float, Any]]]
+) -> dict[str, list[tuple[float, list]]]:
+    """The paint keys (:data:`an.base.PAINT_KEYS_OVERRIDE`) of the shadow nodes
+    among ``names``, the children of one container, whose member has keys in
+    ``keys``: each rides its member just behind it at every time
+    (:func:`an.base.rider_key`, :data:`an.base.RIDER_BEHIND`), behind the
+    member's other riders on that side too (their ``n`` is never negative), as
+    :func:`_place` builds it, so a world that reorders its member by depth
+    moves its shadow with it (an#634).
+
+    >>> keys = {"a": [(0.0, [1, 5, 0]), (1.0, [1, 3, 0])], "b": [(0.0, [1, 4, 0])]}
+    >>> shadow_paint_keys(["a__shadow", "a", "b__shadow_1", "b"], keys)["a__shadow"]
+    [(0.0, [1, 5, 0, -1, -1]), (1.0, [1, 3, 0, -1, -1])]
+    >>> shadow_paint_keys(["c__shadow", "c"], keys)
+    {}
+    """
+    from an.base import RIDER_BEHIND, rider_key
+
+    owned = {
+        name: owner
+        for name in names
+        if (owner := shadow_owner(name)) is not None and owner[0] in keys
+    }
+    count = Counter(eid for eid, _ in owned.values())
+    return {
+        name: [
+            (t, rider_key(key, side=RIDER_BEHIND, n=k - count[eid]))
+            for t, key in keys[eid]
+        ]
+        for name, (eid, k) in owned.items()
+    }
+
+
+def _behind_riders(entities: Sequence[Any]) -> dict[str, set[str]]:
+    """``{host: {rider}}``: the entities drawn just behind their host, by the
+    world's mark (:data:`an.base.BESIDE_HOST_OVERRIDE`) or their paint keys."""
+    from an.base import (
+        BESIDE_HOST_OVERRIDE,
+        PAINT_KEYS_OVERRIDE,
+        RIDER_BEHIND,
+        RIDER_SUFFIX_LEN,
+        paint_key_items,
+        rider_host_key,
+    )
+
+    out: dict[str, set[str]] = {}
+    opening = {
+        e.id: paint_key_items(e.overrides[PAINT_KEYS_OVERRIDE][0][1])
+        for e in entities
+        if PAINT_KEYS_OVERRIDE in (e.overrides or {})
+    }
+    by_key = {key: eid for eid, key in opening.items()}
+    for e in entities:
+        mark = (e.overrides or {}).get(BESIDE_HOST_OVERRIDE)
+        if isinstance(mark, Mapping) and mark.get("side") == RIDER_BEHIND:
+            out.setdefault(mark.get("host"), set()).add(e.id)
+        key = opening.get(e.id)
+        host = by_key.get(rider_host_key(key)) if key is not None else None
+        if host is not None and key[-RIDER_SUFFIX_LEN] == RIDER_BEHIND:
+            out.setdefault(host, set()).add(e.id)
+    return out
+
+
 def _place(
     state: Any,
-    built: Mapping[str, list[tuple[str, dict[str, list[float]], float, float]]],
+    shadows: Mapping[str, Sequence[_Shadow]],
     *,
     times: Sequence[float],
 ) -> None:
-    """Insert each shadow node just before its member in the container that
-    holds it (painted under it, over what is behind it), with its opening
-    values as its rest transform, and key each channel that moves."""
+    """Insert each member's shadow nodes in the container that holds it, just
+    behind it and behind what rides just behind it (painted under them, over
+    what is behind them), with their opening values as their rest transform,
+    and key each channel that moves."""
     from an.stage import tree as stage_tree
-    from an.stage.serialize import (
-        AnimationClipJSON,
-        ChannelJSON,
-        KeyframeJSON,
-        NodeJSON,
-        PlacedClipJSON,
-        TrackJSON,
-        TransformJSON,
-        VisualJSON,
-    )
-    from an.stage.solve import compact_keys
 
-    stepped = state.step_hz is not None
-    easing = "step" if stepped else "linear"
-    duration = max(0.001, float(state.shot.duration))
+    riders = _behind_riders(state.shot.entities)
     for container in stage_tree.entity_containers(state.scene_root):
         kids = list(container.children or [])
-        out = []
+        out: list[Any] = []
         for kid in kids:
-            for name, values, base, thick in built.get(kid.name, ()):
-                rest = {prop: vs[0] for prop, vs in values.items()}
-                out.append(
-                    NodeJSON(
-                        name=name,
-                        transform=TransformJSON(**rest),
-                        visual=VisualJSON(
-                            kind="ellipse",
-                            width=_q(base),
-                            height=_q(thick),
-                            color=CONTACT_SHADOW_COLOR,
-                        ),
-                    )
-                )
-                channels = []
-                for prop in SHADOW_CHANNELS:
-                    vs = values[prop]
-                    if max(vs) - min(vs) <= SHADOW_KEY_TOLERANCES[prop]:
-                        continue
-                    kept = compact_keys(
-                        times,
-                        vs,
-                        tolerance=SHADOW_KEY_TOLERANCES[prop],
-                        stepped=stepped,
-                    )
-                    channels.append(
-                        ChannelJSON(
-                            target=name,
-                            property=prop,
-                            keyframes=[
-                                KeyframeJSON(
-                                    time=round(times[i], 9) + 0.0,
-                                    value=vs[i],
-                                    easing=easing,
-                                )
-                                for i in kept
-                            ],
-                        )
-                    )
-                if not channels:
-                    continue
-                clip = f"{SHADOW_CLIP_PREFIX}{name}"
-                if clip in state.animations:
-                    raise ShadowError(
-                        f"shot {state.shot.id!r}: the clip id {clip!r} of {name!r}'s "
-                        "shadow is already taken"
-                    )
-                state.animations[clip] = AnimationClipJSON(
-                    name=clip, duration=duration, channels=channels
-                )
-                state.tracks.append(
-                    TrackJSON(
-                        target_root=name,
-                        clips=[
-                            PlacedClipJSON(
-                                animation_id=clip, start_time=0.0, duration=duration
-                            )
-                        ],
-                    )
-                )
+            mine = shadows.get(kid.name, ())
+            if mine:
+                at = len(out)
+                behind = riders.get(kid.name, set())
+                while at and out[at - 1].name in behind:
+                    at -= 1
+                out[at:at] = [_shadow_node(s) for s in mine]
+                for s in mine:
+                    _add_shadow_clip(state, s, times=times)
             out.append(kid)
         if len(out) != len(kids):
             container.children = out
+
+
+def _shadow_node(shadow: _Shadow) -> Any:
+    """The ellipse node of ``shadow``, at its opening values."""
+    from an.stage.serialize import NodeJSON, TransformJSON, VisualJSON
+
+    return NodeJSON(
+        name=shadow.name,
+        transform=TransformJSON(**{p: vs[0] for p, vs in shadow.values.items()}),
+        visual=VisualJSON(
+            kind="ellipse",
+            width=_q(shadow.width),
+            height=_q(shadow.height),
+            color=CONTACT_SHADOW_COLOR,
+        ),
+    )
+
+
+def _shadow_channels(
+    shadow: _Shadow, *, times: Sequence[float], stepped: bool
+) -> list[Any]:
+    """A channel for each of ``shadow``'s properties that moves, its keys the
+    fewest that reproduce every frame (:func:`an.stage.solve.compact_keys`)."""
+    from an.stage.serialize import ChannelJSON, KeyframeJSON
+    from an.stage.solve import compact_keys
+
+    easing = "step" if stepped else "linear"
+    channels = []
+    for prop in SHADOW_CHANNELS:
+        vs = shadow.values[prop]
+        tolerance = SHADOW_KEY_TOLERANCES[prop]
+        if max(vs) - min(vs) <= tolerance:
+            continue
+        kept = compact_keys(times, vs, tolerance=tolerance, stepped=stepped)
+        channels.append(
+            ChannelJSON(
+                target=shadow.name,
+                property=prop,
+                keyframes=[
+                    KeyframeJSON(
+                        time=round(times[i], 9) + 0.0, value=vs[i], easing=easing
+                    )
+                    for i in kept
+                ],
+            )
+        )
+    return channels
+
+
+def _add_shadow_clip(state: Any, shadow: _Shadow, *, times: Sequence[float]) -> None:
+    """``shadow``'s moving channels as a clip of their own on the shot's
+    timeline (none for a shadow that does not move)."""
+    from an.stage.compile import _fresh_clip_id
+    from an.stage.serialize import AnimationClipJSON, PlacedClipJSON, TrackJSON
+
+    channels = _shadow_channels(shadow, times=times, stepped=state.step_hz is not None)
+    if not channels:
+        return
+    duration = max(0.001, float(state.shot.duration))
+    clip = _fresh_clip_id(f"{SHADOW_CLIP_PREFIX}{shadow.name}", state.animations)
+    state.animations[clip] = AnimationClipJSON(
+        name=clip, duration=duration, channels=channels
+    )
+    state.tracks.append(
+        TrackJSON(
+            target_root=shadow.name,
+            clips=[
+                PlacedClipJSON(animation_id=clip, start_time=0.0, duration=duration)
+            ],
+        )
+    )

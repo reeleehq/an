@@ -1626,7 +1626,9 @@ def _paint_keys_pass(state: CompileState) -> None:
     (:func:`an.stage.tree.entity_containers`) whose keyed children
     (``overrides[PAINT_KEYS_OVERRIDE]``) change places, every child gets its
     place as a static ``z_index`` (so the stage sorts that container) and each
-    one that moves a stepped ``z_index`` channel."""
+    one that moves a stepped ``z_index`` channel. A member's contact shadow
+    rides its keys just behind it (:func:`an.stage.shadow.shadow_paint_keys`),
+    so it never ends a run nor is left behind."""
     keys = {
         e.id: e.overrides[PAINT_KEYS_OVERRIDE]
         for e in state.shot.entities
@@ -1634,11 +1636,14 @@ def _paint_keys_pass(state: CompileState) -> None:
     }
     if not keys:
         return
+    from an.stage.shadow import shadow_paint_keys
+
     channels: list[ChannelJSON] = []
     for container in stage_tree.entity_containers(state.scene_root):
         kids = container.children or []
         names = [k.name for k in kids]
-        moves = z_index_keys(names, _beside_their_hosts(names, keys))
+        here = {**keys, **shadow_paint_keys(names, keys)}
+        moves = z_index_keys(names, _beside_their_hosts(names, here))
         if not moves:
             continue
         for i, kid in enumerate(kids):
@@ -1769,7 +1774,7 @@ STAGE_COMPILE_PASSES: tuple[CompilePass, ...] = (
         "contact_shadows",
         _contact_shadows_pass,
         order=540,
-        description="an ellipse at each contact of a member that asks (an#519, D2)",
+        description="one ellipse per support of a member that asks (an#519, D2)",
     ),
     CompilePass(
         "camera_follow",

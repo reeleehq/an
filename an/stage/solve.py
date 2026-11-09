@@ -74,6 +74,9 @@ __all__ = [
     "joint_residuals",
     "shot_declares_solve",
     "solve_knobs",
+    "node_index",
+    "local_box",
+    "world_matrices",
 ]
 
 #: Where the pass runs: after ``face`` (500), before ``camera_follow`` (550).
@@ -737,7 +740,8 @@ class Puppet:
     lean: dict[str, list[float | None]] = field(default_factory=dict)
 
 
-def _node_index(doc: Any) -> dict[str, Any]:
+def node_index(doc: Any) -> dict[str, Any]:
+    """``{path: node}`` for every node of a compiled document's scene tree."""
     from an.stage.tree import walk_children
 
     return {path: node for path, node in walk_children(doc.scene)}
@@ -751,7 +755,7 @@ def _parent_path(path: str, nodes: Mapping[str, Any]) -> str:
     return head
 
 
-def _local_box(node: Any) -> tuple[float, float, float, float]:
+def local_box(node: Any) -> tuple[float, float, float, float]:
     """The extent a node's body has: its drawing, or a :data:`DFLT_BODY_EXTENT`
     square about its pivot when it draws nothing, or a speck.
 
@@ -762,7 +766,7 @@ def _local_box(node: Any) -> tuple[float, float, float, float]:
     (a bead, a button) keeps its own box.
 
     >>> from an.stage.serialize import NodeJSON, VisualJSON
-    >>> _local_box(NodeJSON(name="speck", visual=VisualJSON(width=1, height=1, anchor_y=68)))
+    >>> local_box(NodeJSON(name="speck", visual=VisualJSON(width=1, height=1, anchor_y=68)))
     (-5.0, -5.0, 10.0, 10.0)
     """
     v = node.visual
@@ -781,7 +785,11 @@ def _local_box(node: Any) -> tuple[float, float, float, float]:
     return (t.pivot_x - e / 2.0, t.pivot_y - e / 2.0, e, e)
 
 
-def _world_matrices(
+#: The name ``cutan``'s tests import (:func:`local_box` before it was public).
+_local_box = local_box
+
+
+def world_matrices(
     doc: Any, paths: Sequence[str], pose: Any, nodes: Mapping[str, Any]
 ) -> dict[str, Affine]:
     """``{path: stage transform}`` for ``paths`` and every ancestor, under ``pose``."""
@@ -849,7 +857,7 @@ def build_puppet(
     :class:`UnknownBodyError` naming every reference it cannot resolve."""
     from an.kinematics import WORLD, Distance, Hinge, Pin, Point, Slide, Contact, Weld
 
-    nodes = _node_index(doc)
+    nodes = node_index(doc)
     entities = {e.id: e for e in shot.entities}
     problems: list[tuple[str, str]] = list(decl.problems)
     rigs: dict[str, Any] = {}
@@ -922,7 +930,7 @@ def build_puppet(
         if rig is None or not rig.bodies:
             path = eid
             bodies[path] = BodyInfo(
-                path, eid, "", None, _local_box(nodes[path]), _pivot(nodes[path]), True
+                path, eid, "", None, local_box(nodes[path]), _pivot(nodes[path]), True
             )
             if fixed or free is not True:
                 held.add(path)
@@ -936,7 +944,7 @@ def build_puppet(
                 eid,
                 parent,
                 None,
-                _local_box(nodes[path]),
+                local_box(nodes[path]),
                 _pivot(nodes[path]),
                 is_root,
             )
@@ -960,7 +968,7 @@ def build_puppet(
     index = {p: i for i, p in enumerate(bodies)}
     bodies = {p: bodies[p] for p in sorted(bodies, key=lambda p: (depth(p), index[p]))}
 
-    rest = _world_matrices(doc, list(bodies), None, nodes)
+    rest = world_matrices(doc, list(bodies), None, nodes)
     for b in bodies.values():
         _theta, b.sx, b.sy, b.mirrored = _decompose(rest[b.path])
         b.flip_x = nodes[b.path].transform.scale_x < 0
@@ -981,7 +989,7 @@ def build_puppet(
 
     def _node_rest(path: str) -> Affine:
         if path not in rest_cache:
-            rest_cache[path] = _world_matrices(doc, [path], None, nodes)[path]
+            rest_cache[path] = world_matrices(doc, [path], None, nodes)[path]
         return rest_cache[path]
 
     def anchor_world(eid: str, bone: str) -> tuple[float, float] | None:
@@ -1326,7 +1334,7 @@ def contact_point(node: Any, point: tuple[float, float] | None) -> tuple[float, 
     >>> contact_point(leg, None), contact_point(leg, (0.5, 0.5))
     ((0.0, 100.0), (0.0, 50.0))
     """
-    box = _local_box(node)
+    box = local_box(node)
     if point is None:
         return end_effector(box, _pivot(node), inset=CONTACT_INSET)
     return (box[0] + float(point[0]) * box[2], box[1] + float(point[1]) * box[3])
@@ -1484,20 +1492,20 @@ def locate_point(ref: Any, scope: PointScope, *, side: str) -> Any:
             return NodePoint(eid, node_path, contact_point(node, fraction))
         if fraction is None:  # a landmark at the part's far end: a hand
             return NodePoint(
-                eid, node_path, end_effector(_local_box(node), _pivot(node)), end=True
+                eid, node_path, end_effector(local_box(node), _pivot(node)), end=True
             )
         return NodePoint(eid, node_path, contact_point(node, fraction))
     if not at:
         if side == "hand":
             return NodePoint(
-                eid, node_path, end_effector(_local_box(node), _pivot(node)), end=True
+                eid, node_path, end_effector(local_box(node), _pivot(node)), end=True
             )
         if side in ("a", "socket"):
             return NodePoint(eid, node_path, _pivot(node))
-        return NodePoint(eid, node_path, _centre(_local_box(node)))
+        return NodePoint(eid, node_path, _centre(local_box(node)))
     xy = _numbers(at)
     if xy is not None:
-        left, top, w, h = _local_box(node)
+        left, top, w, h = local_box(node)
         return NodePoint(eid, node_path, (left + xy[0] * w, top + xy[1] * h))
     world = _anchor_rest(eid, at, rig, nodes, scope.rest)
     if world is None:
@@ -1782,7 +1790,7 @@ def run_solve(
         transform_of,
     )
 
-    nodes = _node_index(doc)
+    nodes = node_index(doc)
     timeline = timeline_from_scene(doc)
     order = list(puppet.bodies)
     dt = (
@@ -1805,7 +1813,7 @@ def run_solve(
     run.blends = blending.started
     for k, t in enumerate(times):
         pose = evaluate_timeline(timeline, t)
-        world = _world_matrices(doc, [*order, *extra_paths], pose, nodes)
+        world = world_matrices(doc, [*order, *extra_paths], pose, nodes)
         run.evaluated.append(world)
         if extra_paths:
             extra = {}
@@ -2538,7 +2546,7 @@ def joint_residuals(
             jid: [(float(t), bool(on)) for t, on in evs]
             for jid, evs in report["events"].items()
         }
-    nodes = _node_index(doc)
+    nodes = node_index(doc)
     timeline = timeline_from_scene(doc)
     if times is None:
         times = frame_times(shot.duration, fps=doc.meta.fps, step_hz=doc.meta.step_hz)
@@ -2546,7 +2554,7 @@ def joint_residuals(
     excess: list[list[float]] = []
     for t in times:
         pose = evaluate_timeline(timeline, t)
-        world = _world_matrices(doc, list(puppet.bodies), pose, nodes)
+        world = world_matrices(doc, list(puppet.bodies), pose, nodes)
         bodies: dict[str, Any] = {}
         flips: dict[str, bool] = {}
         for path, info in puppet.bodies.items():
