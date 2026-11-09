@@ -76,11 +76,11 @@ def above(m: Affine, corners: Sequence[tuple[float, float]], line: Line) -> floa
     )
 
 
-def lift(m: Affine, line: Line, above: float) -> Affine:
-    """``m`` moved ``above`` along ``line``'s normal (down onto it when positive).
+def lift(m: Affine, line: Line, distance: float) -> Affine:
+    """``m`` moved ``distance`` along ``line``'s normal (down onto it when positive).
 
     >>> lift((1, 0, 0, 1, 2.0, 3.0), ground_line(10.0), 4.0)[4:]
     (2.0, 7.0)
     """
     dx, dy = line[1]
-    return _compose((1.0, 0.0, 0.0, 1.0, -dy * above + 0.0, dx * above + 0.0), m)
+    return _compose((1.0, 0.0, 0.0, 1.0, -dy * distance + 0.0, dx * distance + 0.0), m)

@@ -103,7 +103,7 @@ A `support` whose `a` names a contact the chain does not give (`cup@base` on a p
 
 ### 4.1 Three surfaces, one `Line`
 
-`an/stage/surface_line.py` (new, core) takes from `an/stage/hold.py` without change of behaviour: `Line`, `ground_line(y)`, `line_through(a, b)` (the normal turned to point down into the support), `above(matrix, points, line)` (the signed distance of the lowest of `points` to the line along its normal: positive above, negative sunk) and `lift`; `hold.py` imports them (its names `_ground_line`, `_above`, `_lift`, `_line_through` kept as aliases until its tests move). `surface_at(ref, *, ctx) -> Line` resolves a surface reference at an instant:
+`an/stage/surface_line.py` (new, core) takes from `an/stage/hold.py` without change of behaviour: `Line`, `ground_line(y)`, `line_through(a, b)` (the normal turned to point down into the support), `above(matrix, points, line)` (the signed distance of the lowest of `points` to the line along its normal: positive above, negative sunk) and `lift`; `hold.py` imports them (it imports the public names; nothing used the old underscore names, so no aliases are kept). `surface_at(ref, *, ctx) -> Line` resolves a surface reference at an instant:
 
 | `b` | Stage space | Scene space (a shot with a viewpoint, ADR 0009) |
 |---|---|---|
@@ -229,7 +229,7 @@ Each PR carries its changelog fragment (`misc/changelog.d/<date>-an519-<slug>.md
 
 **PR 1a (`an`): the surface module, a pure move.**
 
-`an/stage/surface_line.py` takes `Line`, `ground_line`, `line_through`, `above` and `lift` from `an/stage/hold.py` (`Line` at `:418-420`, `_ground_line` `:423`, `_line_through` `:427`, `_above` `:441`, `_lift` `:1505`) without a change of behaviour; `hold.py` imports them under its old underscore names, its doctests move with the functions, and `tests/test_holds.py` is unchanged and passes as it is (the acceptance). No pixel changes. One cost to name in the PR body: the shot cache's `code` part digests the source of every module the render path reaches (`an.stage.cache_key.render_code_digest`, `an.stage.hold` among them, and the new module joins the walk), so this PR, like any edit there, makes every cached shot re-render once; nothing else in a key moves.
+`an/stage/surface_line.py` takes `Line`, `ground_line`, `line_through`, `above` and `lift` from `an/stage/hold.py` (`Line` at `:418-420`, `_ground_line` `:423`, `_line_through` `:427`, `_above` `:441`, `_lift` `:1505`) without a change of behaviour; `hold.py` imports the public names (no aliases: nothing used the old ones), its doctests move with the functions, and `tests/test_holds.py` is unchanged and passes as it is (the acceptance). No pixel changes. One cost to name in the PR body: the shot cache's `code` part digests the source of every module the render path reaches (`an.stage.cache_key.render_code_digest`, `an.stage.hold` among them, and the new module joins the walk), so this PR, like any edit there, makes every cached shot re-render once; nothing else in a key moves.
 
 **PR 1b (`an`): the `support` joint, the contacts seam, the `support` check.**
 
