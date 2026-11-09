@@ -416,6 +416,28 @@ def _world_box(at: Point3, box: Box, m: float) -> tuple[float, float, float, flo
     )
 
 
+def _band_box(
+    box: tuple[float, float, float, float], top: float, bottom: float
+) -> tuple[float, float, float, float]:
+    """``box`` cut to a shot size's band: rows ``top``..``bottom`` (fractions of
+    its height), at the box's own aspect, about its centre column (an#732).
+
+    A band is a cut of the subject's height; its width is not measured, so it
+    keeps the box's proportions. Fitting the whole box's width instead let a
+    tall frame's width limit every size alike, and a medium and a close-up got
+    one distance.
+
+    >>> _band_box((-1.0, 0.0, 1.0, 10.0), 0.0, 0.5)
+    (-0.5, 0.0, 0.5, 5.0)
+    >>> _band_box((-1.0, 0.0, 1.0, 10.0), 0.0, 1.0)
+    (-1.0, 0.0, 1.0, 10.0)
+    """
+    x0, y0, x1, y1 = box
+    frac = abs(bottom - top)
+    half, cx = (x1 - x0) * frac / 2.0, (x0 + x1) / 2.0
+    return (cx - half, y0 + top * (y1 - y0), cx + half, y0 + bottom * (y1 - y0))
+
+
 def resolve_viewpoint(
     world: World | None,
     viewpoint: str | Viewpoint,
@@ -434,7 +456,7 @@ def resolve_viewpoint(
 
     A viewpoint with ``at`` is that camera. One with a ``subject`` is computed:
     on the look direction, at the distance that fills ``fill`` of the frame
-    with the subject's band (`SHOT_SIZES`), shifted so the band's centre lands
+    with the subject's band (`SHOT_SIZES`: its rows, at its box's aspect, :func:`_band_box`), shifted so the band's centre lands
     at ``subject_at``. With several subjects the band is their union, aimed at
     their mean depth, and the distance is what the NEAREST subject needs from
     its own depth, so every subject fits the frame's height and width.
@@ -487,13 +509,9 @@ def resolve_viewpoint(
         boxes.append(_world_box(position, box, m))
         positions.append(position)
         cuts.append(((bands or {}).get(sid) or {}).get(size, (top, bottom)))
-    x0 = min(b[0] for b in boxes)
-    x1 = max(b[2] for b in boxes)
-    spans = [
-        (b[1] + t * (b[3] - b[1]), b[1] + u * (b[3] - b[1]))
-        for b, (t, u) in zip(boxes, cuts)
-    ]
-    y0, y1 = min(b[0] for b in spans), max(b[1] for b in spans)
+    bands_at = [_band_box(b, t, u) for b, (t, u) in zip(boxes, cuts)]
+    x0, x1 = min(b[0] for b in bands_at), max(b[2] for b in bands_at)
+    y0, y1 = min(b[1] for b in bands_at), max(b[3] for b in bands_at)
     n = float(len(positions))
     centre: Point3 = (
         (x0 + x1) / 2.0,
