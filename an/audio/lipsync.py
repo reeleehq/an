@@ -18,7 +18,7 @@ Two protocols live here:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Iterable, Protocol, Sequence, runtime_checkable
+from typing import Any, Iterable, Protocol, Sequence, runtime_checkable
 
 from an.audio.tts import AudioClip
 
@@ -70,6 +70,30 @@ class LipSyncProvider(Protocol):
 
     def align(self, audio: AudioClip, transcript: str) -> VisemeTrack:
         """Produce a viseme track for ``audio`` given its ``transcript``."""
+
+
+#: The optional class attribute a :class:`LipSyncProvider` sets to re-key the
+#: tracks it cached when how it aligns changes (an#727): its ``name`` is a
+#: persisted identifier and cannot change. Absent (or ``None``), the key is the
+#: name alone, as before.
+CACHE_VERSION_ATTR: str = "cache_version"
+
+
+def lipsync_cache_id(provider: Any) -> str:
+    """What a provider puts in a viseme track's content key
+    (:func:`an.audio.pipeline.viseme_key`): its ``name``, and its
+    :data:`CACHE_VERSION_ATTR` when it states one.
+
+    >>> class Offline:
+    ...     name = "offline"
+    >>> lipsync_cache_id(Offline())
+    'offline'
+    >>> Offline.cache_version = "phones-1"
+    >>> lipsync_cache_id(Offline())
+    'offline@phones-1'
+    """
+    version = getattr(provider, CACHE_VERSION_ATTR, None)
+    return provider.name if version is None else f"{provider.name}@{version}"
 
 
 @runtime_checkable
