@@ -1482,6 +1482,9 @@ class Run:
     #: per frame: the grips being led back (lost out of reach, walked back a
     #: step a frame, an#645); the report marks a dropped span that was (an#672)
     led: list[tuple[int, ...]] = field(default_factory=list)
+    #: per rejoin ``(frame, joint)`` of ``snaps``: how many frames it is
+    #: closed over (0: snapped shut in one; an#636, :class:`RejoinBlends`)
+    blends: dict[tuple[int, int], int] = field(default_factory=dict)
     digest: str = ""
 
 
@@ -1571,7 +1574,8 @@ def run_solve(
     joined_before: list[bool] | None = None
     frames_inputs: list[Any] = []
     regrip = Regrip()
-    blending = RejoinBlends()
+    blending = RejoinBlends(last=len(times) - 1)
+    run.blends = blending.started
     for k, t in enumerate(times):
         pose = evaluate_timeline(timeline, t)
         world = _world_matrices(doc, [*order, *extra_paths], pose, nodes)
@@ -2200,7 +2204,13 @@ def _report(
         },
         "dropped": dropped,
         "snaps": [
-            {"joint": j, "at": r2(run.times[k]), "gap": r2(g)}
+            {
+                "joint": j,
+                "at": r2(run.times[k]),
+                "gap": r2(g),
+                "frame": k,
+                "blend": run.blends.get((k, j), 0),
+            }
             for k, j, g in run.snaps
             if puppet.rows[j].source != REACH_SOURCE  # a reach starts where the hand is
         ],

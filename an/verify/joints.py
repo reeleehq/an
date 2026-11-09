@@ -46,9 +46,10 @@ JOINT_TOLERANCE_PX: float = 0.25
 #: How far past its range a hinge may read (degrees): float noise, not a pose.
 LIMIT_TOLERANCE_DEG: float = 0.1
 #: A rejoin closing a gap wider than this in one frame is a visible snap (owner
-#: decision 9 on an#497: a lint at 2 px, a blend below it). The solver's blend
-#: width, :data:`an.kinematics.solver.DFLT_REJOIN_BLEND_PX` (an#636): spelled
-#: here so the checks load without the solver, and held equal by a test.
+#: decision 9 on an#497: a lint at 2 px, a blend below it). The lint's name for
+#: the threshold; the solver names the blend's width
+#: :data:`an.kinematics.solver.DFLT_REJOIN_BLEND_PX` (an#636). One name per
+#: layer, held equal by a test, so neither layer reads the other's constant.
 REJOIN_TOLERANCE_PX: float = 2.0
 
 
@@ -158,24 +159,25 @@ UNREACHABLE_PIN = Constraint(
 # -----------------------------------------------------------------------------
 
 
-def _blending_frames(snaps: Any, times: Any) -> set[tuple[int, int]]:
-    """``(joint, frame)`` of every frame a rejoin within the blend's width is
-    being closed over (an#636): open on purpose, not a joint that fails.
+def _blend_bounds(snaps: Any) -> dict[tuple[int, int], float]:
+    """``{(joint, frame): how far apart it may be}`` for every frame a rejoin
+    the solve blended is still closing (an#636): the blend's own shrinking
+    bound, ``gap`` less a ``1 / n`` share a frame over its ``n`` frames, read
+    from the solve report (``frame``, ``blend``). A rejoin that snapped is
+    held to the joints' tolerance like any frame.
 
-    >>> sorted(_blending_frames([{"joint": 0, "at": 0.1, "gap": 1.5}], [0.0, 0.1, 0.2, 0.3, 0.4, 0.5]))
-    [(0, 1), (0, 2), (0, 3)]
+    >>> _blend_bounds([{"joint": 0, "frame": 3, "gap": 1.6, "blend": 4}])
+    {(0, 3): 1.2, (0, 4): 0.8, (0, 5): 0.4}
+    >>> _blend_bounds([{"joint": 0, "frame": 3, "gap": 1.6, "blend": 0}])
+    {}
     """
-    from an.kinematics.solver import DFLT_REJOIN_BLEND_FRAMES, DFLT_REJOIN_BLEND_PX
-
-    out = set()
+    out: dict[tuple[int, int], float] = {}
     for snap in snaps:
-        if snap["gap"] > DFLT_REJOIN_BLEND_PX:
+        n, k0 = snap.get("blend") or 0, snap.get("frame")
+        if n < 2 or k0 is None:
             continue
-        start = min(range(len(times)), key=lambda k: abs(times[k] - snap["at"]))
-        out |= {
-            (snap["joint"], k)
-            for k in range(start, start + DFLT_REJOIN_BLEND_FRAMES - 1)
-        }
+        for i in range(n - 1):
+            out[(snap["joint"], k0 + i)] = round(snap["gap"] * (1.0 - (i + 1) / n), 9)
     return out
 
 
@@ -208,12 +210,16 @@ def check_joint_violation(ctx: Any) -> None:
         for k, t in enumerate(times)
         if a - 0.005 <= t <= b + 0.005
     }
-    refused_frames |= _blending_frames(report.get("snaps") or [], times)
+    # A rejoin being blended shut is held to its own shrinking bound (an#636);
+    # the report's frames are this grid's (the same `frame_times`), else none.
+    same_grid = report.get("frames") == len(times)
+    bounds = _blend_bounds(report.get("snaps") or []) if same_grid else {}
     for j, row in enumerate(puppet.rows):
         broken = [
             k
             for k in range(len(times))
-            if gaps[k][j] > JOINT_TOLERANCE_PX and (j, k) not in refused_frames
+            if gaps[k][j] > bounds.get((j, k), 0.0) + JOINT_TOLERANCE_PX
+            and (j, k) not in refused_frames
         ]
         for a, b in _spans(times, broken):
             worst = max(gaps[k][j] for k in broken if a <= times[k] <= b)

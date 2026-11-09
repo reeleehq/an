@@ -14,6 +14,7 @@ import math
 import subprocess
 import sys
 import textwrap
+from dataclasses import replace
 
 import numpy as np
 import pytest
@@ -817,12 +818,11 @@ def test_a_small_rejoin_closes_over_a_few_frames_not_in_one():
     loose = [Pin(Point("part", 0.5, 0.0), Point("peg", 0.5, 0.5), joined=False)]
 
     def gaps(**kw):
-        out = []
-        for n in range(4, 4 + DFLT_REJOIN_BLEND_FRAMES + 1):  # frames 3 (the rejoin) on
-            r = solve_frames([peg, part], joined, frames=n, dt=1 / 24, gravity=(0.0, 980.0),
-                             joints_at=lambda k: loose if k == 2 else joined, **kw)
-            out.append(_gap(list(r.final), joined[0]))
-        return out, r.snaps
+        frames = 4 + DFLT_REJOIN_BLEND_FRAMES + 1
+        r = solve_frames([peg, part], joined, frames=frames, dt=1 / 24, gravity=(0.0, 980.0),
+                         joints_at=lambda k: loose if k == 2 else joined, **kw)
+        at = [replace(part, x=x, y=y, rotation=th) for x, y, th, _ in r.poses[:, 1]]
+        return [_gap([peg, b], joined[0]) for b in at[3:frames - 1]], r.snaps  # 3: the rejoin
 
     blended, snaps = gaps()
     (k, j, gap), = snaps
@@ -834,3 +834,22 @@ def test_a_small_rejoin_closes_over_a_few_frames_not_in_one():
     assert max(blended[n - 1 :]) < 1e-3  # held from then on
     snapped, _ = gaps(rejoin_blend_frames=1)
     assert max(snapped) < 1e-3
+    narrow, _ = gaps(rejoin_blend_px=gap / 2)  # the width is a seam (scene units)
+    assert max(narrow) < 1e-3
+
+
+def test_a_rejoin_with_too_few_frames_left_holds_on_the_last():
+    """an#636 review: a rejoin a blend cannot finish before the run ends
+    closes over the frames left (holding on the last), and on the last frame
+    itself snaps: a run never ends with a blended joint still apart."""
+    from an.kinematics.solver import _gap
+
+    peg = Body("peg", width=2.0, height=2.0, fixed=True)
+    part = Body("part", y=10.0, width=4.0, height=20.0, origin=(0.5, 0.0))
+    joined = [Pin(Point("part", 0.5, 0.0), Point("peg", 0.5, 0.5))]
+    loose = [Pin(Point("part", 0.5, 0.0), Point("peg", 0.5, 0.5), joined=False)]
+    for frames in (4, 5):  # rejoined on the last frame, then one before it
+        r = solve_frames([peg, part], joined, frames=frames, dt=1 / 24, gravity=(0.0, 980.0),
+                         joints_at=lambda k: loose if k == 2 else joined)
+        assert r.snaps[0][:2] == (3, 0) and r.snaps[0][2] > 0.25
+        assert _gap(list(r.final), joined[0]) < 1e-3

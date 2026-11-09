@@ -420,6 +420,102 @@ def test_a_small_rejoin_is_blended_shut_and_not_flagged(tmp_path):
     assert _lint(project, shot) == []
 
 
+_GRIP = [{"type": "pin", "a": "puppet/fore@hand", "b": "wheel@grip", "name": "grip"}]
+_DROP = {"gravity": "down", "mode": "dynamic"}
+
+
+def _fight_from(start):
+    """An authored forearm turn from ``start`` on, which pulls the hand off the grip."""
+    return {
+        "kind": "sequence",
+        "children": [
+            {"kind": "delay", "duration": start},
+            {
+                "kind": "tween",
+                "target": "puppet/fore",
+                "property": "rotation",
+                "from_value": 0.5,
+                "to_value": 1.0,
+                "duration": 0.3,
+            },
+        ],
+    }
+
+
+@pytest.mark.parametrize("joint", ["pin", "hinge"])
+def test_a_rejoin_pulled_apart_while_it_closes_is_reported_from_its_first_frame(
+    tmp_path, joint
+):
+    """an#636 review: the frames a rejoin closes over are held to the blend's
+    own shrinking bound, not skipped: a blended pin (``blend`` > 0 in the
+    report) pulled apart by authored motion is reported from the rejoin, and
+    so is a ranged hinge rejoined under 2 px apart, which is never blended."""
+    project = _project(tmp_path)
+    grip = [{**_GRIP[0], "type": joint, **({"limits": [-170, 170]} if joint == "hinge" else {})}]
+    shot = _shot(
+        project,
+        duration=1.0,
+        joints=grip,
+        solve=_DROP,
+        actions=[unjoin("grip", at=0.1), join("grip", at=0.15), _fight_from(0.16)],
+    )
+    (snap,) = _compile(project, shot).meta.extensions["solve"]["snaps"]
+    assert snap["gap"] <= 2.0 and snap["frame"] == 4, snap
+    assert (snap["blend"] > 0) == (joint == "pin"), snap
+    (finding,) = _lint(project, shot)
+    assert finding[0] == "warning" and "does not hold from 0.17 s" in finding[1], finding
+
+
+def test_a_blended_rejoin_at_120_fps_is_not_flagged(tmp_path):
+    """an#636 review: the lint finds the blend's frames by the report's frame
+    index, so a fine grid (where a time rounded to 0.01 s names the wrong
+    frame) raises no false warning."""
+    project = _project(tmp_path)
+    meta = project.scene.meta.model_copy(update={"fps": 120})
+    project.scene = project.scene.model_copy(update={"meta": meta})
+    shot = _shot(
+        project,
+        duration=0.5,
+        joints=_GRIP,
+        solve=_DROP,
+        actions=[unjoin("grip", at=0.12), join("grip", at=0.175)],
+    )
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        doc = compile_shot(shot, project.mall, fps=120, width=320, height=240)
+    (snap,) = doc.meta.extensions["solve"]["snaps"]
+    assert 0.25 < snap["gap"] <= 2.0 and snap["blend"] > 1, snap
+    nearest = min(range(61), key=lambda k: abs(k / 120 - snap["at"]))
+    assert nearest != snap["frame"]  # the rounded time names another frame
+    assert _lint(project, shot) == []
+
+
+@pytest.mark.parametrize(
+    "unjoin_at, join_at, blend",
+    [(0.95, 0.99, 0), (0.9, 0.95, 2)],
+    ids=["on-the-last-frame", "one-frame-before"],
+)
+def test_a_rejoin_near_the_end_of_the_shot_holds_by_its_last_frame(
+    tmp_path, unjoin_at, join_at, blend
+):
+    """an#636 review: a rejoin with fewer frames left than a blend takes closes
+    over the frames left, holding on the shot's last frame; one on the last
+    frame itself snaps shut. Never a shot ending with the joint apart."""
+    project = _project(tmp_path)
+    shot = _shot(
+        project,
+        duration=1.0,
+        joints=_GRIP,
+        solve=_DROP,
+        actions=[unjoin("grip", at=unjoin_at), join("grip", at=join_at)],
+    )
+    doc = _compile(project, shot)
+    (snap,) = doc.meta.extensions["solve"]["snaps"]
+    assert 0.25 < snap["gap"] <= 2.0 and snap["blend"] == blend, snap
+    assert math.dist(*_hand_and_grip(doc, 1.0)) < 0.25
+    assert _lint(project, shot) == []
+
+
 def test_the_lint_and_the_blend_share_one_width():
     from an.kinematics.solver import DFLT_REJOIN_BLEND_PX
     from an.verify.joints import REJOIN_TOLERANCE_PX
