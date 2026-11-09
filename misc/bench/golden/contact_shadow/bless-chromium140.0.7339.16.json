@@ -1,0 +1,56 @@
+{
+  "blessed_at": "2026-11-09T07:16:39Z",
+  "chromium_build": "140.0.7339.16",
+  "criterion": "sha256 of the DECODED RGB array, never the file bytes: Chromium 1187 -> 1223 changes every PNG file and zero pixels.",
+  "fps": 24,
+  "frames": [
+    {
+      "bytes": 2204,
+      "file": "f0000-chromium140.0.7339.16.png",
+      "frame_key": "f0000",
+      "index": 0,
+      "local_index": 0,
+      "sha256": "55add63d8de9b85a7b09b24594b5a25b7cec66dc4476d37728b54e5249989b70",
+      "shot_id": "slide",
+      "time": 0.0
+    },
+    {
+      "bytes": 2253,
+      "file": "f0002-chromium140.0.7339.16.png",
+      "frame_key": "f0002",
+      "index": 2,
+      "local_index": 2,
+      "sha256": "97b674cfd585969d9e51c90d429ed56ac93461e448c59f74447df547e5600711",
+      "shot_id": "slide",
+      "time": 0.08333333333333333
+    },
+    {
+      "bytes": 2121,
+      "file": "f0008-chromium140.0.7339.16.png",
+      "frame_key": "f0008",
+      "index": 8,
+      "local_index": 8,
+      "sha256": "61ce9483f5e1860c6d60e32cacc9ffd4cfb3073c30abac4faf86a0242931066e",
+      "shot_id": "slide",
+      "time": 0.3333333333333333
+    }
+  ],
+  "git": {
+    "branch": "contact-shadows-519",
+    "dirty": true,
+    "sha": "3381ce6fc1a8ba037f1ff13cd2cd304cbb5698da"
+  },
+  "reason": "an#519 rank 16 (D2): the contact_shadow fixture's first goldens -- a sliding crate's and a hopping ball's contact shadows, cast away from an upper-left light, the ball's fading as it rises",
+  "removed": [],
+  "resolution": [
+    320,
+    240
+  ],
+  "scene": "contact_shadow",
+  "scene_contract_sha256": "e63dafee429771cf504e381f6f54690d4eca054bd2db7ef2bb9024272f5814db",
+  "shot_ids": [
+    "slide"
+  ],
+  "source": "misc/bench/corpus/contact_shadow",
+  "what_moves": "contact shadows (an#519 rank 16, catalogue D2): a crate and a ball, each with a declared `support` on the floor and `shadow: contact` in its art's metadata, under a scene light from the upper left. Each gets a compile-pass ellipse just under it, on the floor at its contact and cast to the RIGHT, away from the light. The crate slides 60 px to the right and its shadow follows it; the ball rises 50 px from 0.05 s and its shadow stays on the floor, shrinking and fading: frame 0 shows both at full strength, frame 2 the ball's half faded and shrunk, frame 8 the crate's 40 px along and the ball's gone. A regression in the anchor (a shadow off the contact or riding up with the ball), the light's side, the fade, the follow, or the paint order (a shadow over its member) moves a golden."
+}

@@ -428,7 +428,7 @@ def test_the_render_path_and_every_other_compile_take_the_same_arguments(
     """an#713: :func:`rendered_compile_args` (validate, preview, orchestrate,
     continuity, the bench) gives the keywords `compiled_document` receives under
     the `RenderContext` the render builds (`_prepare_shots`), with every scene
-    knob set: a style pack, a step grid, a default easing."""
+    knob set: a style pack, a step grid, a default easing, a light."""
     from an.render import _prepare_shots
     from an.stage import cache_key
     from an.stage import compile as compile_mod
@@ -446,6 +446,7 @@ def test_the_render_path_and_every_other_compile_take_the_same_arguments(
             style_pack="noir",
             step_hz=8.0,
             default_easing="linear",
+            light={"key": "upper_left"},
         ),
         timeline=[
             _shot("a", 1.0),
@@ -476,6 +477,7 @@ def test_the_render_path_and_every_other_compile_take_the_same_arguments(
         assert received.pop() == expected
         assert expected["style_pack"].name == "noir"
         assert expected["default_easing"] == "linear"
+        assert expected["light"].key == "upper_left"  # contact shadows' (an#519)
     assert [s.step_hz for s in prep.scene.timeline] == [None, 12.0]
 
 

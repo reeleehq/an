@@ -99,6 +99,12 @@ class RenderContext:
     #: field existed; set, it changes keyframes, so the contract hash moves
     #: with it — as it should.
     default_easing: Any = None
+    #: The scene's ``meta.light`` (an#519, catalogue D2): which way a contact
+    #: shadow is cast. It reaches the compiled document only through a shadow,
+    #: so ``None`` (no light: a shadow straight under its contact) and any light
+    #: leave a shot with no shadow byte-identical, and the document it does
+    #: change is what the shot cache digests.
+    light: Any = None
     #: Per output frame, the scene instants to render and average into it —
     #: ``None`` is one instant at ``i / fps``, the path every render took before
     #: this field existed, byte for byte. Several instants per frame are an open

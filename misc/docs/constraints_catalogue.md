@@ -371,7 +371,7 @@ Tolerances below are named, never literal: `SUPPORT_TOLERANCE`, `SKATE_TOLERANCE
 
 **Subsumes.** Nothing existing; it composes A1 (the contact), A4 (the weld to the caster) and D1 (the light).
 
-**Status.** Missing.
+**Status.** `shadow: contact` is built (an#519 rank 16, `an.stage.shadow`): declared as the entity's `overrides.shadow` or its art's `metadata.shadow` (beside `shaded_side` and `contacts`), it is the `contact_shadows` compile pass's synthetic `<id>__shadow` ellipse, painted just under its member, for each of its supports (declared, or a stance taken on `solve.ground` or `World.ground`): on the surface at the foot of its held contacts (spanning them), along the surface's tilt, offset away from `meta.light` by its lean along the surface, keyed every frame it moves, fading and shrinking as the member rises past the support tolerance and gone while it is unjoined or unseen. Its sizes, flattening, opacity, offset and fade are named fractions of the member's height and width. The pass is a derivation, so the shadow is anchored and welded by construction rather than checked. Missing: `shadow: cast` (refused by name, `CastShadowNotBuiltError`); the style rule (a supported member a style pack asks a shadow of, with none), because the style vocabulary has no contact-shadow flag yet; only the declaration ships. The core corpus's `contact_shadow` scene is its pixel gate.
 
 ### Group E: frames of reference
 
@@ -398,7 +398,7 @@ Ranked by (a) how often the error class reached a viewer in the two plot-car rou
 | 13 | smoothness, arcs, anticipation and overlap as measured style targets | B2, B5 | style targets | evaluated trajectories | `cutan` (targets), `an` (measure) | medium |  |
 | 14 | gravity: hover, ballistic, hang | B4 | `gravity`, `airborne` | evaluated trajectories | `an` | medium |  |
 | 15 | ground-plane perspective on hand overrides | A6 | no (scene space) | contacts, horizon | `an` | small |  |
-| 16 | contact shadows as a derived node | D2 | `shadow` | contacts, light | `an` | medium |  |
+| 16 | contact shadows as a derived node | D2 | `shadow` | contacts, light | `an` | medium | an#519 (`contact`; `cast` not built) |
 
 Three remarks for the split. Ranks 1, 3, 4, 6, 9 and 11 are pure core and touch no genre file, so they can be one worker in one `an` worktree, disjoint from scene space's files (`an/ir/space.py`, `an/stage/space.py`) if the checks live in a new module (`an/ir/constraints.py` or wherever the lead's ADR puts the declaration schema) rather than appended to `validate.py`. Rank 2 is the one with the biggest payoff and the one most entangled with `puppet-research`'s solver (contacts are the solver's unilateral constraints) and with scene space (the surface is a world object): it should be specified jointly before either builds. Rank 5 is the cheapest win for the styles and sits entirely in `cutan`.
 

@@ -299,6 +299,7 @@ def context_compile_args(shot: Shot, ctx: RenderContext) -> dict:
         style_pack=ctx.style_pack,
         default_easing=ctx.default_easing,
         frame_samples=ctx.frame_samples,
+        light=ctx.light,
     )
 
 

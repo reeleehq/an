@@ -35,6 +35,8 @@ rig_chain  a desk-lamp arm in ``nesting: bones`` (an#340): base, upper arm,
            forearm and a shade nested on it, posed by three tweens
 rig_interleave the same arm passing behind an unrelated panel and in front of it:
            a global part order (an#430)
+contact_shadow contact shadows (an#519, D2): a sliding crate's and a hopping
+           ball's, cast away from the scene's light, fading as the ball rises
 ========== ===================================================================
 
 They live beside the cut-out corpus in ``misc/bench/corpus/`` and run in the
@@ -54,7 +56,7 @@ knobs, the throwaway copy and the browser-free contract hash moved here from
 them. Nothing here imports the stage at module level.
 
 >>> sorted(CORE_FIXTURES)
-['after_plane', 'front_plane', 'path_boil', 'path_draw', 'path_shape', 'path_taper', 'path_wobble', 'rig_chain', 'rig_interleave', 'rig_order', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_halo', 'text_outline', 'text_swap', 'transitions']
+['after_plane', 'contact_shadow', 'front_plane', 'path_boil', 'path_draw', 'path_shape', 'path_taper', 'path_wobble', 'rig_chain', 'rig_interleave', 'rig_order', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_halo', 'text_outline', 'text_swap', 'transitions']
 """
 
 from __future__ import annotations
@@ -401,6 +403,26 @@ CORE_FIXTURES: dict[str, Fixture] = {
             "`paint_order`. The same three tweens as rig_chain move the arm "
             "between the goldens. A regression that painted the chain together "
             "(the panel over both arms, or under both) moves a golden."
+        ),
+    ),
+    "contact_shadow": Fixture(
+        path=f"{CORPUS_DIRNAME}/contact_shadow",
+        expect_visual_kinds=frozenset({"svg_sprite", "ellipse"}),
+        golden_frames=(0.0, 2 / 24, 8 / 24),
+        golden_note=(
+            "contact shadows (an#519 rank 16, catalogue D2): a crate and a ball, "
+            "each with a declared `support` on the floor and `shadow: contact` in "
+            "its art's metadata, under a scene light from the upper left. Each "
+            "gets a compile-pass ellipse just under it, on the floor at its "
+            "contact and cast to the RIGHT, away from the light. The crate "
+            "slides 60 px to the right and its shadow follows it; the ball "
+            "rises 50 px from 0.05 s and its shadow stays on the floor, "
+            "shrinking and fading: frame 0 shows both at full strength, frame 2 "
+            "the ball's half faded and shrunk, frame 8 the crate's 40 px along "
+            "and the ball's gone. A regression in the anchor (a shadow off the "
+            "contact or riding up with the ball), the light's side, the fade, "
+            "the follow, or the paint order (a shadow over its member) moves a "
+            "golden."
         ),
     ),
     "rig_chain": Fixture(
