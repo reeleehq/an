@@ -776,3 +776,30 @@ def test_the_lead_pulls_in_proportion_to_the_chain_it_drags():
     st.held[l1] = [("x", 0.0, 0.0)]  # held in place: the lead drags l2 only
     assert _led_chain_mass(st, joints, 3, start) == pytest.approx(link)
     assert regrip_strength_by_mass(2.0, per_mass=3.0) == 6.0
+
+
+def test_a_pull_never_drags_a_hinge_past_its_range():
+    """an#707: a stiff pull (a lead's) toward a point the hand reaches only by
+    bending the elbow past its range leaves the elbow at the edge of its range
+    and joined, in a run of frames and in pose mode: while anything pulls, the
+    joints are projected last."""
+    from an.kinematics import Force
+
+    shoulder = Body("shoulder", fixed=True)
+    upper = Body("upper", x=20.0, width=40.0, height=4.0)
+    fore = Body("fore", x=60.0, width=40.0, height=4.0)
+    elbow_max = 1.0
+    joints = [
+        Hinge(Point("shoulder", 0.5, 0.5), Point("upper", 0.0, 0.5)),
+        Hinge(Point("upper", 1.0, 0.5), Point("fore", 0.0, 0.5), limits=(0.0, elbow_max)),
+    ]
+    pull = Force(Point("fore", 1.0, 0.5), toward=(10.0, 30.0), strength=1e7)
+    r = solve_frames(
+        [shoulder, upper, fore], joints, frames=24, dt=1 / 24, forces=[pull]
+    )
+    final = {b.name: b for b in r.final}
+    bend = math.remainder(final["fore"].rotation - final["upper"].rotation, math.tau)
+    assert -1e-3 <= bend <= elbow_max + 1e-3, bend
+    assert r.limit_violations[-1] == () and r.unsatisfied[-1] == ()  # nor apart
+    posed = solve([shoulder, upper, fore], joints, forces=[pull])  # pose mode too
+    assert posed.limit_violations == () and posed.unsatisfied == ()
