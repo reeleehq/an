@@ -647,7 +647,13 @@ def _push(
 
 
 def _project(
-    st: _State, rows: list[_Row], lam: list[float], h: float, *, apply: bool
+    st: _State,
+    rows: list[_Row],
+    lam: list[float],
+    h: float,
+    *,
+    apply: bool,
+    only: str | None = None,
 ) -> list[float]:
     """One pass over the rows, last first: the first-declared joint is
     projected last, so it holds and a conflict shows on the later ones (the
@@ -657,6 +663,8 @@ def _project(
     inv_h2 = 1.0 / (h * h)
     for k in range(len(rows) - 1, -1, -1):
         kind, _j, p = rows[k]
+        if only is not None and kind != only:
+            continue
         if kind == "pos":
             ia, lxa, lya, ib, lxb, lyb, length, mode, compliance = p
             ax, ay = st.world(ia, lxa, lya)
@@ -1644,6 +1652,7 @@ def _step(
             if i:
                 pushes.append((i, lx, ly, float(f.vector[0]), float(f.vector[1])))
     start_x, start_y, start_th = list(st.x), list(st.y), list(st.th)
+    pulled = any(kind == "pos" and j == -1 for kind, j, _ in rows)
     keep = 1.0 - damping
     for s in range(1, substeps + 1):
         px, py, pth = list(st.x), list(st.y), list(st.th)
@@ -1667,6 +1676,8 @@ def _step(
             lam[k] = 0.0
         for _ in range(iterations):
             _project(st, rows, lam, h, apply=True)
+            if pulled:  # a pull never drags a joint past its range (an#707)
+                _project(st, rows, lam, h, apply=True, only="ang")
             st.restore_held(along)
         for i in range(1, n):
             if st.inv_m[i]:

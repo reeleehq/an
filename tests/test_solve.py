@@ -670,6 +670,54 @@ def test_the_stage_leads_a_lost_pin_back_and_holds_it_again(tmp_path):
     assert spans and max(s["until"] for s in spans) <= 0.6, spans
 
 
+def _elbow_degrees(doc, t):
+    """The forearm's bend from the upper arm at ``t``, in degrees, as drawn."""
+    pose = evaluate_timeline(timeline_from_scene(doc), t)
+    up = next(p for p in _paths(doc) if p.endswith("/upper"))
+    a0, a1 = (screen_position(doc, up, pose=pose, point=q) for q in ((0.0, 0.0), (80 * K, 0.0)))
+    b0, b1 = (screen_position(doc, _fore(doc), pose=pose, point=q) for q in ((0.0, 0.0), HAND))
+    turn = math.atan2(b1[1] - b0[1], b1[0] - b0[0]) - math.atan2(a1[1] - a0[1], a1[0] - a0[0])
+    return math.degrees(math.remainder(turn, math.tau))
+
+
+@pytest.mark.parametrize("limits", [(20.0, 100.0), (40.0, 120.0), (60.0, 140.0)])
+@pytest.mark.parametrize("stiffer", [1.0, 10.0])
+def test_a_led_arm_keeps_its_elbow_in_range(tmp_path, monkeypatch, limits, stiffer):
+    """an#707: the an#668 arm with a narrower elbow range, its hand's pin lost
+    out of reach and led back at the stage's stiffness (1x), keeps the elbow
+    in range at every frame and is held again as before (it was dragged up to
+    11 degrees past). At 10x the stiffness, the absolute pull an over-counted
+    chain mass would give (item 2), nothing changes either."""
+    import an.stage.solve as stage_solve
+    from an.stage.solve import solve_report
+
+    monkeypatch.setattr(
+        stage_solve, "REGRIP_STRENGTH_PER_MASS", stage_solve.REGRIP_STRENGTH_PER_MASS * stiffer
+    )
+    project = _project(tmp_path)
+    arm = dict(project.mall["props"]["arm"])
+    arm["bones"] = [{**b, "limits": list(limits)} if b["name"] == "fore" else b for b in arm["bones"]]
+    project.mall["props"]["arm"] = arm
+    shot = _shot(
+        project,
+        duration=2.0,
+        solve={"gravity": "down", "mode": "dynamic"},
+        actions=[
+            {"kind": "tween", "target": "puppet/torso", "property": "x",
+             "from_value": -100.0, "to_value": -400.0, "duration": 0.5, "start": 0.0},
+            {"kind": "tween", "target": "puppet/torso", "property": "x",
+             "from_value": -400.0, "to_value": -100.0, "duration": 0.25, "start": 0.75},
+            {"kind": "pin", "point": "puppet/fore@hand", "to": "world@-378,-38"},
+        ],
+    )  # fmt: skip
+    doc = _compile(project, shot)
+    lo, hi = limits
+    bends = [_elbow_degrees(doc, k / 24) for k in range(49)]
+    assert all(lo - 0.5 <= b <= hi + 0.5 for b in bends), bends
+    spans = solve_report(doc)["dropped"]
+    assert spans and max(s["until"] for s in spans) <= 0.6, spans
+
+
 @pytest.mark.parametrize("duration, led", [(0.4, True), (1.0, False)])
 def test_a_pin_the_shot_ends_on_while_it_is_led_back_is_reported_as_led(
     tmp_path, duration, led
