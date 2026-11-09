@@ -425,7 +425,9 @@ def _band_box(
     A band is a cut of the subject's height; its width is not measured, so it
     keeps the box's proportions. Fitting the whole box's width instead let a
     tall frame's width limit every size alike, and a medium and a close-up got
-    one distance.
+    one distance. The price: a partial size may crop the subject's sides (a
+    head as wide as the body, an arm reaching out of the box's centre), which
+    a kind's own band extents would fix (see the follow-up of an#732).
 
     >>> _band_box((-1.0, 0.0, 1.0, 10.0), 0.0, 0.5)
     (-0.5, 0.0, 0.5, 5.0)
@@ -433,7 +435,7 @@ def _band_box(
     (-1.0, 0.0, 1.0, 10.0)
     """
     x0, y0, x1, y1 = box
-    frac = abs(bottom - top)
+    frac = bottom - top
     half, cx = (x1 - x0) * frac / 2.0, (x0 + x1) / 2.0
     return (cx - half, y0 + top * (y1 - y0), cx + half, y0 + bottom * (y1 - y0))
 
@@ -456,10 +458,11 @@ def resolve_viewpoint(
 
     A viewpoint with ``at`` is that camera. One with a ``subject`` is computed:
     on the look direction, at the distance that fills ``fill`` of the frame
-    with the subject's band (`SHOT_SIZES`: its rows, at its box's aspect, :func:`_band_box`), shifted so the band's centre lands
-    at ``subject_at``. With several subjects the band is their union, aimed at
-    their mean depth, and the distance is what the NEAREST subject needs from
-    its own depth, so every subject fits the frame's height and width.
+    with the subject's band (`SHOT_SIZES`; its rows at its box's aspect,
+    :func:`_band_box`), shifted so the band's centre lands at ``subject_at``.
+    With several subjects the band is their union, aimed at their mean depth,
+    and the distance is what the NEAREST subject needs from its own depth, so
+    every subject's band fits the frame's height and width.
 
     >>> from an.ir.schema import World, WorldMember
     >>> world = World(members=[WorldMember(kind="prop", id="p", store="props", ref="p", at=(3.0, 0.0, 10.0), height=2.0)])

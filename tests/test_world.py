@@ -1421,9 +1421,7 @@ def test_a_travel_is_not_reported_as_solids_through_each_other(tmp_path, lane):
     over a nearer one (7 such pairs a shot at lane 1.2 before, 17 at 0.2)."""
     project = _project(tmp_path)
     scene = _lane(
-        _travel_scene(
-            *[Shot(id=f"s{i}", duration=3.0, viewpoint="road") for i in range(3)]
-        ),
+        _travel_scene(*[Shot(id=f"s{i}", duration=3.0, viewpoint="road") for i in range(3)]),
         lane,
     )
     found = _validate(project, scene).findings
@@ -1568,8 +1566,7 @@ def _road(
     project = load(root)
     env = AssetRef(kind="environment", id="set", store="environments", ref="stage")
     scene = _lane(
-        _travel_scene(Shot(id="s1", duration=3.0, viewpoint="road", entities=[env])),
-        0.2,
+        _travel_scene(Shot(id="s1", duration=3.0, viewpoint="road", entities=[env])), 0.2
     )
     (stream,) = scene.world.travel.streams
     scene.world.travel = scene.world.travel.model_copy(
@@ -1626,9 +1623,7 @@ def test_a_reordered_slot_never_crosses_what_the_author_placed(tmp_path, member_
 
 
 @pytest.mark.parametrize("stream_after", [None, "set/hill"])
-def test_a_member_placed_after_a_plane_beside_the_slots_compiles(
-    tmp_path, stream_after
-):
+def test_a_member_placed_after_a_plane_beside_the_slots_compiles(tmp_path, stream_after):
     """an#634 re-review: ``right`` placed after the hill lands beside the slots
     out of depth order; the run ends there, so the scene compiles (as on main)
     and the slots still move among themselves."""
@@ -1663,9 +1658,7 @@ def test_slots_riding_a_plane_wrapper_are_ordered_inside_it(tmp_path):
     )
 
 
-def test_a_pole_passing_a_member_at_rest_is_painted_over_it_once_nearer(
-    tmp_path, monkeypatch
-):
+def test_a_pole_passing_a_member_at_rest_is_painted_over_it_once_nearer(tmp_path, monkeypatch):
     """an#648: the lamps ride the car at depth 2; each pole comes from far
     away and passes them. While a pole is farther it is painted under them,
     and from the instant it is nearer, over them (keyed again at the crossing,
@@ -1775,9 +1768,7 @@ def _spy_passes(monkeypatch) -> dict:
     return seen
 
 
-def test_a_member_moving_with_the_road_keeps_its_place_among_the_poles(
-    tmp_path, monkeypatch
-):
+def test_a_member_moving_with_the_road_keeps_its_place_among_the_poles(tmp_path, monkeypatch):
     """an#648 review: `left` stands by the road (in the world, depth 8 as the
     shot opens) and approaches with the poles; `right` rides the car at depth
     2. Each pole is painted over `left` exactly when it is nearer than it
@@ -1789,9 +1780,7 @@ def test_a_member_moving_with_the_road_keeps_its_place_among_the_poles(
     seen = _spy_passes(monkeypatch)
     scene = _lane(_travel_scene(Shot(id="s1", duration=3.0, viewpoint="road")), 0.2)
     left = scene.world.members[0]
-    scene.world.members[0] = left.model_copy(
-        update={"frame": "world", "at": (0.5, 0.0, 8.0)}
-    )
+    scene.world.members[0] = left.model_copy(update={"frame": "world", "at": (0.5, 0.0, 8.0)})
     shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -1806,13 +1795,8 @@ def test_a_member_moving_with_the_road_keeps_its_place_among_the_poles(
             if entity_alpha(doc, pose, pole) <= 1e-3:
                 continue
             _, depth0, rate = [p for p in seen[pole] if p[0] <= t][-1]
-            assert (order.index(pole) > order.index("left")) == (depth0 < 8.0), (
-                pole,
-                t,
-            )
-            assert (order.index(pole) > order.index("right")) == (
-                depth0 + rate * t < 2.0
-            ), (pole, t)
+            assert (order.index(pole) > order.index("left")) == (depth0 < 8.0), (pole, t)
+            assert (order.index(pole) > order.index("right")) == (depth0 + rate * t < 2.0), (pole, t)
             checked += 1
     assert checked
 
@@ -1848,9 +1832,7 @@ def _assert_painted_far_to_near(tmp_path, scene: SceneIR, depth_of) -> set:
     from an.stage.timeline import entity_alpha, timeline_from_scene
     from an.timing.timeline import evaluate_timeline
 
-    shot = lower_world(
-        scene, extents={**EXTENTS, "post": BOX, "car": BOX}
-    ).scene.timeline[0]
+    shot = lower_world(scene, extents={**EXTENTS, "post": BOX, "car": BOX}).scene.timeline[0]
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         doc = compile_shot(shot, _project(tmp_path).mall)
@@ -1870,13 +1852,7 @@ def _assert_painted_far_to_near(tmp_path, scene: SceneIR, depth_of) -> set:
             for b in depth:
                 if a < b and abs(depth[a] - depth[b]) > _DEPTH_MARGIN:
                     a_nearer = depth[a] < depth[b]
-                    assert (order.index(a) > order.index(b)) == a_nearer, (
-                        a,
-                        b,
-                        t,
-                        depth[a],
-                        depth[b],
-                    )
+                    assert (order.index(a) > order.index(b)) == a_nearer, (a, b, t, depth[a], depth[b])
                     orders.setdefault((a, b), set()).add(a_nearer)
     assert orders
     return {pair for pair, seen in orders.items() if len(seen) == 2}
@@ -1898,15 +1874,7 @@ def test_streams_at_different_rates_are_painted_by_their_depths(tmp_path, monkey
     scene = _lane(_travel_scene(Shot(id="s1", duration=3.0, viewpoint="road")), 0.2)
     scene = _with_stream(
         scene,
-        Stream(
-            id="post",
-            ref="lamp",
-            height=1.5,
-            every=2.5,
-            lane=-0.3,
-            y=0.0,
-            frame="vehicle",
-        ),
+        Stream(id="post", ref="lamp", height=1.5, every=2.5, lane=-0.3, y=0.0, frame="vehicle"),
     )
 
     def depth_of(name: str, t: float) -> float | None:
@@ -1921,9 +1889,7 @@ def test_streams_at_different_rates_are_painted_by_their_depths(tmp_path, monkey
     assert ("pole", "post") in kinds and ("left", "pole") in kinds, kinds
 
 
-def test_a_scanned_stream_is_painted_by_its_depth_among_the_others(
-    tmp_path, monkeypatch
-):
+def test_a_scanned_stream_is_painted_by_its_depth_among_the_others(tmp_path, monkeypatch):
     """an#658: oncoming cars stand in a frame that moves toward the camera, so
     their passes are scanned, not closed-form; they overtake the poles' depths
     and pass the lamps, and every visible pair is painted far to near."""
@@ -1936,15 +1902,7 @@ def test_a_scanned_stream_is_painted_by_its_depth_among_the_others(
     }
     scene = _with_stream(
         scene,
-        Stream(
-            id="car",
-            ref="lamp",
-            height=1.5,
-            every=5.0,
-            lane=-0.4,
-            y=0.0,
-            frame="oncoming",
-        ),
+        Stream(id="car", ref="lamp", height=1.5, every=5.0, lane=-0.4, y=0.0, frame="oncoming"),
     )
 
     def depth_of(name: str, t: float) -> float | None:
@@ -1955,17 +1913,13 @@ def test_a_scanned_stream_is_painted_by_its_depth_among_the_others(
         return None
 
     crossed = _assert_painted_far_to_near(tmp_path, scene, depth_of)
-    car_motions = [
-        m for s, ps in seen.items() if s.startswith("car_") for _, _, m in ps
-    ]
+    car_motions = [m for s, ps in seen.items() if s.startswith("car_") for _, _, m in ps]
     assert car_motions and not any(isinstance(m, float) for m in car_motions)
     kinds = {tuple(sorted(n.split("_")[0] for n in pair)) for pair in crossed}
     assert ("car", "pole") in kinds and ("car", "left") in kinds, kinds
 
 
-def test_a_member_walking_away_is_painted_by_its_depth_among_the_poles(
-    tmp_path, monkeypatch
-):
+def test_a_member_walking_away_is_painted_by_its_depth_among_the_poles(tmp_path, monkeypatch):
     """an#658: ``right`` walks away down the car (``at_z`` from 2 to 14) while
     the poles come at it: each pole is painted under it while farther and over
     it once nearer, and ``left`` (at rest) under it once it is past."""
@@ -1974,8 +1928,7 @@ def test_a_member_walking_away_is_painted_by_its_depth_among_the_poles(
     seen = _spy_passes(monkeypatch)
     walk = tween("right", "at_z", to=14.0, duration=3.0, from_=2.0, easing="linear")
     scene = _lane(
-        _travel_scene(Shot(id="s1", duration=3.0, viewpoint="road", actions=[walk])),
-        0.2,
+        _travel_scene(Shot(id="s1", duration=3.0, viewpoint="road", actions=[walk])), 0.2
     )
 
     def depth_of(name: str, t: float) -> float | None:
@@ -2000,9 +1953,7 @@ def test_a_member_moving_with_the_road_passes_one_at_rest(tmp_path, monkeypatch)
     seen = _spy_passes(monkeypatch)
     scene = _lane(_travel_scene(Shot(id="s1", duration=3.0, viewpoint="road")), 0.2)
     left = scene.world.members[0]
-    scene.world.members[0] = left.model_copy(
-        update={"frame": "world", "at": (-0.5, 0.4, 8.0)}
-    )
+    scene.world.members[0] = left.model_copy(update={"frame": "world", "at": (-0.5, 0.4, 8.0)})
 
     def depth_of(name: str, t: float) -> float | None:
         if name == "left":
@@ -2016,9 +1967,7 @@ def test_a_member_moving_with_the_road_passes_one_at_rest(tmp_path, monkeypatch)
     assert ("left", "right") in _assert_painted_far_to_near(tmp_path, scene, depth_of)
 
 
-def test_a_member_entering_view_late_is_keyed_at_its_opening_depth(
-    tmp_path, monkeypatch
-):
+def test_a_member_entering_view_late_is_keyed_at_its_opening_depth(tmp_path, monkeypatch):
     """an#658 review: the car backs away (the road recedes), and ``left``
     stands behind the camera as the shot opens, entering view at about 0.6 s.
     Its key is its depth at 0 (as every slot's and member's at rest is), not
@@ -2026,13 +1975,9 @@ def test_a_member_entering_view_late_is_keyed_at_its_opening_depth(
     than it for the rest of the shot."""
     seen = _spy_passes(monkeypatch)
     scene = _lane(_travel_scene(Shot(id="s1", duration=3.0, viewpoint="road")), 0.2)
-    scene.world.travel = scene.world.travel.model_copy(
-        update={"direction": (0.0, 0.0, -1.0)}
-    )
+    scene.world.travel = scene.world.travel.model_copy(update={"direction": (0.0, 0.0, -1.0)})
     left = scene.world.members[0]
-    scene.world.members[0] = left.model_copy(
-        update={"frame": "world", "at": (-0.3, 0.4, -2.0)}
-    )
+    scene.world.members[0] = left.model_copy(update={"frame": "world", "at": (-0.3, 0.4, -2.0)})
 
     def depth_of(name: str, t: float) -> float | None:
         if name == "left":
@@ -2124,9 +2069,7 @@ def test_a_pair_the_paint_keys_order_is_not_reported_out_of_order():
     those keys, has nothing to report about the pair."""
     scene = _lane(_travel_scene(Shot(id="s1", duration=3.0, viewpoint="road")), 0.2)
     left = scene.world.members[0]
-    scene.world.members[0] = left.model_copy(
-        update={"frame": "world", "at": (0.5, 0.4, 8.0)}
-    )
+    scene.world.members[0] = left.model_copy(update={"frame": "world", "at": (0.5, 0.4, 8.0)})
     notes = lower_world(scene, extents=EXTENTS).notes
     assert [n.message for n in notes if n.kind == "draw_order"] == []
 
@@ -2218,8 +2161,7 @@ def test_a_member_attached_to_a_walker_is_painted_with_it(tmp_path):
 
     walk = tween("right", "at_z", to=14.0, duration=3.0, from_=2.0, easing="linear")
     scene = _lane(
-        _travel_scene(Shot(id="s1", duration=3.0, viewpoint="road", actions=[walk])),
-        0.2,
+        _travel_scene(Shot(id="s1", duration=3.0, viewpoint="road", actions=[walk])), 0.2
     )
     scene.world.members.append(_lamp("hat", attached=Attachment(to="right")))
     shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
@@ -2264,8 +2206,7 @@ def test_two_attachments_on_one_side_keep_their_built_order(tmp_path):
 
     walk = tween("right", "at_z", to=14.0, duration=3.0, from_=2.0, easing="linear")
     scene = _lane(
-        _travel_scene(Shot(id="s1", duration=3.0, viewpoint="road", actions=[walk])),
-        0.2,
+        _travel_scene(Shot(id="s1", duration=3.0, viewpoint="road", actions=[walk])), 0.2
     )
     scene.world.members += [
         _lamp(i, attached=Attachment(to="right")) for i in ("zeta", "alpha")
@@ -2403,24 +2344,18 @@ def test_a_kind_s_own_shot_size_band_frames_its_close_up():
     its own, or a size the band does not give, keeps `SHOT_SIZES`'."""
     from an.ir.world import resolve_viewpoint
 
-    scene = _two_lamps_scene(
-        timeline=[Shot(id="s", duration=1.0, viewpoint="right_cu")]
-    )
+    scene = _two_lamps_scene(timeline=[Shot(id="s", duration=1.0, viewpoint="right_cu")])
     world = scene.world
 
     def distance(**kw):
-        eye = resolve_viewpoint(
-            world, "right_cu", extents=EXTENTS, width=W, height=H, **kw
-        )
+        eye = resolve_viewpoint(world, "right_cu", extents=EXTENTS, width=W, height=H, **kw)
         return 2.0 - eye.at[2]  # `right` stands 2 deep, the camera in front of it
 
     table = distance()  # here the lamp's WIDTH binds: 0.4 units at 0.9 of 320 px
     # the band binds: 0.6 of the lamp's 0.8 units filling 0.9 of 240 px at focal 300
     own = distance(bands={"right": {"close_up": (0.0, 0.6)}})
     assert own == pytest.approx(300.0 * 0.6 * 0.8 / (0.9 * 240.0)) and own > table
-    assert (
-        distance(bands={"left": {"close_up": (0.0, 0.6)}}) == table
-    )  # not the subject
+    assert distance(bands={"left": {"close_up": (0.0, 0.6)}}) == table  # not the subject
     assert distance(bands={"right": {"medium": (0.0, 0.7)}}) == table  # not this size
 
 
@@ -2477,9 +2412,7 @@ def test_a_rig_s_own_close_up_reaches_the_lowered_shot_and_a_dropped_one_is_note
     from an.stage.world import lower_scene
 
     def lamp_scene():
-        scene = _two_lamps_scene(
-            timeline=[Shot(id="cu", duration=1.0, viewpoint="right_cu")]
-        )
+        scene = _two_lamps_scene(timeline=[Shot(id="cu", duration=1.0, viewpoint="right_cu")])
         return scene
 
     def placed(lowered):
@@ -2519,9 +2452,7 @@ def test_the_shot_size_hook_is_genre_code_the_shot_cache_digests():
     def bands(member, mall, box):
         return {"close_up": (0.0, 0.5)}
 
-    register_entity_kind(
-        EntityKind(name="demo_rig", shot_sizes=bands), owner="demo_shot_sizes"
-    )
+    register_entity_kind(EntityKind(name="demo_rig", shot_sizes=bands), owner="demo_shot_sizes")
     try:
         assert __name__ in hook_modules()
     finally:
