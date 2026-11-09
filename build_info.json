@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "built_at": "2026-11-09T02:59:55Z",
+  "built_at": "2026-11-09T02:59:41Z",
   "package": {
     "name": "an",
     "version": "0.1.384",
@@ -23,12 +23,12 @@
   "ci": {
     "provider": "github",
     "repository": "reeleehq/an",
-    "sha": "0441d2e1abbd9d9b9b5cc3be4303019b7480fae6",
+    "sha": "fe879cd86a10aef4486b5176abc539f87cf0b184",
     "sha_in_history": true,
     "ref": "refs/heads/main",
     "ref_name": "main",
-    "run_id": "42553013070",
-    "run_url": "https://github.com/reeleehq/an/actions/runs/42553013070",
+    "run_id": "42553005127",
+    "run_url": "https://github.com/reeleehq/an/actions/runs/42553005127",
     "server_url": "https://github.com"
   },
   "tools": {
