@@ -1013,6 +1013,19 @@ def test_a_mirror_tween_is_dated_when_it_passes_through_flat(tmp_path):
     assert _onset(msg) == pytest.approx(0.25, abs=_PRINTED_S)
 
 
+def test_a_turn_that_outlasts_the_shot_is_still_read(tmp_path):
+    """A whole turn over 1 s in a 0.5 s shot ends after the shot: the half it
+    shows faces the light from a quarter turn on (re-review of an#719)."""
+    from an.ir.compose import tween
+
+    spin = [tween("lamp", "rotation", 2.0 * math.pi, 1.0, from_=0.0, easing="linear")]
+    (msg,) = _lit(
+        tmp_path, light={"direction": [-1, 0]}, side="right",
+        actions=[a.model_dump(by_alias=True) for a in spin],
+    )
+    assert "from 0.12 s" in msg or "from 0.13 s" in msg, msg
+
+
 def test_the_side_is_read_before_the_camera_so_a_roll_turns_both(tmp_path):
     """an#719: the light belongs to the set; a camera roll turns the set's
     shading and its light alike, so it changes no verdict."""

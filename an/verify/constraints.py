@@ -2125,8 +2125,12 @@ def _orientation_times(
     def orientation(t: float) -> dict:
         return {k: v for k, v in evaluate_timeline(timeline, t).items() if orients(*k)}
 
-    keys = sorted(
-        {0.0, *(t for t in key_times(timeline, where=orients) if 0.0 <= t <= duration)}
+    keys = sorted(  # the shot's end too: a move may outlast it
+        {
+            0.0,
+            float(duration),
+            *(t for t in key_times(timeline, where=orients) if 0.0 <= t <= duration),
+        }
     )
     times = set(keys)
     for a, b in zip(keys, keys[1:]):
