@@ -934,3 +934,37 @@ def test_solved_keys_are_compacted_where_the_solve_is_already_straight(
     gaps = [solve.joint_residuals(doc, shot, stores)[2] for doc in (compact, full)]
     for at_c, at_f in zip(*gaps):
         assert all(c <= f + 2 * SOLVED_POSE_TOLERANCE_PX + 1e-9 for c, f in zip(at_c, at_f))
+
+
+def test_the_solve_itself_holds_the_grip_to_a_thousandth(tmp_path, monkeypatch):
+    """The solver's own accuracy, apart from the keys' compaction budget
+    (an#636): uncompacted, the hand is on the grip within 1e-3 px."""
+    import an.stage.solve as solve
+
+    monkeypatch.setattr(
+        solve, "compact_keys", lambda times, values, **kw: list(range(len(values)))
+    )
+    doc = _compile(_project(tmp_path))
+    assert max(math.dist(*_hand_and_grip(doc, t)) for t in _times(0.5)) < 1e-3
+
+
+def test_an_animated_scale_is_in_the_compaction_budget(tmp_path):
+    """an#636 review: a scale an action tweens up is counted, so compacting
+    the solved keys still moves no point more than the budget."""
+    import an.stage.solve as solve
+    from an.stage.solve import SOLVED_POSE_TOLERANCE_PX
+
+    project = _project(tmp_path)
+    grow = {"kind": "tween", "target": "puppet", "property": "scale_x",
+            "from_value": 1.0, "to_value": 6.0, "duration": 0.5, "start": 0.0}  # fmt: skip
+    shot = _shot(project, actions=[grow, {**grow, "property": "scale_y"}])
+    compact = _compile(project, shot)
+    real = solve.compact_keys
+    try:
+        solve.compact_keys = lambda times, values, **kw: list(range(len(values)))
+        full = _compile(project, shot)
+    finally:
+        solve.compact_keys = real
+    for t in _times(0.5):
+        a, b = _hand_and_grip(compact, t)[0], _hand_and_grip(full, t)[0]
+        assert math.dist(a, b) <= SOLVED_POSE_TOLERANCE_PX, (t, a, b)

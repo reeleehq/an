@@ -114,7 +114,7 @@ SOLVED_POSE_TOLERANCE_PX: float = 0.05
 
 
 def solved_key_tolerances(
-    puppet: Any, *, budget: float = SOLVED_POSE_TOLERANCE_PX
+    puppet: Any, *, budget: float = SOLVED_POSE_TOLERANCE_PX, scale: float = 1.0
 ) -> dict[str, float]:
     """``{channel: tolerance}`` for compacting ``puppet``'s solved keys so no
     point of any body strays more than ``budget`` px from the solve (an#636).
@@ -123,7 +123,9 @@ def solved_key_tolerances(
     the root's x and y, plus one per rotating body down to it) × its scale, a
     rotation's tolerance being the positional one over the puppet's whole
     reach (every body's box end to end, its lever at most). So each channel
-    gets ``budget`` over the longest chain's count, at the largest scale.
+    gets ``budget`` over the longest chain's count, at the largest scale:
+    ``scale``, the largest any body or its parent is drawn at over the shot
+    (an authored scale animates it), else the rest pose's.
     """
     bodies = list(puppet.bodies.values())
 
@@ -134,7 +136,7 @@ def solved_key_tolerances(
         return n
 
     longest = max((chain(b) for b in bodies), default=1)
-    scale = max([1.0] + [max(abs(b.sx), abs(b.sy)) for b in bodies])
+    scale = max([1.0, scale] + [max(abs(b.sx), abs(b.sy)) for b in bodies])
     reach = max(1.0, sum(math.hypot(b.box[2], b.box[3]) for b in bodies))
     position = budget / ((math.sqrt(2.0) + longest) * scale)
     return {"x": position, "y": position, "rotation": position / reach}
@@ -548,6 +550,19 @@ Geometry = tuple[float, float, bool, bool]
 def _geometry_at(m: Affine, local_scale_x: float) -> Geometry:
     _theta, sx, sy, mirrored = _decompose(m)
     return (sx, sy, mirrored, local_scale_x < 0)
+
+
+def _drawn_scale(geometry: Geometry, local_sx: float, local_sy: float) -> float:
+    """The largest scale a body's channels are drawn at in a frame: its own
+    world scale, and its parent's (its x and y are the parent's units), which
+    is the world scale over its own local one.
+
+    >>> _drawn_scale((1.5, 1.5, False, False), 0.5, 0.5)
+    3.0
+    """
+    sx, sy = abs(geometry[0]), abs(geometry[1])
+    parent = [w / abs(own) for w, own in ((sx, local_sx), (sy, local_sy)) if own]
+    return max([sx, sy, *parent])
 
 
 def _flip_point(p: Any, flips: Mapping[str, bool]) -> Any:
@@ -1485,6 +1500,9 @@ class Run:
     #: per rejoin ``(frame, joint)`` of ``snaps``: how many frames it is
     #: closed over (0: snapped shut in one; an#636, :class:`RejoinBlends`)
     blends: dict[tuple[int, int], int] = field(default_factory=dict)
+    #: The largest scale any body, or the node it hangs from, is drawn at over
+    #: the run (an#636): what a solved channel's error is multiplied by.
+    max_scale: float = 1.0
     digest: str = ""
 
 
@@ -1595,6 +1613,9 @@ def run_solve(
             )
             local_now[path] = (tr.x, tr.y, tr.rotation)
             geometry[path] = _geometry_at(world[path], tr.scale_x)
+            run.max_scale = max(
+                run.max_scale, _drawn_scale(geometry[path], tr.scale_x, tr.scale_y)
+            )
         run.local.append(local_now)
         run.geometry.append(geometry)
         flips = {p: geometry[p][2] != puppet.bodies[p].mirrored for p in order}
@@ -2011,7 +2032,7 @@ def _emit(
     clips: dict[str, list[Any]] = {}
     emitted: set[tuple[str, str]] = set()
     index = {prop: i for i, prop in enumerate(SOLVED_CHANNELS)}
-    tolerance = solved_key_tolerances(puppet)
+    tolerance = solved_key_tolerances(puppet, scale=run.max_scale)
 
     def keyframes(vs: Sequence[float], prop: str) -> list[Any]:
         kept = compact_keys(
