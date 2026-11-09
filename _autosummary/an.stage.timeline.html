@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=787a120f"></script>
+    <script src="../_static/documentation_options.js?v=dc029616"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.378" />
+  <meta name="docsearch:version" content="0.1.379" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -675,7 +675,7 @@ composing node transforms into canvas positions (<a class="reference internal" h
 <tr class="row-even"><td><p><a class="reference internal" href="#an.stage.timeline.transform_of" title="an.stage.timeline.transform_of"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform_of</span></code></a>(node[, pose, frame_height])</p></td>
 <td><p>A node's transform, with <code class="docutils literal notranslate"><span class="pre">pose</span></code> overriding what the document declares.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.timeline.screen_position" title="an.stage.timeline.screen_position"><code class="xref py py-obj docutils literal notranslate"><span class="pre">screen_position</span></code></a>(scene, path, *[, pose, point])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.timeline.screen_position" title="an.stage.timeline.screen_position"><code class="xref py py-obj docutils literal notranslate"><span class="pre">screen_position</span></code></a>(scene, path, *[, pose, ...])</p></td>
 <td><p>Where <code class="docutils literal notranslate"><span class="pre">point</span></code> in <code class="docutils literal notranslate"><span class="pre">path</span></code>'s local space lands on the canvas.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.stage.timeline.node_box" title="an.stage.timeline.node_box"><code class="xref py py-obj docutils literal notranslate"><span class="pre">node_box</span></code></a>(scene, path, *[, pose])</p></td>
@@ -1034,8 +1034,10 @@ is its polyline’s, grown by half the stroke.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.stage.timeline.screen_position">
-<span class="sig-prename descclassname"><span class="pre">an.stage.timeline.</span></span><span class="sig-name descname"><span class="pre">screen_position</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scene</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">pose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.0,</span> <span class="pre">0.0)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/timeline.html#screen_position"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.timeline.screen_position" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.stage.timeline.</span></span><span class="sig-name descname"><span class="pre">screen_position</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scene</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">pose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.0,</span> <span class="pre">0.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">camera</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/timeline.html#screen_position"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.timeline.screen_position" title="Link to this definition">#</a></dt>
 <dd><p>Where <code class="docutils literal notranslate"><span class="pre">point</span></code> in <code class="docutils literal notranslate"><span class="pre">path</span></code>’s local space lands on the canvas.</p>
+<p><code class="docutils literal notranslate"><span class="pre">camera=False</span></code> leaves out the root’s pose (the camera: its pan, zoom and
+roll), giving where the point lies on the set before the camera sees it.</p>
 <p>The composition the runtime performs, walked from the node up to <code class="code docutils literal notranslate"><span class="pre">root</span></code>
 and then offset by the canvas centre — which is where <code class="code docutils literal notranslate"><span class="pre">runtime.js</span></code> places
 the root container.</p>
@@ -1056,6 +1058,8 @@ the root container.</p>
 reason <code class="code docutils literal notranslate"><span class="pre">root.pivot</span></code> is the camera:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">screen_position</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="s2">"hill"</span><span class="p">,</span> <span class="n">pose</span><span class="o">=</span><span class="p">{(</span><span class="s2">"root"</span><span class="p">,</span> <span class="s2">"pivot_x"</span><span class="p">):</span> <span class="mf">25.0</span><span class="p">})</span>
 <span class="go">(175.0, 120.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">screen_position</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="s2">"hill"</span><span class="p">,</span> <span class="n">pose</span><span class="o">=</span><span class="p">{(</span><span class="s2">"root"</span><span class="p">,</span> <span class="s2">"pivot_x"</span><span class="p">):</span> <span class="mf">25.0</span><span class="p">},</span> <span class="n">camera</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">(200.0, 120.0)</span>
 </pre></div>
 </div>
 <dl class="field-list simple">

@@ -25,11 +25,13 @@ values: the timeline produces the raw pose.
 
 ### Functions
 
-| [`write_group`](#an.timing.timeline.write_group)(prop)                           | What `prop` writes on a STAGE node (the `stage.node` space's groups).       |
-|----------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|
-| [`evaluate_timeline`](#an.timing.timeline.evaluate_timeline)(timeline, t, \*[, space]) | Evaluate `timeline` at time `t`, merging poses across tracks/clips.         |
-| [`clip_from_json`](#an.timing.timeline.clip_from_json)(anim, \*[, name])            | One compiled animation (`compiled.schema.json`'s `animation`) as a `Clip`.  |
-| [`timeline_from_compiled`](#an.timing.timeline.timeline_from_compiled)(doc)                 | The compiled document's `timeline`/`animations` as an evaluable `Timeline`. |
+| [`write_group`](#an.timing.timeline.write_group)(prop)                           | What `prop` writes on a STAGE node (the `stage.node` space's groups).                                                                                                                                                |
+|----------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`evaluate_timeline`](#an.timing.timeline.evaluate_timeline)(timeline, t, \*[, space]) | Evaluate `timeline` at time `t`, merging poses across tracks/clips.                                                                                                                                                  |
+| [`key_times`](#an.timing.timeline.key_times)(timeline, \*[, where])            | Every timeline time a channel `where(target, property)` selects has a keyframe at, through each placed clip's start, speed and loops (a ping-pong cycle mirrored), with the start and end of every clip holding one. |
+| [`cut_timeline`](#an.timing.timeline.cut_timeline)(timeline, \*[, where])         | `timeline` keeping only the channels `where(target, property)` selects, and the clips and tracks still holding one.                                                                                                  |
+| [`clip_from_json`](#an.timing.timeline.clip_from_json)(anim, \*[, name])            | One compiled animation (`compiled.schema.json`'s `animation`) as a `Clip`.                                                                                                                                           |
+| [`timeline_from_compiled`](#an.timing.timeline.timeline_from_compiled)(doc)                 | The compiled document's `timeline`/`animations` as an evaluable `Timeline`.                                                                                                                                          |
 
 ### Classes
 
@@ -84,6 +86,28 @@ exactly what the runtime will.
 
 * **Return type:**
   [`Clip`](an.timing.clip.html.md#an.timing.clip.Clip)
+
+### an.timing.timeline.cut_timeline(timeline, \*, where=<function \_every_channel>)
+
+`timeline` keeping only the channels `where(target, property)`
+selects, and the clips and tracks still holding one.
+
+A target’s pose depends only on its own channels (write groups are per
+target), so a selected target evaluates exactly as in the whole timeline,
+for a fraction of the cost: what a check judging a few nodes evaluates at
+many instants (an#719).
+
+```pycon
+>>> clip = Clip("m", duration=1.0, channels=[
+...     Channel("a", "x", [Keyframe(0.0, 0.0), Keyframe(1.0, 4.0)]),
+...     Channel("b", "x", [Keyframe(0.0, 0.0), Keyframe(1.0, 8.0)])])
+>>> tl = Timeline(duration=1.0, tracks=[Track("", [PlacedClip(clip)])])
+>>> evaluate_timeline(cut_timeline(tl, where=lambda target, prop: target == "a"), 0.5)
+{('a', 'x'): 2.0}
+```
+
+* **Return type:**
+  [`Timeline`](#an.timing.timeline.Timeline)
 
 ### an.timing.timeline.evaluate_timeline(timeline, t, , space=None)
 
@@ -148,6 +172,30 @@ while both played).
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.timing.timeline.key_times(timeline, \*, where=<function \_every_channel>)
+
+Every timeline time a channel `where(target, property)` selects has a
+keyframe at, through each placed clip’s start, speed and loops (a
+ping-pong cycle mirrored), with the start and end of every clip holding one.
+
+Where a selected value can change course: a check that judges a pose need
+not sample every frame, only these times and what lies between them (an#719).
+A clip none of whose selected channels has a key adds nothing.
+
+```pycon
+>>> clip = Clip("turn", duration=1.0, channels=[
+...     Channel("a", "rotation", [Keyframe(0.0, 0.0), Keyframe(0.25, 1.0), Keyframe(1.0, 0.0)]),
+...     Channel("a", "x", [Keyframe(0.5, 0.0), Keyframe(1.0, 1.0)])], loop_mode=LoopMode.LOOP)
+>>> tl = Timeline(duration=4.0, tracks=[Track("a", clips=[PlacedClip(clip, start_time=1.0, duration=2.0)])])
+>>> key_times(tl, where=lambda target, prop: prop == "rotation")
+[1.0, 1.25, 2.0, 2.25, 3.0]
+>>> key_times(tl)
+[1.0, 1.25, 1.5, 2.0, 2.25, 2.5, 3.0]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.timing.timeline.timeline_from_compiled(doc)
 

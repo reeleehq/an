@@ -469,10 +469,11 @@ the VIEWPOINT’s frame (a subject in another frame, at the shot’s start).
 
 A viewpoint with `at` is that camera. One with a `subject` is computed:
 on the look direction, at the distance that fills `fill` of the frame
-with the subject’s band (`SHOT_SIZES`), shifted so the band’s centre lands
-at `subject_at`. With several subjects the band is their union, aimed at
-their mean depth, and the distance is what the NEAREST subject needs from
-its own depth, so every subject fits the frame’s height and width.
+with the subject’s band (`SHOT_SIZES`; its rows at its box’s aspect,
+`_band_box()`), shifted so the band’s centre lands at `subject_at`.
+With several subjects the band is their union, aimed at their mean depth,
+and the distance is what the NEAREST subject needs from its own depth, so
+every subject’s band fits the frame’s height and width.
 
 ```pycon
 >>> from an.ir.schema import World, WorldMember

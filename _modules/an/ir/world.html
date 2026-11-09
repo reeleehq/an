@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=787a120f"></script>
+    <script src="../../../_static/documentation_options.js?v=dc029616"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.378" />
+  <meta name="docsearch:version" content="0.1.379" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1160,6 +1160,30 @@ window.runMermaid = runMermaid;</script>
     <span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_band_box</span><span class="p">(</span>
+    <span class="n">box</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">top</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">bottom</span><span class="p">:</span> <span class="nb">float</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``box`` cut to a shot size's band: rows ``top``..``bottom`` (fractions of</span>
+<span class="sd">    its height), at the box's own aspect, about its centre column (an#732).</span>
+
+<span class="sd">    A band is a cut of the subject's height; its width is not measured, so it</span>
+<span class="sd">    keeps the box's proportions. Fitting the whole box's width instead let a</span>
+<span class="sd">    tall frame's width limit every size alike, and a medium and a close-up got</span>
+<span class="sd">    one distance. The price: a partial size may crop the subject's sides (a</span>
+<span class="sd">    head as wide as the body, an arm reaching out of the box's centre), which</span>
+<span class="sd">    a kind's own band extents would fix (see the follow-up of an#732).</span>
+
+<span class="sd">    &gt;&gt;&gt; _band_box((-1.0, 0.0, 1.0, 10.0), 0.0, 0.5)</span>
+<span class="sd">    (-0.5, 0.0, 0.5, 5.0)</span>
+<span class="sd">    &gt;&gt;&gt; _band_box((-1.0, 0.0, 1.0, 10.0), 0.0, 1.0)</span>
+<span class="sd">    (-1.0, 0.0, 1.0, 10.0)</span>
+<span class="sd">    """</span>
+    <span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span> <span class="o">=</span> <span class="n">box</span>
+    <span class="n">frac</span> <span class="o">=</span> <span class="n">bottom</span> <span class="o">-</span> <span class="n">top</span>
+    <span class="n">half</span><span class="p">,</span> <span class="n">cx</span> <span class="o">=</span> <span class="p">(</span><span class="n">x1</span> <span class="o">-</span> <span class="n">x0</span><span class="p">)</span> <span class="o">*</span> <span class="n">frac</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span> <span class="p">(</span><span class="n">x0</span> <span class="o">+</span> <span class="n">x1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">cx</span> <span class="o">-</span> <span class="n">half</span><span class="p">,</span> <span class="n">y0</span> <span class="o">+</span> <span class="n">top</span> <span class="o">*</span> <span class="p">(</span><span class="n">y1</span> <span class="o">-</span> <span class="n">y0</span><span class="p">),</span> <span class="n">cx</span> <span class="o">+</span> <span class="n">half</span><span class="p">,</span> <span class="n">y0</span> <span class="o">+</span> <span class="n">bottom</span> <span class="o">*</span> <span class="p">(</span><span class="n">y1</span> <span class="o">-</span> <span class="n">y0</span><span class="p">))</span>
+
+
 <div class="viewcode-block" id="resolve_viewpoint">
 <a class="viewcode-back" href="../../../_autosummary/an.ir.world.html#an.ir.resolve_viewpoint">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">resolve_viewpoint</span><span class="p">(</span>
@@ -1180,10 +1204,11 @@ window.runMermaid = runMermaid;</script>
 
 <span class="sd">    A viewpoint with ``at`` is that camera. One with a ``subject`` is computed:</span>
 <span class="sd">    on the look direction, at the distance that fills ``fill`` of the frame</span>
-<span class="sd">    with the subject's band (`SHOT_SIZES`), shifted so the band's centre lands</span>
-<span class="sd">    at ``subject_at``. With several subjects the band is their union, aimed at</span>
-<span class="sd">    their mean depth, and the distance is what the NEAREST subject needs from</span>
-<span class="sd">    its own depth, so every subject fits the frame's height and width.</span>
+<span class="sd">    with the subject's band (`SHOT_SIZES`; its rows at its box's aspect,</span>
+<span class="sd">    :func:`_band_box`), shifted so the band's centre lands at ``subject_at``.</span>
+<span class="sd">    With several subjects the band is their union, aimed at their mean depth,</span>
+<span class="sd">    and the distance is what the NEAREST subject needs from its own depth, so</span>
+<span class="sd">    every subject's band fits the frame's height and width.</span>
 
 <span class="sd">    &gt;&gt;&gt; from an.ir.schema import World, WorldMember</span>
 <span class="sd">    &gt;&gt;&gt; world = World(members=[WorldMember(kind="prop", id="p", store="props", ref="p", at=(3.0, 0.0, 10.0), height=2.0)])</span>
@@ -1233,13 +1258,9 @@ window.runMermaid = runMermaid;</script>
         <span class="n">boxes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_world_box</span><span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="n">box</span><span class="p">,</span> <span class="n">m</span><span class="p">))</span>
         <span class="n">positions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">position</span><span class="p">)</span>
         <span class="n">cuts</span><span class="o">.</span><span class="n">append</span><span class="p">(((</span><span class="n">bands</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sid</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">bottom</span><span class="p">)))</span>
-    <span class="n">x0</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">boxes</span><span class="p">)</span>
-    <span class="n">x1</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">boxes</span><span class="p">)</span>
-    <span class="n">spans</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">t</span> <span class="o">*</span> <span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">u</span> <span class="o">*</span> <span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
-        <span class="k">for</span> <span class="n">b</span><span class="p">,</span> <span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">u</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">boxes</span><span class="p">,</span> <span class="n">cuts</span><span class="p">)</span>
-    <span class="p">]</span>
-    <span class="n">y0</span><span class="p">,</span> <span class="n">y1</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">spans</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">spans</span><span class="p">)</span>
+    <span class="n">bands_at</span> <span class="o">=</span> <span class="p">[</span><span class="n">_band_box</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">u</span><span class="p">)</span> <span class="k">for</span> <span class="n">b</span><span class="p">,</span> <span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">u</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">boxes</span><span class="p">,</span> <span class="n">cuts</span><span class="p">)]</span>
+    <span class="n">x0</span><span class="p">,</span> <span class="n">x1</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bands_at</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bands_at</span><span class="p">)</span>
+    <span class="n">y0</span><span class="p">,</span> <span class="n">y1</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bands_at</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bands_at</span><span class="p">)</span>
     <span class="n">n</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">positions</span><span class="p">))</span>
     <span class="n">centre</span><span class="p">:</span> <span class="n">Point3</span> <span class="o">=</span> <span class="p">(</span>
         <span class="p">(</span><span class="n">x0</span> <span class="o">+</span> <span class="n">x1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span>

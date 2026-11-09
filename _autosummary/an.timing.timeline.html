@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=787a120f"></script>
+    <script src="../_static/documentation_options.js?v=dc029616"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.378" />
+  <meta name="docsearch:version" content="0.1.379" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -667,6 +667,12 @@ values: the timeline produces the raw pose.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.timing.timeline.evaluate_timeline" title="an.timing.timeline.evaluate_timeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate_timeline</span></code></a>(timeline, t, *[, space])</p></td>
 <td><p>Evaluate <code class="docutils literal notranslate"><span class="pre">timeline</span></code> at time <code class="docutils literal notranslate"><span class="pre">t</span></code>, merging poses across tracks/clips.</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.timing.timeline.key_times" title="an.timing.timeline.key_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">key_times</span></code></a>(timeline, *[, where])</p></td>
+<td><p>Every timeline time a channel <code class="docutils literal notranslate"><span class="pre">where(target,</span> <span class="pre">property)</span></code> selects has a keyframe at, through each placed clip's start, speed and loops (a ping-pong cycle mirrored), with the start and end of every clip holding one.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.timing.timeline.cut_timeline" title="an.timing.timeline.cut_timeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cut_timeline</span></code></a>(timeline, *[, where])</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">timeline</span></code> keeping only the channels <code class="docutils literal notranslate"><span class="pre">where(target,</span> <span class="pre">property)</span></code> selects, and the clips and tracks still holding one.</p></td>
+</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.timing.timeline.clip_from_json" title="an.timing.timeline.clip_from_json"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clip_from_json</span></code></a>(anim, *[, name])</p></td>
 <td><p>One compiled animation (<code class="docutils literal notranslate"><span class="pre">compiled.schema.json</span></code>'s <code class="docutils literal notranslate"><span class="pre">animation</span></code>) as a <code class="xref py py-class docutils literal notranslate"><span class="pre">Clip</span></code>.</p></td>
 </tr>
@@ -751,6 +757,30 @@ exactly what the runtime will.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.timing.timeline.cut_timeline">
+<span class="sig-prename descclassname"><span class="pre">an.timing.timeline.</span></span><span class="sig-name descname"><span class="pre">cut_timeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeline</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">where</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">_every_channel&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/timeline.html#cut_timeline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.timing.timeline.cut_timeline" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">timeline</span></code> keeping only the channels <code class="docutils literal notranslate"><span class="pre">where(target,</span> <span class="pre">property)</span></code>
+selects, and the clips and tracks still holding one.</p>
+<p>A target’s pose depends only on its own channels (write groups are per
+target), so a selected target evaluates exactly as in the whole timeline,
+for a fraction of the cost: what a check judging a few nodes evaluates at
+many instants (an#719).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">clip</span> <span class="o">=</span> <span class="n">Clip</span><span class="p">(</span><span class="s2">"m"</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="p">[</span>
+<span class="gp">... </span>    <span class="n">Channel</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">,</span> <span class="p">[</span><span class="n">Keyframe</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">Keyframe</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">)]),</span>
+<span class="gp">... </span>    <span class="n">Channel</span><span class="p">(</span><span class="s2">"b"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">,</span> <span class="p">[</span><span class="n">Keyframe</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">Keyframe</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">)])])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tl</span> <span class="o">=</span> <span class="n">Timeline</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">tracks</span><span class="o">=</span><span class="p">[</span><span class="n">Track</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="p">[</span><span class="n">PlacedClip</span><span class="p">(</span><span class="n">clip</span><span class="p">)])])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">evaluate_timeline</span><span class="p">(</span><span class="n">cut_timeline</span><span class="p">(</span><span class="n">tl</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="k">lambda</span> <span class="n">target</span><span class="p">,</span> <span class="n">prop</span><span class="p">:</span> <span class="n">target</span> <span class="o">==</span> <span class="s2">"a"</span><span class="p">),</span> <span class="mf">0.5</span><span class="p">)</span>
+<span class="go">{('a', 'x'): 2.0}</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.timing.timeline.Timeline" title="an.timing.timeline.Timeline"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timeline</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.timing.timeline.evaluate_timeline">
 <span class="sig-prename descclassname"><span class="pre">an.timing.timeline.</span></span><span class="sig-name descname"><span class="pre">evaluate_timeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeline</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/timeline.html#evaluate_timeline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.timing.timeline.evaluate_timeline" title="Link to this definition">#</a></dt>
 <dd><p>Evaluate <code class="docutils literal notranslate"><span class="pre">timeline</span></code> at time <code class="docutils literal notranslate"><span class="pre">t</span></code>, merging poses across tracks/clips.</p>
@@ -809,6 +839,32 @@ while both played).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>], <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.timing.timeline.key_times">
+<span class="sig-prename descclassname"><span class="pre">an.timing.timeline.</span></span><span class="sig-name descname"><span class="pre">key_times</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeline</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">where</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">_every_channel&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/timeline.html#key_times"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.timing.timeline.key_times" title="Link to this definition">#</a></dt>
+<dd><p>Every timeline time a channel <code class="docutils literal notranslate"><span class="pre">where(target,</span> <span class="pre">property)</span></code> selects has a
+keyframe at, through each placed clip’s start, speed and loops (a
+ping-pong cycle mirrored), with the start and end of every clip holding one.</p>
+<p>Where a selected value can change course: a check that judges a pose need
+not sample every frame, only these times and what lies between them (an#719).
+A clip none of whose selected channels has a key adds nothing.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">clip</span> <span class="o">=</span> <span class="n">Clip</span><span class="p">(</span><span class="s2">"turn"</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="p">[</span>
+<span class="gp">... </span>    <span class="n">Channel</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"rotation"</span><span class="p">,</span> <span class="p">[</span><span class="n">Keyframe</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">Keyframe</span><span class="p">(</span><span class="mf">0.25</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="n">Keyframe</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)]),</span>
+<span class="gp">... </span>    <span class="n">Channel</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">,</span> <span class="p">[</span><span class="n">Keyframe</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">Keyframe</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)])],</span> <span class="n">loop_mode</span><span class="o">=</span><span class="n">LoopMode</span><span class="o">.</span><span class="n">LOOP</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tl</span> <span class="o">=</span> <span class="n">Timeline</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> <span class="n">tracks</span><span class="o">=</span><span class="p">[</span><span class="n">Track</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="n">clips</span><span class="o">=</span><span class="p">[</span><span class="n">PlacedClip</span><span class="p">(</span><span class="n">clip</span><span class="p">,</span> <span class="n">start_time</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)])])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">key_times</span><span class="p">(</span><span class="n">tl</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="k">lambda</span> <span class="n">target</span><span class="p">,</span> <span class="n">prop</span><span class="p">:</span> <span class="n">prop</span> <span class="o">==</span> <span class="s2">"rotation"</span><span class="p">)</span>
+<span class="go">[1.0, 1.25, 2.0, 2.25, 3.0]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">key_times</span><span class="p">(</span><span class="n">tl</span><span class="p">)</span>
+<span class="go">[1.0, 1.25, 1.5, 2.0, 2.25, 2.5, 3.0]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -917,7 +973,9 @@ itself.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.timeline.Timeline"><code class="docutils literal notranslate"><span class="pre">Timeline</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.timeline.Track"><code class="docutils literal notranslate"><span class="pre">Track</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.timeline.clip_from_json"><code class="docutils literal notranslate"><span class="pre">clip_from_json()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.timeline.cut_timeline"><code class="docutils literal notranslate"><span class="pre">cut_timeline()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.timeline.evaluate_timeline"><code class="docutils literal notranslate"><span class="pre">evaluate_timeline()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.timeline.key_times"><code class="docutils literal notranslate"><span class="pre">key_times()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.timeline.timeline_from_compiled"><code class="docutils literal notranslate"><span class="pre">timeline_from_compiled()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.timeline.write_group"><code class="docutils literal notranslate"><span class="pre">write_group()</span></code></a></li>
 </ul>

@@ -10,6 +10,8 @@ an.timing.timeline
    
       write_group
       evaluate_timeline
+      key_times
+      cut_timeline
       clip_from_json
       timeline_from_compiled
    

@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=787a120f"></script>
+    <script src="../../../_static/documentation_options.js?v=dc029616"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.378" />
+  <meta name="docsearch:version" content="0.1.379" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -802,6 +802,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">lru_cache</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Mapping</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">STREAM_OVERRIDE</span><span class="p">,</span> <span class="n">UNSEEN_ALPHA</span><span class="p">,</span> <span class="n">Z_INDEX_PROPERTY</span>
@@ -2712,6 +2713,18 @@ window.runMermaid = runMermaid;</script>
 <span class="n">LIGHT_HALF_ANGLE_DEG</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">45.0</span>
 <span class="c1">#: The length (px of the art's frame) of the probe that finds where a side faces on screen.</span>
 <span class="n">_SIDE_PROBE</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span>
+<span class="c1">#: The channels whose change turns a side on screen: a mirror or a turn of the</span>
+<span class="c1">#: art or of anything above it (an#719). The camera's are not among them: the</span>
+<span class="c1">#: light belongs to the set, so a side is read before the camera, and a roll</span>
+<span class="c1">#: turns the set's shading and its light alike.</span>
+<span class="n">ORIENTATION_PROPERTIES</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"scale_x"</span><span class="p">,</span> <span class="s2">"scale_y"</span><span class="p">,</span> <span class="s2">"rotation"</span><span class="p">})</span>
+<span class="c1">#: How closely the light check pins down when a side starts facing the light:</span>
+<span class="c1">#: it bisects the pose (a function of time alone) down to this, finer than the</span>
+<span class="c1">#: hundredth of a second its warning prints (an#719).</span>
+<span class="n">LIGHT_ONSET_TOLERANCE_S</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-3</span>
+<span class="c1">#: A side probe shorter than this (px on the set) has no direction: the art is</span>
+<span class="c1">#: squashed flat (a mirror tween passing through zero), and says nothing.</span>
+<span class="n">_FLAT_PROBE_PX</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-9</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">shading_disagrees</span><span class="p">(</span>
@@ -2754,9 +2767,11 @@ window.runMermaid = runMermaid;</script>
 <span class="k">def</span><span class="w"> </span><span class="nf">check_light</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""The core's ``light`` check (catalogue D1): every drawn member whose art</span>
 <span class="sd">    says which side it is shaded on agrees with the scene's one light, read</span>
-<span class="sd">    where that side faces on screen as the shot opens (its own and every</span>
-<span class="sd">    parent's mirror and rotation). Declarations only; a shot the stage does</span>
-<span class="sd">    not draw, or that does not compile, is not judged."""</span>
+<span class="sd">    where that side faces on the set (its own and every parent's mirror and</span>
+<span class="sd">    rotation, before the camera) as the shot opens, at every key of its</span>
+<span class="sd">    orientation and on every frame where it moves (an#719): one warning per</span>
+<span class="sd">    member, saying when it starts facing the light. Declarations only; a shot the stage does not draw, or that does</span>
+<span class="sd">    not compile, is not judged."""</span>
     <span class="n">light</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">light</span>
     <span class="k">if</span> <span class="n">light</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span>
@@ -2782,57 +2797,164 @@ window.runMermaid = runMermaid;</script>
         <span class="n">judged</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">e</span><span class="p">,</span> <span class="n">side</span><span class="p">))</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">judged</span><span class="p">:</span>
         <span class="k">return</span>
-    <span class="n">facing</span> <span class="o">=</span> <span class="n">_sides_on_screen</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">judged</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">facing</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">onsets</span> <span class="o">=</span> <span class="n">_light_onsets</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">judged</span><span class="p">,</span> <span class="n">light</span><span class="o">.</span><span class="n">vector</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">onsets</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span>
     <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">side</span> <span class="ow">in</span> <span class="n">judged</span><span class="p">:</span>
-        <span class="n">on_screen</span> <span class="o">=</span> <span class="n">facing</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">on_screen</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">onsets</span><span class="p">:</span>
             <span class="k">continue</span>
-        <span class="n">implied</span> <span class="o">=</span> <span class="n">shading_disagrees</span><span class="p">(</span><span class="n">on_screen</span><span class="p">,</span> <span class="n">light</span><span class="o">.</span><span class="n">vector</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">implied</span><span class="p">:</span>
-            <span class="k">continue</span>
+        <span class="n">t</span><span class="p">,</span> <span class="n">implied</span> <span class="o">=</span> <span class="n">onsets</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
+        <span class="n">when</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">" from </span><span class="si">{</span><span class="n">t</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s"</span> <span class="k">if</span> <span class="n">t</span> <span class="o">&gt;</span> <span class="n">SAME_INSTANT_S</span> <span class="k">else</span> <span class="s2">""</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
             <span class="s2">"warning"</span><span class="p">,</span>
             <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">/entities"</span><span class="p">,</span>
             <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> is shaded on its </span><span class="si">{</span><span class="n">side</span><span class="si">}</span><span class="s2">, which faces the light as it is "</span>
-            <span class="sa">f</span><span class="s2">"drawn (light from </span><span class="si">{</span><span class="n">light</span><span class="o">.</span><span class="n">key</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="nb">list</span><span class="p">(</span><span class="n">light</span><span class="o">.</span><span class="n">vector</span><span class="p">)</span><span class="si">}</span><span class="s2">; it shades the "</span>
-            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">' or '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">implied</span><span class="p">)</span><span class="si">}</span><span class="s2">): regenerate or flip the art, or say "</span>
+            <span class="sa">f</span><span class="s2">"drawn</span><span class="si">{</span><span class="n">when</span><span class="si">}</span><span class="s2"> (light from </span><span class="si">{</span><span class="n">light</span><span class="o">.</span><span class="n">key</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="nb">list</span><span class="p">(</span><span class="n">light</span><span class="o">.</span><span class="n">vector</span><span class="p">)</span><span class="si">}</span><span class="s2">; it shades "</span>
+            <span class="sa">f</span><span class="s2">"the </span><span class="si">{</span><span class="s1">' or '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">implied</span><span class="p">)</span><span class="si">}</span><span class="s2">): regenerate or flip the art, or say "</span>
             <span class="s2">"`shaded_side: flat` for art drawn without a light."</span><span class="p">,</span>
         <span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_sides_on_screen</span><span class="p">(</span>
-    <span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">judged</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""``{entity id: where its shaded side faces on screen as the shot opens}``,</span>
-<span class="sd">    from the compiled shot, through every transform above the art; ``None``</span>
-<span class="sd">    when the shot does not compile."""</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_light_onsets</span><span class="p">(</span>
+    <span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">judged</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span> <span class="n">light</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]]]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``{entity id: (when its shaded side first faces the light, the sides the</span>
+<span class="sd">    light implies)}`` for the members that ever do, read on the compiled shot</span>
+<span class="sd">    through every transform above the art but the camera; ``None`` when the</span>
+<span class="sd">    shot does not compile.</span>
+
+<span class="sd">    Sampled at :func:`_orientation_times`; the first sample facing the light is</span>
+<span class="sd">    bisected back toward the last one that did not, to</span>
+<span class="sd">    :data:`LIGHT_ONSET_TOLERANCE_S`, so the time is when the side turns, not</span>
+<span class="sd">    when it was sampled."""</span>
     <span class="n">doc</span> <span class="o">=</span> <span class="n">compiled_shot</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-        <span class="n">_node_chain</span><span class="p">,</span>
-        <span class="n">evaluate_timeline</span><span class="p">,</span>
-        <span class="n">screen_position</span><span class="p">,</span>
-        <span class="n">timeline_from_scene</span><span class="p">,</span>
-    <span class="p">)</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">_node_chain</span><span class="p">,</span> <span class="n">timeline_from_scene</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">cut_timeline</span><span class="p">,</span> <span class="n">evaluate_timeline</span>
 
-    <span class="n">pose</span> <span class="o">=</span> <span class="n">evaluate_timeline</span><span class="p">(</span><span class="n">timeline_from_scene</span><span class="p">(</span><span class="n">doc</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">)</span>
-    <span class="n">out</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">chains</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">side</span> <span class="ow">in</span> <span class="n">judged</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">_node</span><span class="p">,</span> <span class="n">path</span> <span class="o">=</span> <span class="n">_node_chain</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">scene</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-            <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span> <span class="o">=</span> <span class="n">SHADED_SIDES</span><span class="p">[</span><span class="n">side</span><span class="p">]</span>
-            <span class="n">x0</span><span class="p">,</span> <span class="n">y0</span> <span class="o">=</span> <span class="n">screen_position</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">pose</span><span class="o">=</span><span class="n">pose</span><span class="p">)</span>
-            <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span> <span class="o">=</span> <span class="n">screen_position</span><span class="p">(</span>
-                <span class="n">doc</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">pose</span><span class="o">=</span><span class="n">pose</span><span class="p">,</span> <span class="n">point</span><span class="o">=</span><span class="p">(</span><span class="n">_SIDE_PROBE</span> <span class="o">*</span> <span class="n">sx</span><span class="p">,</span> <span class="n">_SIDE_PROBE</span> <span class="o">*</span> <span class="n">sy</span><span class="p">)</span>
-            <span class="p">)</span>
+            <span class="n">chain</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">_n</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">_node_chain</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">scene</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]]</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 - not drawn on the stage</span>
             <span class="k">continue</span>
-        <span class="k">if</span> <span class="n">math</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">x1</span> <span class="o">-</span> <span class="n">x0</span><span class="p">,</span> <span class="n">y1</span> <span class="o">-</span> <span class="n">y0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-9</span><span class="p">:</span>
-            <span class="n">out</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">x1</span> <span class="o">-</span> <span class="n">x0</span><span class="p">,</span> <span class="n">y1</span> <span class="o">-</span> <span class="n">y0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">chain</span><span class="p">:</span>
+            <span class="n">chains</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">chain</span><span class="p">,</span> <span class="n">side</span><span class="p">)</span>
+    <span class="n">above</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span> <span class="k">for</span> <span class="n">chain</span><span class="p">,</span> <span class="n">_side</span> <span class="ow">in</span> <span class="n">chains</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">chain</span><span class="p">}</span>
+    <span class="n">timeline</span> <span class="o">=</span> <span class="n">cut_timeline</span><span class="p">(</span>
+        <span class="n">timeline_from_scene</span><span class="p">(</span><span class="n">doc</span><span class="p">),</span> <span class="n">where</span><span class="o">=</span><span class="k">lambda</span> <span class="n">target</span><span class="p">,</span> <span class="n">_prop</span><span class="p">:</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">above</span>
+    <span class="p">)</span>
+    <span class="n">times</span> <span class="o">=</span> <span class="n">_orientation_times</span><span class="p">(</span>
+        <span class="n">timeline</span><span class="p">,</span> <span class="n">above</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">timeline</span><span class="o">.</span><span class="n">duration</span><span class="p">),</span> <span class="n">fps</span><span class="o">=</span><span class="n">_fps</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="nd">@lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">pose_at</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>  <span class="c1"># one evaluation per instant, shared by the members</span>
+        <span class="k">return</span> <span class="n">evaluate_timeline</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">facing</span><span class="p">(</span><span class="n">eid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+        <span class="n">chain</span><span class="p">,</span> <span class="n">side</span> <span class="o">=</span> <span class="n">chains</span><span class="p">[</span><span class="n">eid</span><span class="p">]</span>
+        <span class="n">on_set</span> <span class="o">=</span> <span class="n">_side_on_set</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">pose_at</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="n">chain</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">side</span><span class="o">=</span><span class="n">side</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">()</span> <span class="k">if</span> <span class="n">on_set</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">shading_disagrees</span><span class="p">(</span><span class="n">on_set</span><span class="p">,</span> <span class="n">light</span><span class="p">)</span>
+
+    <span class="n">out</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">eid</span> <span class="ow">in</span> <span class="n">chains</span><span class="p">:</span>
+        <span class="n">before</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">times</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">implied</span> <span class="o">:=</span> <span class="n">facing</span><span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">before</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">t</span> <span class="o">=</span> <span class="n">_first_true</span><span class="p">(</span>
+                        <span class="k">lambda</span> <span class="n">u</span><span class="p">:</span> <span class="nb">bool</span><span class="p">(</span><span class="n">facing</span><span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="n">u</span><span class="p">)),</span>
+                        <span class="n">before</span><span class="p">,</span>
+                        <span class="n">t</span><span class="p">,</span>
+                        <span class="n">tolerance</span><span class="o">=</span><span class="n">LIGHT_ONSET_TOLERANCE_S</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="n">out</span><span class="p">[</span><span class="n">eid</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">implied</span><span class="p">)</span>
+                <span class="k">break</span>
+            <span class="n">before</span> <span class="o">=</span> <span class="n">t</span>
     <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_orientation_times</span><span class="p">(</span>
+    <span class="n">timeline</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">paths</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""When to read the sides of the nodes at ``paths`` over ``[0, duration]``:</span>
+<span class="sd">    the start, every key of an orientation channel</span>
+<span class="sd">    (:data:`ORIENTATION_PROPERTIES`) of one of them</span>
+<span class="sd">    (:func:`an.timing.timeline.key_times`), and, between two consecutive keys</span>
+<span class="sd">    where one of those channels moves, every frame of the ``fps`` grid and the</span>
+<span class="sd">    midpoint.</span>
+
+<span class="sd">    Between two consecutive keys each such channel is inside one easing segment:</span>
+<span class="sd">    it holds (a step, or two equal keys), and the sides cannot turn, or it moves,</span>
+<span class="sd">    and a turn can come and go between the keys (0 to 4 pi ends where it began;</span>
+<span class="sd">    an overshooting easing passes its end value). What the film shows of a move</span>
+<span class="sd">    is its frames, so reading every frame sees every turn the film shows; the</span>
+<span class="sd">    midpoint covers an interval no frame falls in. An interval moves when the</span>
+<span class="sd">    orientation at its thirds is not its value at its start (a step's segment</span>
+<span class="sd">    keeps the value it leaves)."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">evaluate_timeline</span><span class="p">,</span> <span class="n">key_times</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">orients</span><span class="p">(</span><span class="n">target</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">prop</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">paths</span> <span class="ow">and</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">ORIENTATION_PROPERTIES</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">orientation</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">evaluate_timeline</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">orients</span><span class="p">(</span><span class="o">*</span><span class="n">k</span><span class="p">)}</span>
+
+    <span class="n">keys</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>  <span class="c1"># the shot's end too: a move may outlast it</span>
+        <span class="p">{</span>
+            <span class="mf">0.0</span><span class="p">,</span>
+            <span class="nb">float</span><span class="p">(</span><span class="n">duration</span><span class="p">),</span>
+            <span class="o">*</span><span class="p">(</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">key_times</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="n">orients</span><span class="p">)</span> <span class="k">if</span> <span class="mf">0.0</span> <span class="o">&lt;=</span> <span class="n">t</span> <span class="o">&lt;=</span> <span class="n">duration</span><span class="p">),</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">times</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">keys</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+        <span class="n">at_a</span> <span class="o">=</span> <span class="n">orientation</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">orientation</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span> <span class="o">*</span> <span class="n">i</span> <span class="o">/</span> <span class="mf">3.0</span><span class="p">)</span> <span class="o">==</span> <span class="n">at_a</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)):</span>
+            <span class="k">continue</span>
+        <span class="n">first</span><span class="p">,</span> <span class="n">last</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">a</span> <span class="o">*</span> <span class="n">fps</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">b</span> <span class="o">*</span> <span class="n">fps</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">times</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">f</span> <span class="o">/</span> <span class="n">fps</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">last</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">a</span> <span class="o">&lt;</span> <span class="n">f</span> <span class="o">/</span> <span class="n">fps</span> <span class="o">&lt;</span> <span class="n">b</span><span class="p">)</span>
+        <span class="n">times</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">times</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_side_on_set</span><span class="p">(</span>
+    <span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">pose</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">side</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Where ``side`` of the art at ``path`` faces on the set in ``pose``:</span>
+<span class="sd">    every transform above it but the camera's (the light belongs to the set);</span>
+<span class="sd">    ``None`` when the art is squashed flat (no direction)."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">screen_position</span>
+
+    <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span> <span class="o">=</span> <span class="n">SHADED_SIDES</span><span class="p">[</span><span class="n">side</span><span class="p">]</span>
+    <span class="n">x0</span><span class="p">,</span> <span class="n">y0</span> <span class="o">=</span> <span class="n">screen_position</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">pose</span><span class="o">=</span><span class="n">pose</span><span class="p">,</span> <span class="n">camera</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span> <span class="o">=</span> <span class="n">screen_position</span><span class="p">(</span>
+        <span class="n">doc</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">pose</span><span class="o">=</span><span class="n">pose</span><span class="p">,</span> <span class="n">point</span><span class="o">=</span><span class="p">(</span><span class="n">_SIDE_PROBE</span> <span class="o">*</span> <span class="n">sx</span><span class="p">,</span> <span class="n">_SIDE_PROBE</span> <span class="o">*</span> <span class="n">sy</span><span class="p">),</span> <span class="n">camera</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">math</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">x1</span> <span class="o">-</span> <span class="n">x0</span><span class="p">,</span> <span class="n">y1</span> <span class="o">-</span> <span class="n">y0</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">_FLAT_PROBE_PX</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">x1</span> <span class="o">-</span> <span class="n">x0</span><span class="p">,</span> <span class="n">y1</span> <span class="o">-</span> <span class="n">y0</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_first_true</span><span class="p">(</span>
+    <span class="n">holds</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">float</span><span class="p">],</span> <span class="nb">bool</span><span class="p">],</span> <span class="n">lo</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">hi</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tolerance</span><span class="p">:</span> <span class="nb">float</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The earliest time in ``(lo, hi]`` found to satisfy ``holds``, which fails</span>
+<span class="sd">    at ``lo`` and holds at ``hi``, bisected until the two are within</span>
+<span class="sd">    ``tolerance``: a crossing, to within ``tolerance`` after it.</span>
+
+<span class="sd">    &gt;&gt;&gt; round(_first_true(lambda t: t &gt; 0.3, 0.0, 1.0, tolerance=1e-3), 2)</span>
+<span class="sd">    0.3</span>
+<span class="sd">    """</span>
+    <span class="k">while</span> <span class="n">hi</span> <span class="o">-</span> <span class="n">lo</span> <span class="o">&gt;</span> <span class="n">tolerance</span><span class="p">:</span>
+        <span class="n">mid</span> <span class="o">=</span> <span class="p">(</span><span class="n">lo</span> <span class="o">+</span> <span class="n">hi</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>
+        <span class="k">if</span> <span class="n">holds</span><span class="p">(</span><span class="n">mid</span><span class="p">):</span>
+            <span class="n">hi</span> <span class="o">=</span> <span class="n">mid</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">lo</span> <span class="o">=</span> <span class="n">mid</span>
+    <span class="k">return</span> <span class="n">hi</span>
 
 
 <span class="n">LIGHT</span> <span class="o">=</span> <span class="n">Constraint</span><span class="p">(</span>

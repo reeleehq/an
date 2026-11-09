@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=787a120f"></script>
+    <script src="../_static/documentation_options.js?v=dc029616"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.378" />
+  <meta name="docsearch:version" content="0.1.379" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -1242,10 +1242,11 @@ the VIEWPOINT’s frame (a subject in another frame, at the shot’s start).
 <a class="reference internal" href="an.genres.html#an.genres.EntityKind.shot_sizes" title="an.genres.EntityKind.shot_sizes"><code class="xref py py-attr docutils literal notranslate"><span class="pre">an.genres.EntityKind.shot_sizes</span></code></a>); otherwise <code class="xref py py-data docutils literal notranslate"><span class="pre">SHOT_SIZES</span></code>’.</p>
 <p>A viewpoint with <code class="docutils literal notranslate"><span class="pre">at</span></code> is that camera. One with a <code class="docutils literal notranslate"><span class="pre">subject</span></code> is computed:
 on the look direction, at the distance that fills <code class="docutils literal notranslate"><span class="pre">fill</span></code> of the frame
-with the subject’s band (<code class="code docutils literal notranslate"><span class="pre">SHOT_SIZES</span></code>), shifted so the band’s centre lands
-at <code class="docutils literal notranslate"><span class="pre">subject_at</span></code>. With several subjects the band is their union, aimed at
-their mean depth, and the distance is what the NEAREST subject needs from
-its own depth, so every subject fits the frame’s height and width.</p>
+with the subject’s band (<code class="code docutils literal notranslate"><span class="pre">SHOT_SIZES</span></code>; its rows at its box’s aspect,
+<code class="xref py py-func docutils literal notranslate"><span class="pre">_band_box()</span></code>), shifted so the band’s centre lands at <code class="docutils literal notranslate"><span class="pre">subject_at</span></code>.
+With several subjects the band is their union, aimed at their mean depth,
+and the distance is what the NEAREST subject needs from its own depth, so
+every subject’s band fits the frame’s height and width.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">World</span><span class="p">,</span> <span class="n">WorldMember</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">world</span> <span class="o">=</span> <span class="n">World</span><span class="p">(</span><span class="n">members</span><span class="o">=</span><span class="p">[</span><span class="n">WorldMember</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">"prop"</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="s2">"p"</span><span class="p">,</span> <span class="n">store</span><span class="o">=</span><span class="s2">"props"</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="s2">"p"</span><span class="p">,</span> <span class="n">at</span><span class="o">=</span><span class="p">(</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">),</span> <span class="n">height</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">eye</span> <span class="o">=</span> <span class="n">resolve_viewpoint</span><span class="p">(</span><span class="n">world</span><span class="p">,</span> <span class="n">Viewpoint</span><span class="p">(</span><span class="n">subject</span><span class="o">=</span><span class="s2">"p"</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="s2">"full"</span><span class="p">,</span> <span class="n">focal</span><span class="o">=</span><span class="mf">900.0</span><span class="p">),</span>

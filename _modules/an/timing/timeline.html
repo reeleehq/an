@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=787a120f"></script>
+    <script src="../../../_static/documentation_options.js?v=dc029616"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.378" />
+  <meta name="docsearch:version" content="0.1.379" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -736,7 +736,9 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">replace</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Mapping</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.channel</span><span class="w"> </span><span class="kn">import</span> <span class="n">Channel</span><span class="p">,</span> <span class="n">Keyframe</span>
@@ -759,6 +761,8 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"SWAP_WRITE_GROUP"</span><span class="p">,</span>
     <span class="s2">"write_group"</span><span class="p">,</span>
     <span class="s2">"evaluate_timeline"</span><span class="p">,</span>
+    <span class="s2">"key_times"</span><span class="p">,</span>
+    <span class="s2">"cut_timeline"</span><span class="p">,</span>
     <span class="s2">"clip_from_json"</span><span class="p">,</span>
     <span class="s2">"timeline_from_compiled"</span><span class="p">,</span>
 <span class="p">]</span>
@@ -968,6 +972,103 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="c1"># --- reading the compiled document ---------------------------------------------</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_every_channel</span><span class="p">(</span><span class="n">target</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">prop</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The channel predicate that selects every channel (the default ``where``)."""</span>
+    <span class="k">return</span> <span class="kc">True</span>
+
+
+<div class="viewcode-block" id="key_times">
+<a class="viewcode-back" href="../../../_autosummary/an.timing.timeline.html#an.stage.timeline.key_times">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">key_times</span><span class="p">(</span>
+    <span class="n">timeline</span><span class="p">:</span> <span class="n">Timeline</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">where</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="n">_every_channel</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Every timeline time a channel ``where(target, property)`` selects has a</span>
+<span class="sd">    keyframe at, through each placed clip's start, speed and loops (a</span>
+<span class="sd">    ping-pong cycle mirrored), with the start and end of every clip holding one.</span>
+
+<span class="sd">    Where a selected value can change course: a check that judges a pose need</span>
+<span class="sd">    not sample every frame, only these times and what lies between them (an#719).</span>
+<span class="sd">    A clip none of whose selected channels has a key adds nothing.</span>
+
+<span class="sd">    &gt;&gt;&gt; clip = Clip("turn", duration=1.0, channels=[</span>
+<span class="sd">    ...     Channel("a", "rotation", [Keyframe(0.0, 0.0), Keyframe(0.25, 1.0), Keyframe(1.0, 0.0)]),</span>
+<span class="sd">    ...     Channel("a", "x", [Keyframe(0.5, 0.0), Keyframe(1.0, 1.0)])], loop_mode=LoopMode.LOOP)</span>
+<span class="sd">    &gt;&gt;&gt; tl = Timeline(duration=4.0, tracks=[Track("a", clips=[PlacedClip(clip, start_time=1.0, duration=2.0)])])</span>
+<span class="sd">    &gt;&gt;&gt; key_times(tl, where=lambda target, prop: prop == "rotation")</span>
+<span class="sd">    [1.0, 1.25, 2.0, 2.25, 3.0]</span>
+<span class="sd">    &gt;&gt;&gt; key_times(tl)</span>
+<span class="sd">    [1.0, 1.25, 1.5, 2.0, 2.25, 2.5, 3.0]</span>
+<span class="sd">    """</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">track</span> <span class="ow">in</span> <span class="n">timeline</span><span class="o">.</span><span class="n">tracks</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">placed</span> <span class="ow">in</span> <span class="n">track</span><span class="o">.</span><span class="n">clips</span><span class="p">:</span>
+            <span class="n">local</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">kf</span><span class="o">.</span><span class="n">time</span>
+                <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">placed</span><span class="o">.</span><span class="n">clip</span><span class="o">.</span><span class="n">channels</span>
+                <span class="k">if</span> <span class="n">where</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">ch</span><span class="o">.</span><span class="n">property</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">kf</span> <span class="ow">in</span> <span class="n">ch</span><span class="o">.</span><span class="n">keyframes</span>
+            <span class="p">}</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">local</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">cycle</span> <span class="o">=</span> <span class="n">placed</span><span class="o">.</span><span class="n">start_time</span><span class="p">,</span> <span class="n">placed</span><span class="o">.</span><span class="n">end_time</span><span class="p">,</span> <span class="n">placed</span><span class="o">.</span><span class="n">clip</span><span class="o">.</span><span class="n">duration</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">update</span><span class="p">((</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">))</span>
+            <span class="n">mode</span> <span class="o">=</span> <span class="n">placed</span><span class="o">.</span><span class="n">clip</span><span class="o">.</span><span class="n">loop_mode</span>
+            <span class="n">natural</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">placed</span><span class="o">.</span><span class="n">clip</span><span class="o">.</span><span class="n">duration</span> <span class="k">if</span> <span class="n">placed</span><span class="o">.</span><span class="n">duration</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">placed</span><span class="o">.</span><span class="n">duration</span>
+            <span class="p">)</span>
+            <span class="c1"># One period more than the placement spans: rounding in the ceiling</span>
+            <span class="c1"># must not drop the last one (what overshoots is filtered below).</span>
+            <span class="n">periods</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">mode</span> <span class="ow">is</span> <span class="n">LoopMode</span><span class="o">.</span><span class="n">ONCE</span> <span class="k">else</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">natural</span> <span class="o">/</span> <span class="n">cycle</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">periods</span><span class="p">):</span>
+                <span class="n">mirrored</span> <span class="o">=</span> <span class="n">mode</span> <span class="ow">is</span> <span class="n">LoopMode</span><span class="o">.</span><span class="n">PING_PONG</span> <span class="ow">and</span> <span class="n">n</span> <span class="o">%</span> <span class="mi">2</span>
+                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">local</span><span class="p">:</span>
+                    <span class="n">at</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="n">start</span>
+                        <span class="o">+</span> <span class="p">(</span><span class="n">n</span> <span class="o">*</span> <span class="n">cycle</span> <span class="o">+</span> <span class="p">(</span><span class="n">cycle</span> <span class="o">-</span> <span class="n">k</span> <span class="k">if</span> <span class="n">mirrored</span> <span class="k">else</span> <span class="n">k</span><span class="p">))</span> <span class="o">/</span> <span class="n">placed</span><span class="o">.</span><span class="n">speed</span>
+                    <span class="p">)</span>
+                    <span class="k">if</span> <span class="n">start</span> <span class="o">&lt;=</span> <span class="n">at</span> <span class="o">&lt;=</span> <span class="n">end</span><span class="p">:</span>
+                        <span class="n">out</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">at</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">out</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="cut_timeline">
+<a class="viewcode-back" href="../../../_autosummary/an.timing.timeline.html#an.stage.timeline.cut_timeline">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">cut_timeline</span><span class="p">(</span>
+    <span class="n">timeline</span><span class="p">:</span> <span class="n">Timeline</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">where</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="n">_every_channel</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Timeline</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``timeline`` keeping only the channels ``where(target, property)``</span>
+<span class="sd">    selects, and the clips and tracks still holding one.</span>
+
+<span class="sd">    A target's pose depends only on its own channels (write groups are per</span>
+<span class="sd">    target), so a selected target evaluates exactly as in the whole timeline,</span>
+<span class="sd">    for a fraction of the cost: what a check judging a few nodes evaluates at</span>
+<span class="sd">    many instants (an#719).</span>
+
+<span class="sd">    &gt;&gt;&gt; clip = Clip("m", duration=1.0, channels=[</span>
+<span class="sd">    ...     Channel("a", "x", [Keyframe(0.0, 0.0), Keyframe(1.0, 4.0)]),</span>
+<span class="sd">    ...     Channel("b", "x", [Keyframe(0.0, 0.0), Keyframe(1.0, 8.0)])])</span>
+<span class="sd">    &gt;&gt;&gt; tl = Timeline(duration=1.0, tracks=[Track("", [PlacedClip(clip)])])</span>
+<span class="sd">    &gt;&gt;&gt; evaluate_timeline(cut_timeline(tl, where=lambda target, prop: target == "a"), 0.5)</span>
+<span class="sd">    {('a', 'x'): 2.0}</span>
+<span class="sd">    """</span>
+    <span class="n">tracks</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">track</span> <span class="ow">in</span> <span class="n">timeline</span><span class="o">.</span><span class="n">tracks</span><span class="p">:</span>
+        <span class="n">clips</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">placed</span> <span class="ow">in</span> <span class="n">track</span><span class="o">.</span><span class="n">clips</span><span class="p">:</span>
+            <span class="n">channels</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">ch</span> <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">placed</span><span class="o">.</span><span class="n">clip</span><span class="o">.</span><span class="n">channels</span> <span class="k">if</span> <span class="n">where</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">ch</span><span class="o">.</span><span class="n">property</span><span class="p">)</span>
+            <span class="p">]</span>
+            <span class="k">if</span> <span class="n">channels</span><span class="p">:</span>
+                <span class="n">clips</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="n">replace</span><span class="p">(</span><span class="n">placed</span><span class="p">,</span> <span class="n">clip</span><span class="o">=</span><span class="n">replace</span><span class="p">(</span><span class="n">placed</span><span class="o">.</span><span class="n">clip</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="n">channels</span><span class="p">))</span>
+                <span class="p">)</span>
+        <span class="k">if</span> <span class="n">clips</span><span class="p">:</span>
+            <span class="n">tracks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">replace</span><span class="p">(</span><span class="n">track</span><span class="p">,</span> <span class="n">clips</span><span class="o">=</span><span class="n">clips</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">replace</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="n">tracks</span><span class="o">=</span><span class="n">tracks</span><span class="p">)</span></div>
+
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_get</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>

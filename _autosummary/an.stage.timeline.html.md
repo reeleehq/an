@@ -20,15 +20,15 @@ composing node transforms into canvas positions ([`screen_position()`](#an.stage
 
 ### Functions
 
-| [`merge_poses`](#an.stage.timeline.merge_poses)(\*poses)                            | Merge multiple poses with **override semantics** (later wins per key).                                                    |
-|--------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
-| [`write_group`](#an.stage.timeline.write_group)(prop)                               | What `prop` writes on a STAGE node (the `stage.node` space's groups).                                                     |
-| [`evaluate_timeline`](#an.stage.timeline.evaluate_timeline)(timeline, t, \*[, space])     | Evaluate `timeline` at time `t`, merging poses across tracks/clips.                                                       |
-| [`clip_from_json`](#an.stage.timeline.clip_from_json)(anim, \*[, name])                | One compiled animation (`compiled.schema.json`'s `animation`) as a [`Clip`](#an.stage.timeline.Clip). |
-| [`timeline_from_scene`](#an.stage.timeline.timeline_from_scene)(scene)                      | The compiled scene's `timeline`/`animations` as an evaluable `Timeline`.                                                  |
-| [`transform_of`](#an.stage.timeline.transform_of)(node[, pose, frame_height])        | A node's transform, with `pose` overriding what the document declares.                                                    |
-| [`screen_position`](#an.stage.timeline.screen_position)(scene, path, \*[, pose, point]) | Where `point` in `path`'s local space lands on the canvas.                                                                |
-| [`node_box`](#an.stage.timeline.node_box)(scene, path, \*[, pose])               | The canvas rectangle `(x0, y0, x1, y1)` the visual at `path` occupies (an#445).                                           |
+| [`merge_poses`](#an.stage.timeline.merge_poses)(\*poses)                          | Merge multiple poses with **override semantics** (later wins per key).                                                    |
+|------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
+| [`write_group`](#an.stage.timeline.write_group)(prop)                             | What `prop` writes on a STAGE node (the `stage.node` space's groups).                                                     |
+| [`evaluate_timeline`](#an.stage.timeline.evaluate_timeline)(timeline, t, \*[, space])   | Evaluate `timeline` at time `t`, merging poses across tracks/clips.                                                       |
+| [`clip_from_json`](#an.stage.timeline.clip_from_json)(anim, \*[, name])              | One compiled animation (`compiled.schema.json`'s `animation`) as a [`Clip`](#an.stage.timeline.Clip). |
+| [`timeline_from_scene`](#an.stage.timeline.timeline_from_scene)(scene)                    | The compiled scene's `timeline`/`animations` as an evaluable `Timeline`.                                                  |
+| [`transform_of`](#an.stage.timeline.transform_of)(node[, pose, frame_height])      | A node's transform, with `pose` overriding what the document declares.                                                    |
+| [`screen_position`](#an.stage.timeline.screen_position)(scene, path, \*[, pose, ...]) | Where `point` in `path`'s local space lands on the canvas.                                                                |
+| [`node_box`](#an.stage.timeline.node_box)(scene, path, \*[, pose])             | The canvas rectangle `(x0, y0, x1, y1)` the visual at `path` occupies (an#445).                                           |
 
 ### Classes
 
@@ -326,9 +326,12 @@ is its polyline’s, grown by half the stroke.
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
-### an.stage.timeline.screen_position(scene, path, , pose=None, point=(0.0, 0.0))
+### an.stage.timeline.screen_position(scene, path, , pose=None, point=(0.0, 0.0), camera=True)
 
 Where `point` in `path`’s local space lands on the canvas.
+
+`camera=False` leaves out the root’s pose (the camera: its pan, zoom and
+roll), giving where the point lies on the set before the camera sees it.
 
 The composition the runtime performs, walked from the node up to `root`
 and then offset by the canvas centre — which is where `runtime.js` places
@@ -355,6 +358,8 @@ reason `root.pivot` is the camera:
 ```pycon
 >>> screen_position(scene, "hill", pose={("root", "pivot_x"): 25.0})
 (175.0, 120.0)
+>>> screen_position(scene, "hill", pose={("root", "pivot_x"): 25.0}, camera=False)
+(200.0, 120.0)
 ```
 
 * **Return type:**

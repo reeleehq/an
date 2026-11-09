@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=787a120f"></script>
+    <script src="../../../_static/documentation_options.js?v=dc029616"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.378" />
+  <meta name="docsearch:version" content="0.1.379" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -996,8 +996,12 @@ window.runMermaid = runMermaid;</script>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">pose</span><span class="p">:</span> <span class="n">Pose</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">point</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+    <span class="n">camera</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Where ``point`` in ``path``'s local space lands on the canvas.</span>
+
+<span class="sd">    ``camera=False`` leaves out the root's pose (the camera: its pan, zoom and</span>
+<span class="sd">    roll), giving where the point lies on the set before the camera sees it.</span>
 
 <span class="sd">    The composition the runtime performs, walked from the node up to `root`</span>
 <span class="sd">    and then offset by the canvas centre — which is where `runtime.js` places</span>
@@ -1021,6 +1025,8 @@ window.runMermaid = runMermaid;</script>
 
 <span class="sd">    &gt;&gt;&gt; screen_position(scene, "hill", pose={("root", "pivot_x"): 25.0})</span>
 <span class="sd">    (175.0, 120.0)</span>
+<span class="sd">    &gt;&gt;&gt; screen_position(scene, "hill", pose={("root", "pivot_x"): 25.0}, camera=False)</span>
+<span class="sd">    (200.0, 120.0)</span>
 <span class="sd">    """</span>
     <span class="n">overlay</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="s2">"overlay"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">overlay</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="p">{</span>
@@ -1048,7 +1054,8 @@ window.runMermaid = runMermaid;</script>
     <span class="c1"># document root's declared transform as well would diverge from the engine</span>
     <span class="c1"># the moment anything wrote one (an#111 review, L1).</span>
     <span class="n">root</span><span class="p">,</span> <span class="n">root_path</span> <span class="o">=</span> <span class="n">chain</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">at</span> <span class="o">=</span> <span class="n">transform_of</span><span class="p">(</span><span class="n">_ROOT_AT_REST</span><span class="p">,</span> <span class="n">_pose_for</span><span class="p">(</span><span class="n">pose</span><span class="p">,</span> <span class="n">root_path</span><span class="p">))</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">at</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">camera</span><span class="p">:</span>
+        <span class="n">at</span> <span class="o">=</span> <span class="n">transform_of</span><span class="p">(</span><span class="n">_ROOT_AT_REST</span><span class="p">,</span> <span class="n">_pose_for</span><span class="p">(</span><span class="n">pose</span><span class="p">,</span> <span class="n">root_path</span><span class="p">))</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">at</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">at</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">width</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">at</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">height</span> <span class="o">/</span> <span class="mf">2.0</span></div>
 
 
