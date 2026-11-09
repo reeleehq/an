@@ -1,4 +1,4 @@
-> built 2026-11-09 02:30 UTC from 046012b (main) · an 0.1.379. Details: build_info.json
+> built 2026-11-09 02:37 UTC from b9899f0 (main) · an 0.1.380. Details: build_info.json
 
 # index.html.md
 
@@ -15106,26 +15106,26 @@ parts carved out of several clips credits each clip, part by part.
 
 ### Functions
 
-| [`is_factory_stamp`](_autosummary/an.credits.html.md#an.credits.is_factory_stamp)(raw)                              | Whether a source is the character factory's own stamp (an#236, an#251).                                                                                    |
-|-----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`is_generated_source`](_autosummary/an.credits.html.md#an.credits.is_generated_source)(raw)                           | Whether a descriptor's source was written by a generator rather than a person.                                                                             |
-| [`collect_credits`](_autosummary/an.credits.html.md#an.credits.collect_credits)(mall, \*[, only])                  | Walk a project mall and gather every recorded `AssetSource`.                                                                                               |
-| [`credits_for_project`](_autosummary/an.credits.html.md#an.credits.credits_for_project)(project_dir, \*[, scene_file]) | Credits for the project at `project_dir`: its assets, and the speech of its scene (`scene_file`: another scene of the project, `scene.studio.md`, an#554). |
-| [`credits_for_scene`](_autosummary/an.credits.html.md#an.credits.credits_for_scene)(mall, scene)                     | Credits for exactly the assets `scene` draws or plays (an#211).                                                                                            |
-| [`speech_credits`](_autosummary/an.credits.html.md#an.credits.speech_credits)(mall, scene)                        | One entry per voice whose lines a render synthesized with a named provider (an#271).                                                                       |
-| [`warn_if_private_study`](_autosummary/an.credits.html.md#an.credits.warn_if_private_study)(report, \*[, output])        | Warn, loudly, when `report` holds private-study material.                                                                                                  |
+| [`is_factory_stamp`](_autosummary/an.credits.html.md#an.credits.is_factory_stamp)(raw)                       | Whether a source is the character factory's own stamp (an#236, an#251).                                                                                                                                                                                                                                          |
+|----------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`is_generated_source`](_autosummary/an.credits.html.md#an.credits.is_generated_source)(raw)                    | Whether a descriptor's source was written by a generator rather than a person.                                                                                                                                                                                                                                   |
+| [`collect_credits`](_autosummary/an.credits.html.md#an.credits.collect_credits)(mall, \*[, only])           | Walk a project mall and gather every recorded `AssetSource`.                                                                                                                                                                                                                                                     |
+| [`credits_for_project`](_autosummary/an.credits.html.md#an.credits.credits_for_project)(project_dir, \*[, ...]) | Credits for the project at `project_dir`: its assets, and the speech of its scene (`scene_file`: another scene of the project, `scene.studio.md`, an#554), with restrictions read against `use` (a `lacing.Use`; `None` is unstated: [`CreditsReport.restricted`](_autosummary/an.credits.html.md#an.credits.CreditsReport.restricted)). |
+| [`credits_for_scene`](_autosummary/an.credits.html.md#an.credits.credits_for_scene)(mall, scene)              | Credits for exactly the assets `scene` draws or plays (an#211).                                                                                                                                                                                                                                                  |
+| [`speech_credits`](_autosummary/an.credits.html.md#an.credits.speech_credits)(mall, scene)                 | One entry per voice whose lines a render synthesized with a named provider (an#271).                                                                                                                                                                                                                             |
+| [`warn_if_private_study`](_autosummary/an.credits.html.md#an.credits.warn_if_private_study)(report, \*[, output]) | Warn, loudly, when `report` holds private-study material.                                                                                                                                                                                                                                                        |
 
 ### Classes
 
-| [`CreditsReport`](_autosummary/an.credits.html.md#an.credits.CreditsReport)([entries, conflicts])   | Everything a project owes, split by whether we actually know.   |
-|----------------------------------------------------------------------------------------|-----------------------------------------------------------------|
+| [`CreditsReport`](_autosummary/an.credits.html.md#an.credits.CreditsReport)([entries, conflicts, use])   | Everything a project owes, split by whether we actually know.   |
+|---------------------------------------------------------------------------------------------|-----------------------------------------------------------------|
 
 ### Exceptions
 
 | [`PrivateStudyWarning`](_autosummary/an.credits.html.md#an.credits.PrivateStudyWarning)   | A render used material that is all rights reserved, private study only.   |
 |------------------------------------------------------------------------|---------------------------------------------------------------------------|
 
-### *class* an.credits.CreditsReport(entries=list(), conflicts=list())
+### *class* an.credits.CreditsReport(entries=list(), conflicts=list(), use=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -15139,7 +15139,7 @@ foley export, an#729): what its disclosure says ([`an.sound_fetch.ai_label()`](_
 #### *property* commercial *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
 
 Whether a COMMERCIAL video may contain everything here (publishable,
-and nothing non-commercial).
+nothing non-commercial, and every restriction met by the stated use).
 
 #### conflicts *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]]]*
 
@@ -15183,6 +15183,13 @@ whatever else it credits.
 
 `False` when any entry is private-study material.
 
+#### *property* restricted *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[CreditEntry, [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]*
+
+`(entry, why)` for every restriction beyond an entry’s licence that
+the stated use breaks (an#743: a revenue cap, an excluded territory, a
+kind nobody knows), read by [`restriction_breaches()`](_autosummary/an.ir.assets.html.md#an.ir.assets.restriction_breaches).
+Flagged, never blocking, like [`noncommercial`](_autosummary/an.credits.html.md#an.credits.CreditsReport.noncommercial).
+
 #### *property* unverified *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[CreditEntry]*
 
 Entries whose licence we could not classify.
@@ -15191,6 +15198,17 @@ Deliberately its own list rather than folded into [`owed`](_autosummary/an.credi
 them in cries wolf; folding them into “nothing owed” hides a real
 obligation. Neither is honest, so they are counted separately — the same
 reason `priv`’s upkeep keeps `unavailable` apart from `findings`.
+
+#### use *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)* *= None*
+
+a `lacing.Use`,
+the video’s annual revenue in USD and where it is used (an ISO 3166-1
+alpha-2 code, or `"WORLD"` for online publishing). `None` is an
+unstated use, and a restriction that asks about it is not met. Typed
+`Any` so `import an` does not load lacing.
+
+* **Type:**
+  The use the restrictions are read against (an#743)
 
 ### *exception* an.credits.PrivateStudyWarning
 
@@ -15224,11 +15242,12 @@ record from `metadata.dicebear_*`, which no other store has ever written.
 * **Return type:**
   [`CreditsReport`](_autosummary/an.credits.html.md#an.credits.CreditsReport)
 
-### an.credits.credits_for_project(project_dir, , scene_file='scene.md')
+### an.credits.credits_for_project(project_dir, , scene_file='scene.md', use=None)
 
 Credits for the project at `project_dir`: its assets, and the speech
 of its scene (`scene_file`: another scene of the project,
-`scene.studio.md`, an#554).
+`scene.studio.md`, an#554), with restrictions read against `use` (a
+`lacing.Use`; `None` is unstated: [`CreditsReport.restricted`](_autosummary/an.credits.html.md#an.credits.CreditsReport.restricted)).
 
 * **Return type:**
   [`CreditsReport`](_autosummary/an.credits.html.md#an.credits.CreditsReport)
@@ -15241,6 +15260,10 @@ Credits for exactly the assets `scene` draws or plays (an#211).
 used, and a private-study plate sitting unused in the store must not make
 an unrelated render “not publishable”. Kept: every entry under a
 `store/ref` some shot’s entity names, and every sound a cue names.
+
+It states no use, so restrictions (an#743) are read against an unstated
+one and fail closed: the report’s `commercial` is false for any asset
+carrying a restriction. [`credits_for_project()`](_autosummary/an.credits.html.md#an.credits.credits_for_project) takes the use.
 
 * **Return type:**
   [`CreditsReport`](_autosummary/an.credits.html.md#an.credits.CreditsReport)
@@ -19176,12 +19199,13 @@ what keeps `an` from shipping unattributed work in the meantime.
 
 ### Functions
 
-| [`provider_terms_restriction`](_autosummary/an.ir.assets.html.md#an.ir.assets.provider_terms_restriction)(source)   | The restriction a provider-terms licence carries beyond its class, if any.      |
-|---------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
-| [`license_class`](_autosummary/an.ir.assets.html.md#an.ir.assets.license_class)(source)                | What this asset's licence means for shipping the video (an#211).                |
-| [`license_restriction`](_autosummary/an.ir.assets.html.md#an.ir.assets.license_restriction)(source)          | What a licence restricts beyond its class's credit, for a report line (an#373). |
-| [`normalise_license`](_autosummary/an.ir.assets.html.md#an.ir.assets.normalise_license)(code)              | A licence code folded to lowercase words joined by `-`.                         |
-| [`requires_attribution`](_autosummary/an.ir.assets.html.md#an.ir.assets.requires_attribution)(source)         | Whether shipping this asset obliges the user to credit someone.                 |
+| [`provider_terms_restriction`](_autosummary/an.ir.assets.html.md#an.ir.assets.provider_terms_restriction)(source)   | The restriction a provider-terms licence carries beyond its class, if any.                    |
+|---------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
+| [`license_class`](_autosummary/an.ir.assets.html.md#an.ir.assets.license_class)(source)                | What this asset's licence means for shipping the video (an#211).                              |
+| [`license_restriction`](_autosummary/an.ir.assets.html.md#an.ir.assets.license_restriction)(source)          | What a licence restricts beyond its class's credit, for a report line (an#373).               |
+| [`normalise_license`](_autosummary/an.ir.assets.html.md#an.ir.assets.normalise_license)(code)              | A licence code folded to lowercase words joined by `-`.                                       |
+| [`restriction_breaches`](_autosummary/an.ir.assets.html.md#an.ir.assets.restriction_breaches)(source[, use])  | Why `use` breaks each of `source`'s restrictions, in order; `[]` when it meets them (an#743). |
+| [`requires_attribution`](_autosummary/an.ir.assets.html.md#an.ir.assets.requires_attribution)(source)         | Whether shipping this asset obliges the user to credit someone.                               |
 
 ### Classes
 
@@ -19198,7 +19222,7 @@ a legal answer, and a regex that guesses is worse than a list that admits what
 it does not know. An unrecognised licence is reported as UNKNOWN, which is
 not the same as “no obligation”.
 
-### *class* an.ir.assets.AssetSource(\*, provider, id=None, url=None, license=None, license_url=None, attribution=None, source_page_url=None, author=None, author_url=None, cacheable=None, sha256=None, cost_usd=None, extra=<factory>, \*\*extra_data)
+### *class* an.ir.assets.AssetSource(\*, provider, id=None, url=None, license=None, license_url=None, attribution=None, source_page_url=None, author=None, author_url=None, cacheable=None, restrictions=(), sha256=None, cost_usd=None, extra=<factory>, \*\*extra_data)
 
 Bases: `BaseModel`
 
@@ -19226,6 +19250,18 @@ as `lacing.Rights`); `True` — they do.
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow'}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### restrictions *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Any](https://docs.python.org/3/library/typing.html#typing.Any), ...]*
+
+Usage restrictions a licence code cannot carry (a revenue cap, excluded
+territories): `lacing.Restriction` records, as `lacing.Rights.restrictions`
+(an#743). The licence still classifies the asset; every restriction is
+checked on top ([`restriction_breaches()`](_autosummary/an.ir.assets.html.md#an.ir.assets.restriction_breaches)). Annotated `Any` on
+purpose: lacing is imported only when one is present, so `import an`
+does not load it, and a `TYPE_CHECKING`-only import would leave pydantic
+a forward reference it cannot resolve when it builds the model. An empty
+tuple is left out of a dump (`_omit_empty_restrictions()`), so a source
+recorded before the field reads the same.
 
 ### an.ir.assets.LicenseClass
 
@@ -19362,6 +19398,30 @@ at all; [`license_class()`](_autosummary/an.ir.assets.html.md#an.ir.assets.licen
 
 * **Return type:**
   [`bool`](https://docs.python.org/3/builtins/functions.html#bool) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.ir.assets.restriction_breaches(source, use=None)
+
+Why `use` breaks each of `source`’s restrictions, in order; `[]` when it meets them (an#743).
+
+`use` is a `lacing.Use` (its annual revenue and its territory, an ISO
+3166-1 alpha-2 code or `"WORLD"` for online publishing); `None` is an
+unstated `Use()`. Read by lacing (`lacing.restriction_breach`), so it
+fails closed as lacing documents: an unstated revenue or territory against a
+restriction that asks about it, and a restriction of a kind nobody knows,
+are breaches.
+
+```pycon
+>>> from lacing import Use
+>>> s = AssetSource(provider="foley", license="CC-BY-4.0", restrictions=[
+...     {"kind": "revenue_cap", "usd": 1_000_000, "terms": "stability-community"}])
+>>> restriction_breaches(s, Use(revenue_usd=50_000))
+[]
+>>> restriction_breaches(s)
+['stability-community: allowed only below $1,000,000 of revenue (state the revenue)']
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 
 # _autosummary/an.ir.camera.html.md
@@ -35632,7 +35692,7 @@ numpy, seeded, so the same call writes the same bytes.
 | [`SoundError`](_autosummary/an.sounds.html.md#an.sounds.SoundError)   | A sound the store cannot hold, or holds wrongly.   |
 |---------------------------------------------------------------|----------------------------------------------------|
 
-### an.sounds.SYNTH_SOURCE *= AssetSource(provider='an.sounds', id='procedural-synthesis', url=None, license='cc0-1.0', license_url=None, attribution=None, source_page_url=None, author='an (procedural synthesis, generated locally)', author_url=None, cacheable=None, sha256=None, cost_usd=None, extra={})*
+### an.sounds.SYNTH_SOURCE *= AssetSource(provider='an.sounds', id='procedural-synthesis', url=None, license='cc0-1.0', license_url=None, attribution=None, source_page_url=None, author='an (procedural synthesis, generated locally)', author_url=None, cacheable=None, restrictions=(), sha256=None, cost_usd=None, extra={})*
 
 The provenance of everything [`synth_tone()`](_autosummary/an.sounds.html.md#an.sounds.synth_tone) / [`synth_hit()`](_autosummary/an.sounds.html.md#an.sounds.synth_hit) /
 [`synth_bed()`](_autosummary/an.sounds.html.md#an.sounds.synth_bed) produce: generated on the user’s machine by `an` from
@@ -47656,7 +47716,7 @@ without touching these functions, so they stay plain Python.
 | [`bench_compare`](_autosummary/an.tools.html.md#an.tools.bench_compare)([before, after, mutation, ...])     | Compare two ledger rows — and refuse when they are not comparable.                    |
 | [`bench_mutants`](_autosummary/an.tools.html.md#an.tools.bench_mutants)([names, quiet])                     | Break each guard on purpose and check the test that names it goes red.                |
 | [`check`](_autosummary/an.tools.html.md#an.tools.check)()                                           | Print a status report of all backend system + Python deps.                            |
-| [`credits`](_autosummary/an.tools.html.md#an.tools.credits)(project_dir[, json_out, scene])           | Show what third-party work is in `project_dir` and what it obliges.                   |
+| [`credits`](_autosummary/an.tools.html.md#an.tools.credits)(project_dir[, json_out, scene, ...])      | Show what third-party work is in `project_dir` and what it obliges.                   |
 | [`init`](_autosummary/an.tools.html.md#an.tools.init)(project_dir[, name, force, id, genre, ...])  | Create a fresh an project at `project_dir` — or, with --id, at the default location.  |
 | [`iterate`](_autosummary/an.tools.html.md#an.tools.iterate)(project_dir, instruction[, ...])          | Apply a free-text instruction to the scene.                                           |
 | [`preview`](_autosummary/an.tools.html.md#an.tools.preview)(project_dir[, shot, no_browser, scene])   | Live-preview the project's scene in a browser; reloads on edit.                       |
@@ -47768,13 +47828,15 @@ says what to install (an#559).
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.tools.credits(project_dir, json_out=None, scene='scene.md')
+### an.tools.credits(project_dir, json_out=None, scene='scene.md', revenue_usd=None, territory=None)
 
 Show what third-party work is in `project_dir` and what it obliges.
 
 project_dir: the an project
 json_out: also write the machine-readable record to this path
 scene: the scene file whose speech is credited, inside the project (default scene.md; for example scene.studio.md)
+revenue_usd: the video’s annual revenue in USD, read against an asset’s revenue cap (unstated: a cap is not met)
+territory: where the video is used, an ISO 3166-1 alpha-2 code or WORLD for online publishing (unstated: an excluded territory is not met)
 
 A licence recorded and never displayed is not compliance, so this is the
 consumer that makes the provenance field worth having.
@@ -49457,20 +49519,18 @@ scene: the scene file to read, inside the project (default scene.md; for example
 
 # About this build
 
-This documentation was built on **2026-11-09 02:30 UTC** from commit <a href="https://github.com/reeleehq/an/commit/046012b0558682b4e980f2292246aa75247585b5"><code>046012b</code></a> on branch <code>main</code>, for **an 0.1.379** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-09 02:37 UTC** from commit <a href="https://github.com/reeleehq/an/commit/b9899f0cc3f265e6ed90a92922a190b97091da8b"><code>b9899f0</code></a> on branch <code>main</code>, for **an 0.1.380** (from <code>pyproject.toml</code>).
 
-#### WARNING
-The documentation and the package may be misaligned:
-
-- The documented version (0.1.379) is ahead of the latest release on PyPI (0.1.378): these docs describe unreleased code.
+#### NOTE
+Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
 
 ## Source
 
 |                     |                                                                                                                                                    |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/an/commit/046012b0558682b4e980f2292246aa75247585b5"><code>046012b0558682b4e980f2292246aa75247585b5</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/an/commit/b9899f0cc3f265e6ed90a92922a190b97091da8b"><code>b9899f0cc3f265e6ed90a92922a190b97091da8b</code></a> |
 | Branch              | <code>main</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.379</code>                                                                                                                               |
+| Tags at this commit | <code>0.1.380</code>                                                                                                                               |
 | Working tree        | clean                                                                                                                                              |
 | Remote              | <code>https://github.com/reeleehq/an</code>                                                                                                        |
 
@@ -49479,9 +49539,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/an</code>                                                                   |
-| Run          | <a href="https://github.com/reeleehq/an/actions/runs/42550293308">42550293308</a>          |
+| Run          | <a href="https://github.com/reeleehq/an/actions/runs/42550923620">42550923620</a>          |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>2ca1932190775d9f1c344b2840f9b100366a761c</code> (in the history of the built commit) |
+| Event commit | <code>647650ededfc261c395993f21082afdea82d05b3</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -49506,13 +49566,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.378/">0.1.378</a>, older than the documented version (0.1.379).
+Latest release: <a href="https://pypi.org/project/an/0.1.380/">0.1.380</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/an && cd an
-git checkout 046012b0558682b4e980f2292246aa75247585b5
+git checkout b9899f0cc3f265e6ed90a92922a190b97091da8b
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

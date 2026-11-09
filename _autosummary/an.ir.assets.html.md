@@ -58,12 +58,13 @@ what keeps `an` from shipping unattributed work in the meantime.
 
 ### Functions
 
-| [`provider_terms_restriction`](#an.ir.assets.provider_terms_restriction)(source)   | The restriction a provider-terms licence carries beyond its class, if any.      |
-|---------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
-| [`license_class`](#an.ir.assets.license_class)(source)                | What this asset's licence means for shipping the video (an#211).                |
-| [`license_restriction`](#an.ir.assets.license_restriction)(source)          | What a licence restricts beyond its class's credit, for a report line (an#373). |
-| [`normalise_license`](#an.ir.assets.normalise_license)(code)              | A licence code folded to lowercase words joined by `-`.                         |
-| [`requires_attribution`](#an.ir.assets.requires_attribution)(source)         | Whether shipping this asset obliges the user to credit someone.                 |
+| [`provider_terms_restriction`](#an.ir.assets.provider_terms_restriction)(source)   | The restriction a provider-terms licence carries beyond its class, if any.                    |
+|---------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
+| [`license_class`](#an.ir.assets.license_class)(source)                | What this asset's licence means for shipping the video (an#211).                              |
+| [`license_restriction`](#an.ir.assets.license_restriction)(source)          | What a licence restricts beyond its class's credit, for a report line (an#373).               |
+| [`normalise_license`](#an.ir.assets.normalise_license)(code)              | A licence code folded to lowercase words joined by `-`.                                       |
+| [`restriction_breaches`](#an.ir.assets.restriction_breaches)(source[, use])  | Why `use` breaks each of `source`'s restrictions, in order; `[]` when it meets them (an#743). |
+| [`requires_attribution`](#an.ir.assets.requires_attribution)(source)         | Whether shipping this asset obliges the user to credit someone.                               |
 
 ### Classes
 
@@ -80,7 +81,7 @@ a legal answer, and a regex that guesses is worse than a list that admits what
 it does not know. An unrecognised licence is reported as UNKNOWN, which is
 not the same as “no obligation”.
 
-### *class* an.ir.assets.AssetSource(\*, provider, id=None, url=None, license=None, license_url=None, attribution=None, source_page_url=None, author=None, author_url=None, cacheable=None, sha256=None, cost_usd=None, extra=<factory>, \*\*extra_data)
+### *class* an.ir.assets.AssetSource(\*, provider, id=None, url=None, license=None, license_url=None, attribution=None, source_page_url=None, author=None, author_url=None, cacheable=None, restrictions=(), sha256=None, cost_usd=None, extra=<factory>, \*\*extra_data)
 
 Bases: `BaseModel`
 
@@ -108,6 +109,18 @@ as `lacing.Rights`); `True` — they do.
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow'}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### restrictions *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Any](https://docs.python.org/3/library/typing.html#typing.Any), ...]*
+
+Usage restrictions a licence code cannot carry (a revenue cap, excluded
+territories): `lacing.Restriction` records, as `lacing.Rights.restrictions`
+(an#743). The licence still classifies the asset; every restriction is
+checked on top ([`restriction_breaches()`](#an.ir.assets.restriction_breaches)). Annotated `Any` on
+purpose: lacing is imported only when one is present, so `import an`
+does not load it, and a `TYPE_CHECKING`-only import would leave pydantic
+a forward reference it cannot resolve when it builds the model. An empty
+tuple is left out of a dump (`_omit_empty_restrictions()`), so a source
+recorded before the field reads the same.
 
 ### an.ir.assets.LicenseClass
 
@@ -244,3 +257,27 @@ at all; [`license_class()`](#an.ir.assets.license_class) says so (`"private"`).
 
 * **Return type:**
   [`bool`](https://docs.python.org/3/builtins/functions.html#bool) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.ir.assets.restriction_breaches(source, use=None)
+
+Why `use` breaks each of `source`’s restrictions, in order; `[]` when it meets them (an#743).
+
+`use` is a `lacing.Use` (its annual revenue and its territory, an ISO
+3166-1 alpha-2 code or `"WORLD"` for online publishing); `None` is an
+unstated `Use()`. Read by lacing (`lacing.restriction_breach`), so it
+fails closed as lacing documents: an unstated revenue or territory against a
+restriction that asks about it, and a restriction of a kind nobody knows,
+are breaches.
+
+```pycon
+>>> from lacing import Use
+>>> s = AssetSource(provider="foley", license="CC-BY-4.0", restrictions=[
+...     {"kind": "revenue_cap", "usd": 1_000_000, "terms": "stability-community"}])
+>>> restriction_breaches(s, Use(revenue_usd=50_000))
+[]
+>>> restriction_breaches(s)
+['stability-community: allowed only below $1,000,000 of revenue (state the revenue)']
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]

@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=dc029616"></script>
+    <script src="../../_static/documentation_options.js?v=2e6b983f"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.379" />
+  <meta name="docsearch:version" content="0.1.380" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1163,13 +1163,19 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="credits">
 <a class="viewcode-back" href="../../_autosummary/an.tools.html#an.tools.credits">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">credits</span><span class="p">(</span>
-    <span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">json_out</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">scene</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_SCENE_FILE</span>
+    <span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">json_out</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">scene</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_SCENE_FILE</span><span class="p">,</span>
+    <span class="n">revenue_usd</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">territory</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Show what third-party work is in ``project_dir`` and what it obliges.</span>
 
 <span class="sd">    project_dir: the an project</span>
 <span class="sd">    json_out: also write the machine-readable record to this path</span>
 <span class="sd">    scene: the scene file whose speech is credited, inside the project (default scene.md; for example scene.studio.md)</span>
+<span class="sd">    revenue_usd: the video's annual revenue in USD, read against an asset's revenue cap (unstated: a cap is not met)</span>
+<span class="sd">    territory: where the video is used, an ISO 3166-1 alpha-2 code or WORLD for online publishing (unstated: an excluded territory is not met)</span>
 
 <span class="sd">    A licence recorded and never displayed is not compliance, so this is the</span>
 <span class="sd">    consumer that makes the provenance field worth having.</span>
@@ -1181,7 +1187,15 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.credits</span><span class="w"> </span><span class="kn">import</span> <span class="n">credits_for_project</span>
 
-    <span class="n">report</span> <span class="o">=</span> <span class="n">credits_for_project</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="n">scene_file</span><span class="o">=</span><span class="n">scene</span><span class="p">)</span>
+    <span class="n">use</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">revenue_usd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">territory</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">lacing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Use</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">use</span> <span class="o">=</span> <span class="n">Use</span><span class="p">(</span><span class="n">revenue_usd</span><span class="o">=</span><span class="n">revenue_usd</span><span class="p">,</span> <span class="n">territory</span><span class="o">=</span><span class="n">territory</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span><span class="sa">f</span><span class="s2">"an credits: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+    <span class="n">report</span> <span class="o">=</span> <span class="n">credits_for_project</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="n">scene_file</span><span class="o">=</span><span class="n">scene</span><span class="p">,</span> <span class="n">use</span><span class="o">=</span><span class="n">use</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">json_out</span><span class="p">:</span>
         <span class="kn">import</span><span class="w"> </span><span class="nn">json</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_json</span>
 

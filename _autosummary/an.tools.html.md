@@ -15,7 +15,7 @@ without touching these functions, so they stay plain Python.
 | [`bench_compare`](#an.tools.bench_compare)([before, after, mutation, ...])     | Compare two ledger rows — and refuse when they are not comparable.                    |
 | [`bench_mutants`](#an.tools.bench_mutants)([names, quiet])                     | Break each guard on purpose and check the test that names it goes red.                |
 | [`check`](#an.tools.check)()                                           | Print a status report of all backend system + Python deps.                            |
-| [`credits`](#an.tools.credits)(project_dir[, json_out, scene])           | Show what third-party work is in `project_dir` and what it obliges.                   |
+| [`credits`](#an.tools.credits)(project_dir[, json_out, scene, ...])      | Show what third-party work is in `project_dir` and what it obliges.                   |
 | [`init`](#an.tools.init)(project_dir[, name, force, id, genre, ...])  | Create a fresh an project at `project_dir` — or, with --id, at the default location.  |
 | [`iterate`](#an.tools.iterate)(project_dir, instruction[, ...])          | Apply a free-text instruction to the scene.                                           |
 | [`preview`](#an.tools.preview)(project_dir[, shot, no_browser, scene])   | Live-preview the project's scene in a browser; reloads on edit.                       |
@@ -127,13 +127,15 @@ says what to install (an#559).
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.tools.credits(project_dir, json_out=None, scene='scene.md')
+### an.tools.credits(project_dir, json_out=None, scene='scene.md', revenue_usd=None, territory=None)
 
 Show what third-party work is in `project_dir` and what it obliges.
 
 project_dir: the an project
 json_out: also write the machine-readable record to this path
 scene: the scene file whose speech is credited, inside the project (default scene.md; for example scene.studio.md)
+revenue_usd: the video’s annual revenue in USD, read against an asset’s revenue cap (unstated: a cap is not met)
+territory: where the video is used, an ISO 3166-1 alpha-2 code or WORLD for online publishing (unstated: an excluded territory is not met)
 
 A licence recorded and never displayed is not compliance, so this is the
 consumer that makes the provenance field worth having.

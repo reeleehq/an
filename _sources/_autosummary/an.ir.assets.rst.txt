@@ -24,6 +24,7 @@ an.ir.assets
       license_class
       license_restriction
       normalise_license
+      restriction_breaches
       requires_attribution
    
    .. rubric:: Classes

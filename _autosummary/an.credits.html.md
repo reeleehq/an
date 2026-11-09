@@ -30,26 +30,26 @@ parts carved out of several clips credits each clip, part by part.
 
 ### Functions
 
-| [`is_factory_stamp`](#an.credits.is_factory_stamp)(raw)                              | Whether a source is the character factory's own stamp (an#236, an#251).                                                                                    |
-|-----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`is_generated_source`](#an.credits.is_generated_source)(raw)                           | Whether a descriptor's source was written by a generator rather than a person.                                                                             |
-| [`collect_credits`](#an.credits.collect_credits)(mall, \*[, only])                  | Walk a project mall and gather every recorded `AssetSource`.                                                                                               |
-| [`credits_for_project`](#an.credits.credits_for_project)(project_dir, \*[, scene_file]) | Credits for the project at `project_dir`: its assets, and the speech of its scene (`scene_file`: another scene of the project, `scene.studio.md`, an#554). |
-| [`credits_for_scene`](#an.credits.credits_for_scene)(mall, scene)                     | Credits for exactly the assets `scene` draws or plays (an#211).                                                                                            |
-| [`speech_credits`](#an.credits.speech_credits)(mall, scene)                        | One entry per voice whose lines a render synthesized with a named provider (an#271).                                                                       |
-| [`warn_if_private_study`](#an.credits.warn_if_private_study)(report, \*[, output])        | Warn, loudly, when `report` holds private-study material.                                                                                                  |
+| [`is_factory_stamp`](#an.credits.is_factory_stamp)(raw)                       | Whether a source is the character factory's own stamp (an#236, an#251).                                                                                                                                                                                                                                          |
+|----------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`is_generated_source`](#an.credits.is_generated_source)(raw)                    | Whether a descriptor's source was written by a generator rather than a person.                                                                                                                                                                                                                                   |
+| [`collect_credits`](#an.credits.collect_credits)(mall, \*[, only])           | Walk a project mall and gather every recorded `AssetSource`.                                                                                                                                                                                                                                                     |
+| [`credits_for_project`](#an.credits.credits_for_project)(project_dir, \*[, ...]) | Credits for the project at `project_dir`: its assets, and the speech of its scene (`scene_file`: another scene of the project, `scene.studio.md`, an#554), with restrictions read against `use` (a `lacing.Use`; `None` is unstated: [`CreditsReport.restricted`](#an.credits.CreditsReport.restricted)). |
+| [`credits_for_scene`](#an.credits.credits_for_scene)(mall, scene)              | Credits for exactly the assets `scene` draws or plays (an#211).                                                                                                                                                                                                                                                  |
+| [`speech_credits`](#an.credits.speech_credits)(mall, scene)                 | One entry per voice whose lines a render synthesized with a named provider (an#271).                                                                                                                                                                                                                             |
+| [`warn_if_private_study`](#an.credits.warn_if_private_study)(report, \*[, output]) | Warn, loudly, when `report` holds private-study material.                                                                                                                                                                                                                                                        |
 
 ### Classes
 
-| [`CreditsReport`](#an.credits.CreditsReport)([entries, conflicts])   | Everything a project owes, split by whether we actually know.   |
-|----------------------------------------------------------------------------------------|-----------------------------------------------------------------|
+| [`CreditsReport`](#an.credits.CreditsReport)([entries, conflicts, use])   | Everything a project owes, split by whether we actually know.   |
+|---------------------------------------------------------------------------------------------|-----------------------------------------------------------------|
 
 ### Exceptions
 
 | [`PrivateStudyWarning`](#an.credits.PrivateStudyWarning)   | A render used material that is all rights reserved, private study only.   |
 |------------------------------------------------------------------------|---------------------------------------------------------------------------|
 
-### *class* an.credits.CreditsReport(entries=list(), conflicts=list())
+### *class* an.credits.CreditsReport(entries=list(), conflicts=list(), use=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -63,7 +63,7 @@ foley export, an#729): what its disclosure says ([`an.sound_fetch.ai_label()`](a
 #### *property* commercial *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
 
 Whether a COMMERCIAL video may contain everything here (publishable,
-and nothing non-commercial).
+nothing non-commercial, and every restriction met by the stated use).
 
 #### conflicts *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]]]*
 
@@ -107,6 +107,13 @@ whatever else it credits.
 
 `False` when any entry is private-study material.
 
+#### *property* restricted *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[CreditEntry, [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]*
+
+`(entry, why)` for every restriction beyond an entry’s licence that
+the stated use breaks (an#743: a revenue cap, an excluded territory, a
+kind nobody knows), read by [`restriction_breaches()`](an.ir.assets.html.md#an.ir.assets.restriction_breaches).
+Flagged, never blocking, like [`noncommercial`](#an.credits.CreditsReport.noncommercial).
+
 #### *property* unverified *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[CreditEntry]*
 
 Entries whose licence we could not classify.
@@ -115,6 +122,17 @@ Deliberately its own list rather than folded into [`owed`](#an.credits.CreditsRe
 them in cries wolf; folding them into “nothing owed” hides a real
 obligation. Neither is honest, so they are counted separately — the same
 reason `priv`’s upkeep keeps `unavailable` apart from `findings`.
+
+#### use *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)* *= None*
+
+a `lacing.Use`,
+the video’s annual revenue in USD and where it is used (an ISO 3166-1
+alpha-2 code, or `"WORLD"` for online publishing). `None` is an
+unstated use, and a restriction that asks about it is not met. Typed
+`Any` so `import an` does not load lacing.
+
+* **Type:**
+  The use the restrictions are read against (an#743)
 
 ### *exception* an.credits.PrivateStudyWarning
 
@@ -148,11 +166,12 @@ record from `metadata.dicebear_*`, which no other store has ever written.
 * **Return type:**
   [`CreditsReport`](#an.credits.CreditsReport)
 
-### an.credits.credits_for_project(project_dir, , scene_file='scene.md')
+### an.credits.credits_for_project(project_dir, , scene_file='scene.md', use=None)
 
 Credits for the project at `project_dir`: its assets, and the speech
 of its scene (`scene_file`: another scene of the project,
-`scene.studio.md`, an#554).
+`scene.studio.md`, an#554), with restrictions read against `use` (a
+`lacing.Use`; `None` is unstated: [`CreditsReport.restricted`](#an.credits.CreditsReport.restricted)).
 
 * **Return type:**
   [`CreditsReport`](#an.credits.CreditsReport)
@@ -165,6 +184,10 @@ Credits for exactly the assets `scene` draws or plays (an#211).
 used, and a private-study plate sitting unused in the store must not make
 an unrelated render “not publishable”. Kept: every entry under a
 `store/ref` some shot’s entity names, and every sound a cue names.
+
+It states no use, so restrictions (an#743) are read against an unstated
+one and fail closed: the report’s `commercial` is false for any asset
+carrying a restriction. [`credits_for_project()`](#an.credits.credits_for_project) takes the use.
 
 * **Return type:**
   [`CreditsReport`](#an.credits.CreditsReport)

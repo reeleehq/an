@@ -55,7 +55,7 @@ numpy, seeded, so the same call writes the same bytes.
 | [`SoundError`](#an.sounds.SoundError)   | A sound the store cannot hold, or holds wrongly.   |
 |---------------------------------------------------------------|----------------------------------------------------|
 
-### an.sounds.SYNTH_SOURCE *= AssetSource(provider='an.sounds', id='procedural-synthesis', url=None, license='cc0-1.0', license_url=None, attribution=None, source_page_url=None, author='an (procedural synthesis, generated locally)', author_url=None, cacheable=None, sha256=None, cost_usd=None, extra={})*
+### an.sounds.SYNTH_SOURCE *= AssetSource(provider='an.sounds', id='procedural-synthesis', url=None, license='cc0-1.0', license_url=None, attribution=None, source_page_url=None, author='an (procedural synthesis, generated locally)', author_url=None, cacheable=None, restrictions=(), sha256=None, cost_usd=None, extra={})*
 
 The provenance of everything [`synth_tone()`](#an.sounds.synth_tone) / [`synth_hit()`](#an.sounds.synth_hit) /
 [`synth_bed()`](#an.sounds.synth_bed) produce: generated on the user’s machine by `an` from

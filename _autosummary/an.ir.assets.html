@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=dc029616"></script>
+    <script src="../_static/documentation_options.js?v=2e6b983f"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.379" />
+  <meta name="docsearch:version" content="0.1.380" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -718,7 +718,10 @@ what keeps <code class="code docutils literal notranslate"><span class="pre">an<
 <tr class="row-even"><td><p><a class="reference internal" href="#an.ir.assets.normalise_license" title="an.ir.assets.normalise_license"><code class="xref py py-obj docutils literal notranslate"><span class="pre">normalise_license</span></code></a>(code)</p></td>
 <td><p>A licence code folded to lowercase words joined by <code class="docutils literal notranslate"><span class="pre">-</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.assets.requires_attribution" title="an.ir.assets.requires_attribution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">requires_attribution</span></code></a>(source)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.assets.restriction_breaches" title="an.ir.assets.restriction_breaches"><code class="xref py py-obj docutils literal notranslate"><span class="pre">restriction_breaches</span></code></a>(source[, use])</p></td>
+<td><p>Why <code class="docutils literal notranslate"><span class="pre">use</span></code> breaks each of <code class="docutils literal notranslate"><span class="pre">source</span></code>'s restrictions, in order; <code class="docutils literal notranslate"><span class="pre">[]</span></code> when it meets them (an#743).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.assets.requires_attribution" title="an.ir.assets.requires_attribution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">requires_attribution</span></code></a>(source)</p></td>
 <td><p>Whether shipping this asset obliges the user to credit someone.</p></td>
 </tr>
 </tbody>
@@ -746,7 +749,7 @@ not the same as “no obligation”.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.ir.assets.AssetSource">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.assets.</span></span><span class="sig-name descname"><span class="pre">AssetSource</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">provider</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">license</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">license_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_page_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">author</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">author_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cacheable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sha256</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cost_usd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**extra_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/assets.html#AssetSource"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.assets.AssetSource" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.assets.</span></span><span class="sig-name descname"><span class="pre">AssetSource</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">provider</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">license</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">license_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_page_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">author</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">author_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cacheable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">restrictions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sha256</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cost_usd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**extra_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/assets.html#AssetSource"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.assets.AssetSource" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
 <p>Provenance and rights for one third-party asset.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">AssetSource</span><span class="p">(</span><span class="n">provider</span><span class="o">=</span><span class="s2">"dicebear"</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="s2">"lorelei/amy"</span><span class="p">,</span> <span class="n">license</span><span class="o">=</span><span class="s2">"cc0-1.0"</span><span class="p">)</span>
@@ -777,6 +780,20 @@ as <code class="docutils literal notranslate"><span class="pre">lacing.Rights</s
 <dt class="sig sig-object py" id="an.ir.assets.AssetSource.model_config">
 <span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.15)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow'}</span></span><a class="headerlink" href="#an.ir.assets.AssetSource.model_config" title="Link to this definition">#</a></dt>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.assets.AssetSource.restrictions">
+<span class="sig-name descname"><span class="pre">restrictions</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.ir.assets.AssetSource.restrictions" title="Link to this definition">#</a></dt>
+<dd><p>Usage restrictions a licence code cannot carry (a revenue cap, excluded
+territories): <code class="docutils literal notranslate"><span class="pre">lacing.Restriction</span></code> records, as <code class="docutils literal notranslate"><span class="pre">lacing.Rights.restrictions</span></code>
+(an#743). The licence still classifies the asset; every restriction is
+checked on top (<a class="reference internal" href="#an.ir.assets.restriction_breaches" title="an.ir.assets.restriction_breaches"><code class="xref py py-func docutils literal notranslate"><span class="pre">restriction_breaches()</span></code></a>). Annotated <code class="docutils literal notranslate"><span class="pre">Any</span></code> on
+purpose: lacing is imported only when one is present, so <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">an</span></code>
+does not load it, and a <code class="docutils literal notranslate"><span class="pre">TYPE_CHECKING</span></code>-only import would leave pydantic
+a forward reference it cannot resolve when it builds the model. An empty
+tuple is left out of a dump (<code class="xref py py-meth docutils literal notranslate"><span class="pre">_omit_empty_restrictions()</span></code>), so a source
+recorded before the field reads the same.</p>
 </dd></dl>
 
 </dd></dl>
@@ -943,6 +960,32 @@ at all; <a class="reference internal" href="#an.ir.assets.license_class" title="
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="an.ir.assets.restriction_breaches">
+<span class="sig-prename descclassname"><span class="pre">an.ir.assets.</span></span><span class="sig-name descname"><span class="pre">restriction_breaches</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/assets.html#restriction_breaches"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.assets.restriction_breaches" title="Link to this definition">#</a></dt>
+<dd><p>Why <code class="docutils literal notranslate"><span class="pre">use</span></code> breaks each of <code class="docutils literal notranslate"><span class="pre">source</span></code>’s restrictions, in order; <code class="docutils literal notranslate"><span class="pre">[]</span></code> when it meets them (an#743).</p>
+<p><code class="docutils literal notranslate"><span class="pre">use</span></code> is a <code class="docutils literal notranslate"><span class="pre">lacing.Use</span></code> (its annual revenue and its territory, an ISO
+3166-1 alpha-2 code or <code class="docutils literal notranslate"><span class="pre">&quot;WORLD&quot;</span></code> for online publishing); <code class="docutils literal notranslate"><span class="pre">None</span></code> is an
+unstated <code class="docutils literal notranslate"><span class="pre">Use()</span></code>. Read by lacing (<code class="docutils literal notranslate"><span class="pre">lacing.restriction_breach</span></code>), so it
+fails closed as lacing documents: an unstated revenue or territory against a
+restriction that asks about it, and a restriction of a kind nobody knows,
+are breaches.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">lacing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Use</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">AssetSource</span><span class="p">(</span><span class="n">provider</span><span class="o">=</span><span class="s2">"foley"</span><span class="p">,</span> <span class="n">license</span><span class="o">=</span><span class="s2">"CC-BY-4.0"</span><span class="p">,</span> <span class="n">restrictions</span><span class="o">=</span><span class="p">[</span>
+<span class="gp">... </span>    <span class="p">{</span><span class="s2">"kind"</span><span class="p">:</span> <span class="s2">"revenue_cap"</span><span class="p">,</span> <span class="s2">"usd"</span><span class="p">:</span> <span class="mi">1_000_000</span><span class="p">,</span> <span class="s2">"terms"</span><span class="p">:</span> <span class="s2">"stability-community"</span><span class="p">}])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">restriction_breaches</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">Use</span><span class="p">(</span><span class="n">revenue_usd</span><span class="o">=</span><span class="mi">50_000</span><span class="p">))</span>
+<span class="go">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">restriction_breaches</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="go">['stability-community: allowed only below $1,000,000 of revenue (state the revenue)']</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 
@@ -996,6 +1039,7 @@ at all; <a class="reference internal" href="#an.ir.assets.license_class" title="
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.assets.AssetSource"><code class="docutils literal notranslate"><span class="pre">AssetSource</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.assets.AssetSource.cacheable"><code class="docutils literal notranslate"><span class="pre">AssetSource.cacheable</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.assets.AssetSource.model_config"><code class="docutils literal notranslate"><span class="pre">AssetSource.model_config</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.assets.AssetSource.restrictions"><code class="docutils literal notranslate"><span class="pre">AssetSource.restrictions</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.assets.LicenseClass"><code class="docutils literal notranslate"><span class="pre">LicenseClass</span></code></a></li>
@@ -1009,6 +1053,7 @@ at all; <a class="reference internal" href="#an.ir.assets.license_class" title="
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.assets.normalise_license"><code class="docutils literal notranslate"><span class="pre">normalise_license()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.assets.provider_terms_restriction"><code class="docutils literal notranslate"><span class="pre">provider_terms_restriction()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.assets.requires_attribution"><code class="docutils literal notranslate"><span class="pre">requires_attribution()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.assets.restriction_breaches"><code class="docutils literal notranslate"><span class="pre">restriction_breaches()</span></code></a></li>
 </ul>
   </nav></div>
 

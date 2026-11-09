@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=dc029616"></script>
+    <script src="../../_static/documentation_options.js?v=2e6b983f"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.379" />
+  <meta name="docsearch:version" content="0.1.380" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -759,6 +759,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">license_restriction</span><span class="p">,</span>
     <span class="n">provider_terms_restriction</span><span class="p">,</span>
     <span class="n">requires_attribution</span><span class="p">,</span>
+    <span class="n">restriction_breaches</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.sync</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEFAULT_SCENE_FILE</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stores._common</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_os_junk</span>
@@ -831,6 +832,12 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: (an#357) — a statement about some bytes freer than the one that binds</span>
     <span class="c1">#: them. Informative: the binding statement is already among the entries.</span>
     <span class="n">conflicts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+    <span class="c1">#: The use the restrictions are read against (an#743): a ``lacing.Use``,</span>
+    <span class="c1">#: the video's annual revenue in USD and where it is used (an ISO 3166-1</span>
+    <span class="c1">#: alpha-2 code, or ``"WORLD"`` for online publishing). ``None`` is an</span>
+    <span class="c1">#: unstated use, and a restriction that asks about it is not met. Typed</span>
+    <span class="c1">#: ``Any`` so ``import an`` does not load lacing.</span>
+    <span class="n">use</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">owed</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">CreditEntry</span><span class="p">]:</span>
@@ -851,8 +858,20 @@ window.runMermaid = runMermaid;</script>
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">commercial</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Whether a COMMERCIAL video may contain everything here (publishable,</span>
-<span class="sd">        and nothing non-commercial)."""</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">publishable</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">noncommercial</span>
+<span class="sd">        nothing non-commercial, and every restriction met by the stated use)."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">publishable</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">noncommercial</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">restricted</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">restricted</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">CreditEntry</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">"""``(entry, why)`` for every restriction beyond an entry's licence that</span>
+<span class="sd">        the stated use breaks (an#743: a revenue cap, an excluded territory, a</span>
+<span class="sd">        kind nobody knows), read by :func:`~an.ir.assets.restriction_breaches`.</span>
+<span class="sd">        Flagged, never blocking, like :attr:`noncommercial`."""</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">why</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">entries</span>
+            <span class="k">for</span> <span class="n">why</span> <span class="ow">in</span> <span class="n">restriction_breaches</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">use</span><span class="p">)</span>
+        <span class="p">]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">ai_generated</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">CreditEntry</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
@@ -901,6 +920,9 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"unverified"</span><span class="p">:</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">unverified</span><span class="p">],</span>
             <span class="s2">"private_study"</span><span class="p">:</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">private</span><span class="p">],</span>
             <span class="s2">"non_commercial"</span><span class="p">:</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">noncommercial</span><span class="p">],</span>
+            <span class="s2">"restricted"</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span><span class="s2">"asset"</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">asset</span><span class="p">,</span> <span class="s2">"why"</span><span class="p">:</span> <span class="n">why</span><span class="p">}</span> <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">why</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">restricted</span>
+            <span class="p">],</span>
             <span class="s2">"ai_generated"</span><span class="p">:</span> <span class="p">[</span>
                 <span class="p">{</span><span class="s2">"asset"</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">asset</span><span class="p">,</span> <span class="s2">"disclosure"</span><span class="p">:</span> <span class="n">label</span><span class="p">}</span>
                 <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ai_generated</span>
@@ -964,6 +986,20 @@ window.runMermaid = runMermaid;</script>
             <span class="p">)</span>
             <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">noncommercial</span><span class="p">:</span>
                 <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span><span class="si">}</span><span class="s2">: license=</span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">license</span><span class="si">!r}{</span><span class="n">_detail</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">restricted</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">restricted</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span>
+            <span class="n">use</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">use</span>
+            <span class="n">unstated</span> <span class="o">=</span> <span class="n">use</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">use</span><span class="o">.</span><span class="n">revenue_usd</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">use</span><span class="o">.</span><span class="n">territory</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="n">hint</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s2">" (state the use with --revenue-usd and --territory)"</span>
+                <span class="k">if</span> <span class="n">unstated</span>
+                <span class="k">else</span> <span class="s2">""</span>
+            <span class="p">)</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"RESTRICTED — </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">restricted</span><span class="p">)</span><span class="si">}</span><span class="s2"> restriction(s) beyond the licence "</span>
+                <span class="sa">f</span><span class="s2">"that this use does not meet</span><span class="si">{</span><span class="n">hint</span><span class="si">}</span><span class="s2">:"</span>
+            <span class="p">)</span>
+            <span class="n">lines</span> <span class="o">+=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">why</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">why</span> <span class="ow">in</span> <span class="n">restricted</span><span class="p">]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">owed</span><span class="p">:</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"MUST BE DISPLAYED to ship this video:"</span><span class="p">)</span>
@@ -1996,6 +2032,10 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    used, and a private-study plate sitting unused in the store must not make</span>
 <span class="sd">    an unrelated render "not publishable". Kept: every entry under a</span>
 <span class="sd">    ``store/ref`` some shot's entity names, and every sound a cue names.</span>
+
+<span class="sd">    It states no use, so restrictions (an#743) are read against an unstated</span>
+<span class="sd">    one and fail closed: the report's ``commercial`` is false for any asset</span>
+<span class="sd">    carrying a restriction. :func:`credits_for_project` takes the use.</span>
 <span class="sd">    """</span>
     <span class="n">used</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">shot</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="s2">"timeline"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]:</span>
@@ -2062,16 +2102,21 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="credits_for_project">
 <a class="viewcode-back" href="../../_autosummary/an.credits.html#an.credits.credits_for_project">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">credits_for_project</span><span class="p">(</span>
-    <span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">scene_file</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">DEFAULT_SCENE_FILE</span>
+    <span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">scene_file</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">DEFAULT_SCENE_FILE</span><span class="p">,</span>
+    <span class="n">use</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CreditsReport</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Credits for the project at ``project_dir``: its assets, and the speech</span>
 <span class="sd">    of its scene (``scene_file``: another scene of the project,</span>
-<span class="sd">    ``scene.studio.md``, an#554)."""</span>
+<span class="sd">    ``scene.studio.md``, an#554), with restrictions read against ``use`` (a</span>
+<span class="sd">    ``lacing.Use``; ``None`` is unstated: :attr:`CreditsReport.restricted`)."""</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.project</span><span class="w"> </span><span class="kn">import</span> <span class="n">load</span>
 
     <span class="n">project</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">project_dir</span><span class="p">),</span> <span class="n">scene_file</span><span class="o">=</span><span class="n">scene_file</span><span class="p">,</span> <span class="n">sync</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">report</span> <span class="o">=</span> <span class="n">collect_credits</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">)</span>
     <span class="n">report</span><span class="o">.</span><span class="n">entries</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">speech_credits</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">project</span><span class="o">.</span><span class="n">scene</span><span class="p">))</span>
+    <span class="n">report</span><span class="o">.</span><span class="n">use</span> <span class="o">=</span> <span class="n">use</span>
     <span class="k">return</span> <span class="n">report</span></div>
 
 </pre></div>
