@@ -139,7 +139,7 @@ Every frame’s request, frame `i` at `i / fps` unless a clock says otherwise.
 what every resolved frame must be.
 
 * **Type:**
-  The DECLARED ([*width*](an.stage.paths.html.md#an.stage.paths.PathDescriptor.width), height)
+  The DECLARED ([*width*](an.stage.paths.html.md#an.stage.paths.PathDescriptor.width), [*height*](an.stage.support.html.md#an.stage.support.SupportState.height))
 
 #### supersample *: [int](https://docs.python.org/3/builtins/functions.html#int)*
 

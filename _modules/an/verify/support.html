@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="alternate" type="text/markdown" href="support.html.md">
+<link rel="describedby" href="../../../llms.txt" type="text/markdown">
+    <title>an.verify.support &#8212; an</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx_autodoc_typehints.css?v=057ac668" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/epythet.css?v=c64280fc" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
+
+    <script src="../../../_static/documentation_options.js?v=eedccc62"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=fd10adb8"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+
+
+
+
+const initStyles = () => {
+    const defaultStyle = document.createElement('style');
+    defaultStyle.textContent = "pre.mermaid {\n    /* Same as .mermaid-container > pre */\n    display: block;\n    width: 100%;\n}\n\npre.mermaid > svg {\n    /* Same as .mermaid-container > pre > svg */\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}";
+    document.head.appendChild(defaultStyle);
+
+    const fullscreenStyle = document.createElement('style');
+    fullscreenStyle.textContent = ".mermaid-container {\n    position: relative;\n    display: flex;\n    flex-direction: row;\n    width: 100%;\n}\n\n.mermaid-container > pre {\n    display: block;\n    width: 100%;\n}\n\n.mermaid-container > pre > svg {\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}\n\n.mermaid-fullscreen-btn {\n    position: absolute;\n    width: 28px;\n    height: 28px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.3);\n    border-radius: 4px;\n    cursor: pointer;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    transition: all 0.2s;\n    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);\n    font-size: 14px;\n    line-height: 1;\n    padding: 0;\n    color: #333;\n}\n\n.mermaid-fullscreen-btn:hover {\n    opacity: 100% !important;\n    background: rgba(255, 255, 255, 1);\n    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-btn.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.3);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-btn.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal {\n    display: none;\n    position: fixed !important;\n    top: 0 !important;\n    left: 0 !important;\n    width: 95vw;\n    height: 100vh;\n    background: rgba(255, 255, 255, 0.98);\n    z-index: 9999;\n    padding: 20px;\n    overflow: auto;\n}\n\n.mermaid-fullscreen-modal.dark-theme {\n    background: rgba(0, 0, 0, 0.98);\n}\n\n.mermaid-fullscreen-modal.active {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen {\n    position: relative;\n    width: 95vw;\n    height: 90vh;\n    max-width: 95vw;\n    max-height: 90vh;\n    background: white;\n    border-radius: 8px;\n    padding: 20px;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);\n    overflow: auto;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen.dark-theme {\n    background: #1a1a1a;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);\n}\n\n.mermaid-container-fullscreen pre.mermaid {\n    width: 100%;\n    height: 100%;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen .mermaid svg {\n    height: 100% !important;\n    width: 100% !important;\n    cursor: grab;\n}\n\n.mermaid-fullscreen-close {\n    position: fixed !important;\n    top: 20px !important;\n    right: 20px !important;\n    width: 40px;\n    height: 40px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.2);\n    border-radius: 50%;\n    cursor: pointer;\n    z-index: 10000;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);\n    transition: all 0.2s;\n    font-size: 24px;\n    line-height: 1;\n    color: #333;\n}\n\n.mermaid-fullscreen-close:hover {\n    background: white;\n    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-close.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.2);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-close.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal .mermaid-fullscreen-btn {\n    display: none !important;\n}";
+    document.head.appendChild(fullscreenStyle);
+}
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    // We use a set of heuristics:
+    // 1. Check for common dark mode classes or attributes
+    // 2. Check computed background color brightness
+    if (document.documentElement.classList.contains('dark') ||
+        document.documentElement.getAttribute('data-theme') === 'dark' ||
+        document.body.classList.contains('dark') ||
+        document.body.getAttribute('data-theme') === 'dark') {
+        // console.log("Dark theme detected via class/attribute");
+        return true;
+    }
+    if (document.documentElement.classList.contains('light') ||
+        document.documentElement.getAttribute('data-theme') === 'light' ||
+        document.body.classList.contains('light') ||
+        document.body.getAttribute('data-theme') === 'light') {
+        // console.log("Light theme detected via class/attribute");
+        return false;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // console.log("Dark theme detected via prefers-color-scheme");
+        return true;
+    }
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        // console.log("Background color brightness:", brightness);
+        return brightness < 128;
+    }
+    // console.log("No dark or light theme detected, defaulting to light theme");
+    return false;
+};
+
+let darkTheme = isDarkTheme();
+let modal = null;
+let modalContent = null;
+let previousScrollOffset = [window.scrollX, window.scrollY];
+let _lazyObserver = null;
+let _renderQueue = Promise.resolve();
+let closeModal = () => {};
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal?.classList.contains('active')) {
+        closeModal();
+    }
+});
+
+// Apply d3 zoom to each SVG. Idempotent: an SVG already wrapped is skipped,
+// so this is safe to call both for the initial batch and for diagrams that
+// render lazily once they become visible.
+const addZoomToSvgs = (svgs) => {
+    svgs.each(function() {
+        if (this.getAttribute('data-zoom-applied') === 'true') return;
+        var svg = d3.select(this);
+        svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+        var inner = svg.select("g");
+        var zoom = d3.zoom().on("zoom", function(event) {
+            inner.attr("transform", event.transform);
+        });
+        svg.call(zoom);
+        this.setAttribute('data-zoom-applied', 'true');
+    });
+};
+
+const runMermaid = async (rerun) => {
+    console.log("Running mermaid diagrams, rerun =", rerun);
+    // clear all existing mermaid charts
+    let all_mermaids = document.querySelectorAll(".mermaid");
+
+    if (rerun) {
+        // Disconnect any previous lazy rendering observer
+        if (_lazyObserver) {
+            _lazyObserver.disconnect();
+            _lazyObserver = null;
+        }
+
+        all_mermaids.forEach((el) => {
+            el.removeAttribute('data-mermaid-deferred');
+            el.removeAttribute('data-mermaid-render-failed');
+            if(!el.hasAttribute("data-original-code")) {
+                // store original code
+                // console.log(`Storing original code for first run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+            if(el.getAttribute("data-processed") === "true") {
+                // remove and restore original
+                el.removeAttribute("data-processed");
+                // console.log(`Restoring original code for re-run: `, el.getAttribute('data-original-code'));
+                el.innerHTML = el.getAttribute('data-original-code');
+            } else {
+                // store original code
+                // console.log(`Storing original code for re-run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+        });
+
+        // Separate visible and hidden elements. Mermaid's layout engine measures
+        // text dimensions via the DOM, which fails for elements hidden by a parent
+        // (e.g., Reveal.js non-active slides, sphinx-design unopened tabs),
+        // producing broken SVGs. Render visible elements now, defer hidden ones.
+        const visible = [];
+        const hidden = [];
+        all_mermaids.forEach((el) => {
+            // offsetParent is null for display:none ancestors.
+            // getClientRects().length > 0 catches position:fixed elements
+            // (which also have null offsetParent but are still visible).
+            if (el.offsetParent !== null || el.getClientRects().length > 0) {
+                visible.push(el);
+            } else {
+                hidden.push(el);
+                el.setAttribute('data-mermaid-deferred', 'true');
+            }
+        });
+
+        if (visible.length > 0) {
+            try {
+                await mermaid.run({ nodes: visible });
+            } catch (e) {
+                console.error("Mermaid rendering failed:", e);
+            }
+        }
+
+        // Lazily render hidden elements when they become visible.
+        // Uses a promise chain (_renderQueue) to serialize rendering,
+        // since IntersectionObserver may report multiple entries at once
+        // and mermaid.run() is not safe to call concurrently.
+        if (hidden.length > 0) {
+            if (typeof IntersectionObserver === 'undefined') {
+                console.warn("IntersectionObserver not available; hidden mermaid diagrams will not render.");
+            } else {
+                _renderQueue = Promise.resolve();
+                _lazyObserver = new IntersectionObserver((entries) => {
+                    for (const entry of entries) {
+                        if (entry.isIntersecting && entry.target.getAttribute("data-processed") !== "true") {
+                            _lazyObserver.unobserve(entry.target);
+                            const el = entry.target;
+                            _renderQueue = _renderQueue.then(async () => {
+                                try {
+                                    await mermaid.run({ nodes: [el] });
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    // Apply zoom to the now-rendered diagram, matching
+                                    // the decoration visible diagrams receive.
+                                    if (false) {
+                                        addZoomToSvgs(d3.selectAll("").select(function() {
+                                            return this.querySelector("svg");
+                                        }));
+                                    }
+                                } catch (e) {
+                                    console.error("Mermaid deferred rendering failed:", e);
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    el.setAttribute('data-mermaid-render-failed', 'true');
+                                }
+                            });
+                        }
+                    }
+                });
+                hidden.forEach((el) => _lazyObserver.observe(el));
+            }
+        }
+    }
+
+    all_mermaids = document.querySelectorAll(".mermaid");
+    // Exclude deferred (hidden) and render-failed elements from completion checks
+    const mermaids_active = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])");
+    const mermaids_processed = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])[data-processed='true']");
+
+    if (false) {
+        const mermaids_to_add_zoom = 0 === -1 ? mermaids_active.length : 0;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("").select(function() {
+                return this.querySelector("svg");
+            });
+            // Wait until every active (visible) diagram has rendered. Deferred
+            // diagrams are excluded, so a fixed d3_node_count that counts a
+            // hidden diagram no longer loops forever waiting for its SVG.
+            if(mermaids_active.length !== mermaids_processed.length) {
+                setTimeout(() => runMermaid(false), 200);
+                return;
+            }
+            addZoomToSvgs(svgs);
+        }
+    } else if(mermaids_active.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(() => runMermaid(false), 200);
+        return;
+    }
+
+    // Stop here if not adding fullscreen capability
+    if (!true) return;
+
+    if (modal !== null ) {
+        // Destroy existing modal
+        modal.remove();
+        modal = null;
+        modalContent = null;
+    }
+
+    modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            // Already processed, adjust button class if needed
+            const existingBtn = mermaidDiv.parentNode.querySelector('.mermaid-fullscreen-btn');
+            if (existingBtn) {
+                existingBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+            }
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = "\u26f6";
+        fullscreenBtn.style.opacity = "50%";
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scrollX, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.display = 'block';
+
+                if (false) {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+        container.appendChild(fullscreenBtn);
+    });
+};
+
+
+
+const load = async () => {
+    initStyles();
+
+
+    await runMermaid(true);
+
+    const reRunIfThemeChanges = async () => {
+        const newDarkTheme = isDarkTheme();
+        if (newDarkTheme !== darkTheme) {
+            darkTheme = newDarkTheme;
+            console.log("Theme change detected, re-running mermaid with", darkTheme ? "dark" : "default", "theme");
+            await mermaid.initialize(
+                {...{"startOnLoad": false},
+                ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+                }
+            );
+            await runMermaid(true);
+        }
+    };
+
+    // Update theme classes when theme changes
+    const themeObserver = new MutationObserver(reRunIfThemeChanges);
+    themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+};
+
+
+
+
+
+console.log("Initializing mermaid with", darkTheme ? "dark" : "default", "theme");
+mermaid.initialize(
+    {...{"startOnLoad": false},
+    ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+    }
+);
+
+window.addEventListener("load", load);
+window.runMermaid = runMermaid;</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/an/verify/support';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.391" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation" aria-expanded="false" aria-controls="pst-primary-sidebar-modal">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">an</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal" tabindex="-1"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-house"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">an.verify.support</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for an.verify.support</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""The ``support`` check: a body declared to rest on a surface does (an#519, catalogue A1).</span>
+
+<span class="sd">One constraint on the one interface (:class:`an.verify.constraints.Constraint`),</span>
+<span class="sd">lint-only (no solver term in v1), over the compiled shot, measured by the pure</span>
+<span class="sd">function :func:`an.stage.support.supports_at`:</span>
+
+<span class="sd">- a declared ``support`` joint (``{type: support, a: paul, b: ground}``) whose</span>
+<span class="sd">  contacts sink into its surface (**penetration**) or whose lowest contact is</span>
+<span class="sd">  above it (**floating**) by more than :func:`an.stage.support.support_tolerance`</span>
+<span class="sd">  of the entity's height, at any frame of the solve's grid at which it is</span>
+<span class="sd">  joined, is an **error** span; a reference it cannot resolve is an error too</span>
+<span class="sd">  (the solve never sees a support, so ``unknown_body`` cannot say it);</span>
+<span class="sd">- an entity nothing declares, taken to stand on the shot's floor</span>
+<span class="sd">  (``solve: {ground: y}``) as it opens, is held to it at its rest instants</span>
+<span class="sd">  (between two keys where nothing of it moves), as a **warning**;</span>
+<span class="sd">- ``b: ground`` on a shot with no floor is measured against where the entity</span>
+<span class="sd">  stands as the shot opens, said once as ``info``.</span>
+
+<span class="sd">Not judged: an unjoined span (``unjoin`` suspends the support: it is not a</span>
+<span class="sd">flight), an entity's declared flight (``overrides.airborne``), an item the</span>
+<span class="sd">hold layer moves when nothing declares a support on it (``floating_item``'s).</span>
+
+<span class="sd">&gt;&gt;&gt; SUPPORT.name, SUPPORT.order, SUPPORT.term is None</span>
+<span class="sd">('support', 252.0, True)</span>
+<span class="sd">"""</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.genres.registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">CORE_OWNER</span><span class="p">,</span> <span class="n">check_names</span><span class="p">,</span> <span class="n">register_check</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.verify.constraints</span><span class="w"> </span><span class="kn">import</span> <span class="n">AIRBORNE_OVERRIDE</span><span class="p">,</span> <span class="n">Constraint</span><span class="p">,</span> <span class="n">compiled_shot</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"SUPPORT"</span><span class="p">,</span>
+    <span class="s2">"SUPPORT_CONSTRAINTS"</span><span class="p">,</span>
+    <span class="s2">"SUPPORT_CHECK_ORDER"</span><span class="p">,</span>
+    <span class="s2">"SUPPORT_TOLERANCE"</span><span class="p">,</span>
+    <span class="s2">"SUPPORT_FLOOR_PX"</span><span class="p">,</span>
+    <span class="s2">"support_findings"</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="c1">#: The tolerances, defined beside the measurement (:mod:`an.stage.support`)</span>
+<span class="c1">#: and read from here lazily: a core check never loads the stage at import.</span>
+<span class="n">_STAGE_NAMES</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"SUPPORT_TOLERANCE"</span><span class="p">,</span> <span class="s2">"SUPPORT_FLOOR_PX"</span><span class="p">})</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">_STAGE_NAMES</span><span class="p">:</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">an.stage.support</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">measure</span>
+
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">measure</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"module </span><span class="si">{</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s2"> has no attribute </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+
+
+<span class="c1">#: Where the support check runs within a shot: after the joint checks (250),</span>
+<span class="c1">#: which report broken declarations first, before the hold checks (255).</span>
+<span class="n">SUPPORT_CHECK_ORDER</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">252.0</span>
+<span class="c1">#: Two instants closer than this are one.</span>
+<span class="n">_SAME_INSTANT_S</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-9</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_declares_support</span><span class="p">(</span><span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">stores</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.solve</span><span class="w"> </span><span class="kn">import</span> <span class="n">declarations</span>
+
+    <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">declarations</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">stores</span> <span class="ow">or</span> <span class="p">{},</span> <span class="n">verbs</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">supports</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_has_floor</span><span class="p">(</span><span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">shot</span><span class="o">.</span><span class="n">solve</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">shot</span><span class="o">.</span><span class="n">solve</span><span class="o">.</span><span class="n">ground</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_flying</span><span class="p">(</span><span class="n">entity</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Within the entity's declared flight (``overrides.airborne``)."""</span>
+    <span class="n">span</span> <span class="o">=</span> <span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="s2">"overrides"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">AIRBORNE_OVERRIDE</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">span</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">span</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"from"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+    <span class="n">until</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">span</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"until"</span><span class="p">,</span> <span class="n">duration</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">start</span> <span class="o">-</span> <span class="n">_SAME_INSTANT_S</span> <span class="o">&lt;=</span> <span class="n">t</span> <span class="o">&lt;=</span> <span class="n">until</span> <span class="o">+</span> <span class="n">_SAME_INSTANT_S</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_surface_text</span><span class="p">(</span><span class="n">ref</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">ref</span> <span class="o">==</span> <span class="s2">"ground"</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"`ground` (y </span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">surface</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">)"</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"`</span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2">`"</span>
+
+
+<div class="viewcode-block" id="support_findings">
+<a class="viewcode-back" href="../../../_autosummary/an.verify.support.html#an.verify.support.support_findings">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">support_findings</span><span class="p">(</span>
+    <span class="n">states</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">times</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+    <span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">tolerance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">floor</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``(severity, where, message)`` for each span of frames a support does not</span>
+<span class="sd">    hold in ``states`` (:func:`an.stage.support.supports_at`'s), the worst</span>
+<span class="sd">    distance of the span named; ``times`` is the grid the states' frames index.</span>
+<span class="sd">    A contact is off its surface beyond</span>
+<span class="sd">    :func:`an.stage.support.support_tolerance`: ``tolerance`` of the entity's</span>
+<span class="sd">    height (default :data:`SUPPORT_TOLERANCE`), ``floor`` px at least (default</span>
+<span class="sd">    :data:`SUPPORT_FLOOR_PX`).</span>
+
+<span class="sd">    &gt;&gt;&gt; from an.stage.support import ContactState, SupportState</span>
+<span class="sd">    &gt;&gt;&gt; from types import SimpleNamespace as NS</span>
+<span class="sd">    &gt;&gt;&gt; def at(k, gap):</span>
+<span class="sd">    ...     return SupportState("cup", "cup", "joints/0", k, k / 10, ((0.0, 0.0), (1.0, 0.0)),</span>
+<span class="sd">    ...         "ground", (ContactState("base", "cup", (0.0, -gap), gap),), True, 30.0, "metadata")</span>
+<span class="sd">    &gt;&gt;&gt; [m[:2] for m in support_findings([at(0, 0.0), at(1, 5.0), at(2, 6.0)],</span>
+<span class="sd">    ...     times=[0.0, 0.1, 0.2], shot=NS(entities=[], duration=1.0))]</span>
+<span class="sd">    [('error', 'joints/0')]</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.solve</span><span class="w"> </span><span class="kn">import</span> <span class="n">_spans</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.support</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+        <span class="n">SUPPORT_FLOOR_PX</span><span class="p">,</span>
+        <span class="n">SUPPORT_TOLERANCE</span><span class="p">,</span>
+        <span class="n">support_tolerance</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">tolerance</span> <span class="o">=</span> <span class="n">SUPPORT_TOLERANCE</span> <span class="k">if</span> <span class="n">tolerance</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">tolerance</span>
+    <span class="n">floor</span> <span class="o">=</span> <span class="n">SUPPORT_FLOOR_PX</span> <span class="k">if</span> <span class="n">floor</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">floor</span>
+
+    <span class="n">entities</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">}</span>
+    <span class="n">groups</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">states</span><span class="p">:</span>
+        <span class="n">groups</span><span class="o">.</span><span class="n">setdefault</span><span class="p">((</span><span class="n">s</span><span class="o">.</span><span class="n">where</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">joint</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">entity</span><span class="p">),</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">where</span><span class="p">,</span> <span class="n">joint</span><span class="p">,</span> <span class="n">eid</span><span class="p">),</span> <span class="n">series</span> <span class="ow">in</span> <span class="n">groups</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">judged</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">s</span>
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">series</span>
+            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">joined</span>
+            <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">lowest</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="ow">not</span> <span class="n">_flying</span><span class="p">(</span><span class="n">entities</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">eid</span><span class="p">),</span> <span class="n">s</span><span class="o">.</span><span class="n">t</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">))</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">judged</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">tol</span> <span class="o">=</span> <span class="n">support_tolerance</span><span class="p">(</span><span class="n">judged</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">height</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="n">tolerance</span><span class="p">,</span> <span class="n">floor</span><span class="o">=</span><span class="n">floor</span><span class="p">)</span>
+        <span class="n">by_frame</span> <span class="o">=</span> <span class="p">{</span><span class="n">s</span><span class="o">.</span><span class="n">frame</span><span class="p">:</span> <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">judged</span><span class="p">}</span>
+        <span class="k">for</span> <span class="n">kind</span><span class="p">,</span> <span class="n">broken</span> <span class="ow">in</span> <span class="p">(</span>
+            <span class="p">(</span><span class="s2">"penetration"</span><span class="p">,</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">frame</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">judged</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">lowest</span> <span class="o">&lt;</span> <span class="o">-</span><span class="n">tol</span><span class="p">]),</span>
+            <span class="p">(</span><span class="s2">"floating"</span><span class="p">,</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">frame</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">judged</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">lowest</span> <span class="o">&gt;</span> <span class="n">tol</span><span class="p">]),</span>
+        <span class="p">):</span>
+            <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">_spans</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">broken</span><span class="p">):</span>
+                <span class="n">span</span> <span class="o">=</span> <span class="p">[</span><span class="n">by_frame</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">broken</span> <span class="k">if</span> <span class="n">a</span> <span class="o">&lt;=</span> <span class="n">times</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">b</span><span class="p">]</span>
+                <span class="n">worst</span> <span class="o">=</span> <span class="p">(</span><span class="nb">min</span> <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"penetration"</span> <span class="k">else</span> <span class="nb">max</span><span class="p">)(</span>
+                    <span class="n">span</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">lowest</span>
+                <span class="p">)</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="p">(</span>
+                        <span class="s2">"error"</span> <span class="k">if</span> <span class="n">joint</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">"warning"</span><span class="p">,</span>
+                        <span class="n">where</span><span class="p">,</span>
+                        <span class="n">_message</span><span class="p">(</span><span class="n">kind</span><span class="p">,</span> <span class="n">worst</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="n">b</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="n">tol</span><span class="p">),</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_message</span><span class="p">(</span><span class="n">kind</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">a</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">tol</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">when</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"from </span><span class="si">{</span><span class="n">a</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s to </span><span class="si">{</span><span class="n">b</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s"</span> <span class="k">if</span> <span class="n">b</span> <span class="o">-</span> <span class="n">a</span> <span class="o">&gt;</span> <span class="n">_SAME_INSTANT_S</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"at </span><span class="si">{</span><span class="n">a</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s"</span>
+    <span class="p">)</span>
+    <span class="n">surface</span> <span class="o">=</span> <span class="n">_surface_text</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">surface_ref</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+    <span class="n">gap</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">lowest</span><span class="p">)</span>
+    <span class="n">within</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"(the tolerance is </span><span class="si">{</span><span class="n">tol</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> px)"</span>
+    <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">inferred</span><span class="p">:</span>
+        <span class="n">lead</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"`</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">entity</span><span class="si">}</span><span class="s2">` stands on </span><span class="si">{</span><span class="n">surface</span><span class="si">}</span><span class="s2"> as the shot opens, but "</span>
+        <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"penetration"</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">lead</span><span class="si">}</span><span class="s2">it is </span><span class="si">{</span><span class="n">gap</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> px into it </span><span class="si">{</span><span class="n">when</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">within</span><span class="si">}</span><span class="s2">. Raise it, or "</span>
+                <span class="sa">f</span><span class="s2">"declare where it stands (`</span><span class="se">{{</span><span class="s2">type: support, a: </span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">entity</span><span class="si">}</span><span class="s2">, b: ground</span><span class="se">}}</span><span class="s2">`)."</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">lead</span><span class="si">}</span><span class="s2">it is </span><span class="si">{</span><span class="n">gap</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> px above it </span><span class="si">{</span><span class="n">when</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">within</span><span class="si">}</span><span class="s2">, with nothing under it. "</span>
+            <span class="s2">"Put it back down, or declare its flight "</span>
+            <span class="s2">"(`overrides: {airborne: {from: …, until: …}}`)."</span>
+        <span class="p">)</span>
+    <span class="n">box</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">" Measured on `</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">entity</span><span class="si">}</span><span class="s2">`'s box, not its ink: declare "</span>
+        <span class="s2">"`metadata: {contacts: {base: [u, v]}}` on its descriptor."</span>
+        <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">source</span> <span class="o">==</span> <span class="s2">"box"</span>
+        <span class="k">else</span> <span class="s2">""</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"penetration"</span><span class="p">:</span>
+        <span class="n">contact</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">deepest</span><span class="o">.</span><span class="n">name</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">deepest</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">"contact"</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"`</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">entity</span><span class="si">}</span><span class="s2">`'s `</span><span class="si">{</span><span class="n">contact</span><span class="si">}</span><span class="s2">` is </span><span class="si">{</span><span class="n">gap</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> px into </span><span class="si">{</span><span class="n">surface</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">when</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">within</span><span class="si">}</span><span class="s2">. "</span>
+            <span class="sa">f</span><span class="s2">"Raise `</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">entity</span><span class="si">}</span><span class="s2">` (its `stage.at` y or the tween on `</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">entity</span><span class="si">}</span><span class="s2">:y`), or "</span>
+            <span class="sa">f</span><span class="s2">"lower the floor (`solve: </span><span class="se">{{</span><span class="s2">ground: …</span><span class="se">}}</span><span class="s2">`).</span><span class="si">{</span><span class="n">box</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"`</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">entity</span><span class="si">}</span><span class="s2">` floats </span><span class="si">{</span><span class="n">gap</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> px above </span><span class="si">{</span><span class="n">surface</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">when</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">within</span><span class="si">}</span><span class="s2">: nothing it "</span>
+        <span class="sa">f</span><span class="s2">"stands on reaches it. Put it down (`overrides: </span><span class="se">{{</span><span class="s2">held_by: </span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">surface_ref</span><span class="si">}</span><span class="se">}}</span><span class="s2">` "</span>
+        <span class="sa">f</span><span class="s2">"lays it there), or `unjoin` the support `</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">joint</span><span class="si">}</span><span class="s2">` while it is off it.</span><span class="si">{</span><span class="n">box</span><span class="si">}</span><span class="s2">"</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">check_support</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Every declared support holds at every joined frame of the compiled shot,</span>
+<span class="sd">    and every entity taken to stand on the shot's floor stays on it at rest."""</span>
+    <span class="n">shot</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">shot</span>
+    <span class="n">stores</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">stores</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="n">declared</span> <span class="o">=</span> <span class="n">_declares_support</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">stores</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">declared</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">_has_floor</span><span class="p">(</span><span class="n">shot</span><span class="p">):</span>
+        <span class="k">return</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="n">compiled_shot</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>  <span class="c1"># not_compiled says so</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.solve</span><span class="w"> </span><span class="kn">import</span> <span class="n">frame_times</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.support</span><span class="w"> </span><span class="kn">import</span> <span class="n">supports_at</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.verify.vision</span><span class="w"> </span><span class="kn">import</span> <span class="n">FAILURE_SEVERITY</span>
+
+    <span class="n">times</span> <span class="o">=</span> <span class="n">frame_times</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">doc</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">fps</span><span class="p">,</span> <span class="n">step_hz</span><span class="o">=</span><span class="n">doc</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">step_hz</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">states</span><span class="p">,</span> <span class="n">problems</span> <span class="o">=</span> <span class="n">supports_at</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="n">stores</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="n">times</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 - said, never passed over as success</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+            <span class="n">FAILURE_SEVERITY</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">/joints"</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"the support check could not measure this shot (</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">); "</span>
+            <span class="s2">"its supports were NOT checked."</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span>
+    <span class="k">for</span> <span class="n">where</span><span class="p">,</span> <span class="n">message</span> <span class="ow">in</span> <span class="n">problems</span><span class="p">:</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"error"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">_has_floor</span><span class="p">(</span><span class="n">shot</span><span class="p">):</span>
+        <span class="n">on_ground</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+            <span class="p">{</span><span class="n">s</span><span class="o">.</span><span class="n">entity</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">states</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">s</span><span class="o">.</span><span class="n">inferred</span> <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">surface_ref</span> <span class="o">==</span> <span class="s2">"ground"</span><span class="p">}</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">on_ground</span><span class="p">:</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                <span class="s2">"info"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">/solve"</span><span class="p">,</span>
+                <span class="s2">"no floor declared; `ground` is measured against where "</span>
+                <span class="o">+</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"`</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">`"</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">on_ground</span><span class="p">)</span>
+                <span class="o">+</span> <span class="s2">" stands as the shot opens (say `solve: {ground: y}` for a floor)."</span><span class="p">,</span>
+            <span class="p">)</span>
+    <span class="k">for</span> <span class="n">severity</span><span class="p">,</span> <span class="n">where</span><span class="p">,</span> <span class="n">message</span> <span class="ow">in</span> <span class="n">support_findings</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="n">times</span><span class="p">,</span> <span class="n">shot</span><span class="o">=</span><span class="n">shot</span><span class="p">):</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">severity</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
+
+
+<span class="n">SUPPORT</span> <span class="o">=</span> <span class="n">Constraint</span><span class="p">(</span>
+    <span class="s2">"support"</span><span class="p">,</span>
+    <span class="n">check_support</span><span class="p">,</span>
+    <span class="n">order</span><span class="o">=</span><span class="n">SUPPORT_CHECK_ORDER</span><span class="p">,</span>
+    <span class="n">term</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"a body declared to rest on a surface neither sinks into it nor floats above it (catalogue A1, an#519)"</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1">#: The support checks, in the order they run.</span>
+<span class="n">SUPPORT_CONSTRAINTS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Constraint</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">SUPPORT</span><span class="p">,)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_register</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="n">SUPPORT_CONSTRAINTS</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">constraint</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">check_names</span><span class="p">(</span><span class="n">owner</span><span class="o">=</span><span class="n">CORE_OWNER</span><span class="p">):</span>
+            <span class="n">register_check</span><span class="p">(</span><span class="n">constraint</span><span class="o">.</span><span class="n">semantic_check</span><span class="p">(),</span> <span class="n">owner</span><span class="o">=</span><span class="n">CORE_OWNER</span><span class="p">)</span>
+
+
+<span class="n">_register</span><span class="p">()</span>
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.24.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

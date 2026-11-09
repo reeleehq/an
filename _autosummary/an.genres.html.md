@@ -106,7 +106,7 @@ genre defined in the same process).
 | [`RegistryError`](#an.genres.RegistryError)                                | A registration is malformed or collides with one already made.         |
 | [`UnregisteredKindError`](#an.genres.UnregisteredKindError)(what, name, \*[, ...]) | A document names a kind no loaded genre registered.                    |
 
-### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 17*
+### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 18*
 
 every hook, registry
 field a genre package may rely on. Bumped by each change a
@@ -192,6 +192,9 @@ EntityKind.shot_sizes(entity, mall,
 
 an.ir.world.planes_at_infinity(world,
 : environments)\`\` and its record `PlaneAtInfinity`, for a genre’s far-plate critic.
+
+18 = where a rig touches what it stands on (an#519): `EntityKind.contacts` (a character’s
+: feet for the `support` joint and check), read by `an.stage.support.contacts_of`.
 
 * **Type:**
   The level of the genre-facing API this `an` provides
@@ -309,7 +312,7 @@ checked against what the sugar declares).
 
 The entry-point group a genre package declares its [`Genre`](#an.genres.Genre) under.
 
-### *class* an.genres.EntityKind(name, space=None, store=None, description='', version='1', swap_declaration=None, descriptor_kind=None, placeholder_on_missing=False, swap_checks=None, specimen=None, landmarks=None, shot_sizes=None)
+### *class* an.genres.EntityKind(name, space=None, store=None, description='', version='1', swap_declaration=None, descriptor_kind=None, placeholder_on_missing=False, swap_checks=None, specimen=None, landmarks=None, shot_sizes=None, contacts=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -318,6 +321,20 @@ One kind of entity (`AssetRef.kind`): what its nodes’ properties are.
 `space` names the registered [`an.timing.spaces.PropertySpace`](an.timing.spaces.html.md#an.timing.spaces.PropertySpace) its
 nodes’ properties live in (`None`: the entity has no animatable nodes, as
 a voice); `store` is the project-mall store its `ref` keys into.
+
+#### contacts *: [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[Any](https://docs.python.org/3/library/typing.html#typing.Any)], [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)]]] | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+the named points of this
+kind’s rigs that touch what the rig stands on (catalogue A1, an#519): a
+character’s `foot_l` is the far end of its left leg. The same shape as
+`landmarks`: `point` is `(u, v)`, a fraction of that slot’s
+drawing, or `None` for the slot’s far end from its pivot. A bone or a
+landmark of that name wins. `None`, or an empty answer: the kind names
+none, and the core derives one ([`an.stage.support.contacts_of()`](an.stage.support.html.md#an.stage.support.contacts_of)).
+Since `an.genres.API_LEVEL` 18.
+
+* **Type:**
+  `(descriptor) -> {name: (slot, point)}`
 
 #### descriptor_kind *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
 

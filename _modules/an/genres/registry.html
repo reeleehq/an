@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=4aa4487b"></script>
+    <script src="../../../_static/documentation_options.js?v=eedccc62"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.390" />
+  <meta name="docsearch:version" content="0.1.391" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -932,6 +932,17 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: table's (composition, not anatomy). Since ``an.genres.API_LEVEL`` 14.</span>
     <span class="n">shot_sizes</span><span class="p">:</span> <span class="p">(</span>
         <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: ``(descriptor) -&gt; {name: (slot, point)}``: the named points of this</span>
+    <span class="c1">#: kind's rigs that touch what the rig stands on (catalogue A1, an#519): a</span>
+    <span class="c1">#: character's ``foot_l`` is the far end of its left leg. The same shape as</span>
+    <span class="c1">#: ``landmarks``: ``point`` is ``(u, v)``, a fraction of that slot's</span>
+    <span class="c1">#: drawing, or ``None`` for the slot's far end from its pivot. A bone or a</span>
+    <span class="c1">#: landmark of that name wins. ``None``, or an empty answer: the kind names</span>
+    <span class="c1">#: none, and the core derives one (:func:`an.stage.support.contacts_of`).</span>
+    <span class="c1">#: Since ``an.genres.API_LEVEL`` 18.</span>
+    <span class="n">contacts</span><span class="p">:</span> <span class="p">(</span>
+        <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]]</span> <span class="o">|</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 

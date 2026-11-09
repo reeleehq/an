@@ -193,6 +193,7 @@
 - [an.stage.serialize](_autosummary/an.stage.serialize.html.md): JSON contract between the Python compiler and the (future) JS runtime.
 - [an.stage.snapshot](_autosummary/an.stage.snapshot.html.md): Rasterise art files to PNG in the browser the stage already uses (an#347).
 - [an.stage.solve](_autosummary/an.stage.solve.html.md): The &#96;solve&#96; compile pass: joints kept at every frame (ADR 0008 decision 6, an#512).
+- [an.stage.support](_autosummary/an.stage.support.html.md): Supports: what a body rests on, and how far it is from resting there (an#519, catalogue A1).
 - [an.stage.surface](_autosummary/an.stage.surface.html.md): Surface treatments, compiled (an#163 gap 5): outline, paper-gap shadow, glow, grain.
 - [an.stage.surface_line](_autosummary/an.stage.surface_line.html.md): Surface lines: what a thing stands on, as a line on the stage (an#519).
 - [an.stage.text](_autosummary/an.stage.text.html.md): Words on screen: title cards, labels, and text you can animate word by word.
@@ -237,10 +238,11 @@
 - [an.verify.media](_autosummary/an.verify.media.html.md): Media verification helpers — audio + frame quality checks for rendered mp4s.
 - [an.verify.media_quality](_autosummary/an.verify.media_quality.html.md): MediaQualityVerifier — post-render quality checks on the actual mp4.
 - [an.verify.prosody](_autosummary/an.verify.prosody.html.md): Prosody measurement: how a recorded voice delivers its words, as numbers a target can check.
+- [an.verify.support](_autosummary/an.verify.support.html.md): The &#96;support&#96; check: a body declared to rest on a surface does (an#519, catalogue A1).
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [an.world_cli](_autosummary/an.world_cli.html.md): &#96;an world …&#96;: the scene’s world from the shell (ADR 0009).
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-11-09 05:00 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-11-09 05:53 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
 
 ## Optional
 

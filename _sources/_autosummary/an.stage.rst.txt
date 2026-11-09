@@ -45,6 +45,7 @@ an.stage
    serialize
    snapshot
    solve
+   support
    surface
    surface_line
    text

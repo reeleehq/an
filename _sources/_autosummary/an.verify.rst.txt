@@ -30,4 +30,5 @@ an.verify
    media
    media_quality
    prosody
+   support
    vision

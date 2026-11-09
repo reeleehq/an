@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=4aa4487b"></script>
+    <script src="../../../_static/documentation_options.js?v=eedccc62"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.390" />
+  <meta name="docsearch:version" content="0.1.391" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -765,7 +765,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
@@ -783,6 +783,10 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"declarations"</span><span class="p">,</span>
     <span class="s2">"Puppet"</span><span class="p">,</span>
     <span class="s2">"build_puppet"</span><span class="p">,</span>
+    <span class="s2">"NodePoint"</span><span class="p">,</span>
+    <span class="s2">"PointScope"</span><span class="p">,</span>
+    <span class="s2">"locate_point"</span><span class="p">,</span>
+    <span class="s2">"contact_point"</span><span class="p">,</span>
     <span class="s2">"solve_pass"</span><span class="p">,</span>
     <span class="s2">"joint_residuals"</span><span class="p">,</span>
     <span class="s2">"shot_declares_solve"</span><span class="p">,</span>
@@ -950,6 +954,25 @@ window.runMermaid = runMermaid;</script>
     <span class="n">b</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
     <span class="n">end</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
     <span class="n">where</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="c1">#: The entity that declares it (its ``a`` is relative to it), else ``None``.</span>
+    <span class="n">entity</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">qualified_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""What a ``join``/``unjoin`` calls a support (an#519): its name, else its</span>
+<span class="sd">        ``a`` as a shot path, so two entities' unnamed ``{a: "@", b: ground}``</span>
+<span class="sd">        are ``cup`` and ``mug``, not both ``@`` (an unnamed part joint is</span>
+<span class="sd">        keyed by its node path the same way, :func:`build_puppet`).</span>
+
+<span class="sd">        &gt;&gt;&gt; spec = JointSpec(type="support", a="@", b="ground")</span>
+<span class="sd">        &gt;&gt;&gt; _declared(spec, "cup", where="entities/0/joints/0").qualified_id</span>
+<span class="sd">        'cup'</span>
+<span class="sd">        &gt;&gt;&gt; DeclaredJoint(spec, "@", "ground", None, "joints/0").qualified_id</span>
+<span class="sd">        '@'</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">name</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">entity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">id</span>
+        <span class="k">return</span> <span class="n">_support_id</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">entity</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">)</span>
 
 
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -967,7 +990,12 @@ window.runMermaid = runMermaid;</script>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Declarations</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Every joint and verb a shot declares, in solver order (structure first),</span>
-<span class="sd">    and what it holds (:class:`an.stage.hold.HoldDeclarations`)."""</span>
+<span class="sd">    and what it holds (:class:`an.stage.hold.HoldDeclarations`).</span>
+
+<span class="sd">    A ``support`` joint (an#519) is a lint's declaration, never the solve's:</span>
+<span class="sd">    it goes to ``supports``, a ``join``/``unjoin`` of one to ``support_verbs``,</span>
+<span class="sd">    and neither makes the declarations non-``empty``, so a shot declaring only</span>
+<span class="sd">    supports runs no solve and compiles as if it declared nothing."""</span>
 
     <span class="n">joints</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">DeclaredJoint</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
     <span class="n">verbs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Verb</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
@@ -975,6 +1003,10 @@ window.runMermaid = runMermaid;</script>
     <span class="n">problems</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
     <span class="c1">#: The hold verbs and ``held_by`` overrides (:mod:`an.stage.hold`), or ``None``.</span>
     <span class="n">holds</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: The ``support`` joints (:mod:`an.stage.support` reads them; the solve does not).</span>
+    <span class="n">supports</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">DeclaredJoint</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+    <span class="c1">#: The ``join``/``unjoin`` verbs naming a support.</span>
+    <span class="n">support_verbs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Verb</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">empty</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
@@ -1023,12 +1055,16 @@ window.runMermaid = runMermaid;</script>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.hold</span><span class="w"> </span><span class="kn">import</span> <span class="n">HOLD_VERSION</span>
 
     <span class="n">own</span> <span class="o">=</span> <span class="n">shot</span><span class="o">.</span><span class="n">solve</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">solved</span><span class="p">(</span><span class="n">joints</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">JointSpec</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+        <span class="c1"># a support (an#519) is a lint's declaration: it changes no pixel</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">j</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"json"</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">joints</span> <span class="k">if</span> <span class="n">j</span><span class="o">.</span><span class="n">type</span> <span class="o">!=</span> <span class="n">SUPPORT_JOINT_TYPE</span>
+        <span class="p">]</span>
+
     <span class="n">declared</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">"joints"</span><span class="p">:</span> <span class="p">[</span><span class="n">j</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"json"</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">joints</span><span class="p">],</span>
-        <span class="s2">"entities"</span><span class="p">:</span> <span class="p">[</span>
-            <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="p">[</span><span class="n">j</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"json"</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">joints</span><span class="p">],</span> <span class="n">e</span><span class="o">.</span><span class="n">overrides</span><span class="p">]</span>
-            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span>
-        <span class="p">],</span>
+        <span class="s2">"joints"</span><span class="p">:</span> <span class="n">solved</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">joints</span><span class="p">),</span>
+        <span class="s2">"entities"</span><span class="p">:</span> <span class="p">[[</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">solved</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">joints</span><span class="p">),</span> <span class="n">e</span><span class="o">.</span><span class="n">overrides</span><span class="p">]</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">],</span>
         <span class="s2">"solve"</span><span class="p">:</span> <span class="n">own</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"json"</span><span class="p">)</span> <span class="k">if</span> <span class="n">own</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">}</span>
     <span class="k">return</span> <span class="p">{</span>
@@ -1049,14 +1085,55 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_has_verb</span><span class="p">(</span><span class="n">shot</span><span class="p">:</span> <span class="n">Shot</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether ``shot`` has a verb the solve acts on: a ``join``/``unjoin`` of a</span>
+<span class="sd">    support (an#519) is the ``support`` check's, not the solve's."""</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.compose</span><span class="w"> </span><span class="kn">import</span> <span class="n">iter_actions</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.joints</span><span class="w"> </span><span class="kn">import</span> <span class="n">JOINT_ACTION_KINDS</span>
 
+    <span class="n">supports</span> <span class="o">=</span> <span class="n">_support_ids</span><span class="p">(</span><span class="n">shot</span><span class="p">)</span>
     <span class="k">return</span> <span class="nb">any</span><span class="p">(</span>
         <span class="nb">getattr</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="s2">"kind"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">in</span> <span class="n">JOINT_ACTION_KINDS</span>
+        <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span>
+            <span class="n">node</span><span class="o">.</span><span class="n">kind</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"join"</span><span class="p">,</span> <span class="s2">"unjoin"</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="s2">"joint"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">in</span> <span class="n">supports</span>
+        <span class="p">)</span>
         <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">actions</span>
         <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">iter_actions</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
     <span class="p">)</span>
+
+
+<span class="c1">#: The joint type the solve never lowers (an#519): a lint's declaration.</span>
+<span class="n">SUPPORT_JOINT_TYPE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"support"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_support_ids</span><span class="p">(</span><span class="n">shot</span><span class="p">:</span> <span class="n">Shot</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The ids of the supports the shot and its entities declare (an entity's</span>
+<span class="sd">    unnamed one by its shot path, :attr:`DeclaredJoint.qualified_id`), less</span>
+<span class="sd">    any that also names a joint the solve lowers (a verb on it is the solve's).</span>
+
+<span class="sd">    &gt;&gt;&gt; _support_ids(Shot(id="s", joints=[{"type": "support", "a": "cup", "b": "ground"}]))</span>
+<span class="sd">    frozenset({'cup'})</span>
+<span class="sd">    """</span>
+    <span class="n">specs</span> <span class="o">=</span> <span class="p">[(</span><span class="kc">None</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">joints</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">joints</span>
+    <span class="p">]</span>
+    <span class="n">solved</span> <span class="o">=</span> <span class="p">{</span><span class="n">j</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">_e</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">specs</span> <span class="k">if</span> <span class="n">j</span><span class="o">.</span><span class="n">type</span> <span class="o">!=</span> <span class="n">SUPPORT_JOINT_TYPE</span><span class="p">}</span>
+    <span class="k">return</span> <span class="nb">frozenset</span><span class="p">(</span>
+        <span class="n">_support_id</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span> <span class="k">if</span> <span class="n">e</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">j</span><span class="o">.</span><span class="n">id</span>
+        <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">specs</span>
+        <span class="k">if</span> <span class="n">j</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">SUPPORT_JOINT_TYPE</span>
+    <span class="p">)</span> <span class="o">-</span> <span class="nb">frozenset</span><span class="p">(</span><span class="n">solved</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_support_id</span><span class="p">(</span><span class="n">entity_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">spec</span><span class="p">:</span> <span class="n">JointSpec</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""An entity's support's id: its name, else its ``a`` as a shot path (the</span>
+<span class="sd">    entity's own ``@`` is the entity).</span>
+
+<span class="sd">    &gt;&gt;&gt; _support_id("cup", JointSpec(type="support", a="@base", b="ground"))</span>
+<span class="sd">    'cup@base'</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">spec</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">spec</span><span class="o">.</span><span class="n">name</span>
+    <span class="k">return</span> <span class="n">_entity_ref</span><span class="p">(</span><span class="n">entity_id</span><span class="p">,</span> <span class="n">spec</span><span class="o">.</span><span class="n">a</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">"@"</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_is_rig_kind</span><span class="p">(</span><span class="n">entity</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
@@ -1118,27 +1195,33 @@ window.runMermaid = runMermaid;</script>
                     <span class="p">(</span><span class="n">where</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">ref</span><span class="si">!r}</span><span class="s2"> declares a joint that does not read: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
                 <span class="p">)</span>
                 <span class="k">continue</span>
-            <span class="n">out</span><span class="o">.</span><span class="n">joints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_declared</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="n">where</span><span class="p">))</span>
+            <span class="n">_route</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">_declared</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="n">where</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">spec</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">joints</span><span class="p">):</span>
-            <span class="n">out</span><span class="o">.</span><span class="n">joints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                <span class="n">_declared</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="sa">f</span><span class="s2">"entities/</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">/joints/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-            <span class="p">)</span>
+            <span class="n">_route</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">_declared</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="sa">f</span><span class="s2">"entities/</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">/joints/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">))</span>
     <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">spec</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">joints</span><span class="p">):</span>
-        <span class="n">out</span><span class="o">.</span><span class="n">joints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="n">_route</span><span class="p">(</span>
+            <span class="n">out</span><span class="p">,</span>
             <span class="n">DeclaredJoint</span><span class="p">(</span>
                 <span class="n">spec</span><span class="o">=</span><span class="n">spec</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="n">spec</span><span class="o">.</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="n">spec</span><span class="o">.</span><span class="n">b</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">spec</span><span class="o">.</span><span class="n">end</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="sa">f</span><span class="s2">"joints/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span>
-            <span class="p">)</span>
+            <span class="p">),</span>
         <span class="p">)</span>
     <span class="k">if</span> <span class="n">verbs</span><span class="p">:</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.compose</span><span class="w"> </span><span class="kn">import</span> <span class="n">flatten</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.joints</span><span class="w"> </span><span class="kn">import</span> <span class="n">JOINT_ACTION_KINDS</span>
 
+        <span class="n">solved</span> <span class="o">=</span> <span class="p">{</span><span class="n">dj</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">dj</span> <span class="ow">in</span> <span class="n">out</span><span class="o">.</span><span class="n">joints</span><span class="p">}</span>
+        <span class="n">supports</span> <span class="o">=</span> <span class="p">{</span><span class="n">dj</span><span class="o">.</span><span class="n">qualified_id</span> <span class="k">for</span> <span class="n">dj</span> <span class="ow">in</span> <span class="n">out</span><span class="o">.</span><span class="n">supports</span><span class="p">}</span> <span class="o">-</span> <span class="n">solved</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">action</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">actions</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">flat</span> <span class="ow">in</span> <span class="n">flatten</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">play_extent</span><span class="o">=</span><span class="n">play_extent</span><span class="p">):</span>
                 <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">flat</span><span class="o">.</span><span class="n">action</span><span class="p">,</span> <span class="s2">"kind"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">in</span> <span class="n">JOINT_ACTION_KINDS</span><span class="p">:</span>
-                    <span class="n">out</span><span class="o">.</span><span class="n">verbs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                        <span class="n">Verb</span><span class="p">(</span><span class="n">flat</span><span class="o">.</span><span class="n">action</span><span class="p">,</span> <span class="n">flat</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">flat</span><span class="o">.</span><span class="n">end</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="sa">f</span><span class="s2">"actions/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-                    <span class="p">)</span>
+                    <span class="n">verb</span> <span class="o">=</span> <span class="n">Verb</span><span class="p">(</span><span class="n">flat</span><span class="o">.</span><span class="n">action</span><span class="p">,</span> <span class="n">flat</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">flat</span><span class="o">.</span><span class="n">end</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="sa">f</span><span class="s2">"actions/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="p">(</span>
+                        <span class="n">flat</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">kind</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"join"</span><span class="p">,</span> <span class="s2">"unjoin"</span><span class="p">)</span>
+                        <span class="ow">and</span> <span class="n">flat</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">joint</span> <span class="ow">in</span> <span class="n">supports</span>
+                    <span class="p">):</span>
+                        <span class="n">out</span><span class="o">.</span><span class="n">support_verbs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">verb</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">out</span><span class="o">.</span><span class="n">verbs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">verb</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">verbs</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">overrides</span> <span class="ow">and</span> <span class="s2">"held_by"</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">overrides</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">):</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.hold</span><span class="w"> </span><span class="kn">import</span> <span class="n">hold_declarations</span>
 
@@ -1148,6 +1231,14 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_route</span><span class="p">(</span><span class="n">out</span><span class="p">:</span> <span class="n">Declarations</span><span class="p">,</span> <span class="n">dj</span><span class="p">:</span> <span class="n">DeclaredJoint</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A declared joint to the solve's list, or a support to the lint's."""</span>
+    <span class="k">if</span> <span class="n">dj</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">SUPPORT_JOINT_TYPE</span><span class="p">:</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">supports</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dj</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">joints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dj</span><span class="p">)</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_declared</span><span class="p">(</span><span class="n">spec</span><span class="p">:</span> <span class="n">JointSpec</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">where</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DeclaredJoint</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">DeclaredJoint</span><span class="p">(</span>
         <span class="n">spec</span><span class="o">=</span><span class="n">spec</span><span class="p">,</span>
@@ -1155,6 +1246,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">b</span><span class="o">=</span><span class="n">spec</span><span class="o">.</span><span class="n">b</span><span class="p">,</span>
         <span class="n">end</span><span class="o">=</span><span class="n">spec</span><span class="o">.</span><span class="n">end</span><span class="p">,</span>
         <span class="n">where</span><span class="o">=</span><span class="n">where</span><span class="p">,</span>
+        <span class="n">entity</span><span class="o">=</span><span class="n">entity_id</span><span class="p">,</span>
     <span class="p">)</span>
 
 
@@ -1633,20 +1725,17 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="n">rest_cache</span><span class="p">[</span><span class="n">path</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">anchor_world</span><span class="p">(</span><span class="n">eid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">bone</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">rig</span> <span class="o">=</span> <span class="n">rigs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">rig</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">bone</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">rig</span><span class="o">.</span><span class="n">anchors</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="n">anchor</span> <span class="o">=</span> <span class="n">rig</span><span class="o">.</span><span class="n">anchors</span><span class="p">[</span><span class="n">bone</span><span class="p">]</span>
-        <span class="n">frame</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">_node_rest</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">eid</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">rig</span><span class="o">.</span><span class="n">bodies</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">anchor</span><span class="o">.</span><span class="n">on</span><span class="p">)</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="n">_slot_path</span><span class="p">(</span><span class="n">eid</span><span class="p">,</span><span class="w"> </span><span class="n">anchor</span><span class="o">.</span><span class="n">on</span><span class="p">,</span><span class="w"> </span><span class="n">nodes</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
-            <span class="p">)</span>
-            <span class="k">if</span> <span class="n">anchor</span><span class="o">.</span><span class="n">on</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-            <span class="k">else</span> <span class="n">_node_rest</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
-        <span class="p">)</span>
-        <span class="k">return</span> <span class="n">_apply</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">anchor</span><span class="o">.</span><span class="n">offset</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_anchor_rest</span><span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="n">bone</span><span class="p">,</span> <span class="n">rigs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">eid</span><span class="p">),</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">_node_rest</span><span class="p">)</span>
 
     <span class="n">landmark_cache</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">contact_cache</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">descriptor_of</span><span class="p">(</span><span class="n">eid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">vocab</span><span class="p">,</span> <span class="s2">"descriptors"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">vocab</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span> <span class="ow">or</span> <span class="n">_descriptor</span><span class="p">(</span><span class="n">entities</span><span class="p">[</span><span class="n">eid</span><span class="p">],</span> <span class="n">mall</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">landmarks_of</span><span class="p">(</span><span class="n">eid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""The named points a genre declares for ``eid``'s rig beyond its bones</span>
@@ -1658,11 +1747,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">hook</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">kind</span><span class="p">,</span> <span class="s2">"landmarks"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">if</span> <span class="n">kind</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
             <span class="n">found</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="k">if</span> <span class="n">hook</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">rigs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">desc</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">vocab</span><span class="p">,</span> <span class="s2">"descriptors"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">vocab</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-                    <span class="k">else</span> <span class="kc">None</span>
-                <span class="p">)</span> <span class="ow">or</span> <span class="n">_descriptor</span><span class="p">(</span><span class="n">entities</span><span class="p">[</span><span class="n">eid</span><span class="p">],</span> <span class="n">mall</span><span class="p">)</span>
+                <span class="n">desc</span> <span class="o">=</span> <span class="n">descriptor_of</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">found</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">hook</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span> <span class="k">if</span> <span class="n">desc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
                 <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 - a genre that cannot say names nothing</span>
@@ -1670,133 +1755,55 @@ window.runMermaid = runMermaid;</script>
             <span class="n">landmark_cache</span><span class="p">[</span><span class="n">eid</span><span class="p">]</span> <span class="o">=</span> <span class="n">found</span>
         <span class="k">return</span> <span class="n">landmark_cache</span><span class="p">[</span><span class="n">eid</span><span class="p">]</span>
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">contacts_of_parts</span><span class="p">(</span><span class="n">eid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""``eid``'s contacts on a part (:func:`an.stage.support.contacts_on_parts`,</span>
+<span class="sd">        an#519: a character's feet, a prop's ``metadata.contacts``)."""</span>
+        <span class="k">if</span> <span class="n">eid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">contact_cache</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.support</span><span class="w"> </span><span class="kn">import</span> <span class="n">contacts_on_parts</span>
+
+            <span class="n">rig</span> <span class="o">=</span> <span class="n">rigs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+            <span class="n">desc</span> <span class="o">=</span> <span class="n">descriptor_of</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span> <span class="k">if</span> <span class="n">rig</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="n">contact_cache</span><span class="p">[</span><span class="n">eid</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">contacts_on_parts</span><span class="p">(</span><span class="n">entities</span><span class="p">[</span><span class="n">eid</span><span class="p">],</span> <span class="n">desc</span><span class="p">,</span> <span class="n">rig</span><span class="o">=</span><span class="n">rig</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">desc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="k">else</span> <span class="p">{}</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">contact_cache</span><span class="p">[</span><span class="n">eid</span><span class="p">]</span>
+
+    <span class="n">scope</span> <span class="o">=</span> <span class="n">PointScope</span><span class="p">(</span>
+        <span class="n">nodes</span><span class="o">=</span><span class="n">nodes</span><span class="p">,</span>
+        <span class="n">entities</span><span class="o">=</span><span class="n">entities</span><span class="p">,</span>
+        <span class="n">rig</span><span class="o">=</span><span class="n">rigs</span><span class="o">.</span><span class="n">get</span><span class="p">,</span>
+        <span class="n">landmarks</span><span class="o">=</span><span class="n">landmarks_of</span><span class="p">,</span>
+        <span class="n">contacts</span><span class="o">=</span><span class="n">contacts_of_parts</span><span class="p">,</span>
+        <span class="n">rest</span><span class="o">=</span><span class="n">_node_rest</span><span class="p">,</span>
+    <span class="p">)</span>
+
     <span class="k">def</span><span class="w"> </span><span class="nf">locate</span><span class="p">(</span><span class="n">ref</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">where</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">side</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""A reference as ``Located(body, local, frame, node)`` (a point of a</span>
 <span class="sd">        body, in its node's own coordinates, and the frame of the node named),</span>
-<span class="sd">        a world ``Point``, or ``None`` after noting the problem.</span>
-
-<span class="sd">        ``side`` says what a reference with no ``@`` means: ``"a"`` (and</span>
-<span class="sd">        ``"socket"``) the node's pivot, ``"b"`` the centre of its drawing,</span>
-<span class="sd">        ``"hand"`` the far end of the body from its pivot (its end effector).</span>
-<span class="sd">        """</span>
-        <span class="k">if</span> <span class="p">(</span>
-            <span class="nb">isinstance</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span>
-            <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
-            <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">))</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ref</span><span class="p">)</span>
-        <span class="p">):</span>
-            <span class="k">return</span> <span class="n">Point</span><span class="p">(</span><span class="n">WORLD</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">ref</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">ref</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+<span class="sd">        a world ``Point``, or ``None`` after noting the problem: the shared</span>
+<span class="sd">        resolver (:func:`locate_point`) put on the shot's bodies."""</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="n">locate_point</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="n">scope</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="n">side</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">found</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">where</span><span class="p">,</span> <span class="n">found</span><span class="p">))</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">found</span><span class="p">,</span> <span class="n">NodePoint</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">found</span>  <span class="c1"># a stage point</span>
+        <span class="n">hit</span> <span class="o">=</span> <span class="n">body_and_local</span><span class="p">(</span><span class="n">found</span><span class="o">.</span><span class="n">node</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                <span class="p">(</span>
-                    <span class="n">where</span><span class="p">,</span>
-                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2"> is not a body reference (`body[@point]`, `world@x,y`, or [x, y])"</span><span class="p">,</span>
-                <span class="p">)</span>
+                <span class="p">(</span><span class="n">where</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">found</span><span class="o">.</span><span class="n">node</span><span class="si">!r}</span><span class="s2"> is on no body of the shot"</span><span class="p">)</span>
             <span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span>
-        <span class="n">head</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">at</span> <span class="o">=</span> <span class="n">ref</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">"@"</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">head</span> <span class="o">==</span> <span class="n">WORLD_REF</span><span class="p">:</span>
-            <span class="n">xy</span> <span class="o">=</span> <span class="n">_numbers</span><span class="p">(</span><span class="n">at</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">xy</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">where</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2">: a stage point is `world@x,y`"</span><span class="p">))</span>
-                <span class="k">return</span> <span class="kc">None</span>
-            <span class="k">return</span> <span class="n">Point</span><span class="p">(</span><span class="n">WORLD</span><span class="p">,</span> <span class="o">*</span><span class="n">xy</span><span class="p">)</span>
-        <span class="n">eid</span> <span class="o">=</span> <span class="n">entity_of</span><span class="p">(</span><span class="n">head</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">eid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">entities</span><span class="p">:</span>
-            <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">where</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">eid</span><span class="si">!r}</span><span class="s2"> is not an entity of this shot"</span><span class="p">))</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="n">landmark</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">landmarks_of</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">at</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">at</span>
-            <span class="ow">and</span> <span class="n">_numbers</span><span class="p">(</span><span class="n">at</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
-            <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">rigs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">at</span> <span class="ow">in</span> <span class="n">rigs</span><span class="p">[</span><span class="n">eid</span><span class="p">]</span><span class="o">.</span><span class="n">anchors</span><span class="p">)</span>
-            <span class="k">else</span> <span class="kc">None</span>
-        <span class="p">)</span>
-        <span class="k">if</span> <span class="n">landmark</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">slot</span><span class="p">,</span> <span class="n">fraction</span> <span class="o">=</span> <span class="n">landmark</span>
-            <span class="n">rig</span> <span class="o">=</span> <span class="n">rigs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">rig</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">slot</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">rig</span><span class="o">.</span><span class="n">bodies</span><span class="p">:</span>
-                <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                    <span class="p">(</span>
-                        <span class="n">where</span><span class="p">,</span>
-                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">at</span><span class="si">!r}</span><span class="s2"> names part </span><span class="si">{</span><span class="n">slot</span><span class="si">!r}</span><span class="s2">, which </span><span class="si">{</span><span class="n">eid</span><span class="si">!r}</span><span class="s2"> does not draw"</span><span class="p">,</span>
-                    <span class="p">)</span>
-                <span class="p">)</span>
-                <span class="k">return</span> <span class="kc">None</span>
-            <span class="n">node_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">eid</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">rig</span><span class="o">.</span><span class="n">bodies</span><span class="p">[</span><span class="n">slot</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
-            <span class="n">at</span> <span class="o">=</span> <span class="s2">""</span> <span class="k">if</span> <span class="n">fraction</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">fraction</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">fraction</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
-            <span class="n">side</span> <span class="o">=</span> <span class="s2">"hand"</span> <span class="k">if</span> <span class="n">fraction</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">side</span>
+        <span class="n">body</span><span class="p">,</span> <span class="n">inner</span> <span class="o">=</span> <span class="n">hit</span>
+        <span class="k">if</span> <span class="n">found</span><span class="o">.</span><span class="n">rest_world</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># a bone: kept in the body's frame</span>
+            <span class="n">local</span> <span class="o">=</span> <span class="n">_apply</span><span class="p">(</span><span class="n">_invert</span><span class="p">(</span><span class="n">rest</span><span class="p">[</span><span class="n">body</span><span class="p">]),</span> <span class="n">found</span><span class="o">.</span><span class="n">rest_world</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">found</span><span class="o">.</span><span class="n">end</span> <span class="ow">and</span> <span class="n">found</span><span class="o">.</span><span class="n">node</span> <span class="o">!=</span> <span class="n">body</span><span class="p">:</span>  <span class="c1"># a part riding on a body: its pivot</span>
+            <span class="n">local</span> <span class="o">=</span> <span class="n">_apply</span><span class="p">(</span><span class="n">inner</span><span class="p">,</span> <span class="n">_pivot</span><span class="p">(</span><span class="n">nodes</span><span class="p">[</span><span class="n">found</span><span class="o">.</span><span class="n">node</span><span class="p">]))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">node_path</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">_slot_path</span><span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="n">head</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">rigs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">eid</span><span class="p">))</span>
-                <span class="k">if</span> <span class="s2">"/"</span> <span class="ow">in</span> <span class="n">head</span>
-                <span class="k">else</span> <span class="n">head</span>
-            <span class="p">)</span>
-            <span class="c1"># A bone named on an entity with several root parts (`ned@hand_r`)</span>
-            <span class="c1"># is a point of the part that bone carries: it needs no `ned/&lt;part&gt;`</span>
-            <span class="c1"># (with one root, the reference is that root's, as it always was).</span>
-            <span class="n">carrier</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">_bone_carrier</span><span class="p">(</span><span class="n">rigs</span><span class="p">[</span><span class="n">eid</span><span class="p">],</span> <span class="n">at</span><span class="p">)</span>
-                <span class="k">if</span> <span class="s2">"/"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">head</span>
-                <span class="ow">and</span> <span class="n">rigs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-                <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">rigs</span><span class="p">[</span><span class="n">eid</span><span class="p">]</span><span class="o">.</span><span class="n">roots</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span>
-                <span class="k">else</span> <span class="kc">None</span>
-            <span class="p">)</span>
-            <span class="k">if</span> <span class="n">carrier</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">node_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">eid</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">rigs</span><span class="p">[</span><span class="n">eid</span><span class="p">]</span><span class="o">.</span><span class="n">bodies</span><span class="p">[</span><span class="n">carrier</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
-        <span class="k">if</span> <span class="n">node_path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
-            <span class="n">near</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">nodes</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">eid</span><span class="p">)</span>
-            <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                <span class="p">(</span><span class="n">where</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2">: no node </span><span class="si">{</span><span class="n">node_path</span><span class="si">!r}</span><span class="s2">; </span><span class="si">{</span><span class="n">eid</span><span class="si">!r}</span><span class="s2"> has </span><span class="si">{</span><span class="n">near</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-            <span class="p">)</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="n">node_path</span> <span class="o">==</span> <span class="n">eid</span> <span class="ow">and</span> <span class="n">rigs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">rigs</span><span class="p">[</span><span class="n">eid</span><span class="p">]</span><span class="o">.</span><span class="n">bodies</span><span class="p">:</span>
-            <span class="n">roots</span> <span class="o">=</span> <span class="n">rigs</span><span class="p">[</span><span class="n">eid</span><span class="p">]</span><span class="o">.</span><span class="n">roots</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">roots</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                    <span class="p">(</span>
-                        <span class="n">where</span><span class="p">,</span>
-                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">eid</span><span class="si">!r}</span><span class="s2"> has </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">roots</span><span class="p">)</span><span class="si">}</span><span class="s2"> root parts </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">roots</span><span class="p">)</span><span class="si">}</span><span class="s2">; name the part (`</span><span class="si">{</span><span class="n">eid</span><span class="si">}</span><span class="s2">/&lt;part&gt;`)"</span><span class="p">,</span>
-                    <span class="p">)</span>
-                <span class="p">)</span>
-                <span class="k">return</span> <span class="kc">None</span>
-            <span class="n">node_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">eid</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">rigs</span><span class="p">[</span><span class="n">eid</span><span class="p">]</span><span class="o">.</span><span class="n">bodies</span><span class="p">[</span><span class="n">roots</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="si">}</span><span class="s2">"</span>
-        <span class="n">found</span> <span class="o">=</span> <span class="n">body_and_local</span><span class="p">(</span><span class="n">node_path</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">found</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                <span class="p">(</span><span class="n">where</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">node_path</span><span class="si">!r}</span><span class="s2"> is on no body of the shot"</span><span class="p">)</span>
-            <span class="p">)</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="n">body</span><span class="p">,</span> <span class="n">inner</span> <span class="o">=</span> <span class="n">found</span>
-        <span class="n">node</span> <span class="o">=</span> <span class="n">nodes</span><span class="p">[</span><span class="n">node_path</span><span class="p">]</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">at</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">side</span> <span class="o">==</span> <span class="s2">"hand"</span> <span class="ow">and</span> <span class="n">node_path</span> <span class="o">==</span> <span class="n">body</span><span class="p">:</span>
-                <span class="n">local_on_node</span> <span class="o">=</span> <span class="n">end_effector</span><span class="p">(</span><span class="n">_local_box</span><span class="p">(</span><span class="n">node</span><span class="p">),</span> <span class="n">_pivot</span><span class="p">(</span><span class="n">node</span><span class="p">))</span>
-            <span class="k">elif</span> <span class="n">side</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"socket"</span><span class="p">,</span> <span class="s2">"hand"</span><span class="p">):</span>
-                <span class="n">local_on_node</span> <span class="o">=</span> <span class="n">_pivot</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">local_on_node</span> <span class="o">=</span> <span class="n">_centre</span><span class="p">(</span><span class="n">_local_box</span><span class="p">(</span><span class="n">node</span><span class="p">))</span>
-            <span class="n">local</span> <span class="o">=</span> <span class="n">_apply</span><span class="p">(</span><span class="n">inner</span><span class="p">,</span> <span class="n">local_on_node</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">xy</span> <span class="o">=</span> <span class="n">_numbers</span><span class="p">(</span><span class="n">at</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">xy</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">left</span><span class="p">,</span> <span class="n">top</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">_local_box</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
-                <span class="n">local</span> <span class="o">=</span> <span class="n">_apply</span><span class="p">(</span><span class="n">inner</span><span class="p">,</span> <span class="p">(</span><span class="n">left</span> <span class="o">+</span> <span class="n">xy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">w</span><span class="p">,</span> <span class="n">top</span> <span class="o">+</span> <span class="n">xy</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">h</span><span class="p">))</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">world</span> <span class="o">=</span> <span class="n">anchor_world</span><span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="n">at</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">world</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">rig</span> <span class="o">=</span> <span class="n">rigs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
-                    <span class="n">known</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">rig</span><span class="o">.</span><span class="n">anchors</span><span class="p">)</span> <span class="k">if</span> <span class="n">rig</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[]</span>
-                    <span class="n">named_points</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">landmarks_of</span><span class="p">(</span><span class="n">eid</span><span class="p">))</span>
-                    <span class="n">also</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">", named points: </span><span class="si">{</span><span class="n">named_points</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">named_points</span> <span class="k">else</span> <span class="s2">""</span>
-                    <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                        <span class="p">(</span>
-                            <span class="n">where</span><span class="p">,</span>
-                            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">at</span><span class="si">!r}</span><span class="s2"> is not a bone of </span><span class="si">{</span><span class="n">eid</span><span class="si">!r}</span><span class="s2"> (bones: </span><span class="si">{</span><span class="n">known</span><span class="si">}{</span><span class="n">also</span><span class="si">}</span><span class="s2">) nor a fraction `u,v`"</span><span class="p">,</span>
-                        <span class="p">)</span>
-                    <span class="p">)</span>
-                    <span class="k">return</span> <span class="kc">None</span>
-                <span class="n">local</span> <span class="o">=</span> <span class="n">_apply</span><span class="p">(</span><span class="n">_invert</span><span class="p">(</span><span class="n">rest</span><span class="p">[</span><span class="n">body</span><span class="p">]),</span> <span class="n">world</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Located</span><span class="p">(</span><span class="n">body</span><span class="p">,</span> <span class="n">local</span><span class="p">,</span> <span class="n">inner</span><span class="p">,</span> <span class="n">node_path</span><span class="p">)</span>
+            <span class="n">local</span> <span class="o">=</span> <span class="n">_apply</span><span class="p">(</span><span class="n">inner</span><span class="p">,</span> <span class="n">found</span><span class="o">.</span><span class="n">local</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Located</span><span class="p">(</span><span class="n">body</span><span class="p">,</span> <span class="n">local</span><span class="p">,</span> <span class="n">inner</span><span class="p">,</span> <span class="n">found</span><span class="o">.</span><span class="n">node</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">resolve</span><span class="p">(</span><span class="n">ref</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">where</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">side</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""A reference as a solver Point (and its body), or ``None`` after noting the problem."""</span>
@@ -1953,7 +1960,9 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">verb</span><span class="o">=</span><span class="n">action</span><span class="o">.</span><span class="n">kind</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="p">)</span>
-    <span class="n">ids</span> <span class="o">=</span> <span class="p">{</span><span class="n">row</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">}</span>
+    <span class="c1"># A support's id is a joint of the shot (an#519), though the solve builds</span>
+    <span class="c1"># no row for it: a join/unjoin naming one is the support check's.</span>
+    <span class="n">ids</span> <span class="o">=</span> <span class="p">{</span><span class="n">row</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">}</span> <span class="o">|</span> <span class="p">{</span><span class="n">dj</span><span class="o">.</span><span class="n">qualified_id</span> <span class="k">for</span> <span class="n">dj</span> <span class="ow">in</span> <span class="n">decl</span><span class="o">.</span><span class="n">supports</span><span class="p">}</span>
     <span class="k">for</span> <span class="n">jid</span> <span class="ow">in</span> <span class="n">events</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">jid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">:</span>
             <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
@@ -2040,6 +2049,222 @@ window.runMermaid = runMermaid;</script>
         <span class="n">far</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">near</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">far</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">f</span> <span class="o">+</span> <span class="mf">0.0</span><span class="p">,</span>
         <span class="n">far</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">near</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">far</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">f</span> <span class="o">+</span> <span class="mf">0.0</span><span class="p">,</span>
     <span class="p">)</span>
+
+
+<span class="c1">#: How far inside its far end a contact named with no point sits: none. A sole</span>
+<span class="c1">#: is the bottom of the drawing, not a hand's palm (:data:`DFLT_EFFECTOR_INSET`).</span>
+<span class="n">CONTACT_INSET</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+
+<div class="viewcode-block" id="contact_point">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.solve.html#an.stage.solve.contact_point">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">contact_point</span><span class="p">(</span><span class="n">node</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">point</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""A contact's point in its part's own frame (an#519): ``point`` a fraction</span>
+<span class="sd">    ``(u, v)`` of the part's drawing, or ``None`` for the drawn extent's far end</span>
+<span class="sd">    from its pivot, :data:`CONTACT_INSET` in. The one point the solve pins and</span>
+<span class="sd">    the ``support`` check measures for that contact.</span>
+
+<span class="sd">    &gt;&gt;&gt; from an.stage.serialize import NodeJSON, VisualJSON</span>
+<span class="sd">    &gt;&gt;&gt; leg = NodeJSON(name="leg", visual=VisualJSON(width=16, height=100, anchor_y=0))</span>
+<span class="sd">    &gt;&gt;&gt; contact_point(leg, None), contact_point(leg, (0.5, 0.5))</span>
+<span class="sd">    ((0.0, 100.0), (0.0, 50.0))</span>
+<span class="sd">    """</span>
+    <span class="n">box</span> <span class="o">=</span> <span class="n">_local_box</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">point</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">end_effector</span><span class="p">(</span><span class="n">box</span><span class="p">,</span> <span class="n">_pivot</span><span class="p">(</span><span class="n">node</span><span class="p">),</span> <span class="n">inset</span><span class="o">=</span><span class="n">CONTACT_INSET</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">point</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">point</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span></div>
+
+
+
+<div class="viewcode-block" id="NodePoint">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.solve.html#an.stage.solve.NodePoint">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">NodePoint</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A body reference resolved on the compiled document (:func:`locate_point`):</span>
+<span class="sd">    the node its point is on, and the point, in that node's own frame</span>
+<span class="sd">    (``local``), or, for a bone, at rest on the stage (``rest_world``: each</span>
+<span class="sd">    caller maps it into its own frame). ``end`` marks the drawn extent's far</span>
+<span class="sd">    end from the pivot (a hand), which the solve takes at the pivot of a node</span>
+<span class="sd">    that only rides on a body."""</span>
+
+    <span class="n">entity</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">node</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">local</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">rest_world</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">end</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="NodePoint.on_node">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.solve.html#an.stage.solve.NodePoint.on_node">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rest</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Affine</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""The point in ``node``'s own frame, ``rest`` giving a node's rest transform."""</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rest_world</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">local</span>
+        <span class="k">return</span> <span class="n">_apply</span><span class="p">(</span><span class="n">_invert</span><span class="p">(</span><span class="n">rest</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="p">)),</span> <span class="bp">self</span><span class="o">.</span><span class="n">rest_world</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="PointScope">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.solve.html#an.stage.solve.PointScope">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PointScope</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What :func:`locate_point` resolves a reference against: the compiled</span>
+<span class="sd">    document's nodes by path, the shot's entities by id, and per entity its</span>
+<span class="sd">    rig (or ``None``), its landmarks and its contacts on a part (``{name:</span>
+<span class="sd">    (slot, (u, v) or None)}``), and ``rest``, a node's rest stage transform."""</span>
+
+    <span class="n">nodes</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+    <span class="n">entities</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+    <span class="n">rig</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Any</span><span class="p">]</span>
+    <span class="n">landmarks</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span>
+    <span class="n">contacts</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span>
+    <span class="n">rest</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Affine</span><span class="p">]</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_anchor_rest</span><span class="p">(</span>
+    <span class="n">eid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">bone</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">rig</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">nodes</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">rest</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Affine</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A rig's bone at rest on the stage, or ``None`` when it is no bone."""</span>
+    <span class="k">if</span> <span class="n">rig</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">bone</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">rig</span><span class="o">.</span><span class="n">anchors</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">anchor</span> <span class="o">=</span> <span class="n">rig</span><span class="o">.</span><span class="n">anchors</span><span class="p">[</span><span class="n">bone</span><span class="p">]</span>
+    <span class="n">frame</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">rest</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">eid</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">rig</span><span class="o">.</span><span class="n">bodies</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">anchor</span><span class="o">.</span><span class="n">on</span><span class="p">)</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="n">_slot_path</span><span class="p">(</span><span class="n">eid</span><span class="p">,</span><span class="w"> </span><span class="n">anchor</span><span class="o">.</span><span class="n">on</span><span class="p">,</span><span class="w"> </span><span class="n">nodes</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">anchor</span><span class="o">.</span><span class="n">on</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">else</span> <span class="n">rest</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">_apply</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">anchor</span><span class="o">.</span><span class="n">offset</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">named_point</span><span class="p">(</span><span class="n">scope</span><span class="p">:</span> <span class="n">PointScope</span><span class="p">,</span> <span class="n">eid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">at</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What ``eid@at`` names beyond a fraction or a bone: ``("landmark",</span>
+<span class="sd">    (slot, point))`` or ``("contact", (slot, point))`` (a landmark wins), else</span>
+<span class="sd">    ``None``."""</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">at</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">rig</span> <span class="o">=</span> <span class="n">scope</span><span class="o">.</span><span class="n">rig</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">_numbers</span><span class="p">(</span><span class="n">at</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="n">rig</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">at</span> <span class="ow">in</span> <span class="n">rig</span><span class="o">.</span><span class="n">anchors</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">landmark</span> <span class="o">=</span> <span class="n">scope</span><span class="o">.</span><span class="n">landmarks</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">at</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">landmark</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="s2">"landmark"</span><span class="p">,</span> <span class="n">landmark</span><span class="p">)</span>
+    <span class="n">contact</span> <span class="o">=</span> <span class="n">scope</span><span class="o">.</span><span class="n">contacts</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">at</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="s2">"contact"</span><span class="p">,</span> <span class="n">contact</span><span class="p">)</span> <span class="k">if</span> <span class="n">contact</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="locate_point">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.solve.html#an.stage.solve.locate_point">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">locate_point</span><span class="p">(</span><span class="n">ref</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">PointScope</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">side</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A body reference as the point it names: a :class:`NodePoint`, a world</span>
+<span class="sd">    ``Point`` (``world@x,y`` or ``[x, y]``), or the message saying why it</span>
+<span class="sd">    names none. The one resolver of ``body[@point]`` (an#519): the solve's</span>
+<span class="sd">    (:func:`build_puppet`, which puts the node on its bodies) and the</span>
+<span class="sd">    ``support`` check's (:mod:`an.stage.support`).</span>
+
+<span class="sd">    ``@point`` is a fraction ``u,v`` of the node's drawing, a bone of the rig,</span>
+<span class="sd">    a landmark (:attr:`an.genres.EntityKind.landmarks`), else a contact</span>
+<span class="sd">    (:func:`contact_point`). ``side`` says what no ``@`` means: ``"a"`` (and</span>
+<span class="sd">    ``"socket"``) the node's pivot, ``"b"`` the centre of its drawing,</span>
+<span class="sd">    ``"hand"`` the far end of it from its pivot (its end effector).</span>
+
+<span class="sd">    &gt;&gt;&gt; from types import SimpleNamespace as NS</span>
+<span class="sd">    &gt;&gt;&gt; nothing = PointScope({}, {}, lambda e: None, lambda e: {}, lambda e: {}, None)</span>
+<span class="sd">    &gt;&gt;&gt; locate_point("world@3,4", nothing, side="a").u</span>
+<span class="sd">    3.0</span>
+<span class="sd">    &gt;&gt;&gt; locate_point("ghost@hand", nothing, side="a")</span>
+<span class="sd">    "'ghost@hand': 'ghost' is not an entity of this shot"</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.kinematics</span><span class="w"> </span><span class="kn">import</span> <span class="n">WORLD</span><span class="p">,</span> <span class="n">Point</span>
+
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="nb">isinstance</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span>
+        <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
+        <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">))</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ref</span><span class="p">)</span>
+    <span class="p">):</span>
+        <span class="k">return</span> <span class="n">Point</span><span class="p">(</span><span class="n">WORLD</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">ref</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">ref</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2"> is not a body reference (`body[@point]`, `world@x,y`, or [x, y])"</span>
+        <span class="p">)</span>
+    <span class="n">head</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">at</span> <span class="o">=</span> <span class="n">ref</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">"@"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">head</span> <span class="o">==</span> <span class="n">WORLD_REF</span><span class="p">:</span>
+        <span class="n">xy</span> <span class="o">=</span> <span class="n">_numbers</span><span class="p">(</span><span class="n">at</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">xy</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2">: a stage point is `world@x,y`"</span>
+        <span class="k">return</span> <span class="n">Point</span><span class="p">(</span><span class="n">WORLD</span><span class="p">,</span> <span class="o">*</span><span class="n">xy</span><span class="p">)</span>
+    <span class="n">nodes</span> <span class="o">=</span> <span class="n">scope</span><span class="o">.</span><span class="n">nodes</span>
+    <span class="n">eid</span> <span class="o">=</span> <span class="n">head</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">eid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">scope</span><span class="o">.</span><span class="n">entities</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">eid</span><span class="si">!r}</span><span class="s2"> is not an entity of this shot"</span>
+    <span class="n">rig</span> <span class="o">=</span> <span class="n">scope</span><span class="o">.</span><span class="n">rig</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+    <span class="n">named</span> <span class="o">=</span> <span class="n">named_point</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">eid</span><span class="p">,</span> <span class="n">at</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">named</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">kind</span><span class="p">,</span> <span class="p">(</span><span class="n">slot</span><span class="p">,</span> <span class="n">fraction</span><span class="p">)</span> <span class="o">=</span> <span class="n">named</span>
+        <span class="k">if</span> <span class="n">rig</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">slot</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">rig</span><span class="o">.</span><span class="n">bodies</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">at</span><span class="si">!r}</span><span class="s2"> names part </span><span class="si">{</span><span class="n">slot</span><span class="si">!r}</span><span class="s2">, which </span><span class="si">{</span><span class="n">eid</span><span class="si">!r}</span><span class="s2"> does not draw"</span>
+        <span class="n">node_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">eid</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">rig</span><span class="o">.</span><span class="n">bodies</span><span class="p">[</span><span class="n">slot</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">node_path</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">_slot_path</span><span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="n">head</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">rig</span><span class="p">)</span> <span class="k">if</span> <span class="s2">"/"</span> <span class="ow">in</span> <span class="n">head</span> <span class="k">else</span> <span class="n">head</span>
+        <span class="p">)</span>
+        <span class="c1"># A bone named on an entity with several root parts (`ned@hand_r`)</span>
+        <span class="c1"># is a point of the part that bone carries: it needs no `ned/&lt;part&gt;`</span>
+        <span class="c1"># (with one root, the reference is that root's, as it always was).</span>
+        <span class="n">carrier</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">_bone_carrier</span><span class="p">(</span><span class="n">rig</span><span class="p">,</span> <span class="n">at</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s2">"/"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">head</span> <span class="ow">and</span> <span class="n">rig</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">rig</span><span class="o">.</span><span class="n">roots</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span>
+            <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">carrier</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">node_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">eid</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">rig</span><span class="o">.</span><span class="n">bodies</span><span class="p">[</span><span class="n">carrier</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">if</span> <span class="n">node_path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+        <span class="n">near</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">nodes</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">eid</span><span class="p">)</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2">: no node </span><span class="si">{</span><span class="n">node_path</span><span class="si">!r}</span><span class="s2">; </span><span class="si">{</span><span class="n">eid</span><span class="si">!r}</span><span class="s2"> has </span><span class="si">{</span><span class="n">near</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">if</span> <span class="n">node_path</span> <span class="o">==</span> <span class="n">eid</span> <span class="ow">and</span> <span class="n">rig</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">rig</span><span class="o">.</span><span class="n">bodies</span><span class="p">:</span>
+        <span class="n">roots</span> <span class="o">=</span> <span class="n">rig</span><span class="o">.</span><span class="n">roots</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">roots</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">eid</span><span class="si">!r}</span><span class="s2"> has </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">roots</span><span class="p">)</span><span class="si">}</span><span class="s2"> root parts </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">roots</span><span class="p">)</span><span class="si">}</span><span class="s2">; "</span>
+                <span class="sa">f</span><span class="s2">"name the part (`</span><span class="si">{</span><span class="n">eid</span><span class="si">}</span><span class="s2">/&lt;part&gt;`)"</span>
+            <span class="p">)</span>
+        <span class="n">node_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">eid</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">rig</span><span class="o">.</span><span class="n">bodies</span><span class="p">[</span><span class="n">roots</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="si">}</span><span class="s2">"</span>
+    <span class="n">node</span> <span class="o">=</span> <span class="n">nodes</span><span class="p">[</span><span class="n">node_path</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">named</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"contact"</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">NodePoint</span><span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="n">node_path</span><span class="p">,</span> <span class="n">contact_point</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">fraction</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">fraction</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># a landmark at the part's far end: a hand</span>
+            <span class="k">return</span> <span class="n">NodePoint</span><span class="p">(</span>
+                <span class="n">eid</span><span class="p">,</span> <span class="n">node_path</span><span class="p">,</span> <span class="n">end_effector</span><span class="p">(</span><span class="n">_local_box</span><span class="p">(</span><span class="n">node</span><span class="p">),</span> <span class="n">_pivot</span><span class="p">(</span><span class="n">node</span><span class="p">)),</span> <span class="n">end</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">NodePoint</span><span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="n">node_path</span><span class="p">,</span> <span class="n">contact_point</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">fraction</span><span class="p">))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">at</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">side</span> <span class="o">==</span> <span class="s2">"hand"</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">NodePoint</span><span class="p">(</span>
+                <span class="n">eid</span><span class="p">,</span> <span class="n">node_path</span><span class="p">,</span> <span class="n">end_effector</span><span class="p">(</span><span class="n">_local_box</span><span class="p">(</span><span class="n">node</span><span class="p">),</span> <span class="n">_pivot</span><span class="p">(</span><span class="n">node</span><span class="p">)),</span> <span class="n">end</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">side</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"socket"</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">NodePoint</span><span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="n">node_path</span><span class="p">,</span> <span class="n">_pivot</span><span class="p">(</span><span class="n">node</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">NodePoint</span><span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="n">node_path</span><span class="p">,</span> <span class="n">_centre</span><span class="p">(</span><span class="n">_local_box</span><span class="p">(</span><span class="n">node</span><span class="p">)))</span>
+    <span class="n">xy</span> <span class="o">=</span> <span class="n">_numbers</span><span class="p">(</span><span class="n">at</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">xy</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">left</span><span class="p">,</span> <span class="n">top</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">_local_box</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">NodePoint</span><span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="n">node_path</span><span class="p">,</span> <span class="p">(</span><span class="n">left</span> <span class="o">+</span> <span class="n">xy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">w</span><span class="p">,</span> <span class="n">top</span> <span class="o">+</span> <span class="n">xy</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">h</span><span class="p">))</span>
+    <span class="n">world</span> <span class="o">=</span> <span class="n">_anchor_rest</span><span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="n">at</span><span class="p">,</span> <span class="n">rig</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">scope</span><span class="o">.</span><span class="n">rest</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">world</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">known</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">rig</span><span class="o">.</span><span class="n">anchors</span><span class="p">)</span> <span class="k">if</span> <span class="n">rig</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[]</span>
+        <span class="n">named_points</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">({</span><span class="o">*</span><span class="n">scope</span><span class="o">.</span><span class="n">landmarks</span><span class="p">(</span><span class="n">eid</span><span class="p">),</span> <span class="o">*</span><span class="n">scope</span><span class="o">.</span><span class="n">contacts</span><span class="p">(</span><span class="n">eid</span><span class="p">)})</span>
+        <span class="n">also</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">", named points: </span><span class="si">{</span><span class="n">named_points</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">named_points</span> <span class="k">else</span> <span class="s2">""</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">at</span><span class="si">!r}</span><span class="s2"> is not a bone of </span><span class="si">{</span><span class="n">eid</span><span class="si">!r}</span><span class="s2"> (bones: </span><span class="si">{</span><span class="n">known</span><span class="si">}{</span><span class="n">also</span><span class="si">}</span><span class="s2">) "</span>
+            <span class="s2">"nor a fraction `u,v`"</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">NodePoint</span><span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="n">node_path</span><span class="p">,</span> <span class="n">rest_world</span><span class="o">=</span><span class="n">world</span><span class="p">)</span></div>
+
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_bone_carrier</span><span class="p">(</span><span class="n">rig</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">bone</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>

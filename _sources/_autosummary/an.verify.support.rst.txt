@@ -1,0 +1,19 @@
+an.verify.support
+=================
+
+.. automodule:: an.verify.support
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      SUPPORT_CHECK_ORDER
+      SUPPORT_CONSTRAINTS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      support_findings
+   

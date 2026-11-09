@@ -1,4 +1,4 @@
-> built 2026-11-09 05:00 UTC from 44e8d48 (main) · an 0.1.390. Details: build_info.json
+> built 2026-11-09 05:53 UTC from 9db4b07 (main) · an 0.1.391. Details: build_info.json
 
 # index.html.md
 
@@ -8667,7 +8667,7 @@ because a timing-sensitive pool is one more thing to explain if the pixels
 ever do differ; `strict_assets=True` because a stand-in asset renders
 happily as a DIFFERENT picture (an#33).
 
-### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_boil': Fixture(path='misc/bench/corpus/path_boil', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.041666666666666664, 0.08333333333333333), golden_note="two boiling paths (an#443): the wobbled frame of \`path_wobble\` drawn three ways and a dashed, trimmed arrow drawn two ways, both stepping to their next drawing every 1/12 s. Nothing else moves, so the two goldens straddle a step: frame 1 is drawing 0 (the static wobble's bytes), frame 2 is drawing 1; a change to the variant seeds, the step clock or the runtime's draw set moves frame 2 only."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'path_shape': Fixture(path='misc/bench/corpus/path_shape', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='closed and filled paths (an#161): a badge drawn whole (fill under a mitred border joined at its first corner, no caps there), and a region as two entities, a border-less fill whose node \`alpha\` fades 0 -> 1 under a closed border that draws itself on (\`trim_end\` 0 -> 1). Frame 0 shows only the badge; a regression in the fill, the closing join, the fill staying untrimmed or a \`width: 0\` path drawing a stroke moves a golden.'), 'path_taper': Fixture(path='misc/bench/corpus/path_taper', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="variable-width paths (an#161), drawn as filled outlines: a wobbled brush stroke swelling from nothing to 1.2x and back to a point, and an arrow widening 0.2x -> 1x along a mitred polyline that draws itself on with its head on the tip. The width is anchored to the WHOLE path, so the arrow's base does not thin as it grows; a regression in the profile, the miter, the anchoring or the fill-instead-of-stroke rule moves a golden."), 'path_wobble': Fixture(path='misc/bench/corpus/path_wobble', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='two hand-drawn paths (an#161): a solid frame wobbling 3 px at a 60 px wavelength, and an arrow wobbling 4 px that draws itself on (\`trim_end\` 0 -> 1). The wobble is compile-time (seeded by the entity id, no trigonometry), so the frame is the same in both goldens and only the route grows; a change to the noise, the seed, the end envelope or the resampling moves both.'), 'rig_chain': Fixture(path='misc/bench/corpus/rig_chain', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a desk-lamp prop with \`nesting: bones\` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."), 'rig_interleave': Fixture(path='misc/bench/corpus/rig_interleave', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="the rig_chain desk lamp (\`nesting: bones\`, base -> upper arm -> forearm -> shade) with an UNRELATED panel ordered between the upper arm (1) and the forearm (3) (an#430): the panel covers the upper arm's top and the forearm crosses OVER the panel, which no sort of one container's items can give. Painted from the entity's global \`paint_order\`. The same three tweens as rig_chain move the arm between the goldens. A regression that painted the chain together (the panel over both arms, or under both) moves a golden."), 'rig_order': Fixture(path='misc/bench/corpus/rig_order', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a nested chain drawn BEHIND the part it hangs from (an#403): \`rig_chain\`'s desk lamp in \`nesting: bones\` with the whole arm (upper, forearm, shade: draw orders 1-3) behind its base (4). The base's container sorts its own drawing after the arm (\`sortableChildren\`, \`z_index\`), which the stage used to refuse. Between the goldens the arm swings as in \`rig_chain\`; where it passes over the base the base is in front. A regression in the runtime's sort, the compiler's \`z_index\` or the chain refusal moves a golden."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_halo': Fixture(path='misc/bench/corpus/text_halo', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text with a HALO (an#701, tituli's \`Halo\`): white words over sand, where white alone does not read, with the default halo (a dark glow: the opposite of the ink, dilated, blurred, boosted by its gain), the second word fading in from 0.125 s; and a dark overlay caption in a gold halo (\`color\`, \`spread\`, \`blur\`, \`gain\`, \`opacity\` set). Frame 0 shows the first word with its glow and NO glow where the second word will be (the glow lives in the word's own texture, so its alpha hides both); frame 8 shows both words ringed. A regression in the filter chain (dilation, blur, gain, colour, opacity), its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_boil': Fixture(path='misc/bench/corpus/path_boil', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.041666666666666664, 0.08333333333333333), golden_note="two boiling paths (an#443): the wobbled frame of \`path_wobble\` drawn three ways and a dashed, trimmed arrow drawn two ways, both stepping to their next drawing every 1/12 s. Nothing else moves, so the two goldens straddle a step: frame 1 is drawing 0 (the static wobble's bytes), frame 2 is drawing 1; a change to the variant seeds, the step clock or the runtime's draw set moves frame 2 only."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'path_shape': Fixture(path='misc/bench/corpus/path_shape', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='closed and filled paths (an#161): a badge drawn whole (fill under a mitred border joined at its first corner, no caps there), and a region as two entities, a border-less fill whose node \`alpha\` fades 0 -> 1 under a closed border that draws itself on (\`trim_end\` 0 -> 1). Frame 0 shows only the badge; a regression in the fill, the closing join, the fill staying untrimmed or a \`width: 0\` path drawing a stroke moves a golden.'), 'path_taper': Fixture(path='misc/bench/corpus/path_taper', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="variable-width paths (an#161), drawn as filled outlines: a wobbled brush stroke swelling from nothing to 1.2x and back to a point, and an arrow widening 0.2x -> 1x along a mitred polyline that draws itself on with its head on the tip. The width is anchored to the WHOLE path, so the arrow's base does not thin as it grows; a regression in the profile, the miter, the anchoring or the fill-instead-of-stroke rule moves a golden."), 'path_wobble': Fixture(path='misc/bench/corpus/path_wobble', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='two hand-drawn paths (an#161): a solid frame wobbling 3 px at a 60 px wavelength, and an arrow wobbling 4 px that draws itself on (\`trim_end\` 0 -> 1). The wobble is compile-time (seeded by the entity id, no trigonometry), so the frame is the same in both goldens and only the route grows; a change to the noise, the seed, the end envelope or the resampling moves both.'), 'rig_chain': Fixture(path='misc/bench/corpus/rig_chain', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a desk-lamp prop with \`nesting: bones\` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."), 'rig_interleave': Fixture(path='misc/bench/corpus/rig_interleave', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="the rig_chain desk lamp (\`nesting: bones\`, base -> upper arm -> forearm -> shade) with an UNRELATED panel ordered between the upper arm (1) and the forearm (3) (an#430): the panel covers the upper arm's top and the forearm crosses OVER the panel, which no sort of one container's items can give. Painted from the entity's global \`paint_order\`. The same three tweens as rig_chain move the arm between the goldens. A regression that painted the chain together (the panel over both arms, or under both) moves a golden."), 'rig_order': Fixture(path='misc/bench/corpus/rig_order', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a nested chain drawn BEHIND the part it hangs from (an#403): \`rig_chain\`'s desk lamp in \`nesting: bones\` with the whole arm (upper, forearm, shade: draw orders 1-3) behind its base (4). The base's container sorts its own drawing after the arm (\`sortableChildren\`, \`z_index\`), which the stage used to refuse. Between the goldens the arm swings as in \`rig_chain\`; where it passes over the base the base is in front. A regression in the runtime's sort, the compiler's \`z_index\` or the chain refusal moves a golden."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_halo': Fixture(path='misc/bench/corpus/text_halo', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text with a HALO (an#701, tituli's \`Halo\`): white words over sand, where white alone does not read, with the default halo (a dark glow: the opposite of the ink, dilated, blurred, boosted by its gain), the second word fading in from 0.125 s; and a dark overlay caption in a gold halo (\`color\`, \`spread\`, \`blur\`, \`gain\`, \`opacity\` set). Frame 0 shows the first word with its glow and NO glow where the second word will be (the glow lives in the word's own texture, so its alpha hides both); frame 8 shows both words ringed. A regression in the filter chain (dilation, blur, gain, colour, opacity), its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'rect', 'path'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
 The core corpus (see the module docstring).
 
@@ -8886,7 +8886,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_boil': Fixture(path='misc/bench/corpus/path_boil', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.041666666666666664, 0.08333333333333333), golden_note="two boiling paths (an#443): the wobbled frame of \`path_wobble\` drawn three ways and a dashed, trimmed arrow drawn two ways, both stepping to their next drawing every 1/12 s. Nothing else moves, so the two goldens straddle a step: frame 1 is drawing 0 (the static wobble's bytes), frame 2 is drawing 1; a change to the variant seeds, the step clock or the runtime's draw set moves frame 2 only."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'path_shape': Fixture(path='misc/bench/corpus/path_shape', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='closed and filled paths (an#161): a badge drawn whole (fill under a mitred border joined at its first corner, no caps there), and a region as two entities, a border-less fill whose node \`alpha\` fades 0 -> 1 under a closed border that draws itself on (\`trim_end\` 0 -> 1). Frame 0 shows only the badge; a regression in the fill, the closing join, the fill staying untrimmed or a \`width: 0\` path drawing a stroke moves a golden.'), 'path_taper': Fixture(path='misc/bench/corpus/path_taper', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="variable-width paths (an#161), drawn as filled outlines: a wobbled brush stroke swelling from nothing to 1.2x and back to a point, and an arrow widening 0.2x -> 1x along a mitred polyline that draws itself on with its head on the tip. The width is anchored to the WHOLE path, so the arrow's base does not thin as it grows; a regression in the profile, the miter, the anchoring or the fill-instead-of-stroke rule moves a golden."), 'path_wobble': Fixture(path='misc/bench/corpus/path_wobble', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='two hand-drawn paths (an#161): a solid frame wobbling 3 px at a 60 px wavelength, and an arrow wobbling 4 px that draws itself on (\`trim_end\` 0 -> 1). The wobble is compile-time (seeded by the entity id, no trigonometry), so the frame is the same in both goldens and only the route grows; a change to the noise, the seed, the end envelope or the resampling moves both.'), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'rig_chain': Fixture(path='misc/bench/corpus/rig_chain', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a desk-lamp prop with \`nesting: bones\` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."), 'rig_interleave': Fixture(path='misc/bench/corpus/rig_interleave', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="the rig_chain desk lamp (\`nesting: bones\`, base -> upper arm -> forearm -> shade) with an UNRELATED panel ordered between the upper arm (1) and the forearm (3) (an#430): the panel covers the upper arm's top and the forearm crosses OVER the panel, which no sort of one container's items can give. Painted from the entity's global \`paint_order\`. The same three tweens as rig_chain move the arm between the goldens. A regression that painted the chain together (the panel over both arms, or under both) moves a golden."), 'rig_order': Fixture(path='misc/bench/corpus/rig_order', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a nested chain drawn BEHIND the part it hangs from (an#403): \`rig_chain\`'s desk lamp in \`nesting: bones\` with the whole arm (upper, forearm, shade: draw orders 1-3) behind its base (4). The base's container sorts its own drawing after the arm (\`sortableChildren\`, \`z_index\`), which the stage used to refuse. Between the goldens the arm swings as in \`rig_chain\`; where it passes over the base the base is in front. A regression in the runtime's sort, the compiler's \`z_index\` or the chain refusal moves a golden."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_halo': Fixture(path='misc/bench/corpus/text_halo', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text with a HALO (an#701, tituli's \`Halo\`): white words over sand, where white alone does not read, with the default halo (a dark glow: the opposite of the ink, dilated, blurred, boosted by its gain), the second word fading in from 0.125 s; and a dark overlay caption in a gold halo (\`color\`, \`spread\`, \`blur\`, \`gain\`, \`opacity\` set). Frame 0 shows the first word with its glow and NO glow where the second word will be (the glow lives in the word's own texture, so its alpha hides both); frame 8 shows both words ringed. A regression in the filter chain (dilation, blur, gain, colour, opacity), its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_boil': Fixture(path='misc/bench/corpus/path_boil', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.041666666666666664, 0.08333333333333333), golden_note="two boiling paths (an#443): the wobbled frame of \`path_wobble\` drawn three ways and a dashed, trimmed arrow drawn two ways, both stepping to their next drawing every 1/12 s. Nothing else moves, so the two goldens straddle a step: frame 1 is drawing 0 (the static wobble's bytes), frame 2 is drawing 1; a change to the variant seeds, the step clock or the runtime's draw set moves frame 2 only."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'path_shape': Fixture(path='misc/bench/corpus/path_shape', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='closed and filled paths (an#161): a badge drawn whole (fill under a mitred border joined at its first corner, no caps there), and a region as two entities, a border-less fill whose node \`alpha\` fades 0 -> 1 under a closed border that draws itself on (\`trim_end\` 0 -> 1). Frame 0 shows only the badge; a regression in the fill, the closing join, the fill staying untrimmed or a \`width: 0\` path drawing a stroke moves a golden.'), 'path_taper': Fixture(path='misc/bench/corpus/path_taper', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="variable-width paths (an#161), drawn as filled outlines: a wobbled brush stroke swelling from nothing to 1.2x and back to a point, and an arrow widening 0.2x -> 1x along a mitred polyline that draws itself on with its head on the tip. The width is anchored to the WHOLE path, so the arrow's base does not thin as it grows; a regression in the profile, the miter, the anchoring or the fill-instead-of-stroke rule moves a golden."), 'path_wobble': Fixture(path='misc/bench/corpus/path_wobble', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='two hand-drawn paths (an#161): a solid frame wobbling 3 px at a 60 px wavelength, and an arrow wobbling 4 px that draws itself on (\`trim_end\` 0 -> 1). The wobble is compile-time (seeded by the entity id, no trigonometry), so the frame is the same in both goldens and only the route grows; a change to the noise, the seed, the end envelope or the resampling moves both.'), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'rig_chain': Fixture(path='misc/bench/corpus/rig_chain', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a desk-lamp prop with \`nesting: bones\` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."), 'rig_interleave': Fixture(path='misc/bench/corpus/rig_interleave', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="the rig_chain desk lamp (\`nesting: bones\`, base -> upper arm -> forearm -> shade) with an UNRELATED panel ordered between the upper arm (1) and the forearm (3) (an#430): the panel covers the upper arm's top and the forearm crosses OVER the panel, which no sort of one container's items can give. Painted from the entity's global \`paint_order\`. The same three tweens as rig_chain move the arm between the goldens. A regression that painted the chain together (the panel over both arms, or under both) moves a golden."), 'rig_order': Fixture(path='misc/bench/corpus/rig_order', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a nested chain drawn BEHIND the part it hangs from (an#403): \`rig_chain\`'s desk lamp in \`nesting: bones\` with the whole arm (upper, forearm, shade: draw orders 1-3) behind its base (4). The base's container sorts its own drawing after the arm (\`sortableChildren\`, \`z_index\`), which the stage used to refuse. Between the goldens the arm swings as in \`rig_chain\`; where it passes over the base the base is in front. A regression in the runtime's sort, the compiler's \`z_index\` or the chain refusal moves a golden."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_halo': Fixture(path='misc/bench/corpus/text_halo', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text with a HALO (an#701, tituli's \`Halo\`): white words over sand, where white alone does not read, with the default halo (a dark glow: the opposite of the ink, dilated, blurred, boosted by its gain), the second word fading in from 0.125 s; and a dark overlay caption in a gold halo (\`color\`, \`spread\`, \`blur\`, \`gain\`, \`opacity\` set). Frame 0 shows the first word with its glow and NO glow where the second word will be (the glow lives in the word's own texture, so its alpha hides both); frame 8 shows both words ringed. A regression in the filter chain (dilation, blur, gain, colour, opacity), its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'rect', 'path'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
 The cut-out scenes of the original corpus moved to `cutan` (`cutan.bench.CUTOUT_FIXTURES`, an#225); this
 is the core’s: `prop_swap` and the core corpus (`an.bench.core_corpus`).
@@ -16392,7 +16392,7 @@ Every frame’s request, frame `i` at `i / fps` unless a clock says otherwise.
 what every resolved frame must be.
 
 * **Type:**
-  The DECLARED ([*width*](_autosummary/an.stage.paths.html.md#an.stage.paths.PathDescriptor.width), height)
+  The DECLARED ([*width*](_autosummary/an.stage.paths.html.md#an.stage.paths.PathDescriptor.width), [*height*](_autosummary/an.stage.support.html.md#an.stage.support.SupportState.height))
 
 #### supersample *: [int](https://docs.python.org/3/builtins/functions.html#int)*
 
@@ -16787,7 +16787,7 @@ Every frame’s request, frame `i` at `i / fps` unless a clock says otherwise.
 what every resolved frame must be.
 
 * **Type:**
-  The DECLARED ([*width*](_autosummary/an.stage.paths.html.md#an.stage.paths.PathDescriptor.width), height)
+  The DECLARED ([*width*](_autosummary/an.stage.paths.html.md#an.stage.paths.PathDescriptor.width), [*height*](_autosummary/an.stage.support.html.md#an.stage.support.SupportState.height))
 
 #### supersample *: [int](https://docs.python.org/3/builtins/functions.html#int)*
 
@@ -17484,7 +17484,7 @@ genre defined in the same process).
 | [`RegistryError`](_autosummary/an.genres.html.md#an.genres.RegistryError)                                | A registration is malformed or collides with one already made.         |
 | [`UnregisteredKindError`](_autosummary/an.genres.html.md#an.genres.UnregisteredKindError)(what, name, \*[, ...]) | A document names a kind no loaded genre registered.                    |
 
-### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 17*
+### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 18*
 
 every hook, registry
 field a genre package may rely on. Bumped by each change a
@@ -17570,6 +17570,9 @@ EntityKind.shot_sizes(entity, mall,
 
 an.ir.world.planes_at_infinity(world,
 : environments)\`\` and its record `PlaneAtInfinity`, for a genre’s far-plate critic.
+
+18 = where a rig touches what it stands on (an#519): `EntityKind.contacts` (a character’s
+: feet for the `support` joint and check), read by `an.stage.support.contacts_of`.
 
 * **Type:**
   The level of the genre-facing API this `an` provides
@@ -17687,7 +17690,7 @@ checked against what the sugar declares).
 
 The entry-point group a genre package declares its [`Genre`](_autosummary/an.genres.html.md#an.genres.Genre) under.
 
-### *class* an.genres.EntityKind(name, space=None, store=None, description='', version='1', swap_declaration=None, descriptor_kind=None, placeholder_on_missing=False, swap_checks=None, specimen=None, landmarks=None, shot_sizes=None)
+### *class* an.genres.EntityKind(name, space=None, store=None, description='', version='1', swap_declaration=None, descriptor_kind=None, placeholder_on_missing=False, swap_checks=None, specimen=None, landmarks=None, shot_sizes=None, contacts=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -17696,6 +17699,20 @@ One kind of entity (`AssetRef.kind`): what its nodes’ properties are.
 `space` names the registered [`an.timing.spaces.PropertySpace`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.PropertySpace) its
 nodes’ properties live in (`None`: the entity has no animatable nodes, as
 a voice); `store` is the project-mall store its `ref` keys into.
+
+#### contacts *: [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[Any](https://docs.python.org/3/library/typing.html#typing.Any)], [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)]]] | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+the named points of this
+kind’s rigs that touch what the rig stands on (catalogue A1, an#519): a
+character’s `foot_l` is the far end of its left leg. The same shape as
+`landmarks`: `point` is `(u, v)`, a fraction of that slot’s
+drawing, or `None` for the slot’s far end from its pivot. A bone or a
+landmark of that name wins. `None`, or an empty answer: the kind names
+none, and the core derives one ([`an.stage.support.contacts_of()`](_autosummary/an.stage.support.html.md#an.stage.support.contacts_of)).
+Since `an.genres.API_LEVEL` 18.
+
+* **Type:**
+  `(descriptor) -> {name: (slot, point)}`
 
 #### descriptor_kind *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
 
@@ -18399,7 +18416,7 @@ compiler and `an validate` pass one bound to the entity’s descriptor), or
 
 alias of [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
-### *class* an.genres.registry.EntityKind(name, space=None, store=None, description='', version='1', swap_declaration=None, descriptor_kind=None, placeholder_on_missing=False, swap_checks=None, specimen=None, landmarks=None, shot_sizes=None)
+### *class* an.genres.registry.EntityKind(name, space=None, store=None, description='', version='1', swap_declaration=None, descriptor_kind=None, placeholder_on_missing=False, swap_checks=None, specimen=None, landmarks=None, shot_sizes=None, contacts=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -18408,6 +18425,20 @@ One kind of entity (`AssetRef.kind`): what its nodes’ properties are.
 `space` names the registered [`an.timing.spaces.PropertySpace`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.PropertySpace) its
 nodes’ properties live in (`None`: the entity has no animatable nodes, as
 a voice); `store` is the project-mall store its `ref` keys into.
+
+#### contacts *: [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[Any](https://docs.python.org/3/library/typing.html#typing.Any)], [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)]]] | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+the named points of this
+kind’s rigs that touch what the rig stands on (catalogue A1, an#519): a
+character’s `foot_l` is the far end of its left leg. The same shape as
+`landmarks`: `point` is `(u, v)`, a fraction of that slot’s
+drawing, or `None` for the slot’s far end from its pivot. A bone or a
+landmark of that name wins. `None`, or an empty answer: the kind names
+none, and the core derives one ([`an.stage.support.contacts_of()`](_autosummary/an.stage.support.html.md#an.stage.support.contacts_of)).
+Since `an.genres.API_LEVEL` 18.
+
+* **Type:**
+  `(descriptor) -> {name: (slot, point)}`
 
 #### descriptor_kind *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
 
@@ -22802,6 +22833,9 @@ True
 | [`FRAME_KEY`](_autosummary/an.ir.schema.html.md#an.ir.schema.FRAME_KEY)                 | The key an element's frame is written under in a document (`frame` is the field; `in` is not a name Python lets a field have).                                                                                                                                            |
 | [`JOINT_TYPES`](_autosummary/an.ir.schema.html.md#an.ir.schema.JOINT_TYPES)               | The joint types a scene declares.                                                                                                                                                                                                                                         |
 | [`SEGMENT_JOINT_TYPES`](_autosummary/an.ir.schema.html.md#an.ir.schema.SEGMENT_JOINT_TYPES)       | The types that join a point to a segment (`b` is its start, `end` its end).                                                                                                                                                                                               |
+| [`SURFACE_REFS`](_autosummary/an.ir.schema.html.md#an.ir.schema.SURFACE_REFS)              | `ground` (the shot's floor line), `<body>@surface` or `<body>@surface@f` (a body's supporting segment, the hold layer's grammar), or `world@x,y` with `end` (a stage segment).                                                                                            |
+| [`GROUND_SURFACE`](_autosummary/an.ir.schema.html.md#an.ir.schema.GROUND_SURFACE)            | the shot's floor line.                                                                                                                                                                                                                                                    |
+| [`SURFACE_POINT`](_autosummary/an.ir.schema.html.md#an.ir.schema.SURFACE_POINT)             | The point name that makes `<body>@surface` a body's supporting segment.                                                                                                                                                                                                   |
 | [`PART_JOINT_TYPES`](_autosummary/an.ir.schema.html.md#an.ir.schema.PART_JOINT_TYPES)          | a rig part's own joint to its parent.                                                                                                                                                                                                                                     |
 | [`DISTANCE_MODES`](_autosummary/an.ir.schema.html.md#an.ir.schema.DISTANCE_MODES)            | How a distance holds its length; `string` and `rod` imply one.                                                                                                                                                                                                            |
 | [`DFLT_GRAVITY`](_autosummary/an.ir.schema.html.md#an.ir.schema.DFLT_GRAVITY)              | The pull of gravity a `down` with no number means, in scene px per second² (a 1080-px frame is about 1.1 m of a standing figure, so 980 is earth's g at roughly one pixel per millimetre: the conventional animation default).                                            |
@@ -23589,7 +23623,14 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 
 Where each named gravity direction pulls, on the stage’s y-down axes.
 
-### an.ir.schema.JOINT_TYPES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('pin', 'hinge', 'weld', 'distance', 'string', 'rod', 'slide', 'contact')*
+### an.ir.schema.GROUND_SURFACE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'ground'*
+
+the shot’s floor line.
+
+* **Type:**
+  The surface a support names by a word
+
+### an.ir.schema.JOINT_TYPES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('pin', 'hinge', 'weld', 'distance', 'string', 'rod', 'slide', 'contact', 'support')*
 
 The joint types a scene declares. `string` (a distance held at most) and
 `rod` (a distance held exactly) are the puppeteer’s names for a
@@ -23625,6 +23666,20 @@ ruler).
   `mode`; `string` is a distance held at most, `rod` exactly.
 - `slide` keeps `a` on the segment `b` to `end`; `contact` keeps
   it on the segment’s free side (above a left-to-right segment).
+- `support` (an#519) says `a` rests on the surface `b`: no contact
+  point of `a` below it, and at least one on it. `b` is `ground`,
+  `<body>@surface[@f]`, or `world@x,y` with `end`
+  ([`SURFACE_REFS`](_autosummary/an.ir.schema.html.md#an.ir.schema.SURFACE_REFS)); `a` with no `@` is every contact of the body
+  ([`an.stage.support.contacts_of()`](_autosummary/an.stage.support.html.md#an.stage.support.contacts_of): a character’s feet, a prop’s
+  `metadata.contacts`, its rig’s `origin`, else its lowest ink), and
+  `@name` may name one. A lint only (the `support` check), never solved.
+
+```pycon
+>>> JointSpec(type="support", a="cup@base", b="table@surface").id
+'cup@base'
+>>> JointSpec(type="support", a="cup", b="world@-50,0", end="world@50,0").end
+'world@50,0'
+```
 
 `give` is the joint’s softness (compliance, px per unit of pull; 0 is
 rigid). `name` is what `join` and `unjoin` call it (default: `a`).
@@ -23829,6 +23884,21 @@ The id of a specimen shot.
 ### an.ir.schema.STAGE_NODE_SPACE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'stage.node'*
 
 The property space a 2D stage engine’s node lives in ([`an.timing.spaces`](_autosummary/an.timing.spaces.html.md#module-an.timing.spaces)).
+
+### an.ir.schema.SURFACE_POINT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'surface'*
+
+The point name that makes `<body>@surface` a body’s supporting segment.
+
+### an.ir.schema.SURFACE_REFS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'support'})*
+
+`ground` (the
+shot’s floor line), `<body>@surface` or `<body>@surface@f` (a body’s
+supporting segment, the hold layer’s grammar), or `world@x,y` with
+`end` (a stage segment). `support` only in v1: a `contact` is lowered
+by the solve, which resolves bodies and stage points only.
+
+* **Type:**
+  The types whose `b` is a SURFACE reference (an#519)
 
 ### *class* an.ir.schema.SceneIR(\*, version='0.3.0', compatible_version='0.3.0', kind='SceneIR', meta=<factory>, assets=<factory>, timeline=<factory>, world=None, \*\*extra_data)
 
@@ -35900,7 +35970,7 @@ One sentence per camera move, in production terms.
 
 Version of each named camera move (ADR 0003). Bump one when its keys change.
 
-### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions, closing_transition}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.camera.follow', kind='field', version='1', name='shot.camera.follow', title='', description='a camera that follows an entity', usage="camera.follow (optional): {target: <entity id or node path>, axes: x|y|xy, lag: <seconds, optional: the camera trails the target with this time constant>} — the camera tracks the target, keeping it where it stood at the shot's start (a walk across a long set); planes parallax with it. Instead of a move or keys (hold is fine); a shake layers on top.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera.shake', kind='field', version='1', name='shot.camera.shake', title='', description='a jolt of the frame inside the shot', usage='camera.shake (optional): jolts of the frame layered on the move or keys — [{at: s, duration: 0.4, amplitude: 0.015, frequency: 24, decay: true, seed: 0}], amplitude a fraction of the frame height; for an impact, a slam, an explosion. The frame is at rest before \`at\` and after the end; shakes may not overlap or run past the shot.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. On a text block, 'text' swaps a replacement set's string ('texts', unit 'block'; the value is a key) and 'value' is a counter block's number ('counter'; set or tween a number, lowered at compile to the strings the frames show). Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, '#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / plane_fade_start / plane_fade_end tilt the node's plane away from the camera (radians, frame heights, plane px), and then pivot_y slides its content along the plane. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve" | "wipe", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. \\'wipe\\' overlaps the same way, but a hard edge sweeps across the frame in direction (\\'left\\', \\'right\\', \\'up\\' or \\'down\\': the way the edge travels). A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.closing_transition', kind='field', version='1', name='meta.closing_transition', title='', description='how the film ends', usage="meta.closing_transition (optional): how the film ENDS — {kind: 'fade', duration: seconds, color: '#rrggbb'}: the last shot's last duration fades to color (its final frame IS the color) and the sound fades with it; the film's length is unchanged. Omitted (or 'cut') = it ends on its last frame. A dissolve is refused.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
+### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions, closing_transition}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.camera.follow', kind='field', version='1', name='shot.camera.follow', title='', description='a camera that follows an entity', usage="camera.follow (optional): {target: <entity id or node path>, axes: x|y|xy, lag: <seconds, optional: the camera trails the target with this time constant>} — the camera tracks the target, keeping it where it stood at the shot's start (a walk across a long set); planes parallax with it. Instead of a move or keys (hold is fine); a shake layers on top.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera.shake', kind='field', version='1', name='shot.camera.shake', title='', description='a jolt of the frame inside the shot', usage='camera.shake (optional): jolts of the frame layered on the move or keys — [{at: s, duration: 0.4, amplitude: 0.015, frequency: 24, decay: true, seed: 0}], amplitude a fraction of the frame height; for an impact, a slam, an explosion. The frame is at rest before \`at\` and after the end; shakes may not overlap or run past the shot.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. On a text block, 'text' swaps a replacement set's string ('texts', unit 'block'; the value is a key) and 'value' is a counter block's number ('counter'; set or tween a number, lowered at compile to the strings the frames show). Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, '#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / plane_fade_start / plane_fade_end tilt the node's plane away from the camera (radians, frame heights, plane px), and then pivot_y slides its content along the plane. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve" | "wipe", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. \\'wipe\\' overlaps the same way, but a hard edge sweeps across the frame in direction (\\'left\\', \\'right\\', \\'up\\' or \\'down\\': the way the edge travels). A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.closing_transition', kind='field', version='1', name='meta.closing_transition', title='', description='how the film ends', usage="meta.closing_transition (optional): how the film ENDS — {kind: 'fade', duration: seconds, color: '#rrggbb'}: the last shot's last duration fades to color (its final frame IS the color) and the sound fades with it; the film's length is unchanged. Omitted (or 'cut') = it ends on its last frame. A dissolve is refused.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
 
 the core).
 
@@ -38665,15 +38735,14 @@ False
 
 ### Module Attributes
 
-| [`HOLD_VERSION`](_autosummary/an.stage.hold.html.md#an.stage.hold.HOLD_VERSION)       | bump it when the same declarations can compile to other keys.                                                                                       |
-|---------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`HOLDS_REPORT`](_autosummary/an.stage.hold.html.md#an.stage.hold.HOLDS_REPORT)       | The key of the hold report inside `meta.extensions.solve`.                                                                                          |
-| [`ON_OVERRIDE`](_autosummary/an.stage.hold.html.md#an.stage.hold.ON_OVERRIDE)        | what holds an item when the shot opens (`ground`, a body's point, `world@x,y`).                                                                     |
-| [`AIM_OVERRIDE`](_autosummary/an.stage.hold.html.md#an.stage.hold.AIM_OVERRIDE)       | the stage angle it is held at, as a place's `rotation` (a shot that opens on a musket already aimed at someone, continuing the shot before it).     |
-| [`GRASP_TOLERANCE_PX`](_autosummary/an.stage.hold.html.md#an.stage.hold.GRASP_TOLERANCE_PX) | A reach that ends farther than this from its goal did not arrive (scene px).                                                                        |
-| [`DFLT_FALL_GRAVITY`](_autosummary/an.stage.hold.html.md#an.stage.hold.DFLT_FALL_GRAVITY)  | Gravity for a released item when neither the shot nor the style pack says (scene px / s², down the screen).                                         |
-| [`HOLD_PLAN_PASSES`](_autosummary/an.stage.hold.html.md#an.stage.hold.HOLD_PLAN_PASSES)   | How many times the gestures are planned (each from the solve the previous plan made).                                                               |
-| [`SURFACE_BONES`](_autosummary/an.stage.hold.html.md#an.stage.hold.SURFACE_BONES)      | The bones a body declares its supporting surface by (an#536), its two ends in the art's terms (left, right): what `<body>@surface` lays an item on. |
+| [`HOLD_VERSION`](_autosummary/an.stage.hold.html.md#an.stage.hold.HOLD_VERSION)       | bump it when the same declarations can compile to other keys.                                                                                   |
+|---------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`HOLDS_REPORT`](_autosummary/an.stage.hold.html.md#an.stage.hold.HOLDS_REPORT)       | The key of the hold report inside `meta.extensions.solve`.                                                                                      |
+| [`ON_OVERRIDE`](_autosummary/an.stage.hold.html.md#an.stage.hold.ON_OVERRIDE)        | what holds an item when the shot opens (`ground`, a body's point, `world@x,y`).                                                                 |
+| [`AIM_OVERRIDE`](_autosummary/an.stage.hold.html.md#an.stage.hold.AIM_OVERRIDE)       | the stage angle it is held at, as a place's `rotation` (a shot that opens on a musket already aimed at someone, continuing the shot before it). |
+| [`GRASP_TOLERANCE_PX`](_autosummary/an.stage.hold.html.md#an.stage.hold.GRASP_TOLERANCE_PX) | A reach that ends farther than this from its goal did not arrive (scene px).                                                                    |
+| [`DFLT_FALL_GRAVITY`](_autosummary/an.stage.hold.html.md#an.stage.hold.DFLT_FALL_GRAVITY)  | Gravity for a released item when neither the shot nor the style pack says (scene px / s², down the screen).                                     |
+| [`HOLD_PLAN_PASSES`](_autosummary/an.stage.hold.html.md#an.stage.hold.HOLD_PLAN_PASSES)   | How many times the gestures are planned (each from the solve the previous plan made).                                                           |
 
 ### Functions
 
@@ -38772,12 +38841,6 @@ what holds an item when the shot opens
 
 * **Type:**
   `AssetRef.overrides` key
-
-### an.stage.hold.SURFACE_BONES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= ('surface_l', 'surface_r')*
-
-The bones a body declares its supporting surface by (an#536), its two ends
-in the art’s terms (left, right): what `<body>@surface` lays an item on.
-Undeclared, the surface is the top edge of the part’s ink.
 
 ### an.stage.hold.declares_holds(shot)
 
@@ -38955,6 +39018,7 @@ is not.
 | [`serialize`](_autosummary/an.stage.serialize.html.md#module-an.stage.serialize)           | JSON contract between the Python compiler and the (future) JS runtime.                                                                      |
 | [`snapshot`](_autosummary/an.stage.snapshot.html.md#module-an.stage.snapshot)             | Rasterise art files to PNG in the browser the stage already uses (an#347).                                                                  |
 | [`solve`](_autosummary/an.stage.solve.html.md#module-an.stage.solve)                   | The `solve` compile pass: joints kept at every frame (ADR 0008 decision 6, an#512).                                                         |
+| [`support`](_autosummary/an.stage.support.html.md#module-an.stage.support)               | Supports: what a body rests on, and how far it is from resting there (an#519, catalogue A1).                                                |
 | [`surface`](_autosummary/an.stage.surface.html.md#module-an.stage.surface)               | Surface treatments, compiled (an#163 gap 5): outline, paper-gap shadow, glow, grain.                                                        |
 | [`surface_line`](_autosummary/an.stage.surface_line.html.md#module-an.stage.surface_line)     | Surface lines: what a thing stands on, as a line on the stage (an#519).                                                                     |
 | [`text`](_autosummary/an.stage.text.html.md#module-an.stage.text)                     | Words on screen: title cards, labels, and text you can animate word by word.                                                                |
@@ -42373,6 +42437,8 @@ True
 |-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`declarations`](_autosummary/an.stage.solve.html.md#an.stage.solve.declarations)(shot, mall, \*[, verbs, play_extent]) | The joints `shot` declares (its entities' descriptors', its entities', its own, in that order) and its verbs, flattened to shot time.                                                                         |
 | [`build_puppet`](_autosummary/an.stage.solve.html.md#an.stage.solve.build_puppet)(doc, shot, mall, decl, \*[, vocab])   | The bodies and joints of `shot` as built in `doc`; raises [`UnknownBodyError`](_autosummary/an.stage.solve.html.md#an.stage.solve.UnknownBodyError) naming every reference it cannot resolve.                                         |
+| [`locate_point`](_autosummary/an.stage.solve.html.md#an.stage.solve.locate_point)(ref, scope, \*, side)                 | A body reference as the point it names: a [`NodePoint`](_autosummary/an.stage.solve.html.md#an.stage.solve.NodePoint), a world `Point` (`world@x,y` or `[x, y]`), or the message saying why it names none.                     |
+| [`contact_point`](_autosummary/an.stage.solve.html.md#an.stage.solve.contact_point)(node, point)                         | A contact's point in its part's own frame (an#519): `point` a fraction `(u, v)` of the part's drawing, or `None` for the drawn extent's far end from its pivot, `CONTACT_INSET` in.                           |
 | [`solve_pass`](_autosummary/an.stage.solve.html.md#an.stage.solve.solve_pass)(state)                                  | The `solve` compile pass (order [`SOLVE_ORDER`](_autosummary/an.stage.solve.html.md#an.stage.solve.SOLVE_ORDER)).                                                                                                                |
 | [`joint_residuals`](_autosummary/an.stage.solve.html.md#an.stage.solve.joint_residuals)(doc, shot, mall, \*[, times])      | How far each joined joint of `shot` is from holding in `doc`, at every frame: `(puppet, times, gaps[k][j], range_excess[k][j])` (px; and radians past a hinge's range, 0 inside it).                          |
 | [`shot_declares_solve`](_autosummary/an.stage.solve.html.md#an.stage.solve.shot_declares_solve)(shot[, mall])                  | Whether `shot` declares anything the solve acts on (the pass's gate).                                                                                                                                         |
@@ -42380,21 +42446,28 @@ True
 
 ### Classes
 
-| [`Declarations`](_autosummary/an.stage.solve.html.md#an.stage.solve.Declarations)([joints, verbs, problems, holds])   | Every joint and verb a shot declares, in solver order (structure first), and what it holds ([`an.stage.hold.HoldDeclarations`](_autosummary/an.stage.hold.html.md#an.stage.hold.HoldDeclarations)).   |
-|---------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`Puppet`](_autosummary/an.stage.solve.html.md#an.stage.solve.Puppet)(bodies, rows, held, events, rest[, ...])  | A shot's bodies (structure first) and joints, ready to solve.                                                                                                                                                  |
+| [`Declarations`](_autosummary/an.stage.solve.html.md#an.stage.solve.Declarations)([joints, verbs, problems, ...])      | Every joint and verb a shot declares, in solver order (structure first), and what it holds ([`an.stage.hold.HoldDeclarations`](_autosummary/an.stage.hold.html.md#an.stage.hold.HoldDeclarations)).                                                                                                                     |
+|----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`Puppet`](_autosummary/an.stage.solve.html.md#an.stage.solve.Puppet)(bodies, rows, held, events, rest[, ...])   | A shot's bodies (structure first) and joints, ready to solve.                                                                                                                                                                                                                                                                    |
+| [`NodePoint`](_autosummary/an.stage.solve.html.md#an.stage.solve.NodePoint)(entity, node[, local, rest_world, end]) | A body reference resolved on the compiled document ([`locate_point()`](_autosummary/an.stage.solve.html.md#an.stage.solve.locate_point)): the node its point is on, and the point, in that node's own frame (`local`), or, for a bone, at rest on the stage (`rest_world`: each caller maps it into its own frame).                                  |
+| [`PointScope`](_autosummary/an.stage.solve.html.md#an.stage.solve.PointScope)(nodes, entities, rig, landmarks, ...)  | What [`locate_point()`](_autosummary/an.stage.solve.html.md#an.stage.solve.locate_point) resolves a reference against: the compiled document's nodes by path, the shot's entities by id, and per entity its rig (or `None`), its landmarks and its contacts on a part (`{name: (slot, (u, v) or None)}`), and `rest`, a node's rest stage transform. |
 
 ### Exceptions
 
 | [`UnknownBodyError`](_autosummary/an.stage.solve.html.md#an.stage.solve.UnknownBodyError)(message, problems)   | A declaration names a body, a point or a joint the shot does not have.   |
 |----------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
 
-### *class* an.stage.solve.Declarations(joints=list(), verbs=list(), problems=list(), holds=None)
+### *class* an.stage.solve.Declarations(joints=list(), verbs=list(), problems=list(), holds=None, supports=list(), support_verbs=list())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Every joint and verb a shot declares, in solver order (structure first),
 and what it holds ([`an.stage.hold.HoldDeclarations`](_autosummary/an.stage.hold.html.md#an.stage.hold.HoldDeclarations)).
+
+A `support` joint (an#519) is a lint’s declaration, never the solve’s:
+it goes to `supports`, a `join`/`unjoin` of one to `support_verbs`,
+and neither makes the declarations non-`empty`, so a shot declaring only
+supports runs no solve and compiles as if it declared nothing.
 
 #### holds *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)* *= None*
 
@@ -42403,6 +42476,41 @@ The hold verbs and `held_by` overrides ([`an.stage.hold`](_autosummary/an.stage.
 #### problems *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]*
 
 `(where, message)` for a declaration that does not read (a descriptor’s).
+
+#### support_verbs *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[Verb]*
+
+The `join`/`unjoin` verbs naming a support.
+
+#### supports *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[DeclaredJoint]*
+
+The `support` joints ([`an.stage.support`](_autosummary/an.stage.support.html.md#module-an.stage.support) reads them; the solve does not).
+
+### *class* an.stage.solve.NodePoint(entity, node, local=None, rest_world=None, end=False)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A body reference resolved on the compiled document ([`locate_point()`](_autosummary/an.stage.solve.html.md#an.stage.solve.locate_point)):
+the node its point is on, and the point, in that node’s own frame
+(`local`), or, for a bone, at rest on the stage (`rest_world`: each
+caller maps it into its own frame). `end` marks the drawn extent’s far
+end from the pivot (a hand), which the solve takes at the pivot of a node
+that only rides on a body.
+
+#### on_node(rest)
+
+The point in `node`’s own frame, `rest` giving a node’s rest transform.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+### *class* an.stage.solve.PointScope(nodes, entities, rig, landmarks, contacts, rest)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+What [`locate_point()`](_autosummary/an.stage.solve.html.md#an.stage.solve.locate_point) resolves a reference against: the compiled
+document’s nodes by path, the shot’s entities by id, and per entity its
+rig (or `None`), its landmarks and its contacts on a part (`{name:
+(slot, (u, v) or None)}`), and `rest`, a node’s rest stage transform.
 
 ### *class* an.stage.solve.Puppet(bodies, rows, held, events, rest, located=dict(), nodes=dict(), lean=dict())
 
@@ -42459,6 +42567,23 @@ The bodies and joints of `shot` as built in `doc`; raises
 * **Return type:**
   [`Puppet`](_autosummary/an.stage.solve.html.md#an.stage.solve.Puppet)
 
+### an.stage.solve.contact_point(node, point)
+
+A contact’s point in its part’s own frame (an#519): `point` a fraction
+`(u, v)` of the part’s drawing, or `None` for the drawn extent’s far end
+from its pivot, `CONTACT_INSET` in. The one point the solve pins and
+the `support` check measures for that contact.
+
+```pycon
+>>> from an.stage.serialize import NodeJSON, VisualJSON
+>>> leg = NodeJSON(name="leg", visual=VisualJSON(width=16, height=100, anchor_y=0))
+>>> contact_point(leg, None), contact_point(leg, (0.5, 0.5))
+((0.0, 100.0), (0.0, 50.0))
+```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
 ### an.stage.solve.declarations(shot, mall, , verbs=True, play_extent=None)
 
 The joints `shot` declares (its entities’ descriptors’, its entities’,
@@ -42475,6 +42600,32 @@ radians past a hinge’s range, 0 inside it). An unjoined joint reads 0.
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Puppet`](_autosummary/an.stage.solve.html.md#an.stage.solve.Puppet), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)], [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]], [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]]]
+
+### an.stage.solve.locate_point(ref, scope, , side)
+
+A body reference as the point it names: a [`NodePoint`](_autosummary/an.stage.solve.html.md#an.stage.solve.NodePoint), a world
+`Point` (`world@x,y` or `[x, y]`), or the message saying why it
+names none. The one resolver of `body[@point]` (an#519): the solve’s
+([`build_puppet()`](_autosummary/an.stage.solve.html.md#an.stage.solve.build_puppet), which puts the node on its bodies) and the
+`support` check’s ([`an.stage.support`](_autosummary/an.stage.support.html.md#module-an.stage.support)).
+
+`@point` is a fraction `u,v` of the node’s drawing, a bone of the rig,
+a landmark ([`an.genres.EntityKind.landmarks`](_autosummary/an.genres.html.md#an.genres.EntityKind.landmarks)), else a contact
+([`contact_point()`](_autosummary/an.stage.solve.html.md#an.stage.solve.contact_point)). `side` says what no `@` means: `"a"` (and
+`"socket"`) the node’s pivot, `"b"` the centre of its drawing,
+`"hand"` the far end of it from its pivot (its end effector).
+
+```pycon
+>>> from types import SimpleNamespace as NS
+>>> nothing = PointScope({}, {}, lambda e: None, lambda e: {}, lambda e: {}, None)
+>>> locate_point("world@3,4", nothing, side="a").u
+3.0
+>>> locate_point("ghost@hand", nothing, side="a")
+"'ghost@hand': 'ghost' is not an entity of this shot"
+```
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.stage.solve.shot_declares_solve(shot, mall=None)
 
@@ -42526,6 +42677,239 @@ hold layer’s).
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+
+# _autosummary/an.stage.support.html.md
+
+# an.stage.support
+
+Supports: what a body rests on, and how far it is from resting there (an#519, catalogue A1).
+
+A `support` joint ([`an.ir.schema.JointSpec`](_autosummary/an.ir.schema.html.md#an.ir.schema.JointSpec), `type: support`) says a
+body’s contact points rest on a surface: `ground` (the shot’s floor line),
+`<body>@surface[@f]` (a body’s supporting segment, the hold layer’s grammar)
+or a `world@x,y` segment with `end`. This module is the pure measurement
+under the `support` check ([`an.verify.support`](_autosummary/an.verify.support.html.md#module-an.verify.support)):
+
+- [`contacts_of()`](_autosummary/an.stage.support.html.md#an.stage.support.contacts_of): the named points of an entity that touch what it stands
+  on, by one fallback chain: the entity kind’s hook
+  ([`an.genres.EntityKind.contacts`](_autosummary/an.genres.html.md#an.genres.EntityKind.contacts): a character’s feet), else the
+  descriptor’s `metadata.contacts` (`{name: [u, v]}`, fractions of the root
+  part’s drawing), else the rig’s declared `origin` when a part rests on it
+  (an#601’s rule: where the rig stands, not where it is held), else the lowest
+  point of its root parts’ ink: `ink` when a raster’s alpha hull was read,
+  `box` when only the corners of its box were (SVG art), which is measured
+  for a declared support but never makes an entity be taken to stand.
+- [`supports_at()`](_autosummary/an.stage.support.html.md#an.stage.support.supports_at): every declared support of a compiled shot, and every
+  entity taken to stand on its floor, as [`SupportState`](_autosummary/an.stage.support.html.md#an.stage.support.SupportState) records per
+  instant: each contact’s signed distance to the surface along its normal
+  ([`an.stage.surface_line.lowest_on()`](_autosummary/an.stage.surface_line.html.md#an.stage.surface_line.lowest_on)’s sign: positive above, negative
+  sunk), with the references that do not resolve returned as `(where, message)`.
+
+A named point (`cup@base`, `paul@foot_l`) is resolved by the solve’s own
+resolver ([`an.stage.solve.locate_point()`](_autosummary/an.stage.solve.html.md#an.stage.solve.locate_point)), so a `pin` and a `support`
+naming one contact name one point ([`an.stage.solve.contact_point()`](_autosummary/an.stage.solve.html.md#an.stage.solve.contact_point)); a
+`<body>@surface` is the hold layer’s segment
+([`an.stage.surface_line.body_surface()`](_autosummary/an.stage.surface_line.html.md#an.stage.surface_line.body_surface)).
+
+Tolerances are fractions of the entity’s height with a pixel floor
+([`support_tolerance()`](_autosummary/an.stage.support.html.md#an.stage.support.support_tolerance)): a wide and a close-up agree, and a small prop is
+not held to a gap below what a frame shows.
+
+```pycon
+>>> support_tolerance(200.0), support_tolerance(30.0)
+(4.0, 2.0)
+```
+
+### Module Attributes
+
+| [`CONTACT_SOURCES`](_autosummary/an.stage.support.html.md#an.stage.support.CONTACT_SOURCES)   | Where an entity's contacts come from, in the order the chain tries them.                                                                                                                                                                                     |
+|--------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`CONTACTS_KEY`](_autosummary/an.stage.support.html.md#an.stage.support.CONTACTS_KEY)      | The descriptor's `metadata` key that names a prop's contacts.                                                                                                                                                                                                |
+| [`SUPPORT_TOLERANCE`](_autosummary/an.stage.support.html.md#an.stage.support.SUPPORT_TOLERANCE) | How far a contact may be off its surface, either way, as a fraction of the entity's height (4 px on a 200 px figure).                                                                                                                                        |
+| [`SUPPORT_FLOOR_PX`](_autosummary/an.stage.support.html.md#an.stage.support.SUPPORT_FLOOR_PX)  | the solver's own rejoin blend ([`an.kinematics.solver.DFLT_REJOIN_BLEND_PX`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_REJOIN_BLEND_PX)), below which it calls two points joined; a small prop is not held tighter than a joint. |
+
+### Functions
+
+| [`support_tolerance`](_autosummary/an.stage.support.html.md#an.stage.support.support_tolerance)(height, \*[, tolerance, floor])   | How far a contact of an entity `height` px tall may be off its surface: `tolerance` of its height, never under `floor` px.                                                                                                                                                                                                                                                                                                                                                                               |
+|------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`contacts_of`](_autosummary/an.stage.support.html.md#an.stage.support.contacts_of)(entity, mall, \*[, rig, ...])           | `entity`'s contacts, by the chain: the kind's hook, `metadata.contacts`, the rig's `origin` (when a root part's painted bottom rests on it, read in `doc`), else the lowest ink of its root parts: `ink` when `doc` shows a raster whose alpha hull was read, else `box`.                                                                                                                                                                                                                                |
+| [`contacts_on_parts`](_autosummary/an.stage.support.html.md#an.stage.support.contacts_on_parts)(entity, desc, \*, rig)            | The contacts the chain names on a part of `entity`'s rig (the hook's, else `metadata.contacts`, a root-part fraction put on the first root): what the point resolver ([`an.stage.solve.locate_point()`](_autosummary/an.stage.solve.html.md#an.stage.solve.locate_point)) names after a rig's landmarks, so a joint, a verb or a support may name `paul@foot_l` as it names `paul@hand_l`.                                                                                                       |
+| [`supports_at`](_autosummary/an.stage.support.html.md#an.stage.support.supports_at)(doc, shot, mall, \*[, times, ...])      | Every declared support of `shot` in its compiled document `doc` at every instant of `times` (default: the solve's frame grid, `an.stage.solve.frame_times()`), joined or not; and, with `inferred`, every entity taken to stand on the shot's floor (`solve: {ground: y}`) as it opens: its lowest contact within [`support_tolerance()`](_autosummary/an.stage.support.html.md#an.stage.support.support_tolerance) (`tolerance` of its height, `floor` px at least) of the floor then, judged at that instant and its rest instants. |
+
+### Classes
+
+| [`Contacts`](_autosummary/an.stage.support.html.md#an.stage.support.Contacts)(source, points[, note])                  | An entity's contacts and where the chain found them.                        |
+|----------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|
+| [`ContactState`](_autosummary/an.stage.support.html.md#an.stage.support.ContactState)(name, part, at, above)               | One contact at one instant.                                                 |
+| [`SupportState`](_autosummary/an.stage.support.html.md#an.stage.support.SupportState)(entity, joint, where, frame, t, ...) | One support (declared, or a stance taken as the shot opens) at one instant. |
+
+### an.stage.support.CONTACTS_KEY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'contacts'*
+
+The descriptor’s `metadata` key that names a prop’s contacts.
+
+### an.stage.support.CONTACT_SOURCES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('hook', 'metadata', 'origin', 'ink', 'box')*
+
+Where an entity’s contacts come from, in the order the chain tries them.
+
+### *class* an.stage.support.ContactState(name, part, at, above)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One contact at one instant.
+
+#### above *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+Its signed distance to the surface along the normal (+ above, - sunk).
+
+#### at *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]*
+
+Its stage point (the lowest of its points, for `ink` or `box`).
+
+#### part *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+The node path that carries it.
+
+### *class* an.stage.support.Contacts(source, points, note='')
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+An entity’s contacts and where the chain found them.
+
+```pycon
+>>> Contacts("origin", {"origin": ("", None)}).names
+('origin',)
+```
+
+#### note *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= ''*
+
+Why a kind’s hook gave nothing it could use (it raised), else `""`.
+
+### an.stage.support.SUPPORT_FLOOR_PX *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 2.0*
+
+the solver’s own rejoin blend
+([`an.kinematics.solver.DFLT_REJOIN_BLEND_PX`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_REJOIN_BLEND_PX)), below which it calls two
+points joined; a small prop is not held tighter than a joint.
+
+* **Type:**
+  The least tolerance, in px
+
+### an.stage.support.SUPPORT_TOLERANCE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.02*
+
+How far a contact may be off its surface, either way, as a fraction of the
+entity’s height (4 px on a 200 px figure).
+
+### *class* an.stage.support.SupportState(entity, joint, where, frame, t, surface, surface_ref, contacts, joined, height, source, named='')
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One support (declared, or a stance taken as the shot opens) at one instant.
+
+```pycon
+>>> s = SupportState("cup", None, "entities", 0, 0.0, ((0.0, 0.0), (1.0, 0.0)), "ground",
+...     (ContactState("base", "cup", (0.0, -3.0), 3.0),), True, 30.0, "metadata")
+>>> s.lowest, s.inferred
+(3.0, True)
+```
+
+#### contacts *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[ContactState](_autosummary/an.stage.support.html.md#an.stage.support.ContactState), ...]*
+
+The contacts measured (one past a bounded surface’s ends is not).
+
+#### frame *: [int](https://docs.python.org/3/builtins/functions.html#int)*
+
+The instant’s index on the shot’s frame grid, and its time.
+
+#### height *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+what its tolerance is a fraction of.
+
+* **Type:**
+  The entity’s height as the shot opens (px)
+
+#### joint *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The support’s id; `None` when inferred.
+
+#### *property* lowest *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The least distance of a contact above the surface; `None`, none measured.
+
+#### named *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= ''*
+
+The contact named in the reference, or `""` for all of them.
+
+#### source *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+Where its contacts came from ([`CONTACT_SOURCES`](_autosummary/an.stage.support.html.md#an.stage.support.CONTACT_SOURCES); a point named by
+bone, landmark or fraction is `point`).
+
+#### where *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+Where it is declared (`joints/0`, `entities/1/joints/0`, …).
+
+### an.stage.support.contacts_of(entity, mall, , rig=None, descriptor=None, doc=None)
+
+`entity`’s contacts, by the chain: the kind’s hook, `metadata.contacts`,
+the rig’s `origin` (when a root part’s painted bottom rests on it, read
+in `doc`), else the lowest ink of its root parts: `ink` when `doc`
+shows a raster whose alpha hull was read, else `box`.
+
+```pycon
+>>> from types import SimpleNamespace as NS
+>>> contacts_of(NS(kind="prop", store=None, ref="x"), {}, descriptor={"origin": [0, 0]})
+Contacts(source='origin', points={'origin': ('', None)}, note='')
+>>> contacts_of(NS(kind="prop", store=None, ref="x"), {}).source
+'box'
+```
+
+* **Return type:**
+  [`Contacts`](_autosummary/an.stage.support.html.md#an.stage.support.Contacts)
+
+### an.stage.support.contacts_on_parts(entity, desc, , rig)
+
+The contacts the chain names on a part of `entity`’s rig (the hook’s,
+else `metadata.contacts`, a root-part fraction put on the first root):
+what the point resolver ([`an.stage.solve.locate_point()`](_autosummary/an.stage.solve.html.md#an.stage.solve.locate_point)) names after
+a rig’s landmarks, so a joint, a verb or a support may name `paul@foot_l`
+as it names `paul@hand_l`.
+
+```pycon
+>>> from types import SimpleNamespace as NS
+>>> contacts_on_parts(NS(kind="prop"), {"metadata": {"contacts": {"base": [0.5, 1]}}}, rig=NS(roots=("body",)))
+{'base': ('body', (0.5, 1.0))}
+```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)]]
+
+### an.stage.support.support_tolerance(height, , tolerance=0.02, floor=2.0)
+
+How far a contact of an entity `height` px tall may be off its surface:
+`tolerance` of its height, never under `floor` px.
+
+```pycon
+>>> support_tolerance(500.0), support_tolerance(500.0, tolerance=0.05, floor=30.0)
+(10.0, 30.0)
+```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+### an.stage.support.supports_at(doc, shot, mall, , times=None, inferred=True, tolerance=0.02, floor=2.0)
+
+Every declared support of `shot` in its compiled document `doc` at
+every instant of `times` (default: the solve’s frame grid,
+`an.stage.solve.frame_times()`), joined or not; and, with
+`inferred`, every entity taken to stand on the shot’s floor
+(`solve: {ground: y}`) as it opens: its lowest contact within
+[`support_tolerance()`](_autosummary/an.stage.support.html.md#an.stage.support.support_tolerance) (`tolerance` of its height, `floor` px at
+least) of the floor then, judged at that instant and its rest instants.
+Returns the states and `(where, message)` for each reference that does
+not resolve (no state is made for it).
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`SupportState`](_autosummary/an.stage.support.html.md#an.stage.support.SupportState)], [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]]
 
 
 # _autosummary/an.stage.surface.html.md
@@ -42749,16 +43133,19 @@ normal `(-dy, dx)` points DOWN the screen, into the support. The floor is a
 level line ([`ground_line()`](_autosummary/an.stage.surface_line.html.md#an.stage.surface_line.ground_line)); a body’s top edge or a stage segment is the
 line through its two ends ([`line_through()`](_autosummary/an.stage.surface_line.html.md#an.stage.surface_line.line_through)). Measured against one:
 
-- [`above()`](_autosummary/an.stage.surface_line.html.md#an.stage.surface_line.above): how far the lowest of some points (a part’s corners or ink,
-  under its world matrix) is above the line, along its normal; negative when
-  sunk into it.
+- [`lowest_on()`](_autosummary/an.stage.surface_line.html.md#an.stage.surface_line.lowest_on): the lowest of some points (a part’s corners or ink,
+  under its world matrix) against the line, and how far above it that point
+  is, along its normal; negative when sunk into it. [`above()`](_autosummary/an.stage.surface_line.html.md#an.stage.surface_line.above) is the
+  distance alone.
 - [`lift()`](_autosummary/an.stage.surface_line.html.md#an.stage.surface_line.lift): a world matrix moved along the line’s normal by such a
   distance, which is how an item is laid exactly on what carries it.
 
-The hold layer ([`an.stage.hold`](_autosummary/an.stage.hold.html.md#module-an.stage.hold)) lays items on the floor and on bodies’
-surfaces with these; they live here so that other measurements of standing
-(the support and skate checks of an#519) use the same lines, the same normal
-and the same sign.
+A body’s own surface (`<body>@surface`, an#536) is the segment
+[`body_surface()`](_autosummary/an.stage.surface_line.html.md#an.stage.surface_line.body_surface) reads off its rig ([`SURFACE_BONES`](_autosummary/an.stage.surface_line.html.md#an.stage.surface_line.SURFACE_BONES)) or the top of
+its ink. The hold layer ([`an.stage.hold`](_autosummary/an.stage.hold.html.md#module-an.stage.hold)) lays items on the floor and on
+bodies’ surfaces with these; they live here so that other measurements of
+standing (the support and skate checks of an#519, [`an.stage.support`](_autosummary/an.stage.support.html.md#module-an.stage.support))
+use the same lines, the same segment, the same normal and the same sign.
 
 ```pycon
 >>> floor = ground_line(100.0)
@@ -42770,16 +43157,20 @@ and the same sign.
 
 ### Module Attributes
 
-| [`Line`](_autosummary/an.stage.surface_line.html.md#an.stage.surface_line.Line)   | a point on it and its unit direction, turned so that its normal `(-dy, dx)` points DOWN the screen (into the support).   |
-|---------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------|
+| [`SURFACE_BONES`](_autosummary/an.stage.surface_line.html.md#an.stage.surface_line.SURFACE_BONES)   | The bones a body declares its supporting surface by (an#536), its two ends in the art's terms (left, right): what `<body>@surface` lays an item on.   |
+|------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`Line`](_autosummary/an.stage.surface_line.html.md#an.stage.surface_line.Line)            | a point on it and its unit direction, turned so that its normal `(-dy, dx)` points DOWN the screen (into the support).                                |
+| [`Segment`](_autosummary/an.stage.surface_line.html.md#an.stage.surface_line.Segment)         | its two ends.                                                                                                                                         |
 
 ### Functions
 
-| [`ground_line`](_autosummary/an.stage.surface_line.html.md#an.stage.surface_line.ground_line)(ground)     | The level floor at stage `y` `ground`: its normal points down.                                        |
-|--------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------|
-| [`line_through`](_autosummary/an.stage.surface_line.html.md#an.stage.surface_line.line_through)(a, b)      | The support line through `a` and `b`, whichever end is named first.                                   |
-| [`above`](_autosummary/an.stage.surface_line.html.md#an.stage.surface_line.above)(m, corners, line) | How far the lowest of `corners` under `m` is above `line`, along its normal (negative: sunk into it). |
-| [`lift`](_autosummary/an.stage.surface_line.html.md#an.stage.surface_line.lift)(m, line, distance) | `m` moved `distance` along `line`'s normal (down onto it when positive).                              |
+| [`ground_line`](_autosummary/an.stage.surface_line.html.md#an.stage.surface_line.ground_line)(ground)                          | The level floor at stage `y` `ground`: its normal points down.                                                                                                                                                                                                                                                           |
+|-----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`line_through`](_autosummary/an.stage.surface_line.html.md#an.stage.surface_line.line_through)(a, b)                           | The support line through `a` and `b`, whichever end is named first.                                                                                                                                                                                                                                                      |
+| [`lowest_on`](_autosummary/an.stage.surface_line.html.md#an.stage.surface_line.lowest_on)(m, points, line)                   | The lowest of `points` under `m` against `line` (the farthest along its normal, into it; the first of equals), and how far above the line it is (negative: sunk into it).                                                                                                                                                |
+| [`above`](_autosummary/an.stage.surface_line.html.md#an.stage.surface_line.above)(m, corners, line)                      | How far the lowest of `corners` under `m` is above `line`, along its normal (negative: sunk into it).                                                                                                                                                                                                                    |
+| [`lift`](_autosummary/an.stage.surface_line.html.md#an.stage.surface_line.lift)(m, line, distance)                      | `m` moved `distance` along `line`'s normal (down onto it when positive).                                                                                                                                                                                                                                                 |
+| [`body_surface`](_autosummary/an.stage.surface_line.html.md#an.stage.surface_line.body_surface)(doc, nodes, mall, \*, rig, ...) | `<body>@surface`'s segment (an#536): its two ends in node `frame`'s own coordinates (default: `node`'s), from the rig's [`SURFACE_BONES`](_autosummary/an.stage.surface_line.html.md#an.stage.surface_line.SURFACE_BONES) when it declares them, else the top edge of `node`'s ink, mapped by `to_frame` (`node`'s frame in `frame`'s; none: they are one). |
 
 ### an.stage.surface_line.Line
 
@@ -42788,6 +43179,21 @@ normal `(-dy, dx)` points DOWN the screen (into the support).
 
 * **Type:**
   A support line
+
+alias of [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)], [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
+
+### an.stage.surface_line.SURFACE_BONES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= ('surface_l', 'surface_r')*
+
+The bones a body declares its supporting surface by (an#536), its two ends
+in the art’s terms (left, right): what `<body>@surface` lays an item on.
+Undeclared, the surface is the top edge of the part’s ink.
+
+### an.stage.surface_line.Segment
+
+its two ends.
+
+* **Type:**
+  A bounded surface
 
 alias of [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)], [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
@@ -42804,6 +43210,24 @@ its normal (negative: sunk into it). On the ground, `ground - lowest`.
 
 * **Return type:**
   [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+### an.stage.surface_line.body_surface(doc, nodes, mall, , rig, entity, node, frame=None, to_frame=None)
+
+`<body>@surface`’s segment (an#536): its two ends in node `frame`’s
+own coordinates (default: `node`’s), from the rig’s [`SURFACE_BONES`](_autosummary/an.stage.surface_line.html.md#an.stage.surface_line.SURFACE_BONES)
+when it declares them, else the top edge of `node`’s ink, mapped by
+`to_frame` (`node`’s frame in `frame`’s; none: they are one). Returns
+why, instead, when the rig names it wrongly.
+
+```pycon
+>>> from an.stage.serialize import NodeJSON, VisualJSON
+>>> art = {"crate": NodeJSON(name="crate", visual=VisualJSON(width=10, height=4))}
+>>> body_surface(None, art, None, rig=None, entity="crate", node="crate")
+((-5.0, -2.0), (5.0, -2.0))
+```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)], [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]] | [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.stage.surface_line.ground_line(ground)
 
@@ -42840,6 +43264,20 @@ The support line through `a` and `b`, whichever end is named first.
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)], [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
+
+### an.stage.surface_line.lowest_on(m, points, line)
+
+The lowest of `points` under `m` against `line` (the farthest
+along its normal, into it; the first of equals), and how far above the
+line it is (negative: sunk into it).
+
+```pycon
+>>> lowest_on((1, 0, 0, 1, 0, 0), [(0.0, 0.0), (2.0, 3.0)], ground_line(5.0))
+((2.0, 3.0), 2.0)
+```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 
 # _autosummary/an.stage.text.html.md
@@ -49645,6 +50083,7 @@ object, differing only in what the store returns.
 | [`media`](_autosummary/an.verify.media.html.md#module-an.verify.media)                 | Media verification helpers — audio + frame quality checks for rendered mp4s.                 |
 | [`media_quality`](_autosummary/an.verify.media_quality.html.md#module-an.verify.media_quality) | MediaQualityVerifier — post-render quality checks on the actual mp4.                         |
 | [`prosody`](_autosummary/an.verify.prosody.html.md#module-an.verify.prosody)             | Prosody measurement: how a recorded voice delivers its words, as numbers a target can check. |
+| [`support`](_autosummary/an.verify.support.html.md#module-an.verify.support)             | The `support` check: a body declared to rest on a surface does (an#519, catalogue A1).       |
 | [`vision`](_autosummary/an.verify.vision.html.md#module-an.verify.vision)               | VisionLMVerifier — Claude vision looks at sampled frames and reports issues.                 |
 
 
@@ -50210,6 +50649,85 @@ an.verify.prosody.ProsodyTargetError: prosody target 'f0_sd_st' must be [low, hi
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 
+# _autosummary/an.verify.support.html.md
+
+# an.verify.support
+
+The `support` check: a body declared to rest on a surface does (an#519, catalogue A1).
+
+One constraint on the one interface ([`an.verify.constraints.Constraint`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.Constraint)),
+lint-only (no solver term in v1), over the compiled shot, measured by the pure
+function [`an.stage.support.supports_at()`](_autosummary/an.stage.support.html.md#an.stage.support.supports_at):
+
+- a declared `support` joint (`{type: support, a: paul, b: ground}`) whose
+  contacts sink into its surface (**penetration**) or whose lowest contact is
+  above it (**floating**) by more than [`an.stage.support.support_tolerance()`](_autosummary/an.stage.support.html.md#an.stage.support.support_tolerance)
+  of the entity’s height, at any frame of the solve’s grid at which it is
+  joined, is an **error** span; a reference it cannot resolve is an error too
+  (the solve never sees a support, so `unknown_body` cannot say it);
+- an entity nothing declares, taken to stand on the shot’s floor
+  (`solve: {ground: y}`) as it opens, is held to it at its rest instants
+  (between two keys where nothing of it moves), as a **warning**;
+- `b: ground` on a shot with no floor is measured against where the entity
+  stands as the shot opens, said once as `info`.
+
+Not judged: an unjoined span (`unjoin` suspends the support: it is not a
+flight), an entity’s declared flight (`overrides.airborne`), an item the
+hold layer moves when nothing declares a support on it (`floating_item`’s).
+
+```pycon
+>>> SUPPORT.name, SUPPORT.order, SUPPORT.term is None
+('support', 252.0, True)
+```
+
+### Module Attributes
+
+| [`SUPPORT_CHECK_ORDER`](_autosummary/an.verify.support.html.md#an.verify.support.SUPPORT_CHECK_ORDER)   | after the joint checks (250), which report broken declarations first, before the hold checks (255).   |
+|------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------|
+| [`SUPPORT_CONSTRAINTS`](_autosummary/an.verify.support.html.md#an.verify.support.SUPPORT_CONSTRAINTS)   | The support checks, in the order they run.                                                            |
+
+### Functions
+
+| [`support_findings`](_autosummary/an.verify.support.html.md#an.verify.support.support_findings)(states, \*, times, shot[, ...])   | `(severity, where, message)` for each span of frames a support does not hold in `states` ([`an.stage.support.supports_at()`](_autosummary/an.stage.support.html.md#an.stage.support.supports_at)'s), the worst distance of the span named; `times` is the grid the states' frames index.   |
+|-----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+
+### an.verify.support.SUPPORT_CHECK_ORDER *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 252.0*
+
+after the joint checks (250),
+which report broken declarations first, before the hold checks (255).
+
+* **Type:**
+  Where the support check runs within a shot
+
+### an.verify.support.SUPPORT_CONSTRAINTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Constraint](_autosummary/an.verify.constraints.html.md#an.verify.constraints.Constraint), ...]* *= (Constraint(name='support', check=<function check_support>, stage='shot', order=252.0, description='a body declared to rest on a surface neither sinks into it nor floats above it (catalogue A1, an#519)', term=None),)*
+
+The support checks, in the order they run.
+
+### an.verify.support.support_findings(states, , times, shot, tolerance=None, floor=None)
+
+`(severity, where, message)` for each span of frames a support does not
+hold in `states` ([`an.stage.support.supports_at()`](_autosummary/an.stage.support.html.md#an.stage.support.supports_at)’s), the worst
+distance of the span named; `times` is the grid the states’ frames index.
+A contact is off its surface beyond
+[`an.stage.support.support_tolerance()`](_autosummary/an.stage.support.html.md#an.stage.support.support_tolerance): `tolerance` of the entity’s
+height (default `SUPPORT_TOLERANCE`), `floor` px at least (default
+`SUPPORT_FLOOR_PX`).
+
+```pycon
+>>> from an.stage.support import ContactState, SupportState
+>>> from types import SimpleNamespace as NS
+>>> def at(k, gap):
+...     return SupportState("cup", "cup", "joints/0", k, k / 10, ((0.0, 0.0), (1.0, 0.0)),
+...         "ground", (ContactState("base", "cup", (0.0, -gap), gap),), True, 30.0, "metadata")
+>>> [m[:2] for m in support_findings([at(0, 0.0), at(1, 5.0), at(2, 6.0)],
+...     times=[0.0, 0.1, 0.2], shot=NS(entities=[], duration=1.0))]
+[('error', 'joints/0')]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
+
 # _autosummary/an.verify.vision.html.md
 
 # an.verify.vision
@@ -50487,7 +51005,7 @@ scene: the scene file to read, inside the project (default scene.md; for example
 
 # About this build
 
-This documentation was built on **2026-11-09 05:00 UTC** from commit <a href="https://github.com/reeleehq/an/commit/44e8d4872175efc979e0705bc19a1f1ef3f58f34"><code>44e8d48</code></a> on branch <code>main</code>, for **an 0.1.390** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-09 05:53 UTC** from commit <a href="https://github.com/reeleehq/an/commit/9db4b075bebf7a66cee3fab1b6217e35b09325e1"><code>9db4b07</code></a> on branch <code>main</code>, for **an 0.1.391** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -50496,9 +51014,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                    |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/an/commit/44e8d4872175efc979e0705bc19a1f1ef3f58f34"><code>44e8d4872175efc979e0705bc19a1f1ef3f58f34</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/an/commit/9db4b075bebf7a66cee3fab1b6217e35b09325e1"><code>9db4b075bebf7a66cee3fab1b6217e35b09325e1</code></a> |
 | Branch              | <code>main</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.390</code>                                                                                                                               |
+| Tags at this commit | <code>0.1.391</code>                                                                                                                               |
 | Working tree        | clean                                                                                                                                              |
 | Remote              | <code>https://github.com/reeleehq/an</code>                                                                                                        |
 
@@ -50507,9 +51025,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/an</code>                                                                   |
-| Run          | <a href="https://github.com/reeleehq/an/actions/runs/42564057146">42564057146</a>          |
+| Run          | <a href="https://github.com/reeleehq/an/actions/runs/42568945008">42568945008</a>          |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>41167c560db3cb81cc19f686a5552f36f808d0ac</code> (in the history of the built commit) |
+| Event commit | <code>50699e188f5ab09057de87a388ff5e75d7f59a62</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -50534,13 +51052,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.390/">0.1.390</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.391/">0.1.391</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/an && cd an
-git checkout 44e8d4872175efc979e0705bc19a1f1ef3f58f34
+git checkout 9db4b075bebf7a66cee3fab1b6217e35b09325e1
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

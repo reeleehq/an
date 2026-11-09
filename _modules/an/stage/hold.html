@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=4aa4487b"></script>
+    <script src="../../../_static/documentation_options.js?v=eedccc62"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.390" />
+  <meta name="docsearch:version" content="0.1.391" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -813,7 +813,15 @@ window.runMermaid = runMermaid;</script>
     <span class="n">_pivot</span><span class="p">,</span>
     <span class="n">_wrap</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.surface_line</span><span class="w"> </span><span class="kn">import</span> <span class="n">Line</span><span class="p">,</span> <span class="n">above</span><span class="p">,</span> <span class="n">ground_line</span><span class="p">,</span> <span class="n">lift</span><span class="p">,</span> <span class="n">line_through</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.surface_line</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">SURFACE_BONES</span><span class="p">,</span>
+    <span class="n">Line</span><span class="p">,</span>
+    <span class="n">above</span><span class="p">,</span>
+    <span class="n">body_surface</span><span class="p">,</span>
+    <span class="n">ground_line</span><span class="p">,</span>
+    <span class="n">lift</span><span class="p">,</span>
+    <span class="n">line_through</span><span class="p">,</span>
+<span class="p">)</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">"HOLD_VERSION"</span><span class="p">,</span>
@@ -865,10 +873,6 @@ window.runMermaid = runMermaid;</script>
 <span class="n">LEAN_ROUNDS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span>
 <span class="c1">#: Samples of a lean's range searched when no angle brings the goal in reach.</span>
 <span class="n">LEAN_SAMPLES</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">721</span>
-<span class="c1">#: The bones a body declares its supporting surface by (an#536), its two ends</span>
-<span class="c1">#: in the art's terms (left, right): what ``&lt;body&gt;@surface`` lays an item on.</span>
-<span class="c1">#: Undeclared, the surface is the top edge of the part's ink.</span>
-<span class="n">SURFACE_BONES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"surface_l"</span><span class="p">,</span> <span class="s2">"surface_r"</span><span class="p">)</span>
 <span class="c1">#: The alpha (0-255) above which a pixel is ink, not margin.</span>
 <span class="n">INK_ALPHA</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span>
 <span class="n">_EPS</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-9</span>
@@ -1586,9 +1590,10 @@ window.runMermaid = runMermaid;</script>
     <span class="n">problems</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Holder</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""``&lt;body&gt;@surface[@f]`` (an#536): the body's supporting segment in its</span>
-<span class="sd">    own coordinates, from its :data:`SURFACE_BONES` when its rig declares</span>
-<span class="sd">    them, else the top edge of the part's ink. :func:`_schedule` binds the</span>
-<span class="sd">    shot's part once (``functools.partial``)."""</span>
+<span class="sd">    own coordinates (:func:`an.stage.surface_line.body_surface`: its</span>
+<span class="sd">    :data:`SURFACE_BONES` when its rig declares them, else the top edge of</span>
+<span class="sd">    the part's ink). :func:`_schedule` binds the shot's part once</span>
+<span class="sd">    (``functools.partial``)."""</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.solve</span><span class="w"> </span><span class="kn">import</span> <span class="n">_rig_of</span>
 
     <span class="n">head</span> <span class="o">=</span> <span class="n">_holder_ref</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span>
@@ -1614,38 +1619,19 @@ window.runMermaid = runMermaid;</script>
     <span class="n">eid</span> <span class="o">=</span> <span class="n">_entity</span><span class="p">(</span><span class="n">head</span><span class="p">)</span>
     <span class="n">entity</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">eid</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
     <span class="n">rig</span> <span class="o">=</span> <span class="n">_rig_of</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">puppet</span><span class="o">.</span><span class="n">nodes</span><span class="p">,</span> <span class="n">vocab</span><span class="p">)</span> <span class="k">if</span> <span class="n">entity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
-    <span class="k">if</span> <span class="n">rig</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">SURFACE</span> <span class="ow">in</span> <span class="n">rig</span><span class="o">.</span><span class="n">anchors</span><span class="p">:</span>
-        <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-            <span class="p">(</span>
-                <span class="n">where</span><span class="p">,</span>
-                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">eid</span><span class="si">!r}</span><span class="s2"> has a bone named </span><span class="si">{</span><span class="n">SURFACE</span><span class="si">!r}</span><span class="s2">, a reserved point name "</span>
-                <span class="sa">f</span><span class="s2">"(`&lt;body&gt;@</span><span class="si">{</span><span class="n">SURFACE</span><span class="si">}</span><span class="s2">` is the body's top, an#536): rename the bone, and "</span>
-                <span class="sa">f</span><span class="s2">"declare a surface by </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">SURFACE_BONES</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-            <span class="p">)</span>
-        <span class="p">)</span>
-        <span class="k">return</span> <span class="kc">None</span>
-    <span class="n">bones</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">_anchors_in</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">rig</span><span class="p">,</span> <span class="n">eid</span><span class="p">,</span> <span class="n">puppet</span><span class="o">.</span><span class="n">nodes</span><span class="p">,</span> <span class="n">found</span><span class="o">.</span><span class="n">body</span><span class="p">)</span> <span class="k">if</span> <span class="n">rig</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
+    <span class="n">segment</span> <span class="o">=</span> <span class="n">body_surface</span><span class="p">(</span>
+        <span class="n">doc</span><span class="p">,</span>
+        <span class="n">puppet</span><span class="o">.</span><span class="n">nodes</span><span class="p">,</span>
+        <span class="n">mall</span><span class="p">,</span>
+        <span class="n">rig</span><span class="o">=</span><span class="n">rig</span><span class="p">,</span>
+        <span class="n">entity</span><span class="o">=</span><span class="n">eid</span><span class="p">,</span>
+        <span class="n">node</span><span class="o">=</span><span class="n">found</span><span class="o">.</span><span class="n">node</span><span class="p">,</span>
+        <span class="n">frame</span><span class="o">=</span><span class="n">found</span><span class="o">.</span><span class="n">body</span><span class="p">,</span>
+        <span class="n">to_frame</span><span class="o">=</span><span class="n">found</span><span class="o">.</span><span class="n">frame</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="n">declared</span> <span class="o">=</span> <span class="p">[</span><span class="n">b</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">SURFACE_BONES</span> <span class="k">if</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bones</span><span class="p">]</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">declared</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">SURFACE_BONES</span><span class="p">):</span>
-        <span class="n">segment</span> <span class="o">=</span> <span class="p">(</span><span class="n">bones</span><span class="p">[</span><span class="n">SURFACE_BONES</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">bones</span><span class="p">[</span><span class="n">SURFACE_BONES</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
-    <span class="k">elif</span> <span class="n">declared</span><span class="p">:</span>
-        <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-            <span class="p">(</span>
-                <span class="n">where</span><span class="p">,</span>
-                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">eid</span><span class="si">!r}</span><span class="s2"> declares </span><span class="si">{</span><span class="n">declared</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">!r}</span><span class="s2"> but not "</span>
-                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="p">[</span><span class="n">b</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">SURFACE_BONES</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">declared</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="si">!r}</span><span class="s2">: a surface is "</span>
-                <span class="s2">"two bones (its ends), or neither (the top of the part's ink)"</span><span class="p">,</span>
-            <span class="p">)</span>
-        <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">segment</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">where</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">segment</span><span class="si">}</span><span class="s2">"</span><span class="p">))</span>
         <span class="k">return</span> <span class="kc">None</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">left</span><span class="p">,</span> <span class="n">top</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">_h</span> <span class="o">=</span> <span class="n">ink_box</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">puppet</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">found</span><span class="o">.</span><span class="n">node</span><span class="p">],</span> <span class="n">mall</span><span class="p">)</span>
-        <span class="n">segment</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">_apply</span><span class="p">(</span><span class="n">found</span><span class="o">.</span><span class="n">frame</span><span class="p">,</span> <span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">top</span><span class="p">)),</span>
-            <span class="n">_apply</span><span class="p">(</span><span class="n">found</span><span class="o">.</span><span class="n">frame</span><span class="p">,</span> <span class="p">(</span><span class="n">left</span> <span class="o">+</span> <span class="n">w</span><span class="p">,</span> <span class="n">top</span><span class="p">)),</span>
-        <span class="p">)</span>
     <span class="k">return</span> <span class="n">Holder</span><span class="p">(</span>
         <span class="s2">"surface"</span><span class="p">,</span>
         <span class="n">ref</span><span class="o">=</span><span class="n">ref</span><span class="p">,</span>

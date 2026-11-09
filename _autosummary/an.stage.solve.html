@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=4aa4487b"></script>
+    <script src="../_static/documentation_options.js?v=eedccc62"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -53,12 +53,12 @@
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="an.stage.surface" href="an.stage.surface.html" />
+    <link rel="next" title="an.stage.support" href="an.stage.support.html" />
     <link rel="prev" title="an.stage.snapshot" href="an.stage.snapshot.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.390" />
+  <meta name="docsearch:version" content="0.1.391" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -517,6 +517,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stage.serialize.html">an.stage.serialize</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.snapshot.html">an.stage.snapshot</a></li>
 <li class="toctree-l3 current active"><a aria-current="page" class="current reference internal" href="#">an.stage.solve</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.support.html">an.stage.support</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.surface.html">an.stage.surface</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.surface_line.html">an.stage.surface_line</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
@@ -567,6 +568,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.verify.media.html">an.verify.media</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.verify.media_quality.html">an.verify.media_quality</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.verify.prosody.html">an.verify.prosody</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.support.html">an.verify.support</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.verify.vision.html">an.verify.vision</a></li>
 </ul>
 </details></li>
@@ -711,6 +713,12 @@ joint checks read (<a class="reference internal" href="an.verify.joints.html#mod
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.solve.build_puppet" title="an.stage.solve.build_puppet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_puppet</span></code></a>(doc, shot, mall, decl, *[, vocab])</p></td>
 <td><p>The bodies and joints of <code class="docutils literal notranslate"><span class="pre">shot</span></code> as built in <code class="docutils literal notranslate"><span class="pre">doc</span></code>; raises <a class="reference internal" href="#an.stage.solve.UnknownBodyError" title="an.stage.solve.UnknownBodyError"><code class="xref py py-class docutils literal notranslate"><span class="pre">UnknownBodyError</span></code></a> naming every reference it cannot resolve.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.solve.locate_point" title="an.stage.solve.locate_point"><code class="xref py py-obj docutils literal notranslate"><span class="pre">locate_point</span></code></a>(ref, scope, *, side)</p></td>
+<td><p>A body reference as the point it names: a <a class="reference internal" href="#an.stage.solve.NodePoint" title="an.stage.solve.NodePoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">NodePoint</span></code></a>, a world <code class="docutils literal notranslate"><span class="pre">Point</span></code> (<code class="docutils literal notranslate"><span class="pre">world&#64;x,y</span></code> or <code class="docutils literal notranslate"><span class="pre">[x,</span> <span class="pre">y]</span></code>), or the message saying why it names none.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.solve.contact_point" title="an.stage.solve.contact_point"><code class="xref py py-obj docutils literal notranslate"><span class="pre">contact_point</span></code></a>(node, point)</p></td>
+<td><p>A contact's point in its part's own frame (an#519): <code class="docutils literal notranslate"><span class="pre">point</span></code> a fraction <code class="docutils literal notranslate"><span class="pre">(u,</span> <span class="pre">v)</span></code> of the part's drawing, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the drawn extent's far end from its pivot, <code class="xref py py-data docutils literal notranslate"><span class="pre">CONTACT_INSET</span></code> in.</p></td>
+</tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.stage.solve.solve_pass" title="an.stage.solve.solve_pass"><code class="xref py py-obj docutils literal notranslate"><span class="pre">solve_pass</span></code></a>(state)</p></td>
 <td><p>The <code class="docutils literal notranslate"><span class="pre">solve</span></code> compile pass (order <a class="reference internal" href="#an.stage.solve.SOLVE_ORDER" title="an.stage.solve.SOLVE_ORDER"><code class="xref py py-data docutils literal notranslate"><span class="pre">SOLVE_ORDER</span></code></a>).</p></td>
 </tr>
@@ -729,11 +737,17 @@ joint checks read (<a class="reference internal" href="an.verify.joints.html#mod
 <p class="rubric">Classes</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.solve.Declarations" title="an.stage.solve.Declarations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Declarations</span></code></a>([joints, verbs, problems, holds])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.solve.Declarations" title="an.stage.solve.Declarations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Declarations</span></code></a>([joints, verbs, problems, ...])</p></td>
 <td><p>Every joint and verb a shot declares, in solver order (structure first), and what it holds (<a class="reference internal" href="an.stage.hold.html#an.stage.hold.HoldDeclarations" title="an.stage.hold.HoldDeclarations"><code class="xref py py-class docutils literal notranslate"><span class="pre">an.stage.hold.HoldDeclarations</span></code></a>).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.stage.solve.Puppet" title="an.stage.solve.Puppet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Puppet</span></code></a>(bodies, rows, held, events, rest[, ...])</p></td>
 <td><p>A shot's bodies (structure first) and joints, ready to solve.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.solve.NodePoint" title="an.stage.solve.NodePoint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NodePoint</span></code></a>(entity, node[, local, rest_world, end])</p></td>
+<td><p>A body reference resolved on the compiled document (<a class="reference internal" href="#an.stage.solve.locate_point" title="an.stage.solve.locate_point"><code class="xref py py-func docutils literal notranslate"><span class="pre">locate_point()</span></code></a>): the node its point is on, and the point, in that node's own frame (<code class="docutils literal notranslate"><span class="pre">local</span></code>), or, for a bone, at rest on the stage (<code class="docutils literal notranslate"><span class="pre">rest_world</span></code>: each caller maps it into its own frame).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.solve.PointScope" title="an.stage.solve.PointScope"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PointScope</span></code></a>(nodes, entities, rig, landmarks, ...)</p></td>
+<td><p>What <a class="reference internal" href="#an.stage.solve.locate_point" title="an.stage.solve.locate_point"><code class="xref py py-func docutils literal notranslate"><span class="pre">locate_point()</span></code></a> resolves a reference against: the compiled document's nodes by path, the shot's entities by id, and per entity its rig (or <code class="docutils literal notranslate"><span class="pre">None</span></code>), its landmarks and its contacts on a part (<code class="docutils literal notranslate"><span class="pre">{name:</span> <span class="pre">(slot,</span> <span class="pre">(u,</span> <span class="pre">v)</span> <span class="pre">or</span> <span class="pre">None)}</span></code>), and <code class="docutils literal notranslate"><span class="pre">rest</span></code>, a node's rest stage transform.</p></td>
 </tr>
 </tbody>
 </table>
@@ -749,10 +763,14 @@ joint checks read (<a class="reference internal" href="an.verify.joints.html#mod
 </div>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.stage.solve.Declarations">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stage.solve.</span></span><span class="sig-name descname"><span class="pre">Declarations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">list()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">list()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">problems</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">list()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">holds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/solve.html#Declarations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.solve.Declarations" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stage.solve.</span></span><span class="sig-name descname"><span class="pre">Declarations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">list()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">list()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">problems</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">list()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">holds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">supports</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">list()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">support_verbs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">list()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/solve.html#Declarations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.solve.Declarations" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Every joint and verb a shot declares, in solver order (structure first),
 and what it holds (<a class="reference internal" href="an.stage.hold.html#an.stage.hold.HoldDeclarations" title="an.stage.hold.HoldDeclarations"><code class="xref py py-class docutils literal notranslate"><span class="pre">an.stage.hold.HoldDeclarations</span></code></a>).</p>
+<p>A <code class="docutils literal notranslate"><span class="pre">support</span></code> joint (an#519) is a lint’s declaration, never the solve’s:
+it goes to <code class="docutils literal notranslate"><span class="pre">supports</span></code>, a <code class="docutils literal notranslate"><span class="pre">join</span></code>/<code class="docutils literal notranslate"><span class="pre">unjoin</span></code> of one to <code class="docutils literal notranslate"><span class="pre">support_verbs</span></code>,
+and neither makes the declarations non-<code class="docutils literal notranslate"><span class="pre">empty</span></code>, so a shot declaring only
+supports runs no solve and compiles as if it declared nothing.</p>
 <dl class="field-list simple">
 </dl>
 <dl class="py attribute">
@@ -767,6 +785,55 @@ and what it holds (<a class="reference internal" href="an.stage.hold.html#an.sta
 <dd><p><code class="docutils literal notranslate"><span class="pre">(where,</span> <span class="pre">message)</span></code> for a declaration that does not read (a descriptor’s).</p>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.stage.solve.Declarations.support_verbs">
+<span class="sig-name descname"><span class="pre">support_verbs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Verb</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.stage.solve.Declarations.support_verbs" title="Link to this definition">#</a></dt>
+<dd><p>The <code class="docutils literal notranslate"><span class="pre">join</span></code>/<code class="docutils literal notranslate"><span class="pre">unjoin</span></code> verbs naming a support.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.stage.solve.Declarations.supports">
+<span class="sig-name descname"><span class="pre">supports</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><span class="pre">DeclaredJoint</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.stage.solve.Declarations.supports" title="Link to this definition">#</a></dt>
+<dd><p>The <code class="docutils literal notranslate"><span class="pre">support</span></code> joints (<a class="reference internal" href="an.stage.support.html#module-an.stage.support" title="an.stage.support"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.support</span></code></a> reads them; the solve does not).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.stage.solve.NodePoint">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stage.solve.</span></span><span class="sig-name descname"><span class="pre">NodePoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rest_world</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/solve.html#NodePoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.solve.NodePoint" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A body reference resolved on the compiled document (<a class="reference internal" href="#an.stage.solve.locate_point" title="an.stage.solve.locate_point"><code class="xref py py-func docutils literal notranslate"><span class="pre">locate_point()</span></code></a>):
+the node its point is on, and the point, in that node’s own frame
+(<code class="docutils literal notranslate"><span class="pre">local</span></code>), or, for a bone, at rest on the stage (<code class="docutils literal notranslate"><span class="pre">rest_world</span></code>: each
+caller maps it into its own frame). <code class="docutils literal notranslate"><span class="pre">end</span></code> marks the drawn extent’s far
+end from the pivot (a hand), which the solve takes at the pivot of a node
+that only rides on a body.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="an.stage.solve.NodePoint.on_node">
+<span class="sig-name descname"><span class="pre">on_node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rest</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/solve.html#NodePoint.on_node"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.solve.NodePoint.on_node" title="Link to this definition">#</a></dt>
+<dd><p>The point in <code class="docutils literal notranslate"><span class="pre">node</span></code>’s own frame, <code class="docutils literal notranslate"><span class="pre">rest</span></code> giving a node’s rest transform.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.stage.solve.PointScope">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stage.solve.</span></span><span class="sig-name descname"><span class="pre">PointScope</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nodes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entities</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rig</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">landmarks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contacts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rest</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/solve.html#PointScope"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.solve.PointScope" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>What <a class="reference internal" href="#an.stage.solve.locate_point" title="an.stage.solve.locate_point"><code class="xref py py-func docutils literal notranslate"><span class="pre">locate_point()</span></code></a> resolves a reference against: the compiled
+document’s nodes by path, the shot’s entities by id, and per entity its
+rig (or <code class="docutils literal notranslate"><span class="pre">None</span></code>), its landmarks and its contacts on a part (<code class="docutils literal notranslate"><span class="pre">{name:</span>
+<span class="pre">(slot,</span> <span class="pre">(u,</span> <span class="pre">v)</span> <span class="pre">or</span> <span class="pre">None)}</span></code>), and <code class="docutils literal notranslate"><span class="pre">rest</span></code>, a node’s rest stage transform.</p>
+<dl class="field-list simple">
+</dl>
 </dd></dl>
 
 <dl class="py class">
@@ -850,6 +917,26 @@ the shot (<code class="docutils literal notranslate"><span class="pre">joints/0<
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.stage.solve.contact_point">
+<span class="sig-prename descclassname"><span class="pre">an.stage.solve.</span></span><span class="sig-name descname"><span class="pre">contact_point</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/solve.html#contact_point"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.solve.contact_point" title="Link to this definition">#</a></dt>
+<dd><p>A contact’s point in its part’s own frame (an#519): <code class="docutils literal notranslate"><span class="pre">point</span></code> a fraction
+<code class="docutils literal notranslate"><span class="pre">(u,</span> <span class="pre">v)</span></code> of the part’s drawing, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the drawn extent’s far end
+from its pivot, <code class="xref py py-data docutils literal notranslate"><span class="pre">CONTACT_INSET</span></code> in. The one point the solve pins and
+the <code class="docutils literal notranslate"><span class="pre">support</span></code> check measures for that contact.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.serialize</span><span class="w"> </span><span class="kn">import</span> <span class="n">NodeJSON</span><span class="p">,</span> <span class="n">VisualJSON</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">leg</span> <span class="o">=</span> <span class="n">NodeJSON</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"leg"</span><span class="p">,</span> <span class="n">visual</span><span class="o">=</span><span class="n">VisualJSON</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">anchor_y</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">contact_point</span><span class="p">(</span><span class="n">leg</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">contact_point</span><span class="p">(</span><span class="n">leg</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">))</span>
+<span class="go">((0.0, 100.0), (0.0, 50.0))</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.stage.solve.declarations">
 <span class="sig-prename descclassname"><span class="pre">an.stage.solve.</span></span><span class="sig-name descname"><span class="pre">declarations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">play_extent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/solve.html#declarations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.solve.declarations" title="Link to this definition">#</a></dt>
 <dd><p>The joints <code class="docutils literal notranslate"><span class="pre">shot</span></code> declares (its entities’ descriptors’, its entities’,
@@ -870,6 +957,34 @@ radians past a hinge’s range, 0 inside it). An unjoined joint reads 0.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference internal" href="#an.stage.solve.Puppet" title="an.stage.solve.Puppet"><code class="xref py py-class docutils literal notranslate"><span class="pre">Puppet</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>], <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]], <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]]]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.solve.locate_point">
+<span class="sig-prename descclassname"><span class="pre">an.stage.solve.</span></span><span class="sig-name descname"><span class="pre">locate_point</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">side</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/solve.html#locate_point"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.solve.locate_point" title="Link to this definition">#</a></dt>
+<dd><p>A body reference as the point it names: a <a class="reference internal" href="#an.stage.solve.NodePoint" title="an.stage.solve.NodePoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">NodePoint</span></code></a>, a world
+<code class="docutils literal notranslate"><span class="pre">Point</span></code> (<code class="docutils literal notranslate"><span class="pre">world&#64;x,y</span></code> or <code class="docutils literal notranslate"><span class="pre">[x,</span> <span class="pre">y]</span></code>), or the message saying why it
+names none. The one resolver of <code class="docutils literal notranslate"><span class="pre">body[&#64;point]</span></code> (an#519): the solve’s
+(<a class="reference internal" href="#an.stage.solve.build_puppet" title="an.stage.solve.build_puppet"><code class="xref py py-func docutils literal notranslate"><span class="pre">build_puppet()</span></code></a>, which puts the node on its bodies) and the
+<code class="docutils literal notranslate"><span class="pre">support</span></code> check’s (<a class="reference internal" href="an.stage.support.html#module-an.stage.support" title="an.stage.support"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.support</span></code></a>).</p>
+<p><code class="docutils literal notranslate"><span class="pre">&#64;point</span></code> is a fraction <code class="docutils literal notranslate"><span class="pre">u,v</span></code> of the node’s drawing, a bone of the rig,
+a landmark (<a class="reference internal" href="an.genres.html#an.genres.EntityKind.landmarks" title="an.genres.EntityKind.landmarks"><code class="xref py py-attr docutils literal notranslate"><span class="pre">an.genres.EntityKind.landmarks</span></code></a>), else a contact
+(<a class="reference internal" href="#an.stage.solve.contact_point" title="an.stage.solve.contact_point"><code class="xref py py-func docutils literal notranslate"><span class="pre">contact_point()</span></code></a>). <code class="docutils literal notranslate"><span class="pre">side</span></code> says what no <code class="docutils literal notranslate"><span class="pre">&#64;</span></code> means: <code class="docutils literal notranslate"><span class="pre">&quot;a&quot;</span></code> (and
+<code class="docutils literal notranslate"><span class="pre">&quot;socket&quot;</span></code>) the node’s pivot, <code class="docutils literal notranslate"><span class="pre">&quot;b&quot;</span></code> the centre of its drawing,
+<code class="docutils literal notranslate"><span class="pre">&quot;hand&quot;</span></code> the far end of it from its pivot (its end effector).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimpleNamespace</span> <span class="k">as</span> <span class="n">NS</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nothing</span> <span class="o">=</span> <span class="n">PointScope</span><span class="p">({},</span> <span class="p">{},</span> <span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="p">{},</span> <span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="p">{},</span> <span class="kc">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">locate_point</span><span class="p">(</span><span class="s2">"world@3,4"</span><span class="p">,</span> <span class="n">nothing</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="s2">"a"</span><span class="p">)</span><span class="o">.</span><span class="n">u</span>
+<span class="go">3.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">locate_point</span><span class="p">(</span><span class="s2">"ghost@hand"</span><span class="p">,</span> <span class="n">nothing</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="s2">"a"</span><span class="p">)</span>
+<span class="go">"'ghost@hand': 'ghost' is not an entity of this shot"</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -960,11 +1075,11 @@ hold layer’s).</p>
       </div>
     </a>
     <a class="right-next"
-       href="an.stage.surface.html"
+       href="an.stage.support.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">an.stage.surface</p>
+        <p class="prev-next-title">an.stage.support</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -990,8 +1105,15 @@ hold layer’s).</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.solve.Declarations"><code class="docutils literal notranslate"><span class="pre">Declarations</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.solve.Declarations.holds"><code class="docutils literal notranslate"><span class="pre">Declarations.holds</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.solve.Declarations.problems"><code class="docutils literal notranslate"><span class="pre">Declarations.problems</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.solve.Declarations.support_verbs"><code class="docutils literal notranslate"><span class="pre">Declarations.support_verbs</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.solve.Declarations.supports"><code class="docutils literal notranslate"><span class="pre">Declarations.supports</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.solve.NodePoint"><code class="docutils literal notranslate"><span class="pre">NodePoint</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.solve.NodePoint.on_node"><code class="docutils literal notranslate"><span class="pre">NodePoint.on_node()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.solve.PointScope"><code class="docutils literal notranslate"><span class="pre">PointScope</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.solve.Puppet"><code class="docutils literal notranslate"><span class="pre">Puppet</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.solve.Puppet.lean"><code class="docutils literal notranslate"><span class="pre">Puppet.lean</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.solve.Puppet.located"><code class="docutils literal notranslate"><span class="pre">Puppet.located</span></code></a></li>
@@ -1003,8 +1125,10 @@ hold layer’s).</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.solve.SOLVE_ORDER"><code class="docutils literal notranslate"><span class="pre">SOLVE_ORDER</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.solve.UnknownBodyError"><code class="docutils literal notranslate"><span class="pre">UnknownBodyError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.solve.build_puppet"><code class="docutils literal notranslate"><span class="pre">build_puppet()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.solve.contact_point"><code class="docutils literal notranslate"><span class="pre">contact_point()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.solve.declarations"><code class="docutils literal notranslate"><span class="pre">declarations()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.solve.joint_residuals"><code class="docutils literal notranslate"><span class="pre">joint_residuals()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.solve.locate_point"><code class="docutils literal notranslate"><span class="pre">locate_point()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.solve.shot_declares_solve"><code class="docutils literal notranslate"><span class="pre">shot_declares_solve()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.solve.solve_knobs"><code class="docutils literal notranslate"><span class="pre">solve_knobs()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.solve.solve_pass"><code class="docutils literal notranslate"><span class="pre">solve_pass()</span></code></a></li>

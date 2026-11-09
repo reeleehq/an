@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=4aa4487b"></script>
+    <script src="../_static/documentation_options.js?v=eedccc62"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.390" />
+  <meta name="docsearch:version" content="0.1.391" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -517,6 +517,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stage.serialize.html">an.stage.serialize</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.snapshot.html">an.stage.snapshot</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.solve.html">an.stage.solve</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.support.html">an.stage.support</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.surface.html">an.stage.surface</a></li>
 <li class="toctree-l3 current active"><a aria-current="page" class="current reference internal" href="#">an.stage.surface_line</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
@@ -567,6 +568,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.verify.media.html">an.verify.media</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.verify.media_quality.html">an.verify.media_quality</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.verify.prosody.html">an.verify.prosody</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.support.html">an.verify.support</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.verify.vision.html">an.verify.vision</a></li>
 </ul>
 </details></li>
@@ -647,16 +649,19 @@ normal <code class="docutils literal notranslate"><span class="pre">(-dy,</span>
 level line (<a class="reference internal" href="#an.stage.surface_line.ground_line" title="an.stage.surface_line.ground_line"><code class="xref py py-func docutils literal notranslate"><span class="pre">ground_line()</span></code></a>); a body’s top edge or a stage segment is the
 line through its two ends (<a class="reference internal" href="#an.stage.surface_line.line_through" title="an.stage.surface_line.line_through"><code class="xref py py-func docutils literal notranslate"><span class="pre">line_through()</span></code></a>). Measured against one:</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#an.stage.surface_line.above" title="an.stage.surface_line.above"><code class="xref py py-func docutils literal notranslate"><span class="pre">above()</span></code></a>: how far the lowest of some points (a part’s corners or ink,
-under its world matrix) is above the line, along its normal; negative when
-sunk into it.</p></li>
+<li><p><a class="reference internal" href="#an.stage.surface_line.lowest_on" title="an.stage.surface_line.lowest_on"><code class="xref py py-func docutils literal notranslate"><span class="pre">lowest_on()</span></code></a>: the lowest of some points (a part’s corners or ink,
+under its world matrix) against the line, and how far above it that point
+is, along its normal; negative when sunk into it. <a class="reference internal" href="#an.stage.surface_line.above" title="an.stage.surface_line.above"><code class="xref py py-func docutils literal notranslate"><span class="pre">above()</span></code></a> is the
+distance alone.</p></li>
 <li><p><a class="reference internal" href="#an.stage.surface_line.lift" title="an.stage.surface_line.lift"><code class="xref py py-func docutils literal notranslate"><span class="pre">lift()</span></code></a>: a world matrix moved along the line’s normal by such a
 distance, which is how an item is laid exactly on what carries it.</p></li>
 </ul>
-<p>The hold layer (<a class="reference internal" href="an.stage.hold.html#module-an.stage.hold" title="an.stage.hold"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.hold</span></code></a>) lays items on the floor and on bodies’
-surfaces with these; they live here so that other measurements of standing
-(the support and skate checks of an#519) use the same lines, the same normal
-and the same sign.</p>
+<p>A body’s own surface (<code class="docutils literal notranslate"><span class="pre">&lt;body&gt;&#64;surface</span></code>, an#536) is the segment
+<a class="reference internal" href="#an.stage.surface_line.body_surface" title="an.stage.surface_line.body_surface"><code class="xref py py-func docutils literal notranslate"><span class="pre">body_surface()</span></code></a> reads off its rig (<a class="reference internal" href="#an.stage.surface_line.SURFACE_BONES" title="an.stage.surface_line.SURFACE_BONES"><code class="xref py py-data docutils literal notranslate"><span class="pre">SURFACE_BONES</span></code></a>) or the top of
+its ink. The hold layer (<a class="reference internal" href="an.stage.hold.html#module-an.stage.hold" title="an.stage.hold"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.hold</span></code></a>) lays items on the floor and on
+bodies’ surfaces with these; they live here so that other measurements of
+standing (the support and skate checks of an#519, <a class="reference internal" href="an.stage.support.html#module-an.stage.support" title="an.stage.support"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.support</span></code></a>)
+use the same lines, the same segment, the same normal and the same sign.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">floor</span> <span class="o">=</span> <span class="n">ground_line</span><span class="p">(</span><span class="mf">100.0</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">above</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">[(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">90.0</span><span class="p">)],</span> <span class="n">floor</span><span class="p">)</span>  <span class="c1"># 10 px above the floor</span>
 <span class="go">10.0</span>
@@ -667,8 +672,14 @@ and the same sign.</p>
 <p class="rubric">Module Attributes</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.surface_line.Line" title="an.stage.surface_line.Line"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Line</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.surface_line.SURFACE_BONES" title="an.stage.surface_line.SURFACE_BONES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SURFACE_BONES</span></code></a></p></td>
+<td><p>The bones a body declares its supporting surface by (an#536), its two ends in the art's terms (left, right): what <code class="docutils literal notranslate"><span class="pre">&lt;body&gt;&#64;surface</span></code> lays an item on.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.surface_line.Line" title="an.stage.surface_line.Line"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Line</span></code></a></p></td>
 <td><p>a point on it and its unit direction, turned so that its normal <code class="docutils literal notranslate"><span class="pre">(-dy,</span> <span class="pre">dx)</span></code> points DOWN the screen (into the support).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.surface_line.Segment" title="an.stage.surface_line.Segment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Segment</span></code></a></p></td>
+<td><p>its two ends.</p></td>
 </tr>
 </tbody>
 </table>
@@ -682,11 +693,17 @@ and the same sign.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.stage.surface_line.line_through" title="an.stage.surface_line.line_through"><code class="xref py py-obj docutils literal notranslate"><span class="pre">line_through</span></code></a>(a, b)</p></td>
 <td><p>The support line through <code class="docutils literal notranslate"><span class="pre">a</span></code> and <code class="docutils literal notranslate"><span class="pre">b</span></code>, whichever end is named first.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.surface_line.above" title="an.stage.surface_line.above"><code class="xref py py-obj docutils literal notranslate"><span class="pre">above</span></code></a>(m, corners, line)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.surface_line.lowest_on" title="an.stage.surface_line.lowest_on"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lowest_on</span></code></a>(m, points, line)</p></td>
+<td><p>The lowest of <code class="docutils literal notranslate"><span class="pre">points</span></code> under <code class="docutils literal notranslate"><span class="pre">m</span></code> against <code class="docutils literal notranslate"><span class="pre">line</span></code> (the farthest along its normal, into it; the first of equals), and how far above the line it is (negative: sunk into it).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.surface_line.above" title="an.stage.surface_line.above"><code class="xref py py-obj docutils literal notranslate"><span class="pre">above</span></code></a>(m, corners, line)</p></td>
 <td><p>How far the lowest of <code class="docutils literal notranslate"><span class="pre">corners</span></code> under <code class="docutils literal notranslate"><span class="pre">m</span></code> is above <code class="docutils literal notranslate"><span class="pre">line</span></code>, along its normal (negative: sunk into it).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.surface_line.lift" title="an.stage.surface_line.lift"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lift</span></code></a>(m, line, distance)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.surface_line.lift" title="an.stage.surface_line.lift"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lift</span></code></a>(m, line, distance)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">m</span></code> moved <code class="docutils literal notranslate"><span class="pre">distance</span></code> along <code class="docutils literal notranslate"><span class="pre">line</span></code>'s normal (down onto it when positive).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.surface_line.body_surface" title="an.stage.surface_line.body_surface"><code class="xref py py-obj docutils literal notranslate"><span class="pre">body_surface</span></code></a>(doc, nodes, mall, *, rig, ...)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&lt;body&gt;&#64;surface</span></code>'s segment (an#536): its two ends in node <code class="docutils literal notranslate"><span class="pre">frame</span></code>'s own coordinates (default: <code class="docutils literal notranslate"><span class="pre">node</span></code>'s), from the rig's <a class="reference internal" href="#an.stage.surface_line.SURFACE_BONES" title="an.stage.surface_line.SURFACE_BONES"><code class="xref py py-data docutils literal notranslate"><span class="pre">SURFACE_BONES</span></code></a> when it declares them, else the top edge of <code class="docutils literal notranslate"><span class="pre">node</span></code>'s ink, mapped by <code class="docutils literal notranslate"><span class="pre">to_frame</span></code> (<code class="docutils literal notranslate"><span class="pre">node</span></code>'s frame in <code class="docutils literal notranslate"><span class="pre">frame</span></code>'s; none: they are one).</p></td>
 </tr>
 </tbody>
 </table>
@@ -699,6 +716,26 @@ normal <code class="docutils literal notranslate"><span class="pre">(-dy,</span>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>A support line</p>
+</dd>
+</dl>
+<p>alias of <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>], <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]]</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.surface_line.SURFACE_BONES">
+<span class="sig-prename descclassname"><span class="pre">an.stage.surface_line.</span></span><span class="sig-name descname"><span class="pre">SURFACE_BONES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('surface_l',</span> <span class="pre">'surface_r')</span></span><a class="headerlink" href="#an.stage.surface_line.SURFACE_BONES" title="Link to this definition">#</a></dt>
+<dd><p>The bones a body declares its supporting surface by (an#536), its two ends
+in the art’s terms (left, right): what <code class="docutils literal notranslate"><span class="pre">&lt;body&gt;&#64;surface</span></code> lays an item on.
+Undeclared, the surface is the top edge of the part’s ink.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.surface_line.Segment">
+<span class="sig-prename descclassname"><span class="pre">an.stage.surface_line.</span></span><span class="sig-name descname"><span class="pre">Segment</span></span><a class="headerlink" href="#an.stage.surface_line.Segment" title="Link to this definition">#</a></dt>
+<dd><p>its two ends.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A bounded surface</p>
 </dd>
 </dl>
 <p>alias of <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>], <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]]</p>
@@ -717,6 +754,27 @@ its normal (negative: sunk into it). On the ground, <code class="docutils litera
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.surface_line.body_surface">
+<span class="sig-prename descclassname"><span class="pre">an.stage.surface_line.</span></span><span class="sig-name descname"><span class="pre">body_surface</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">doc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">rig</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/surface_line.html#body_surface"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.surface_line.body_surface" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">&lt;body&gt;&#64;surface</span></code>’s segment (an#536): its two ends in node <code class="docutils literal notranslate"><span class="pre">frame</span></code>’s
+own coordinates (default: <code class="docutils literal notranslate"><span class="pre">node</span></code>’s), from the rig’s <a class="reference internal" href="#an.stage.surface_line.SURFACE_BONES" title="an.stage.surface_line.SURFACE_BONES"><code class="xref py py-data docutils literal notranslate"><span class="pre">SURFACE_BONES</span></code></a>
+when it declares them, else the top edge of <code class="docutils literal notranslate"><span class="pre">node</span></code>’s ink, mapped by
+<code class="docutils literal notranslate"><span class="pre">to_frame</span></code> (<code class="docutils literal notranslate"><span class="pre">node</span></code>’s frame in <code class="docutils literal notranslate"><span class="pre">frame</span></code>’s; none: they are one). Returns
+why, instead, when the rig names it wrongly.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.serialize</span><span class="w"> </span><span class="kn">import</span> <span class="n">NodeJSON</span><span class="p">,</span> <span class="n">VisualJSON</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">art</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"crate"</span><span class="p">:</span> <span class="n">NodeJSON</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"crate"</span><span class="p">,</span> <span class="n">visual</span><span class="o">=</span><span class="n">VisualJSON</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">4</span><span class="p">))}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">body_surface</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">art</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">rig</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="s2">"crate"</span><span class="p">,</span> <span class="n">node</span><span class="o">=</span><span class="s2">"crate"</span><span class="p">)</span>
+<span class="go">((-5.0, -2.0), (5.0, -2.0))</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>], <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]] | <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -762,6 +820,23 @@ its normal (negative: sunk into it). On the ground, <code class="docutils litera
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>], <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.surface_line.lowest_on">
+<span class="sig-prename descclassname"><span class="pre">an.stage.surface_line.</span></span><span class="sig-name descname"><span class="pre">lowest_on</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/surface_line.html#lowest_on"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.surface_line.lowest_on" title="Link to this definition">#</a></dt>
+<dd><p>The lowest of <code class="docutils literal notranslate"><span class="pre">points</span></code> under <code class="docutils literal notranslate"><span class="pre">m</span></code> against <code class="docutils literal notranslate"><span class="pre">line</span></code> (the farthest
+along its normal, into it; the first of equals), and how far above the
+line it is (negative: sunk into it).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lowest_on</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">[(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">)],</span> <span class="n">ground_line</span><span class="p">(</span><span class="mf">5.0</span><span class="p">))</span>
+<span class="go">((2.0, 3.0), 2.0)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>], <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -816,10 +891,14 @@ its normal (negative: sunk into it). On the ground, <code class="docutils litera
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.surface_line.Line"><code class="docutils literal notranslate"><span class="pre">Line</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.surface_line.SURFACE_BONES"><code class="docutils literal notranslate"><span class="pre">SURFACE_BONES</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.surface_line.Segment"><code class="docutils literal notranslate"><span class="pre">Segment</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.surface_line.above"><code class="docutils literal notranslate"><span class="pre">above()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.surface_line.body_surface"><code class="docutils literal notranslate"><span class="pre">body_surface()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.surface_line.ground_line"><code class="docutils literal notranslate"><span class="pre">ground_line()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.surface_line.lift"><code class="docutils literal notranslate"><span class="pre">lift()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.surface_line.line_through"><code class="docutils literal notranslate"><span class="pre">line_through()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.surface_line.lowest_on"><code class="docutils literal notranslate"><span class="pre">lowest_on()</span></code></a></li>
 </ul>
   </nav></div>
 

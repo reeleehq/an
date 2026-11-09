@@ -19,6 +19,8 @@ an.stage.solve
       solve_report
       declarations
       build_puppet
+      locate_point
+      contact_point
       solve_pass
       joint_residuals
       shot_declares_solve
@@ -30,6 +32,8 @@ an.stage.solve
    
       Declarations
       Puppet
+      NodePoint
+      PointScope
    
    .. rubric:: Exceptions
 

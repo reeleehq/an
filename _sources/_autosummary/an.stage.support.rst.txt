@@ -1,0 +1,32 @@
+an.stage.support
+================
+
+.. automodule:: an.stage.support
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      CONTACT_SOURCES
+      CONTACTS_KEY
+      SUPPORT_TOLERANCE
+      SUPPORT_FLOOR_PX
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      support_tolerance
+      contacts_of
+      contacts_on_parts
+      supports_at
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Contacts
+      ContactState
+      SupportState
+   

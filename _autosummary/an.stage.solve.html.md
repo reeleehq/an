@@ -61,6 +61,8 @@ True
 |-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`declarations`](#an.stage.solve.declarations)(shot, mall, \*[, verbs, play_extent]) | The joints `shot` declares (its entities' descriptors', its entities', its own, in that order) and its verbs, flattened to shot time.                                                                         |
 | [`build_puppet`](#an.stage.solve.build_puppet)(doc, shot, mall, decl, \*[, vocab])   | The bodies and joints of `shot` as built in `doc`; raises [`UnknownBodyError`](#an.stage.solve.UnknownBodyError) naming every reference it cannot resolve.                                         |
+| [`locate_point`](#an.stage.solve.locate_point)(ref, scope, \*, side)                 | A body reference as the point it names: a [`NodePoint`](#an.stage.solve.NodePoint), a world `Point` (`world@x,y` or `[x, y]`), or the message saying why it names none.                     |
+| [`contact_point`](#an.stage.solve.contact_point)(node, point)                         | A contact's point in its part's own frame (an#519): `point` a fraction `(u, v)` of the part's drawing, or `None` for the drawn extent's far end from its pivot, `CONTACT_INSET` in.                           |
 | [`solve_pass`](#an.stage.solve.solve_pass)(state)                                  | The `solve` compile pass (order [`SOLVE_ORDER`](#an.stage.solve.SOLVE_ORDER)).                                                                                                                |
 | [`joint_residuals`](#an.stage.solve.joint_residuals)(doc, shot, mall, \*[, times])      | How far each joined joint of `shot` is from holding in `doc`, at every frame: `(puppet, times, gaps[k][j], range_excess[k][j])` (px; and radians past a hinge's range, 0 inside it).                          |
 | [`shot_declares_solve`](#an.stage.solve.shot_declares_solve)(shot[, mall])                  | Whether `shot` declares anything the solve acts on (the pass's gate).                                                                                                                                         |
@@ -68,21 +70,28 @@ True
 
 ### Classes
 
-| [`Declarations`](#an.stage.solve.Declarations)([joints, verbs, problems, holds])   | Every joint and verb a shot declares, in solver order (structure first), and what it holds ([`an.stage.hold.HoldDeclarations`](an.stage.hold.html.md#an.stage.hold.HoldDeclarations)).   |
-|---------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`Puppet`](#an.stage.solve.Puppet)(bodies, rows, held, events, rest[, ...])  | A shot's bodies (structure first) and joints, ready to solve.                                                                                                                                                  |
+| [`Declarations`](#an.stage.solve.Declarations)([joints, verbs, problems, ...])      | Every joint and verb a shot declares, in solver order (structure first), and what it holds ([`an.stage.hold.HoldDeclarations`](an.stage.hold.html.md#an.stage.hold.HoldDeclarations)).                                                                                                                     |
+|----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`Puppet`](#an.stage.solve.Puppet)(bodies, rows, held, events, rest[, ...])   | A shot's bodies (structure first) and joints, ready to solve.                                                                                                                                                                                                                                                                    |
+| [`NodePoint`](#an.stage.solve.NodePoint)(entity, node[, local, rest_world, end]) | A body reference resolved on the compiled document ([`locate_point()`](#an.stage.solve.locate_point)): the node its point is on, and the point, in that node's own frame (`local`), or, for a bone, at rest on the stage (`rest_world`: each caller maps it into its own frame).                                  |
+| [`PointScope`](#an.stage.solve.PointScope)(nodes, entities, rig, landmarks, ...)  | What [`locate_point()`](#an.stage.solve.locate_point) resolves a reference against: the compiled document's nodes by path, the shot's entities by id, and per entity its rig (or `None`), its landmarks and its contacts on a part (`{name: (slot, (u, v) or None)}`), and `rest`, a node's rest stage transform. |
 
 ### Exceptions
 
 | [`UnknownBodyError`](#an.stage.solve.UnknownBodyError)(message, problems)   | A declaration names a body, a point or a joint the shot does not have.   |
 |----------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
 
-### *class* an.stage.solve.Declarations(joints=list(), verbs=list(), problems=list(), holds=None)
+### *class* an.stage.solve.Declarations(joints=list(), verbs=list(), problems=list(), holds=None, supports=list(), support_verbs=list())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Every joint and verb a shot declares, in solver order (structure first),
 and what it holds ([`an.stage.hold.HoldDeclarations`](an.stage.hold.html.md#an.stage.hold.HoldDeclarations)).
+
+A `support` joint (an#519) is a lint’s declaration, never the solve’s:
+it goes to `supports`, a `join`/`unjoin` of one to `support_verbs`,
+and neither makes the declarations non-`empty`, so a shot declaring only
+supports runs no solve and compiles as if it declared nothing.
 
 #### holds *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)* *= None*
 
@@ -91,6 +100,41 @@ The hold verbs and `held_by` overrides ([`an.stage.hold`](an.stage.hold.html.md#
 #### problems *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]*
 
 `(where, message)` for a declaration that does not read (a descriptor’s).
+
+#### support_verbs *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[Verb]*
+
+The `join`/`unjoin` verbs naming a support.
+
+#### supports *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[DeclaredJoint]*
+
+The `support` joints ([`an.stage.support`](an.stage.support.html.md#module-an.stage.support) reads them; the solve does not).
+
+### *class* an.stage.solve.NodePoint(entity, node, local=None, rest_world=None, end=False)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A body reference resolved on the compiled document ([`locate_point()`](#an.stage.solve.locate_point)):
+the node its point is on, and the point, in that node’s own frame
+(`local`), or, for a bone, at rest on the stage (`rest_world`: each
+caller maps it into its own frame). `end` marks the drawn extent’s far
+end from the pivot (a hand), which the solve takes at the pivot of a node
+that only rides on a body.
+
+#### on_node(rest)
+
+The point in `node`’s own frame, `rest` giving a node’s rest transform.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+### *class* an.stage.solve.PointScope(nodes, entities, rig, landmarks, contacts, rest)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+What [`locate_point()`](#an.stage.solve.locate_point) resolves a reference against: the compiled
+document’s nodes by path, the shot’s entities by id, and per entity its
+rig (or `None`), its landmarks and its contacts on a part (`{name:
+(slot, (u, v) or None)}`), and `rest`, a node’s rest stage transform.
 
 ### *class* an.stage.solve.Puppet(bodies, rows, held, events, rest, located=dict(), nodes=dict(), lean=dict())
 
@@ -147,6 +191,23 @@ The bodies and joints of `shot` as built in `doc`; raises
 * **Return type:**
   [`Puppet`](#an.stage.solve.Puppet)
 
+### an.stage.solve.contact_point(node, point)
+
+A contact’s point in its part’s own frame (an#519): `point` a fraction
+`(u, v)` of the part’s drawing, or `None` for the drawn extent’s far end
+from its pivot, `CONTACT_INSET` in. The one point the solve pins and
+the `support` check measures for that contact.
+
+```pycon
+>>> from an.stage.serialize import NodeJSON, VisualJSON
+>>> leg = NodeJSON(name="leg", visual=VisualJSON(width=16, height=100, anchor_y=0))
+>>> contact_point(leg, None), contact_point(leg, (0.5, 0.5))
+((0.0, 100.0), (0.0, 50.0))
+```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
 ### an.stage.solve.declarations(shot, mall, , verbs=True, play_extent=None)
 
 The joints `shot` declares (its entities’ descriptors’, its entities’,
@@ -163,6 +224,32 @@ radians past a hinge’s range, 0 inside it). An unjoined joint reads 0.
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Puppet`](#an.stage.solve.Puppet), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)], [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]], [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]]]
+
+### an.stage.solve.locate_point(ref, scope, , side)
+
+A body reference as the point it names: a [`NodePoint`](#an.stage.solve.NodePoint), a world
+`Point` (`world@x,y` or `[x, y]`), or the message saying why it
+names none. The one resolver of `body[@point]` (an#519): the solve’s
+([`build_puppet()`](#an.stage.solve.build_puppet), which puts the node on its bodies) and the
+`support` check’s ([`an.stage.support`](an.stage.support.html.md#module-an.stage.support)).
+
+`@point` is a fraction `u,v` of the node’s drawing, a bone of the rig,
+a landmark ([`an.genres.EntityKind.landmarks`](an.genres.html.md#an.genres.EntityKind.landmarks)), else a contact
+([`contact_point()`](#an.stage.solve.contact_point)). `side` says what no `@` means: `"a"` (and
+`"socket"`) the node’s pivot, `"b"` the centre of its drawing,
+`"hand"` the far end of it from its pivot (its end effector).
+
+```pycon
+>>> from types import SimpleNamespace as NS
+>>> nothing = PointScope({}, {}, lambda e: None, lambda e: {}, lambda e: {}, None)
+>>> locate_point("world@3,4", nothing, side="a").u
+3.0
+>>> locate_point("ghost@hand", nothing, side="a")
+"'ghost@hand': 'ghost' is not an entity of this shot"
+```
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.stage.solve.shot_declares_solve(shot, mall=None)
 

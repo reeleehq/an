@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=4aa4487b"></script>
+    <script src="../_static/documentation_options.js?v=eedccc62"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.390" />
+  <meta name="docsearch:version" content="0.1.391" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -517,6 +517,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stage.serialize.html">an.stage.serialize</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.snapshot.html">an.stage.snapshot</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.solve.html">an.stage.solve</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.support.html">an.stage.support</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.surface.html">an.stage.surface</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.surface_line.html">an.stage.surface_line</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
@@ -567,6 +568,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.verify.media.html">an.verify.media</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.verify.media_quality.html">an.verify.media_quality</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.verify.prosody.html">an.verify.prosody</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.support.html">an.verify.support</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.verify.vision.html">an.verify.vision</a></li>
 </ul>
 </details></li>
@@ -718,55 +720,64 @@ refuse by name. The union is never rebuilt at registration.</p></li>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.SEGMENT_JOINT_TYPES" title="an.ir.schema.SEGMENT_JOINT_TYPES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SEGMENT_JOINT_TYPES</span></code></a></p></td>
 <td><p>The types that join a point to a segment (<code class="docutils literal notranslate"><span class="pre">b</span></code> is its start, <code class="docutils literal notranslate"><span class="pre">end</span></code> its end).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.PART_JOINT_TYPES" title="an.ir.schema.PART_JOINT_TYPES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PART_JOINT_TYPES</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.SURFACE_REFS" title="an.ir.schema.SURFACE_REFS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SURFACE_REFS</span></code></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ground</span></code> (the shot's floor line), <code class="docutils literal notranslate"><span class="pre">&lt;body&gt;&#64;surface</span></code> or <code class="docutils literal notranslate"><span class="pre">&lt;body&gt;&#64;surface&#64;f</span></code> (a body's supporting segment, the hold layer's grammar), or <code class="docutils literal notranslate"><span class="pre">world&#64;x,y</span></code> with <code class="docutils literal notranslate"><span class="pre">end</span></code> (a stage segment).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.GROUND_SURFACE" title="an.ir.schema.GROUND_SURFACE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GROUND_SURFACE</span></code></a></p></td>
+<td><p>the shot's floor line.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.SURFACE_POINT" title="an.ir.schema.SURFACE_POINT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SURFACE_POINT</span></code></a></p></td>
+<td><p>The point name that makes <code class="docutils literal notranslate"><span class="pre">&lt;body&gt;&#64;surface</span></code> a body's supporting segment.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.PART_JOINT_TYPES" title="an.ir.schema.PART_JOINT_TYPES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PART_JOINT_TYPES</span></code></a></p></td>
 <td><p>a rig part's own joint to its parent.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.DISTANCE_MODES" title="an.ir.schema.DISTANCE_MODES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DISTANCE_MODES</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.DISTANCE_MODES" title="an.ir.schema.DISTANCE_MODES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DISTANCE_MODES</span></code></a></p></td>
 <td><p>How a distance holds its length; <code class="docutils literal notranslate"><span class="pre">string</span></code> and <code class="docutils literal notranslate"><span class="pre">rod</span></code> imply one.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.DFLT_GRAVITY" title="an.ir.schema.DFLT_GRAVITY"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_GRAVITY</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.DFLT_GRAVITY" title="an.ir.schema.DFLT_GRAVITY"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_GRAVITY</span></code></a></p></td>
 <td><p>The pull of gravity a <code class="docutils literal notranslate"><span class="pre">down</span></code> with no number means, in scene px per second² (a 1080-px frame is about 1.1 m of a standing figure, so 980 is earth's g at roughly one pixel per millimetre: the conventional animation default).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.GRAVITY_DIRECTIONS" title="an.ir.schema.GRAVITY_DIRECTIONS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GRAVITY_DIRECTIONS</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.GRAVITY_DIRECTIONS" title="an.ir.schema.GRAVITY_DIRECTIONS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GRAVITY_DIRECTIONS</span></code></a></p></td>
 <td><p>Where each named gravity direction pulls, on the stage's y-down axes.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.NO_GRAVITY" title="an.ir.schema.NO_GRAVITY"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NO_GRAVITY</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.NO_GRAVITY" title="an.ir.schema.NO_GRAVITY"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NO_GRAVITY</span></code></a></p></td>
 <td><p>The spellings of no gravity.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.FAR_PLATE_ROLE" title="an.ir.schema.FAR_PLATE_ROLE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FAR_PLATE_ROLE</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.FAR_PLATE_ROLE" title="an.ir.schema.FAR_PLATE_ROLE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FAR_PLATE_ROLE</span></code></a></p></td>
 <td><p>at infinity, or rigid with the vehicle the viewpoints are mounted on.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.DFLT_WORLD_GRAVITY" title="an.ir.schema.DFLT_WORLD_GRAVITY"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_WORLD_GRAVITY</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.DFLT_WORLD_GRAVITY" title="an.ir.schema.DFLT_WORLD_GRAVITY"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_WORLD_GRAVITY</span></code></a></p></td>
 <td><p>Gravity, world units per second² along +y (down; the world's units are metres): Earth's.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.DFLT_SWAY_LIMIT_DEG" title="an.ir.schema.DFLT_SWAY_LIMIT_DEG"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_SWAY_LIMIT_DEG</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.DFLT_SWAY_LIMIT_DEG" title="an.ir.schema.DFLT_SWAY_LIMIT_DEG"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_SWAY_LIMIT_DEG</span></code></a></p></td>
 <td><p>The most a member of a swaying frame leans by default, degrees.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.CORE_ACTION_KINDS" title="an.ir.schema.CORE_ACTION_KINDS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CORE_ACTION_KINDS</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.CORE_ACTION_KINDS" title="an.ir.schema.CORE_ACTION_KINDS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CORE_ACTION_KINDS</span></code></a></p></td>
 <td><p>The <code class="docutils literal notranslate"><span class="pre">kind</span></code> of every action the core defines (the static union members).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.EXTENSION_TAG" title="an.ir.schema.EXTENSION_TAG"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EXTENSION_TAG</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.EXTENSION_TAG" title="an.ir.schema.EXTENSION_TAG"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EXTENSION_TAG</span></code></a></p></td>
 <td><p>The union tag of the open member.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.Action" title="an.ir.schema.Action"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Action</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.Action" title="an.ir.schema.Action"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Action</span></code></a></p></td>
 <td><p>the core kinds plus <a class="reference internal" href="#an.ir.schema.ExtensionAction" title="an.ir.schema.ExtensionAction"><code class="xref py py-class docutils literal notranslate"><span class="pre">ExtensionAction</span></code></a> for any other <code class="docutils literal notranslate"><span class="pre">kind</span></code> (a registered genre kind validates to its own model through it).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.DEFAULT_CAPTION_MAX_CHARS" title="an.ir.schema.DEFAULT_CAPTION_MAX_CHARS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_CAPTION_MAX_CHARS</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.DEFAULT_CAPTION_MAX_CHARS" title="an.ir.schema.DEFAULT_CAPTION_MAX_CHARS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_CAPTION_MAX_CHARS</span></code></a></p></td>
 <td><p>the broadcast convention (BBC / Netflix timed-text guidance: 42 characters, two lines).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.DEFAULT_CAPTION_SIZE" title="an.ir.schema.DEFAULT_CAPTION_SIZE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_CAPTION_SIZE</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.DEFAULT_CAPTION_SIZE" title="an.ir.schema.DEFAULT_CAPTION_SIZE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_CAPTION_SIZE</span></code></a></p></td>
 <td><p>Caption type size as a fraction of frame height — a little under the title default, as captions are read while something else is watched.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.LIGHT_KEYS" title="an.ir.schema.LIGHT_KEYS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LIGHT_KEYS</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.LIGHT_KEYS" title="an.ir.schema.LIGHT_KEYS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LIGHT_KEYS</span></code></a></p></td>
 <td><p>the scene's <code class="docutils literal notranslate"><span class="pre">light:</span> <span class="pre">{key:</span> <span class="pre">upper_left}</span></code> (catalogue D1).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.STAGE_NODE_SPACE" title="an.ir.schema.STAGE_NODE_SPACE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">STAGE_NODE_SPACE</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.STAGE_NODE_SPACE" title="an.ir.schema.STAGE_NODE_SPACE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">STAGE_NODE_SPACE</span></code></a></p></td>
 <td><p>The property space a 2D stage engine's node lives in (<a class="reference internal" href="an.timing.spaces.html#module-an.timing.spaces" title="an.timing.spaces"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.timing.spaces</span></code></a>).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.SPECIMEN_DURATION" title="an.ir.schema.SPECIMEN_DURATION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SPECIMEN_DURATION</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.SPECIMEN_DURATION" title="an.ir.schema.SPECIMEN_DURATION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SPECIMEN_DURATION</span></code></a></p></td>
 <td><p>How long a specimen shot runs (<code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">library</span> <span class="pre">sheet</span></code> draws its first frame).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.SPECIMEN_SHOT_ID" title="an.ir.schema.SPECIMEN_SHOT_ID"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SPECIMEN_SHOT_ID</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.SPECIMEN_SHOT_ID" title="an.ir.schema.SPECIMEN_SHOT_ID"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SPECIMEN_SHOT_ID</span></code></a></p></td>
 <td><p>The id of a specimen shot.</p></td>
 </tr>
 </tbody>
@@ -1818,8 +1829,19 @@ and an impulse would flip it over for a frame.</p>
 </dd></dl>
 
 <dl class="py data">
+<dt class="sig sig-object py" id="an.ir.schema.GROUND_SURFACE">
+<span class="sig-prename descclassname"><span class="pre">an.ir.schema.</span></span><span class="sig-name descname"><span class="pre">GROUND_SURFACE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'ground'</span></span><a class="headerlink" href="#an.ir.schema.GROUND_SURFACE" title="Link to this definition">#</a></dt>
+<dd><p>the shot’s floor line.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The surface a support names by a word</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
 <dt class="sig sig-object py" id="an.ir.schema.JOINT_TYPES">
-<span class="sig-prename descclassname"><span class="pre">an.ir.schema.</span></span><span class="sig-name descname"><span class="pre">JOINT_TYPES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('pin',</span> <span class="pre">'hinge',</span> <span class="pre">'weld',</span> <span class="pre">'distance',</span> <span class="pre">'string',</span> <span class="pre">'rod',</span> <span class="pre">'slide',</span> <span class="pre">'contact')</span></span><a class="headerlink" href="#an.ir.schema.JOINT_TYPES" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.ir.schema.</span></span><span class="sig-name descname"><span class="pre">JOINT_TYPES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('pin',</span> <span class="pre">'hinge',</span> <span class="pre">'weld',</span> <span class="pre">'distance',</span> <span class="pre">'string',</span> <span class="pre">'rod',</span> <span class="pre">'slide',</span> <span class="pre">'contact',</span> <span class="pre">'support')</span></span><a class="headerlink" href="#an.ir.schema.JOINT_TYPES" title="Link to this definition">#</a></dt>
 <dd><p>The joint types a scene declares. <code class="docutils literal notranslate"><span class="pre">string</span></code> (a distance held at most) and
 <code class="docutils literal notranslate"><span class="pre">rod</span></code> (a distance held exactly) are the puppeteer’s names for a
 <code class="docutils literal notranslate"><span class="pre">distance</span></code> with its <code class="docutils literal notranslate"><span class="pre">mode</span></code> set.</p>
@@ -1853,7 +1875,20 @@ its <code class="docutils literal notranslate"><span class="pre">limits</span></
 <code class="docutils literal notranslate"><span class="pre">mode</span></code>; <code class="docutils literal notranslate"><span class="pre">string</span></code> is a distance held at most, <code class="docutils literal notranslate"><span class="pre">rod</span></code> exactly.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">slide</span></code> keeps <code class="docutils literal notranslate"><span class="pre">a</span></code> on the segment <code class="docutils literal notranslate"><span class="pre">b</span></code> to <code class="docutils literal notranslate"><span class="pre">end</span></code>; <code class="docutils literal notranslate"><span class="pre">contact</span></code> keeps
 it on the segment’s free side (above a left-to-right segment).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">support</span></code> (an#519) says <code class="docutils literal notranslate"><span class="pre">a</span></code> rests on the surface <code class="docutils literal notranslate"><span class="pre">b</span></code>: no contact
+point of <code class="docutils literal notranslate"><span class="pre">a</span></code> below it, and at least one on it. <code class="docutils literal notranslate"><span class="pre">b</span></code> is <code class="docutils literal notranslate"><span class="pre">ground</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&lt;body&gt;&#64;surface[&#64;f]</span></code>, or <code class="docutils literal notranslate"><span class="pre">world&#64;x,y</span></code> with <code class="docutils literal notranslate"><span class="pre">end</span></code>
+(<a class="reference internal" href="#an.ir.schema.SURFACE_REFS" title="an.ir.schema.SURFACE_REFS"><code class="xref py py-data docutils literal notranslate"><span class="pre">SURFACE_REFS</span></code></a>); <code class="docutils literal notranslate"><span class="pre">a</span></code> with no <code class="docutils literal notranslate"><span class="pre">&#64;</span></code> is every contact of the body
+(<a class="reference internal" href="an.stage.support.html#an.stage.support.contacts_of" title="an.stage.support.contacts_of"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.stage.support.contacts_of()</span></code></a>: a character’s feet, a prop’s
+<code class="docutils literal notranslate"><span class="pre">metadata.contacts</span></code>, its rig’s <code class="docutils literal notranslate"><span class="pre">origin</span></code>, else its lowest ink), and
+<code class="docutils literal notranslate"><span class="pre">&#64;name</span></code> may name one. A lint only (the <code class="docutils literal notranslate"><span class="pre">support</span></code> check), never solved.</p></li>
 </ul>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">JointSpec</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s2">"support"</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="s2">"cup@base"</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="s2">"table@surface"</span><span class="p">)</span><span class="o">.</span><span class="n">id</span>
+<span class="go">'cup@base'</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">JointSpec</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s2">"support"</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="s2">"cup"</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="s2">"world@-50,0"</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">"world@50,0"</span><span class="p">)</span><span class="o">.</span><span class="n">end</span>
+<span class="go">'world@50,0'</span>
+</pre></div>
+</div>
 <p><code class="docutils literal notranslate"><span class="pre">give</span></code> is the joint’s softness (compliance, px per unit of pull; 0 is
 rigid). <code class="docutils literal notranslate"><span class="pre">name</span></code> is what <code class="docutils literal notranslate"><span class="pre">join</span></code> and <code class="docutils literal notranslate"><span class="pre">unjoin</span></code> call it (default: <code class="docutils literal notranslate"><span class="pre">a</span></code>).
 On an entity (<code class="docutils literal notranslate"><span class="pre">AssetRef.joints</span></code>) <code class="docutils literal notranslate"><span class="pre">a</span></code> is relative to the entity
@@ -2134,6 +2169,27 @@ reeleehq/cutan#106), and <code class="docutils literal notranslate"><span class=
 <dt class="sig sig-object py" id="an.ir.schema.STAGE_NODE_SPACE">
 <span class="sig-prename descclassname"><span class="pre">an.ir.schema.</span></span><span class="sig-name descname"><span class="pre">STAGE_NODE_SPACE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'stage.node'</span></span><a class="headerlink" href="#an.ir.schema.STAGE_NODE_SPACE" title="Link to this definition">#</a></dt>
 <dd><p>The property space a 2D stage engine’s node lives in (<a class="reference internal" href="an.timing.spaces.html#module-an.timing.spaces" title="an.timing.spaces"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.timing.spaces</span></code></a>).</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.ir.schema.SURFACE_POINT">
+<span class="sig-prename descclassname"><span class="pre">an.ir.schema.</span></span><span class="sig-name descname"><span class="pre">SURFACE_POINT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'surface'</span></span><a class="headerlink" href="#an.ir.schema.SURFACE_POINT" title="Link to this definition">#</a></dt>
+<dd><p>The point name that makes <code class="docutils literal notranslate"><span class="pre">&lt;body&gt;&#64;surface</span></code> a body’s supporting segment.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.ir.schema.SURFACE_REFS">
+<span class="sig-prename descclassname"><span class="pre">an.ir.schema.</span></span><span class="sig-name descname"><span class="pre">SURFACE_REFS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.15)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'support'})</span></span><a class="headerlink" href="#an.ir.schema.SURFACE_REFS" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">ground</span></code> (the
+shot’s floor line), <code class="docutils literal notranslate"><span class="pre">&lt;body&gt;&#64;surface</span></code> or <code class="docutils literal notranslate"><span class="pre">&lt;body&gt;&#64;surface&#64;f</span></code> (a body’s
+supporting segment, the hold layer’s grammar), or <code class="docutils literal notranslate"><span class="pre">world&#64;x,y</span></code> with
+<code class="docutils literal notranslate"><span class="pre">end</span></code> (a stage segment). <code class="docutils literal notranslate"><span class="pre">support</span></code> only in v1: a <code class="docutils literal notranslate"><span class="pre">contact</span></code> is lowered
+by the solve, which resolves bodies and stage points only.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The types whose <code class="docutils literal notranslate"><span class="pre">b</span></code> is a SURFACE reference (an#519)</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py class">
@@ -3263,6 +3319,7 @@ without loading them (<a class="reference internal" href="an.genres.html#an.genr
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.GRAVITY_DIRECTIONS"><code class="docutils literal notranslate"><span class="pre">GRAVITY_DIRECTIONS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.GROUND_SURFACE"><code class="docutils literal notranslate"><span class="pre">GROUND_SURFACE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.JOINT_TYPES"><code class="docutils literal notranslate"><span class="pre">JOINT_TYPES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.JointSpec"><code class="docutils literal notranslate"><span class="pre">JointSpec</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.JointSpec.distance_mode"><code class="docutils literal notranslate"><span class="pre">JointSpec.distance_mode</span></code></a></li>
@@ -3308,6 +3365,8 @@ without loading them (<a class="reference internal" href="an.genres.html#an.genr
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.SPECIMEN_DURATION"><code class="docutils literal notranslate"><span class="pre">SPECIMEN_DURATION</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.SPECIMEN_SHOT_ID"><code class="docutils literal notranslate"><span class="pre">SPECIMEN_SHOT_ID</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.STAGE_NODE_SPACE"><code class="docutils literal notranslate"><span class="pre">STAGE_NODE_SPACE</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.SURFACE_POINT"><code class="docutils literal notranslate"><span class="pre">SURFACE_POINT</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.SURFACE_REFS"><code class="docutils literal notranslate"><span class="pre">SURFACE_REFS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.SceneIR"><code class="docutils literal notranslate"><span class="pre">SceneIR</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.SceneIR.model_config"><code class="docutils literal notranslate"><span class="pre">SceneIR.model_config</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.SceneIR.world"><code class="docutils literal notranslate"><span class="pre">SceneIR.world</span></code></a></li>

@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=4aa4487b"></script>
+    <script src="../../../_static/documentation_options.js?v=eedccc62"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.390" />
+  <meta name="docsearch:version" content="0.1.391" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -722,16 +722,19 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">level line (:func:`ground_line`); a body's top edge or a stage segment is the</span>
 <span class="sd">line through its two ends (:func:`line_through`). Measured against one:</span>
 
-<span class="sd">- :func:`above`: how far the lowest of some points (a part's corners or ink,</span>
-<span class="sd">  under its world matrix) is above the line, along its normal; negative when</span>
-<span class="sd">  sunk into it.</span>
+<span class="sd">- :func:`lowest_on`: the lowest of some points (a part's corners or ink,</span>
+<span class="sd">  under its world matrix) against the line, and how far above it that point</span>
+<span class="sd">  is, along its normal; negative when sunk into it. :func:`above` is the</span>
+<span class="sd">  distance alone.</span>
 <span class="sd">- :func:`lift`: a world matrix moved along the line's normal by such a</span>
 <span class="sd">  distance, which is how an item is laid exactly on what carries it.</span>
 
-<span class="sd">The hold layer (:mod:`an.stage.hold`) lays items on the floor and on bodies'</span>
-<span class="sd">surfaces with these; they live here so that other measurements of standing</span>
-<span class="sd">(the support and skate checks of an#519) use the same lines, the same normal</span>
-<span class="sd">and the same sign.</span>
+<span class="sd">A body's own surface (``&lt;body&gt;@surface``, an#536) is the segment</span>
+<span class="sd">:func:`body_surface` reads off its rig (:data:`SURFACE_BONES`) or the top of</span>
+<span class="sd">its ink. The hold layer (:mod:`an.stage.hold`) lays items on the floor and on</span>
+<span class="sd">bodies' surfaces with these; they live here so that other measurements of</span>
+<span class="sd">standing (the support and skate checks of an#519, :mod:`an.stage.support`)</span>
+<span class="sd">use the same lines, the same segment, the same normal and the same sign.</span>
 
 <span class="sd">&gt;&gt;&gt; floor = ground_line(100.0)</span>
 <span class="sd">&gt;&gt;&gt; above((1, 0, 0, 1, 0, 0), [(0.0, 90.0)], floor)  # 10 px above the floor</span>
@@ -743,16 +746,35 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">SURFACE_POINT</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.solve</span><span class="w"> </span><span class="kn">import</span> <span class="n">Affine</span><span class="p">,</span> <span class="n">_apply</span><span class="p">,</span> <span class="n">_compose</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"Line"</span><span class="p">,</span> <span class="s2">"ground_line"</span><span class="p">,</span> <span class="s2">"line_through"</span><span class="p">,</span> <span class="s2">"above"</span><span class="p">,</span> <span class="s2">"lift"</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"SURFACE_BONES"</span><span class="p">,</span>
+    <span class="s2">"Line"</span><span class="p">,</span>
+    <span class="s2">"Segment"</span><span class="p">,</span>
+    <span class="s2">"ground_line"</span><span class="p">,</span>
+    <span class="s2">"line_through"</span><span class="p">,</span>
+    <span class="s2">"lowest_on"</span><span class="p">,</span>
+    <span class="s2">"above"</span><span class="p">,</span>
+    <span class="s2">"lift"</span><span class="p">,</span>
+    <span class="s2">"body_surface"</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="c1">#: The bones a body declares its supporting surface by (an#536), its two ends</span>
+<span class="c1">#: in the art's terms (left, right): what ``&lt;body&gt;@surface`` lays an item on.</span>
+<span class="c1">#: Undeclared, the surface is the top edge of the part's ink.</span>
+<span class="n">SURFACE_BONES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"surface_l"</span><span class="p">,</span> <span class="s2">"surface_r"</span><span class="p">)</span>
 
 
 <span class="c1">#: A support line: a point on it and its unit direction, turned so that its</span>
 <span class="c1">#: normal ``(-dy, dx)`` points DOWN the screen (into the support).</span>
 <span class="n">Line</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span>
+<span class="c1">#: A bounded surface: its two ends.</span>
+<span class="n">Segment</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span>
 
 
 <div class="viewcode-block" id="ground_line">
@@ -784,6 +806,31 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<div class="viewcode-block" id="lowest_on">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.surface_line.html#an.stage.surface_line.lowest_on">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">lowest_on</span><span class="p">(</span>
+    <span class="n">m</span><span class="p">:</span> <span class="n">Affine</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span> <span class="n">line</span><span class="p">:</span> <span class="n">Line</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The lowest of ``points`` under ``m`` against ``line`` (the farthest</span>
+<span class="sd">    along its normal, into it; the first of equals), and how far above the</span>
+<span class="sd">    line it is (negative: sunk into it).</span>
+
+<span class="sd">    &gt;&gt;&gt; lowest_on((1, 0, 0, 1, 0, 0), [(0.0, 0.0), (2.0, 3.0)], ground_line(5.0))</span>
+<span class="sd">    ((2.0, 3.0), 2.0)</span>
+<span class="sd">    """</span>
+    <span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">ay</span><span class="p">),</span> <span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">)</span> <span class="o">=</span> <span class="n">line</span>
+    <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span> <span class="o">=</span> <span class="o">-</span><span class="n">dy</span><span class="p">,</span> <span class="n">dx</span>
+    <span class="n">lowest</span><span class="p">,</span> <span class="n">depth</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">-</span><span class="n">math</span><span class="o">.</span><span class="n">inf</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="p">(</span><span class="n">_apply</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">points</span><span class="p">):</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">nx</span> <span class="o">*</span> <span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">ax</span><span class="p">)</span> <span class="o">+</span> <span class="n">ny</span> <span class="o">*</span> <span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">ay</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">lowest</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">d</span> <span class="o">&gt;</span> <span class="n">depth</span><span class="p">:</span>
+            <span class="n">lowest</span><span class="p">,</span> <span class="n">depth</span> <span class="o">=</span> <span class="n">p</span><span class="p">,</span> <span class="n">d</span>
+    <span class="k">if</span> <span class="n">lowest</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"no points to measure against a surface"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">lowest</span><span class="p">,</span> <span class="o">-</span><span class="n">depth</span></div>
+
+
+
 <div class="viewcode-block" id="above">
 <a class="viewcode-back" href="../../../_autosummary/an.stage.surface_line.html#an.stage.surface_line.above">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">above</span><span class="p">(</span><span class="n">m</span><span class="p">:</span> <span class="n">Affine</span><span class="p">,</span> <span class="n">corners</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span> <span class="n">line</span><span class="p">:</span> <span class="n">Line</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
@@ -794,11 +841,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    &gt;&gt;&gt; above((1, 0, 0, 1, 0, 0), square, ground_line(5.0))</span>
 <span class="sd">    3.0</span>
 <span class="sd">    """</span>
-    <span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">ay</span><span class="p">),</span> <span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">)</span> <span class="o">=</span> <span class="n">line</span>
-    <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span> <span class="o">=</span> <span class="o">-</span><span class="n">dy</span><span class="p">,</span> <span class="n">dx</span>
-    <span class="k">return</span> <span class="o">-</span><span class="nb">max</span><span class="p">(</span>
-        <span class="n">nx</span> <span class="o">*</span> <span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">ax</span><span class="p">)</span> <span class="o">+</span> <span class="n">ny</span> <span class="o">*</span> <span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">ay</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="p">(</span><span class="n">_apply</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">corners</span><span class="p">)</span>
-    <span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">lowest_on</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">corners</span><span class="p">,</span> <span class="n">line</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span></div>
 
 
 
@@ -812,6 +855,57 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    """</span>
     <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">_compose</span><span class="p">((</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="o">-</span><span class="n">dy</span> <span class="o">*</span> <span class="n">distance</span> <span class="o">+</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">dx</span> <span class="o">*</span> <span class="n">distance</span> <span class="o">+</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">m</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="body_surface">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.surface_line.html#an.stage.surface_line.body_surface">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">body_surface</span><span class="p">(</span>
+    <span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">nodes</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">rig</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">entity</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">node</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">frame</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">to_frame</span><span class="p">:</span> <span class="n">Affine</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Segment</span> <span class="o">|</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``&lt;body&gt;@surface``'s segment (an#536): its two ends in node ``frame``'s</span>
+<span class="sd">    own coordinates (default: ``node``'s), from the rig's :data:`SURFACE_BONES`</span>
+<span class="sd">    when it declares them, else the top edge of ``node``'s ink, mapped by</span>
+<span class="sd">    ``to_frame`` (``node``'s frame in ``frame``'s; none: they are one). Returns</span>
+<span class="sd">    why, instead, when the rig names it wrongly.</span>
+
+<span class="sd">    &gt;&gt;&gt; from an.stage.serialize import NodeJSON, VisualJSON</span>
+<span class="sd">    &gt;&gt;&gt; art = {"crate": NodeJSON(name="crate", visual=VisualJSON(width=10, height=4))}</span>
+<span class="sd">    &gt;&gt;&gt; body_surface(None, art, None, rig=None, entity="crate", node="crate")</span>
+<span class="sd">    ((-5.0, -2.0), (5.0, -2.0))</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.hold</span><span class="w"> </span><span class="kn">import</span> <span class="n">_anchors_in</span><span class="p">,</span> <span class="n">ink_box</span>
+
+    <span class="k">if</span> <span class="n">rig</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">SURFACE_POINT</span> <span class="ow">in</span> <span class="n">rig</span><span class="o">.</span><span class="n">anchors</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entity</span><span class="si">!r}</span><span class="s2"> has a bone named </span><span class="si">{</span><span class="n">SURFACE_POINT</span><span class="si">!r}</span><span class="s2">, a reserved point name "</span>
+            <span class="sa">f</span><span class="s2">"(`&lt;body&gt;@</span><span class="si">{</span><span class="n">SURFACE_POINT</span><span class="si">}</span><span class="s2">` is the body's top, an#536): rename the bone, "</span>
+            <span class="sa">f</span><span class="s2">"and declare a surface by </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">SURFACE_BONES</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+    <span class="n">bones</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">_anchors_in</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">rig</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">frame</span> <span class="ow">or</span> <span class="n">node</span><span class="p">)</span> <span class="k">if</span> <span class="n">rig</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
+    <span class="p">)</span>
+    <span class="n">declared</span> <span class="o">=</span> <span class="p">[</span><span class="n">b</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">SURFACE_BONES</span> <span class="k">if</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bones</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">declared</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">SURFACE_BONES</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">bones</span><span class="p">[</span><span class="n">SURFACE_BONES</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">bones</span><span class="p">[</span><span class="n">SURFACE_BONES</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
+    <span class="k">if</span> <span class="n">declared</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entity</span><span class="si">!r}</span><span class="s2"> declares </span><span class="si">{</span><span class="n">declared</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">!r}</span><span class="s2"> but not "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="p">[</span><span class="n">b</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">SURFACE_BONES</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">declared</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="si">!r}</span><span class="s2">: a surface is "</span>
+            <span class="s2">"two bones (its ends), or neither (the top of the part's ink)"</span>
+        <span class="p">)</span>
+    <span class="n">left</span><span class="p">,</span> <span class="n">top</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">_h</span> <span class="o">=</span> <span class="n">ink_box</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">nodes</span><span class="p">[</span><span class="n">node</span><span class="p">],</span> <span class="n">mall</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">to_frame</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">((</span><span class="n">left</span><span class="p">,</span> <span class="n">top</span><span class="p">),</span> <span class="p">(</span><span class="n">left</span> <span class="o">+</span> <span class="n">w</span><span class="p">,</span> <span class="n">top</span><span class="p">))</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">_apply</span><span class="p">(</span><span class="n">to_frame</span><span class="p">,</span> <span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">top</span><span class="p">)),</span> <span class="n">_apply</span><span class="p">(</span><span class="n">to_frame</span><span class="p">,</span> <span class="p">(</span><span class="n">left</span> <span class="o">+</span> <span class="n">w</span><span class="p">,</span> <span class="n">top</span><span class="p">)))</span></div>
 
 </pre></div>
 

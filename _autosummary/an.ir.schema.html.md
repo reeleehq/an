@@ -54,6 +54,9 @@ True
 | [`FRAME_KEY`](#an.ir.schema.FRAME_KEY)                 | The key an element's frame is written under in a document (`frame` is the field; `in` is not a name Python lets a field have).                                                                                                                                            |
 | [`JOINT_TYPES`](#an.ir.schema.JOINT_TYPES)               | The joint types a scene declares.                                                                                                                                                                                                                                         |
 | [`SEGMENT_JOINT_TYPES`](#an.ir.schema.SEGMENT_JOINT_TYPES)       | The types that join a point to a segment (`b` is its start, `end` its end).                                                                                                                                                                                               |
+| [`SURFACE_REFS`](#an.ir.schema.SURFACE_REFS)              | `ground` (the shot's floor line), `<body>@surface` or `<body>@surface@f` (a body's supporting segment, the hold layer's grammar), or `world@x,y` with `end` (a stage segment).                                                                                            |
+| [`GROUND_SURFACE`](#an.ir.schema.GROUND_SURFACE)            | the shot's floor line.                                                                                                                                                                                                                                                    |
+| [`SURFACE_POINT`](#an.ir.schema.SURFACE_POINT)             | The point name that makes `<body>@surface` a body's supporting segment.                                                                                                                                                                                                   |
 | [`PART_JOINT_TYPES`](#an.ir.schema.PART_JOINT_TYPES)          | a rig part's own joint to its parent.                                                                                                                                                                                                                                     |
 | [`DISTANCE_MODES`](#an.ir.schema.DISTANCE_MODES)            | How a distance holds its length; `string` and `rod` imply one.                                                                                                                                                                                                            |
 | [`DFLT_GRAVITY`](#an.ir.schema.DFLT_GRAVITY)              | The pull of gravity a `down` with no number means, in scene px per second² (a 1080-px frame is about 1.1 m of a standing figure, so 980 is earth's g at roughly one pixel per millimetre: the conventional animation default).                                            |
@@ -841,7 +844,14 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 
 Where each named gravity direction pulls, on the stage’s y-down axes.
 
-### an.ir.schema.JOINT_TYPES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('pin', 'hinge', 'weld', 'distance', 'string', 'rod', 'slide', 'contact')*
+### an.ir.schema.GROUND_SURFACE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'ground'*
+
+the shot’s floor line.
+
+* **Type:**
+  The surface a support names by a word
+
+### an.ir.schema.JOINT_TYPES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('pin', 'hinge', 'weld', 'distance', 'string', 'rod', 'slide', 'contact', 'support')*
 
 The joint types a scene declares. `string` (a distance held at most) and
 `rod` (a distance held exactly) are the puppeteer’s names for a
@@ -877,6 +887,20 @@ ruler).
   `mode`; `string` is a distance held at most, `rod` exactly.
 - `slide` keeps `a` on the segment `b` to `end`; `contact` keeps
   it on the segment’s free side (above a left-to-right segment).
+- `support` (an#519) says `a` rests on the surface `b`: no contact
+  point of `a` below it, and at least one on it. `b` is `ground`,
+  `<body>@surface[@f]`, or `world@x,y` with `end`
+  ([`SURFACE_REFS`](#an.ir.schema.SURFACE_REFS)); `a` with no `@` is every contact of the body
+  ([`an.stage.support.contacts_of()`](an.stage.support.html.md#an.stage.support.contacts_of): a character’s feet, a prop’s
+  `metadata.contacts`, its rig’s `origin`, else its lowest ink), and
+  `@name` may name one. A lint only (the `support` check), never solved.
+
+```pycon
+>>> JointSpec(type="support", a="cup@base", b="table@surface").id
+'cup@base'
+>>> JointSpec(type="support", a="cup", b="world@-50,0", end="world@50,0").end
+'world@50,0'
+```
 
 `give` is the joint’s softness (compliance, px per unit of pull; 0 is
 rigid). `name` is what `join` and `unjoin` call it (default: `a`).
@@ -1081,6 +1105,21 @@ The id of a specimen shot.
 ### an.ir.schema.STAGE_NODE_SPACE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'stage.node'*
 
 The property space a 2D stage engine’s node lives in ([`an.timing.spaces`](an.timing.spaces.html.md#module-an.timing.spaces)).
+
+### an.ir.schema.SURFACE_POINT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'surface'*
+
+The point name that makes `<body>@surface` a body’s supporting segment.
+
+### an.ir.schema.SURFACE_REFS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'support'})*
+
+`ground` (the
+shot’s floor line), `<body>@surface` or `<body>@surface@f` (a body’s
+supporting segment, the hold layer’s grammar), or `world@x,y` with
+`end` (a stage segment). `support` only in v1: a `contact` is lowered
+by the solve, which resolves bodies and stage points only.
+
+* **Type:**
+  The types whose `b` is a SURFACE reference (an#519)
 
 ### *class* an.ir.schema.SceneIR(\*, version='0.3.0', compatible_version='0.3.0', kind='SceneIR', meta=<factory>, assets=<factory>, timeline=<factory>, world=None, \*\*extra_data)
 

@@ -8,7 +8,9 @@ an.stage.surface\_line
 
    .. autosummary::
    
+      SURFACE_BONES
       Line
+      Segment
    
    .. rubric:: Functions
 
@@ -16,6 +18,8 @@ an.stage.surface\_line
    
       ground_line
       line_through
+      lowest_on
       above
       lift
+      body_surface
    

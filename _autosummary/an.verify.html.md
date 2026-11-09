@@ -99,4 +99,5 @@ object, differing only in what the store returns.
 | [`media`](an.verify.media.html.md#module-an.verify.media)                 | Media verification helpers — audio + frame quality checks for rendered mp4s.                 |
 | [`media_quality`](an.verify.media_quality.html.md#module-an.verify.media_quality) | MediaQualityVerifier — post-render quality checks on the actual mp4.                         |
 | [`prosody`](an.verify.prosody.html.md#module-an.verify.prosody)             | Prosody measurement: how a recorded voice delivers its words, as numbers a target can check. |
+| [`support`](an.verify.support.html.md#module-an.verify.support)             | The `support` check: a body declared to rest on a surface does (an#519, catalogue A1).       |
 | [`vision`](an.verify.vision.html.md#module-an.verify.vision)               | VisionLMVerifier — Claude vision looks at sampled frames and reports issues.                 |
